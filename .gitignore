@@ -1,0 +1,9 @@
+# Ignore all netcdf files and graph files
+*.nc
+*.info
+*.info.part.*
+
+# Ignore all PNGs
+*.png
+
+# Each tool should also have it's own .gitignore file that ignores the build files for that tool.

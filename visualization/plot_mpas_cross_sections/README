@@ -1,0 +1,33 @@
+plot_mpas_cross_sections README
+
+This is a matlab post-processing tool to view cross sections of
+MPAS-Ocean data.  To begin, change the parameters at the top of
+plot_mpas_cross_sections.m.  You will need to change the text strings
+wd, sim(i).dir, and sim(i).netcdf_file so that the text string
+
+[wd '/' sim(i).dir '/' sim(i).netcdf_file ] is the file path,
+
+where wd is the working directory and dir is the run directory.
+Details of the section coordinates and variables may be specified in
+plot_mpas_cross_sections.m.  
+
+The data files only need to contain a small number of variables.
+You may need to reduce the file size before copying to a local
+machine using:
+
+ncks -v acc_uReconstructMeridional,acc_uReconstructZonal, \
+nAccumulate,latVertex,lonVertex,verticesOnEdge,edgesOnVertex,hZLevel,\
+dvEdge,latCell,lonCell,cellsOnCell,nEdgesOnCell \
+file_in.nc file_out.nc
+
+After plot_mpas_cross_sections is executed in matlab, plots are placed
+in the docs/*.nc_dir/f subdirectory, and a latex file is created and
+compiled to produce a docs/*.nc_dir/*.nc.pdf file that includes all
+the figures.
+
+This plotting tool has been tested for ocean output files, but should
+nearly work for other cores as well.  A few lines will need to be
+changed.  We compute depth from the hZLevel variable, and plot cross
+sections with depth increasing downward.
+
+Mark Petersen, MPAS-Ocean Team, LANL, May 2012

@@ -1,0 +1,44 @@
+Author: Doug Jacobsen
+Date: 04/19/13
+
+About:
+	This script (parse_xml_registry.py) parses a MPAS Registry.xml file.
+	It generates a default namelist file (named namelist.input.generated)
+	based on the default values in Registry.xml.
+
+	In addition, it can be used to generate documentation for a users or developers guide.
+
+
+	It can be run by calling it with
+		./parse_xml_registry.py -f path/to/Registry.xml
+	With two optional arguments
+		-d path/to/latex/section/desctiptions
+		and
+		-p path/in/users/guide/to/section/descriptions
+
+	The -d flag lists a path in the file system to a set of section
+	descriptions for providing additional information in the output latex
+	documentation.
+
+	Section descriptions are required to be named whatever the section is. For
+	example, in a namelist, there might be a namelist record named
+	"&time_management". The script searches the directory listed with the -d
+	flag for a latex file named time_management.tex, and adds an input line to
+	the output latex documentation to include this file.
+
+	The -p flag allows the user to specify the relative path inside the latex
+	documentation where the file should be input from. As an example, one might
+	run it as follows to generate the ocean core's documentation.
+
+		./parse_xml_registry.xml -f mpas_root/src/core_ocean/Registry.xml -d mpas_doc_root/users_guide/ocean/section_descriptions -p ocean/section_descriptions
+	
+
+	On output, several files are created which are listed below.
+		namelist.input.generated - A default namelist.input file for the core that owns the Registry.xml file.
+		dimensions.tex - A tabulated description of the dimensions for the core.
+		namelist_table_documentation.tex - A tabulated description of the namelist options for the core.
+		namelist_section_documentation.tex - A more detailed section format description of the namelist options for the core.
+		variable_table_documentation.tex - A tabulated description of the variables in the core.
+		variable_section_documentation.tex - A more detailed section formate description of the variable in the core.
+		define_version.tex - A simple file which can be included to define \version inside the users guide.
+
