@@ -1,0 +1,94 @@
+MpasDraw.x:
+	This program is used to visualize MPAS grid, and output files using OpenGL.
+
+	Requirements:
+		You must have opengl and netcdf libraries installed on your computer.
+		Please edit the makefile with the specific paths.
+
+	To Compile:
+		Edit the make file for the appropriate platform, and simply type
+			make
+		The program should build for you, and the executable will be named MpasDraw.x
+
+	To Run:
+		./MpasDraw.x [file-path] [arg]
+
+		[file-path] is an optional argument, that is the path to the mpas grid or output file you are trying to
+		visualize. Optinally, you can input this once the program is running.
+
+		[arg] is an optional argument. Enter any value to cause MpasDraw to save a single screenshot of the starting image and exit.
+
+	Usage:
+		Once inside the program, you can use the following keys to control the plot.
+
+		Up/Down/Left/Right Arrow Keys, or S D F E:
+			These keys are used to rotate the sphere, to allow for viewing at different angles.
+
+		s d f e , .: (Translation)
+			The lowercase s and f keys control the horizonal position of the image.
+			The lowercase d and e keys control the vertical position of the image.
+			The , and . keys control the depth of the image.
+
+		c: (connectivity)
+			The lowercase c key cycles between cells that are draw, the options are the Delaunay triangulation,
+			the Voronoi diagram, and the edges. Edges are drawn as rectangles made up of two cell centers, and two
+			cell vertices.
+
+		w: (wireframe)
+			The lowercase w key toggles the wireframe on and off.
+
+		b: (colorbar)
+			The lowercase b key toggles the color bar scale. 
+			MpasDraw starts with the color bar being scaled on the current slice that is being plotted.
+			Pressing b cycles between this and coloring based on a user input color bar.
+
+		B: (colorbar)
+			The uppercase B key toggles another method for the color bar scale. 
+			MpasDraw starts with the color bar being scaled on the current slice that is being plotted.
+			Pressing b cycles between this and coloring based on all time and vert levels.
+			Coloring on a single slice is faster, but doesn't show global changes.
+			Coloring on all time takes longer to build the scaling range (if number of time steps is large)
+			but the color bar is static. Also, this colorbar only has to be computed once for the entire run of MpasDraw
+
+
+		r: (reset)
+			The lowercase r key resets the plot to the default parameters (for color, timestep, vertical level, position, rotation, and color bar).
+
+		v: (variables)
+			The lowercase v key lists available variables that can be chosen from
+			to color the current mesh with. After pressing v, the variables are listed in the terminal.
+			The variable id (given as a number in the left most column) can be entered to
+			change the color of the current plot.
+
+		V: (video)
+			The uppercase V key plays the time series of a current variable as a video.
+			It iterates through each frame and attempts to make the framerate 30 fps.
+
+		l, L: (level)
+			The lowercase l key cycles through available vertical levels.
+			The uppercase L key cycles through available vertical levels in reverse.
+
+		t, T: (time)
+			The lowercase t key cycles through available time steps.
+			The uppercase T key cycles through available time steps in reverse.
+
+	    [0-9]: (Color Range)
+			Change the percent of available color space.
+			1-9: 10*Number Pressed% of Color range (eg. 10% = 1, 20% = 2...)
+			0: 100% of Color range
+
+		q:
+			The lowercase q key saves the current buffer as a screenshot to ss.0000.tga. You can afterwards convert the .tga file to any format.
+			The counter (0000) is auto incremented from 0001 upwards each time a screenshot is taken.
+
+		O: (sphere)
+			The uppercase O key turns on and off the background sphere (only if the file is defined on a sphere).
+			This is useful for looking at where land is in a spherical mesh.
+
+		Q:
+			The uppercase Q key reads a file named ControlFile which is a single line file containing a string of characters.
+			This string of characters represents a macro which will be executed. It can contain any of the non-arror characters listed in this file, aside from ESC.
+
+		ESC:
+			The escape key closes the program.
+

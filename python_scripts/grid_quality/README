@@ -1,0 +1,25 @@
+Author: Doug Jacobsen
+Date: 02/12/13
+
+About:
+	This script is used to compute quality metrics on an MPAS mesh.
+	It appends to the grid file four arrays.
+		cellQuality
+		triangleQuality
+		triangleAngleQuality
+		obtuseTriangle
+	
+	In addition, it writes histgrams to a file named quality.png, and potentially displays them.
+
+	The usage statement can be seen with ./grid_quality.py -h, but is as follows.
+
+Usage: grid_quality.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -f FILE, --file=FILE  Path to grid file
+  -b NUMBINS, --bins=NUMBINS
+                        Number of bins for histogram
+  -q, --quiet           Turns off display of plots, though they are still
+                        saved in quality.png
+

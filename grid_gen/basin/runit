@@ -1,0 +1,20 @@
+rm -f map
+cd src
+make clean
+make
+mv map ..
+cd ..
+rm -f graph*
+./map
+#cd ../metis-4.0
+kmetis graph.info 2
+kmetis graph.info 4
+kmetis graph.info 8
+kmetis graph.info 16
+kmetis graph.info 32
+kmetis graph.info 64
+kmetis graph.info 128
+kmetis graph.info 256
+kmetis graph.info 512
+kmetis graph.info 1024
+#cd ../basin

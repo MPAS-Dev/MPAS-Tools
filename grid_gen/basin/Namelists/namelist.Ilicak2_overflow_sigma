@@ -1,0 +1,24 @@
+&basin
+  nVertLevelsMOD = 10
+  on_a_sphere = 'NO'
+  sphere_radius = 0.0
+  expand_from_unit_sphere = .false.
+  zLevel_thickness = 'equally_spaced'
+  bottom_topography = 'Ilicak2_overflow_sigma'
+  initial_conditions = 'Ilicak2_overflow_sigma'
+  eliminate_inland_seas=.false.
+  load_woce_IC = .false.
+  write_OpenDX_flag = .false.
+  monthly_forcing = .false.
+  check_mesh = .true.
+  cut_domain_from_sphere = .false.
+  solid_boundary_in_y = .true.
+  solid_boundary_in_x = .false.
+  top_layers_without_land = 3
+  h_total_max = 2000.0 
+  u_src_max = 0.0
+  f0 = 0.0  
+  beta = 0.0
+  omega = 0.0
+  Lx = 3.0e3
+/

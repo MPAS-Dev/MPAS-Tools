@@ -1,0 +1,8 @@
+&input
+   config_original_latitude_degrees = 0
+   config_original_longitude_degrees = 0
+
+   config_new_latitude_degrees = 0
+   config_new_longitude_degrees = 0
+   config_birdseye_rotation_counter_clockwise_degrees = 0
+/

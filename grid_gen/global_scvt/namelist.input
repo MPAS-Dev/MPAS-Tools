@@ -1,0 +1,9 @@
+&domains
+ np = 162 
+ locs_as_xyz = .true.
+ n_scvt_iterations = 100
+ eps = 0.000000001
+ l2_conv = .true.
+ inf_conv = .false.
+ min_dx = 120000.0
+/

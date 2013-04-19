@@ -1,0 +1,172 @@
+
+object "positions list" class array type float rank 1 shape 3 items 240000
+ascii data file tri.position.data
+
+object "edge list" class array type int rank 0 items 240000
+ascii data file tri.edge.data
+attribute "ref" string "positions"
+
+object "loops list" class array type int rank 0 items 80000
+ascii data file tri.loop.data
+attribute "ref" string "edges"
+
+object "face list" class array type int rank 0 items 80000
+ascii data file tri.face.data
+attribute "ref" string "loops"
+
+object 0  class array type float rank 0 items 80000
+data file tri.area.data
+attribute "dep" string "faces"
+
+object 1  class array type float rank 0 items 80000
+data file ./output/divDT.data
+attribute "dep" string "faces"
+
+object 2  class array type float rank 0 items 80000
+data file ./output/ke.data
+attribute "dep" string "faces"
+
+object 3  class array type float rank 0 items 80000
+data file ./output/relDT.data
+attribute "dep" string "faces"
+
+object 4  class array type float rank 0 items 80000
+data file ./output/thicknessc.data
+attribute "dep" string "faces"
+
+object 5  class array type float rank 0 items 80000
+data file ./output/thicknesscdiff.data
+attribute "dep" string "faces"
+
+object 6  class array type float rank 0 items 80000
+data file ./output/kediff.data
+attribute "dep" string "faces"
+
+object 7  class array type float rank 0 items 80000
+data file ./output/relDTdiff.data
+attribute "dep" string "faces"
+
+object 8  class array type float rank 0 items 80000
+data file ./output/residDT.data
+attribute "dep" string "faces"
+
+object 9  class array type float rank 0 items 80000
+data file ./output/chi.data
+attribute "dep" string "faces"
+
+object 10  class array type float rank 0 items 80000
+data file ./output/divAVG.data
+attribute "dep" string "faces"
+
+object 11  class array type float rank 0 items 80000
+data file ./output/beta.data
+attribute "dep" string "faces"
+
+object 12  class array type float rank 0 items 80000
+data file ./output/jtw.data
+attribute "dep" string "faces"
+
+object 13  class array type float rank 0 items 80000
+data file ./output/pv.data
+attribute "dep" string "faces"
+
+
+
+object "areac" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           0
+
+object "divDT" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           1
+
+object "ke" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           2
+
+object "relDT" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           3
+
+object "thicknessc" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           4
+
+object "thicknesscdiff" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           5
+
+object "kediff" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           6
+
+object "relDTdiff" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           7
+
+object "residDT" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           8
+
+object "chi" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           9
+
+object "divAVG" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           10
+
+object "beta" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           11
+
+object "jtw" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           12
+
+object "pv" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           13
+

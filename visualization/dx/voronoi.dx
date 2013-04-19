@@ -1,0 +1,236 @@
+object "positions list" class array type float rank 1 shape 3 items 240000
+ascii data file vor.position.data
+
+object "edge list" class array type int rank 0 items 240000
+ascii data file vor.edge.data
+attribute "ref" string "positions"
+
+object "loops list" class array type int rank 0 items 40000
+ascii data file vor.loop.data
+attribute "ref" string "edges"
+
+object "face list" class array type int rank 0 items 40000
+ascii data file vor.face.data
+attribute "ref" string "loops"
+
+object 0  class array type float rank 0 items 40000
+data file vor.index.data
+attribute "dep" string "faces"
+
+object 1  class array type float rank 0 items 40000
+data file vor.block.data
+attribute "dep" string "faces"
+
+object 2  class array type float rank 0 items 40000
+data file vor.area.data
+attribute "dep" string "faces"
+
+object 3  class array type float rank 0 items 40000
+data file ./output/div.data
+attribute "dep" string "faces"
+
+object 4  class array type float rank 0 items 40000
+data file ./output/vor.data
+attribute "dep" string "faces"
+
+object 5  class array type float rank 0 items 40000
+data file scalar.data
+attribute "dep" string "faces"
+
+object 6  class array type float rank 0 items 40000
+data file div_analy.data
+attribute "dep" string "faces"
+
+object 7  class array type float rank 0 items 40000
+data file curl_analy.data
+attribute "dep" string "faces"
+
+object 8  class array type float rank 0 items 40000
+data file gradmag_analy.data
+attribute "dep" string "faces"
+
+object 9  class array type float rank 0 items 40000
+data file gradang_analy.data
+attribute "dep" string "faces"
+
+object 10  class array type float rank 0 items 40000
+data file gradmag.data
+attribute "dep" string "faces"
+
+object 11  class array type float rank 0 items 40000
+data file ./output/relative.data
+attribute "dep" string "faces"
+
+object 12  class array type float rank 0 items 40000
+data file ./output/height.data
+attribute "dep" string "faces"
+
+object 13  class array type float rank 0 items 40000
+data file ./output/thickness.data
+attribute "dep" string "faces"
+
+object 14  class array type float rank 0 items 40000
+data file ./output/tracer1.data
+attribute "dep" string "faces"
+
+object 15  class array type float rank 0 items 40000
+data file ./output/tracer2.data
+attribute "dep" string "faces"
+
+object 16  class array type float rank 0 items 40000
+data file ./output/vorTR1.data
+attribute "dep" string "faces"
+
+object 17  class array type float rank 0 items 40000
+data file ./output/thicknessdiff.data
+attribute "dep" string "faces"
+
+object 18  class array type float rank 0 items 40000
+data file ./output/keVD.data
+attribute "dep" string "faces"
+
+object 19  class array type float rank 0 items 40000
+data file ./output/keVDdiff.data
+attribute "dep" string "faces"
+
+
+
+object "index" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           0
+
+object "block" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           1
+
+object "area" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           2
+
+object "div" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           3
+
+object "vor" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           4
+
+object "scalar" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           5
+
+object "div_analy" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           6
+
+object "curl_analy" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           7
+
+object "gradmag_analy" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           8
+
+object "gradang_analy" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           9
+
+object "gradmag" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           10
+
+object "relative" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           11
+
+object "height" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           12
+
+object "thickness" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           13
+
+object "tracer1" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           14
+
+object "tracer2" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           15
+
+object "vorTR1" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           16
+
+object "thicknessdiff" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           17
+
+object "keVD" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           18
+
+object "keVDdiff" class field
+component "positions"     "positions list"
+component "edges"         "edge list"
+component "loops"         "loops list"
+component "faces"         "face list"
+component "data"           19

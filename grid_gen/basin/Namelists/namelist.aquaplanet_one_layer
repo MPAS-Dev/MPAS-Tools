@@ -1,0 +1,31 @@
+&basin
+  nVertLevelsMOD = 1
+  on_a_sphere = 'YES'
+  expand_from_unit_sphere = .true.
+  sphere_radius = 1.0
+  zLevel_thickness = 'equally_spaced'
+  bottom_topography = 'flat_bottom'
+  initial_conditions = 'uniform_TS'
+  uniform_T = 10.0
+  uniform_S = 34.0
+  uniform_tracer1 = 1.0
+  eliminate_inland_seas=.false.
+  load_woce_IC = .false.
+  write_OpenDX_flag = .false.
+  monthly_forcing = .false.
+  check_mesh = .true.
+  cut_domain_from_sphere = .false.
+  solid_boundary_in_y = .false.
+  solid_boundary_in_x = .false.
+  top_layers_without_land = 3
+  h_total_max = 3000.0 
+
+  ! These variables are not needed for aquaplanet.
+  ! u,f,h are initialized in the code.
+
+  u_src_max = 0.0 
+  f0 = 0.0 
+  beta = 0.0
+  omega = 0.0
+  ! Lx = 3200.0e3
+/

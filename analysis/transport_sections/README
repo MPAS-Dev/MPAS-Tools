@@ -1,0 +1,41 @@
+transport_sections README
+
+This is a matlab tool to find sections that connect two points on the
+globe.  These sections are a sequence of connected edges, and the
+edges and other variables are output as both a netcdf and text files.
+The transport can then be measured using this matlab code using output
+files, or in MPAS-Ocean during runtime.
+
+To begin, change the parameters at the top of transport_sections.m.
+You will need to change the text strings wd, sim(i).dir, and
+sim(i).netcdf_file so that the text string
+
+[wd '/' sim(i).dir '/' sim(i).netcdf_file ] is the file path,
+
+where wd is the working directory and dir is the run directory.
+Details of the section coordinates and variables may be specified in
+transport_sections.m.
+
+The data files only need to contain a small number of variables.
+You may need to reduce the file size before copying to a local
+machine using:
+
+ncks -v acc_u, \
+nAccumulate,latVertex,lonVertex,verticesOnEdge,edgesOnVertex,hZLevel,\
+dvEdge \
+file_in.nc file_out.nc
+
+The matlab scripts will create a new netcdf file named
+{your_domain}_section_edge_data.nc.  To merge this file with an
+existing grid or restart file, use:
+
+ncks -A -v sectionEdgeIndex,sectionEdgeSign,nEdgesInSection,\
+sectionText,sectionAbbreviation,sectionCoord \
+{your_domain}_section_edge_data.nc your_restart_file.nc
+
+These matlab tools have been tested for ocean output files, but should
+nearly work for other cores as well.  A few lines will need to be
+changed.
+
+Mark Petersen, MPAS-Ocean Team, LANL, May 2012
+

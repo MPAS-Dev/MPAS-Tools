@@ -1,0 +1,18 @@
+object "positions list" class array type float rank 1 shape 3 items 120000
+ascii data file edge.position.data
+
+object 0  class array type float rank 1 shape 3 items 120000
+ascii data file normal.data 
+attribute "dep" string "positions"
+
+object 1  class array type float rank 1 shape 3 items 120000
+ascii data file tangent.data
+attribute "dep" string "positions"
+
+object "normal" class field
+component "positions"     "positions list"
+component "data"           0
+
+object "tangent" class field
+component "positions"     "positions list"
+component "data"           1
