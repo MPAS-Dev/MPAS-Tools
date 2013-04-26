@@ -1,0 +1,14 @@
+The dx directory will contain the files for OpenDX visualization after 
+basin is run.  These files include:
+h.data
+mesh.cfg
+mesh.net
+ocean.area.data
+ocean.dx
+ocean.edge.data
+ocean.face.data
+ocean.loop.data
+ocean.position.data
+vector.dx
+vector.position.data
+
