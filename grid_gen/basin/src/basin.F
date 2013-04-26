@@ -477,7 +477,7 @@ end subroutine write_graph
 subroutine get_init_conditions
 implicit none
 real :: halfwidth, dtr, pi, p(3), q(3), xin, yin, zin, ulon, ulat, stress, n1, n2, distance, r, temp_t, temp_s
-real :: dotProd
+real :: dotProd, rho_ref, rho_delta, work, factor, r1, deltay, b
 integer :: iTracer, ix, iy, ndata, i, j, k, ixt, iyt, ncull, jcount, iNoData, kdata(nVertLevelsMod), iMonth
 logical :: flag_lat
 
@@ -548,6 +548,52 @@ elseif (initial_conditions.eq.'Ilicak2_overflow_sigma') then
          hNew(1,k,iCell) = bottomDepthNew(iCell) / nVertLevelsMOD
       enddo
    enddo  
+
+elseif (initial_conditions.eq.'SOMA_TS') then
+
+  temperatureNew = -99.0
+  salinityNew = -99.0
+  rho_ref=1000.0
+  rho_delta=5.0
+  do iCell=1,nCellsNew
+  do k = 1,maxLevelCellNew(iCell)
+    if(k.eq.1) r1 = -refBottomDepth(k)/2.0
+    if(k.ne.1) r1 = -(refBottomDepth(k)+refBottomDepth(k-1))/2.0
+    work = rho_ref - (1.0-0.05)*rho_delta*tanh(r1/300) - 0.05*rho_delta*r1/2500
+    factor = (rho_ref-work)/2.5e-1
+    temperatureNew(1,k,iCell) = 20.0 + factor
+    salinityNew(1,k,iCell) = 0.0  ! salinity
+  enddo
+  enddo
+
+  u_srcNew = 0.0
+  do iEdge=1,nEdgesNew
+    xin = xEdgeNew(iEdge)
+    yin = yEdgeNew(iEdge)
+    zin = zEdgeNew(iEdge)
+    rlon = lonEdgeNew(iEdge)
+    rlat = latEdgeNew(iEdge)
+  
+    b=1.25e6
+    deltay = sphere_radius * ( rlat - 35.0*dtr)
+    factor = 1.0-0.5*deltay/b
+    r1 = factor * 0.1 * exp( -(deltay/b)**2 ) * cos(pi*deltay/b)
+    ulon = r1
+    ulat = 0.0
+    call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
+    if(boundaryEdgeNew(1,iEdge).eq.1) then
+      u_srcNew(1,iEdge) = 0.0
+    else
+      iCell1 = cellsOnEdgeNew(1,iEdge)
+      iCell2 = cellsOnEdgeNew(2,iEdge)
+      p(1) = xCellNew(iCell1); p(2) = yCellNew(iCell1); p(3) = zCellNew(iCell1)
+      q(1) = xCellNew(iCell2); q(2) = yCellNew(iCell2); q(3) = zCellNew(iCell2)
+      q = q - p
+      call unit_vector_in_3space(q)
+      u_srcNew(1,iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
+    endif
+
+   enddo
 
 elseif (initial_conditions.eq.'isopycnal') then
 
@@ -1465,6 +1511,7 @@ real (kind=4), allocatable, dimension(:,:) :: ztopo
 integer :: nx, ny, inx, iny, ix, iy, kmt_neighbor_max
 real :: pi, dtr, zdata, rlon, rlat, r, ymin, ymax, xmin, xmax
 real :: latmin, latmax, lonmin, lonmax, ridgeDepth, maxdc
+real :: b, H0, phi, gamma, distance, rlonC, rlatC
 logical :: flag, kmt_flag
 
 pi = 4.0*atan(1.0)
@@ -1593,6 +1640,54 @@ elseif (bottom_topography.eq.'Ilicak2_overflow_sigma') then
 
     ! for sigma coordinates, set kmt to the max level.
     kmt = nVertLevelsMOD
+
+elseif (bottom_topography.eq.'SOMA_Circular_Basin') then
+
+    pi = 4.0*atan(1.0)
+    dtr = pi / 180.0
+    b = 1.25e6
+    phi = 0.1
+    H0 = 2500.0
+    gamma = -0.4
+
+    kmt = 0
+
+    do iCell=1,nCells
+        rlon = lonCell(iCell)
+        rlat = latCell(iCell)
+        rlonC = 0.0
+        rlatC = 35.0*dtr
+
+        r = sqrt( sin(0.5*(rlatC-rlat))**2 +  &
+                cos(rlat)*cos(rlatC)*sin(0.5*(rlonC-rlon))**2 )
+        distance = 2.*sphere_radius*asin(r)
+
+        r = 1.0 - distance**2 / b**2
+
+        if(r.gt.gamma) then
+          zdata = -100.0 - (H0-100.0)/2.0 * (1.0 + tanh(r/phi))
+        else
+          zdata = 100.0
+        endif
+
+
+        if(zdata.lt.0.0) then
+            zdata = -zdata
+            r = 0
+            kmt_flag=.false.
+            do k=1,nVertLevelsMod
+                if(.not.kmt_flag) then
+                    r = r + dz(k)
+                    if(r.gt.zdata) then
+                        kmt(iCell) = k
+                        kmt_flag = .true.
+                    endif
+                endif
+            enddo
+            if(kmt(iCell).eq.0) kmt(iCell)=nVertLevelsMod
+        endif
+
+    enddo
 
 elseif (bottom_topography.eq.'flat_bottom') then
 
@@ -2114,6 +2209,51 @@ elseif (zLevel_thickness.eq.'equally_spaced') then
    do i = 1, nVertLevelsMOD
        hZLevel(i) =  h_total_max / nVertLevelsMOD
    end do
+
+elseif(zLevel_thickness.eq.'SOMA_40_Level') then
+
+   dz( 1) = 4.6074
+   dz( 2) = 5.1112
+   dz( 3) = 5.6694
+   dz( 4) = 6.2880
+   dz( 5) = 6.9732
+   dz( 6) = 7.7322
+   dz( 7) = 8.5730
+   dz( 8) = 9.5041
+   dz( 9) = 10.5353
+   dz(10) = 11.6770
+   dz(11) = 12.9411
+   dz(12) = 14.3404
+   dz(13) = 15.8894
+   dz(14) = 17.6038
+   dz(15) = 19.5011
+   dz(16) = 21.6005
+   dz(17) = 23.9235
+   dz(18) = 26.4934
+   dz(19) = 29.3363
+   dz(20) = 32.4807
+   dz(21) = 35.9585
+   dz(22) = 39.8044
+   dz(23) = 44.0570
+   dz(24) = 48.7588
+   dz(25) = 53.9568
+   dz(26) = 59.7026
+   dz(27) = 66.0534
+   dz(28) = 73.0722
+   dz(29) = 80.8284
+   dz(30) = 89.3985
+   dz(31) = 98.8672
+   dz(32) = 109.3274
+   dz(33) = 120.8818
+   dz(34) = 133.6436
+   dz(35) = 147.7376
+   dz(36) = 163.3011
+   dz(37) = 180.4858
+   dz(38) = 199.4585
+   dz(39) = 220.4032
+   dz(40) = 243.5224
+
+   hZLevel = dz
 
 elseif(zLevel_thickness.eq.'POP_40_zLevel') then
 
