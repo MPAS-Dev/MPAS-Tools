@@ -557,9 +557,11 @@ elseif (initial_conditions.eq.'SOMA_TS') then
   rho_delta=5.0
   do iCell=1,nCellsNew
   do k = 1,maxLevelCellNew(iCell)
+    hNew(1,k,iCell) = hZLevel(k)
     if(k.eq.1) r1 = -refBottomDepth(k)/2.0
     if(k.ne.1) r1 = -(refBottomDepth(k)+refBottomDepth(k-1))/2.0
     work = rho_ref - (1.0-0.05)*rho_delta*tanh(r1/300) - 0.05*rho_delta*r1/2500
+    rhoNew(1,k,iCell) = work
     factor = (rho_ref-work)/2.5e-1
     temperatureNew(1,k,iCell) = 15.0 + factor
     salinityNew(1,k,iCell) = 0.0  ! salinity
@@ -1669,6 +1671,7 @@ elseif (bottom_topography.eq.'SOMA_Circular_Basin') then
         else
           zdata = 100.0
         endif
+        bottomDepth(iCell) = -zdata
 
 
         if(zdata.lt.0.0) then

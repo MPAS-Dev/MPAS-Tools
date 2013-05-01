@@ -51,13 +51,13 @@ module write_netcdf
    integer :: wrVarIDfEdge
    integer :: wrVarIDfVertex
    integer :: wrVarIDbottomDepth
-   integer :: wrVarIDu
+   integer :: wrVarIDnormalVelocity
    integer :: wrVarIDboundaryEdge
    integer :: wrVarIDboundaryVertex
-   integer :: wrVarIDu_src
+   integer :: wrVarIDnormalVelocityForcing
    integer :: wrVarIDwindStressMonthly
-   integer :: wrVarIDh
-   integer :: wrVarIDrho
+   integer :: wrVarIDlayerThickness
+   integer :: wrVarIDdensity
    integer :: wrVarIDtemperature
    integer :: wrVarIDsalinity
    integer :: wrVarIDtracer1
@@ -245,7 +245,7 @@ module write_netcdf
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnEdges
       dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'u', NF_DOUBLE,  3, dimlist, wrVarIDu)
+      nferr = nf_def_var(wr_ncid, 'normalVelocity', NF_DOUBLE,  3, dimlist, wrVarIDnormalVelocity)
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnEdges
       nferr = nf_def_var(wr_ncid, 'boundaryEdge', NF_INT,  2, dimlist, wrVarIDboundaryEdge)
@@ -254,7 +254,7 @@ module write_netcdf
       nferr = nf_def_var(wr_ncid, 'boundaryVertex', NF_INT,  2, dimlist, wrVarIDboundaryVertex)
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnEdges
-      nferr = nf_def_var(wr_ncid, 'u_src', NF_DOUBLE,  2, dimlist, wrVarIDu_src)
+      nferr = nf_def_var(wr_ncid, 'normalVelocityForcing', NF_DOUBLE,  2, dimlist, wrVarIDnormalVelocityForcing)
 
       dimlist( 1) = wrDimIDnMonths
       dimlist( 2) = wrDimIDnEdges
@@ -263,11 +263,12 @@ module write_netcdf
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnCells
       dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'h', NF_DOUBLE,  3, dimlist, wrVarIDh)
+      nferr = nf_def_var(wr_ncid, 'layerThickness', NF_DOUBLE,  3, dimlist, &
+wrVarIDlayerThickness)
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnCells
       dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'rho', NF_DOUBLE,  3, dimlist, wrVarIDrho)
+      nferr = nf_def_var(wr_ncid, 'density', NF_DOUBLE,  3, dimlist, wrVarIDdensity) 
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnCells
       dimlist( 3) = wrDimIDTime
@@ -335,11 +336,11 @@ module write_netcdf
                                   bottomDepth, &
                                   boundaryEdge, &
                                   boundaryVertex, &
-                                  u_src, &
+                                  normalVelocityForcing, &
                                   windStressMonthly, &
-                                  u, &
-                                  h, &
-                                  rho, &
+                                  normalVelocity, &
+                                  layerThickness, &
+                                  density, &
                                   temperature, &
                                   salinity, &
                                   tracer1, &
@@ -398,11 +399,11 @@ module write_netcdf
       real (kind=8), dimension(:), intent(in) :: bottomDepth
       integer, dimension(:,:), intent(in) :: boundaryEdge
       integer, dimension(:,:), intent(in) :: boundaryVertex
-      real (kind=8), dimension(:,:), intent(in) :: u_src
+      real (kind=8), dimension(:,:), intent(in) :: normalVelocityForcing
       real (kind=8), dimension(:,:), intent(in) :: windStressMonthly
-      real (kind=8), dimension(:,:,:), intent(in) :: u
-      real (kind=8), dimension(:,:,:), intent(in) :: h
-      real (kind=8), dimension(:,:,:), intent(in) :: rho
+      real (kind=8), dimension(:,:,:), intent(in) :: normalVelocity
+      real (kind=8), dimension(:,:,:), intent(in) :: layerThickness
+      real (kind=8), dimension(:,:,:), intent(in) :: density
       real (kind=8), dimension(:,:,:), intent(in) :: temperature
       real (kind=8), dimension(:,:,:), intent(in) :: salinity
       real (kind=8), dimension(:,:,:), intent(in) :: tracer1
@@ -617,7 +618,7 @@ module write_netcdf
       start2(2) = 1
       count2( 1) = wrLocalnVertLevels
       count2( 2) = wrLocalnEdges
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDu_src, start2, count2, u_src)
+      nferr = nf_put_vara_double(wr_ncid, wrVarIDnormalVelocityForcing, start2, count2, normalVelocityForcing)
 
 
       start2(2) = 1
@@ -661,19 +662,19 @@ module write_netcdf
       count3( 1) = wrLocalnVertLevels
       count3( 2) = wrLocalnEdges
       count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDu, start3, count3, u)
+      nferr = nf_put_vara_double(wr_ncid, wrVarIDnormalVelocity, start3, count3, normalVelocity) 
  
       start3(3) = time
       count3( 1) = wrLocalnVertLevels
       count3( 2) = wrLocalnCells
       count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDh, start3, count3, h)
+      nferr = nf_put_vara_double(wr_ncid, wrVarIDlayerThickness, start3, count3, layerThickness) 
  
       start3(3) = time
       count3( 1) = wrLocalnVertLevels
       count3( 2) = wrLocalnCells
       count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDrho, start3, count3, rho)
+      nferr = nf_put_vara_double(wr_ncid, wrVarIDdensity, start3, count3, density) 
  
       start3(3) = time
       count3( 1) = wrLocalnVertLevels
