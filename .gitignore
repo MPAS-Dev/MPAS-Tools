@@ -3,7 +3,6 @@
 *.info
 *.info.part.*
 *.o
-*.f90
 *.mod
 
 # Ignore all PNGs

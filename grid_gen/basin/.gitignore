@@ -1,6 +1,7 @@
 # Ignore all netcdf files and graph files
 fort*
 map
+*.mod
 
 # Ignore all PNGs
 *.png
