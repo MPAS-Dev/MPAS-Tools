@@ -2,6 +2,7 @@
 fort*
 map
 *.mod
+*.f90
 
 # Ignore all PNGs
 *.png
