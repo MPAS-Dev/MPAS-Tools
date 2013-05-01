@@ -1,9 +1,8 @@
 # Ignore all netcdf files and graph files
-*.nc
-*.info
-*.info.part.*
-*.o
+fort*
+map
 *.mod
+*.f90
 
 # Ignore all PNGs
 *.png
