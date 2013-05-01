@@ -1,0 +1,83 @@
+Readme for points-mpas.cpp
+
+Author: Doug Jacobsen <dwj07@fsu.edu>
+
+Purpose:
+	points-mpas.cpp is a piece of software designed to read in a point set and a 
+	triangulation defined over the entire sphere and output a netcdf grid file 
+	that is capable of being used in the MPAS modeling framework.
+	
+Requirements:
+	points-mpas requires the c++ netcdf libraries to be able to write a MPAS grid file.
+	It also requires the tr1 headers for c++, specifically unordered_set.
+	It has been tested using g++ version 4.4.5
+
+Source:
+	points-mpas has 2 source files. points-mpas.cpp and triangulation.h
+
+	points-mpas.cpp:
+		This file contains all of the main routines for reading the input files, building the grid file, and writing
+		the netcdf and graph files.
+
+	triangulation.h:
+		This file contains the classes used in points-mpas.cpp, as well as some useful triangulation functions.
+
+Input:
+	points-mpas has 3 input files, Params, SaveVertices and SaveTriangles. These will be described below.
+
+	Params:
+		This file contains the parameters used in points-mpas. If there isn't one created simply run the
+		compiled software once, and one will be generated for you with default values for the parameters.
+
+	SaveVertices:
+		This file contains the input vertices, or point set, that is to be converted. The file should only
+		contain the coordinates of each point in the set. Currently points-mpas requires this point set to be defined over the 
+		entire sphere.
+		
+		Each row represents one vertex. Each column in the file represents a coordinate of that point.
+		For cartesian points the order is x y z, for Lat-lon points the order is lat lon.
+
+		This point set can be given as either Cartesian or Latitude-Longitude.
+
+	SaveTriangles:
+		This file contains the triangulation of the points given in SaveVertices. Each row represents a triangle.
+		Each column represents an index to a point defined in SaveVertices. A triangle is made up of three
+		vertices, and the indices represent the vertices used to make up a triangle.
+
+		The triangle can be base zero (meaning that the lowest index is 0) or base one (meaning lowest index is 1).
+		To change between the two, see the Params file.
+
+Output:
+	points-mpas outputs two files. grid.nc and graph.info
+
+	grid.nc:
+		This is the mpas input grid file. I can be used for simulations in mpas.
+
+	graph.info:
+		This is the graph file used for domain decomposition using a program such as metis.
+		They are used to determine which processor will contain which cells.
+
+		Using this file, one can use metis to build the graph files for an arbitrary number of processors
+		which is needed if one is to use MPI with MPAS.
+	
+Notes:
+	The point set and triangulation can be built in a variety of ways.
+	First, the point set needs to be defined, since the triangulation references the point set.
+	As mentioned previously, the point set needs to be defined over the entire sphere currently.
+	At a later point in time, points-mpas might support limited area domains, but currently there
+	are no plans of doing this.
+
+	After the point set has been created, the triangulation needs to be built.
+	To built a triangulation, one can use several available libraries.
+	The triangulation of a point set defined on the sphere is the same thing as
+	the convex hull of that same point set. From this, one can build either the Delaunay triangulation,
+	or the convex hull.
+
+	Some example libraries include: qhull, CGAL, and Stripack.
+
+	qhull can be used from inside matlab, or as a stand alone program. 
+	qhull has a library that can be called from c or c++ but it's overly complicated
+	to make work correctly, and it is far easier to call it as an external program or from
+	matlab.
+	CGAL and Stripack are libraries for c++ and FORTRAN respectively.
+	
