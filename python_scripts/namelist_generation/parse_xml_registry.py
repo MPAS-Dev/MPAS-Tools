@@ -41,7 +41,10 @@ namelist = open('namelist.input.generated', 'w+')
 for nml_rec in registry.iter("nml_record"):
 	namelist.write('&%s\n'%nml_rec.attrib['name'])
 	for nml_opt in nml_rec.iter("nml_option"):
-		namelist.write('\t%s = %s\n'%(nml_opt.attrib['name'], nml_opt.attrib['default_value']))
+		if nml_opt.attrib['type'] == "character":
+			namelist.write('\t%s = "%s"\n'%(nml_opt.attrib['name'], nml_opt.attrib['default_value']))
+		else:
+			namelist.write('\t%s = %s\n'%(nml_opt.attrib['name'], nml_opt.attrib['default_value']))
 
 	namelist.write('/\n')
 
