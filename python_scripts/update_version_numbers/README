@@ -1,0 +1,25 @@
+Author: Doug Jacobsen
+Date: 05/02/2013
+
+About:
+    This script (update_versions.py) is used to increment version numbers in
+    the MPAS Core Registry.xml files.
+
+    It can be run from the root MPAS directory (with the root Makefile).
+
+    It searches the current directory for all files with .xml extensions. Then
+    extracts the version number from each of them and increments the
+    appropriate version number. Then re-writes the file.
+
+    To script can be run as follows:
+        ./update_versions.py [--major] [--minor]
+
+    The --major and --minor flags are optional. If both are omitted, the script
+    does nothing.
+
+    The --major flag increments the major version number by 1, and resets the
+    minor version number to zero.
+
+    The --minor flag increments the minor version number by 1, and ignores the
+    major version number.
+
