@@ -881,7 +881,7 @@ int netcdf_mpas_list_ncell_fields(string filename){/*{{{*/
 		}
 		cout << endl << endl;
 		cout << "Enter the number of the field you would like to print" << endl;
-		cout << "Choose from list above, or enter 0 for default:" << endl;
+		cout << "Choose from list above, or enter -1 for default:" << endl;
 
 		do{
 			cin >> choice;
@@ -901,7 +901,7 @@ int netcdf_mpas_list_ncell_fields(string filename){/*{{{*/
 			}
 		}
 
-		if(choice == 0){
+		if(choice == -1){
 			valid = 1;
 		}
 	}
@@ -1031,7 +1031,7 @@ int netcdf_mpas_list_nvertex_fields(string filename){/*{{{*/
 		cout << endl << endl;
 
 		cout << "Enter the number of the field you would like to print" << endl;
-		cout << "Choose from list above, or enter 0 for default:" << endl;
+		cout << "Choose from list above, or enter -1 for default:" << endl;
 		do{
 			cin >> choice;
 			if(cin.fail()){
@@ -1050,7 +1050,7 @@ int netcdf_mpas_list_nvertex_fields(string filename){/*{{{*/
 			}
 		}
 
-		if(choice == 0){
+		if(choice == -1){
 			valid = 1;
 		}
 	}
@@ -1178,7 +1178,7 @@ int netcdf_mpas_list_nedge_fields(string filename){/*{{{*/
 		}
 		cout << endl << endl;
 		cout << "Enter the number of the field you would like to print" << endl;
-		cout << "Choose from list above, or enter 0 for default:" << endl;
+		cout << "Choose from list above, or enter -1 for default:" << endl;
 		do{
 			cin >> choice;
 			if(cin.fail()){
@@ -1197,7 +1197,7 @@ int netcdf_mpas_list_nedge_fields(string filename){/*{{{*/
 			}
 		}
 
-		if(choice == 0){
+		if(choice == -1){
 			valid = 1;
 		}
 	}
@@ -1369,7 +1369,9 @@ void netcdf_mpas_print_field_info(string filename, int id){/*{{{*/
 	//
 	//
 	//  Get the variable values.
-	//
+	
+    if(id == -1) return;
+
 	var_id = ncid.get_var (id);
 
 	if(!var_id->is_valid()){
