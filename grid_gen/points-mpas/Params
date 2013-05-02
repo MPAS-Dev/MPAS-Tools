@@ -1,0 +1,14 @@
+Is the input Cartesian or Latitude-Longitude (0 - Cartesian, 1 - Lat-lon)
+0
+Are the triangles base zero or base one? (0 - base 0, 1 - base 1)
+0
+What is the radius of the sphere these points are defined on?
+1.0
+How many vertical levels do you want in the output grid?
+1
+How many tracers do you want in the output grid?
+1
+What was the convergence criteria used to make this grid?
+0.0
+Should this grid be vordraw compatible?
+0
