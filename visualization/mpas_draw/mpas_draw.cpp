@@ -111,7 +111,9 @@ int maxedges;
 int pixel_height;
 int pixel_width;
 
-int edge_field, cell_field, vertex_field;
+int edge_field = -1;
+int cell_field = -1;
+int vertex_field = -1;
 int cur_level = 0;
 int cur_time = 0;
 int cur_screenshot = 1;
@@ -1626,7 +1628,7 @@ void color_cells(){/*{{{*/
 
 	s = 1.0;
 	v = 1.0;
-	if(cell_field == 0){
+	if(cell_field == -1){
 		for(i = 0; i < ncells; i++){
 			o = nedgesoncell[i];
 
@@ -1715,7 +1717,7 @@ void color_triangles(){/*{{{*/
 
 	s = 1.0;
 	v = 1.0;
-	if(vertex_field == 0){
+	if(vertex_field == -1){
 		for(i = 0; i < nvertices; i++){
 			for(j = 0; j < 3; j++){
 				vertex_colors.push_back(0.8);
@@ -1797,7 +1799,7 @@ void color_edges(){/*{{{*/
 
 	s = 1.0;
 	v = 1.0;
-	if(edge_field == 0){
+	if(edge_field == -1){
 		for(i = 0; i < nedges; i++){
 			for(j = 0; j < 6; j++){
 				edge_colors.push_back(0.8);
@@ -2077,7 +2079,7 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 				case 0:
 					vertex_field = netcdf_mpas_list_nvertex_fields(filename);
 					netcdf_mpas_print_field_info(filename, vertex_field);
-					if(color_bar == 2){
+					if(vertex_field >= 0 && color_bar == 2){
 						build_range(vertex_field);
 						cout << " Range of values: Min = " << ranges.at(vertex_field).at(0) << ", Max = " << ranges.at(vertex_field).at(1) << endl;
 					}
@@ -2085,7 +2087,7 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 				case 1:
 					cell_field = netcdf_mpas_list_ncell_fields(filename);
 					netcdf_mpas_print_field_info(filename, cell_field);
-					if(color_bar == 2){
+					if(cell_field >= 0 && color_bar == 2){
 						build_range(cell_field);
 						cout << " Range of values: Min = " << ranges.at(cell_field).at(0) << ", Max = " << ranges.at(cell_field).at(1) << endl;
 					}
@@ -2093,7 +2095,7 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 				case 2:
 					edge_field = netcdf_mpas_list_nedge_fields(filename);
 					netcdf_mpas_print_field_info(filename, edge_field);
-					if(color_bar == 2){
+					if(edge_field >= 0 && color_bar == 2){
 						build_range(edge_field);
 						cout << " Range of values: Min = " << ranges.at(edge_field).at(0) << ", Max = " << ranges.at(edge_field).at(1) << endl;
 					}
