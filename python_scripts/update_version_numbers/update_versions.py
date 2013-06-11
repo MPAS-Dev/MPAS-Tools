@@ -22,12 +22,22 @@ for r, d, f in os.walk("."):
             minor_ver = int(version[1])
 
             if options.major:
-                major_ver = major_ver + 1
-                minor_ver = 0
+                new_major_ver = major_ver + 1
+                new_minor_ver = 0
             elif options.minor:
-                minor_ver = minor_ver + 1
+                new_minor_ver = minor_ver + 1
 
-            print "%s version: %d.%d"%(path, major_ver, minor_ver)
+            print "%s version: %d.%d"%(path, new_major_ver, new_minor_ver)
 
-            registry.set("version", "%d.%d"%(major_ver, minor_ver))
-            registry_tree.write(path)
+            registry_file = open(path, 'r+')
+
+            lines = registry_file.readlines()
+            registry_file.seek(0)
+            registry_file.truncate()
+            for line in lines:
+                if 'version="%d.%d"'%(major_ver,minor_ver) in line:
+                    new_line = line.replace('%d.%d'%(major_ver, minor_ver), '%d.%d'%(new_major_ver, new_minor_ver))
+                else:
+                    new_line = line
+                registry_file.write(new_line)
+
