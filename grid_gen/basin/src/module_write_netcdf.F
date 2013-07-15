@@ -264,11 +264,11 @@ module write_netcdf
       dimlist( 2) = wrDimIDnCells
       dimlist( 3) = wrDimIDTime
       nferr = nf_def_var(wr_ncid, 'layerThickness', NF_DOUBLE,  3, dimlist, &
-wrVarIDlayerThickness)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnCells
-      dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'density', NF_DOUBLE,  3, dimlist, wrVarIDdensity) 
+			wrVarIDlayerThickness)
+   !  dimlist( 1) = wrDimIDnVertLevels
+   !  dimlist( 2) = wrDimIDnCells
+   !  dimlist( 3) = wrDimIDTime
+   !  nferr = nf_def_var(wr_ncid, 'density', NF_DOUBLE,  3, dimlist, wrVarIDdensity) 
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnCells
       dimlist( 3) = wrDimIDTime
@@ -670,11 +670,11 @@ wrVarIDlayerThickness)
       count3( 3) = 1
       nferr = nf_put_vara_double(wr_ncid, wrVarIDlayerThickness, start3, count3, layerThickness) 
  
-      start3(3) = time
-      count3( 1) = wrLocalnVertLevels
-      count3( 2) = wrLocalnCells
-      count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDdensity, start3, count3, density) 
+   !  start3(3) = time
+   !  count3( 1) = wrLocalnVertLevels
+   !  count3( 2) = wrLocalnCells
+   !  count3( 3) = 1
+   !  nferr = nf_put_vara_double(wr_ncid, wrVarIDdensity, start3, count3, density) 
  
       start3(3) = time
       count3( 1) = wrLocalnVertLevels
