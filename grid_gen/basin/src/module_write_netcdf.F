@@ -65,7 +65,6 @@ module write_netcdf
    integer :: wrVarIDsalinityRestore
    integer :: wrVarIDtemperatureRestoreMonthly
    integer :: wrVarIDsalinityRestoreMonthly
-   integer :: wrVarIDhZLevel
    integer :: wrVarIDrefBottomDepth
  
    integer :: wrLocalnCells
@@ -239,8 +238,6 @@ module write_netcdf
       nferr = nf_def_var(wr_ncid, 'salinityRestoreMonthly', NF_DOUBLE,  2, dimlist, wrVarIDsalinityRestoreMonthly)
 
       dimlist( 1) = wrDimIDnVertLevels
-      nferr = nf_def_var(wr_ncid, 'hZLevel', NF_DOUBLE,  1, dimlist, wrVarIDhZLevel)
-      dimlist( 1) = wrDimIDnVertLevels
       nferr = nf_def_var(wr_ncid, 'refBottomDepth', NF_DOUBLE,  1, dimlist, wrVarIDrefBottomDepth)
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnEdges
@@ -348,7 +345,6 @@ module write_netcdf
                                   salinityRestore, &
                                   temperatureRestoreMonthly, &
                                   salinityRestoreMonthly, &
-                                  hZLevel, &
                                   refBottomDepth &
                                  )
  
@@ -411,7 +407,6 @@ module write_netcdf
       real (kind=8), dimension(:), intent(in) :: salinityRestore
       real (kind=8), dimension(:,:), intent(in) :: temperatureRestoreMonthly
       real (kind=8), dimension(:,:), intent(in) :: salinityRestoreMonthly
-      real (kind=8), dimension(:), intent(in) :: hZLevel
       real (kind=8), dimension(:), intent(in) :: refBottomDepth
 
  
@@ -648,11 +643,6 @@ module write_netcdf
       count2( 2) = wrLocalnCells
       nferr = nf_put_vara_double(wr_ncid, wrVarIDsalinityRestoreMonthly, start2, count2, salinityRestoreMonthly)
 
-
- 
-      start1(1) = 1
-      count1( 1) = wrLocalnVertLevels
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDhZLevel, start1, count1, hZLevel)
 
       start1(1) = 1
       count1( 1) = wrLocalnVertLevels

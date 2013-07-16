@@ -48,10 +48,10 @@ module read_netcdf
    integer :: rdVarIDkiteAreasOnVertex
    integer :: rdVarIDfEdge
    integer :: rdVarIDfVertex
-   integer :: rdVarIDh_s
-   integer :: rdVarIDu
-   integer :: rdVarIDv
-   integer :: rdVarIDh
+   integer :: rdVarIDbottomDepth
+   integer :: rdVarIDnormalVelocity
+   integer :: rdVarIDtangentialVelocity
+   integer :: rdVarIDlayerThickness
  
    integer :: rdLocalnCells
    integer :: rdLocalnEdges
@@ -165,10 +165,10 @@ module read_netcdf
       nferr = nf_inq_varid(rd_ncid, 'kiteAreasOnVertex', rdVarIDkiteAreasOnVertex)
       nferr = nf_inq_varid(rd_ncid, 'fEdge', rdVarIDfEdge)
       nferr = nf_inq_varid(rd_ncid, 'fVertex', rdVarIDfVertex)
-      nferr = nf_inq_varid(rd_ncid, 'h_s', rdVarIDh_s)
-      nferr = nf_inq_varid(rd_ncid, 'u', rdVarIDu)
-      nferr = nf_inq_varid(rd_ncid, 'v', rdVarIDv)
-      nferr = nf_inq_varid(rd_ncid, 'h', rdVarIDh)
+      nferr = nf_inq_varid(rd_ncid, 'bottomDepth', rdVarIDbottomDepth)
+      nferr = nf_inq_varid(rd_ncid, 'normalVelocity', rdVarIDnormalVelocity)
+      nferr = nf_inq_varid(rd_ncid, 'tangentialVelocity', rdVarIDtangentialVelocity)
+      nferr = nf_inq_varid(rd_ncid, 'layerThickness', rdVarIDlayerThickness)
  
    end subroutine read_netcdf_init
  
@@ -213,10 +213,10 @@ module read_netcdf
                                   kiteAreasOnVertex, &
                                   fEdge, &
                                   fVertex, &
-                                  h_s, &
-                                  u, &
-                                  v, &
-                                  h &
+                                  bottomDepth, &
+                                  normalVelocity, &
+                                  tangentialVelocity, &
+                                  layerThickness &
                                  )
  
       implicit none
@@ -262,10 +262,10 @@ module read_netcdf
       real (kind=8), dimension(:,:), intent(out) :: kiteAreasOnVertex
       real (kind=8), dimension(:), intent(out) :: fEdge
       real (kind=8), dimension(:), intent(out) :: fVertex
-      real (kind=8), dimension(:), intent(out) :: h_s
-      real (kind=8), dimension(:,:,:), intent(out) :: u
-      real (kind=8), dimension(:,:,:), intent(out) :: v
-      real (kind=8), dimension(:,:,:), intent(out) :: h
+      real (kind=8), dimension(:), intent(out) :: bottomDepth
+      real (kind=8), dimension(:,:,:), intent(out) :: normalVelocity
+      real (kind=8), dimension(:,:,:), intent(out) :: tangentialVelocity
+      real (kind=8), dimension(:,:,:), intent(out) :: layerThickness
 
       logical :: meshDensityPresent
  
@@ -485,25 +485,25 @@ module read_netcdf
       start1(1) = 1
       count1( 1) = rdLocalnCells
       count1( 1) = rdLocalnCells
-      nferr = nf_get_vara_double(rd_ncid, rdVarIDh_s, start1, count1, h_s)
+      nferr = nf_get_vara_double(rd_ncid, rdVarIDbottomDepth, start1, count1, bottomDepth)
  
       start3(3) = time
       count3( 1) = rdLocalnVertLevels
       count3( 2) = rdLocalnEdges
       count3( 3) = 1
-      nferr = nf_get_vara_double(rd_ncid, rdVarIDu, start3, count3, u)
+      nferr = nf_get_vara_double(rd_ncid, rdVarIDnormalVelocity, start3, count3, normalVelocity)
  
       start3(3) = time
       count3( 1) = rdLocalnVertLevels
       count3( 2) = rdLocalnEdges
       count3( 3) = 1
-      nferr = nf_get_vara_double(rd_ncid, rdVarIDv, start3, count3, v)
+      nferr = nf_get_vara_double(rd_ncid, rdVarIDtangentialVelocity, start3, count3, tangentialVelocity)
  
       start3(3) = time
       count3( 1) = rdLocalnVertLevels
       count3( 2) = rdLocalnCells
       count3( 3) = 1
-      nferr = nf_get_vara_double(rd_ncid, rdVarIDh, start3, count3, h)
+      nferr = nf_get_vara_double(rd_ncid, rdVarIDlayerThickness, start3, count3, layerThickness)
  
    end subroutine read_netcdf_fields
  

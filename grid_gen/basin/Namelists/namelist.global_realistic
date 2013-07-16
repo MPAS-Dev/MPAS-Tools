@@ -24,8 +24,8 @@
 
   ! These variables are not needed for realistic global topography:
 
-  ! h_total_max = 2000.0 
-  ! u_src_max = 0.1 
+  ! layer_total_max = 2000.0 
+  ! normalVelocityForcing_max = 0.1 
   ! f0 = -1.1e-4  
   ! beta = 1.4e-11 
   ! omega = 7.29212e-5  
