@@ -65,7 +65,6 @@ module write_netcdf
    integer :: wrVarIDsalinityRestore
    integer :: wrVarIDtemperatureRestoreMonthly
    integer :: wrVarIDsalinityRestoreMonthly
-   integer :: wrVarIDhZLevel
    integer :: wrVarIDrefBottomDepth
  
    integer :: wrLocalnCells
@@ -239,8 +238,6 @@ module write_netcdf
       nferr = nf_def_var(wr_ncid, 'salinityRestoreMonthly', NF_DOUBLE,  2, dimlist, wrVarIDsalinityRestoreMonthly)
 
       dimlist( 1) = wrDimIDnVertLevels
-      nferr = nf_def_var(wr_ncid, 'hZLevel', NF_DOUBLE,  1, dimlist, wrVarIDhZLevel)
-      dimlist( 1) = wrDimIDnVertLevels
       nferr = nf_def_var(wr_ncid, 'refBottomDepth', NF_DOUBLE,  1, dimlist, wrVarIDrefBottomDepth)
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnEdges
@@ -264,11 +261,11 @@ module write_netcdf
       dimlist( 2) = wrDimIDnCells
       dimlist( 3) = wrDimIDTime
       nferr = nf_def_var(wr_ncid, 'layerThickness', NF_DOUBLE,  3, dimlist, &
-wrVarIDlayerThickness)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnCells
-      dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'density', NF_DOUBLE,  3, dimlist, wrVarIDdensity) 
+			wrVarIDlayerThickness)
+   !  dimlist( 1) = wrDimIDnVertLevels
+   !  dimlist( 2) = wrDimIDnCells
+   !  dimlist( 3) = wrDimIDTime
+   !  nferr = nf_def_var(wr_ncid, 'density', NF_DOUBLE,  3, dimlist, wrVarIDdensity) 
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnCells
       dimlist( 3) = wrDimIDTime
@@ -348,7 +345,6 @@ wrVarIDlayerThickness)
                                   salinityRestore, &
                                   temperatureRestoreMonthly, &
                                   salinityRestoreMonthly, &
-                                  hZLevel, &
                                   refBottomDepth &
                                  )
  
@@ -411,7 +407,6 @@ wrVarIDlayerThickness)
       real (kind=8), dimension(:), intent(in) :: salinityRestore
       real (kind=8), dimension(:,:), intent(in) :: temperatureRestoreMonthly
       real (kind=8), dimension(:,:), intent(in) :: salinityRestoreMonthly
-      real (kind=8), dimension(:), intent(in) :: hZLevel
       real (kind=8), dimension(:), intent(in) :: refBottomDepth
 
  
@@ -649,11 +644,6 @@ wrVarIDlayerThickness)
       nferr = nf_put_vara_double(wr_ncid, wrVarIDsalinityRestoreMonthly, start2, count2, salinityRestoreMonthly)
 
 
- 
-      start1(1) = 1
-      count1( 1) = wrLocalnVertLevels
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDhZLevel, start1, count1, hZLevel)
-
       start1(1) = 1
       count1( 1) = wrLocalnVertLevels
       nferr = nf_put_vara_double(wr_ncid, wrVarIDrefBottomDepth, start1, count1, refBottomDepth)
@@ -670,11 +660,11 @@ wrVarIDlayerThickness)
       count3( 3) = 1
       nferr = nf_put_vara_double(wr_ncid, wrVarIDlayerThickness, start3, count3, layerThickness) 
  
-      start3(3) = time
-      count3( 1) = wrLocalnVertLevels
-      count3( 2) = wrLocalnCells
-      count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDdensity, start3, count3, density) 
+   !  start3(3) = time
+   !  count3( 1) = wrLocalnVertLevels
+   !  count3( 2) = wrLocalnCells
+   !  count3( 3) = 1
+   !  nferr = nf_put_vara_double(wr_ncid, wrVarIDdensity, start3, count3, density) 
  
       start3(3) = time
       count3( 1) = wrLocalnVertLevels
