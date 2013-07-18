@@ -42,9 +42,9 @@ real, allocatable, dimension(:) :: areaCell, areaTriangle, dcEdge, dvEdge, angle
 real, allocatable, dimension(:,:) :: kiteAreasOnVertex, weightsOnEdge
 
 real, allocatable, dimension(:) :: fEdge, fVertex, bottomDepth, work1
-real, allocatable, dimension(:,:) :: u_src
-real, allocatable, dimension(:,:,:) :: u, v, h
-real, allocatable, dimension(:,:,:) :: rho
+real, allocatable, dimension(:,:) :: normalVelocityForcing
+real, allocatable, dimension(:,:,:) :: normalVelocity, tangentialVelocity, layerThickness
+real, allocatable, dimension(:,:,:) :: density
 
 integer nlon, nlat, ndepth
 real(kind=4), allocatable, dimension(:) :: t_lon, t_lat, depth_t
@@ -79,10 +79,10 @@ real, allocatable, dimension(:) :: areaCellNew, areaTriangleNew, dcEdgeNew, dvEd
 real, allocatable, dimension(:,:) :: kiteAreasOnVertexNew, weightsOnEdgeNew, normalsNew
 
 real, allocatable, dimension(:) :: fEdgeNew, fVertexNew, bottomDepthNew
-real, allocatable, dimension(:,:) :: u_srcNew
+real, allocatable, dimension(:,:) :: normalVelocityForcingNew
 real, allocatable, dimension(:,:) :: windStressMonthlyNew
-real, allocatable, dimension(:,:,:) :: uNew, hNew
-real, allocatable, dimension(:,:,:) :: rhoNew, temperatureNew, salinityNew, tracer1New
+real, allocatable, dimension(:,:,:) :: normalVelocityNew, layerThicknessNew
+real, allocatable, dimension(:,:,:) :: densityNew, temperatureNew, salinityNew, tracer1New
 real, allocatable, dimension(:) :: temperatureRestoreNew, salinityRestoreNew
 real, allocatable, dimension(:,:) :: temperatureRestoreMonthlyNew, salinityRestoreMonthlyNew
 
@@ -113,7 +113,7 @@ logical :: expand_from_unit_sphere, eliminate_inland_seas, load_woce_IC, &
    amplify_acc_wind
 
 integer :: nVertLevelsMOD, top_layers_without_land 
-real (kind=8) :: sphere_radius, h_total_max, u_src_max, f0, beta, omega, Lx, &
+real (kind=8) :: sphere_radius, layer_thickness_total_max, normalVelocityForcing_max, f0, beta, omega, Lx, &
   uniform_T, uniform_S, uniform_tracer1, &
   amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat
 
@@ -123,7 +123,7 @@ namelist /basin/ nVertLevelsMOD, on_a_sphere, sphere_radius, &
    zLevel_thickness, bottom_topography, initial_conditions, &
    eliminate_inland_seas, load_woce_IC, write_OpenDX_flag, monthly_forcing, check_mesh, &
    cut_domain_from_sphere, solid_boundary_in_y, solid_boundary_in_x, &
-   top_layers_without_land, h_total_max, u_src_max, f0, beta, omega, Lx, &
+   top_layers_without_land, layer_thickness_total_max, normalVelocityForcing_max, f0, beta, omega, Lx, &
    uniform_T, uniform_S, uniform_tracer1, &
    amplify_acc_wind, amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat
 
@@ -160,8 +160,8 @@ solid_boundary_in_x = .false.
 ! Set the number of top layers that are not allowed to have land, usually three.
 top_layers_without_land = 3
 
-h_total_max = 2000.0 ! total layer thickness, for equally spaced case
-u_src_max = 0.1 ! max wind stress, N/m2
+layer_thickness_total_max = 2000.0 ! total layer thickness, for equally spaced case
+normalVelocityForcing_max = 0.1 ! max wind stress, N/m2
 f0 = -1.1e-4  ! Coriolis parameter
 beta = 1.4e-11 
 omega = 7.29212e-5  ! rotation rate of earth
@@ -485,25 +485,25 @@ pi = 4.0*atan(1.0)
 dtr = pi/180.0
 
 ! defaults
-hNew = 100.0
+layerThicknessNew = 100.0
 temperatureNew = 1.0
 salinityNew = 1.0
 tracer1New = 1.0
-uNew = 0
-u_srcNew = 0
-rhoNew = 1025.0
+normalVelocityNew = 0
+normalVelocityForcingNew = 0
+densityNew = 1025.0
 
 if (initial_conditions.eq.'uniform_TS') then
 
    temperatureNew = uniform_T !10.0
    salinityNew = uniform_S !34.0
    tracer1New = uniform_tracer1 !1.0
-   uNew = 0.0
-   u_srcNew = 0.0
+   normalVelocityNew = 0.0
+   normalVelocityForcingNew = 0.0
 
    do iCell=1,nCellsNew
       do k=1, nVertLevelsMod
-         hNew(1,k,iCell) = hZLevel(k)
+         layerThicknessNew(1,k,iCell) = hZLevel(k)
       enddo
    enddo  
 
@@ -519,12 +519,12 @@ elseif (initial_conditions.eq.'Ilicak2_overflow') then
 
    salinityNew(1,:,:) = 35.0
    Tracer1New(1,:,:) = 1.0
-   uNew = 0.0
-   u_srcNew = 0.0
+   normalVelocityNew = 0.0
+   normalVelocityForcingNew = 0.0
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
-         hNew(1,k,iCell) = hZLevel(k)
+         layerThicknessNew(1,k,iCell) = hZLevel(k)
       enddo
    enddo  
 
@@ -540,12 +540,12 @@ elseif (initial_conditions.eq.'Ilicak2_overflow_sigma') then
 
    salinityNew(1,:,:) = 35.0
    Tracer1New(1,:,:) = 1.0
-   uNew = 0.0
-   u_srcNew = 0.0
+   normalVelocityNew = 0.0
+   normalVelocityForcingNew = 0.0
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
-         hNew(1,k,iCell) = bottomDepthNew(iCell) / nVertLevelsMOD
+         layerThicknessNew(1,k,iCell) = bottomDepthNew(iCell) / nVertLevelsMOD
       enddo
    enddo  
 
@@ -557,18 +557,18 @@ elseif (initial_conditions.eq.'SOMA_TS') then
   rho_delta=5.0
   do iCell=1,nCellsNew
   do k = 1,maxLevelCellNew(iCell)
-    hNew(1,k,iCell) = hZLevel(k)
+    layerThicknessNew(1,k,iCell) = hZLevel(k)
     if(k.eq.1) r1 = -refBottomDepth(k)/2.0
     if(k.ne.1) r1 = -(refBottomDepth(k)+refBottomDepth(k-1))/2.0
     work = rho_ref - (1.0-0.05)*rho_delta*tanh(r1/300) - 0.05*rho_delta*r1/2500
-    rhoNew(1,k,iCell) = work
+    densityNew(1,k,iCell) = work
     factor = (rho_ref-work)/2.5e-1
     temperatureNew(1,k,iCell) = 15.0 + factor
     salinityNew(1,k,iCell) = 0.0  ! salinity
   enddo
   enddo
 
-  u_srcNew = 0.0
+  normalVelocityForcingNew = 0.0
   do iEdge=1,nEdgesNew
     xin = xEdgeNew(iEdge)
     yin = yEdgeNew(iEdge)
@@ -584,7 +584,7 @@ elseif (initial_conditions.eq.'SOMA_TS') then
     ulat = 0.0
     call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
     if(boundaryEdgeNew(1,iEdge).eq.1) then
-      u_srcNew(1,iEdge) = 0.0
+      normalVelocityForcingNew(1,iEdge) = 0.0
     else
       iCell1 = cellsOnEdgeNew(1,iEdge)
       iCell2 = cellsOnEdgeNew(2,iEdge)
@@ -592,7 +592,7 @@ elseif (initial_conditions.eq.'SOMA_TS') then
       q(1) = xCellNew(iCell2); q(2) = yCellNew(iCell2); q(3) = zCellNew(iCell2)
       q = q - p
       call unit_vector_in_3space(q)
-      u_srcNew(1,iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
+      normalVelocityForcingNew(1,iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
     endif
 
    enddo
@@ -602,19 +602,19 @@ elseif (initial_conditions.eq.'isopycnal') then
    fEdgeNew(:) = 0.0
    fVertexNew(:) = 0.0
    bottomDepthNew(:) = 0.0
-   uNew(:,:,:) = 0.0
+   normalVelocityNew(:,:,:) = 0.0
 
  ! basin-mod
  ! setting for three levels - Set h values for isopycnal system
    write(6,*) ' setting three levels for isopycnal system'
    if(nVertLevelsMOD .eq. 3) then
-       hNew(1,1,:) = 500.0
-       hNew(1,2,:) = 1250.0
-       hNew(1,3,:) = 3250.0
-       bottomDepthNew(:) = -( hNew(1,1,:) + hNew(1,2,:) + hNew(1,3,:) )
+       layerThicknessNew(1,1,:) = 500.0
+       layerThicknessNew(1,2,:) = 1250.0
+       layerThicknessNew(1,3,:) = 3250.0
+       bottomDepthNew(:) = -( layerThicknessNew(1,1,:) + layerThicknessNew(1,2,:) + layerThicknessNew(1,3,:) )
    else
-       hNew(1,1,:) = 3250.0
-       bottomDepthNew(:) = -( hNew(1,1,:) )
+       layerThicknessNew(1,1,:) = 3250.0
+       bottomDepthNew(:) = -( layerThicknessNew(1,1,:) )
    endif
 
 
@@ -630,18 +630,18 @@ elseif (initial_conditions.eq.'isopycnal') then
    enddo
    r = r/float(nCells)
    work1(:) = work1(:) - r
-   hNew(1,1,:) = hNew(1,1,:) + 1.0*work1(:)
+   layerThicknessNew(1,1,:) = layerThicknessNew(1,1,:) + 1.0*work1(:)
    if(nVertLevelsMOD .gt. 1) then
-       hNew(1,2,:) = hNew(1,2,:) - 1.0*work1(:)
+       layerThicknessNew(1,2,:) = layerThicknessNew(1,2,:) - 1.0*work1(:)
    endif
 
    ! basin-mod
    !Specify Density values for isopycnal levels
    write(6,*) ' setting density'
-   rhoNew(1,1,:) = 1010.0
+   densityNew(1,1,:) = 1010.0
    if(nVertLevelsMOD .eq. 3) then
-       rhoNew(1,2,:) = 1011.0
-       rhoNew(1,3,:) = 1012.0
+       densityNew(1,2,:) = 1011.0
+       densityNew(1,3,:) = 1012.0
    endif
 
    ! basin-mod
@@ -701,8 +701,8 @@ elseif (initial_conditions.eq.'isopycnal') then
 
    ! basin-mod
    ! set forcing for isopycnal levels
-   write(6,*) 'setting u_src - wind forcing'
-   u_srcNew = 0.0
+   write(6,*) 'setting normalVelocityForcing - wind forcing'
+   normalVelocityForcingNew = 0.0
    if(on_a_sphere.eq.'YES') then
        latmin = -60*dtr
        latmax = -10*dtr
@@ -712,13 +712,13 @@ elseif (initial_conditions.eq.'isopycnal') then
        latmid = (latmin+latmax)/2.0
        r = 10.0*dtr
 
-       write(6,*) 'u_src info', latmin, latmax, latmid, r
+       write(6,*) 'normalVelocityForcing info', latmin, latmax, latmid, r
        do i = 1,nEdgesNew
            lattmp = latEdgeNew(i)
            iCell1 = cellsOnEdgeNew(1,i)
            iCell2 = cellsOnEdgeNew(2,i)
            if(iCell1>0.and.iCell2>0) then
-               pert =  u_src_max * exp(-(lattmp-latmid)**2/(r**2))
+               pert =  normalVelocityForcing_max * exp(-(lattmp-latmid)**2/(r**2))
 
                ulat = latEdgeNew(i)
                ulon = lonEdgeNew(i) + 0.05
@@ -736,7 +736,7 @@ elseif (initial_conditions.eq.'isopycnal') then
 
                dotProd = normalsNew(1,i)*xin + normalsNew(2,i)*yin + normalsNew(3,i)*zin
 
-               u_srcNew(1,i) = pert * dotProd
+               normalVelocityForcingNew(1,i) = pert * dotProd
                write(8,*) lattmp,pert,dotProd
            endif
        enddo
@@ -750,19 +750,19 @@ elseif (initial_conditions.eq.'isopycnal') then
            iCell1 = cellsOnEdgeNew(1,i)
            iCell2 = cellsOnEdgeNew(2,i)
            if(iCell1>0.and.iCell2>0) then
-               pert =  u_src_max * exp(-(ytmp-ymid)**2/(r**2))
+               pert =  normalVelocityForcing_max * exp(-(ytmp-ymid)**2/(r**2))
                write(8,*) ytmp,pert
-               u_srcNew(1,i) = pert * normalsNew(1,i)
+               normalVelocityForcingNew(1,i) = pert * normalsNew(1,i)
            endif
        enddo
    endif
-   write(6,*) ' u_srcNew ', minval(u_srcNew), maxval(u_srcNew)
+   write(6,*) ' normalVelocityForcingNew ', minval(normalVelocityForcingNew), maxval(normalVelocityForcingNew)
 
 
 elseif (initial_conditions.eq.'realistic_WOCE') then
 
 
-u_srcNew = 0.0
+normalVelocityForcingNew = 0.0
 windStressMonthlyNew = 0.0
 do iEdge=1,nEdgesNew
   xin = xEdgeNew(iEdge)
@@ -785,7 +785,7 @@ do iEdge=1,nEdgesNew
 
   call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
   if(boundaryEdgeNew(1,iEdge).eq.1) then
-    u_srcNew(1,iEdge) = 0.0
+    normalVelocityForcingNew(1,iEdge) = 0.0
   else
     iCell1 = cellsOnEdgeNew(1,iEdge)
     iCell2 = cellsOnEdgeNew(2,iEdge)
@@ -793,7 +793,7 @@ do iEdge=1,nEdgesNew
     q(1) = xCellNew(iCell2); q(2) = yCellNew(iCell2); q(3) = zCellNew(iCell2)
     q = q - p
     call unit_vector_in_3space(q)
-    u_srcNew(1,iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
+    normalVelocityForcingNew(1,iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
   endif
 
   if(monthly_forcing) then
@@ -816,7 +816,7 @@ do iEdge=1,nEdgesNew
       call unit_vector_in_3space(q)
     ! repeat
       windStressMonthlyNew(iMonth,iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
-    ! windStressMonthlyNew(iMonth,iEdge) = u_srcNew(1,iEdge)
+    ! windStressMonthlyNew(iMonth,iEdge) = normalVelocityForcingNew(1,iEdge)
     endif
     enddo
   else
@@ -849,7 +849,7 @@ enddo
 if(load_woce_IC) then
 iNoData = 0
 do iCell=1,nCellsNew
-  hNew(1,:,iCell) = dz(:)
+  layerThicknessNew(1,:,iCell) = dz(:)
   ! if(mod(iCell,100).eq.0) write(6,*) 'load_woce_IC t and s',iCell
   rlon = lonCellNew(iCell)/dtr
   rlat = latCellNew(iCell)/dtr
@@ -1274,11 +1274,11 @@ allocate(fEdge(nEdges))
 allocate(fVertex(nVertices))
 allocate(bottomDepth(nCells))
 allocate(work1(nCells))
-allocate(u_src(nVertLevels,nEdges))
-allocate(u(1,nVertLevels,nEdges))
-allocate(v(1,nVertLevels,nEdges))
-allocate(h(1,nVertLevels,nCells))
-allocate(rho(1,nVertLevels,nCells))
+allocate(normalVelocityForcing(nVertLevels,nEdges))
+allocate(normalVelocity(1,nVertLevels,nEdges))
+allocate(tangentialVelocity(1,nVertLevels,nEdges))
+allocate(layerThickness(1,nVertLevels,nCells))
+allocate(density(1,nVertLevels,nCells))
 
 xCell=0; yCell=0; zCell=0; latCell=0; lonCell=0; meshDensity=1.0
 xEdge=0; yEdge=0; zEdge=0; latEdge=0; lonEdge=0
@@ -1291,8 +1291,8 @@ angleEdge=0; areaCell=0; areaTriangle=0
 cellsOnCell=0; verticesOnCell=0; verticesOnEdge=0
 edgesOnVertex=0; cellsOnVertex=0; kiteAreasOnVertex=0
 
-fEdge=0; fVertex=0; bottomDepth=0; u_src=0; work1=0
-u=0; v=0; h=0; rho=0
+fEdge=0; fVertex=0; bottomDepth=0; normalVelocityForcing=0; work1=0
+normalVelocity=0; tangentialVelocity=0; layerThickness=0; density=0
 
 
 call  read_netcdf_fields( &
@@ -1336,9 +1336,9 @@ call  read_netcdf_fields( &
                     fEdge, &
                     fVertex, &
                     bottomDepth, &
-                    u, &
-                    v, &
-                    h &
+                    normalVelocity, &
+                    tangentialVelocity, &
+                    layerThickness &
                    )
 
 write(6,*) ' values from read grid, min/max'
@@ -1381,9 +1381,9 @@ write(6,*) ' kiteAreasOnVertex : ', minval(kiteAreasOnVertex), maxval(kiteAreasO
 write(6,*) ' fEdge : ', minval(fEdge), maxval(fEdge)
 write(6,*) ' fVertex : ', minval(fVertex), maxval(fVertex)
 write(6,*) ' bottomDepth : ', minval(bottomDepth), maxval(bottomDepth)
-write(6,*) ' u : ', minval(u), maxval(u)
-write(6,*) ' v : ', minval(v), maxval(v)
-write(6,*) ' h : ', minval(h), maxval(h)
+write(6,*) ' normalVelocity : ', minval(normalVelocity), maxval(normalVelocity)
+write(6,*) ' tangentialVelocity : ', minval(tangentialVelocity), maxval(tangentialVelocity)
+write(6,*) ' layerThickness : ', minval(layerThickness), maxval(layerThickness)
 
 end subroutine read_grid
 
@@ -1464,11 +1464,11 @@ call write_netcdf_fields( &
                     bottomDepthNew, &
                     boundaryEdgeNew, &
                     boundaryVertexNew, &
-                    u_srcNew, &
+                    normalVelocityForcingNew, &
                     windStressMonthlyNew, &
-                    uNew, &
-                    hNew, &
-                    rhoNew, &
+                    normalVelocityNew, &
+                    layerThicknessNew, & 
+                    densityNew, &
                     temperatureNew, &
                     salinityNew, &
                     tracer1New, &
@@ -1476,7 +1476,6 @@ call write_netcdf_fields( &
                     salinityRestoreNew, &
                     temperatureRestoreMonthlyNew, &
                     salinityRestoreMonthlyNew, &
-                    hZLevel, &
                     refBottomDepth &
                    )
 
@@ -1603,7 +1602,7 @@ elseif (bottom_topography.eq.'Ilicak2_overflow') then
       ! depth=2000
       ! val1 = 500 is top of ridge
       ! h(i,j) = val1 + 0.5*(depth-val1) * (1.0+TANH((lon(i,j)-40000.0)/7000.0)) 
-      bottomDepth(iCell) = ridgeDepth + 0.5*(h_total_max-ridgeDepth) * (1.0+tanh((yCell(iCell)-40000.0)/7000.0)) 
+      bottomDepth(iCell) = ridgeDepth + 0.5*(layer_thickness_total_max-ridgeDepth) * (1.0+tanh((yCell(iCell)-40000.0)/7000.0)) 
 
       if (bottomDepth(iCell).lt.0.0.or. &
           bottomDepth(iCell).gt.refBottomDepth(nVertLevelsMOD)) then
@@ -1629,7 +1628,7 @@ elseif (bottom_topography.eq.'Ilicak2_overflow_sigma') then
       ! depth=2000
       ! val1 = 500 is top of ridge
       ! h(i,j) = val1 + 0.5*(depth-val1) * (1.0+TANH((lon(i,j)-40000.0)/7000.0)) 
-      bottomDepth(iCell) = ridgeDepth + 0.5*(h_total_max-ridgeDepth) * (1.0+tanh((yCell(iCell)-40000.0)/7000.0)) 
+      bottomDepth(iCell) = ridgeDepth + 0.5*(layer_thickness_total_max-ridgeDepth) * (1.0+tanh((yCell(iCell)-40000.0)/7000.0)) 
 
       if (bottomDepth(iCell).lt.0.0.or. &
           bottomDepth(iCell).gt.refBottomDepth(nVertLevelsMOD)) then
@@ -1887,11 +1886,11 @@ allocate(maxLevelCellNew(nCellsNew))
 allocate(fEdgeNew(nEdgesNew))
 allocate(fVertexNew(nVerticesNew))
 allocate(bottomDepthNew(nCellsNew))
-allocate(u_srcNew(nVertLevelsNew,nEdgesNew))
+allocate(normalVelocityForcingNew(nVertLevelsNew,nEdgesNew))
 allocate(windStressMonthlyNew(nMonths,nEdgesNew))
-allocate(uNew(1,nVertLevelsNew,nEdgesNew))
-allocate(hNew(1,nVertLevelsNew,nCellsNew))
-allocate(rhoNew(1,nVertLevelsNew,nCellsNew))
+allocate(normalVelocityNew(1,nVertLevelsNew,nEdgesNew))
+allocate(layerThicknessNew(1,nVertLevelsNew,nCellsNew))
+allocate(densityNew(1,nVertLevelsNew,nCellsNew))
 allocate(temperatureNew(1,nVertLevelsNew,nCellsNew))
 allocate(salinityNew(1,nVertLevelsNew,nCellsNew))
 allocate(tracer1New(1,nVertLevelsNew,nCellsNew))
@@ -1907,8 +1906,8 @@ xCellNew=0; yCellNew=0; zCellNew=0; latCellNew=0; lonCellNew=0; meshDensityNew=1
 xEdgeNew=0; yEdgeNew=0; zEdgeNew=0; latEdgeNew=0; lonEdgeNew=0
 xVertexNew=0; yVertexNew=0; zVertexNew=0; latVertexNew=0; lonVertexNew=0
 
-fEdgeNew=0; fVertexNew=0; bottomDepthNew=0; u_srcNew=0; windStressMonthlyNew = 0
-uNew=0; hNew=0; rhoNew=0
+fEdgeNew=0; fVertexNew=0; bottomDepthNew=0; normalVelocityForcingNew=0; windStressMonthlyNew = 0
+normalVelocityNew=0; layerThicknessNew=0; densityNew=0
 temperatureNew=0; salinityNew=0; tracer1New=0;
 
 temperatureRestoreNew = 0.0
@@ -2210,7 +2209,7 @@ elseif (zLevel_thickness.eq.'equally_spaced') then
 
    write(6,*) ' equally spaced zLevels'
    do i = 1, nVertLevelsMOD
-       hZLevel(i) =  h_total_max / nVertLevelsMOD
+       hZLevel(i) =  layer_thickness_total_max / nVertLevelsMOD
    end do
 
 elseif(zLevel_thickness.eq.'SOMA_40_Level') then
