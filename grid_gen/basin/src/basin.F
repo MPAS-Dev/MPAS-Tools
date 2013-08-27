@@ -61,6 +61,7 @@ integer :: nMonths = 1
    real (kind=8) :: ymid, ytmp, ymax, xmid, xloc, yloc, pert, ymin, distance, r, c1(3), c2(3)
    real (kind=8) :: latmid, lattmp, latmax, latmin
    integer :: cell1, cell2
+real ::    eos_linear_alpha, eos_linear_beta, eos_linear_Tref, eos_linear_Sref, eos_linear_densityref
 
 ! new grid variables
 real, allocatable, dimension(:) :: hZLevel, refBottomDepth
@@ -138,11 +139,11 @@ expand_from_unit_sphere = .true.
 zLevel_thickness = 'POP_40_zLevel'
 
 ! bottom topography options: 
-! 'realistic_ETOPO', 'flat_bottom', 'Ilicak2_overflow'
+! 'realistic_ETOPO', 'flat_bottom', 'Ilicak2_overflow', 'DOME_3D_overflow'
 bottom_topography = 'realistic_ETOPO'
 
 ! initial temperature and salinity options: 
-! 'realistic_WOCE', 'uniform_TS', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma'
+! 'realistic_WOCE', 'uniform_TS', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma', 'DOME_3D_overflow'
 initial_conditions = 'realistic_WOCE'
 uniform_T = 10.0
 uniform_S = 34.0
@@ -478,6 +479,7 @@ subroutine get_init_conditions
 implicit none
 real :: halfwidth, dtr, pi, p(3), q(3), xin, yin, zin, ulon, ulat, stress, n1, n2, distance, r, temp_t, temp_s
 real :: dotProd, rho_ref, rho_delta, work, factor, r1, deltay, b
+real :: y0_embayment
 integer :: iTracer, ix, iy, ndata, i, j, k, ixt, iyt, ncull, jcount, iNoData, kdata(nVertLevelsMod), iMonth
 logical :: flag_lat
 
@@ -549,6 +551,31 @@ elseif (initial_conditions.eq.'Ilicak2_overflow_sigma') then
       enddo
    enddo  
 
+elseif (initial_conditions.eq.'DOME_3D_overflow') then
+
+   y0_embayment = 600.0e3 ! y location of beginning of embayment
+   Tracer1New(1,:,:) = 0.0
+   normalVelocityNew = 0.0
+   normalVelocityForcingNew = 0.0
+   do k=1,nVertLevelsMOD
+      temperatureNew(1,k,:) = 20-0.5*k
+      salinityNew(1,k,:) = 35.0
+   enddo
+
+   ! change embayment fluid to have tracer 1 and cold water
+   do iCell=1,nCellsNew
+      if (yCellNew(iCell).gt.y0_embayment) then
+         temperatureNew(1,:,iCell) = 0.0
+         tracer1New(1,:,iCell) = 1.0
+      endif
+   enddo
+
+   do iCell=1,nCellsNew
+      do k=1,nVertLevelsMod
+         layerThicknessNew(1,k,iCell) = hZLevel(k)
+      enddo
+   enddo  
+
 elseif (initial_conditions.eq.'SOMA_TS') then
 
   temperatureNew = -99.0
@@ -597,109 +624,55 @@ elseif (initial_conditions.eq.'SOMA_TS') then
 
    enddo
 
-elseif (initial_conditions.eq.'isopycnal') then
+elseif (initial_conditions.eq.'isopycnal_3layer') then
 
    fEdgeNew(:) = 0.0
    fVertexNew(:) = 0.0
    bottomDepthNew(:) = 0.0
    normalVelocityNew(:,:,:) = 0.0
 
- ! basin-mod
  ! setting for three levels - Set h values for isopycnal system
    write(6,*) ' setting three levels for isopycnal system'
-   if(nVertLevelsMOD .eq. 3) then
        layerThicknessNew(1,1,:) = 500.0
        layerThicknessNew(1,2,:) = 1250.0
        layerThicknessNew(1,3,:) = 3250.0
        bottomDepthNew(:) = -( layerThicknessNew(1,1,:) + layerThicknessNew(1,2,:) + layerThicknessNew(1,3,:) )
-   else
-       layerThicknessNew(1,1,:) = 3250.0
-       bottomDepthNew(:) = -( layerThicknessNew(1,1,:) )
-   endif
 
-
-   ! basin-mod
    ! Noise is meant to make the flow unstable at some point 
    ! Not needed for all simulations
    write(6,*) ' adding noise to layer thickness'
    r = 0.0
    do i=1,nCellsNew
-   work1(i) = float(i) / float(nCellsNew)
-    call random_number(work1(i))
-    r = r + work1(i)
+      work1(i) = float(i) / float(nCellsNew)
+      call random_number(work1(i))
+      r = r + work1(i)
    enddo
    r = r/float(nCells)
    work1(:) = work1(:) - r
    layerThicknessNew(1,1,:) = layerThicknessNew(1,1,:) + 1.0*work1(:)
-   if(nVertLevelsMOD .gt. 1) then
-       layerThicknessNew(1,2,:) = layerThicknessNew(1,2,:) - 1.0*work1(:)
-   endif
+   layerThicknessNew(1,2,:) = layerThicknessNew(1,2,:) - 1.0*work1(:)
 
-   ! basin-mod
-   !Specify Density values for isopycnal levels
-   write(6,*) ' setting density'
-   densityNew(1,1,:) = 1010.0
-   if(nVertLevelsMOD .eq. 3) then
-       densityNew(1,2,:) = 1011.0
-       densityNew(1,3,:) = 1012.0
-   endif
+   ! Specify Density values for isopycnal levels
+   write(6,*) ' setting density - depricate soon'
+   densityNew(1,:,:) = 1010.0
+   densityNew(1,2,:) = 1011.0
+   densityNew(1,3,:) = 1012.0
 
-   ! basin-mod
-   ! set temperature for isopycnal levels
-   write(6,*) ' setting temperature'
-   k=1
-   temperatureNew(1,k,:) = xCellNew(:)
-   if(nVertLevelsMOD .eq. 3) then
-       k=2
-       temperatureNew(1,k,:) = yCellNew(:)
-       k=3
-       temperatureNew(1,k,:) = zCellNew(:)
-   endif
+   eos_linear_alpha = 2.55e-1
+   eos_linear_beta = 7.64e-1
+   eos_linear_Tref = 19.0
+   eos_linear_Sref = 35.0
+   eos_linear_densityref = 1025.022
 
-   ! basin-mod
    ! set salinity for isopycnal levels
-   write(6,*) ' setting salinity'
-   if(on_a_sphere.eq.'YES') then
-       latmin = minval(latCellNew)
-       latmax = maxval(latCellNew)
-       r = 10.0*dtr
-       ymid = (latmax+latmin)/2
-       do i = 1,nCellsNew
-           lattmp = latCellNew(i)
-           pert =  exp(-(lattmp-latmid)**2/((0.1*r)**2))
-           k=1
-           if(nVertLevelsMOD .eq. 3) then
-               salinityNew(1,k,:) = pert
-               pert =  exp(-(lattmp-latmid)**2/((1.0*r)**2))
-               k=2
-               salinityNew(1,k,:) = pert
-               pert =  exp(-(lattmp-latmid)**2/((10.0*r)**2))
-               k=3
-               salinityNew(1,k,:) = pert
-           endif
-       enddo
-   else
-       ymin = minval(yCellNew)
-       ymax = maxval(yCellNew)
-       r = 3.0e5
-       ymid = (ymax+ymin)/2
-       do i = 1,nCellsNew
-           ytmp = yCellNew(i)
-           pert =  exp(-(ytmp-ymid)**2/((0.1*r)**2))
-           k=1
-           if(nVertLevelsMOD .eq. 3) then
-               salinityNew(1,k,:) = pert
-               pert =  exp(-(ytmp-ymid)**2/((1.0*r)**2))
-               k=2
-               salinityNew(1,k,:) = pert
-               pert =  exp(-(ytmp-ymid)**2/((10.0*r)**2))
-               k=3
-               salinityNew(1,k,:) = pert
-           endif
-       enddo
-   endif
+   salinityNew = eos_linear_Sref
 
-   ! basin-mod
+   ! set temperature for isopycnal levels.  Just invert linear eos.
+   write(6,*) ' setting temperature'
+   do k=1,nVertLevelsMOD
+     temperatureNew(1,k,:) = eos_linear_Tref + (eos_linear_densityref - densityNew(1,k,:))/eos_linear_alpha
+   enddo
+
    ! set forcing for isopycnal levels
    write(6,*) 'setting normalVelocityForcing - wind forcing'
    normalVelocityForcingNew = 0.0
@@ -757,7 +730,6 @@ elseif (initial_conditions.eq.'isopycnal') then
        enddo
    endif
    write(6,*) ' normalVelocityForcingNew ', minval(normalVelocityForcingNew), maxval(normalVelocityForcingNew)
-
 
 elseif (initial_conditions.eq.'realistic_WOCE') then
 
@@ -1025,8 +997,7 @@ endif  ! initial_conditions
 
 if (trim(initial_conditions).ne.'realistic_WOCE') then
 
-   ! basin-mod
-   ! set coriolis parameter for grid
+      ! set coriolis parameter for grid
    write(6,*) ' setting Coriolis parameter'
    if(on_a_sphere.eq.'YES') then
        do i = 1,nVerticesNew
@@ -1510,9 +1481,11 @@ implicit none
 real (kind=4), allocatable, dimension(:) :: x,y, work_kmt
 real (kind=4), allocatable, dimension(:,:) :: ztopo
 integer :: nx, ny, inx, iny, ix, iy, kmt_neighbor_max
+integer :: kEmbayment
 real :: pi, dtr, zdata, rlon, rlat, r, ymin, ymax, xmin, xmax
 real :: latmin, latmax, lonmin, lonmax, ridgeDepth, maxdc
 real :: b, H0, phi, gamma, distance, rlonC, rlatC
+real :: y0_embayment, embayment_depth, embayment_slope, z
 logical :: flag, kmt_flag
 
 pi = 4.0*atan(1.0)
@@ -1641,6 +1614,56 @@ elseif (bottom_topography.eq.'Ilicak2_overflow_sigma') then
 
     ! for sigma coordinates, set kmt to the max level.
     kmt = nVertLevelsMOD
+
+elseif (bottom_topography.eq.'DOME_3D_overflow') then
+
+    y0_embayment = 600.0e3 ! y location of beginning of embayment
+    embayment_depth =600 ! depth of embayment, m
+    embayment_slope = 0.01 ! slope
+
+    ! The first level where z is deeper than zmid, set k-level of embayment
+    do k=2,nVertLevelsMod
+       if ((refBottomDepth(k)+refBottomDepth(k-1))/2.0.gt.embayment_depth) then
+          kEmbayment = k
+          exit
+       endif
+    enddo
+    print *, 'kEmbayment',kEmbayment
+    do iCell=1,nCells
+      if (yCell(iCell).gt.y0_embayment) then
+         ! note: I made embayment 200km wide for the 50km rez hex case, so 
+         ! it is always wider than 1 cell.  For higher rez, change this
+         ! to 1700 to 1800.
+         if (xCell(iCell).lt.1600.0e3.or. &
+             xCell(iCell).gt.1800.0e3 ) then
+            kmt(iCell)=0
+         else
+            kmt(iCell) = kEmbayment
+         endif
+         bottomDepth(iCell) = embayment_depth
+        
+      else
+         ! compute depth based on y coordinate
+         bottomDepth(iCell) = min(embayment_depth + embayment_slope*(y0_embayment - yCell(iCell)),refBottomDepth(nVertLevelsMOD))
+         ! default depth is 
+         kmt(iCell) = nVertLevelsMod
+         do k=2,nVertLevelsMod
+            ! The first level where z is deeper than zmid, set kmt.
+            if ((refBottomDepth(k)+refBottomDepth(k-1))/2.0.gt.bottomDepth(iCell)) then
+               kmt(iCell) = k
+               exit
+            endif
+         enddo
+       endif
+
+       ! If using no partial bottom cells, use this:
+       if (kmt(iCell).gt.0) then
+          bottomDepth(iCell) = refBottomDepth(kmt(iCell))
+       endif
+       
+    enddo
+
+
 
 elseif (bottom_topography.eq.'SOMA_Circular_Basin') then
 
@@ -2200,12 +2223,7 @@ end subroutine map_connectivity
 subroutine get_dz
 integer k
 
-if (zLevel_thickness.eq.'zero') then
-
-   ! hZLevel not used for isopycnal setting, just set to zero.
-   hZLevel = 0.0
-
-elseif (zLevel_thickness.eq.'equally_spaced') then
+if (zLevel_thickness.eq.'equally_spaced') then
 
    write(6,*) ' equally spaced zLevels'
    do i = 1, nVertLevelsMOD
@@ -2301,6 +2319,14 @@ elseif(zLevel_thickness.eq.'POP_40_zLevel') then
   dz(40) = 25000.00   !   5374.999       5499.999
 
   dz = dz / 100.0
+
+  hZLevel = dz
+
+elseif(zLevel_thickness.eq.'isopycnal_3layer') then
+
+  dz( 1) =   500.0
+  dz( 2) =  1250.0
+  dz( 3) =  3250.0
 
   hZLevel = dz
 
