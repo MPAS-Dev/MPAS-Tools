@@ -143,7 +143,7 @@ zLevel_thickness = 'POP_40_zLevel'
 bottom_topography = 'realistic_ETOPO'
 
 ! initial temperature and salinity options: 
-! 'realistic_WOCE', 'uniform_TS', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma', 'DOME_3D_overflow'
+! 'realistic_WOCE', 'uniform_TS', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma', 'DOME_3D_overflow', 'internal_wave_Ilicak3'
 initial_conditions = 'realistic_WOCE'
 uniform_T = 10.0
 uniform_S = 34.0
@@ -479,7 +479,7 @@ subroutine get_init_conditions
 implicit none
 real :: halfwidth, dtr, pi, p(3), q(3), xin, yin, zin, ulon, ulat, stress, n1, n2, distance, r, temp_t, temp_s
 real :: dotProd, rho_ref, rho_delta, work, factor, r1, deltay, b
-real :: y0_embayment
+real :: y0_embayment, vertTempChange, backgroundMaxTemp, backgroundMinTemp, betaTemperature,bottomMinTemp,y_a,y_0,A_0
 integer :: iTracer, ix, iy, ndata, i, j, k, ixt, iyt, ncull, jcount, iNoData, kdata(nVertLevelsMod), iMonth
 logical :: flag_lat
 
@@ -550,6 +550,44 @@ elseif (initial_conditions.eq.'Ilicak2_overflow_sigma') then
          layerThicknessNew(1,k,iCell) = bottomDepthNew(iCell) / nVertLevelsMOD
       enddo
    enddo  
+
+elseif (initial_conditions.eq.'internal_wave_Ilicak3') then
+
+   salinityNew(1,:,:) = 35.0
+   normalVelocityNew = 0.0
+   normalVelocityForcingNew = 0.0
+
+   vertTempChange = 2.5
+   backgroundMaxTemp = 20.6
+   backgroundMinTemp = 9.5
+   do k = 1, nVertLevelsMOD
+      temperatureNew(1,k,:) = (backgroundMaxTemp - backgroundMinTemp) &
+         * ((-refBottomDepth(k)+layer_thickness_total_max)/layer_thickness_total_max) + backgroundMinTemp
+   enddo
+
+   y_a = 50.0e3
+   y_0 = 125.0e3
+   A_0 = 2.0
+   do i = 1, nCellsNew
+      if ( abs(yCellNew(i) - y_0) < y_a) then
+         do k = 1, nVertLevelsMOD
+            betaTemperature = -A_0*cos(0.5*pi*(yCellNew(i)-y_0)/y_a) &
+               *sin(1.05*pi*refBottomDepth(k)/layer_thickness_total_max) 
+            temperatureNew(1, k, i) = temperatureNew(1, k, i) + betaTemperature
+         end do
+      endif
+   enddo
+
+   ! bottomMinTemp is set a little above backgroundMinTemp so gravity waves are not induced along the bottom
+   bottomMinTemp = 10.0
+   temperatureNew(1,:,:) = max(temperatureNew(1,:,:), bottomMinTemp)
+
+   do iCell=1,nCellsNew
+      do k=1,nVertLevelsMod
+         layerThicknessNew(1,k,iCell) = hZLevel(k)
+      enddo
+   enddo  
+
 
 elseif (initial_conditions.eq.'DOME_3D_overflow') then
 
