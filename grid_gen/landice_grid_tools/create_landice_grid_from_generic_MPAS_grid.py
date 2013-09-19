@@ -21,7 +21,7 @@ except ImportError:
 # If not, land_ice_grid.nc is used.
 if len(sys.argv) > 1:
   if sys.argv[1][0] == '-': # The filename can't begin with a hyphen
-    print '\nUsage:  python add_land_ice_variables_to_mpas_grid.py [GRID.NC]\nIf no filename is supplied, grid.nc will be used.'
+    print '\nUsage:  python create_landice_grid_from_generic_MPAS_grid.py [GRID.NC]\nIf no filename is supplied, grid.nc will be used.'
     sys.exit(0)
   else:
     fileinName = sys.argv[1]
@@ -37,9 +37,9 @@ filein = NetCDFFile(fileinName,'r')
 
 # Define the new file to be output - this should perhaps be made a variant of the input file name
 if netCDF_module == 'Scientific.IO.NetCDF':
-    fileout = NetCDFFile("land_ice_grid.nc","w")
+    fileout = NetCDFFile("landice_grid.nc","w")
 else:
-    fileout = NetCDFFile("land_ice_grid.nc","w",format=filein.file_format)
+    fileout = NetCDFFile("landice_grid.nc","w",format=filein.file_format)
 
 
 
@@ -66,11 +66,12 @@ for dim in filein.dimensions.keys():
 # fileout.createDimension('nVertLevelsPlus2', filein.dimensions['nVertLevels'] + 2)
 
 # Create the dimensions needed for time-dependent forcings
-fileout.createDimension('nBetaTimeSlices', 1)
-fileout.createDimension('nSfcMassBalTimeSlices', 1)
-fileout.createDimension('nSfcAirTempTimeSlices', 1)
-fileout.createDimension('nBasalHeatFluxTimeSlices', 1)
-fileout.createDimension('nMarineBasalMassBalTimeSlices', 1)
+# Note: These have been disabled in the fresh implementation of the landice core.  MH 9/19/13
+#fileout.createDimension('nBetaTimeSlices', 1)
+#fileout.createDimension('nSfcMassBalTimeSlices', 1)
+#fileout.createDimension('nSfcAirTempTimeSlices', 1)
+#fileout.createDimension('nBasalHeatFluxTimeSlices', 1)
+#fileout.createDimension('nMarineBasalMassBalTimeSlices', 1)
 
 
 # Copy over all of the required grid variables to the new file
@@ -86,7 +87,7 @@ for varname in vars2copy:
    # Create nVertLevelsPlus2 dimension - no longer used
        
 
-# Create the land ice variables (all the shallow water vars can be ignored)
+# Create the land ice variables (all the shallow water vars in the input file can be ignored)
 if netCDF_module == 'Scientific.IO.NetCDF':
     nVertLevels = fileout.dimensions['nVertLevels']
     datatype = 'd'
@@ -101,25 +102,28 @@ newvar[:] = 1.0 / nVertLevels
 
 newvar = fileout.createVariable('thickness', datatype, ('Time', 'nCells'))
 newvar[:] = numpy.zeros(newvar.shape)
-newvar = fileout.createVariable('bedTopography', datatype, ('Time', 'nCells'))
-newvar[:] = numpy.zeros(newvar.shape)
 newvar = fileout.createVariable('normalVelocity', datatype, ('Time', 'nEdges', 'nVertLevels'))
 newvar[:] = numpy.zeros(newvar.shape)
 newvar = fileout.createVariable('temperature', datatype, ('Time', 'nCells', 'nVertLevels'))
-#newvar = fileout.createVariable('temperature', 'd', ('Time', 'nCells', 'nVertLevelsPlus2'))
+newvar[:] = numpy.zeros(newvar.shape)
+# These landice variables are stored in the mesh currently, and therefore do not have a time dimension.
+#    It may make sense to eventually move them to state.
+newvar = fileout.createVariable('bedTopography', datatype, ('nCells',))
+newvar = fileout.createVariable('sfcMassBal', datatype, ('nCells',))
 newvar[:] = numpy.zeros(newvar.shape)
 
 # These boundary conditions are currently part of mesh, and are time independent.  If they change, make sure to adjust the dimensions here and in Registry.
-newvar = fileout.createVariable('betaTimeSeries', datatype, ( 'nCells', 'nBetaTimeSlices', ))
-newvar[:] = numpy.zeros(newvar.shape)
-newvar = fileout.createVariable('sfcMassBalTimeSeries', datatype, ( 'nCells', 'nSfcMassBalTimeSlices', ))
-newvar[:] = numpy.zeros(newvar.shape)
-newvar = fileout.createVariable('sfcAirTempTimeSeries', datatype, ( 'nCells', 'nSfcAirTempTimeSlices', ))
-newvar[:] = numpy.zeros(newvar.shape)
-newvar = fileout.createVariable('basalHeatFluxTimeSeries', datatype, ( 'nCells', 'nBasalHeatFluxTimeSlices',))
-newvar[:] = numpy.zeros(newvar.shape)
-newvar = fileout.createVariable('marineBasalMassBalTimeSeries', datatype, ( 'nCells', 'nMarineBasalMassBalTimeSlices',))
-newvar[:] = numpy.zeros(newvar.shape)
+# Note: These have been disabled in the fresh implementation of the landice core.  MH 9/19/13
+#newvar = fileout.createVariable('betaTimeSeries', datatype, ( 'nCells', 'nBetaTimeSlices', ))
+#newvar[:] = numpy.zeros(newvar.shape)
+#newvar = fileout.createVariable('sfcMassBalTimeSeries', datatype, ( 'nCells', 'nSfcMassBalTimeSlices', ))
+#newvar[:] = numpy.zeros(newvar.shape)
+#newvar = fileout.createVariable('sfcAirTempTimeSeries', datatype, ( 'nCells', 'nSfcAirTempTimeSlices', ))
+#newvar[:] = numpy.zeros(newvar.shape)
+#newvar = fileout.createVariable('basalHeatFluxTimeSeries', datatype, ( 'nCells', 'nBasalHeatFluxTimeSlices',))
+#newvar[:] = numpy.zeros(newvar.shape)
+#newvar = fileout.createVariable('marineBasalMassBalTimeSeries', datatype, ( 'nCells', 'nMarineBasalMassBalTimeSlices',))
+#newvar[:] = numpy.zeros(newvar.shape)
 
 # Assign the global attributes
 # Copy over the two attributes that are required by MPAS.  If any others exist in the input file, give a warning.
@@ -133,4 +137,4 @@ print "Global attributes and functions: ", dir(filein)
 filein.close()
 fileout.close()
 
-print 'Successfully created land_ice_grid.nc'
+print 'Successfully created landice_grid.nc'
