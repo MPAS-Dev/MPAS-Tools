@@ -4,18 +4,22 @@
 # Currently variable attributes are not copied (and periodic_hex does not assign any, so this is ok).  If variable attributes are added to periodic_hex, this script should be modified to copy them (looping over dir(var), skipping over variable function names "assignValue", "getValue", "typecode").
 
 import sys, numpy
-try:
-  from Scientific.IO.NetCDF import NetCDFFile
-  netCDF_module = 'Scientific.IO.NetCDF'
-except ImportError:
-  try:
-    from netCDF4 import Dataset as NetCDFFile
-    netCDF_module = 'netCDF4'
-  except ImportError:
-      print 'Unable to import any of the following python modules:'
-      print '  Scientific.IO.NetCDF \n  netcdf4 '
-      print 'One of them must be installed.'
-      raise ImportError('No netCDF module found')
+#try:
+#  from Scientific.IO.NetCDF import NetCDFFile
+#  netCDF_module = 'Scientific.IO.NetCDF'
+#except ImportError:
+#  try:
+#    from netCDF4 import Dataset as NetCDFFile
+#    netCDF_module = 'netCDF4'
+#  except ImportError:
+#      print 'Unable to import any of the following python modules:'
+#      print '  Scientific.IO.NetCDF \n  netcdf4 '
+#      print 'One of them must be installed.'
+#      raise ImportError('No netCDF module found')
+
+from netCDF4 import Dataset as NetCDFFile
+netCDF_module = 'netCDF4'
+
 
 # Check to see if a grid file was specified on the command line.
 # If not, land_ice_grid.nc is used.
@@ -48,19 +52,18 @@ else:
 #       I don't think this matters but it is not aesthetically pleasing.
 #       It may be better to list them explicitly as I do for the grid variables, 
 #       but this way ensures they all get included and is easier.
+# Note: The UNLIMITED time dimension will return a dimension value of None with Scientific.IO.  This is what is supposed to happen.  See below for how to deal with assigning values to a variable with a unlimited dimension.  Special handling is needed with the netCDF module.
 for dim in filein.dimensions.keys():
-    if dim == 'Time':
-    # Note that for some reason getting the current value of the UNLIMITED dimension does not work with this method.  The value returned in this case is "None".  However, you can always get the current value of any variable dimension via the shape attribute.
-    # This is a limitation of Scientific.IO.NetCDF and may not be an issue with other netcdf python modules.
-    # This workaround should be fine for the time being since there is no need to have the I.C. file have UNLIMITED time dimension.
-        fileout.createDimension('Time', 1)
-    elif dim == 'nTracers': 
+    if dim == 'nTracers': 
         pass  # Do nothing - we don't want this dimension 
     else:    # Copy over all other dimensions
       if netCDF_module == 'Scientific.IO.NetCDF':
         dimvalue = filein.dimensions[dim]
       else:
-        dimvalue = len(filein.dimensions[dim])
+        if dim == 'Time':      
+           dimvalue = None  # netCDF4 won't properly get this with the command below (you need to use the isunlimited method)
+        else:
+           dimvalue = len(filein.dimensions[dim])
       fileout.createDimension(dim, dimvalue)
 # Create nVertLevelsPlus2 dimension
 # fileout.createDimension('nVertLevelsPlus2', filein.dimensions['nVertLevels'] + 2)
@@ -100,15 +103,19 @@ newvar[:] = numpy.zeros(newvar.shape)
 # Assign default values to layerThicknessFractions.  By default they will be uniform fractions.  Users can modify them in a subsequent step, but doing this here ensures the most likely values are already assigned. (Useful for e.g. setting up Greenland where the state variables are copied over but the grid variables are not modified.)
 newvar[:] = 1.0 / nVertLevels
 
+
+# With Scientific.IO.netCDF, entries are appended along the unlimited dimension one at a time by assigning to a slice.
+# Therefore we need to assign to time level 0, and what we need to assign is a zeros array that is the shape of the new variable, exluding the time dimension!
 newvar = fileout.createVariable('thickness', datatype, ('Time', 'nCells'))
-newvar[:] = numpy.zeros(newvar.shape)
+newvar[0,:] = numpy.zeros( newvar.shape[1:] )   
 newvar = fileout.createVariable('normalVelocity', datatype, ('Time', 'nEdges', 'nVertLevels'))
-newvar[:] = numpy.zeros(newvar.shape)
+newvar[0,:,:] = numpy.zeros( newvar.shape[1:] )   
 newvar = fileout.createVariable('temperature', datatype, ('Time', 'nCells', 'nVertLevels'))
-newvar[:] = numpy.zeros(newvar.shape)
+newvar[0,:,:] = numpy.zeros( newvar.shape[1:] )   
 # These landice variables are stored in the mesh currently, and therefore do not have a time dimension.
 #    It may make sense to eventually move them to state.
 newvar = fileout.createVariable('bedTopography', datatype, ('nCells',))
+newvar[:] = numpy.zeros(newvar.shape)
 newvar = fileout.createVariable('sfcMassBal', datatype, ('nCells',))
 newvar[:] = numpy.zeros(newvar.shape)
 
