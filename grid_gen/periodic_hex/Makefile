@@ -38,7 +38,10 @@ CPP = cpp -C -P -traditional
 CPPFLAGS = 
 CPPINCLUDES = 
 INCLUDES = -I$(NETCDF)/include
+
+# Specify NetCDF libraries, checking if netcdff is required (it will be present in v4 of netCDF)
 LIBS = -L$(NETCDF)/lib
+NCLIB = -lnetcdf
 NCLIBF = -lnetcdff
 ifneq ($(wildcard $(NETCDF)/lib/libnetcdff.*), ) # CHECK FOR NETCDF4
         LIBS += $(NCLIBF)
