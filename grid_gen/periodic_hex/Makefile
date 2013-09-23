@@ -6,11 +6,18 @@
 #LDFLAGS = -g -C
 
 # pgf90
-FC = pgf90
-CC = pgcc
-FFLAGS = -r8 -O3
-CFLAGS = -O3
-LDFLAGS = -O3
+#FC = pgf90
+#CC = pgcc
+#FFLAGS = -r8 -O3
+#CFLAGS = -O3
+#LDFLAGS = -O3
+
+# gfortran
+FC = gfortran
+CC = gcc
+FFLAGS = -O3 -m64 -ffree-line-length-none -fdefault-real-8 -fconvert=big-endian
+CFLAGS = -O3 -m64
+LDFLAGS = -O3 -m64
 
 # ifort
 #FC = ifort
@@ -31,7 +38,14 @@ CPP = cpp -C -P -traditional
 CPPFLAGS = 
 CPPINCLUDES = 
 INCLUDES = -I$(NETCDF)/include
-LIBS = -L$(NETCDF)/lib -lnetcdf
+LIBS = -L$(NETCDF)/lib
+NCLIBF = -lnetcdff
+ifneq ($(wildcard $(NETCDF)/lib/libnetcdff.*), ) # CHECK FOR NETCDF4
+        LIBS += $(NCLIBF)
+endif # CHECK FOR NETCDF4
+LIBS += $(NCLIB)
+
+
 
 RM = rm -f
 

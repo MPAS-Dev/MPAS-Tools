@@ -30,6 +30,12 @@ module cell_indexing
       read(20,periodic_grid)
       close(20)
 
+      if (mod(ny, 2) /= 0) then
+         print *, "Error: ny must be divisible by 2 for the grid's periodicity to work properly."
+         print *, "Please adjust ny in your namelist file and rerun the program."
+         call exit()
+      endif
+
    end subroutine cell_indexing_read_nl
 
 
