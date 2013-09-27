@@ -143,7 +143,8 @@ zLevel_thickness = 'POP_40_zLevel'
 bottom_topography = 'realistic_ETOPO'
 
 ! initial temperature and salinity options: 
-! 'realistic_WOCE', 'uniform_TS', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma', 'DOME_3D_overflow', 'internal_wave_Ilicak3'
+! 'realistic_WOCE', 'uniform_TS', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma', 'DOME_3D_overflow', 
+! 'internal_wave_Ilicak3', 'baroclinic_channel_Ilicak4'
 initial_conditions = 'realistic_WOCE'
 uniform_T = 10.0
 uniform_S = 34.0
@@ -479,7 +480,9 @@ subroutine get_init_conditions
 implicit none
 real :: halfwidth, dtr, pi, p(3), q(3), xin, yin, zin, ulon, ulat, stress, n1, n2, distance, r, temp_t, temp_s
 real :: dotProd, rho_ref, rho_delta, work, factor, r1, deltay, b
-real :: y0_embayment, vertTempChange, backgroundMaxTemp, backgroundMinTemp, betaTemperature,bottomMinTemp,y_a,y_0,A_0
+real :: y0_embayment, surfaceTemperature, bottomTemperature, betaTemperature,bottomMinTemp, &
+   y_a,y_0,A_0, midDepth(nVertLevelsMod), maxMidDepth
+real :: x_0, x_1,x_2,x_3,width,cff1, deltaTemperature
 integer :: iTracer, ix, iy, ndata, i, j, k, ixt, iyt, ncull, jcount, iNoData, kdata(nVertLevelsMod), iMonth
 logical :: flag_lat
 
@@ -557,37 +560,103 @@ elseif (initial_conditions.eq.'internal_wave_Ilicak3') then
    normalVelocityNew = 0.0
    normalVelocityForcingNew = 0.0
 
-   vertTempChange = 2.5
-   backgroundMaxTemp = 20.6
-   backgroundMinTemp = 9.5
+   surfaceTemperature = 20.1
+   bottomTemperature = 10.1
+
+   midDepth(1) =  hZLevel(1)/2.0
+   do k=2,nVertLevelsMod
+      midDepth(k) = midDepth(k-1) + 0.5*(hZLevel(k-1) + hZLevel(k))
+   enddo  
+
+   maxMidDepth = maxval(midDepth)
    do k = 1, nVertLevelsMOD
-      temperatureNew(1,k,:) = (backgroundMaxTemp - backgroundMinTemp) &
-         * ((-refBottomDepth(k)+layer_thickness_total_max)/layer_thickness_total_max) + backgroundMinTemp
+      temperatureNew(1,k,:) = (surfaceTemperature - bottomTemperature) &
+         * ((maxMidDepth - midDepth(k))/maxMidDepth) + bottomTemperature
    enddo
 
-   y_a = 50.0e3
-   y_0 = 125.0e3
    A_0 = 2.0
+   y_0 = 125.0e3
+   y_a = 50.0e3
    do i = 1, nCellsNew
       if ( abs(yCellNew(i) - y_0) < y_a) then
-         do k = 1, nVertLevelsMOD
+         do k = 2, nVertLevelsMOD
             betaTemperature = -A_0*cos(0.5*pi*(yCellNew(i)-y_0)/y_a) &
-               *sin(1.05*pi*refBottomDepth(k)/layer_thickness_total_max) 
+               *sin(pi*refBottomDepth(k-1)/(maxMidDepth - midDepth(1))) 
             temperatureNew(1, k, i) = temperatureNew(1, k, i) + betaTemperature
          end do
       endif
    enddo
 
-   ! bottomMinTemp is set a little above backgroundMinTemp so gravity waves are not induced along the bottom
-   bottomMinTemp = 10.0
-   temperatureNew(1,:,:) = max(temperatureNew(1,:,:), bottomMinTemp)
+   do iCell=1,nCellsNew
+      do k=1,nVertLevelsMod
+         layerThicknessNew(1,k,iCell) = hZLevel(k)
+      enddo
+   enddo 
+ 
+elseif (initial_conditions.eq.'baroclinic_channel_Ilicak4') then
+
+   salinityNew(1,:,:) = 35.0
+   normalVelocityNew = 0.0
+   normalVelocityForcingNew = 0.0
+
+   midDepth(1) =  hZLevel(1)/2.0
+   do k=2,nVertLevelsMod
+      midDepth(k) = midDepth(k-1) + 0.5*(hZLevel(k-1) + hZLevel(k))
+   enddo  
+
+   maxMidDepth = maxval(midDepth)
+
+   ! Set up stratification on northern half
+   surfaceTemperature = 13.1
+   bottomTemperature = 10.1
+   deltaTemperature = 1.2
+   do k = 1, nVertLevelsMOD
+      temperatureNew(1,k,:) = bottomTemperature &
+         + (surfaceTemperature - bottomTemperature) * ((-midDepth(k)+maxMidDepth)/maxMidDepth)
+   enddo
+
+   y_0 = 250.0e3
+   x_0 = 0.0e3
+   x_1 = 160.0e3
+   x_2 = 110.0e3
+   x_3 = 130.0e3
+   width = 40.0e3
+   do i = 1, nCellsNew
+      ! sine wave defines southern boundary between two temperatures.
+      cff1 = width * sin (6.0 * 3.141592 * (xCellNew(i) - x_0)/(x_1 - x_0))
+
+      ! stratification on south half
+      if( yCellNew(i) < y_0 - cff1 ) then
+         do k = 1, nVertLevelsMOD
+            temperatureNew(1,k,i) = temperatureNew(1,k,i) - deltaTemperature
+         end do
+
+      ! linear interpolation between two halves
+      else if( yCellNew(i) .ge. y_0 - cff1 .and. yCellNew(i) .le. y_0 - cff1+width) then
+         do k = 1, nVertLevelsMOD
+            temperatureNew(1,k,i) = temperatureNew(1,k,i) &
+               - deltaTemperature*(1.0 -( yCellNew(i) - (y_0 - cff1)) / (1.0 * width))
+         end do
+      endif
+   enddo
+
+   ! Add an additional perturbation to southern end of third wave.
+   do i = 1, nCellsNew
+      cff1 = 0.5 * width * sin(1.0 * 3.141592 * (xCellNew(i) - x_2)/(x_3 - x_2))
+      if( yCellNew(i) .ge. y_0 - cff1-0.5*width .and. &
+          yCellNew(i) .le. y_0 - cff1+0.5*width .and. &
+          xCellNew(i) .ge. x_2 .and. xCellNew(i) .le. x_3) then
+         do k = 1, nVertLevelsMOD
+            temperatureNew(1,k,i) = temperatureNew(1,k,i) + 0.3 * (1.0 - ( (yCellNew(i)-(y_0-cff1))/(0.5*width)))
+         end do
+      endif
+   end do
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
          layerThicknessNew(1,k,iCell) = hZLevel(k)
       enddo
-   enddo  
-
+   enddo 
 
 elseif (initial_conditions.eq.'DOME_3D_overflow') then
 
