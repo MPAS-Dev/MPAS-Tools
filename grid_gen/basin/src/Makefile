@@ -13,18 +13,18 @@
 #LDFLAGS = -O3
 
 ## ifort
- FC = ifort
- CC = icc
- FFLAGS = -real-size 64 #-g -traceback -check all
- CFLAGS = #-g
- LDFLAGS = #-g -traceback -check all
+# FC = ifort
+# CC = icc
+# FFLAGS = -real-size 64 #-g -traceback -check all
+# CFLAGS = #-g
+# LDFLAGS = #-g -traceback -check all
 
 # gfortran
-#FC = gfortran
-#CC = gcc
-#FFLAGS = -O3 -m64 -ffree-line-length-none -fdefault-real-8 -fconvert=big-endian -ffree-form
-#CFLAGS =
-#LDFLAGS =
+FC = gfortran
+CC = gcc
+FFLAGS = -O3 -m64 -ffree-line-length-none -fdefault-real-8 -fconvert=big-endian -ffree-form
+CFLAGS =
+LDFLAGS =
 
 # absoft
 #FC = f90
