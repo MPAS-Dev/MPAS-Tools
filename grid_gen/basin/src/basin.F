@@ -669,13 +669,15 @@ elseif (initial_conditions.eq.'DOME_3D_overflow') then
       salinityNew(1,k,:) = 35.0
    enddo
 
-   ! change embayment fluid to have tracer 1 and cold water
-   do iCell=1,nCellsNew
-      if (yCellNew(iCell).gt.y0_embayment) then
-         temperatureNew(1,:,iCell) = 0.0
-         tracer1New(1,:,iCell) = 1.0
-      endif
-   enddo
+   ! Change embayment fluid to have tracer 1 and cold water.
+   ! This is only used for a plug of cold water in the initial conditions,
+   ! rather than forced cold water at the inlet.
+   !do iCell=1,nCellsNew
+   !   if (yCellNew(iCell).gt.y0_embayment) then
+   !      temperatureNew(1,:,iCell) = 0.0
+   !      tracer1New(1,:,iCell) = 1.0
+   !   endif
+   !enddo
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
