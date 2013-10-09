@@ -410,10 +410,10 @@ for var_struct in registry.iter("var_struct"):
 					var_streams = "None"
 
 				if int(struct_time_levs) > 1:
-					var_index = "domain %% blocklist %% %s %% index_%s"%(struct_name, var_name_in_code)
+					var_index = "domain %% blocklist %% %s %% index_%s"%(struct_name, var_name_in_code.replace('_','\_'))
 					var_path = "domain %% blocklist %% %s %% time_levs(:) %% %s %% %s"%(struct_name, struct_name, var_arr_name)
 				else:
-					var_index = "domain %% blocklist %% %s %% index_%s"%(struct_name, var_name_in_code)
+					var_index = "domain %% blocklist %% %s %% index_%s"%(struct_name, var_name_in_code.replace('_','\_'))
 					var_path = "domain %% blocklist %% %s %% %s"%(struct_name, var_arr_name)
 
 				if var_description == "":
@@ -461,7 +461,7 @@ for var_struct in registry.iter("var_struct"):
 				latex.write('		 \hline \n')
 				latex.write('		 Location in code: & %s \\\\\n'%var_path.replace('_','\_').replace('%','\%'))
 				latex.write('		 \hline \n')
-				latex.write('		 Array Group: & %s \\\\\n'%var_arr_group)
+				latex.write('		 Array Group: & %s \\\\\n'%var_arr_group.replace('_','\_'))
 				latex.write('		 \hline \n')
 				latex.write('    \caption{%s: %s}\n'%(var_name.replace('_','\_'),var_description))
 				latex.write('\end{longtable}\n')
