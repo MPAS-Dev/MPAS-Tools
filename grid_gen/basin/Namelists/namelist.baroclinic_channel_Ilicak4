@@ -1,11 +1,11 @@
 &basin
-  nVertLevelsMOD = 100
+  nVertLevelsMOD = 20
   on_a_sphere = 'NO'
   sphere_radius = 0.0
   expand_from_unit_sphere = .false.
   zLevel_thickness = 'equally_spaced'
-  bottom_topography = 'Ilicak2_overflow_sigma'
-  initial_conditions = 'Ilicak2_overflow_sigma'
+  bottom_topography = 'flat_bottom'
+  initial_conditions = 'baroclinic_channel_Ilicak4'
   eliminate_inland_seas=.false.
   load_woce_IC = .false.
   write_OpenDX_flag = .false.
@@ -15,10 +15,10 @@
   solid_boundary_in_y = .true.
   solid_boundary_in_x = .false.
   top_layers_without_land = 3
-  layer_total_max = 2000.0 
+  layer_thickness_total_max = 1000.0 
   normalVelocityForcing_max = 0.0
-  f0 = 0.0  
+  f0 = -1.2e-4  
   beta = 0.0
   omega = 0.0
-  Lx = 4.0e3
+  Lx = 160.0e3
 /
