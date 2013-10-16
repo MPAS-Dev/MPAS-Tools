@@ -118,6 +118,8 @@ newvar = fileout.createVariable('bedTopography', datatype, ('nCells',))
 newvar[:] = numpy.zeros(newvar.shape)
 newvar = fileout.createVariable('sfcMassBal', datatype, ('nCells',))
 newvar[:] = numpy.zeros(newvar.shape)
+newvar = fileout.createVariable('beta', datatype, ('nCells',))
+newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
 
 # These boundary conditions are currently part of mesh, and are time independent.  If they change, make sure to adjust the dimensions here and in Registry.
 # Note: These have been disabled in the fresh implementation of the landice core.  MH 9/19/13
@@ -138,10 +140,11 @@ setattr(fileout, 'on_a_sphere', getattr(filein, 'on_a_sphere'))
 setattr(fileout, 'sphere_radius', getattr(filein, 'sphere_radius'))
 # If there are others that need to be copied, this script will need to be modified.  This Warning indicates that:
 # Note: dir(file)  with Scientific.IO includes the following entries for functions in addition to the global attributes: 'close', 'createDimension', 'createVariable', 'flush', 'sync'.  NetCDF4 has a whole bunch more!
-print "File had ", len(dir(filein)) - 5, "global attributes.  Copied on_a_sphere and sphere_radius."
-print "Global attributes and functions: ", dir(filein)
+print "** File had ", len(dir(filein)) - 5, "global attributes.  Copied on_a_sphere and sphere_radius."
+print "** Global attributes and functions: "
+print dir(filein)
 
 filein.close()
 fileout.close()
 
-print 'Successfully created landice_grid.nc'
+print '** Successfully created landice_grid.nc **'
