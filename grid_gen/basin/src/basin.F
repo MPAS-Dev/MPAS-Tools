@@ -658,6 +658,34 @@ elseif (initial_conditions.eq.'baroclinic_channel_Ilicak4') then
       enddo
    enddo 
 
+elseif (initial_conditions.eq.'kppUnitTest') then
+
+   salinityNew(1,:,:) = 35.0
+   normalVelocityNew = 0.0
+   normalVelocityForcingNew = 0.0
+
+   midDepth(1) =  hZLevel(1)/2.0
+   do k=2,nVertLevelsMod
+      midDepth(k) = midDepth(k-1) + 0.5*(hZLevel(k-1) + hZLevel(k))
+   enddo
+
+   maxMidDepth = maxval(midDepth)
+
+   ! Set up stratification on northern half
+   surfaceTemperature = 13.1
+   bottomTemperature = 10.1
+   deltaTemperature = 1.2
+   do k = 1, nVertLevelsMOD
+      temperatureNew(1,k,:) = bottomTemperature &
+         + (surfaceTemperature - bottomTemperature) * ((-midDepth(k)+maxMidDepth)/maxMidDepth)
+   enddo
+
+   do iCell=1,nCellsNew
+      do k=1,nVertLevelsMod
+         layerThicknessNew(1,k,iCell) = hZLevel(k)
+      enddo
+   enddo
+
 elseif (initial_conditions.eq.'DOME_3D_overflow') then
 
    y0_embayment = 600.0e3 ! y location of beginning of embayment
