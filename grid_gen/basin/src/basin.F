@@ -83,7 +83,6 @@ real, allocatable, dimension(:) :: surfaceWindStressNew
 real, allocatable, dimension(:,:,:) :: normalVelocityNew, layerThicknessNew
 real, allocatable, dimension(:,:,:) :: densityNew, temperatureNew, salinityNew, tracer1New
 real, allocatable, dimension(:) :: temperatureRestoreNew, salinityRestoreNew
-real, allocatable, dimension(:,:) :: temperatureRestoreMonthlyNew, salinityRestoreMonthlyNew
 
 ! mapping variables
 integer, allocatable, dimension(:) :: kmt, maxLevelCellNew
@@ -107,7 +106,7 @@ character(len=80) :: fileNameT, fileNameS, fileNameU
 ! Variables in namelist file
 character (len=32) :: on_a_sphere, zLevel_thickness,bottom_topography, initial_conditions
 logical :: expand_from_unit_sphere, eliminate_inland_seas, load_woce_IC, &
-   write_OpenDX_flag, monthly_forcing, check_mesh, &
+   write_OpenDX_flag, check_mesh, &
    cut_domain_from_sphere, solid_boundary_in_y, solid_boundary_in_x, &
    amplify_acc_wind
 
@@ -120,7 +119,7 @@ real (kind=8) :: sphere_radius, layer_thickness_total_max, f0, beta, omega, Lx, 
 namelist /basin/ nVertLevelsMOD, on_a_sphere, sphere_radius, &
    expand_from_unit_sphere, &
    zLevel_thickness, bottom_topography, initial_conditions, &
-   eliminate_inland_seas, load_woce_IC, write_OpenDX_flag, monthly_forcing, check_mesh, &
+   eliminate_inland_seas, load_woce_IC, write_OpenDX_flag, check_mesh, &
    cut_domain_from_sphere, solid_boundary_in_y, solid_boundary_in_x, &
    top_layers_without_land, layer_thickness_total_max, f0, beta, omega, Lx, &
    uniform_T, uniform_S, uniform_tracer1, surfaceWindStressMax, &
@@ -151,7 +150,6 @@ uniform_tracer1 = 1.0
 eliminate_inland_seas=.true.
 load_woce_IC = .true.
 write_OpenDX_flag = .false.
-monthly_forcing = .true.
 check_mesh = .true.
 cut_domain_from_sphere = .false.
 solid_boundary_in_y = .false.
@@ -185,11 +183,7 @@ amp_wind_spread_lat = 3.0
 allocate (hZLevel(nVertLevelsMOD), refBottomDepth(nVertLevelsMOD))
 
 
-if(monthly_forcing) then
-    nMonths = 12
-else
-    nMonths = 1
-end if
+nMonths = 1
 
 fileNameT = 'TS/annual/woce_t_ann.3600x2431x42interp.r4.nc'
 fileNameS = 'TS/annual/woce_s_ann.3600x2431x42interp.r4.nc'
@@ -269,118 +263,116 @@ if (load_woce_IC) then
 
 endif
 
-if(monthly_forcing) then
-  allocate(SST_MONTHLY(nlon,nlat,nMonths), SSS_MONTHLY(nlon,nlat,nMonths))
-  allocate(TAUX_MONTHLY(nlon,nlat,nMonths), TAUY_MONTHLY(nlon,nlat,nMonths))
-  SST_MONTHLY=0; SSS_MONTHLY=0; TAUX_MONTHLY=0; TAUY_MONTHLY=0
-  iMonth=1
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.01.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly01.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.01.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=2
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.02.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly02.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.02.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=3
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.03.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly03.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.03.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=4
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.04.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly04.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.04.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=5
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.05.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly05.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.05.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=6
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.06.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly06.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.06.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=7
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.07.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly07.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.07.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=8
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.08.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly08.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.08.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=9
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.09.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly09.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.09.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=10
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.10.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly10.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.10.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=11
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.11.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly11.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.11.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-  
-  iMonth=12
-  fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.12.interp3600x2431.nc'
-  fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly12.interp3600x2431.nc'
-  fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.12.interp3600x2431.nc'
-  call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-  write(6,*) nlon,nlat,ndepth
-  call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
-  call read_MONTHLY_finalize()
-end if
+! allocate(SST_MONTHLY(nlon,nlat,nMonths), SSS_MONTHLY(nlon,nlat,nMonths))
+! allocate(TAUX_MONTHLY(nlon,nlat,nMonths), TAUY_MONTHLY(nlon,nlat,nMonths))
+! SST_MONTHLY=0; SSS_MONTHLY=0; TAUX_MONTHLY=0; TAUY_MONTHLY=0
+! iMonth=1
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.01.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly01.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.01.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=2
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.02.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly02.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.02.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=3
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.03.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly03.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.03.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=4
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.04.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly04.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.04.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=5
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.05.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly05.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.05.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=6
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.06.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly06.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.06.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=7
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.07.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly07.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.07.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=8
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.08.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly08.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.08.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=9
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.09.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly09.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.09.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=10
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.10.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly10.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.10.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=11
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.11.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly11.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.11.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
+! 
+! iMonth=12
+! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.12.interp3600x2431.nc'
+! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly12.interp3600x2431.nc'
+! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.12.interp3600x2431.nc'
+! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
+! call read_MONTHLY_finalize()
 
 ! generate initial conditions
 call get_init_conditions
@@ -903,32 +895,30 @@ do iEdge=1,nEdgesNew
     surfaceWindStressNew(iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
   endif
 
-  if(monthly_forcing) then
-    do iMonth=1,nMonths
-    ulon = TAUX_MONTHLY(ix,iy,iMonth)
-    ulat = TAUY_MONTHLY(ix,iy,iMonth)
-  ! if(abs(ulon).gt.1.0.or.abs(ulat).gt.1.0) then
-  !    ulon=0.0
-  !    ulat=0.0
-  ! endif
-    call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
-    if(boundaryEdgeNew(1,iEdge).eq.1) then
-      surfaceWindStressNew(iEdge) = 0.0
-    else
-      iCell1 = cellsOnEdgeNew(1,iEdge)
-      iCell2 = cellsOnEdgeNew(2,iEdge)
-      p(1) = xCellNew(iCell1); p(2) = yCellNew(iCell1); p(3) = zCellNew(iCell1)
-      q(1) = xCellNew(iCell2); q(2) = yCellNew(iCell2); q(3) = zCellNew(iCell2)
-      q = q - p
-      call unit_vector_in_3space(q)
-    ! repeat
-      surfaceWindStressNew(iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
-    endif
-    enddo
-  else
+! if(monthly_forcing) then
+!   do iMonth=1,nMonths
+!   ulon = TAUX_MONTHLY(ix,iy,iMonth)
+!   ulat = TAUY_MONTHLY(ix,iy,iMonth)
+!   call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
+!   if(boundaryEdgeNew(1,iEdge).eq.1) then
+!     surfaceWindStressNew(iEdge) = 0.0
+!   else
+!     iCell1 = cellsOnEdgeNew(1,iEdge)
+!     iCell2 = cellsOnEdgeNew(2,iEdge)
+!     p(1) = xCellNew(iCell1); p(2) = yCellNew(iCell1); p(3) = zCellNew(iCell1)
+!     q(1) = xCellNew(iCell2); q(2) = yCellNew(iCell2); q(3) = zCellNew(iCell2)
+!     q = q - p
+!     call unit_vector_in_3space(q)
+!   ! repeat
+!     surfaceWindStressNew(iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
+!   endif
+!   enddo
+! else
     surfaceWindStressNew(:) = 0.0
-  end if
+! end if
+
 enddo
+
 
 ! for acc runs, increase wind strength for Southern Ocean
 if (amplify_acc_wind) then
@@ -1036,82 +1026,82 @@ write(6,*) iNoData, nCellsNew
 temperatureRestoreNew(:) = temperatureNew(1,1,:)
 salinityRestoreNew(:) = salinityNew(1,1,:)
 
-if(monthly_forcing) then
-  do iMonth=1,nMonths
-  iNoData = 0
-  do iCell=1,nCellsNew
-    ! if(mod(iCell,100).eq.0) write(6,*) 'load_woce_IC t and s RESTORE',iCell
-    rlon = lonCellNew(iCell)/dtr
-    rlat = latCellNew(iCell)/dtr
-    ix = nint(rlon/0.1 - 0.05) + nlon + 1
-    ix = mod(ix,nlon)+1
-    iy = nlat
-    do j=1,nlat
-     if(t_lat(j).gt.rlat) then
-      iy = j
-      exit
-     endif
-    enddo  ! j
-    k=1
-      ndata = 0; temp_t = 0; temp_s = 0
-      do i=-15,15
-        ixt = ix + 8*i
-        if(ixt.lt.1) then
-          ixt = ixt + nlon
-        elseif(ixt.gt.nlon) then
-          ixt = ixt - nlon
-        endif
-        do j=-15,15
-          iyt = iy + 8*j
-          flag_lat = .true.
-          if(iyt.lt.1.or.iyt.gt.nlat) then
-            iyt = 1
-            flag_lat = .false.
-          endif
-          if(SST_MONTHLY(ixt,iyt,iMonth).gt.-10.0.and.flag_lat) then
-            ndata = ndata + 1
-            temp_t = temp_t + SST_MONTHLY(ixt,iyt,iMonth)
-            temp_s = temp_s + SSS_MONTHLY(ixt,iyt,iMonth)
-          endif
-        enddo !j
-       enddo  !i
-  
-      if(ndata.gt.0) then
-        temperatureRestoreMonthlyNew(iMonth,iCell) = temp_t / float(ndata)
-        salinityRestoreMonthlyNew(iMonth,iCell) = temp_s / float(ndata)
-      else
-        temperatureRestoreMonthlyNew(iMonth,iCell) = temperatureNew(1,1,iCell)
-        salinityRestoreMonthlyNew(iMonth,iCell) = salinityNew(1,1,iCell)
-      endif
-  
-    enddo  ! iCell
-  enddo    ! iMonth
-  
-  ! do a couple of smoothing passes
-  do iter=1,5
-  do iCell=1,nCellsNew
-    k=1
-    ndata=1
-    temp_t = temperatureRestoreMonthlyNew(iMonth,iCell)
-    temp_s = salinityRestoreMonthlyNew(iMonth,iCell)
-    do j=1,nEdgesOnCellNew(iCell)
-      jCell = cellsOnCellNew(j,iCell)
-      if(jCell.gt.0) then
-      if(maxLevelCellNew(jCell).ge.k) then
-        temp_t = temp_t + temperatureRestoreMonthlyNew(iMonth,iCell)
-        temp_s = temp_s + salinityRestoreMonthlyNew(iMonth,iCell)
-        ndata = ndata + 1
-      endif
-      endif
-    enddo  ! j
-    temperatureRestoreMonthlyNew(iMonth,iCell) = temp_t / ndata
-    salinityRestoreMonthlyNew(iMonth,iCell) = temp_s / ndata
-  enddo  ! iCell
-  enddo  ! iter
-else
-  temperatureRestoreMonthlyNew(:,:) = 0.0
-  salinityRestoreMonthlyNew(:,:) = 0.0
-end if
+!if(monthly_forcing) then
+  !do iMonth=1,nMonths
+  !iNoData = 0
+  !do iCell=1,nCellsNew
+    !! if(mod(iCell,100).eq.0) write(6,*) 'load_woce_IC t and s RESTORE',iCell
+    !rlon = lonCellNew(iCell)/dtr
+    !rlat = latCellNew(iCell)/dtr
+    !ix = nint(rlon/0.1 - 0.05) + nlon + 1
+    !ix = mod(ix,nlon)+1
+    !iy = nlat
+    !do j=1,nlat
+     !if(t_lat(j).gt.rlat) then
+      !iy = j
+      !exit
+     !endif
+    !!enddo  ! j
+    !k=1
+      !ndata = 0; temp_t = 0; temp_s = 0
+      !do i=-15,15
+        !ixt = ix + 8*i
+        !if(ixt.lt.1) then
+          !ixt = ixt + nlon
+        !elseif(ixt.gt.nlon) then
+          !ixt = ixt - nlon
+        !endif
+        !do j=-15,15
+          !iyt = iy + 8*j
+          !flag_lat = .true.
+          !if(iyt.lt.1.or.iyt.gt.nlat) then
+            !iyt = 1
+            !flag_lat = .false.
+          !endif
+          !if(SST_MONTHLY(ixt,iyt,iMonth).gt.-10.0.and.flag_lat) then
+            !ndata = ndata + 1
+            !temp_t = temp_t + SST_MONTHLY(ixt,iyt,iMonth)
+            !temp_s = temp_s + SSS_MONTHLY(ixt,iyt,iMonth)
+          !endif
+        !enddo !j
+       !enddo  !i
+  !
+      !if(ndata.gt.0) then
+        !temperatureRestoreMonthlyNew(iMonth,iCell) = temp_t / float(ndata)
+        !salinityRestoreMonthlyNew(iMonth,iCell) = temp_s / float(ndata)
+      !else
+        !temperatureRestoreMonthlyNew(iMonth,iCell) = temperatureNew(1,1,iCell)
+        !salinityRestoreMonthlyNew(iMonth,iCell) = salinityNew(1,1,iCell)
+      !endif
+  !
+    !enddo  ! iCell
+  !enddo    ! iMonth
+  !
+  !! do a couple of smoothing passes
+  !do iter=1,5
+  !do iCell=1,nCellsNew
+    !k=1
+    !ndata=1
+    !temp_t = temperatureRestoreMonthlyNew(iMonth,iCell)
+    !temp_s = salinityRestoreMonthlyNew(iMonth,iCell)
+    !do j=1,nEdgesOnCellNew(iCell)
+      !jCell = cellsOnCellNew(j,iCell)
+      !if(jCell.gt.0) then
+      !if(maxLevelCellNew(jCell).ge.k) then
+        !temp_t = temp_t + temperatureRestoreMonthlyNew(iMonth,iCell)
+        !temp_s = temp_s + salinityRestoreMonthlyNew(iMonth,iCell)
+        !ndata = ndata + 1
+      !endif
+      !endif
+    !enddo  ! j
+    !temperatureRestoreMonthlyNew(iMonth,iCell) = temp_t / ndata
+    !salinityRestoreMonthlyNew(iMonth,iCell) = temp_s / ndata
+  !enddo  ! iCell
+  !enddo  ! iter
+!else
+! temperatureRestoreMonthlyNew(:,:) = 0.0
+! salinityRestoreMonthlyNew(:,:) = 0.0
+!end if
 
 endif  ! load_woce_IC
 
@@ -1520,7 +1510,6 @@ call write_netcdf_init( &
                 maxEdgesNew, &
                 nVertLevelsNew, &
                 vertexDegreeNew, &
-                nMonths, &
                 sphere_radius, &
                 on_a_sphere &
                 )
@@ -1578,8 +1567,6 @@ call write_netcdf_fields( &
                     tracer1New, &
                     temperatureRestoreNew, &
                     salinityRestoreNew, &
-                    temperatureRestoreMonthlyNew, &
-                    salinityRestoreMonthlyNew, &
                     refBottomDepth &
                    )
 
@@ -2053,10 +2040,6 @@ allocate(tracer1New(1,nVertLevelsNew,nCellsNew))
 allocate(temperatureRestoreNew(nCellsNew))
 allocate(salinityRestoreNew(nCellsNew))
 
-allocate(temperatureRestoreMonthlyNew(nMonths,nCellsNew))
-allocate(salinityRestoreMonthlyNew(nMonths,nCellsNew))
-
-
 xCellNew=0; yCellNew=0; zCellNew=0; latCellNew=0; lonCellNew=0; meshDensityNew=1.0; meshSpacingNew=0.0
 xEdgeNew=0; yEdgeNew=0; zEdgeNew=0; latEdgeNew=0; lonEdgeNew=0
 xVertexNew=0; yVertexNew=0; zVertexNew=0; latVertexNew=0; lonVertexNew=0
@@ -2067,10 +2050,6 @@ temperatureNew=0; salinityNew=0; tracer1New=0;
 
 temperatureRestoreNew = 0.0
 salinityRestoreNew = 0.0
-
-temperatureRestoreMonthlyNew = 0.0
-salinityRestoreMonthlyNew = 0.0
-
 
 do i=1,nCells
 jNew = cellMap(i)
