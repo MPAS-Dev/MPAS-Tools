@@ -9,7 +9,6 @@
   eliminate_inland_seas=.true.
   load_woce_IC = .false.
   write_OpenDX_flag = .false.
-  monthly_forcing = .false.
   check_mesh = .true.
   cut_domain_from_sphere = .false.
   solid_boundary_in_y = .false.
