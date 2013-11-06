@@ -41,8 +41,7 @@ integer, allocatable, dimension(:,:) :: cellsOnVertex, edgesOnVertex
 real, allocatable, dimension(:) :: areaCell, areaTriangle, dcEdge, dvEdge, angleEdge
 real, allocatable, dimension(:,:) :: kiteAreasOnVertex, weightsOnEdge
 
-real, allocatable, dimension(:) :: fEdge, fVertex, bottomDepth, work1
-real, allocatable, dimension(:,:) :: normalVelocityForcing
+real, allocatable, dimension(:) :: fEdge, fVertex, bottomDepth, work1, surfaceWindStress
 real, allocatable, dimension(:,:,:) :: normalVelocity, tangentialVelocity, layerThickness
 real, allocatable, dimension(:,:,:) :: density
 
@@ -80,8 +79,7 @@ real, allocatable, dimension(:) :: areaCellNew, areaTriangleNew, dcEdgeNew, dvEd
 real, allocatable, dimension(:,:) :: kiteAreasOnVertexNew, weightsOnEdgeNew, normalsNew
 
 real, allocatable, dimension(:) :: fEdgeNew, fVertexNew, bottomDepthNew
-real, allocatable, dimension(:,:) :: normalVelocityForcingNew
-real, allocatable, dimension(:,:) :: windStressMonthlyNew
+real, allocatable, dimension(:) :: surfaceWindStressNew
 real, allocatable, dimension(:,:,:) :: normalVelocityNew, layerThicknessNew
 real, allocatable, dimension(:,:,:) :: densityNew, temperatureNew, salinityNew, tracer1New
 real, allocatable, dimension(:) :: temperatureRestoreNew, salinityRestoreNew
@@ -114,9 +112,9 @@ logical :: expand_from_unit_sphere, eliminate_inland_seas, load_woce_IC, &
    amplify_acc_wind
 
 integer :: nVertLevelsMOD, top_layers_without_land 
-real (kind=8) :: sphere_radius, layer_thickness_total_max, normalVelocityForcing_max, f0, beta, omega, Lx, &
+real (kind=8) :: sphere_radius, layer_thickness_total_max, f0, beta, omega, Lx, &
   uniform_T, uniform_S, uniform_tracer1, &
-  amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat
+  amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat, surfaceWindStressMax
 
 ! specify namelist
 namelist /basin/ nVertLevelsMOD, on_a_sphere, sphere_radius, &
@@ -124,8 +122,8 @@ namelist /basin/ nVertLevelsMOD, on_a_sphere, sphere_radius, &
    zLevel_thickness, bottom_topography, initial_conditions, &
    eliminate_inland_seas, load_woce_IC, write_OpenDX_flag, monthly_forcing, check_mesh, &
    cut_domain_from_sphere, solid_boundary_in_y, solid_boundary_in_x, &
-   top_layers_without_land, layer_thickness_total_max, normalVelocityForcing_max, f0, beta, omega, Lx, &
-   uniform_T, uniform_S, uniform_tracer1, &
+   top_layers_without_land, layer_thickness_total_max, f0, beta, omega, Lx, &
+   uniform_T, uniform_S, uniform_tracer1, surfaceWindStressMax, &
    amplify_acc_wind, amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat
 
 ! Default namelist values.  Default set for realistic global IC.
@@ -163,7 +161,7 @@ solid_boundary_in_x = .false.
 top_layers_without_land = 3
 
 layer_thickness_total_max = 2000.0 ! total layer thickness, for equally spaced case
-normalVelocityForcing_max = 0.1 ! max wind stress, N/m2
+surfaceWindStressMax = 0.1 ! max wind stress, N/m2
 f0 = -1.1e-4  ! Coriolis parameter
 beta = 1.4e-11 
 omega = 7.29212e-5  ! rotation rate of earth
@@ -495,7 +493,7 @@ temperatureNew = 1.0
 salinityNew = 1.0
 tracer1New = 1.0
 normalVelocityNew = 0
-normalVelocityForcingNew = 0
+surfaceWindStressNew = 0
 densityNew = 1025.0
 
 if (initial_conditions.eq.'uniform_TS') then
@@ -504,7 +502,7 @@ if (initial_conditions.eq.'uniform_TS') then
    salinityNew = uniform_S !34.0
    tracer1New = uniform_tracer1 !1.0
    normalVelocityNew = 0.0
-   normalVelocityForcingNew = 0.0
+   surfaceWindStressNew = 0.0
 
    do iCell=1,nCellsNew
       do k=1, nVertLevelsMod
@@ -525,7 +523,7 @@ elseif (initial_conditions.eq.'Ilicak2_overflow') then
    salinityNew(1,:,:) = 35.0
    Tracer1New(1,:,:) = 1.0
    normalVelocityNew = 0.0
-   normalVelocityForcingNew = 0.0
+   surfaceWindStressNew = 0.0
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
@@ -546,7 +544,7 @@ elseif (initial_conditions.eq.'Ilicak2_overflow_sigma') then
    salinityNew(1,:,:) = 35.0
    Tracer1New(1,:,:) = 1.0
    normalVelocityNew = 0.0
-   normalVelocityForcingNew = 0.0
+   surfaceWindStressNew = 0.0
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
@@ -558,7 +556,7 @@ elseif (initial_conditions.eq.'internal_wave_Ilicak3') then
 
    salinityNew(1,:,:) = 35.0
    normalVelocityNew = 0.0
-   normalVelocityForcingNew = 0.0
+   surfaceWindStressNew = 0.0
 
    surfaceTemperature = 20.1
    bottomTemperature = 10.1
@@ -597,7 +595,7 @@ elseif (initial_conditions.eq.'baroclinic_channel_Ilicak4') then
 
    salinityNew(1,:,:) = 35.0
    normalVelocityNew = 0.0
-   normalVelocityForcingNew = 0.0
+   surfaceWindStressNew = 0.0
 
    midDepth(1) =  hZLevel(1)/2.0
    do k=2,nVertLevelsMod
@@ -658,11 +656,11 @@ elseif (initial_conditions.eq.'baroclinic_channel_Ilicak4') then
       enddo
    enddo 
 
-elseif (initial_conditions.eq.'kppUnitTest') then
+elseif (initial_conditions.eq.'unitTestCVMixConvection') then
 
    salinityNew(1,:,:) = 35.0
    normalVelocityNew = 0.0
-   normalVelocityForcingNew = 0.0
+   surfaceWindStressNew = 0.0
 
    midDepth(1) =  hZLevel(1)/2.0
    do k=2,nVertLevelsMod
@@ -691,7 +689,7 @@ elseif (initial_conditions.eq.'DOME_3D_overflow') then
    y0_embayment = 600.0e3 ! y location of beginning of embayment
    Tracer1New(1,:,:) = 0.0
    normalVelocityNew = 0.0
-   normalVelocityForcingNew = 0.0
+   surfaceWindStressNew = 0.0
    do k=1,nVertLevelsMOD
       temperatureNew(1,k,:) = 20-0.5*k
       salinityNew(1,k,:) = 35.0
@@ -732,7 +730,7 @@ elseif (initial_conditions.eq.'SOMA_TS') then
   enddo
   enddo
 
-  normalVelocityForcingNew = 0.0
+  surfaceWindStressNew = 0.0
   do iEdge=1,nEdgesNew
     xin = xEdgeNew(iEdge)
     yin = yEdgeNew(iEdge)
@@ -748,7 +746,7 @@ elseif (initial_conditions.eq.'SOMA_TS') then
     ulat = 0.0
     call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
     if(boundaryEdgeNew(1,iEdge).eq.1) then
-      normalVelocityForcingNew(1,iEdge) = 0.0
+      surfaceWindStressNew(iEdge) = 0.0
     else
       iCell1 = cellsOnEdgeNew(1,iEdge)
       iCell2 = cellsOnEdgeNew(2,iEdge)
@@ -756,7 +754,7 @@ elseif (initial_conditions.eq.'SOMA_TS') then
       q(1) = xCellNew(iCell2); q(2) = yCellNew(iCell2); q(3) = zCellNew(iCell2)
       q = q - p
       call unit_vector_in_3space(q)
-      normalVelocityForcingNew(1,iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
+      surfaceWindStressNew(iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
     endif
 
    enddo
@@ -811,8 +809,8 @@ elseif (initial_conditions.eq.'isopycnal_3layer') then
    enddo
 
    ! set forcing for isopycnal levels
-   write(6,*) 'setting normalVelocityForcing - wind forcing'
-   normalVelocityForcingNew = 0.0
+   write(6,*) 'setting surfaceWindStressNew - wind forcing'
+   surfaceWindStressNew = 0.0
    if(on_a_sphere.eq.'YES') then
        latmin = -60*dtr
        latmax = -10*dtr
@@ -822,13 +820,13 @@ elseif (initial_conditions.eq.'isopycnal_3layer') then
        latmid = (latmin+latmax)/2.0
        r = 10.0*dtr
 
-       write(6,*) 'normalVelocityForcing info', latmin, latmax, latmid, r
+       write(6,*) 'surfaceWindStressNew info', latmin, latmax, latmid, r
        do i = 1,nEdgesNew
            lattmp = latEdgeNew(i)
            iCell1 = cellsOnEdgeNew(1,i)
            iCell2 = cellsOnEdgeNew(2,i)
            if(iCell1>0.and.iCell2>0) then
-               pert =  normalVelocityForcing_max * exp(-(lattmp-latmid)**2/(r**2))
+               pert =  surfaceWindStressMax * exp(-(lattmp-latmid)**2/(r**2))
 
                ulat = latEdgeNew(i)
                ulon = lonEdgeNew(i) + 0.05
@@ -846,7 +844,7 @@ elseif (initial_conditions.eq.'isopycnal_3layer') then
 
                dotProd = normalsNew(1,i)*xin + normalsNew(2,i)*yin + normalsNew(3,i)*zin
 
-               normalVelocityForcingNew(1,i) = pert * dotProd
+               surfaceWindStressNew(i) = pert * dotProd
                write(8,*) lattmp,pert,dotProd
            endif
        enddo
@@ -860,19 +858,19 @@ elseif (initial_conditions.eq.'isopycnal_3layer') then
            iCell1 = cellsOnEdgeNew(1,i)
            iCell2 = cellsOnEdgeNew(2,i)
            if(iCell1>0.and.iCell2>0) then
-               pert =  normalVelocityForcing_max * exp(-(ytmp-ymid)**2/(r**2))
+               pert =  surfaceWindStressMax * exp(-(ytmp-ymid)**2/(r**2))
                write(8,*) ytmp,pert
-               normalVelocityForcingNew(1,i) = pert * normalsNew(1,i)
+               surfaceWindStressNew(i) = pert * normalsNew(1,i)
            endif
        enddo
    endif
-   write(6,*) ' normalVelocityForcingNew ', minval(normalVelocityForcingNew), maxval(normalVelocityForcingNew)
+   write(6,*) ' surfaceWindStressNew ', minval(surfaceWindStressNew), maxval(surfaceWindStressNew)
 
 elseif (initial_conditions.eq.'realistic_WOCE') then
 
 
-normalVelocityForcingNew = 0.0
-windStressMonthlyNew = 0.0
+surfaceWindStressNew = 0.0
+surfaceWindStressNew = 0.0
 do iEdge=1,nEdgesNew
   xin = xEdgeNew(iEdge)
   yin = yEdgeNew(iEdge)
@@ -894,7 +892,7 @@ do iEdge=1,nEdgesNew
 
   call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
   if(boundaryEdgeNew(1,iEdge).eq.1) then
-    normalVelocityForcingNew(1,iEdge) = 0.0
+    surfaceWindStressNew(iEdge) = 0.0
   else
     iCell1 = cellsOnEdgeNew(1,iEdge)
     iCell2 = cellsOnEdgeNew(2,iEdge)
@@ -902,7 +900,7 @@ do iEdge=1,nEdgesNew
     q(1) = xCellNew(iCell2); q(2) = yCellNew(iCell2); q(3) = zCellNew(iCell2)
     q = q - p
     call unit_vector_in_3space(q)
-    normalVelocityForcingNew(1,iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
+    surfaceWindStressNew(iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
   endif
 
   if(monthly_forcing) then
@@ -915,7 +913,7 @@ do iEdge=1,nEdgesNew
   ! endif
     call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
     if(boundaryEdgeNew(1,iEdge).eq.1) then
-      windStressMonthlyNew(iMonth,iEdge) = 0.0
+      surfaceWindStressNew(iEdge) = 0.0
     else
       iCell1 = cellsOnEdgeNew(1,iEdge)
       iCell2 = cellsOnEdgeNew(2,iEdge)
@@ -924,12 +922,11 @@ do iEdge=1,nEdgesNew
       q = q - p
       call unit_vector_in_3space(q)
     ! repeat
-      windStressMonthlyNew(iMonth,iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
-    ! windStressMonthlyNew(iMonth,iEdge) = normalVelocityForcingNew(1,iEdge)
+      surfaceWindStressNew(iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
     endif
     enddo
   else
-    windStressMonthlyNew(:,:) = 0.0
+    surfaceWindStressNew(:) = 0.0
   end if
 enddo
 
@@ -938,7 +935,7 @@ if (amplify_acc_wind) then
   print *, 'amplify_acc_wind, amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat'
   print *, amplify_acc_wind, amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat
   do iEdge=1,nEdgesNew
-     windStressMonthlyNew(:,iEdge) = windStressMonthlyNew(:,iEdge) &
+     surfaceWindStressNew(iEdge) = surfaceWindStressNew(iEdge) &
        * (1.0 + (amp_wind_factor-1.0)*0.5 &
           *(1.0-tanh( (latEdgeNew(iEdge)/dtr-amp_wind_center_lat)/amp_wind_spread_lat) ) )
   enddo
@@ -1382,8 +1379,8 @@ allocate(fEdge(nEdges))
 allocate(fVertex(nVertices))
 allocate(bottomDepth(nCells))
 allocate(work1(nCells))
-allocate(normalVelocityForcing(nVertLevels,nEdges))
 allocate(normalVelocity(1,nVertLevels,nEdges))
+allocate(surfaceWindStress(nEdges))
 allocate(tangentialVelocity(1,nVertLevels,nEdges))
 allocate(layerThickness(1,nVertLevels,nCells))
 allocate(density(1,nVertLevels,nCells))
@@ -1399,7 +1396,7 @@ angleEdge=0; areaCell=0; areaTriangle=0
 cellsOnCell=0; verticesOnCell=0; verticesOnEdge=0
 edgesOnVertex=0; cellsOnVertex=0; kiteAreasOnVertex=0
 
-fEdge=0; fVertex=0; bottomDepth=0; normalVelocityForcing=0; work1=0
+fEdge=0; fVertex=0; bottomDepth=0; surfaceWindStress=0; work1=0
 normalVelocity=0; tangentialVelocity=0; layerThickness=0; density=0
 
 
@@ -1572,8 +1569,7 @@ call write_netcdf_fields( &
                     bottomDepthNew, &
                     boundaryEdgeNew, &
                     boundaryVertexNew, &
-                    normalVelocityForcingNew, &
-                    windStressMonthlyNew, &
+                    surfaceWindStressNew, &
                     normalVelocityNew, &
                     layerThicknessNew, & 
                     densityNew, &
@@ -2046,8 +2042,7 @@ allocate(maxLevelCellNew(nCellsNew))
 allocate(fEdgeNew(nEdgesNew))
 allocate(fVertexNew(nVerticesNew))
 allocate(bottomDepthNew(nCellsNew))
-allocate(normalVelocityForcingNew(nVertLevelsNew,nEdgesNew))
-allocate(windStressMonthlyNew(nMonths,nEdgesNew))
+allocate(surfaceWindStressNew(nEdgesNew))
 allocate(normalVelocityNew(1,nVertLevelsNew,nEdgesNew))
 allocate(layerThicknessNew(1,nVertLevelsNew,nCellsNew))
 allocate(densityNew(1,nVertLevelsNew,nCellsNew))
@@ -2066,7 +2061,7 @@ xCellNew=0; yCellNew=0; zCellNew=0; latCellNew=0; lonCellNew=0; meshDensityNew=1
 xEdgeNew=0; yEdgeNew=0; zEdgeNew=0; latEdgeNew=0; lonEdgeNew=0
 xVertexNew=0; yVertexNew=0; zVertexNew=0; latVertexNew=0; lonVertexNew=0
 
-fEdgeNew=0; fVertexNew=0; bottomDepthNew=0; normalVelocityForcingNew=0; windStressMonthlyNew = 0
+fEdgeNew=0; fVertexNew=0; bottomDepthNew=0; surfaceWindStressNew = 0
 normalVelocityNew=0; layerThicknessNew=0; densityNew=0
 temperatureNew=0; salinityNew=0; tracer1New=0;
 

@@ -5,7 +5,7 @@
   expand_from_unit_sphere = .false.
   zLevel_thickness = 'equally_spaced'
   bottom_topography = 'flat_bottom'
-  initial_conditions = 'kppUnitTest'
+  initial_conditions = 'unitTestCVMixConvection'
   eliminate_inland_seas=.false.
   load_woce_IC = .false.
   write_OpenDX_flag = .false.

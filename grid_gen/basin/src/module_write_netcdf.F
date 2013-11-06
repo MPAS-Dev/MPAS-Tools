@@ -54,8 +54,7 @@ module write_netcdf
    integer :: wrVarIDnormalVelocity
    integer :: wrVarIDboundaryEdge
    integer :: wrVarIDboundaryVertex
-   integer :: wrVarIDnormalVelocityForcing
-   integer :: wrVarIDwindStressMonthly
+   integer :: wrVarIDsurfaceWindStress
    integer :: wrVarIDlayerThickness
    integer :: wrVarIDdensity
    integer :: wrVarIDtemperature
@@ -249,13 +248,9 @@ module write_netcdf
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnVertices
       nferr = nf_def_var(wr_ncid, 'boundaryVertex', NF_INT,  2, dimlist, wrVarIDboundaryVertex)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnEdges
-      nferr = nf_def_var(wr_ncid, 'normalVelocityForcing', NF_DOUBLE,  2, dimlist, wrVarIDnormalVelocityForcing)
 
-      dimlist( 1) = wrDimIDnMonths
-      dimlist( 2) = wrDimIDnEdges
-      nferr = nf_def_var(wr_ncid, 'windStressMonthly', NF_DOUBLE,  2, dimlist, wrVarIDwindStressMonthly)
+      dimlist( 1) = wrDimIDnEdges
+      nferr = nf_def_var(wr_ncid, 'surfaceWindStress', NF_DOUBLE,  1, dimlist, wrVarIDsurfaceWindStress)
 
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnCells
@@ -333,8 +328,7 @@ module write_netcdf
                                   bottomDepth, &
                                   boundaryEdge, &
                                   boundaryVertex, &
-                                  normalVelocityForcing, &
-                                  windStressMonthly, &
+                                  surfaceWindStress, &
                                   normalVelocity, &
                                   layerThickness, &
                                   density, &
@@ -395,8 +389,7 @@ module write_netcdf
       real (kind=8), dimension(:), intent(in) :: bottomDepth
       integer, dimension(:,:), intent(in) :: boundaryEdge
       integer, dimension(:,:), intent(in) :: boundaryVertex
-      real (kind=8), dimension(:,:), intent(in) :: normalVelocityForcing
-      real (kind=8), dimension(:,:), intent(in) :: windStressMonthly
+      real (kind=8), dimension(:), intent(in) :: surfaceWindStress
       real (kind=8), dimension(:,:,:), intent(in) :: normalVelocity
       real (kind=8), dimension(:,:,:), intent(in) :: layerThickness
       real (kind=8), dimension(:,:,:), intent(in) :: density
@@ -610,17 +603,9 @@ module write_netcdf
       count2( 2) = wrLocalnVertices
       nferr = nf_put_vara_int(wr_ncid, wrVarIDboundaryVertex, start2, count2, boundaryVertex)
 
-      start2(2) = 1
-      count2( 1) = wrLocalnVertLevels
-      count2( 2) = wrLocalnEdges
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDnormalVelocityForcing, start2, count2, normalVelocityForcing)
-
-
-      start2(2) = 1
-      count2( 1) = wrLocalnMonths
-      count2( 2) = wrLocalnEdges
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDwindStressMonthly, start2, count2, windStressMonthly)
-
+      start1(1) = 1
+      count1( 1) = wrLocalnEdges
+      nferr = nf_put_vara_double(wr_ncid, wrVarIDsurfaceWindStress, start1, count1, surfaceWindStress)
 
       start1(1) = 1
       count1( 1) = wrLocalnCells
@@ -629,9 +614,6 @@ module write_netcdf
       start1(1) = 1
       count1( 1) = wrLocalnCells
       nferr = nf_put_vara_double(wr_ncid, wrVarIDsalinityRestore, start1, count1, salinityRestore)
-
-
-
 
       start2(2) = 1
       count2( 1) = wrLocalnMonths
