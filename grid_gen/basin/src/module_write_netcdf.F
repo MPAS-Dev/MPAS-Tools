@@ -10,7 +10,6 @@ module write_netcdf
    integer :: wrDimIDTWO
    integer :: wrDimIDvertexDegree
    integer :: wrDimIDnVertLevels
-   integer :: wrDimIDnMonths
    integer :: wrVarIDlatCell
    integer :: wrVarIDlonCell
    integer :: wrVarIDmeshDensity
@@ -50,6 +49,7 @@ module write_netcdf
    integer :: wrVarIDkiteAreasOnVertex
    integer :: wrVarIDfEdge
    integer :: wrVarIDfVertex
+   integer :: wrVarIDfCell
    integer :: wrVarIDbottomDepth
    integer :: wrVarIDnormalVelocity
    integer :: wrVarIDboundaryEdge
@@ -62,8 +62,6 @@ module write_netcdf
    integer :: wrVarIDtracer1
    integer :: wrVarIDtemperatureRestore
    integer :: wrVarIDsalinityRestore
-   integer :: wrVarIDtemperatureRestoreMonthly
-   integer :: wrVarIDsalinityRestoreMonthly
    integer :: wrVarIDrefBottomDepth
  
    integer :: wrLocalnCells
@@ -72,7 +70,6 @@ module write_netcdf
    integer :: wrLocalmaxEdges
    integer :: wrLocalnVertLevels
    integer :: wrLocalvertexDegree
-   integer :: wrLocalnMonths
  
    contains
  
@@ -83,7 +80,6 @@ module write_netcdf
                                maxEdges, &
                                nVertLevels, &
                                vertexDegree, &
-                               nMonths, &
                                sphere_radius, & 
                                on_a_sphere &
                                )
@@ -98,7 +94,6 @@ module write_netcdf
       integer, intent(in) :: maxEdges
       integer, intent(in) :: nVertLevels
       integer, intent(in) :: vertexDegree
-      integer, intent(in) :: nMonths
       character (len=16) :: on_a_sphere
       real*8 :: sphere_radius
 
@@ -113,7 +108,6 @@ module write_netcdf
       wrLocalmaxEdges = maxEdges
       wrLocalnVertLevels = nVertLevels
       wrLocalvertexDegree = vertexDegree
-      wrLocalnMonths = nMonths
  
       nferr = nf_create('ocean.nc', IOR(NF_CLOBBER,NF_64BIT_OFFSET), wr_ncid)
  
@@ -128,7 +122,6 @@ module write_netcdf
       nferr = nf_def_dim(wr_ncid, 'TWO', 2, wrDimIDTWO)
       nferr = nf_def_dim(wr_ncid, 'vertexDegree', vertexDegree, wrDimIDvertexDegree)
       nferr = nf_def_dim(wr_ncid, 'nVertLevels', nVertLevels, wrDimIDnVertLevels)
-      nferr = nf_def_dim(wr_ncid, 'nMonths', nMonths, wrDimIDnMonths)
       nferr = nf_def_dim(wr_ncid, 'Time', NF_UNLIMITED, wrDimIDTime)
  
       !
@@ -223,18 +216,13 @@ module write_netcdf
       dimlist( 1) = wrDimIDnVertices
       nferr = nf_def_var(wr_ncid, 'fVertex', NF_DOUBLE,  1, dimlist, wrVarIDfVertex)
       dimlist( 1) = wrDimIDnCells
+      nferr = nf_def_var(wr_ncid, 'fCell', NF_DOUBLE,  1, dimlist, wrVarIDfCell)
+      dimlist( 1) = wrDimIDnCells
       nferr = nf_def_var(wr_ncid, 'bottomDepth', NF_DOUBLE,  1, dimlist, wrVarIDbottomDepth)
       dimlist( 1) = wrDimIDnCells
       nferr = nf_def_var(wr_ncid, 'temperatureRestore', NF_DOUBLE,  1, dimlist, wrVarIDtemperatureRestore)
       dimlist( 1) = wrDimIDnCells
       nferr = nf_def_var(wr_ncid, 'salinityRestore', NF_DOUBLE,  1, dimlist, wrVarIDsalinityRestore)
-
-      dimlist( 1) = wrDimIDnMonths
-      dimlist( 2) = wrDimIDnCells
-      nferr = nf_def_var(wr_ncid, 'temperatureRestoreMonthly', NF_DOUBLE,  2, dimlist, wrVarIDtemperatureRestoreMonthly)
-      dimlist( 1) = wrDimIDnMonths
-      dimlist( 2) = wrDimIDnCells
-      nferr = nf_def_var(wr_ncid, 'salinityRestoreMonthly', NF_DOUBLE,  2, dimlist, wrVarIDsalinityRestoreMonthly)
 
       dimlist( 1) = wrDimIDnVertLevels
       nferr = nf_def_var(wr_ncid, 'refBottomDepth', NF_DOUBLE,  1, dimlist, wrVarIDrefBottomDepth)
@@ -325,6 +313,7 @@ module write_netcdf
                                   kiteAreasOnVertex, &
                                   fEdge, &
                                   fVertex, &
+                                  fCell, &
                                   bottomDepth, &
                                   boundaryEdge, &
                                   boundaryVertex, &
@@ -337,8 +326,6 @@ module write_netcdf
                                   tracer1, &
                                   temperatureRestore, &
                                   salinityRestore, &
-                                  temperatureRestoreMonthly, &
-                                  salinityRestoreMonthly, &
                                   refBottomDepth &
                                  )
  
@@ -386,6 +373,7 @@ module write_netcdf
       real (kind=8), dimension(:,:), intent(in) :: kiteAreasOnVertex
       real (kind=8), dimension(:), intent(in) :: fEdge
       real (kind=8), dimension(:), intent(in) :: fVertex
+      real (kind=8), dimension(:), intent(in) :: fCell
       real (kind=8), dimension(:), intent(in) :: bottomDepth
       integer, dimension(:,:), intent(in) :: boundaryEdge
       integer, dimension(:,:), intent(in) :: boundaryVertex
@@ -398,8 +386,6 @@ module write_netcdf
       real (kind=8), dimension(:,:,:), intent(in) :: tracer1
       real (kind=8), dimension(:), intent(in) :: temperatureRestore
       real (kind=8), dimension(:), intent(in) :: salinityRestore
-      real (kind=8), dimension(:,:), intent(in) :: temperatureRestoreMonthly
-      real (kind=8), dimension(:,:), intent(in) :: salinityRestoreMonthly
       real (kind=8), dimension(:), intent(in) :: refBottomDepth
 
  
@@ -588,6 +574,10 @@ module write_netcdf
       start1(1) = 1
       count1( 1) = wrLocalnVertices
       nferr = nf_put_vara_double(wr_ncid, wrVarIDfVertex, start1, count1, fVertex)
+
+      start1(1) = 1
+      count1( 1) = wrLocalnCells
+      nferr = nf_put_vara_double(wr_ncid, wrVarIDfCell, start1, count1, fCell)
  
       start1(1) = 1
       count1( 1) = wrLocalnCells
@@ -614,17 +604,6 @@ module write_netcdf
       start1(1) = 1
       count1( 1) = wrLocalnCells
       nferr = nf_put_vara_double(wr_ncid, wrVarIDsalinityRestore, start1, count1, salinityRestore)
-
-      start2(2) = 1
-      count2( 1) = wrLocalnMonths
-      count2( 2) = wrLocalnCells
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDtemperatureRestoreMonthly, start2, count2, temperatureRestoreMonthly)
-
-      start2(2) = 1
-      count2( 1) = wrLocalnMonths
-      count2( 2) = wrLocalnCells
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDsalinityRestoreMonthly, start2, count2, salinityRestoreMonthly)
-
 
       start1(1) = 1
       count1( 1) = wrLocalnVertLevels
