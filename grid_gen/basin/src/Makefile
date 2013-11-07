@@ -35,7 +35,7 @@ LDFLAGS =
 #NETCDF = /Users/maltrud/local
 
 
-CPP = cpp -C -P -traditional
+CPP = cpp -P -traditional
 CPPFLAGS = 
 CPPINCLUDES = 
 INCLUDES = -I$(NETCDF)/include
