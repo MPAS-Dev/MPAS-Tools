@@ -919,7 +919,7 @@ do iEdge=1,nEdgesNew
 !   endif
 !   enddo
 ! else
-    surfaceWindStressNew(:) = 0.0
+!    surfaceWindStressNew(:) = 0.0
 ! end if
 
 enddo
