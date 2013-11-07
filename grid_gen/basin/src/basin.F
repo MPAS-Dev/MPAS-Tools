@@ -662,13 +662,15 @@ elseif (initial_conditions.eq.'unitTestCVMixConvection') then
    maxMidDepth = maxval(midDepth)
 
    ! Set up stratification on northern half
-   surfaceTemperature = 13.1
-   bottomTemperature = 10.1
-   deltaTemperature = 1.2
+   surfaceTemperature = 13.0
+   bottomTemperature = 10.0
    do k = 1, nVertLevelsMOD
       temperatureNew(1,k,:) = bottomTemperature &
          + (surfaceTemperature - bottomTemperature) * ((-midDepth(k)+maxMidDepth)/maxMidDepth)
    enddo
+
+   temperatureRestoreNew(:) = surfaceTemperature - 10.0
+   salinityRestoreNew(:) = salinityNew(1,1,:)
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
@@ -678,6 +680,40 @@ elseif (initial_conditions.eq.'unitTestCVMixConvection') then
 
   do iEdge=1,nEdgesNew
     surfaceWindStressNew(iEdge) = 0.001*cos(angleEdgeNew(iEdge))
+  enddo
+
+elseif (initial_conditions.eq.'unitTestCVMixShear') then
+
+   salinityNew(1,:,:) = 35.0
+   normalVelocityNew = 0.0
+   surfaceWindStressNew = 0.0
+
+   midDepth(1) =  hZLevel(1)/2.0
+   do k=2,nVertLevelsMod
+      midDepth(k) = midDepth(k-1) + 0.5*(hZLevel(k-1) + hZLevel(k))
+   enddo
+
+   maxMidDepth = maxval(midDepth)
+
+   ! Set up stratification on northern half
+   surfaceTemperature = 15.0
+   bottomTemperature = 5.0
+   do k = 1, nVertLevelsMOD
+      temperatureNew(1,k,:) = bottomTemperature &
+         + (surfaceTemperature - bottomTemperature) * ((-midDepth(k)+maxMidDepth)/maxMidDepth)
+   enddo
+
+   temperatureRestoreNew(:) = surfaceTemperature
+   salinityRestoreNew(:) = salinityNew(1,1,:)
+
+   do iCell=1,nCellsNew
+      do k=1,nVertLevelsMod
+         layerThicknessNew(1,k,iCell) = hZLevel(k)
+      enddo
+   enddo
+
+  do iEdge=1,nEdgesNew
+    surfaceWindStressNew(iEdge) = 0.10*cos(angleEdgeNew(iEdge))
   enddo
 
 elseif (initial_conditions.eq.'DOME_3D_overflow') then
