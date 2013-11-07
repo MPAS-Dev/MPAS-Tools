@@ -41,7 +41,7 @@ integer, allocatable, dimension(:,:) :: cellsOnVertex, edgesOnVertex
 real, allocatable, dimension(:) :: areaCell, areaTriangle, dcEdge, dvEdge, angleEdge
 real, allocatable, dimension(:,:) :: kiteAreasOnVertex, weightsOnEdge
 
-real, allocatable, dimension(:) :: fEdge, fVertex, bottomDepth, work1, surfaceWindStress
+real, allocatable, dimension(:) :: fCell, fEdge, fVertex, bottomDepth, work1, surfaceWindStress
 real, allocatable, dimension(:,:,:) :: normalVelocity, tangentialVelocity, layerThickness
 real, allocatable, dimension(:,:,:) :: density
 
@@ -78,7 +78,7 @@ integer, allocatable, dimension(:,:) :: boundaryEdgeNew, boundaryVertexNew
 real, allocatable, dimension(:) :: areaCellNew, areaTriangleNew, dcEdgeNew, dvEdgeNew, angleEdgeNew
 real, allocatable, dimension(:,:) :: kiteAreasOnVertexNew, weightsOnEdgeNew, normalsNew
 
-real, allocatable, dimension(:) :: fEdgeNew, fVertexNew, bottomDepthNew
+real, allocatable, dimension(:) :: fCellNew, fEdgeNew, fVertexNew, bottomDepthNew
 real, allocatable, dimension(:) :: surfaceWindStressNew
 real, allocatable, dimension(:,:,:) :: normalVelocityNew, layerThicknessNew
 real, allocatable, dimension(:,:,:) :: densityNew, temperatureNew, salinityNew, tracer1New
@@ -753,6 +753,7 @@ elseif (initial_conditions.eq.'SOMA_TS') then
 
 elseif (initial_conditions.eq.'isopycnal_3layer') then
 
+   fCellNew(:) = 0.0
    fEdgeNew(:) = 0.0
    fVertexNew(:) = 0.0
    bottomDepthNew(:) = 0.0
@@ -1131,6 +1132,10 @@ if (trim(initial_conditions).ne.'realistic_WOCE') then
        do i = 1,nEdgesNew
           fEdgeNew(i) = 2.0 * omega * sin(latEdgeNew(i))
        enddo
+
+       do i = 1,nCellsNew
+          fCellNew(i) = 2.0 * omega * sin(latCellNew(i))
+       enddo
    else
        do i = 1,nVerticesNew
           fVertexNew(i) = f0 + (yVertexNew(i) - ymid) * beta
@@ -1138,6 +1143,10 @@ if (trim(initial_conditions).ne.'realistic_WOCE') then
 
        do i = 1,nEdgesNew
           fEdgeNew(i) = f0 + (yEdgeNew(i) - ymid) * beta
+       enddo
+
+       do i = 1,nCellsNew
+          fCellNew(i) = f0 + (yCellNew(i) - ymid) * beta
        enddo
    endif
 
@@ -1365,6 +1374,7 @@ allocate(edgesOnVertex(vertexDegree,nVertices))
 allocate(cellsOnVertex(vertexDegree,nVertices))
 allocate(kiteAreasOnVertex(vertexDegree,nVertices))
 
+allocate(fCell(nEdges))
 allocate(fEdge(nEdges))
 allocate(fVertex(nVertices))
 allocate(bottomDepth(nCells))
@@ -1553,6 +1563,7 @@ call write_netcdf_fields( &
                     edgesOnVertexNew, &
                     cellsOnVertexNew, &
                     kiteAreasOnVertexNew, &
+                    fCellNew, &
                     fEdgeNew, &
                     fVertexNew, &
                     bottomDepthNew, &
@@ -2026,6 +2037,7 @@ allocate(areaCellNew(nCellsNew))
 allocate(areaTriangleNew(nVerticesNew))
 allocate(maxLevelCellNew(nCellsNew))
 
+allocate(fCellNew(nEdgesNew))
 allocate(fEdgeNew(nEdgesNew))
 allocate(fVertexNew(nVerticesNew))
 allocate(bottomDepthNew(nCellsNew))
@@ -2044,7 +2056,7 @@ xCellNew=0; yCellNew=0; zCellNew=0; latCellNew=0; lonCellNew=0; meshDensityNew=1
 xEdgeNew=0; yEdgeNew=0; zEdgeNew=0; latEdgeNew=0; lonEdgeNew=0
 xVertexNew=0; yVertexNew=0; zVertexNew=0; latVertexNew=0; lonVertexNew=0
 
-fEdgeNew=0; fVertexNew=0; bottomDepthNew=0; surfaceWindStressNew = 0
+fCellNew=0; fEdgeNew=0; fVertexNew=0; bottomDepthNew=0; surfaceWindStressNew = 0
 normalVelocityNew=0; layerThicknessNew=0; densityNew=0
 temperatureNew=0; salinityNew=0; tracer1New=0;
 
@@ -2076,6 +2088,7 @@ if(jNew.ne.0) then
     lonEdgeNew(jNew)=lonEdge(i)
     dcEdgeNew(jNew) = dcEdge(i)
     dvEdgeNew(jNew) = dvEdge(i)
+    fCellNew(jNew) = fCell(i)
     fEdgeNew(jNew) = fEdge(i)
     angleEdgeNew(jNew) = angleEdge(i)
 endif
