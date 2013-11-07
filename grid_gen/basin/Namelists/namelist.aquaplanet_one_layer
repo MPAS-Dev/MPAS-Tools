@@ -22,7 +22,6 @@
   ! These variables are not needed for aquaplanet.
   ! u,f,h are initialized in the code.
 
-  normalVelocityForcing_max = 0.0 
   f0 = 0.0 
   beta = 0.0
   omega = 0.0
