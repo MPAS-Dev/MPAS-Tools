@@ -676,6 +676,10 @@ elseif (initial_conditions.eq.'unitTestCVMixConvection') then
       enddo
    enddo
 
+  do iEdge=1,nEdgesNew
+    surfaceWindStressNew(iEdge) = 0.001*cos(angleEdgeNew(iEdge))
+  enddo
+
 elseif (initial_conditions.eq.'DOME_3D_overflow') then
 
    y0_embayment = 600.0e3 ! y location of beginning of embayment
