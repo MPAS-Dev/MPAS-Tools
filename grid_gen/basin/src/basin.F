@@ -1603,9 +1603,9 @@ call write_netcdf_fields( &
                     edgesOnVertexNew, &
                     cellsOnVertexNew, &
                     kiteAreasOnVertexNew, &
-                    fCellNew, &
                     fEdgeNew, &
                     fVertexNew, &
+                    fCellNew, &
                     bottomDepthNew, &
                     boundaryEdgeNew, &
                     boundaryVertexNew, &
