@@ -60,13 +60,14 @@ OBJS = basin.o \
        module_read_netcdf.o \
        module_read_topo.o \
        module_read_TS.o \
+       module_read_U.o \
        module_read_monthly.o \
        module_cullLoops.o \
        module_write_netcdf.o
 
 all: map
 
-basin.o: utilities.o module_write_netcdf.o module_read_netcdf.o module_read_topo.o module_read_TS.o module_read_monthly.o module_cullLoops.o
+basin.o: utilities.o module_write_netcdf.o module_read_netcdf.o module_read_topo.o module_read_TS.o module_read_U.o module_read_monthly.o module_cullLoops.o
 
 map: $(OBJS)
 	$(FC) $(LDFLAGS) -o $@ $(OBJS) $(LIBS)
