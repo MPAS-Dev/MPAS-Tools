@@ -10,6 +10,39 @@ parser.add_option("-p", "--tex_path", dest="latex_path", help="Path to latex inp
 
 options, args = parser.parse_args()
 
+def break_string(string):#{{{
+	i = 0.0
+	idx = -1
+
+	size = 0
+
+	big_size = 1.8
+	small_size = 1.2
+	really_small_size = 0.2
+
+	big_count = 0
+	small_count = 0
+	really_small_count = 0
+
+	for c in string:
+		idx = idx + 1
+		if c.isupper():
+			big_count = big_count + 1
+			size = size + big_size
+		else:
+			if c == "l" or c == "i":
+				really_small_count = really_small_count + 1
+				size = size + really_small_size
+			else:
+				small_count = small_count + 1
+				size = size + small_size
+
+		if size >= 33.5:
+			return idx
+
+	return -1
+	#}}}
+
 if not options.registry_path:
 	parser.error("Registry file is required")
 
@@ -65,7 +98,9 @@ latex.write('{\small\n')
 latex.write('\\begin{center}\n')
 latex.write('\\begin{longtable}{| p{1.0in} || p{1.0in} | p{4.0in} |}\n')
 latex.write('	\hline \n')
-latex.write('	%s \\\\\n'%dimension_table_header)
+latex.write('	%s \\endfirsthead\n'%dimension_table_header)
+latex.write('	\hline \n')
+latex.write('	%s (Continued) \\endhead\n'%dimension_table_header)
 latex.write('	\hline \n')
 latex.write('	\hline \n')
 for dims in registry.iter("dims"):
@@ -136,11 +171,14 @@ for nml_rec in registry.iter("nml_record"):
 	except:
 		latex.write('')
 
+	latex.write('\\vspace{0.5in}\n')
 	latex.write('{\small\n')
 	latex.write('\\begin{center}\n')
 	latex.write('\\begin{longtable}{| p{2.0in} || p{4.0in} |}\n')
 	latex.write('	\hline\n')
-	latex.write('	%s \\\\\n'%namelist_table_header)
+	latex.write('	%s \\endfirsthead\n'%namelist_table_header)
+	latex.write('	\hline \n')
+	latex.write('	%s (Continued) \\endhead\n'%namelist_table_header)
 	latex.write('	\hline\n')
 	latex.write('	\hline\n')
 
@@ -176,7 +214,11 @@ for nml_rec in registry.iter("nml_record"):
 			else:
 				opt_description = "%s"%opt_description.replace('_','\_')
 
-		latex.write('	\hyperref[subsec:nm_sec_%s]{%s} & %s \\\\\n'%(opt_name, opt_name.replace('_','\_'), opt_description))
+		idx = break_string(opt_name)
+		if idx >= 29:
+			latex.write('	\hyperref[subsec:nm_sec_%s]{%s-}\hyperref[subsec:nm_sec_%s]{%s}& %s \\\\\n'%(opt_name, opt_name[0:idx].replace('_','\_'), opt_name, opt_name[idx:].replace('_','\_'), opt_description))
+		else:
+			latex.write('	\hyperref[subsec:nm_sec_%s]{%s} & %s \\\\\n'%(opt_name, opt_name.replace('_','\_'), opt_description))
 		latex.write('	\hline\n')
 
 	latex.write('\end{longtable}\n')
@@ -250,7 +292,7 @@ for nml_rec in registry.iter("nml_record"):
 		latex.write('\subsection[%s]{\hyperref[sec:nm_tab_%s]{%s}}\n'%(opt_name.replace('_','\_'),rec_name,opt_name.replace('_','\_')))
 		latex.write('\label{subsec:nm_sec_%s}\n'%opt_name)
 		latex.write('\\begin{center}\n')
-		latex.write('\\begin{longtable}{| p{2.0in} | p{4.0in} |}\n')
+		latex.write('\\begin{longtable}{| p{2.0in} || p{4.0in} |}\n')
 		latex.write('    \hline\n')
 		latex.write('    Type: & %s \\\\\n'%opt_type.replace('_','\_'))
 		latex.write('    \hline\n')
@@ -276,17 +318,20 @@ for var_struct in registry.iter("var_struct"):
 	latex.write('\label{sec:var_tab_%s}\n'%struct_name)
 
 	try:
-		junk_file = open('%s/%s.tex'%(options.latex_dir,struct_name), 'r')
-		latex.write('\input{%s/%s.tex}\n'%(options.latex_path, struct_name))
+		junk_file = open('%s/%s_struct.tex'%(options.latex_dir,struct_name), 'r')
+		latex.write('\input{%s/%s_struct.tex}\n'%(options.latex_path, struct_name))
 		junk_file.close()
 	except:
 		latex.write('')
 
+	latex.write('\\vspace{0.5in}\n')
 	latex.write('{\small\n')
 	latex.write('\\begin{center}\n')
 	latex.write('\\begin{longtable}{| p{2.0in} | p{4.0in} |}\n')
 	latex.write('	\hline\n')
-	latex.write('	%s \\\\\n'%variable_table_header)
+	latex.write('	%s \\endfirsthead\n'%variable_table_header)
+	latex.write('	\hline \n')
+	latex.write('	%s (Continued) \\endhead\n'%variable_table_header)
 	latex.write('	\hline\n')
 
 	for node in var_struct.getchildren():
@@ -319,7 +364,11 @@ for var_struct in registry.iter("var_struct"):
 					else:
 						var_description = "%s"%var_description.replace('_','\_')
 
-				latex.write('	\hyperref[subsec:var_sec_%s_%s]{%s} & %s \\\\\n'%(struct_name, var_name, var_name.replace('_','\_'), var_description))
+				idx = break_string(var_name)
+				if idx > -1:
+					latex.write('	\hyperref[subsec:var_sec_%s_%s]{%s-}\hyperref[subsec:var_sec_%s_%s]{%s}  & %s \\\\\n'%(struct_name, var_name, var_name[0:idx].replace('_','\_'), struct_name, var_name, var_name[idx:].replace('_','\_'), var_description))
+				else:
+					latex.write('	\hyperref[subsec:var_sec_%s_%s]{%s} & %s \\\\\n'%(struct_name, var_name, var_name.replace('_','\_'), var_description))
 				latex.write('	\hline\n')
 		elif node.tag == 'var':
 			var = node
@@ -350,7 +399,11 @@ for var_struct in registry.iter("var_struct"):
 				else:
 					var_description = "%s"%var_description.replace('_','\_')
 
-			latex.write('	\hyperref[subsec:var_sec_%s_%s]{%s} & %s \\\\\n'%(struct_name, var_name, var_name.replace('_','\_'), var_description))
+			idx = break_string(var_name)
+			if idx > -1:
+				latex.write('	\hyperref[subsec:var_sec_%s_%s]{%s-}\hyperref[subsec:var_sec_%s_%s]{%s  }& %s \\\\\n'%(struct_name, var_name, var_name[0:idx].replace('_','\_'), struct_name, var_name, var_name[idx:].replace('_','\_'), var_description))
+			else:
+				latex.write('	\hyperref[subsec:var_sec_%s_%s]{%s} & %s \\\\\n'%(struct_name, var_name, var_name.replace('_','\_'), var_description))
 			latex.write('	\hline\n')
 
 	latex.write('\end{longtable}\n')
