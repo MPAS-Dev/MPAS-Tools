@@ -1,0 +1,31 @@
+&basin
+  nVertLevelsMOD = 40
+  on_a_sphere = 'YES'
+  expand_from_unit_sphere = .true.
+  sphere_radius = 6.37122e6
+  zLevel_thickness = 'SOMA_40_Level'
+  bottom_topography = 'circumpolar_channel'
+  initial_conditions = 'SOMA_TS'
+  eliminate_inland_seas=.true.
+  load_woce_IC = .false.
+  write_OpenDX_flag = .false.
+  check_mesh = .true.
+  cut_domain_from_sphere = .false.
+  solid_boundary_in_y = .true.
+  solid_boundary_in_x = .false.
+  top_layers_without_land = 3
+
+  ! These variables may be used for acc wind amplification
+  amplify_acc_wind = .false.
+  amp_wind_factor = 2.0
+  amp_wind_center_lat = -35.0
+  amp_wind_spread_lat = 3.0
+
+  ! These variables are not needed for realistic global topography:
+
+  ! layer_total_max = 2000.0 
+  ! f0 = -1.1e-4  
+  ! beta = 1.4e-11 
+  ! omega = 7.29212e-5  
+  ! Lx = 3200.0e3
+/
