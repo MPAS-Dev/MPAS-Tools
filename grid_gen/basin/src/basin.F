@@ -1885,6 +1885,47 @@ elseif (bottom_topography.eq.'SOMA_Circular_Basin') then
 
     enddo
 
+elseif (bottom_topography.eq.'circumpolar_channel') then
+
+    pi = 4.0*atan(1.0)
+    dtr = pi / 180.0
+    b = 1.25e6
+    phi = 0.1
+    H0 = 2500.0
+    gamma = -0.4
+
+    kmt = 0
+
+    do iCell=1,nCells
+
+        rlon = lonCell(iCell)
+        rlat = latCell(iCell)
+        
+        if(rlat.le.-50*pi/180 .and. rlat.ge.-70*pi/180) then
+          zdata = -1000.0
+        endif
+        bottomDepth(iCell) = -zdata
+
+        if(zdata.lt.0.0) then
+            zdata = -zdata
+            r = 0
+            kmt_flag=.false.
+            do k=1,nVertLevelsMod
+                if(.not.kmt_flag) then
+                    r = r + dz(k)
+                    if(r.gt.zdata) then
+                        kmt(iCell) = k
+                        kmt_flag = .true.
+                    endif
+                endif
+            enddo
+            if(kmt(iCell).eq.0) kmt(iCell)=nVertLevelsMod
+        endif
+
+    enddo
+
+
+
 elseif (bottom_topography.eq.'flat_bottom') then
 
    kmt = nVertLevelsMOD
