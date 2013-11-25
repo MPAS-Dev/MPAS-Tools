@@ -63,6 +63,7 @@ module write_netcdf
    integer :: wrVarIDtemperatureRestore
    integer :: wrVarIDsalinityRestore
    integer :: wrVarIDboundaryLayerDepth
+   integer :: wrVarIDindexBoundaryLayerDepth
    integer :: wrVarIDrefBottomDepth
  
    integer :: wrLocalnCells
@@ -227,6 +228,8 @@ module write_netcdf
 
       dimlist( 1) = wrDimIDnCells
       nferr = nf_def_var(wr_ncid, 'boundaryLayerDepth', NF_DOUBLE,  1, dimlist, wrVarIDboundaryLayerDepth)
+      dimlist( 1) = wrDimIDnCells
+      nferr = nf_def_var(wr_ncid, 'indexBoundaryLayerDepth', NF_DOUBLE,  1, dimlist, wrVarIDindexBoundaryLayerDepth)
 
       dimlist( 1) = wrDimIDnVertLevels
       nferr = nf_def_var(wr_ncid, 'refBottomDepth', NF_DOUBLE,  1, dimlist, wrVarIDrefBottomDepth)
@@ -331,6 +334,7 @@ module write_netcdf
                                   temperatureRestore, &
                                   salinityRestore, &
                                   boundaryLayerDepth, &
+                                  indexBoundaryLayerDepth, &
                                   refBottomDepth &
                                  )
  
@@ -392,6 +396,7 @@ module write_netcdf
       real (kind=8), dimension(:), intent(in) :: temperatureRestore
       real (kind=8), dimension(:), intent(in) :: salinityRestore
       real (kind=8), dimension(:), intent(in) :: boundaryLayerDepth
+      real (kind=8), dimension(:), intent(in) :: indexBoundaryLayerDepth
       real (kind=8), dimension(:), intent(in) :: refBottomDepth
 
  
@@ -614,6 +619,10 @@ module write_netcdf
       start1(1) = 1
       count1( 1) = wrLocalnCells
       nferr = nf_put_vara_double(wr_ncid, wrVarIDboundaryLayerDepth, start1, count1, boundaryLayerDepth)
+
+      start1(1) = 1
+      count1( 1) = wrLocalnCells
+      nferr = nf_put_vara_double(wr_ncid, wrVarIDindexBoundaryLayerDepth, start1, count1, indexBoundaryLayerDepth)
 
       start1(1) = 1
       count1( 1) = wrLocalnVertLevels
