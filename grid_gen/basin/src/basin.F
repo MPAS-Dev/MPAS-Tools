@@ -83,6 +83,7 @@ real, allocatable, dimension(:) :: surfaceWindStressNew
 real, allocatable, dimension(:,:,:) :: normalVelocityNew, layerThicknessNew
 real, allocatable, dimension(:,:,:) :: densityNew, temperatureNew, salinityNew, tracer1New
 real, allocatable, dimension(:) :: temperatureRestoreNew, salinityRestoreNew
+real, allocatable, dimension(:) :: boundaryLayerDepthNew
 
 ! mapping variables
 integer, allocatable, dimension(:) :: kmt, maxLevelCellNew
@@ -671,6 +672,7 @@ elseif (initial_conditions.eq.'unitTestCVMixConvection') then
 
    temperatureRestoreNew(:) = surfaceTemperature - 10.0
    salinityRestoreNew(:) = salinityNew(1,1,:)
+   boundaryLayerDepthNew(:) = 10.0
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
@@ -703,8 +705,9 @@ elseif (initial_conditions.eq.'unitTestCVMixShear') then
          + (surfaceTemperature - bottomTemperature) * ((-midDepth(k)+maxMidDepth)/maxMidDepth)
    enddo
 
-   temperatureRestoreNew(:) = surfaceTemperature
+   temperatureRestoreNew(:) = surfaceTemperature + 10.0
    salinityRestoreNew(:) = salinityNew(1,1,:)
+   boundaryLayerDepthNew(:) = 10.0
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
@@ -1066,6 +1069,7 @@ write(6,*) iNoData, nCellsNew
 
 temperatureRestoreNew(:) = temperatureNew(1,1,:)
 salinityRestoreNew(:) = salinityNew(1,1,:)
+boundaryLayerDepthNew(:) = 10.0
 
 !if(monthly_forcing) then
   !do iMonth=1,nMonths
@@ -1618,6 +1622,7 @@ call write_netcdf_fields( &
                     tracer1New, &
                     temperatureRestoreNew, &
                     salinityRestoreNew, &
+                    boundaryLayerDepthNew, &
                     refBottomDepth &
                    )
 
@@ -2091,6 +2096,7 @@ allocate(tracer1New(1,nVertLevelsNew,nCellsNew))
 
 allocate(temperatureRestoreNew(nCellsNew))
 allocate(salinityRestoreNew(nCellsNew))
+allocate(boundaryLayerDepthNew(nCellsNew))
 
 xCellNew=0; yCellNew=0; zCellNew=0; latCellNew=0; lonCellNew=0; meshDensityNew=1.0; meshSpacingNew=0.0
 xEdgeNew=0; yEdgeNew=0; zEdgeNew=0; latEdgeNew=0; lonEdgeNew=0
@@ -2102,6 +2108,7 @@ temperatureNew=0; salinityNew=0; tracer1New=0;
 
 temperatureRestoreNew = 0.0
 salinityRestoreNew = 0.0
+boundaryLayerDepthNew = 0.0
 
 do i=1,nCells
 jNew = cellMap(i)
