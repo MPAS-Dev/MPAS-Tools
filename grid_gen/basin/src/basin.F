@@ -114,7 +114,8 @@ logical :: expand_from_unit_sphere, eliminate_inland_seas, load_woce_IC, &
 integer :: nVertLevelsMOD, top_layers_without_land 
 real (kind=8) :: sphere_radius, layer_thickness_total_max, f0, beta, omega, Lx, &
   uniform_T, uniform_S, uniform_tracer1, &
-  amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat, surfaceWindStressMax
+  amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat, surfaceWindStressMax, &
+  iceShelfCavityThickness, iceShelfEdgeWidth
 
 ! specify namelist
 namelist /basin/ nVertLevelsMOD, on_a_sphere, sphere_radius, &
@@ -124,7 +125,8 @@ namelist /basin/ nVertLevelsMOD, on_a_sphere, sphere_radius, &
    cut_domain_from_sphere, solid_boundary_in_y, solid_boundary_in_x, &
    top_layers_without_land, layer_thickness_total_max, f0, beta, omega, Lx, &
    uniform_T, uniform_S, uniform_tracer1, surfaceWindStressMax, &
-   amplify_acc_wind, amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat
+   amplify_acc_wind, amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat, &
+   iceShelfCavityThickness, iceShelfEdgeWidth
 
 ! Default namelist values.  Default set for realistic global IC.
 nVertLevelsMOD = 40
@@ -142,7 +144,7 @@ bottom_topography = 'realistic_ETOPO'
 
 ! initial temperature and salinity options: 
 ! 'realistic_WOCE', 'uniform_TS', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma', 'DOME_3D_overflow', 
-! 'internal_wave_Ilicak3', 'baroclinic_channel_Ilicak4'
+! 'internal_wave_Ilicak3', 'baroclinic_channel_Ilicak4', 'sub_ice_shelf_test1'
 initial_conditions = 'realistic_WOCE'
 uniform_T = 10.0
 uniform_S = 34.0
@@ -175,6 +177,9 @@ amplify_acc_wind = .false.
 amp_wind_factor = 2.0
 amp_wind_center_lat = -35.0
 amp_wind_spread_lat = 3.0
+
+iceShelfCavityThickness = 100
+iceShelfEdgeWidth = 15.0e3
 
 ! Read in namelist
    open(20,file='namelist.basin',status='old')
@@ -473,8 +478,10 @@ real :: halfwidth, dtr, pi, p(3), q(3), xin, yin, zin, ulon, ulat, stress, n1, n
 real :: dotProd, rho_ref, rho_delta, work, factor, r1, deltay, b
 real :: y0_embayment, surfaceTemperature, bottomTemperature, betaTemperature,bottomMinTemp, &
    y_a,y_0,A_0, midDepth(nVertLevelsMod), maxMidDepth
+real :: bottomSalinity, surfaceSalinity, cavitySalinity, refSalinity, maxDepth, xWindStress, yWindStress
 real :: x_0, x_1,x_2,x_3,width,cff1, deltaTemperature
-integer :: iTracer, ix, iy, ndata, i, j, k, ixt, iyt, ncull, jcount, iNoData, kdata(nVertLevelsMod), iMonth
+real :: totalSubIceThickness, y1,y2,y3, d1,d2,d3
+integer :: iTracer, ix, iy, ndata, i, j, k, ixt, iyt, ncull, jcount, iNoData, kdata(nVertLevelsMod), iMonth, kMax
 logical :: flag_lat
 
 pi = 4.0*atan(1.0)
@@ -648,6 +655,212 @@ elseif (initial_conditions.eq.'baroclinic_channel_Ilicak4') then
          layerThicknessNew(1,k,iCell) = hZLevel(k)
       enddo
    enddo 
+
+elseif (initial_conditions.eq.'sub_ice_shelf_test1') then
+
+   ! points 1 and 2 are where angles on ice shelf are located.
+   ! point 3 is at the surface.
+   ! d variables are total water thickness below ice shelf.
+   y1=30.0e3
+   y2=60.0e3
+   y3=60.0e3+iceShelfEdgeWidth
+   d1=iceShelfCavityThickness
+   d2=iceShelfCavityThickness+500
+   d3=layer_thickness_total_max
+
+   bottomSalinity = 34.7
+   surfaceSalinity = 34.5
+
+   temperatureNew(1,:,:) = 1.0
+   normalVelocityNew = 0.0
+
+   surfaceWindStressNew = 0.0
+
+   ! set up sub ice shelf thicknesses
+   do iCell=1,nCellsNew
+      if (yCellNew(iCell) < y1 ) then
+         totalSubIceThickness = d1
+      elseif (yCellNew(iCell) < y2 ) then
+         totalSubIceThickness = d1 + (d2-d1)*(yCellNew(iCell)-y1)/(y2-y1)
+      elseif (yCellNew(iCell) < y3 ) then
+         totalSubIceThickness = d2 + (d3-d2)*(yCellNew(iCell)-y2)/(y3-y2)
+      else
+         totalSubIceThickness = d3
+      endif
+      layerThicknessNew(1,:,iCell) = totalSubIceThickness/nVertLevelsMOD
+
+   enddo 
+
+   ! Set up salinity stratification
+   do iCell=1,nCellsNew
+      midDepth(nVertLevelsMod) =  layer_thickness_total_max - 0.5*layerThicknessNew(1,nVertLevelsMod,iCell)
+      do k=nVertLevelsMod-1,1,-1
+         midDepth(k) = midDepth(k+1) - 0.5*(layerThicknessNew(1,k+1,iCell)+layerThicknessNew(1,k,iCell))
+      enddo  
+
+      ! Set up salinity stratification
+      do k = 1, nVertLevelsMOD
+         salinityNew(1,k,iCell) = surfaceSalinity &
+            + (bottomSalinity - surfaceSalinity) * (midDepth(k)/layer_thickness_total_max)
+      enddo
+
+   enddo 
+
+elseif (initial_conditions.eq.'sub_ice_shelf_test2') then
+
+   ! points 1 and 2 are where angles on ice shelf are located.
+   ! point 3 is at the surface.
+   ! d variables are total water thickness below ice shelf.
+   y1=30.0e3
+   y2=60.0e3
+   y3=60.0e3+iceShelfEdgeWidth
+   d1=iceShelfCavityThickness
+   d2=iceShelfCavityThickness+500
+   d3=layer_thickness_total_max
+
+   bottomSalinity = 34.7
+   surfaceSalinity = 34.5
+   cavitySalinity = 34.3
+
+   temperatureNew(1,:,:) = 1.0
+   normalVelocityNew = 0.0
+   temperatureRestoreNew(:) = 1.0
+   salinityRestoreNew(:) = surfaceSalinity
+
+   ! set up sub ice shelf thicknesses
+   do iCell=1,nCellsNew
+      if (yCellNew(iCell) < y1 ) then
+         totalSubIceThickness = d1
+      elseif (yCellNew(iCell) < y2 ) then
+         totalSubIceThickness = d1 + (d2-d1)*(yCellNew(iCell)-y1)/(y2-y1)
+      elseif (yCellNew(iCell) < y3 ) then
+         totalSubIceThickness = d2 + (d3-d2)*(yCellNew(iCell)-y2)/(y3-y2)
+      else
+         totalSubIceThickness = d3
+      endif
+      layerThicknessNew(1,:,iCell) = totalSubIceThickness/nVertLevelsMOD
+   enddo 
+
+   ! Set up salinity stratification
+   do iCell=1,nCellsNew
+      midDepth(nVertLevelsMod) =  layer_thickness_total_max - 0.5*layerThicknessNew(1,nVertLevelsMod,iCell)
+      do k=nVertLevelsMod-1,1,-1
+         midDepth(k) = midDepth(k+1) - 0.5*(layerThicknessNew(1,k+1,iCell)+layerThicknessNew(1,k,iCell))
+      enddo  
+
+      ! Set up salinity stratification
+      if (yCellNew(iCell) < y1 ) then
+         salinityNew(1,:,iCell) = cavitySalinity 
+      elseif (yCellNew(iCell) < y2 ) then
+         do k = 1, nVertLevelsMOD
+            ! Salinity of stratified column in open ocean
+            refSalinity = surfaceSalinity &
+               + (bottomSalinity - surfaceSalinity) * (midDepth(k)/layer_thickness_total_max)
+            ! linearly interpolate horizontally between cavity and open ocean 
+            salinityNew(1,k,iCell) = cavitySalinity &
+               + (refSalinity - cavitySalinity) * (yCellNew(iCell) - y1)/(y2 - y1)
+         enddo
+      else
+         do k = 1, nVertLevelsMOD
+            salinityNew(1,k,iCell) = surfaceSalinity &
+               + (bottomSalinity - surfaceSalinity) * (midDepth(k)/layer_thickness_total_max)
+         enddo
+      endif
+
+   enddo 
+
+   ! set up wind stress
+   xWindStress = 0.0;
+   yWindStress = surfaceWindStressMax;
+   do iEdge=1,nEdgesNew
+      if (yEdgeNew(iEdge) < y3 ) then
+         surfaceWindStressNew(iEdge) = 0.0
+      else
+         surfaceWindStressNew(iEdge) = &
+               xWindStress*cos(angleEdgeNew(iEdge)) &
+             + yWindStress*sin(angleEdgeNew(iEdge))
+      endif
+   enddo
+
+elseif (initial_conditions.eq.'sub_ice_shelf_test3') then
+
+   ! points 1 and 2 are where angles on ice shelf are located.
+   ! point 3 is at the surface.
+   ! d variables are total water thickness below ice shelf.
+   y1=30.0e3
+   y2=60.0e3
+   y3=60.0e3+iceShelfEdgeWidth
+   d1=iceShelfCavityThickness
+   d2=iceShelfCavityThickness+500
+   d3=layer_thickness_total_max
+
+   bottomSalinity = 34.7
+   surfaceSalinity = 34.5
+   cavitySalinity = 34.3
+
+   temperatureNew(1,:,:) = 1.0
+   normalVelocityNew = 0.0
+   temperatureRestoreNew(:) = 1.0
+   salinityRestoreNew(:) = surfaceSalinity
+
+   ! set up sub ice shelf thicknesses
+   do iCell=1,nCellsNew
+      if (yCellNew(iCell) < y1 ) then
+         totalSubIceThickness = d1
+      elseif (yCellNew(iCell) < y2 ) then
+         totalSubIceThickness = d1 + (d2-d1)*(yCellNew(iCell)-y1)/(y2-y1)
+      elseif (yCellNew(iCell) < y3 ) then
+         totalSubIceThickness = d2 + (d3-d2)*(yCellNew(iCell)-y2)/(y3-y2)
+      else
+         totalSubIceThickness = d3
+      endif
+      ! subtract out the bottom land cells, divide by remaining number of cells.
+      layerThicknessNew(1,1:maxLevelCellNew(iCell),iCell) = (totalSubIceThickness - (layer_thickness_total_max - bottomDepthNew(iCell))) / maxLevelCellNew(iCell)
+      layerThicknessNew(1,maxLevelCellNew(iCell)+1:nVertLevelsMod,iCell) = layer_thickness_total_max/nVertLevelsMod
+   enddo 
+
+   ! Set up salinity stratification
+   do iCell=1,nCellsNew
+      kMax = maxLevelCellNew(iCell)
+      midDepth(kMax) =  bottomDepthNew(iCell) - 0.5*layerThicknessNew(1,kMax,iCell)
+      do k=kMax-1,1,-1
+         midDepth(k) = midDepth(k+1) - 0.5*(layerThicknessNew(1,k+1,iCell)+layerThicknessNew(1,k,iCell))
+      enddo  
+
+      ! Set up salinity stratification
+      if (yCellNew(iCell) < y1 ) then
+         salinityNew(1,:,iCell) = cavitySalinity 
+      elseif (yCellNew(iCell) < y2 ) then
+         do k = 1, kMax
+            ! Salinity of stratified column in open ocean
+            refSalinity = surfaceSalinity &
+               + (bottomSalinity - surfaceSalinity) * (midDepth(k)/layer_thickness_total_max)
+            ! linearly interpolate horizontally between cavity and open ocean 
+            salinityNew(1,k,iCell) = cavitySalinity &
+               + (refSalinity - cavitySalinity) * (yCellNew(iCell) - y1)/(y2 - y1)
+         enddo
+      else
+         do k = 1, kMax
+            salinityNew(1,k,iCell) = surfaceSalinity &
+               + (bottomSalinity - surfaceSalinity) * (midDepth(k)/layer_thickness_total_max)
+         enddo
+      endif
+
+   enddo 
+
+   ! set up wind stress
+   xWindStress = 0.0;
+   yWindStress = surfaceWindStressMax;
+   do iEdge=1,nEdgesNew
+      if (yEdgeNew(iEdge) < y3 ) then
+         surfaceWindStressNew(iEdge) = 0.0
+      else
+         surfaceWindStressNew(iEdge) = &
+               xWindStress*cos(angleEdgeNew(iEdge)) &
+             + yWindStress*sin(angleEdgeNew(iEdge))
+      endif
+   enddo
+
 
 elseif (initial_conditions.eq.'unitTestCVMixConvection') then
 
@@ -1666,6 +1879,7 @@ real :: latmin, latmax, lonmin, lonmax, ridgeDepth, maxdc
 real :: b, H0, phi, gamma, distance, rlonC, rlatC
 real :: y0_embayment, embayment_depth, embayment_slope, z
 logical :: flag, kmt_flag
+real :: y1,y2,y3, d1,d2,d3
 
 pi = 4.0*atan(1.0)
 dtr = pi / 180.0
@@ -1793,6 +2007,43 @@ elseif (bottom_topography.eq.'Ilicak2_overflow_sigma') then
 
     ! for sigma coordinates, set kmt to the max level.
     kmt = nVertLevelsMOD
+
+elseif (bottom_topography.eq.'sub_ice_shelf_test3') then
+
+   ! points 1 and 2 are where angles on ice shelf are located.
+   ! point 3 is at the surface.
+   ! d variables are total water thickness below ice shelf.
+   y1= 30.0e3
+   y2= 90.0e3
+   y3=150.0e3
+   d1=refBottomDepth(nVertLevelsMOD)
+   d2=refBottomDepth(nVertLevelsMOD) - 250.0
+   d3=refBottomDepth(nVertLevelsMOD)
+
+   ! set up sub ice shelf thicknesses
+   do iCell=1,nCells
+      if (yCell(iCell) < y1 .or. yCell(iCell) > y3) then
+         kmt(iCell) = nVertLevelsMOD
+         bottomDepth(iCell) = refBottomDepth(nVertLevelsMOD)
+      else
+         if (yCell(iCell) < y2 ) then
+            bottomDepth(iCell) = d1 + (d2-d1)*(yCell(iCell)-y1)/(y2-y1)
+         else
+            bottomDepth(iCell) = d2 + (d3-d2)*(yCell(iCell)-y2)/(y3-y2)
+         endif
+
+         do k=1,nVertLevelsMOD
+            if (bottomDepth(iCell).le.refBottomDepth(k)) then
+               kmt(iCell) = k
+               exit
+            endif
+         end do
+         ! reset bottomDepth to it's full cell value
+         bottomDepth(iCell) = refBottomDepth(kmt(iCell))
+      endif
+
+
+    enddo
 
 elseif (bottom_topography.eq.'DOME_3D_overflow') then
 
