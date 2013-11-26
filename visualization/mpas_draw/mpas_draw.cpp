@@ -322,7 +322,7 @@ void display ( ){/*{{{*/
 	polarView( projDistance, projTwist, projElevation, projAzimuth );
 
 	if(on_sphere && draw_sphere){
-		drawSphere(0.989, 40, 40);
+		drawSphere(0.98, 40, 40);
 	}
 
 	switch(drawing){
@@ -1272,35 +1272,62 @@ void rescale_cells_and_vertices(){/*{{{*/
 		xyz_center[i] = ( xyz_min[i] + xyz_max[i] ) / 2.0;
 		xyz_scale = std::max ( xyz_scale, ( xyz_max[i] - xyz_min[i] ) / 2.0 );
 	}
-/*
-	if(on_sphere){
-		xyz_scale = sphere_radius;
-		xyz_center[0] = 0.0;
-		xyz_center[1] = 0.0;
-		xyz_center[2] = 0.0;
 
-		cout << "Rescaling.... radius = " << xyz_scale << endl;
-	}*/
-	//
-	//  A sphere doesn't need this rescaling.
-	//  A box does!
-	//
-//	xyz_scale = sqrt ( 3.0 ) * xyz_scale;
-	//
-	//  Translate the data so it is centered.
-	//  Scale the data so it fits in the unit cube.
-	//
 	for ( cell = 0; cell < ncells; cell++ )
 	{
 		norm = xyz_scale;
+		norm = sqrt(pow(xcell[cell], 2) + pow(ycell[cell], 2) + pow(zcell[cell], 2));
 		xcell[cell] = (xcell[cell] - xyz_center[0]) / norm;
 		ycell[cell] = (ycell[cell] - xyz_center[1]) / norm;
 		zcell[cell] = (zcell[cell] - xyz_center[2]) / norm;
 	}
 
+	// Do Vertices
+	xyz_min[0] = r8vec_min ( nvertices, xvertex, missing_value);
+	xyz_max[0] = r8vec_max ( nvertices, xvertex, missing_value);
+	xyz_min[1] = r8vec_min ( nvertices, yvertex, missing_value);
+	xyz_max[1] = r8vec_max ( nvertices, yvertex, missing_value);
+	xyz_min[2] = r8vec_min ( nvertices, zvertex, missing_value);
+	xyz_max[2] = r8vec_max ( nvertices, zvertex, missing_value);
+
+	xyz_range[0] = xyz_max[0] - xyz_min[0];
+	xyz_range[1] = xyz_max[1] - xyz_min[1];
+	xyz_range[2] = xyz_max[2] - xyz_min[2];
+
+	if ( xyz_range[0] == 0.0 ){
+		cout << "\n";
+		cout << "rescale_cells_and_vertices(): - Fatal error!\n";
+		cout << "  The X data range is 0.\n";
+		exit ( 1 );
+	}
+
+	if ( xyz_range[1] == 0.0 ){
+		cout << "\n";
+		cout << "rescale_cells_and_vertices(): - Fatal error!\n";
+		cout << "  The Y data range is 0.\n";
+		exit ( 1 );
+	}
+
+	if(on_sphere){
+		if ( xyz_range[2] == 0.0 ){
+			cout << "\n";
+			cout << "rescale_cells_and_vertices(): - Fatal error!\n";
+			cout << "  The Z data range is 0.\n";
+			exit ( 1 );
+		}
+	}
+
+	xyz_scale = 0.0;
+	for (i = 0; i < 3; i++ )
+	{
+		xyz_center[i] = ( xyz_min[i] + xyz_max[i] ) / 2.0;
+		xyz_scale = std::max ( xyz_scale, ( xyz_max[i] - xyz_min[i] ) / 2.0 );
+	}
+
 	for ( vertex = 0; vertex < nvertices; vertex++ )
 	{
 		norm = xyz_scale;
+		norm = sqrt(pow(xvertex[vertex], 2) + pow(yvertex[vertex], 2) + pow(zvertex[vertex], 2));
 		xvertex[vertex] = (xvertex[vertex] - xyz_center[0]) / norm;
 		yvertex[vertex] = (yvertex[vertex] - xyz_center[1]) / norm;
 		zvertex[vertex] = (zvertex[vertex] - xyz_center[2]) / norm;
@@ -2337,7 +2364,7 @@ void drawSphere(double r, int lats, int longs) {/*{{{*/
 	double z_c;
 
 	z_c = -0.01;
-	z_c = 0.0;
+	//z_c = 0.0;
 	for(i = 0; i < lats; i++) {
 		double lat0 = M_PI * (-0.5 + (double) i  / lats);
 		double z0  = sin(lat0);
