@@ -1,0 +1,25 @@
+&basin
+  nVertLevelsMOD = 22
+  on_a_sphere = 'NO'
+  sphere_radius = 0.0
+  expand_from_unit_sphere = .false.
+  zLevel_thickness = 'equally_spaced'
+  bottom_topography = 'flat_bottom'
+  initial_conditions = 'sub_ice_shelf_test1'
+  eliminate_inland_seas=.false.
+  load_woce_IC = .false.
+  write_OpenDX_flag = .false.
+  check_mesh = .true.
+  cut_domain_from_sphere = .false.
+  solid_boundary_in_y = .true.
+  solid_boundary_in_x = .false.
+  top_layers_without_land = 3
+  layer_thickness_total_max = 1100.0 
+  f0 = -1.4e-4  
+  beta = 0.0
+  omega = 0.0
+  Lx = 50.0e3
+  surfaceWindStressMax = 0.0 
+  iceShelfCavityThickness = 10
+  iceShelfEdgeWidth = 15.0e3
+/
