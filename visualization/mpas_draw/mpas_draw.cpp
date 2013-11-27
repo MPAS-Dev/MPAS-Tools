@@ -1276,7 +1276,6 @@ void rescale_cells_and_vertices(){/*{{{*/
 	for ( cell = 0; cell < ncells; cell++ )
 	{
 		norm = xyz_scale;
-		norm = sqrt(pow(xcell[cell], 2) + pow(ycell[cell], 2) + pow(zcell[cell], 2));
 		xcell[cell] = (xcell[cell] - xyz_center[0]) / norm;
 		ycell[cell] = (ycell[cell] - xyz_center[1]) / norm;
 		zcell[cell] = (zcell[cell] - xyz_center[2]) / norm;
@@ -1327,7 +1326,6 @@ void rescale_cells_and_vertices(){/*{{{*/
 	for ( vertex = 0; vertex < nvertices; vertex++ )
 	{
 		norm = xyz_scale;
-		norm = sqrt(pow(xvertex[vertex], 2) + pow(yvertex[vertex], 2) + pow(zvertex[vertex], 2));
 		xvertex[vertex] = (xvertex[vertex] - xyz_center[0]) / norm;
 		yvertex[vertex] = (yvertex[vertex] - xyz_center[1]) / norm;
 		zvertex[vertex] = (zvertex[vertex] - xyz_center[2]) / norm;
