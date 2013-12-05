@@ -496,6 +496,11 @@ normalVelocityNew = 0
 surfaceWindStressNew = 0
 densityNew = 1025.0
 
+! initialize boundary layer fields to reasonable values
+! specific cases can overwrite as desired
+boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
+indexBoundaryLayerDepthNew(:) = 2.75
+
 if (initial_conditions.eq.'uniform_TS') then
 
    temperatureNew = uniform_T !10.0
@@ -1007,6 +1012,9 @@ elseif (initial_conditions.eq.'SOMA_TS') then
     endif
 
    enddo
+
+   boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
+   indexBoundaryLayerDepthNew(:) = 2.75
 
 elseif (initial_conditions.eq.'isopycnal_3layer') then
 
@@ -2142,7 +2150,10 @@ elseif (bottom_topography.eq.'SOMA_Circular_Basin') then
             if(kmt(iCell).eq.0) kmt(iCell)=nVertLevelsMod
         endif
 
+    bottomDepth(iCell) = refBottomDepth(kmt(iCell))
+
     enddo
+
 
 elseif (bottom_topography.eq.'flat_bottom') then
 
