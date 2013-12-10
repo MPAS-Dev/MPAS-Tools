@@ -83,7 +83,7 @@ real, allocatable, dimension(:) :: surfaceWindStressNew
 real, allocatable, dimension(:,:,:) :: normalVelocityNew, layerThicknessNew
 real, allocatable, dimension(:,:,:) :: densityNew, temperatureNew, salinityNew, tracer1New
 real, allocatable, dimension(:) :: temperatureRestoreNew, salinityRestoreNew
-real, allocatable, dimension(:) :: boundaryLayerDepthNew, indexBoundaryLayerDepthNew
+real, allocatable, dimension(:) :: boundaryLayerDepthNew
 
 ! mapping variables
 integer, allocatable, dimension(:) :: kmt, maxLevelCellNew
@@ -499,7 +499,6 @@ densityNew = 1025.0
 ! initialize boundary layer fields to reasonable values
 ! specific cases can overwrite as desired
 boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
-indexBoundaryLayerDepthNew(:) = 2.75
 
 if (initial_conditions.eq.'uniform_TS') then
 
@@ -891,7 +890,6 @@ elseif (initial_conditions.eq.'unitTestCVMixConvection') then
    temperatureRestoreNew(:) = surfaceTemperature - 10.0
    salinityRestoreNew(:) = salinityNew(1,1,:)
    boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
-   indexBoundaryLayerDepthNew(:) = 2.75
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
@@ -927,7 +925,6 @@ elseif (initial_conditions.eq.'unitTestCVMixShear') then
    temperatureRestoreNew(:) = surfaceTemperature + 10.0
    salinityRestoreNew(:) = salinityNew(1,1,:)
    boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
-   indexBoundaryLayerDepthNew(:) = 2.75
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
          layerThicknessNew(1,k,iCell) = hZLevel(k)
@@ -980,7 +977,8 @@ elseif (initial_conditions.eq.'SOMA_TS') then
     densityNew(1,k,iCell) = work
     factor = (rho_ref-work)/2.5e-1
     temperatureNew(1,k,iCell) = 15.0 + factor
-    salinityNew(1,k,iCell) = 0.0  ! salinity
+    factor = -r1/1250.0
+    salinityNew(1,k,iCell) = 34.0 + factor  ! salinity
   enddo
   enddo
 
@@ -1013,8 +1011,16 @@ elseif (initial_conditions.eq.'SOMA_TS') then
 
    enddo
 
+   ! set up some restoring in case we want diabatic forcing
+   ! T gradient is 0.5C per degree
+   do iCell=1,nCellsNew
+     rlat = latCellNew(iCell)
+     temperatureRestoreNew(iCell) = 15.0 - 0.5*(rlat/dtr - 35.0)
+     salinityRestoreNew(iCell) = salinityNew(1,1,iCell)
+   enddo
+
+   ! initialized boundary layer fields
    boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
-   indexBoundaryLayerDepthNew(:) = 2.75
 
 elseif (initial_conditions.eq.'isopycnal_3layer') then
 
@@ -1292,7 +1298,6 @@ write(6,*) iNoData, nCellsNew
 temperatureRestoreNew(:) = temperatureNew(1,1,:)
 salinityRestoreNew(:) = salinityNew(1,1,:)
 boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
-indexBoundaryLayerDepthNew(:) = 2.75
 
 !if(monthly_forcing) then
   !do iMonth=1,nMonths
@@ -1846,7 +1851,6 @@ call write_netcdf_fields( &
                     temperatureRestoreNew, &
                     salinityRestoreNew, &
                     boundaryLayerDepthNew, &
-                    indexBoundaryLayerDepthNew, &
                     refBottomDepth &
                    )
 
@@ -2143,14 +2147,13 @@ elseif (bottom_topography.eq.'SOMA_Circular_Basin') then
                     r = r + dz(k)
                     if(r.gt.zdata) then
                         kmt(iCell) = k
+                        bottomDepth(iCell) = refBottomDepth(k)
                         kmt_flag = .true.
                     endif
                 endif
             enddo
             if(kmt(iCell).eq.0) kmt(iCell)=nVertLevelsMod
         endif
-
-    bottomDepth(iCell) = refBottomDepth(kmt(iCell))
 
     enddo
 
@@ -2362,7 +2365,6 @@ allocate(tracer1New(1,nVertLevelsNew,nCellsNew))
 allocate(temperatureRestoreNew(nCellsNew))
 allocate(salinityRestoreNew(nCellsNew))
 allocate(boundaryLayerDepthNew(nCellsNew))
-allocate(indexBoundaryLayerDepthNew(nCellsNew))
 
 xCellNew=0; yCellNew=0; zCellNew=0; latCellNew=0; lonCellNew=0; meshDensityNew=1.0; meshSpacingNew=0.0
 xEdgeNew=0; yEdgeNew=0; zEdgeNew=0; latEdgeNew=0; lonEdgeNew=0
@@ -2375,7 +2377,6 @@ temperatureNew=0; salinityNew=0; tracer1New=0;
 temperatureRestoreNew = 0.0
 salinityRestoreNew = 0.0
 boundaryLayerDepthNew = 0.0
-indexBoundaryLayerDepthNew = 0.0
 
 do i=1,nCells
 jNew = cellMap(i)
