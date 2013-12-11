@@ -54,7 +54,7 @@ real(kind=4), allocatable, dimension(:,:) :: TAUX, TAUY
 real(kind=4), allocatable, dimension(:,:,:) :: SST_MONTHLY, SSS_MONTHLY
 real(kind=4), allocatable, dimension(:,:,:) :: TAUX_MONTHLY, TAUY_MONTHLY
 
-real, dimension(40) :: dz
+real, dimension(100) :: dz
 integer :: nMonths = 1
 
    real (kind=8) :: ymid, ytmp, ymax, xmid, xloc, yloc, pert, ymin, distance, r, c1(3), c2(3)
@@ -83,7 +83,7 @@ real, allocatable, dimension(:) :: surfaceWindStressNew
 real, allocatable, dimension(:,:,:) :: normalVelocityNew, layerThicknessNew
 real, allocatable, dimension(:,:,:) :: densityNew, temperatureNew, salinityNew, tracer1New
 real, allocatable, dimension(:) :: temperatureRestoreNew, salinityRestoreNew
-real, allocatable, dimension(:) :: boundaryLayerDepthNew, indexBoundaryLayerDepthNew
+real, allocatable, dimension(:) :: boundaryLayerDepthNew
 
 ! mapping variables
 integer, allocatable, dimension(:) :: kmt, maxLevelCellNew
@@ -496,6 +496,10 @@ normalVelocityNew = 0
 surfaceWindStressNew = 0
 densityNew = 1025.0
 
+! initialize boundary layer fields to reasonable values
+! specific cases can overwrite as desired
+boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
+
 if (initial_conditions.eq.'uniform_TS') then
 
    temperatureNew = uniform_T !10.0
@@ -886,7 +890,6 @@ elseif (initial_conditions.eq.'unitTestCVMixConvection') then
    temperatureRestoreNew(:) = surfaceTemperature - 10.0
    salinityRestoreNew(:) = salinityNew(1,1,:)
    boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
-   indexBoundaryLayerDepthNew(:) = 2.75
 
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
@@ -922,7 +925,6 @@ elseif (initial_conditions.eq.'unitTestCVMixShear') then
    temperatureRestoreNew(:) = surfaceTemperature + 10.0
    salinityRestoreNew(:) = salinityNew(1,1,:)
    boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
-   indexBoundaryLayerDepthNew(:) = 2.75
    do iCell=1,nCellsNew
       do k=1,nVertLevelsMod
          layerThicknessNew(1,k,iCell) = hZLevel(k)
@@ -975,7 +977,8 @@ elseif (initial_conditions.eq.'SOMA_TS') then
     densityNew(1,k,iCell) = work
     factor = (rho_ref-work)/2.5e-1
     temperatureNew(1,k,iCell) = 15.0 + factor
-    salinityNew(1,k,iCell) = 0.0  ! salinity
+    factor = -r1/1250.0
+    salinityNew(1,k,iCell) = 34.0 + factor  ! salinity
   enddo
   enddo
 
@@ -1007,6 +1010,17 @@ elseif (initial_conditions.eq.'SOMA_TS') then
     endif
 
    enddo
+
+   ! set up some restoring in case we want diabatic forcing
+   ! T gradient is 0.5C per degree
+   do iCell=1,nCellsNew
+     rlat = latCellNew(iCell)
+     temperatureRestoreNew(iCell) = 15.0 - 0.5*(rlat/dtr - 35.0)
+     salinityRestoreNew(iCell) = salinityNew(1,1,iCell)
+   enddo
+
+   ! initialized boundary layer fields
+   boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
 
 elseif (initial_conditions.eq.'isopycnal_3layer') then
 
@@ -1284,7 +1298,6 @@ write(6,*) iNoData, nCellsNew
 temperatureRestoreNew(:) = temperatureNew(1,1,:)
 salinityRestoreNew(:) = salinityNew(1,1,:)
 boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
-indexBoundaryLayerDepthNew(:) = 2.75
 
 !if(monthly_forcing) then
   !do iMonth=1,nMonths
@@ -1838,7 +1851,6 @@ call write_netcdf_fields( &
                     temperatureRestoreNew, &
                     salinityRestoreNew, &
                     boundaryLayerDepthNew, &
-                    indexBoundaryLayerDepthNew, &
                     refBottomDepth &
                    )
 
@@ -2135,6 +2147,7 @@ elseif (bottom_topography.eq.'SOMA_Circular_Basin') then
                     r = r + dz(k)
                     if(r.gt.zdata) then
                         kmt(iCell) = k
+                        bottomDepth(iCell) = refBottomDepth(k)
                         kmt_flag = .true.
                     endif
                 endif
@@ -2143,6 +2156,7 @@ elseif (bottom_topography.eq.'SOMA_Circular_Basin') then
         endif
 
     enddo
+
 
 elseif (bottom_topography.eq.'flat_bottom') then
 
@@ -2351,7 +2365,6 @@ allocate(tracer1New(1,nVertLevelsNew,nCellsNew))
 allocate(temperatureRestoreNew(nCellsNew))
 allocate(salinityRestoreNew(nCellsNew))
 allocate(boundaryLayerDepthNew(nCellsNew))
-allocate(indexBoundaryLayerDepthNew(nCellsNew))
 
 xCellNew=0; yCellNew=0; zCellNew=0; latCellNew=0; lonCellNew=0; meshDensityNew=1.0; meshSpacingNew=0.0
 xEdgeNew=0; yEdgeNew=0; zEdgeNew=0; latEdgeNew=0; lonEdgeNew=0
@@ -2364,7 +2377,6 @@ temperatureNew=0; salinityNew=0; tracer1New=0;
 temperatureRestoreNew = 0.0
 salinityRestoreNew = 0.0
 boundaryLayerDepthNew = 0.0
-indexBoundaryLayerDepthNew = 0.0
 
 do i=1,nCells
 jNew = cellMap(i)
@@ -2748,6 +2760,111 @@ elseif(zLevel_thickness.eq.'POP_40_zLevel') then
   dz = dz / 100.0
 
   hZLevel = dz
+
+elseif(zLevel_thickness.eq.'scaled_100Level') then
+
+  dz(  1) =  0.75707E-03
+  dz(  2) =  0.76186E-03
+  dz(  3) =  0.76675E-03
+  dz(  4) =  0.77174E-03
+  dz(  5) =  0.77685E-03
+  dz(  6) =  0.78207E-03
+  dz(  7) =  0.78740E-03
+  dz(  8) =  0.79286E-03
+  dz(  9) =  0.79844E-03
+  dz( 10) =  0.80416E-03
+  dz( 11) =  0.81001E-03
+  dz( 12) =  0.81600E-03
+  dz( 13) =  0.82215E-03
+  dz( 14) =  0.82844E-03
+  dz( 15) =  0.83490E-03
+  dz( 16) =  0.84152E-03
+  dz( 17) =  0.84832E-03
+  dz( 18) =  0.85529E-03
+  dz( 19) =  0.86246E-03
+  dz( 20) =  0.86983E-03
+  dz( 21) =  0.87740E-03
+  dz( 22) =  0.88519E-03
+  dz( 23) =  0.89320E-03
+  dz( 24) =  0.90145E-03
+  dz( 25) =  0.90996E-03
+  dz( 26) =  0.91872E-03
+  dz( 27) =  0.92776E-03
+  dz( 28) =  0.93709E-03
+  dz( 29) =  0.94672E-03
+  dz( 30) =  0.95667E-03
+  dz( 31) =  0.96696E-03
+  dz( 32) =  0.97761E-03
+  dz( 33) =  0.98864E-03
+  dz( 34) =  0.10001E-02
+  dz( 35) =  0.10119E-02
+  dz( 36) =  0.10242E-02
+  dz( 37) =  0.10370E-02
+  dz( 38) =  0.10503E-02
+  dz( 39) =  0.10642E-02
+  dz( 40) =  0.10786E-02
+  dz( 41) =  0.10936E-02
+  dz( 42) =  0.11093E-02
+  dz( 43) =  0.11258E-02
+  dz( 44) =  0.11430E-02
+  dz( 45) =  0.11610E-02
+  dz( 46) =  0.11799E-02
+  dz( 47) =  0.11999E-02
+  dz( 48) =  0.12208E-02
+  dz( 49) =  0.12430E-02
+  dz( 50) =  0.12663E-02
+  dz( 51) =  0.12911E-02
+  dz( 52) =  0.13174E-02
+  dz( 53) =  0.13454E-02
+  dz( 54) =  0.13752E-02
+  dz( 55) =  0.14071E-02
+  dz( 56) =  0.14413E-02
+  dz( 57) =  0.14781E-02
+  dz( 58) =  0.15178E-02
+  dz( 59) =  0.15609E-02
+  dz( 60) =  0.16077E-02
+  dz( 61) =  0.16590E-02
+  dz( 62) =  0.17154E-02
+  dz( 63) =  0.17778E-02
+  dz( 64) =  0.18472E-02
+  dz( 65) =  0.19252E-02
+  dz( 66) =  0.20136E-02
+  dz( 67) =  0.21149E-02
+  dz( 68) =  0.22323E-02
+  dz( 69) =  0.23706E-02
+  dz( 70) =  0.25367E-02
+  dz( 71) =  0.27410E-02
+  dz( 72) =  0.30005E-02
+  dz( 73) =  0.33448E-02
+  dz( 74) =  0.38321E-02
+  dz( 75) =  0.45991E-02
+  dz( 76) =  0.60952E-02
+  dz( 77) =  0.14875E-01
+  dz( 78) =  0.23276E-01
+  dz( 79) =  0.24181E-01
+  dz( 80) =  0.24731E-01
+  dz( 81) =  0.25319E-01
+  dz( 82) =  0.25952E-01
+  dz( 83) =  0.26635E-01
+  dz( 84) =  0.27375E-01
+  dz( 85) =  0.28180E-01
+  dz( 86) =  0.29061E-01
+  dz( 87) =  0.30030E-01
+  dz( 88) =  0.31103E-01
+  dz( 89) =  0.32300E-01
+  dz( 90) =  0.33647E-01
+  dz( 91) =  0.35178E-01
+  dz( 92) =  0.36940E-01
+  dz( 93) =  0.38998E-01
+  dz( 94) =  0.41445E-01
+  dz( 95) =  0.44422E-01
+  dz( 96) =  0.48154E-01
+  dz( 97) =  0.53032E-01
+  dz( 98) =  0.59808E-01
+  dz( 99) =  0.70207E-01
+  dz(100) =  0.89718E-01
+
+  hZLevel = dz * layer_thickness_total_max
 
 elseif(zLevel_thickness.eq.'isopycnal_3layer') then
 
