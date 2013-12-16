@@ -976,7 +976,7 @@ elseif (initial_conditions.eq.'SOMA_TS') then
     work = rho_ref - (1.0-0.05)*rho_delta*tanh(r1/300) - 0.05*rho_delta*r1/2500
     densityNew(1,k,iCell) = work
     factor = (rho_ref-work)/2.5e-1
-    temperatureNew(1,k,iCell) = 15.0 + factor
+    temperatureNew(1,k,iCell) = 20.0 + factor
     factor = -r1/1250.0
     salinityNew(1,k,iCell) = 34.0 + factor  ! salinity
   enddo
