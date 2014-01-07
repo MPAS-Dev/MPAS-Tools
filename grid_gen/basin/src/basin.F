@@ -83,6 +83,7 @@ real, allocatable, dimension(:,:) :: kiteAreasOnVertexNew, weightsOnEdgeNew, nor
 
 real, allocatable, dimension(:) :: fCellNew, fEdgeNew, fVertexNew, bottomDepthNew
 real, allocatable, dimension(:) :: surfaceWindStressNew
+real, allocatable, dimension(:) :: surfaceWindStressNewZonal, surfaceWindStressNewMeridional
 real, allocatable, dimension(:,:,:) :: normalVelocityNew, layerThicknessNew
 real, allocatable, dimension(:,:,:) :: densityNew, temperatureNew, salinityNew, tracer1New
 real, allocatable, dimension(:) :: temperatureRestoreNew, salinityRestoreNew
@@ -267,7 +268,7 @@ if (load_woce_IC .or. load_phc_IC) then
 
    write(6,*) ' getting woce windStress '
    call read_U_init(nu_lon, nu_lat, nu_depth, fileNameU)
-   write(6,*) ' TS INIT ', nu_lon, nu_lat, nu_depth
+   write(6,*) ' WINDSTRESS INIT ', nu_lon, nu_lat, nu_depth
    allocate(u_lon(nu_lon), u_lat(nu_lat), depth_u(nu_depth))
    allocate(TAUX(nu_lon,nu_lat), TAUY(nu_lon,nu_lat))
    call read_U_fields(u_lon, u_lat, depth_u, TAUX, TAUY)
@@ -1168,18 +1169,21 @@ do iEdge=1,nEdgesNew
   ix = mod(ix,nu_lon)+1
   iy = nu_lat
   do jcount=1,nu_lat
-   if(t_lat(jcount).gt.rlat) then
+   if(u_lat(jcount).gt.rlat) then
     iy = jcount
     exit
    endif
   enddo
-  ulon = TAUX(ix,iy)
-  ulat = TAUY(ix,iy)
-  !write(6,*) rlon, t_lon(ix), rlat, t_lat(iy)
+  ulat = TAUX(ix,iy)
+  ulon = TAUY(ix,iy)
+  !write(6,*) 'getting wind stress for ', lonEdgeNew(iEdge)/dtr, latEdgeNew(iEdge)/dtr
+  !write(6,*) rlon, u_lon(ix), rlat, u_lat(iy)
 
   call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
   if(boundaryEdgeNew(1,iEdge).eq.1) then
     surfaceWindStressNew(iEdge) = 0.0
+    surfaceWindStressNewZonal(iEdge) = 0.0
+    surfaceWindStressNewMeridional(iEdge) = 0.0
   else
     iCell1 = cellsOnEdgeNew(1,iEdge)
     iCell2 = cellsOnEdgeNew(2,iEdge)
@@ -1188,6 +1192,8 @@ do iEdge=1,nEdgesNew
     q = q - p
     call unit_vector_in_3space(q)
     surfaceWindStressNew(iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
+    surfaceWindStressNewZonal(iEdge) = cos(angleEdgeNew(iEdge)) * surfaceWindStressNew(iEdge)
+    surfaceWindStressNewMeridional(iEdge) = sin(angleEdgeNew(iEdge)) * surfaceWindStressNew(iEdge)
   endif
 
 enddo
@@ -1313,6 +1319,8 @@ do iEdge=1,nEdgesNew
   call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
   if(boundaryEdgeNew(1,iEdge).eq.1) then
     surfaceWindStressNew(iEdge) = 0.0
+    surfaceWindStressNewZonal(iEdge) = 0.0
+    surfaceWindStressNewMeridional(iEdge) = 0.0
   else
     iCell1 = cellsOnEdgeNew(1,iEdge)
     iCell2 = cellsOnEdgeNew(2,iEdge)
@@ -1321,6 +1329,8 @@ do iEdge=1,nEdgesNew
     q = q - p
     call unit_vector_in_3space(q)
     surfaceWindStressNew(iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
+    surfaceWindStressNewZonal(iEdge) = cos(angleEdgeNew(iEdge)) * surfaceWindStressNew(iEdge)
+    surfaceWindStressNewMeridional(iEdge) = sin(angleEdgeNew(iEdge)) * surfaceWindStressNew(iEdge)
   endif
 
 ! if(monthly_forcing) then
@@ -1997,6 +2007,8 @@ call write_netcdf_fields( &
                     boundaryEdgeNew, &
                     boundaryVertexNew, &
                     surfaceWindStressNew, &
+                    surfaceWindStressNewZonal, &
+                    surfaceWindStressNewMeridional, &
                     normalVelocityNew, &
                     layerThicknessNew, & 
                     densityNew, &
@@ -2510,6 +2522,8 @@ allocate(fEdgeNew(nEdgesNew))
 allocate(fVertexNew(nVerticesNew))
 allocate(bottomDepthNew(nCellsNew))
 allocate(surfaceWindStressNew(nEdgesNew))
+allocate(surfaceWindStressNewZonal(nEdgesNew))
+allocate(surfaceWindStressNewMeridional(nEdgesNew))
 allocate(normalVelocityNew(1,nVertLevelsNew,nEdgesNew))
 allocate(layerThicknessNew(1,nVertLevelsNew,nCellsNew))
 allocate(densityNew(1,nVertLevelsNew,nCellsNew))
@@ -2525,7 +2539,7 @@ xCellNew=0; yCellNew=0; zCellNew=0; latCellNew=0; lonCellNew=0; meshDensityNew=1
 xEdgeNew=0; yEdgeNew=0; zEdgeNew=0; latEdgeNew=0; lonEdgeNew=0
 xVertexNew=0; yVertexNew=0; zVertexNew=0; latVertexNew=0; lonVertexNew=0
 
-fCellNew=0; fEdgeNew=0; fVertexNew=0; bottomDepthNew=0; surfaceWindStressNew = 0
+fCellNew=0; fEdgeNew=0; fVertexNew=0; bottomDepthNew=0; surfaceWindStressNew = 0; surfaceWindStressNewZonal = 0.0; surfaceWindStressNewMeridional = 0.0;
 normalVelocityNew=0; layerThicknessNew=0; densityNew=0
 temperatureNew=0; salinityNew=0; tracer1New=0;
 

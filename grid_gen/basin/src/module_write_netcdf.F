@@ -55,6 +55,8 @@ module write_netcdf
    integer :: wrVarIDboundaryEdge
    integer :: wrVarIDboundaryVertex
    integer :: wrVarIDsurfaceWindStress
+   integer :: wrVarIDsurfaceWindStressZonal
+   integer :: wrVarIDsurfaceWindStressMeridional
    integer :: wrVarIDlayerThickness
    integer :: wrVarIDdensity
    integer :: wrVarIDtemperature
@@ -244,6 +246,12 @@ module write_netcdf
       dimlist( 1) = wrDimIDnEdges
       nferr = nf_def_var(wr_ncid, 'surfaceWindStress', NF_DOUBLE,  1, dimlist, wrVarIDsurfaceWindStress)
 
+      dimlist( 1) = wrDimIDnEdges
+      nferr = nf_def_var(wr_ncid, 'surfaceWindStressZonal', NF_DOUBLE,  1, dimlist, wrVarIDsurfaceWindStressZonal)
+
+      dimlist( 1) = wrDimIDnEdges
+      nferr = nf_def_var(wr_ncid, 'surfaceWindStressMeridional', NF_DOUBLE,  1, dimlist, wrVarIDsurfaceWindStressMeridional)
+
       dimlist( 1) = wrDimIDnVertLevels
       dimlist( 2) = wrDimIDnCells
       dimlist( 3) = wrDimIDTime
@@ -322,6 +330,8 @@ module write_netcdf
                                   boundaryEdge, &
                                   boundaryVertex, &
                                   surfaceWindStress, &
+                                  surfaceWindStressZonal, &
+                                  surfaceWindStressMeridional, &
                                   normalVelocity, &
                                   layerThickness, &
                                   density, &
@@ -383,6 +393,8 @@ module write_netcdf
       integer, dimension(:,:), intent(in) :: boundaryEdge
       integer, dimension(:,:), intent(in) :: boundaryVertex
       real (kind=8), dimension(:), intent(in) :: surfaceWindStress
+      real (kind=8), dimension(:), intent(in) :: surfaceWindStressZonal
+      real (kind=8), dimension(:), intent(in) :: surfaceWindStressMeridional
       real (kind=8), dimension(:,:,:), intent(in) :: normalVelocity
       real (kind=8), dimension(:,:,:), intent(in) :: layerThickness
       real (kind=8), dimension(:,:,:), intent(in) :: density
@@ -602,6 +614,14 @@ module write_netcdf
       start1(1) = 1
       count1( 1) = wrLocalnEdges
       nferr = nf_put_vara_double(wr_ncid, wrVarIDsurfaceWindStress, start1, count1, surfaceWindStress)
+
+      start1(1) = 1
+      count1( 1) = wrLocalnEdges
+      nferr = nf_put_vara_double(wr_ncid, wrVarIDsurfaceWindStressZonal, start1, count1, surfaceWindStressZonal)
+
+      start1(1) = 1
+      count1( 1) = wrLocalnEdges
+      nferr = nf_put_vara_double(wr_ncid, wrVarIDsurfaceWindStressMeridional, start1, count1, surfaceWindStressMeridional)
 
       start1(1) = 1
       count1( 1) = wrLocalnCells
