@@ -3,6 +3,7 @@ program map_to_basin
 use read_netcdf
 use read_topo
 use read_TS
+use read_U
 use read_MONTHLY
 use write_netcdf
 use utilities
@@ -45,8 +46,10 @@ real, allocatable, dimension(:) :: fCell, fEdge, fVertex, bottomDepth, work1, su
 real, allocatable, dimension(:,:,:) :: normalVelocity, tangentialVelocity, layerThickness
 real, allocatable, dimension(:,:,:) :: density
 
-integer nlon, nlat, ndepth
+integer nt_lon, nt_lat, nt_depth
+integer nu_lon, nu_lat, nu_depth
 real(kind=4), allocatable, dimension(:) :: t_lon, t_lat, depth_t
+real(kind=4), allocatable, dimension(:) :: u_lon, u_lat, depth_u
 real(kind=4), allocatable, dimension(:,:) :: mTEMP, mSALT
 real(kind=4), allocatable, dimension(:,:,:) :: TEMP, SALT
 real(kind=4), allocatable, dimension(:,:) :: TAUX, TAUY
@@ -54,7 +57,7 @@ real(kind=4), allocatable, dimension(:,:) :: TAUX, TAUY
 real(kind=4), allocatable, dimension(:,:,:) :: SST_MONTHLY, SSS_MONTHLY
 real(kind=4), allocatable, dimension(:,:,:) :: TAUX_MONTHLY, TAUY_MONTHLY
 
-real, dimension(100) :: dz
+real, dimension(:), allocatable :: dz
 integer :: nMonths = 1
 
    real (kind=8) :: ymid, ytmp, ymax, xmid, xloc, yloc, pert, ymin, distance, r, c1(3), c2(3)
@@ -80,6 +83,7 @@ real, allocatable, dimension(:,:) :: kiteAreasOnVertexNew, weightsOnEdgeNew, nor
 
 real, allocatable, dimension(:) :: fCellNew, fEdgeNew, fVertexNew, bottomDepthNew
 real, allocatable, dimension(:) :: surfaceWindStressNew
+real, allocatable, dimension(:) :: surfaceWindStressNewZonal, surfaceWindStressNewMeridional
 real, allocatable, dimension(:,:,:) :: normalVelocityNew, layerThicknessNew
 real, allocatable, dimension(:,:,:) :: densityNew, temperatureNew, salinityNew, tracer1New
 real, allocatable, dimension(:) :: temperatureRestoreNew, salinityRestoreNew
@@ -109,9 +113,9 @@ character (len=32) :: on_a_sphere, zLevel_thickness,bottom_topography, initial_c
 logical :: expand_from_unit_sphere, eliminate_inland_seas, load_woce_IC, &
    write_OpenDX_flag, check_mesh, &
    cut_domain_from_sphere, solid_boundary_in_y, solid_boundary_in_x, &
-   amplify_acc_wind
+   amplify_acc_wind, load_phc_IC
 
-integer :: nVertLevelsMOD, top_layers_without_land 
+integer :: nVertLevelsMOD, top_layers_without_land
 real (kind=8) :: sphere_radius, layer_thickness_total_max, f0, beta, omega, Lx, &
   uniform_T, uniform_S, uniform_tracer1, &
   amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat, surfaceWindStressMax, &
@@ -121,7 +125,7 @@ real (kind=8) :: sphere_radius, layer_thickness_total_max, f0, beta, omega, Lx, 
 namelist /basin/ nVertLevelsMOD, on_a_sphere, sphere_radius, &
    expand_from_unit_sphere, &
    zLevel_thickness, bottom_topography, initial_conditions, &
-   eliminate_inland_seas, load_woce_IC, write_OpenDX_flag, check_mesh, &
+   eliminate_inland_seas, load_woce_IC, load_phc_IC, write_OpenDX_flag, check_mesh, &
    cut_domain_from_sphere, solid_boundary_in_y, solid_boundary_in_x, &
    top_layers_without_land, layer_thickness_total_max, f0, beta, omega, Lx, &
    uniform_T, uniform_S, uniform_tracer1, surfaceWindStressMax, &
@@ -143,8 +147,8 @@ zLevel_thickness = 'POP_40_zLevel'
 bottom_topography = 'realistic_ETOPO'
 
 ! initial temperature and salinity options: 
-! 'realistic_WOCE', 'uniform_TS', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma', 'DOME_3D_overflow', 
-! 'internal_wave_Ilicak3', 'baroclinic_channel_Ilicak4', 'sub_ice_shelf_test1'
+! 'realistic_WOCE', 'realistic_PHC', 'uniform_TS', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma', 'DOME_3D_overflow', 
+! 'internal_wave_Ilicak3', 'baroclinic_channel_Ilicak4'
 initial_conditions = 'realistic_WOCE'
 uniform_T = 10.0
 uniform_S = 34.0
@@ -152,6 +156,7 @@ uniform_tracer1 = 1.0
 
 eliminate_inland_seas=.true.
 load_woce_IC = .true.
+load_phc_IC = .false.
 write_OpenDX_flag = .false.
 check_mesh = .true.
 cut_domain_from_sphere = .false.
@@ -186,13 +191,24 @@ iceShelfEdgeWidth = 15.0e3
    read(20,basin)
    close(20)
 
+if(load_woce_IC .and. load_phc_IC) then
+    write(0,*) 'Error. PHC and WOCE cannot both be loaded.'
+    write(0,*) 'Please edit namelist.basin and update load_woce_IC or load_phc_IC.'
+    stop
+end if
+
 allocate (hZLevel(nVertLevelsMOD), refBottomDepth(nVertLevelsMOD))
 
 
 nMonths = 1
 
-fileNameT = 'TS/annual/woce_t_ann.3600x2431x42interp.r4.nc'
-fileNameS = 'TS/annual/woce_s_ann.3600x2431x42interp.r4.nc'
+if (load_woce_IC) then
+   fileNameT = 'TS/annual/woce_t_ann.3600x2431x42interp.r4.nc'
+   fileNameS = 'TS/annual/woce_s_ann.3600x2431x42interp.r4.nc'
+else if (load_phc_IC) then
+   fileNameT = 'PHC/PT.01.filled.60levels.nc'
+   fileNameS = 'PHC/Salt.01.filled.60levels.nc'
+end if
 fileNameU = 'TS/annual/ws.old_ncep_1958-2000avg.interp3600x2431.nc'
 
 ! get to work
@@ -240,21 +256,29 @@ if (check_mesh) then
    call error_checking
 endif
 
-if (load_woce_IC) then
+if (load_woce_IC .or. load_phc_IC) then
    write(6,*) ' getting woce t and s '
 
-   call read_TS_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-   write(6,*) ' TS INIT ', nlon, nlat, ndepth
-   allocate(t_lon(nlon), t_lat(nlat), depth_t(ndepth), TEMP(nlon,nlat,ndepth), SALT(nlon,nlat,ndepth))
-   allocate(TAUX(nlon,nlat), TAUY(nlon,nlat))
-   allocate(mTEMP(nlat,ndepth), mSALT(nlat,ndepth))
-   call read_TS_fields(t_lon, t_lat, depth_t, TEMP, SALT, TAUX, TAUY)
+   call read_TS_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS)
+   write(6,*) ' TS INIT ', nt_lon, nt_lat, nt_depth
+   allocate(t_lon(nt_lon), t_lat(nt_lat), depth_t(nt_depth), TEMP(nt_lon,nt_lat,nt_depth), SALT(nt_lon,nt_lat,nt_depth))
+   allocate(mTEMP(nt_lat,nt_depth), mSALT(nt_lat,nt_depth))
+   call read_TS_fields(t_lon, t_lat, depth_t, TEMP, SALT)
    call read_TS_finalize()
 
-   do k=1,ndepth
+   write(6,*) ' getting woce windStress '
+   call read_U_init(nu_lon, nu_lat, nu_depth, fileNameU)
+   write(6,*) ' WINDSTRESS INIT ', nu_lon, nu_lat, nu_depth
+   allocate(u_lon(nu_lon), u_lat(nu_lat), depth_u(nu_depth))
+   allocate(TAUX(nu_lon,nu_lat), TAUY(nu_lon,nu_lat))
+   call read_U_fields(u_lon, u_lat, depth_u, TAUX, TAUY)
+   call read_U_finalize()
+
+
+   do k=1,nt_depth
      ndata = 0; temp_t=0; temp_s=0
-     do j=1,nlat
-     do i=1,nlon
+     do j=1,nt_lat
+     do i=1,nt_lon
        if(TEMP(i,j,k).gt.-10.0) then
          ndata = ndata + 1
          temp_t = temp_t + TEMP(i,j,k)
@@ -269,15 +293,15 @@ if (load_woce_IC) then
 
 endif
 
-! allocate(SST_MONTHLY(nlon,nlat,nMonths), SSS_MONTHLY(nlon,nlat,nMonths))
-! allocate(TAUX_MONTHLY(nlon,nlat,nMonths), TAUY_MONTHLY(nlon,nlat,nMonths))
+! allocate(SST_MONTHLY(nt_lon,nt_lat,nMonths), SSS_MONTHLY(nt_lon,nt_lat,nMonths))
+! allocate(TAUX_MONTHLY(nt_lon,nt_lat,nMonths), TAUY_MONTHLY(nt_lon,nt_lat,nMonths))
 ! SST_MONTHLY=0; SSS_MONTHLY=0; TAUX_MONTHLY=0; TAUY_MONTHLY=0
 ! iMonth=1
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.01.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly01.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.01.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -285,8 +309,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.02.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly02.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.02.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -294,8 +318,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.03.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly03.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.03.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -303,8 +327,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.04.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly04.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.04.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -312,8 +336,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.05.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly05.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.05.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -321,8 +345,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.06.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly06.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.06.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -330,8 +354,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.07.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly07.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.07.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -339,8 +363,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.08.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly08.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.08.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -348,8 +372,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.09.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly09.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.09.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -357,8 +381,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.10.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly10.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.10.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -366,8 +390,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.11.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly11.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.11.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 ! 
@@ -375,8 +399,8 @@ endif
 ! fileNameT='TS/SST.shf.normal_year+Hurrell.monthly.12.interp3600x2431.nc'
 ! fileNameS='TS/SSS.sfwf.CORE_SSS+precip.monthly12.interp3600x2431.nc'
 ! fileNameU='TS/TAUIJ.ws.old_ncep_1958-2000avg.mon.12.interp3600x2431.nc'
-! call read_MONTHLY_init(nlon, nlat, ndepth,fileNameT, fileNameS, fileNameU)
-! write(6,*) nlon,nlat,ndepth
+! call read_MONTHLY_init(nt_lon, nt_lat, nt_depth,fileNameT, fileNameS, fileNameU)
+! write(6,*) nt_lon,nt_lat,nt_depth
 ! call read_MONTHLY_fields(SST_MONTHLY(:,:,iMonth), SSS_MONTHLY(:,:,iMonth), TAUX_MONTHLY(:,:,iMonth), TAUY_MONTHLY(:,:,iMonth))
 ! call read_MONTHLY_finalize()
 
@@ -1130,7 +1154,7 @@ elseif (initial_conditions.eq.'isopycnal_3layer') then
    endif
    write(6,*) ' surfaceWindStressNew ', minval(surfaceWindStressNew), maxval(surfaceWindStressNew)
 
-elseif (initial_conditions.eq.'realistic_WOCE') then
+elseif (initial_conditions.eq.'realistic_PHC') then
 
 
 surfaceWindStressNew = 0.0
@@ -1141,10 +1165,148 @@ do iEdge=1,nEdgesNew
   zin = zEdgeNew(iEdge)
   rlon = lonEdgeNew(iEdge)/dtr
   rlat = latEdgeNew(iEdge)/dtr
-  ix = nint(rlon/0.1 - 0.05) + nlon + 1
-  ix = mod(ix,nlon)+1
-  iy = nlat
-  do jcount=1,nlat
+  ix = nint(rlon/0.1 - 0.05) + nu_lon + 1
+  ix = mod(ix,nu_lon)+1
+  iy = nu_lat
+  do jcount=1,nu_lat
+   if(u_lat(jcount).gt.rlat) then
+    iy = jcount
+    exit
+   endif
+  enddo
+  ulat = TAUX(ix,iy)
+  ulon = TAUY(ix,iy)
+  !write(6,*) 'getting wind stress for ', lonEdgeNew(iEdge)/dtr, latEdgeNew(iEdge)/dtr
+  !write(6,*) rlon, u_lon(ix), rlat, u_lat(iy)
+
+  call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
+  if(boundaryEdgeNew(1,iEdge).eq.1) then
+    surfaceWindStressNew(iEdge) = 0.0
+    surfaceWindStressNewZonal(iEdge) = 0.0
+    surfaceWindStressNewMeridional(iEdge) = 0.0
+  else
+    iCell1 = cellsOnEdgeNew(1,iEdge)
+    iCell2 = cellsOnEdgeNew(2,iEdge)
+    p(1) = xCellNew(iCell1); p(2) = yCellNew(iCell1); p(3) = zCellNew(iCell1)
+    q(1) = xCellNew(iCell2); q(2) = yCellNew(iCell2); q(3) = zCellNew(iCell2)
+    q = q - p
+    call unit_vector_in_3space(q)
+    surfaceWindStressNew(iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
+    surfaceWindStressNewZonal(iEdge) = cos(angleEdgeNew(iEdge)) * surfaceWindStressNew(iEdge)
+    surfaceWindStressNewMeridional(iEdge) = sin(angleEdgeNew(iEdge)) * surfaceWindStressNew(iEdge)
+  endif
+
+enddo
+
+
+! for acc runs, increase wind strength for Southern Ocean
+if (amplify_acc_wind) then
+  print *, 'amplify_acc_wind, amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat'
+  print *, amplify_acc_wind, amp_wind_factor, amp_wind_center_lat, amp_wind_spread_lat
+  do iEdge=1,nEdgesNew
+     surfaceWindStressNew(iEdge) = surfaceWindStressNew(iEdge) &
+       * (1.0 + (amp_wind_factor-1.0)*0.5 &
+          *(1.0-tanh( (latEdgeNew(iEdge)/dtr-amp_wind_center_lat)/amp_wind_spread_lat) ) )
+  enddo
+endif
+ 
+!set tracers at a first guess
+temperatureNew = -99.0
+salinityNew = -99.0
+do iCell=1,nCellsNew
+do k = 1,maxLevelCellNew(iCell)
+  temperatureNew(1,k,iCell) = 20.0 - 10.0*k/nVertLevelsMod
+  salinityNew(1,k,iCell) = 34.0  ! salinity
+enddo
+enddo
+
+! update T and S field with PHC data
+if( load_phc_IC) then
+iNoData = 0
+do iCell=1,nCellsNew
+  layerThicknessNew(1,:,iCell) = dz(:)
+  ! if(mod(iCell,100).eq.0) write(6,*) 'load_phc_IC t and s',iCell
+  rlon = lonCellNew(iCell)/dtr
+  rlat = latCellNew(iCell)/dtr
+  do j = 1, nt_lon
+    if(t_lon(j).gt.rlon) then
+      ix = j
+      exit
+    end if
+  enddo
+  iy = nt_lat
+  do j=1,nt_lat
+   if(t_lat(j).gt.rlat) then
+    iy = j
+    exit
+   endif
+  enddo
+  do k=1,maxLevelCellNew(iCell)
+    ndata = 0; temp_t = 0; temp_s = 0; kdata(:) = 0
+
+    ndata = ndata + 1
+    temp_t = temp_t + TEMP(ix,iy,k)
+    temp_s = temp_s + SALT(ix,iy,k)
+
+    if(ndata.gt.0) then
+      temperatureNew(1,k,iCell) = temp_t / float(ndata)
+      salinityNEW(1,k,iCell) = temp_s / float(ndata)
+      kdata(k) = 1
+    else
+      if(k.eq.1) iNoData = iNoData + 1
+      if(k.ge.3) then
+        if(kdata(k-1).eq.1) maxLevelCellNew(iCell) = k-1
+      endif
+    endif
+  enddo
+enddo
+
+! do a couple of smoothing passes
+do iter=1,5
+do iCell=1,nCellsNew
+do k=1,maxLevelCellNew(iCell)
+  ndata=1
+  temp_t = temperatureNew(1,k,iCell)
+  temp_s = salinityNew(1,k,iCell)
+  do j=1,nEdgesOnCellNew(iCell)
+    jCell = cellsOnCellNew(j,iCell)
+    if(jCell.gt.0) then
+    if(maxLevelCellNew(jCell).ge.k) then
+      temp_t = temp_t + temperatureNew(1,k,jCell)
+      temp_s = temp_s + salinityNew(1,k,jCell)
+      ndata = ndata + 1
+    endif
+    endif
+  enddo
+  temperatureNew(1,k,iCell) = temp_t / ndata
+  salinityNew(1,k,iCell) = temp_s / ndata
+enddo
+enddo
+write(6,*) maxval(temperatureNew(1,1,:)),maxval(salinityNew(1,1,:))
+enddo
+
+write(6,*) iNoData, nCellsNew
+
+temperatureRestoreNew(:) = temperatureNew(1,1,:)
+salinityRestoreNew(:) = salinityNew(1,1,:)
+boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
+
+endif  ! load_phc_IC
+
+elseif (initial_conditions.eq.'realistic_WOCE') then
+
+surfaceWindStressNew = 0.0
+surfaceWindStressNew = 0.0
+do iEdge=1,nEdgesNew
+  xin = xEdgeNew(iEdge)
+  yin = yEdgeNew(iEdge)
+  zin = zEdgeNew(iEdge)
+  rlon = lonEdgeNew(iEdge)/dtr
+  rlat = latEdgeNew(iEdge)/dtr
+  ix = nint(rlon/0.1 - 0.05) + nu_lon + 1
+  ix = mod(ix,nu_lon)+1
+  iy = nu_lat
+  do jcount=1,nu_lat
    if(t_lat(jcount).gt.rlat) then
     iy = jcount
     exit
@@ -1157,6 +1319,8 @@ do iEdge=1,nEdgesNew
   call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
   if(boundaryEdgeNew(1,iEdge).eq.1) then
     surfaceWindStressNew(iEdge) = 0.0
+    surfaceWindStressNewZonal(iEdge) = 0.0
+    surfaceWindStressNewMeridional(iEdge) = 0.0
   else
     iCell1 = cellsOnEdgeNew(1,iEdge)
     iCell2 = cellsOnEdgeNew(2,iEdge)
@@ -1165,6 +1329,8 @@ do iEdge=1,nEdgesNew
     q = q - p
     call unit_vector_in_3space(q)
     surfaceWindStressNew(iEdge) = ux*q(1) + uy*q(2) + uz*q(3)
+    surfaceWindStressNewZonal(iEdge) = cos(angleEdgeNew(iEdge)) * surfaceWindStressNew(iEdge)
+    surfaceWindStressNewMeridional(iEdge) = sin(angleEdgeNew(iEdge)) * surfaceWindStressNew(iEdge)
   endif
 
 ! if(monthly_forcing) then
@@ -1221,10 +1387,10 @@ do iCell=1,nCellsNew
   ! if(mod(iCell,100).eq.0) write(6,*) 'load_woce_IC t and s',iCell
   rlon = lonCellNew(iCell)/dtr
   rlat = latCellNew(iCell)/dtr
-  ix = nint(rlon/0.1 - 0.05) + nlon + 1
-  ix = mod(ix,nlon)+1
-  iy = nlat
-  do j=1,nlat
+  ix = nint(rlon/0.1 - 0.05) + nt_lon + 1
+  ix = mod(ix,nt_lon)+1
+  iy = nt_lat
+  do j=1,nt_lat
    if(t_lat(j).gt.rlat) then
     iy = j
     exit
@@ -1232,17 +1398,18 @@ do iCell=1,nCellsNew
   enddo
   do k=1,maxLevelCellNew(iCell)
     ndata = 0; temp_t = 0; temp_s = 0; kdata(:) = 0
+
     do i=-15,15
       ixt = ix + 8*i
       if(ixt.lt.1) then
-        ixt = ixt + nlon
-      elseif(ixt.gt.nlon) then
-        ixt = ixt - nlon
+        ixt = ixt + nt_lon
+      elseif(ixt.gt.nt_lon) then
+        ixt = ixt - nt_lon
       endif
       do j=-15,15
         iyt = iy + 8*j
         flag_lat = .true.
-        if(iyt.lt.1.or.iyt.gt.nlat) then
+        if(iyt.lt.1.or.iyt.gt.nt_lat) then
           iyt = 1
           flag_lat = .false.
         endif
@@ -1264,9 +1431,7 @@ do iCell=1,nCellsNew
         if(kdata(k-1).eq.1) maxLevelCellNew(iCell) = k-1
       endif
     endif
-
   enddo
-
 enddo
 
 ! do a couple of smoothing passes
@@ -1306,10 +1471,10 @@ boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
     !! if(mod(iCell,100).eq.0) write(6,*) 'load_woce_IC t and s RESTORE',iCell
     !rlon = lonCellNew(iCell)/dtr
     !rlat = latCellNew(iCell)/dtr
-    !ix = nint(rlon/0.1 - 0.05) + nlon + 1
-    !ix = mod(ix,nlon)+1
-    !iy = nlat
-    !do j=1,nlat
+    !ix = nint(rlon/0.1 - 0.05) + nt_lon + 1
+    !ix = mod(ix,nt_lon)+1
+    !iy = nt_lat
+    !do j=1,nt_lat
      !if(t_lat(j).gt.rlat) then
       !iy = j
       !exit
@@ -1320,14 +1485,14 @@ boundaryLayerDepthNew(:) = hZLevel(1) + hZLevel(2) - 1.0e-4
       !do i=-15,15
         !ixt = ix + 8*i
         !if(ixt.lt.1) then
-          !ixt = ixt + nlon
-        !elseif(ixt.gt.nlon) then
-          !ixt = ixt - nlon
+          !ixt = ixt + nt_lon
+        !elseif(ixt.gt.nt_lon) then
+          !ixt = ixt - nt_lon
         !endif
         !do j=-15,15
           !iyt = iy + 8*j
           !flag_lat = .true.
-          !if(iyt.lt.1.or.iyt.gt.nlat) then
+          !if(iyt.lt.1.or.iyt.gt.nt_lat) then
             !iyt = 1
             !flag_lat = .false.
           !endif
@@ -1842,6 +2007,8 @@ call write_netcdf_fields( &
                     boundaryEdgeNew, &
                     boundaryVertexNew, &
                     surfaceWindStressNew, &
+                    surfaceWindStressNewZonal, &
+                    surfaceWindStressNewMeridional, &
                     normalVelocityNew, &
                     layerThicknessNew, & 
                     densityNew, &
@@ -1958,7 +2125,7 @@ if (bottom_topography.eq.'realistic_ETOPO') then
                bottomDepth(iCell) = refBottomDepth(nVertLevelsMod)
             endif
 
-            ! write(6,*) kmt(iCell)
+            !write(6,*) kmt(iCell)
 
         endif
 
@@ -2355,6 +2522,8 @@ allocate(fEdgeNew(nEdgesNew))
 allocate(fVertexNew(nVerticesNew))
 allocate(bottomDepthNew(nCellsNew))
 allocate(surfaceWindStressNew(nEdgesNew))
+allocate(surfaceWindStressNewZonal(nEdgesNew))
+allocate(surfaceWindStressNewMeridional(nEdgesNew))
 allocate(normalVelocityNew(1,nVertLevelsNew,nEdgesNew))
 allocate(layerThicknessNew(1,nVertLevelsNew,nCellsNew))
 allocate(densityNew(1,nVertLevelsNew,nCellsNew))
@@ -2370,7 +2539,7 @@ xCellNew=0; yCellNew=0; zCellNew=0; latCellNew=0; lonCellNew=0; meshDensityNew=1
 xEdgeNew=0; yEdgeNew=0; zEdgeNew=0; latEdgeNew=0; lonEdgeNew=0
 xVertexNew=0; yVertexNew=0; zVertexNew=0; latVertexNew=0; lonVertexNew=0
 
-fCellNew=0; fEdgeNew=0; fVertexNew=0; bottomDepthNew=0; surfaceWindStressNew = 0
+fCellNew=0; fEdgeNew=0; fVertexNew=0; bottomDepthNew=0; surfaceWindStressNew = 0; surfaceWindStressNewZonal = 0.0; surfaceWindStressNewMeridional = 0.0;
 normalVelocityNew=0; layerThicknessNew=0; densityNew=0
 temperatureNew=0; salinityNew=0; tracer1New=0;
 
@@ -2671,6 +2840,7 @@ if (zLevel_thickness.eq.'equally_spaced') then
 
 elseif(zLevel_thickness.eq.'SOMA_40_Level') then
 
+   allocate(dz(40))
    dz( 1) = 4.6074
    dz( 2) = 5.1112
    dz( 3) = 5.6694
@@ -2716,6 +2886,7 @@ elseif(zLevel_thickness.eq.'SOMA_40_Level') then
 
 elseif(zLevel_thickness.eq.'POP_40_zLevel') then
 
+  allocate(dz(40))
   dz( 1) = 1001.244   !   5.006218       10.01244
   dz( 2) = 1011.258   !   15.06873       20.12502
   dz( 3) = 1031.682   !   25.28342       30.44183
@@ -2763,6 +2934,7 @@ elseif(zLevel_thickness.eq.'POP_40_zLevel') then
 
 elseif(zLevel_thickness.eq.'scaled_100Level') then
 
+  allocate(dz(100))
   dz(  1) =  0.75707E-03
   dz(  2) =  0.76186E-03
   dz(  3) =  0.76675E-03
@@ -2866,8 +3038,75 @@ elseif(zLevel_thickness.eq.'scaled_100Level') then
 
   hZLevel = dz * layer_thickness_total_max
 
+elseif(zLevel_thickness.eq.'POP_60_zLevel') then
+
+  allocate(dz(60))
+  dz( 1) = 5.00
+  dz( 2) = 10.00
+  dz( 3) = 10.00
+  dz( 4) = 10.00
+  dz( 5) = 10.00
+  dz( 6) = 10.00
+  dz( 7) = 10.00
+  dz( 8) = 10.00
+  dz( 9) = 10.00
+  dz(10) = 10.00
+  dz(11) = 10.00
+  dz(12) = 10.00
+  dz(13) = 10.00
+  dz(14) = 10.00
+  dz(15) = 10.00
+  dz(16) = 10.00
+  dz(17) = 10.10
+  dz(18) = 10.38
+  dz(19) = 10.81
+  dz(20) = 11.37
+  dz(21) = 12.05
+  dz(22) = 12.87
+  dz(23) = 13.83
+  dz(24) = 14.96
+  dz(25) = 16.28
+  dz(26) = 17.83
+  dz(27) = 19.64
+  dz(28) = 21.75
+  dz(29) = 24.23
+  dz(30) = 27.13
+  dz(31) = 30.56
+  dz(32) = 34.59
+  dz(33) = 39.36
+  dz(34) = 44.99
+  dz(35) = 51.64
+  dz(36) = 59.49
+  dz(37) = 68.70
+  dz(38) = 79.44
+  dz(39) = 91.82
+  dz(40) = 105.88
+  dz(41) = 121.50
+  dz(42) = 138.36
+  dz(43) = 155.93
+  dz(44) = 173.45
+  dz(45) = 190.06
+  dz(46) = 204.94
+  dz(47) = 217.51
+  dz(48) = 227.51
+  dz(49) = 235.03
+  dz(50) = 240.38
+  dz(51) = 244.02
+  dz(52) = 246.39
+  dz(53) = 247.88
+  dz(54) = 248.78
+  dz(55) = 249.32
+  dz(56) = 249.62
+  dz(57) = 249.80
+  dz(58) = 249.89
+  dz(59) = 249.94
+  dz(60) = 249.97
+
+  hZLevel = dz
+
 elseif(zLevel_thickness.eq.'isopycnal_3layer') then
 
+  allocate(dz(3))
   dz( 1) =   500.0
   dz( 2) =  1250.0
   dz( 3) =  3250.0

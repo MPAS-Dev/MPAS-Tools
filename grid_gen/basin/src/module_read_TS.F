@@ -1,6 +1,6 @@
 module read_TS
  
-   integer :: rd_ncid, rd_ncids, rd_ncidu
+   integer :: rd_ncid, rd_ncids
    integer :: rdDimIDt_lon
    integer :: rdDimIDt_lat
    integer :: rdDimIDdepth_t
@@ -9,8 +9,6 @@ module read_TS
    integer :: rdVarIDdepth_t
    integer :: rdVarIDTEMP
    integer :: rdVarIDSALT
-   integer :: rdVarIDTAUX
-   integer :: rdVarIDTAUY
  
    integer :: rdLocalt_lon
    integer :: rdLocalt_lat
@@ -18,13 +16,13 @@ module read_TS
  
    contains
  
-   subroutine read_TS_init(nx, ny, nz, fileNameT, fileNameS, fileNameU)
+   subroutine read_TS_init(nx, ny, nz, fileNameT, fileNameS)
  
       implicit none
  
       include 'netcdf.inc'
  
-      character(len=80), intent(in) :: fileNameT, fileNameS, fileNameU
+      character(len=80), intent(in) :: fileNameT, fileNameS
       integer, intent(out) :: nx, ny, nz
  
       integer :: nferr, nferrs, nferru
@@ -69,15 +67,10 @@ module read_TS
       nferrs = nf_open(fileNameS, NF_SHARE, rd_ncids)
       nferrs = nf_inq_varid(rd_ncids, 'SALT', rdVarIDSALT)
       write(6,*) ' nferrs ', nferrs, rdVarIDSALT
-
-      nferru = nf_open(fileNameU, NF_SHARE, rd_ncidu)
-      nferru = nf_inq_varid(rd_ncidu, 'TAUX', rdVarIDTAUX)
-      nferru = nf_inq_varid(rd_ncidu, 'TAUY', rdVarIDTAUY)
-      write(6,*) ' nferru ', nferru, rdVarIDTAUX, rdVarIDTAUY
  
    end subroutine read_TS_init
  
-   subroutine read_TS_fields(t_lon, t_lat, depth_t, TEMP, SALT, TAUX, TAUY)
+   subroutine read_TS_fields(t_lon, t_lat, depth_t, TEMP, SALT)
  
       implicit none
  
@@ -85,7 +78,6 @@ module read_TS
  
       real (kind=4), dimension(:), intent(out) :: t_lon, t_lat, depth_t
       real (kind=4), dimension(:,:,:), intent(out) :: TEMP, SALT
-      real (kind=4), dimension(:,:), intent(out) :: TAUX, TAUY
 
       integer, dimension(1) :: start1, count1
       integer, dimension(2) :: start2, count2
@@ -129,17 +121,6 @@ module read_TS
       write(6,*) ' nferrs ', nferrs, rd_ncids, rdVarIDSALT
       write(6,*) ' salinity' , minval(SALT), maxval(SALT)
 
-      start2(1) = 1
-      start2(2) = 1
-      count2(1) = rdLocalt_lon
-      count2(2) = rdLocalt_lat
-      nferru = nf_get_vara_real(rd_ncidu, rdVarIDTAUX, start2, count2, TAUX)
-      nferru = nf_get_vara_real(rd_ncidu, rdVarIDTAUY, start2, count2, TAUY)
-      write(6,*) ' nferru ', nferru, rd_ncidu, rdVarIDTAUX, rdVarIDTAUY
-      write(6,*) ' TAUX' , minval(TAUX), maxval(TAUX)
-      write(6,*) ' TAUY' , minval(TAUY), maxval(TAUY)
-
-
    end subroutine read_TS_fields
  
  
@@ -149,17 +130,13 @@ module read_TS
  
       include 'netcdf.inc'
  
-      integer :: nferr, nferrs, nferru
+      integer :: nferr, nferrs
  
       nferr = nf_close(rd_ncid)
       write(6,*) ' nferr ', nferr
 
       nferrs = nf_close(rd_ncids)
       write(6,*) ' nferrs ', nferrs
-
-      nferru = nf_close(rd_ncidu)
-      write(6,*) ' nferru ', nferru
-
 
    end subroutine read_TS_finalize
  
