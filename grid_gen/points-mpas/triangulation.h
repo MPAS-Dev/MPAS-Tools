@@ -528,5 +528,6 @@ pnt pntFromLatLon(const double &lat, const double &lon){/*{{{*/
 	temp.x = cos(lon) * cos(lat);
 	temp.y = sin(lon) * cos(lat);
 	temp.z = sin(lat);
+	temp.normalize();
 	return temp;
 }/*}}}*/
