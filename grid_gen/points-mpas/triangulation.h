@@ -173,18 +173,17 @@ class pnt {/*{{{*/
 			z = z_;
 		}/*}}}*/
 		double getLat() const {/*{{{*/
-			return asin(z);			
+			double dl;
+
+			dl = sqrt((*this).x*(*this).x + (*this).y*(*this).y + (*this).z*(*this).z);
+			return asin(z/dl);
 		}/*}}}*/
 		double getLon() const {/*{{{*/
 			double lon;
 
 			lon = atan2(y,x);
 
-			if(lon < 0){
-				return 2.0 * M_PI + lon;
-			} else {
-				return lon;
-			}
+			return lon;
 		}/*}}}*/
 		double sphereDistance(const pnt &p) const {/*{{{*/
 			pnt temp, cross;
