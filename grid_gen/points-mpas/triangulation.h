@@ -179,13 +179,65 @@ class pnt {/*{{{*/
 			return asin(z/dl);
 		}/*}}}*/
 		double getLon() const {/*{{{*/
+			// /*
 			double lon;
 
 			lon = atan2(y,x);
 
 			return lon;
+			// */
+
+			/* From Global SCVT
+			double lon;
+			double eps = 1.0e-10;
+
+			if (fabs(x) > eps) {
+
+				if (fabs(y) > eps) {
+
+					lon = atan(abs(y/x));
+
+					if ((x <= 0.) && (y >= 0.)) {
+						lon = M_PI - lon;
+					} else if ((x <= 0.) && (y < 0.)) {
+						lon = lon + M_PI;
+					} else if ((x >= 0.) && (y <= 0.)) {
+						lon = M_2_PI - lon;
+					}
+
+				} else { // we're either on longitude 0 or 180
+
+					if (x > 0) {
+						lon = 0.0;
+					} else {
+						lon = M_PI;
+					}
+
+				}
+
+			} else if (abs(y) > eps) {
+
+				if (y > 0) {
+					lon = M_PI_2;
+				} else {
+					lon = 3.0*M_PI_2;
+				}
+
+			} else { // we are at a pole
+				lon = 0.0;
+			}
+
+			return lon;
+			// */
 		}/*}}}*/
 		double sphereDistance(const pnt &p) const {/*{{{*/
+			double arg;
+
+			arg = sqrt( powf(sin(0.5*((*this).getLat()-p.getLat())),2) +
+					cos(p.getLat())*cos((*this).getLat())*powf(sin(0.5*((*this).getLon()-p.getLon())),2));
+			return 2.0*asin(arg);
+
+			/*
 			pnt temp, cross;
 			double dot;
 			temp.x = x;
@@ -195,7 +247,10 @@ class pnt {/*{{{*/
 			cross = temp.cross(p);
 			dot = temp.dot(p);
 
+
+
 			return atan2(cross.magnitude(),dot);
+			// */
 		}/*}}}*/
 	struct hasher {/*{{{*/
 		size_t operator()(const pnt &p) const {
@@ -480,6 +535,7 @@ int isCcw(const pnt &p1, const pnt &p2, const pnt &p3){/*{{{*/
 	} // */
 }/*}}}*/
 pnt gcIntersect(const pnt &c1, const pnt &c2, const pnt &v1, const pnt &v2){/*{{{*/
+	/*
 	pnt n, m,c ;
 	double dot;
 
@@ -502,9 +558,44 @@ pnt gcIntersect(const pnt &c1, const pnt &c2, const pnt &v1, const pnt &v2){/*{{
 	c.normalize();
 
 	return c;
+	// */
+
+	double n1, n2, n3;
+	double m1, m2, m3;
+	double xc, yc, zc;
+	double dot;
+	pnt c;
+
+	n1 =  (c1.y * c2.z - c2.y * c1.z);
+	n2 = -(c1.x * c2.z - c2.x * c1.z);
+	n3 =  (c1.x * c2.y - c2.x * c1.y);
+
+	m1 =  (v1.y * v2.z - v2.y * v1.z);
+	m2 = -(v1.x * v2.z - v2.x * v1.z);
+	m3 =  (v1.x * v2.y - v2.x * v1.y);
+
+	xc =  (n2 * m3 - n3 * m2);
+	yc = -(n1 * m3 - n3 * m1);
+	zc =  (n1 * m2 - n2 * m1);
+
+	dot = c1.x*xc + c1.y*yc + c1.z*zc;
+
+	if (dot < 0.0) {
+		xc = -xc;
+		yc = -yc;
+		zc = -zc;
+	}
+
+	c.x = xc;
+	c.y = yc;
+	c.z = zc;
+
+	c.normalize();
+	return c;
 }/*}}}*/
 
 double planeAngle(const pnt &A, const pnt &B, const pnt &C, const pnt &n){/*{{{*/
+	/*
 	pnt ab;
 	pnt ac;
 	pnt cross;
@@ -522,6 +613,41 @@ double planeAngle(const pnt &A, const pnt &B, const pnt &C, const pnt &n){/*{{{*
 	} else {
 		return -acos(cos_angle);
 	}
+	// */
+
+	double ABx, ABy, ABz, mAB;
+	double ACx, ACy, ACz, mAC;
+	double Dx, Dy, Dz;
+	double cos_angle;
+
+	ABx = B.x - A.x;
+	ABy = B.y - A.y;
+	ABz = B.z - A.z;
+	mAB = sqrt(ABx*ABx + ABy*ABy + ABz*ABz);
+
+	ACx = C.x - A.x;
+	ACy = C.y - A.y;
+	ACz = C.z - A.z;
+	mAC = sqrt(ACx*ACx + ACy*ACy + ACz*ACz);
+
+
+	Dx =   (ABy * ACz) - (ABz * ACy);
+	Dy = -((ABx * ACz) - (ABz * ACx));
+	Dz =   (ABx * ACy) - (ABy * ACx);
+
+	cos_angle = (ABx*ACx + ABy*ACy + ABz*ACz) / (mAB * mAC);
+
+	if (cos_angle < -1.0) {
+		cos_angle = -1.0;
+	} else if (cos_angle > 1.0) {
+		cos_angle = 1.0;
+	}
+
+	if ((Dx*n.x + Dy*n.y + Dz*n.z) >= 0.0) {
+		return acos(cos_angle);
+	} else {
+		return -acos(cos_angle);
+	}
 }/*}}}*/
 pnt pntFromLatLon(const double &lat, const double &lon){/*{{{*/
 	pnt temp;
@@ -530,4 +656,21 @@ pnt pntFromLatLon(const double &lat, const double &lon){/*{{{*/
 	temp.z = sin(lat);
 	temp.normalize();
 	return temp;
+}/*}}}*/
+bool flip_vertices(const pnt &c1, const pnt &c2, const pnt &v1, const pnt &v2){/*{{{*/
+	pnt d_c, d_v;
+	double ci, cj, ck;
+
+	d_c = c2 - c1;
+	d_v = v2 - v1;
+	
+	ci = d_c.y*d_v.z - d_c.z*d_v.y;
+	cj = d_c.z*d_v.x - d_c.x*d_v.z;
+	ck = d_c.x*d_v.y - d_c.y*d_v.x;
+
+	if ((ci*c1.x + cj*c1.y + ck*c1.z) >= 0.0) {
+		return false;
+	} else {
+		return true;
+	}
 }/*}}}*/
