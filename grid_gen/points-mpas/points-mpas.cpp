@@ -578,7 +578,8 @@ void orderConnectivityArrays(){/*{{{*/
 	// Order cellsOnEdge and verticesOnEdge, and make angleEdge
 	j = 0;
 	for(i = 0; i < edge_vec.size(); i++){/*{{{*/
-		int cell1, cell2, vert1, vert2;
+		int cell1, cell2, vert1, vert2, tmp;
+		bool flipped = false;
 		pnt u, v, cross;
 		pnt np;
 		pnt edge;
@@ -603,35 +604,29 @@ void orderConnectivityArrays(){/*{{{*/
 		u_int_itr++;
 		vert2 = (*u_int_itr);
 
+		if(cell2 < cell1){
+			tmp = cell1;
+			cell1 = cell2;
+			cell2 = tmp;
+		}
+
+		flipped = flip_vertices(points.at(cell1), points.at(cell2), ccenters.at(vert1), ccenters.at(vert2));
+
 		edge = edge_vec.at(i);
 		edge = gcIntersect(points.at(cell1),points.at(cell2),ccenters.at(vert1),ccenters.at(vert2));
 		edge.idx = i;
 		edge.isBdry = 0;
+		edge.normalize();
 		edge_vec.at(i) = edge;
-
-		u = points.at(cell2)-points.at(cell1);
-		v = ccenters.at(vert2)-ccenters.at(vert1);
 
 		dcEdge[i] = points.at(cell1).sphereDistance(points.at(cell2));
 		dvEdge[i] = ccenters.at(vert1).sphereDistance(ccenters.at(vert2));
 
 		fEdge[i] = coriolisParameter(edge);
 
-		cross = u.cross(v);
-		sign = cross.dot(edge);
 		cellsOnEdge[i].push_back(cell1);
 		cellsOnEdge[i].push_back(cell2);
 
-
-		if(sign < 0){
-			verticesOnEdge[i].push_back(vert2);
-			verticesOnEdge[i].push_back(vert1);
-
-			v = ccenters.at(vert1)-ccenters.at(vert2);
-		} else{
-			verticesOnEdge[i].push_back(vert1);
-			verticesOnEdge[i].push_back(vert2);
-		}
 
 		// angleEdge is either:
 		// 1. The angle the positive tangential direction (v)
@@ -640,13 +635,37 @@ void orderConnectivityArrays(){/*{{{*/
 		// 2. The angles the positive normal direction (u)
 		// 	  makes with the local eastward direction.
 		np = pntFromLatLon(edge.getLat()+0.05, edge.getLon());
-		angleEdge[i] = acos((ccenters.at(vert2).getLat() - ccenters.at(vert1).getLat())/dvEdge[i]);
+		np.normalize();
+
+		angleEdge[i] = (ccenters.at(vert2).getLat() - ccenters.at(vert1).getLat())/dvEdge[i];
+		angleEdge[i] = std::max( std::min( angleEdge[i], 1.0), -1.0);
+		angleEdge[i] = acos(angleEdge[i]);
 
 		sign = planeAngle(edge, np, ccenters.at(vert2), edge);
-		sign = sign/fabs(sign);
-		angleEdge[i] = fabs(angleEdge[i]) * sign;
+		if(sign != 0.0){
+			sign = sign/fabs(sign);
+		} else {
+			sign = 1.0;
+		}
+		angleEdge[i] = angleEdge[i] * sign;
 		if (angleEdge[i] > M_PI) angleEdge[i] = angleEdge[i] - 2.0*M_PI;
 		if (angleEdge[i] < -M_PI) angleEdge[i] = angleEdge[i] + 2.0*M_PI;
+
+
+		if(flipped) {
+			angleEdge[i] = angleEdge[i] + M_PI;
+			if (angleEdge[i] > M_PI) angleEdge[i] = angleEdge[i] - 2.0*M_PI;
+			if (angleEdge[i] < -M_PI) angleEdge[i] = angleEdge[i] + 2.0*M_PI;
+
+			tmp = vert1;
+			vert1 = vert2;
+			vert2 = tmp;
+		}
+
+		verticesOnEdge[i].push_back(vert1);
+		verticesOnEdge[i].push_back(vert2);
+
+		//}
 	}/*}}}*/
 
 	//Order cellsOnVertex and edgesOnVertex, areaTriangle
