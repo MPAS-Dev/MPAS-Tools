@@ -179,56 +179,18 @@ class pnt {/*{{{*/
 			return asin(z/dl);
 		}/*}}}*/
 		double getLon() const {/*{{{*/
-			// /*
 			double lon;
 
 			lon = atan2(y,x);
 
-			return lon;
-			// */
-
-			/* From Global SCVT
-			double lon;
-			double eps = 1.0e-10;
-
-			if (fabs(x) > eps) {
-
-				if (fabs(y) > eps) {
-
-					lon = atan(abs(y/x));
-
-					if ((x <= 0.) && (y >= 0.)) {
-						lon = M_PI - lon;
-					} else if ((x <= 0.) && (y < 0.)) {
-						lon = lon + M_PI;
-					} else if ((x >= 0.) && (y <= 0.)) {
-						lon = M_2_PI - lon;
-					}
-
-				} else { // we're either on longitude 0 or 180
-
-					if (x > 0) {
-						lon = 0.0;
-					} else {
-						lon = M_PI;
-					}
-
-				}
-
-			} else if (abs(y) > eps) {
-
-				if (y > 0) {
-					lon = M_PI_2;
-				} else {
-					lon = 3.0*M_PI_2;
-				}
-
-			} else { // we are at a pole
-				lon = 0.0;
+			if(lon < -M_PI){
+				lon = lon + M_2_PI;
+			} else if (lon > M_PI) {
+				lon = lon - M_2_PI;
 			}
 
-			return lon;
-			// */
+			return lon+M_PI;
+
 		}/*}}}*/
 		double sphereDistance(const pnt &p) const {/*{{{*/
 			double arg;
