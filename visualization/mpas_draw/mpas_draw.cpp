@@ -328,18 +328,24 @@ void display ( ){/*{{{*/
 	switch(drawing){
 		case 0:
 			draw_triangles();
-			if(draw_lines)
-				draw_triangle_lines();
 			break;
 		case 1:
 			draw_cells();
-			if(draw_lines)
-				draw_cell_lines();
 			break;
 		case 2:
 			draw_edges();
-			if(draw_lines)
-				draw_edge_lines();
+			break;
+	}
+
+	switch(draw_lines){
+		case 0:
+			draw_triangle_lines();
+			break;
+		case 1:
+			draw_cell_lines();
+			break;
+		case 2:
+			draw_edge_lines();
 			break;
 	}
 
@@ -2086,7 +2092,7 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 
 			break;
 		case KEY_w:
-			draw_lines = (draw_lines + 1) % 2;
+			draw_lines = (draw_lines + 1) % 4;
 			break;
 		case KEY_c:
 			drawing = ( drawing + 1 ) % 3;
