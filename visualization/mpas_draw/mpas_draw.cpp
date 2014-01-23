@@ -83,8 +83,8 @@ double sphere_radius;
 int color_bar = 0;
 double missing_value = -1e34;
 
-double line_factor = 1.001;
-double region_line_factor = 1.006;
+double line_factor = 1.008;
+double region_line_factor = 1.01;
 double region_center_factor = 1.013;
 double range_factor = 0.80;
 double zNear = 0.1;
@@ -1286,7 +1286,7 @@ void rescale_cells_and_vertices(){/*{{{*/
 		ycell[cell] = (ycell[cell] - xyz_center[1]) / norm;
 		zcell[cell] = (zcell[cell] - xyz_center[2]) / norm;
 	}
-
+/*
 	// Do Vertices
 	xyz_min[0] = r8vec_min ( nvertices, xvertex, missing_value);
 	xyz_max[0] = r8vec_max ( nvertices, xvertex, missing_value);
@@ -1328,6 +1328,7 @@ void rescale_cells_and_vertices(){/*{{{*/
 		xyz_center[i] = ( xyz_min[i] + xyz_max[i] ) / 2.0;
 		xyz_scale = std::max ( xyz_scale, ( xyz_max[i] - xyz_min[i] ) / 2.0 );
 	}
+	*/
 
 	for ( vertex = 0; vertex < nvertices; vertex++ )
 	{
