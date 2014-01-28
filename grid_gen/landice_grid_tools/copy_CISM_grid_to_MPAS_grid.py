@@ -2,18 +2,7 @@
 # Copy fields from a regular CISM grid into a pre-existing MPAS grid 
 
 import sys, numpy
-try:
-  from Scientific.IO.NetCDF import NetCDFFile
-  netCDF_module = 'Scientific.IO.NetCDF'
-except ImportError:
-  try:
-    from netCDF4 import Dataset as NetCDFFile
-    netCDF_module = 'netCDF4'
-  except ImportError:
-      print 'Unable to import any of the following python modules:'
-      print '  Scientific.IO.NetCDF \n  netcdf4 '
-      print 'One of them must be installed.'
-      raise ImportError('No netCDF module found')
+from netCDF4 import Dataset as NetCDFFile
 import math
 #import scipy.interpolate
 
@@ -68,18 +57,12 @@ try:
 
     # Get the CISM dimensions if they exist
     try:
-      if netCDF_module == 'Scientific.IO.NetCDF':
-        level = infile.dimensions['level']
-      else:
-        level = len(infile.dimensions['level'])
+      level = len(infile.dimensions['level'])
     except:
       print 'Input file is missing the dimension level.  Might not be a problem.'
 
     try:
-      if netCDF_module == 'Scientific.IO.NetCDF':
-        stagwbndlevel = infile.dimensions['stagwbndlevel']
-      else:
-        stagwbndlevel = len(infile.dimensions['stagwbndlevel'])
+      stagwbndlevel = len(infile.dimensions['stagwbndlevel'])
     except:
       print 'Input file is missing the dimension stagwbndlevel.  Might not be a problem.'
 
@@ -123,10 +106,7 @@ except:
 try:
     outfile = NetCDFFile(outfilename,'r+')
     try:
-      if netCDF_module == 'Scientific.IO.NetCDF':
-        nVertLevels = outfile.dimensions['nVertLevels']
-      else:
-        nVertLevels = len(outfile.dimensions['nVertLevels'])
+      nVertLevels = len(outfile.dimensions['nVertLevels'])
     except:
       print 'Output file is missing the dimension nVertLevels.  Might not be a problem.'
 
@@ -146,21 +126,25 @@ except:
     sys.exit('Error: The output grid file specified is either missing or lacking needed dimensions/variables.')
 
 
+# Check the overlap of the grids
+print '=================='
+print 'CISM File extents:'
+print '  x1 min, max:    ', x1.min(), x1.max()
+print '  y1 min, max:    ', y1.min(), y1.max()
+print 'MPAS File extents:'
+print '  xCell min, max: ', xCell.min(), xCell.max()
+print '  yCell min, max: ', yCell.min(), yCell.max()
+print '=================='
+
 #----------------------------
 # try each field.  If it exists in the input file, it will be copied.  If not, it will be skipped.
 # For now, include all variables defined for an MPAS land ice grid.  If more are added (e.g. SMB) they will need to be added below. 
 
 try: 
     thk = infile.variables['thk']
-    try:
-      sf = thk.scale_factor
-    except:
-      sf = 1.0
-    if netCDF_module == 'netCDF4':
-      sf = 1.0   # netCDF4 should autoscale!
     thickness = outfile.variables['thickness']
-    print '\nthk min/max', thk[:].min()*sf, thk[:].max()*sf
-    thickness[timelevout,:] = BilinearInterp(x1, y1, thk[timelev,:,:] * sf, xCell, yCell)
+    print '\nthk min/max', thk[:].min(), thk[:].max()
+    thickness[timelevout,:] = BilinearInterp(x1, y1, thk[timelev,:,:], xCell, yCell)
     print 'interim thickness min/max', thickness[:].min(), thickness[:].max()
     # Don't let there be negative thickness
     thickness[:] = thickness[:] * (thickness[:]>=0.0)
@@ -172,15 +156,9 @@ except:
 
 try: 
     topg = infile.variables['topg']
-    try:
-      sf = topg.scale_factor
-    except:
-      sf = 1.0
-    if netCDF_module == 'netCDF4':
-      sf = 1.0   # netCDF4 should autoscale!
     bedTopography = outfile.variables['bedTopography']
-    print '\ntopg min/max', topg[:].min()*sf, topg[:].max()*sf
-    bedTopography[timelevout,:] = BilinearInterp(x1, y1, topg[timelev,:,:]*sf, xCell, yCell)
+    print '\ntopg min/max', topg[:].min(), topg[:].max()
+    bedTopography[:] = BilinearInterp(x1, y1, topg[timelev,:,:], xCell, yCell)
     print 'new bedTopography min/max', bedTopography[:].min(), bedTopography[:].max()
     del topg, bedTopography
 except:
@@ -189,16 +167,10 @@ except:
 
 try: 
     inbeta = infile.variables['beta']
-    try:
-      sf = inbeta.scale_factor
-    except:
-      sf = 1.0
-    if netCDF_module == 'netCDF4':
-      sf = 1.0   # netCDF4 should autoscale!
     beta = outfile.variables['betaTimeSeries']
-    print '\ninput beta min/max', inbeta[:].min()*sf, inbeta[:].max()*sf
-    #beta[timelevout,:] = BilinearInterp(x0, y0, inbeta[timelev,:,:]*sf, xCell, yCell)
-    beta[:,timelevout] = BilinearInterp(x0, y0, inbeta[timelev,:,:]*sf, xCell, yCell)
+    print '\ninput beta min/max', inbeta[:].min(), inbeta[:].max()
+    #beta[timelevout,:] = BilinearInterp(x0, y0, inbeta[timelev,:,:], xCell, yCell)
+    beta[:,timelevout] = BilinearInterp(x0, y0, inbeta[timelev,:,:], xCell, yCell)
     print 'interim beta min/max', beta[:].min(), beta[:].max()
     # Make all beta be positive values
     b = beta[:]
@@ -213,19 +185,13 @@ except:
 # If tempstag is present, then copy it directly over to the MPAS grid.  This currently requires that they have the same number of vertical levels.
 try: 
     tempstag = infile.variables['tempstag']
-    try:
-      sf = tempstag.scale_factor
-    except:
-      sf = 1.0
-    if netCDF_module == 'netCDF4':
-      sf = 1.0   # netCDF4 should autoscale!
     temperature = outfile.variables['temperature']
-    print '\ninput tempstag min/max', tempstag[:].min()*sf, tempstag[:].max()*sf
+    print '\ninput tempstag min/max', tempstag[:].min(), tempstag[:].max()
     if stagwbndlevel == nVertLevels + 2:  # CISM includes the upper and lower boundaries as levels, MPAS does not.
       #print range(1,level-1)
       for i in range(1,stagwbndlevel-1):
         print 'Copying level ', i+1, ' of ', stagwbndlevel , 'CISM staggered levels (ignoring CISM b.c. temp levels)'
-        temperature[timelevout,:,i-1] = BilinearInterp(x1, y1, tempstag[timelev,i,:,:]*sf, xCell, yCell)
+        temperature[timelevout,:,i-1] = BilinearInterp(x1, y1, tempstag[timelev,i,:,:], xCell, yCell)
       print 'interim temperature min/max', temperature[:].min(), temperature[:].max()
       # Don't let there be positive temperature
       t = temperature[:]
@@ -242,14 +208,8 @@ except:
 # If temp is present, copy over the level that is closest to the MPAS level.  Interpolation should be done, but starting with this simpler approach.  The CISM and MPAS grids need not have the same number of vertical levels.
 try: 
     temp = infile.variables['temp']
-    try:
-      sf = temp.scale_factor
-    except:
-      sf = 1.0
-    if netCDF_module == 'netCDF4':
-      sf = 1.0   # netCDF4 should autoscale!
     temperature = outfile.variables['temperature']
-    print '\ninput temp min/max', temp[:].min()*sf, temp[:].max()*sf
+    print '\ninput temp min/max', temp[:].min(), temp[:].max()
     for i in range(nVertLevels):
       print 'Copying level ', i+1, ' of ', nVertLevels
       # grab the closest cism level (should interpolate)
@@ -260,7 +220,7 @@ try:
       else:
            icism=int(round( float(i+1)/float(nVertLevels) * float(level) ))-1
       print 'Using CISM level ', icism+1
-      temperature[timelevout,:,i] = BilinearInterp(x1, y1, temp[timelev,icism,:,:]*sf, xCell, yCell)
+      temperature[timelevout,:,i] = BilinearInterp(x1, y1, temp[timelev,icism,:,:], xCell, yCell)
       print 'interim temperature min/max', temperature[:].min(), temperature[:].max()
       # Don't let there be positive temperature
       t = temperature[:]
@@ -277,39 +237,27 @@ except:
 
 try: 
     balvel = infile.variables['balvel']
-    try:
-      sf = balvel.scale_factor
-    except:
-      sf = 1.0
-    if netCDF_module == 'netCDF4':
-      sf = 1.0   # netCDF4 should autoscale!
     observedSpeed = outfile.variables['observedSpeed']
-    print '\nbalvel min/max', balvel[:].min()*sf, balvel[:].max()*sf
-    observedSpeed[timelevout,:] = BilinearInterp(x0, y0, balvel[timelev,:,:]*sf, xCell, yCell)
+    print '\nbalvel min/max', balvel[:].min(), balvel[:].max()
+    observedSpeed[timelevout,:] = BilinearInterp(x0, y0, balvel[timelev,:,:], xCell, yCell)
     print 'new observedSpeed min/max', observedSpeed[:].min(), observedSpeed[:].max()
     del balvel, observedSpeed
 except:
     print '\nproblem with balvel field (e.g. not found in input file), skipping...\n'
   
 
-if 1: 
+try: 
     acab = infile.variables['acab']
-    try:
-      sf = acab.scale_factor
-    except:
-      sf = 1.0
-    if netCDF_module == 'netCDF4':
-      sf = 1.0   # netCDF4 should autoscale!
     smb = outfile.variables['sfcMassBalTimeSeries']
-    print '\nacab min/max', acab[:].min()*sf, acab[:].max()*sf
-    smbmpas = BilinearInterp(x1, y1, acab[timelev,:,:] * sf, xCell, yCell)
+    print '\nacab min/max', acab[:].min(), acab[:].max()
+    smbmpas = BilinearInterp(x1, y1, acab[timelev,:,:], xCell, yCell)
     for t in range(smb.shape[1]):
             print 'Inserting CISM acab from time ' + str(timelev) + ' into MPAS sfcMassBalTimeSeries time index ' + str(t)
             smb[:,t] = smbmpas[:]
     print 'new smb min/max', smb[:].min(), smb[:].max()
     del acab, smb
-#except:
-#    print '\nproblem with acab field (e.g. not found in input file), skipping...\n'
+except:
+    print '\nproblem with acab field (e.g. not found in input file), skipping...\n'
 
 
 
