@@ -4,48 +4,32 @@
 # Currently variable attributes are not copied (and periodic_hex does not assign any, so this is ok).  If variable attributes are added to periodic_hex, this script should be modified to copy them (looping over dir(var), skipping over variable function names "assignValue", "getValue", "typecode").
 
 import sys, numpy
-#try:
-#  from Scientific.IO.NetCDF import NetCDFFile
-#  netCDF_module = 'Scientific.IO.NetCDF'
-#except ImportError:
-#  try:
-#    from netCDF4 import Dataset as NetCDFFile
-#    netCDF_module = 'netCDF4'
-#  except ImportError:
-#      print 'Unable to import any of the following python modules:'
-#      print '  Scientific.IO.NetCDF \n  netcdf4 '
-#      print 'One of them must be installed.'
-#      raise ImportError('No netCDF module found')
-
-from netCDF4 import Dataset as NetCDFFile
-netCDF_module = 'netCDF4'
+from netCDF4 import Dataset
+from optparse import OptionParser
 
 
-# Check to see if a grid file was specified on the command line.
-# If not, land_ice_grid.nc is used.
-if len(sys.argv) > 1:
-  if sys.argv[1][0] == '-': # The filename can't begin with a hyphen
-    print '\nUsage:  python create_landice_grid_from_generic_MPAS_grid.py [GRID.NC]\nIf no filename is supplied, grid.nc will be used.'
-    sys.exit(0)
-  else:
-    fileinName = sys.argv[1]
-else:
-  fileinName = 'grid.nc'
+sphere_radius = 6.37122e6 # earth radius, if needed
+
+print "** Gathering information.  (Invoke with --help for more details. All arguments are optional)"
+parser = OptionParser()
+parser.add_option("-i", "--in", dest="fileinName", help="input filename.  Defaults to 'grid.nc'", metavar="FILENAME")
+parser.add_option("-o", "--out", dest="fileoutName", help="output filename.  Defaults to 'landice_grid.nc'", metavar="FILENAME")
+parser.add_option("-l", "--level", dest="levels", help="Number of vertical levels to use in the output file.  Defaults to the number in the input file", metavar="FILENAME")
+options, args = parser.parse_args()
+
+if not options.fileinName:
+    print "No input filename specified, so using 'grid.nc'."
+    options.fileinName = 'grid.nc'
+if not options.fileoutName:
+    print "No output filename specified, so using 'landice_grid.nc'."
+    options.fileoutName = 'landice_grid.nc'
 
 
+# Get the input file
+filein = Dataset(options.fileinName,'r')
 
-# Get some information about the input file
-filein = NetCDFFile(fileinName,'r')
-# vert_levs = filein.dimensions['nVertLevels']
-
-
-# Define the new file to be output - this should perhaps be made a variant of the input file name
-if netCDF_module == 'Scientific.IO.NetCDF':
-    fileout = NetCDFFile("landice_grid.nc","w")
-else:
-    fileout = NetCDFFile("landice_grid.nc","w",format=filein.file_format)
-
-
+# Define the new file to be output 
+fileout = Dataset(options.fileoutName,"w",format=filein.file_format)
 
 # Copy over all the dimensions to the new file
 # Note: looping over dimensions seems to result in them being written in seemingly random order.
@@ -57,16 +41,13 @@ for dim in filein.dimensions.keys():
     if dim == 'nTracers': 
         pass  # Do nothing - we don't want this dimension 
     else:    # Copy over all other dimensions
-      if netCDF_module == 'Scientific.IO.NetCDF':
-        dimvalue = filein.dimensions[dim]
+      if dim == 'Time':      
+         dimvalue = None  # netCDF4 won't properly get this with the command below (you need to use the isunlimited method)
+      elif (dim == 'nVertLevels') and (not (options.levels is None)):
+          dimvalue = int(options.levels)
       else:
-        if dim == 'Time':      
-           dimvalue = None  # netCDF4 won't properly get this with the command below (you need to use the isunlimited method)
-        else:
-           dimvalue = len(filein.dimensions[dim])
+         dimvalue = len(filein.dimensions[dim])
       fileout.createDimension(dim, dimvalue)
-# Create nVertLevelsPlus2 dimension
-# fileout.createDimension('nVertLevelsPlus2', filein.dimensions['nVertLevels'] + 2)
 
 # Create the dimensions needed for time-dependent forcings
 # Note: These have been disabled in the fresh implementation of the landice core.  MH 9/19/13
@@ -76,27 +57,25 @@ for dim in filein.dimensions.keys():
 #fileout.createDimension('nBasalHeatFluxTimeSlices', 1)
 #fileout.createDimension('nMarineBasalMassBalTimeSlices', 1)
 
-
 # Copy over all of the required grid variables to the new file
 vars2copy = ('latCell', 'lonCell', 'xCell', 'yCell', 'zCell', 'indexToCellID', 'latEdge', 'lonEdge', 'xEdge', 'yEdge', 'zEdge', 'indexToEdgeID', 'latVertex', 'lonVertex', 'xVertex', 'yVertex', 'zVertex', 'indexToVertexID', 'cellsOnEdge', 'nEdgesOnCell', 'nEdgesOnEdge', 'edgesOnCell', 'edgesOnEdge', 'weightsOnEdge', 'dvEdge', 'dcEdge', 'angleEdge', 'areaCell', 'areaTriangle', 'cellsOnCell', 'verticesOnCell', 'verticesOnEdge', 'edgesOnVertex', 'cellsOnVertex', 'kiteAreasOnVertex')
 for varname in vars2copy:
    thevar = filein.variables[varname]
-   if netCDF_module == 'Scientific.IO.NetCDF':
-     datatype = thevar.typecode() 
-   else:
-     datatype = thevar.dtype
+   datatype = thevar.dtype
    newVar = fileout.createVariable(varname, datatype, thevar.dimensions)
-   newVar[:] = thevar[:]
-   # Create nVertLevelsPlus2 dimension - no longer used
-       
+   if filein.on_a_sphere == "YES             ":
+     if varname in ('xCell', 'yCell', 'zCell', 'xEdge', 'yEdge', 'zEdge', 'xVertex', 'yVertex', 'zVertex', 'dvEdge', 'dcEdge'):
+       newVar[:] = thevar[:] * sphere_radius / filein.sphere_radius
+     elif varname in ('areaCell', 'areaTriangle', 'kiteAreasOnVertex'):
+       newVar[:] = thevar[:] * (sphere_radius / filein.sphere_radius)**2
+     else:
+       newVar[:] = thevar[:]
+   else: # not on a sphere
+     newVar[:] = thevar[:]
 
 # Create the land ice variables (all the shallow water vars in the input file can be ignored)
-if netCDF_module == 'Scientific.IO.NetCDF':
-    nVertLevels = fileout.dimensions['nVertLevels']
-    datatype = 'd'
-else:
-    nVertLevels = len(filein.dimensions['nVertLevels'])
-    datatype = filein.variables['xCell'].dtype  # Get the datatype for double precision float
+nVertLevels = len(fileout.dimensions['nVertLevels'])
+datatype = filein.variables['xCell'].dtype  # Get the datatype for double precision float
 #  Note: it may be necessary to make sure the Time dimension has size 1, rather than the 0 it defaults to.  For now, letting it be 0 which seems to be fine.
 newvar = fileout.createVariable('layerThicknessFractions', datatype, ('nVertLevels', ))
 newvar[:] = numpy.zeros(newvar.shape)
@@ -137,9 +116,11 @@ newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
 # Assign the global attributes
 # Copy over the two attributes that are required by MPAS.  If any others exist in the input file, give a warning.
 setattr(fileout, 'on_a_sphere', getattr(filein, 'on_a_sphere'))
-setattr(fileout, 'sphere_radius', getattr(filein, 'sphere_radius'))
-# If there are others that need to be copied, this script will need to be modified.  This Warning indicates that:
-# Note: dir(file)  with Scientific.IO includes the following entries for functions in addition to the global attributes: 'close', 'createDimension', 'createVariable', 'flush', 'sync'.  NetCDF4 has a whole bunch more!
+if filein.on_a_sphere == "YES             ":
+  setattr(fileout, 'sphere_radius', sphere_radius)
+else:
+  setattr(fileout, 'sphere_radius', -1.0)
+# If there are others that need to be copied, this script will need to be modified.
 print "** File had ", len(dir(filein)) - 5, "global attributes.  Copied on_a_sphere and sphere_radius."
 print "** Global attributes and functions: "
 print dir(filein)
