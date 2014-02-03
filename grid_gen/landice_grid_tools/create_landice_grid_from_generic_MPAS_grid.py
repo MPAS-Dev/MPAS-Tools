@@ -113,19 +113,29 @@ newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
 #newvar = fileout.createVariable('marineBasalMassBalTimeSeries', datatype, ( 'nCells', 'nMarineBasalMassBalTimeSlices',))
 #newvar[:] = numpy.zeros(newvar.shape)
 
-# Assign the global attributes
-# Copy over the two attributes that are required by MPAS.  If any others exist in the input file, give a warning.
-setattr(fileout, 'on_a_sphere', getattr(filein, 'on_a_sphere'))
-if filein.on_a_sphere == "YES             ":
-  setattr(fileout, 'sphere_radius', sphere_radius)
-else:
-  setattr(fileout, 'sphere_radius', -1.0)
-# If there are others that need to be copied, this script will need to be modified.
-print "** File had ", len(dir(filein)) - 5, "global attributes.  Copied on_a_sphere and sphere_radius."
-print "** Global attributes and functions: "
-print dir(filein)
+# Copy over all of the netcdf global attributes
+for name in filein.ncattrs():
+  # sphere radius needs to be set to that of the earth if on a sphere
+  if name == 'sphere_radius' and getattr(filein, 'on_a_sphere') == "YES             ":
+    setattr(fileout, 'sphere_radius', sphere_radius)
+    print 'Set global attribute   sphere_radius = ', str(sphere_radius)
+  else:
+    # Otherwise simply copy the attr
+    setattr(fileout, name, getattr(filein, name) )
+    print 'Copied global attribute  ', name, '=', getattr(filein, name)
+
+## Copy over the two attributes that are required by MPAS.  If any others exist in the input file, give a warning.
+#setattr(fileout, 'on_a_sphere', getattr(filein, 'on_a_sphere'))
+#if filein.on_a_sphere == "YES             ":
+#  setattr(fileout, 'sphere_radius', sphere_radius)
+#else:
+#  setattr(fileout, 'sphere_radius', -1.0)
+## If there are others that need to be copied, this script will need to be modified.
+#print "** File had ", len(dir(filein)) - 5, "global attributes.  Copied on_a_sphere and sphere_radius."
+#print "** Global attributes and functions: "
+#print dir(filein)
 
 filein.close()
 fileout.close()
 
-print '** Successfully created landice_grid.nc **'
+print '\n** Successfully created ' + options.fileoutName + ' with ' + options.levels + ' vertical levels.**'
