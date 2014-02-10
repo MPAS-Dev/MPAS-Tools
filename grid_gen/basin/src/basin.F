@@ -147,7 +147,7 @@ zLevel_thickness = 'POP_40_zLevel'
 bottom_topography = 'realistic_ETOPO'
 
 ! initial temperature and salinity options: 
-! 'realistic_WOCE', 'realistic_PHC', 'uniform_TS', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma', 'DOME_3D_overflow', 
+! 'realistic_WOCE', 'realistic_PHC', 'uniform_TS', 'lock_exchange_Ilicak1', 'Ilicak2_overflow', 'Ilicak2_overflow_sigma', 'DOME_3D_overflow', 
 ! 'internal_wave_Ilicak3', 'baroclinic_channel_Ilicak4'
 initial_conditions = 'realistic_WOCE'
 uniform_T = 10.0
@@ -537,6 +537,26 @@ if (initial_conditions.eq.'uniform_TS') then
          layerThicknessNew(1,k,iCell) = hZLevel(k)
       enddo
    enddo  
+
+elseif (initial_conditions.eq.'lock_exchange_Ilicak1') then
+
+   do i = 1,nCellsNew
+      if(yCellNew(i) < 32.0e3) then
+         temperatureNew(1,:,i) = 5.0
+      else
+         temperatureNew(1,:,i) = 30.0
+      endif
+   enddo
+
+   salinityNew(1,:,:) = 35.0
+   normalVelocityNew = 0.0
+   surfaceWindStressNew = 0.0
+
+   do iCell=1,nCellsNew
+      do k=1,nVertLevelsMod
+         layerThicknessNew(1,k,iCell) = hZLevel(k)
+      enddo
+   enddo
 
 elseif (initial_conditions.eq.'Ilicak2_overflow') then
 
@@ -1705,6 +1725,7 @@ do iCell=1,nCellsNew
     iCell1 = cellsOnVertexNew(1,iVertex)
     iCell2 = cellsOnVertexNew(2,iVertex)
     iCell3 = cellsOnVertexNew(3,iVertex)
+    ! This line may be commented out for quad grids:
     if(iCell1.ne.iCell.and.iCell2.ne.iCell.and.iCell3.ne.iCell) stop ' cells/vertices inverse failed'
   enddo
 enddo
