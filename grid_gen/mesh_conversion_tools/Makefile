@@ -2,6 +2,7 @@
 
 CC=g++
 CFLAGS= -O3 -std=c++11
+DFLAGS= -g -std=c++11 -D_DEBUG
 CONV_EXECUTABLE= MpasMeshConverter.x
 CULL_EXECUTABLE= MpasCellCuller.x
 
@@ -13,8 +14,8 @@ all:
 	${CC} mpas_cell_culler.cpp netcdf_utils.cpp ${CFLAGS} -o ${CULL_EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
 
 debug:
-	${CC} mpas_mesh_converter.cpp netcdf_utils.cpp -D_DEBUG -g -o ${CONV_EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
-	${CC} mpas_cell_culler.cpp netcdf_utils.cpp -D_DEBUG -g -o ${CULL_EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
+	${CC} mpas_mesh_converter.cpp netcdf_utils.cpp ${DFLAGS} -o ${CONV_EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
+	${CC} mpas_cell_culler.cpp netcdf_utils.cpp ${DFLAGS} -o ${CULL_EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
 
 clean:
 	rm -f grid.nc

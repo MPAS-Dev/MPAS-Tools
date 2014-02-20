@@ -314,7 +314,9 @@ int markVertices(){/*{{{*/
 		keep_vertex = false;
 		for(int j = 0; j < cellsOnVertex.at(iVertex).size(); j++){
 			iCell = cellsOnVertex.at(iVertex).at(j);
-			keep_vertex = keep_vertex || (cellMap.at(iCell) != -1);
+			if(iCell != -1) {
+				keep_vertex = keep_vertex || (cellMap.at(iCell) != -1);
+			}
 		}
 
 		if(keep_vertex){
@@ -1195,7 +1197,7 @@ int mapAndOutputVertexFields( const string inputFilename, const string outputFil
 				}
 
 				if(iEdge != -1){
-					edgesOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = edgeMap.at(iCell) + 1;
+					edgesOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = edgeMap.at(iEdge) + 1;
 				} else {
 					edgesOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = 0;
 				}
