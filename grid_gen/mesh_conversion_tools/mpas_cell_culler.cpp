@@ -568,7 +568,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 			zNew[idx_map] = zOld[iCell];
 			latNew[idx_map] = latOld[iCell];
 			lonNew[idx_map] = lonOld[iCell];
-			idxToNew[idx_map] = idx_map;
+			idxToNew[idx_map] = idx_map+1;
 			idx_map++;
 		}
 	}
@@ -623,7 +623,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 			zNew[idx_map] = zOld[iEdge];
 			latNew[idx_map] = latOld[iEdge];
 			lonNew[idx_map] = lonOld[iEdge];
-			idxToNew[idx_map] = idx_map;
+			idxToNew[idx_map] = idx_map+1;
 			idx_map++;
 		}
 	}
@@ -678,7 +678,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 			zNew[idx_map] = zOld[iVertex];
 			latNew[idx_map] = latOld[iVertex];
 			lonNew[idx_map] = lonOld[iVertex];
-			idxToNew[idx_map] = idx_map;
+			idxToNew[idx_map] = idx_map+1;
 			idx_map++;
 		}
 	}
