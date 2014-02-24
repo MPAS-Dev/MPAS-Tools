@@ -766,7 +766,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 			edgeCount = 0;
 			for(int j = 0; j < maxEdges; j++){
 				int iEdge = tmp_arr_old[iCell*maxEdges + j] - 1;
-				if(iEdge != -1 && edgeMap.at( iEdge ) != -1){
+				if(iEdge != -1 && iEdge < edgeMap.size() && edgeMap.at( iEdge ) != -1){
 					edgeCount++;
 				}
 			}
@@ -796,7 +796,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 			for(int j = 0; j < maxEdgesNew; j++){
 				int iEdge = tmp_arr_old[iCell*maxEdges + j] - 1;
 
-				if(iEdge != -1){
+				if(iEdge != -1 && iEdge < edgeMap.size()){
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = edgeMap.at(iEdge)+1;
 				} else {
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = 0;
@@ -820,7 +820,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 			for(int j = 0; j < maxEdgesNew; j++){
 				int coc = tmp_arr_old[iCell*maxEdges + j] - 1;
 
-				if(coc != -1){
+				if(coc != -1 && coc < cellMap.size()){
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = cellMap.at(coc)+1;
 				} else {
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = 0;
@@ -840,7 +840,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 			for(int j = 0; j < maxEdgesNew; j++){
 				int iVertex = tmp_arr_old[iCell*maxEdges + j] - 1;
 
-				if(iVertex != -1){
+				if(iVertex != -1 && iVertex < vertexMap.size()){
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = vertexMap.at(iVertex)+1;
 				} else {
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = 0;
@@ -1056,7 +1056,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 				for(int j = 0; j < maxEdges2New; j++){
 					int eoe = edgesOnEdgeOld[iEdge*maxEdges*2 + j] - 1;
 
-					if(eoe != -1){
+					if(eoe != -1 && eoe < edgeMap.size()){
 						edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = edgeMap.at(eoe) + 1;
 						weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = weightsOnEdgeOld[iEdge*maxEdges*2 + j];
 						edgeCount++;
