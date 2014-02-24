@@ -200,16 +200,12 @@ class pnt {/*{{{*/
 		double getLon() const {/*{{{*/
 			double lon;
 
-			lon = atan2(y,x);
+			lon = atan2(y, x);
 
-			if(lon < -M_PI){
-				lon = lon + M_2_PI;
-			} else if (lon > M_PI) {
-				lon = lon - M_2_PI;
+			if(lon < 0.0) {
+				lon = 2.0*M_PI + lon;
 			}
-
-			return lon+M_PI;
-
+			return lon;
 		}/*}}}*/
 		double sphereDistance(const pnt &p) const {/*{{{*/
 			double arg;

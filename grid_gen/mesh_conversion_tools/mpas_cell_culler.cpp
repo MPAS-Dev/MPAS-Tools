@@ -24,7 +24,7 @@ double in_mesh_spec = 1.0;
 
 // Connectivity and location information {{{
 
-vector<int> cellMask;
+vector<int> cullCell;
 vector<int> cellMap;
 vector<int> vertexMap;
 vector<int> edgeMap;
@@ -214,11 +214,11 @@ int readGridInput(const string inputFilename){/*{{{*/
 	netcdf_mpas_read_areacell ( inputFilename, nCells, &areaCell[0] );
 
 #ifdef _DEBUG
-	cout << " Read cellMask" << endl;
+	cout << " Read cullCell" << endl;
 #endif
-	cellMask.clear();
-	cellMask.resize(nCells);
-	netcdf_mpas_read_cellmask ( inputFilename, nCells, &cellMask[0] );
+	cullCell.clear();
+	cullCell.resize(nCells);
+	netcdf_mpas_read_cullcell ( inputFilename, nCells, &cullCell[0] );
 
 	// Build cellsOnVertex information
 	cellsonvertex_list = new int[nVertices * vertexDegree];
@@ -284,7 +284,7 @@ int markCells(){/*{{{*/
 	cells_removed = 0;
 	for(int iCell = 0; iCell < nCells; iCell++){
 		// Remove all cells with negative area, and cells that shouldn't be in the grid.
-		if(areaCell.at(iCell) < 0 || cellMask.at(iCell) == 0){
+		if(areaCell.at(iCell) < 0 || cullCell.at(iCell) == 1){
 			cellMap.at(iCell) = -1;
 			cells_removed++;
 		} else {

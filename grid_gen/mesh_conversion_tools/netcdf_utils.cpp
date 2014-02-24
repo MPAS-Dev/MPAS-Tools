@@ -1063,13 +1063,13 @@ void netcdf_mpas_read_mesh_density ( string filename, int ncells, double mesh_de
 	return;
 }/*}}}*/
 //****************************************************************************80
-void netcdf_mpas_read_cellmask ( string filename, int ncells, int cellmask[] ){/*{{{*/
+void netcdf_mpas_read_cullcell ( string filename, int ncells, int cullcell[] ){/*{{{*/
 
 	//****************************************************************************80
 	//
 	//  Purpose:
 	//
-	//    NETCDF_MPAS_READ_MESH_CELLMASK reads cellMask
+	//    NETCDF_MPAS_READ_MESH_CULLCELL reads cullCell
 	//
 	//  Licensing:
 	//
@@ -1095,7 +1095,7 @@ void netcdf_mpas_read_cellmask ( string filename, int ncells, int cellmask[] ){/
 	//
 	//    Input, int NCELLS, the number of nodes.
 	//
-	//    Output, int cellmask[NCELLS] a mask on cells, 1 if the cell is kept, 0 if it's removed.
+	//    Output, int cullcell[NCELLS] a mask on cells, 1 if the cell is kept, 0 if it's removed.
 	//
 	NcVar *var_id;
 	//
@@ -1111,15 +1111,15 @@ void netcdf_mpas_read_cellmask ( string filename, int ncells, int cellmask[] ){/
 	//  Get the variable values.
 	//
 #ifdef _DEBUG
-	cout << "   Reading cellMask" << endl;
+	cout << "   Reading cullCell" << endl;
 #endif
-	var_id = ncid.get_var ( "cellMask" );
+	var_id = ncid.get_var ( "cullCell" );
 	if(var_id == NULL){
 		for(int i = 0; i < ncells; i++){
-			cellmask[i] = 1;
+			cullcell[i] = 1;
 		}
 	} else {
-		(*var_id).get ( &cellmask[0], ncells );
+		(*var_id).get ( &cullcell[0], ncells );
 	}
 	//
 	//  Close the file.
