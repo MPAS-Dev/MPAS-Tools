@@ -405,6 +405,8 @@ int readGridInput(const string inputFilename){/*{{{*/
 	cout << "vertex Maxes: " << xVertexRange[1] << " " << yVertexRange[1] << " " << zVertexRange[1] << endl;
 	cout << "cell Distances: " << xCellDistance << " " << yCellDistance << " " << zCellDistance << endl;
 	cout << "vertex Distances: " << xVertexDistance << " " << yVertexDistance << " " << zVertexDistance << endl;
+	cout << "xPeriodicFix: " << xPeriodicFix << endl;
+	cout << "yPeriodicFix: " << yPeriodicFix << endl;
 #endif
 
 	if(!spherical && (zCellDistance > 0.0 || zVertexDistance > 0.0)){
@@ -1152,7 +1154,7 @@ int buildAreas(){/*{{{*/
 		// If they sum to something close to 2*Pi, it's a full cell, otherwise it's not.
 		// Non-complete cells get negative area so we can easily remove later.
 		angle_sum = 0.0;
-		for(j = 0; j < edgesOnCell.at(iCell).size()-1; j++){
+		for(j = 0; j < edgesOnCell.at(iCell).size(); j++){
 			iEdge = edgesOnCell.at(iCell).at(j);
 			vertex1 = verticesOnEdge.at(iEdge).at(0);
 			vertex2 = verticesOnEdge.at(iEdge).at(1);
@@ -1172,7 +1174,7 @@ int buildAreas(){/*{{{*/
 			angle_sum += angle;
 		}
 
-		if(angle_sum > M_2_PI * 0.8){ // Not likely to be a full cell if angle_sum is less than 80% of 2*Pi
+		if(angle_sum > 2.0 * M_PI * 0.9){ // Not likely to be a full cell if angle_sum is less than 90% of 2*Pi
 			for(j = 0; j < edgesOnCell.at(iCell).size(); j++){
 				iEdge = edgesOnCell.at(iCell).at(j);
 

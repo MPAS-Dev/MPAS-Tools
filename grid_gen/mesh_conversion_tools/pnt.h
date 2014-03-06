@@ -148,13 +148,13 @@ class pnt {/*{{{*/
 
 			dist_vec = (*this) - p;
 
-			if(fabs(dist_vec.x) > xRef * 0.5){
+			if(fabs(dist_vec.x) > xRef * 0.9){
 #ifdef _DEBUG
 				std::cout << "   Fixing x periodicity " << endl;
 #endif
 				(*this).x += -(dist_vec.x/fabs(dist_vec.x)) * xRef;
 			}
-			if(fabs(dist_vec.y) > yRef * 0.5){
+			if(fabs(dist_vec.y) > yRef * 0.9){
 #ifdef _DEBUG
 				std::cout << "   Fixing y periodicity " << endl;
 #endif

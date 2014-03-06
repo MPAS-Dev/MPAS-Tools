@@ -1116,7 +1116,7 @@ void netcdf_mpas_read_cullcell ( string filename, int ncells, int cullcell[] ){/
 	var_id = ncid.get_var ( "cullCell" );
 	if(var_id == NULL){
 		for(int i = 0; i < ncells; i++){
-			cullcell[i] = 1;
+			cullcell[i] = 0;
 		}
 	} else {
 		(*var_id).get ( &cullcell[0], ncells );
