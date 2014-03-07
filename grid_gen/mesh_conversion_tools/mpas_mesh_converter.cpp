@@ -23,7 +23,8 @@ using namespace std;
 
 int nCells, nVertices, vertex_degree;
 int maxEdges;
-bool spherical;
+bool spherical, periodic;
+double xOffset, yOffset;
 double xCellRange[2];
 double yCellRange[2];
 double zCellRange[2];
@@ -297,6 +298,21 @@ int readGridInput(const string inputFilename){/*{{{*/
 #endif
 	in_parent_id = netcdf_mpas_read_parentid(inputFilename);
 
+#ifdef _DEBUG
+	cout << "   Reading is_periodic" << endl;
+#endif
+	periodic = netcdf_mpas_read_isperiodic(inputFilename);
+
+#ifdef _DEBUG
+	cout << "   Reading x_offset" << endl;
+#endif
+	xOffset = netcdf_mpas_read_xoffset(inputFilename);
+
+#ifdef _DEBUG
+	cout << "   Reading y_offset" << endl;
+#endif
+	yOffset = netcdf_mpas_read_yoffset(inputFilename);
+
 	cout << "Read dimensions:" << endl;
 	cout << "    nCells = " << nCells << endl;
 	cout << "    nVertices = " << nVertices << endl;
@@ -387,15 +403,30 @@ int readGridInput(const string inputFilename){/*{{{*/
 	yVertexDistance = fabs(yVertexRange[1] - yVertexRange[0]);
 	zVertexDistance = fabs(zVertexRange[1] - zVertexRange[0]);
 
-	if(vertexDegree == 4){
+	if(periodic){
 		// Quads are not staggered in the y direction, so need to offset by
 		// max distance + min distance
-		xPeriodicFix = xCellRange[0] + xCellRange[1];
-		yPeriodicFix = yCellRange[0] + yCellRange[1];
-	} else {
+		if(vertexDegree == 4){
+			if(xOffset < 0.0){
+				xPeriodicFix = xCellRange[0] + xCellRange[1];
+			}
+
+			if(yOffset < 0.0){
+				yPeriodicFix = yCellRange[0] + yCellRange[1];
+			}
 		// Triangles can be staggered, so only offset my max distance
-		xPeriodicFix = xCellRange[1];
-		yPeriodicFix = yCellRange[1];
+		} else {
+			if(xOffset < 0.0){
+				xPeriodicFix = xCellRange[1];
+			}
+
+			if(yOffset < 0.0){
+				yPeriodicFix = yCellRange[1];
+			}
+		}
+	} else {
+		xPeriodicFix = abs(xCellRange[1] + xCellRange[0]);
+		yPeriodicFix = abs(yCellRange[1] + yCellRange[0]);
 	}
 
 #ifdef _DEBUG

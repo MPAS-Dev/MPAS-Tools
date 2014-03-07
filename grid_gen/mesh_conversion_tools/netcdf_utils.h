@@ -8,6 +8,9 @@ int netcdf_mpas_read_num_vars(string filename);
 /* Attribute reading functions {{{*/
 bool netcdf_mpas_read_onsphere(string filename);
 double netcdf_mpas_read_sphereradius(string filename);
+bool netcdf_mpas_read_isperiodic(string filename);
+double netcdf_mpas_read_xoffset(string filename);
+double netcdf_mpas_read_yoffset(string filename);
 string netcdf_mpas_read_history(string filename);
 string netcdf_mpas_read_meshid(string filename);
 string netcdf_mpas_read_parentid(string filename);

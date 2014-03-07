@@ -222,6 +222,249 @@ double netcdf_mpas_read_sphereradius(string filename){/*{{{*/
 
 }/*}}}*/
 //****************************************************************************80
+bool netcdf_mpas_read_isperiodic(string filename){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_ISPERIODIC determines if a mesh is intended to be periodic.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    7 March 2014
+	//
+	//  Author:
+	//
+	//     Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Output, int NETCDF_MPAS_READ_ISPERIODIC, true or false based on the global
+	//    										 attribute, is_periodic. Default is false
+	//
+	NcAtt *att_id;
+	NcValues *vals;
+	bool valid;
+	string tmp_name;
+	string sph_name = "is_periodic";
+	//
+	//  Open the file.
+	//
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//  Get Ntime, which is a NETCDF dimension.
+	//
+	valid = false;
+
+	for(int i = 0; i < ncid.num_atts() && !valid; i++){
+		tmp_name = ncid.get_att(i)->name();
+
+		if(sph_name == tmp_name){
+			valid = true;
+		}
+	}
+
+	if(valid){
+		att_id = ncid.get_att(sph_name.c_str());
+		
+		vals = att_id -> values();
+
+		sph_name = "YES";
+
+		for(int i = 0; i < vals -> num(); i++){
+			tmp_name = vals -> as_string(i);
+			if(tmp_name.find(sph_name) != string::npos){
+				return true;
+			}
+		}
+	} else {
+		return false;
+	}
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return false;
+
+}/*}}}*/
+//****************************************************************************80
+double netcdf_mpas_read_xoffset(string filename){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_XOFFSET reads the global attribute x_offset
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    11 February 2014
+	//
+	//  Author:
+	//
+	//     Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Output, double NETCDF_MPAS_READ_XOFFSET, the value of the global
+	//    										 attribute, x_offset
+	//
+	NcAtt *att_id;
+	NcValues *vals;
+	bool valid;
+	string tmp_name;
+	string sph_name = "x_offset";
+	//
+	//  Open the file.
+	//
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//  Get Ntime, which is a NETCDF dimension.
+	//
+	valid = false;
+
+	for(int i = 0; i < ncid.num_atts() && !valid; i++){
+		tmp_name = ncid.get_att(i)->name();
+
+		if(sph_name == tmp_name){
+			valid = true;
+		}
+	}
+
+	if(valid){
+		att_id = ncid.get_att(sph_name.c_str());
+		
+		vals = att_id -> values();
+
+		for(int i = 0; i < vals -> num(); i++){
+			tmp_name = vals -> as_string(i);
+
+			return atof(vals -> as_string(i));
+		}
+	} else {
+		return -1.0;
+	}
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return -1.0;
+
+}/*}}}*/
+//****************************************************************************80
+double netcdf_mpas_read_yoffset(string filename){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_YOFFSET reads the global attribute y_offset
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    11 February 2014
+	//
+	//  Author:
+	//
+	//     Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Output, double NETCDF_MPAS_READ_YOFFSET, the value of the global
+	//    										 attribute, y_offset
+	//
+	NcAtt *att_id;
+	NcValues *vals;
+	bool valid;
+	string tmp_name;
+	string sph_name = "y_offset";
+	//
+	//  Open the file.
+	//
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//  Get Ntime, which is a NETCDF dimension.
+	//
+	valid = false;
+
+	for(int i = 0; i < ncid.num_atts() && !valid; i++){
+		tmp_name = ncid.get_att(i)->name();
+
+		if(sph_name == tmp_name){
+			valid = true;
+		}
+	}
+
+	if(valid){
+		att_id = ncid.get_att(sph_name.c_str());
+		
+		vals = att_id -> values();
+
+		for(int i = 0; i < vals -> num(); i++){
+			tmp_name = vals -> as_string(i);
+
+			return atof(vals -> as_string(i));
+		}
+	} else {
+		return -1.0;
+	}
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return -1.0;
+
+}/*}}}*/
+//****************************************************************************80
 string netcdf_mpas_read_history(string filename){/*{{{*/
 	//****************************************************************************80
 	//
