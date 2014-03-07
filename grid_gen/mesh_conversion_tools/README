@@ -16,11 +16,11 @@ Purpose:
 	cell should be removed.
 	
 Requirements:
-	mpas_mesh_converter.cpp requires the c++ netcdf libraries to be able to read/write a NetCDF files.
+	mpas_mesh_converter.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
 	It also requires the tr1 headers for c++, specifically unordered_set.
 	It has been tested using g++ version 4.8.1
 
-	mpas_cell_culler.cpp requires the c++ netcdf libraries to be able to read/write a NetCDF files.
+	mpas_cell_culler.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
 	It has been tested using g++ version 4.8.1
 
 Usage of mpas_mesh_converter.cpp:
