@@ -23,7 +23,7 @@ if not options.fileinName:
 if not options.fileoutName:
     print "No output filename specified, so using 'landice_grid.nc'."
     options.fileoutName = 'landice_grid.nc'
-
+print '' # make a space in stdout before further output
 
 # Get the input file
 filein = Dataset(options.fileinName,'r')
@@ -43,11 +43,29 @@ for dim in filein.dimensions.keys():
     else:    # Copy over all other dimensions
       if dim == 'Time':      
          dimvalue = None  # netCDF4 won't properly get this with the command below (you need to use the isunlimited method)
-      elif (dim == 'nVertLevels') and (not (options.levels is None)):
+      elif (dim == 'nVertLevels'): 
+        if options.levels is None:
+          # If nVertLevels is in the input file, and a value for it was not
+          # specified on the command line, then use the value from the file (do nothing here)
+          print "Using nVertLevels from the intput file:", filein.dimensions[dim]
+        else:
+          # if nVertLevels is in the input file, but a value WAS specified
+          # on the command line, then use the command line value
+          print "Using nVertLevels specified on the command line:", int(options.levels)
           dimvalue = int(options.levels)
       else:
          dimvalue = len(filein.dimensions[dim])
       fileout.createDimension(dim, dimvalue)
+# There may be input files that do not have nVertLevels specified, in which case
+# it has not been added to the output file yet.  Treat those here.
+if 'nVertLevels' not in fileout.dimensions:
+   if options.levels is None:
+       print "nVertLevels not in input file and not specified.  Using default value of 10."
+       fileout.createDimension('nVertLevels', 10)
+   else:
+       print "Using nVertLevels specified on the command line:", int(options.levels)
+       fileout.createDimension('nVertLevels', int(options.levels))
+print '' # make a space in stdout
 
 # Create the dimensions needed for time-dependent forcings
 # Note: These have been disabled in the fresh implementation of the landice core.  MH 9/19/13
@@ -114,6 +132,7 @@ newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
 #newvar[:] = numpy.zeros(newvar.shape)
 
 # Copy over all of the netcdf global attributes
+print "---- Copying global attributes from input file to output file ----"
 for name in filein.ncattrs():
   # sphere radius needs to be set to that of the earth if on a sphere
   if name == 'sphere_radius' and getattr(filein, 'on_a_sphere') == "YES             ":
@@ -138,4 +157,4 @@ for name in filein.ncattrs():
 filein.close()
 fileout.close()
 
-print '\n** Successfully created ' + options.fileoutName + ' with ' + options.levels + ' vertical levels.**'
+print '\n** Successfully created ' + options.fileoutName + '.**'
