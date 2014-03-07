@@ -94,6 +94,7 @@ module write_netcdf
       integer :: nferr
       integer, dimension(10) :: dimlist
       character (len=16) :: on_a_sphere
+      character (len=16) :: is_periodic
       real (kind=8) :: sphere_radius
  
  
@@ -106,6 +107,7 @@ module write_netcdf
       wrLocalnVertexDegree = nVertexDegree
 
       on_a_sphere = 'NO              '
+      is_periodic = 'YES             '
       sphere_radius = 0.0
  
       nferr = nf_create('grid.nc', IOR(NF_CLOBBER,NF_64BIT_OFFSET), wr_ncid)
@@ -130,6 +132,7 @@ module write_netcdf
       ! Define attributes
       !
       nferr = nf_put_att_text(wr_ncid, NF_GLOBAL, 'on_a_sphere', 16, on_a_sphere)
+      nferr = nf_put_att_text(wr_ncid, NF_GLOBAL, 'is_periodic', 16, is_periodic)
       nferr = nf_put_att_double(wr_ncid, NF_GLOBAL, 'sphere_radius', NF_DOUBLE, 1, sphere_radius)
 
  
