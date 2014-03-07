@@ -419,11 +419,12 @@ int readGridInput(const string inputFilename){/*{{{*/
 	return 0;
 }/*}}}*/
 int buildUnorderedCellConnectivity(){/*{{{*/
-	// buildVerticesOnCell should assume that cellsOnVertex hasn't been ordered properly yet.
-	//    It should compute the inverse of cellsOnVertex (verticesOnCell) and order the vertices CCW around the cell.
+	// buildUnorderedCellConnectivity should assume that cellsOnVertex hasn't been ordered properly yet.
+	//    It should compute the inverse of cellsOnVertex (verticesOnCell) unordered.
+	//    It will also compute an unordered cellsOnCell that can be considered invalid for actual use (e.g. quad grids).
 	//    This ordering should happen regardless of it the mesh is planar or spherical.
 	
-	int iVertex, iCell, j;
+	int iVertex, iCell, newCell, j, k, l;
 	bool add;
 
 #ifdef _DEBUG
@@ -446,6 +447,31 @@ int buildUnorderedCellConnectivity(){/*{{{*/
 
 				if(add) {
 					verticesOnCell.at(iCell).push_back(iVertex);
+				}
+			}
+		}
+	}
+
+
+	cellsOnCell.clear();
+	cellsOnCell.resize(cells.size());
+	for(iCell = 0; iCell < cells.size(); iCell++){
+		for(j = 0; j < verticesOnCell.at(iCell).size(); j++){
+			iVertex = verticesOnCell.at(iCell).at(j);
+			for(k = 0; k < cellsOnVertex.at(iVertex).size(); k++){
+				newCell = cellsOnVertex.at(iVertex).at(k);
+
+				if(newCell != iCell){
+					add = true;
+					for(l = 0; l < cellsOnCell.at(iCell).size(); l++){
+						if(cellsOnCell.at(iCell).at(l) == newCell){
+							add = false;
+						}
+					}
+
+					if(add) {
+						cellsOnCell.at(iCell).push_back(newCell);
+					}
 				}
 			}
 		}
@@ -617,7 +643,6 @@ int buildEdges(){/*{{{*/
 	double vert1_x_movement, vert1_y_movement;
 	double vert2_x_movement, vert2_y_movement;
 	double temp, dot;
-	bool vert1_periodic, vert2_periodic;
 	bool fixed_edge;
 
 #ifdef _DEBUG
@@ -628,55 +653,26 @@ int buildEdges(){/*{{{*/
 
 	land = 0;
 
+	// Make edges from every pair of cells.
+	// Only valid edges contain two cells and two vertices.
 	for(iCell = 0; iCell < cells.size(); iCell++){
-		vertex1 = verticesOnCell.at(iCell).at(verticesOnCell.at(iCell).size()-1);
-		vertex2 = verticesOnCell.at(iCell).at(0);
-		cell1 = iCell;
-		cell2 = -1;
-
-		// Find matching cells for vertex pair.
-		for(k = 0; k < cellsOnVertex.at(vertex1).size(); k++){
-			if(cellsOnVertex.at(vertex1).at(k) != iCell){
-				for(l = 0; l < cellsOnVertex.at(vertex2).size(); l++){
-					if(cellsOnVertex.at(vertex1).at(k) >= 0){
-						if(cellsOnVertex.at(vertex1).at(k) == cellsOnVertex.at(vertex2).at(l)){
-							if(cell2 == -1){
-								cell2 = cellsOnVertex.at(vertex1).at(k);
-							}
-						}
-					}
-				}
-			}
-		}
-		
-		new_edge.vertex1 = min(vertex1, vertex2);
-		new_edge.vertex2 = max(vertex1, vertex2);
-		if(cell2 == -1){
-			new_edge.cell1 = cell1;
-			new_edge.cell2 = -1;
-		} else {
-			new_edge.cell1 = min(cell1, cell2);
-			new_edge.cell2 = max(cell1, cell2);
-		}
-
-		out_pair = edge_idx_hash.insert(new_edge);
-
-		for(j = 1; j < verticesOnCell.at(iCell).size(); j++){
-			vertex1 = verticesOnCell.at(iCell).at(j-1);
-			vertex2 = verticesOnCell.at(iCell).at(j);
+		for(l = 0; l < cellsOnCell.at(iCell).size(); l++){
 			cell1 = iCell;
-			cell2 = -1;
+			cell2 = cellsOnCell.at(iCell).at(l);
 
-			// Find matching cells for vertex pair.
-			for(k = 0; k < cellsOnVertex.at(vertex1).size(); k++){
-				if(cellsOnVertex.at(vertex1).at(k) != iCell){
-					for(l = 0; l < cellsOnVertex.at(vertex2).size(); l++){
-						if(cellsOnVertex.at(vertex1).at(k) >= 0){
-							if(cellsOnVertex.at(vertex1).at(k) == cellsOnVertex.at(vertex2).at(l)){
-								if(cell2 == -1){
-									cell2 = cellsOnVertex.at(vertex1).at(k);
-								}
-							}
+			// Find vertex pair for cell pair
+			vertex1 = -1;
+			vertex2 = -1;
+
+			for(j = 0; j < verticesOnCell.at(cell1).size(); j++){
+				for(k = 0; k < verticesOnCell.at(cell2).size(); k++){
+					if(verticesOnCell.at(cell1).at(j) == verticesOnCell.at(cell2).at(k)) {
+						if(vertex1 == -1){
+							vertex1 = verticesOnCell.at(cell1).at(j);	
+						} else if(vertex2 == -1) {
+							vertex2 = verticesOnCell.at(cell1).at(j);
+						} else {
+							cout << " Found more than 2 vertices for edge? " << endl;
 						}
 					}
 				}
@@ -684,6 +680,21 @@ int buildEdges(){/*{{{*/
 
 			new_edge.vertex1 = min(vertex1, vertex2);
 			new_edge.vertex2 = max(vertex1, vertex2);
+
+#ifdef _DEBUG
+			cout << "  Starting edge: " << endl;
+			cout << "      vertex 1 : " << vertex1 << endl;
+			cout << "      vertex 2 : " << vertex2 << endl;
+			cout << "      cell 1 : " << cell1 << endl;
+			cout << "      cell 2 : " << cell2 << endl;
+
+			if(new_edge.vertex1 == -1){
+				cout << "  Edge is missing vertex 1" << endl;
+			} else if(new_edge.vertex2 == -1){
+				cout << "  Edge is missing vertex 2" << endl;
+			}
+#endif
+
 			if(cell2 == -1){
 				new_edge.cell1 = cell1;
 				new_edge.cell2 = -1;
@@ -692,7 +703,12 @@ int buildEdges(){/*{{{*/
 				new_edge.cell2 = max(cell1, cell2);
 			}
 
-			out_pair = edge_idx_hash.insert(new_edge);
+			if(new_edge.vertex1 != -1 && new_edge.vertex2 != -1) {
+#ifdef _DEBUG
+				cout << " Adding edge" << endl;
+#endif
+				out_pair = edge_idx_hash.insert(new_edge);
+			}
 		}
 	}
 
@@ -733,15 +749,7 @@ int buildEdges(){/*{{{*/
 			// So, they are exactly the mid point between vertices.
 			// Since the edge will be "owned" by whatever processor owns cell1, make sure edge is close to cell1.
 			// So, fix periodicity relative to cell1.
-
-#ifdef _DEBUG
-			cout << "   Fixing periodicity of vertex 1" << endl;
-#endif
 			vert_loc1.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
-
-#ifdef _DEBUG
-			cout << "   Fixing periodicity of vertex 2" << endl;
-#endif
 			vert_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
 		}
 
@@ -749,9 +757,6 @@ int buildEdges(){/*{{{*/
 			cell_loc2 = cells.at(cell2);
 
 			if(!spherical) {
-#ifdef _DEBUG
-				cout << "   Fixing periodicity of cell 2" << endl;
-#endif
 				cell_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
 				edge_loc = planarIntersect(cell_loc1, cell_loc2, vert_loc1, vert_loc2);
 				dvEdge.at(iEdge) = (vert_loc2 - vert_loc1).magnitude();
