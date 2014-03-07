@@ -105,7 +105,7 @@ string gen_random(const int len);
 
 int main ( int argc, char *argv[] ) {
 	int error;
-	string out_name = "output.nc";
+	string out_name = "mesh.nc";
 	string in_name = "grid.nc";
 
 	cout << endl << endl;
@@ -141,7 +141,7 @@ int main ( int argc, char *argv[] ) {
 
 		cout << "\n";
 		cout << "MPAS_MESH_CONVERTER:\n";
-		cout << "  Output name not specified. Using default of output.nc\n";
+		cout << "  Output name not specified. Using default of mesh.nc\n";
 	}
 	else if (argc == 3)
 	{

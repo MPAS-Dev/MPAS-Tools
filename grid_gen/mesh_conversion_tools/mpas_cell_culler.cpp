@@ -55,8 +55,8 @@ string gen_random(const int len);
 
 int main ( int argc, char *argv[] ) {
 	int error;
-	string out_name = "culled.nc";
-	string in_name = "grid.nc";
+	string out_name = "culled_mesh.nc";
+	string in_name = "mesh.nc";
 
 	cout << endl << endl;
 	cout << "************************************************************" << endl;
@@ -90,7 +90,7 @@ int main ( int argc, char *argv[] ) {
 
 		cout << "\n";
 		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Output name not specified. Using default of culled.nc\n";
+		cout << "  Output name not specified. Using default of culled_mesh.nc\n";
 	}
 	else if (argc == 3)
 	{

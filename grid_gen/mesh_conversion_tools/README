@@ -50,7 +50,7 @@ Usage of mpas_mesh_converter.cpp:
 						   If ommitted, a random string will be placed in the output file.
 	output_name:
 		The output_name should be the name of the NetCDF file that will be generated. It will be a valid MPAS mesh.
-		No initial conditions are placed in this file.
+		No initial conditions are placed in this file. If input_name is specified, output_name defaults to mesh.nc.
 
 
 Usage of mpas_cell_culler.cpp:
@@ -66,6 +66,7 @@ Usage of mpas_cell_culler.cpp:
 	output_name:
 		The output_name should be the name of the NetCDF file that will be generated. It will be the same as the input file,
 		with cells, edges, and vertices removed where appropriate. Also, the cullCell field will be removed.
+		If input_name is specified, outputname defaults to culled_mesh.nc.
 
 
 Notes for mpas_mesh_converter.cpp:
