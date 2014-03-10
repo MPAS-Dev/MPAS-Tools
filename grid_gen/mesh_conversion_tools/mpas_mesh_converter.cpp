@@ -99,6 +99,7 @@ int outputCellParameters(const string outputFilename);
 int outputVertexParameters(const string outputFilename);
 int outputEdgeParameters(const string outputFilename);
 int outputMeshDensity(const string outputFilename);
+int writeGraphFile(const string outputFilename);
 /*}}}*/
 
 string gen_random(const int len);
@@ -242,6 +243,12 @@ int main ( int argc, char *argv[] ) {
 	
 	cout << "Reading and writing meshDensity" << endl;
 	if(error = outputMeshDensity(out_name)){
+		cout << "Error - " << error << endl;
+		exit(error);
+	}
+
+	cout << "Write graph.info file" << endl;
+	if(error = writeGraphFile("graph.info")){
 		cout << "Error - " << error << endl;
 		exit(error);
 	}
@@ -2493,6 +2500,22 @@ int outputMeshDensity( const string outputFilename) {/*{{{*/
 	//Write meshDensity
 	if (!(cDensVar = grid.add_var("meshDensity", ncDouble, nCellsDim))) return NC_ERR;
 	if (!cDensVar->put(&meshDensity.at(0),nCells)) return NC_ERR;
+
+	return 0;
+}/*}}}*/
+int writeGraphFile(const string outputFilename){/*{{{*/
+	ofstream graph(outputFilename.c_str());
+
+	graph << cells.size() << " " << edges.size() << endl;
+
+	for(int i = 0; i < cellsOnCell.size(); i++){
+		for(int j = 0; j < cellsOnCell.at(i).size(); j++){
+			graph << cellsOnCell.at(i).at(j)+1 << " ";
+		}
+		graph << endl;
+	}
+
+	graph.close();
 
 	return 0;
 }/*}}}*/

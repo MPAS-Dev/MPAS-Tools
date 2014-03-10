@@ -140,7 +140,7 @@ int main ( int argc, char *argv[] ) {
 		exit(error);
 	}
 
-	cout << "Mapping and writing cell fields" << endl;
+	cout << "Mapping and writing cell fields and culled_graph.info" << endl;
 	if(error = mapAndOutputCellFields(in_name, out_name)){
 		cout << "Error - " << error << endl;
 		exit(error);
@@ -723,6 +723,8 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 	 * areaCell
 	 * meshDensity
 	 *
+	 * It also writes the graph.info file which can be used to decompose the mesh.
+	 *
 	 * ***************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
@@ -738,10 +740,12 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 	
 	// fetch dimensions
 	NcDim *nCellsDim = grid.get_dim( "nCells" );
+	NcDim *nEdgesDim = grid.get_dim( "nEdges" );
 	NcDim *maxEdgesDim;
 	NcDim *maxEdges2Dim;
 
 	int nCellsNew = nCellsDim->size();
+	int nEdgesNew = nEdgesDim->size();
 	int maxEdgesNew;
 	int edgeCount;
 
@@ -814,6 +818,30 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 
 	netcdf_mpas_read_cellsoncell ( inputFilename, nCells, maxEdges, tmp_arr_old );
 
+	// Determine number of edges in graph
+	edgeCount = 0;
+
+	// Map cellsOnCell
+	for(int iCell = 0; iCell < nCells; iCell++){
+		if(cellMap.at(iCell) != -1){
+			for(int j = 0; j < maxEdgesNew; j++){
+				int coc = tmp_arr_old[iCell*maxEdges + j] - 1;
+
+				if(coc != -1 && coc < cellMap.size()){
+					if(cellMap.at(coc) != -1) {
+						edgeCount++;
+					}
+				}
+			}
+		}
+	}
+
+	edgeCount = edgeCount / 2;
+
+	// Build graph.info file
+	ofstream graph("culled_graph.info");
+
+	graph << nCellsNew << " " << edgeCount << endl;
 	// Map cellsOnCell
 	for(int iCell = 0; iCell < nCells; iCell++){
 		if(cellMap.at(iCell) != -1){
@@ -822,12 +850,17 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 
 				if(coc != -1 && coc < cellMap.size()){
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = cellMap.at(coc)+1;
+					if(cellMap.at(coc) != -1) {
+						graph << cellMap.at(coc)+1 << " ";
+					}
 				} else {
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = 0;
 				}
 			}
+			graph << endl;
 		}
 	}
+	graph.close();
 
 	if (!(cocVar = grid.add_var("cellsOnCell", ncInt, nCellsDim, maxEdgesDim))) return NC_ERR;
 	if (!cocVar->put(tmp_arr_new,nCellsNew,maxEdgesNew)) return NC_ERR;
