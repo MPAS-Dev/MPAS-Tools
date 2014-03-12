@@ -416,19 +416,27 @@ int readGridInput(const string inputFilename){/*{{{*/
 		if(vertexDegree == 4){
 			if(xOffset < 0.0){
 				xPeriodicFix = xCellRange[0] + xCellRange[1];
+			} else {
+				xPeriodicFix = xOffset;
 			}
 
 			if(yOffset < 0.0){
 				yPeriodicFix = yCellRange[0] + yCellRange[1];
+			} else {
+				yPeriodicFix = yOffset;
 			}
 		// Triangles can be staggered, so only offset my max distance
 		} else {
 			if(xOffset < 0.0){
 				xPeriodicFix = xCellRange[1];
+			} else {
+				xPeriodicFix = xOffset;
 			}
 
 			if(yOffset < 0.0){
 				yPeriodicFix = yCellRange[1];
+			} else {
+				yPeriodicFix = yOffset;
 			}
 		}
 	} else {
@@ -445,6 +453,8 @@ int readGridInput(const string inputFilename){/*{{{*/
 	cout << "vertex Distances: " << xVertexDistance << " " << yVertexDistance << " " << zVertexDistance << endl;
 	cout << "xPeriodicFix: " << xPeriodicFix << endl;
 	cout << "yPeriodicFix: " << yPeriodicFix << endl;
+	cout << "xOffset: " << xOffset << endl;
+	cout << "yOffset: " << yOffset << endl;
 #endif
 
 	if(!spherical && (zCellDistance > 0.0 || zVertexDistance > 0.0)){
