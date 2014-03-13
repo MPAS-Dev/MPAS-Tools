@@ -353,11 +353,13 @@ int markEdges(){/*{{{*/
 		// Only keep an edge if it has two vertices
 		// after vertex removal and at least one cell
 		// after cell removal.
-		keep_edge = cellMap.at(cell1) != -1;
+		keep_edge = false;
 		if(cell2 != -1){
-			keep_edge = keep_edge || cellMap.at(cell2) != -1;
+			keep_edge = keep_edge || (cellMap.at(cell1) != -1 && cellMap.at(cell2) != -1);
 		}
-		keep_edge = keep_edge && (vertexMap.at(vertex1) != -1) && (vertexMap.at(vertex2) != -1);
+		if(vertex2 != -1){
+			keep_edge = keep_edge || (vertexMap.at(vertex1) != -1 && vertexMap.at(vertex2) != -1);
+		}
 
 		if(keep_edge){
 			edgeMap.at(iEdge) = new_idx;
