@@ -1370,15 +1370,17 @@ int buildAreas(){/*{{{*/
 					vertex2 = verticesOnEdge.at(iEdge).at(0);
 				}
 
-				vert_loc1 = vertices.at(vertex1);
-				vert_loc2 = vertices.at(vertex2);
+				if(vertex1 != -1 && vertex2 != -1){
+					vert_loc1 = vertices.at(vertex1);
+					vert_loc2 = vertices.at(vertex2);
 
-				if(!spherical){
-					vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-					vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-					areaCell.at(iCell) += planarTriangleArea(cells.at(iCell), vert_loc1, vert_loc2);
-				} else {
-					areaCell.at(iCell) += sphericalTriangleArea(cells.at(iCell), vert_loc1, vert_loc2);
+					if(!spherical){
+						vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+						vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+						areaCell.at(iCell) += planarTriangleArea(cells.at(iCell), vert_loc1, vert_loc2);
+					} else {
+						areaCell.at(iCell) += sphericalTriangleArea(cells.at(iCell), vert_loc1, vert_loc2);
+					}
 				}
 			}
 		} else {
