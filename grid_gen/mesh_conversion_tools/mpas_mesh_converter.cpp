@@ -43,6 +43,7 @@ string in_parent_id = "";
 vector<pnt> cells;
 vector<pnt> edges;
 vector<pnt> vertices;
+vector<int> completeCellMask;
 vector< vector<int> > nEdgesOnCell;
 vector< vector<int> > cellsOnEdge;
 vector< vector<int> > verticesOnEdge;
@@ -80,6 +81,7 @@ struct int_hasher {/*{{{*/
 int readGridInput(const string inputFilename);
 int buildUnorderedCellConnectivity();
 int firstOrderingVerticesOnCell();
+int buildCompleteCellMask();
 int buildEdges();
 int orderVertexArrays();
 int orderCellArrays();
@@ -168,6 +170,10 @@ int main ( int argc, char *argv[] ) {
 
 	cout << "Order vertices on cell." << endl;
 	error = firstOrderingVerticesOnCell();
+	if(error) return 1;
+
+	cout << "Build complete cell mask." << endl;
+	error = buildCompleteCellMask();
 	if(error) return 1;
 
 	cout << "Build and order edges," << endl;
@@ -671,6 +677,114 @@ int firstOrderingVerticesOnCell(){/*{{{*/
 	
 	return 0;
 }/*}}}*/
+int buildCompleteCellMask(){/*{{{*/
+	/*
+	 * The buildCompleteCellMask function parses unordered cellsOnCell and
+	 * verticesOnCell fields to determine if a cell is complete. It takes each
+	 * cell-cell pair (from cellsOnCell) and determines the two shared vertices
+	 * between them. If only one vertex is shared, the "edge" is skipped.
+	 *
+	 * If two vertices are shared, the angle between the two vertices is
+	 * computed. These angles are summed up around each cell. If the total
+	 * angle is close to 2.0*Pi then the cell is marked as complete. Otherwise
+	 * it is marked as incomplete.
+	 *
+	 * The complete check is used when building edges. If an edge only has one
+	 * vertex, but is connected to two complete cells, the edge is not added to
+	 * the set. This resolves an issue related to quad grids, where a possible
+	 * edge connects two cells across a vertex (where the edge mid point would
+	 * be the vertex location). Using this check removes these edges from the
+	 * possible set of edges.
+	 *
+	 */
+	int iCell, iCell2, vertex1, vertex2;
+	int j, k, l;
+	pnt vert_loc1, vert_loc2;
+	pnt vec1, vec2;
+	double angle, angle_sum;
+	bool complete;
+
+	completeCellMask.clear();
+	completeCellMask.resize(cells.size());
+
+	// Iterate over all cells
+	for(iCell = 0; iCell < cells.size(); iCell++){
+		complete = false;
+		angle_sum = 0.0;
+
+#ifdef _DEBUG
+		cout << "  Checking " << iCell << " for completeness" << endl;
+#endif
+
+		// Iterate over all neighboring cells
+		for(j = 0; j < cellsOnCell.at(iCell).size(); j++){
+			iCell2 = cellsOnCell.at(iCell).at(j);
+
+			// Need to find up to two shared vertices between these cells.
+			vertex1 = -1;
+			vertex2 = -1;
+			for(k = 0; k < verticesOnCell.at(iCell).size(); k++){
+				if(verticesOnCell.at(iCell).at(k) != -1){
+					for(l = 0; l < verticesOnCell.at(iCell2).size(); l++){
+						if(verticesOnCell.at(iCell).at(k) == verticesOnCell.at(iCell2).at(l)){
+							if(vertex1 == -1){
+								vertex1 = verticesOnCell.at(iCell).at(k);
+							} else {
+								vertex2 = verticesOnCell.at(iCell).at(k);
+							}
+						}
+					}
+				}
+			}
+
+#ifdef _DEBUG
+			cout << "      Vertex 1: " << vertex1 << endl;
+			cout << "      Vertex 2: " << vertex2 << endl;
+#endif
+
+			if(vertex1 != -1 && vertex2 != -1){
+				vert_loc1 = vertices.at(vertex1);
+				vert_loc2 = vertices.at(vertex2);
+
+				if(!spherical){
+					vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+					vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+				}
+
+				vec1 = vert_loc1 - cells.at(iCell);
+				vec2 = vert_loc2 - cells.at(iCell);
+
+				angle = acos( vec2.dot(vec1) / (vec1.magnitude() * vec2.magnitude()));
+				angle_sum += angle;
+#ifdef _DEBUG
+				cout << "        adding angle (rad) : " << angle << endl;
+				cout << "        adding angle (deg) : " << angle * 180.0 / M_PI << endl;
+				cout << "        new sum : " << angle_sum << endl;
+#endif
+			}
+		}
+
+		if(angle_sum > 2.0 * M_PI * 0.9){
+			complete = true;
+		}
+
+#ifdef _DEBUG
+		if(complete){
+			cout << "   Is complete!" << endl;
+		} else {
+			cout << "   Is not complete!" << endl;
+		}
+#endif
+
+		if(complete){
+			completeCellMask.at(iCell) = 1;
+		} else {
+			completeCellMask.at(iCell) = 0;
+		}
+	}
+
+	return 0;
+}/*}}}*/
 int buildEdges(){/*{{{*/
 	/*
 	 * buildEdges is intended to build a hash table that contains the
@@ -706,7 +820,7 @@ int buildEdges(){/*{{{*/
 	double vert1_x_movement, vert1_y_movement;
 	double vert2_x_movement, vert2_y_movement;
 	double temp, dot;
-	bool fixed_edge;
+	bool fixed_edge, add_edge;
 
 #ifdef _DEBUG
 	cout << endl << endl << "Begin function: buildEdges" << endl << endl;
@@ -770,8 +884,26 @@ int buildEdges(){/*{{{*/
 				new_edge.cell1 = min(cell1, cell2);
 				new_edge.cell2 = max(cell1, cell2);
 			}
+			add_edge = true;
 
-			if(new_edge.vertex1 != -1 || new_edge.vertex2 != -1) {
+			if(new_edge.vertex1 == -1 || new_edge.vertex2 == -1){
+				if(new_edge.cell1 == -1 || new_edge.cell2 == -1){
+					add_edge = false;
+				}
+
+#ifdef _DEBUG
+				cout << "   Cell 1 complete: " << completeCellMask.at(new_edge.cell1) << endl;
+				cout << "   Cell 2 complete: " << completeCellMask.at(new_edge.cell2) << endl;
+#endif
+
+				if(completeCellMask.at(new_edge.cell1) != 0 || completeCellMask.at(new_edge.cell2) != 0){
+					add_edge = false;
+				}
+			}
+
+
+			//if(new_edge.vertex1 != -1 || new_edge.vertex2 != -1) {
+			if(add_edge){
 #ifdef _DEBUG
 				cout << " Adding edge" << endl;
 #endif
@@ -779,6 +911,10 @@ int buildEdges(){/*{{{*/
 				if(out_pair.second == false){
 					cout << " Failed to add edge." << endl;
 				}
+			} else {
+#ifdef _DEBUG
+				cout << " Not adding edge" << endl;
+#endif
 			}
 		}
 	}
