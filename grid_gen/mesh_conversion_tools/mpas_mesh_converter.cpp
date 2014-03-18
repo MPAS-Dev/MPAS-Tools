@@ -1491,9 +1491,7 @@ int orderCellArrays(){/*{{{*/
 			if(cellsOnEdge.at(iEdge).at(0) == iCell){
 				cellsOnCell.at(iCell).push_back(cellsOnEdge.at(iEdge).at(1));
 
-				if(verticesOnEdge.at(iEdge).at(1) == -1){
-					verticesOnCell.at(iCell).push_back(verticesOnEdge.at(iEdge).at(0));
-				} else { 
+				if(verticesOnEdge.at(iEdge).at(1) != -1){
 					verticesOnCell.at(iCell).push_back(verticesOnEdge.at(iEdge).at(1));
 				}
 			} else {
