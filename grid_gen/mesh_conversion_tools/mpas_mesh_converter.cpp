@@ -837,83 +837,95 @@ int buildEdges(){/*{{{*/
 
 	land = 0;
 
-	// Make edges from every pair of cells.
-	// Only valid edges contain two cells and two vertices.
+	// Build all edges
 	for(iCell = 0; iCell < cells.size(); iCell++){
-		for(l = 0; l < cellsOnCell.at(iCell).size(); l++){
-			cell1 = iCell;
-			cell2 = cellsOnCell.at(iCell).at(l);
+		if(completeCellMask.at(iCell) == 1) {
+			// Build edges from every vertex/vertex pair around a cell if the cell is complete
+			for(l = 0; l < verticesOnCell.at(iCell).size()-1; l++){
+				vertex1 = verticesOnCell.at(iCell).at(l);	
+				vertex2 = verticesOnCell.at(iCell).at(l+1);	
 
-			// Find vertex pair for cell pair
-			vertex1 = -1;
-			vertex2 = -1;
-
-			for(j = 0; j < verticesOnCell.at(cell1).size(); j++){
-				if(cell2 != -1){
-					for(k = 0; k < verticesOnCell.at(cell2).size(); k++){
-						if(verticesOnCell.at(cell1).at(j) == verticesOnCell.at(cell2).at(k)) {
-							if(vertex1 == -1){
-								vertex1 = verticesOnCell.at(cell1).at(j);	
-							} else if(vertex2 == -1) {
-								vertex2 = verticesOnCell.at(cell1).at(j);
-							} else {
-								cout << " Found more than 2 vertices for edge? " << endl;
+				// Find cell shaerd by vertices, that's not iCell
+				cell1 = iCell;
+				cell2 = -1;
+				for(j = 0; j < cellsOnVertex.at(vertex1).size(); j++){
+					if(cellsOnVertex.at(vertex1).at(j) != -1 && cellsOnVertex.at(vertex1).at(j) != iCell){
+						for(k = 0; k < cellsOnVertex.at(vertex2).size(); k++){
+							if(cellsOnVertex.at(vertex1).at(j) == cellsOnVertex.at(vertex2).at(k)){
+								cell2 = cellsOnVertex.at(vertex1).at(j);
 							}
+						}
+					}
+				}
+
+				add_edge = true;
+
+				if(vertex1 != -1 && vertex2 != -1){
+					new_edge.vertex1 = min(vertex1, vertex2);
+					new_edge.vertex2 = max(vertex1, vertex2);
+
+					if(cell2 != -1){
+						new_edge.cell1 = min(cell1, cell2);
+						new_edge.cell2 = max(cell1, cell2);
+					} else {
+						new_edge.cell1 = cell1;
+						new_edge.cell2 = cell2;
+					}
+
+				} else {
+					add_edge = false;
+				}
+
+				if(add_edge){
+#ifdef _DEBUG
+					cout << " Adding edge" << endl;
+#endif
+					out_pair = edge_idx_hash.insert(new_edge);
+					if(out_pair.second == false){
+						cout << " Failed to add edge." << endl;
+					}
+				} else {
+#ifdef _DEBUG
+					cout << " Not adding edge" << endl;
+#endif
+				}
+
+			}
+
+			vertex1 = verticesOnCell.at(iCell).at(verticesOnCell.at(iCell).size() - 1);
+			vertex2 = verticesOnCell.at(iCell).at(0);
+
+			// Find cell shaerd by vertices, that's not iCell
+			cell1 = iCell;
+			cell2 = -1;
+			for(j = 0; j < cellsOnVertex.at(vertex1).size(); j++){
+				if(cellsOnVertex.at(vertex1).at(j) != -1 && cellsOnVertex.at(vertex1).at(j) != iCell){
+					for(k = 0; k < cellsOnVertex.at(vertex2).size(); k++){
+						if(cellsOnVertex.at(vertex1).at(j) == cellsOnVertex.at(vertex2).at(k)){
+							cell2 = cellsOnVertex.at(vertex1).at(j);
 						}
 					}
 				}
 			}
 
-			if(vertex2 == -1) {
-				new_edge.vertex1 = vertex1;
-				new_edge.vertex2 = vertex2;
-			} else {
-				new_edge.vertex1 = min(vertex1, vertex2);
-				new_edge.vertex2 = max(vertex1, vertex2);
-			}
-
-#ifdef _DEBUG
-			cout << "  Starting edge: " << endl;
-			cout << "      vertex 1 : " << vertex1 << endl;
-			cout << "      vertex 2 : " << vertex2 << endl;
-			cout << "      cell 1 : " << cell1 << endl;
-			cout << "      cell 2 : " << cell2 << endl;
-
-			if(new_edge.vertex1 == -1){
-				cout << "  Edge is missing vertex 1" << endl;
-			} else if(new_edge.vertex2 == -1){
-				cout << "  Edge is missing vertex 2" << endl;
-			}
-#endif
-
-			if(cell2 == -1){
-				new_edge.cell1 = cell1;
-				new_edge.cell2 = -1;
-			} else {
-				new_edge.cell1 = min(cell1, cell2);
-				new_edge.cell2 = max(cell1, cell2);
-			}
 			add_edge = true;
 
-			if(new_edge.vertex1 == -1 || new_edge.vertex2 == -1){
-				if(new_edge.cell1 == -1 || new_edge.cell2 == -1){
-					add_edge = false;
+			if(vertex1 != -1 && vertex2 != -1){
+				new_edge.vertex1 = min(vertex1, vertex2);
+				new_edge.vertex2 = max(vertex1, vertex2);
+
+				if(cell2 != -1){
+					new_edge.cell1 = min(cell1, cell2);
+					new_edge.cell2 = max(cell1, cell2);
+				} else {
+					new_edge.cell1 = cell1;
+					new_edge.cell2 = cell2;
 				}
 
-#ifdef _DEBUG
-				cout << "   Cell 1 complete: " << completeCellMask.at(new_edge.cell1) << endl;
-				if(new_edge.cell2 != -1) {
-					cout << "   Cell 2 complete: " << completeCellMask.at(new_edge.cell2) << endl;
-				}
-#endif
-
-				if(completeCellMask.at(new_edge.cell1) != 0 || (new_edge.cell2 != -1 && completeCellMask.at(new_edge.cell2) != 0) ){
-					add_edge = false;
-				}
+			} else {
+				add_edge = false;
 			}
 
-
-			//if(new_edge.vertex1 != -1 || new_edge.vertex2 != -1) {
 			if(add_edge){
 #ifdef _DEBUG
 				cout << " Adding edge" << endl;
@@ -926,6 +938,96 @@ int buildEdges(){/*{{{*/
 #ifdef _DEBUG
 				cout << " Not adding edge" << endl;
 #endif
+			}
+
+		} else {
+			// Build edges from every cell/cell pair only if cell is not complete
+			for(l = 0; l < cellsOnCell.at(iCell).size(); l++){
+				cell1 = iCell;
+				cell2 = cellsOnCell.at(iCell).at(l);
+
+				// Find vertex pair for cell pair
+				vertex1 = -1;
+				vertex2 = -1;
+
+				for(j = 0; j < verticesOnCell.at(cell1).size(); j++){
+					if(cell2 != -1){
+						for(k = 0; k < verticesOnCell.at(cell2).size(); k++){
+							if(verticesOnCell.at(cell1).at(j) == verticesOnCell.at(cell2).at(k)) {
+								if(vertex1 == -1){
+									vertex1 = verticesOnCell.at(cell1).at(j);	
+								} else if(vertex2 == -1) {
+									vertex2 = verticesOnCell.at(cell1).at(j);
+								} else {
+									cout << " Found more than 2 vertices for edge? " << endl;
+								}
+							}
+						}
+					}
+				}
+
+				if(vertex2 == -1) {
+					new_edge.vertex1 = vertex1;
+					new_edge.vertex2 = vertex2;
+				} else {
+					new_edge.vertex1 = min(vertex1, vertex2);
+					new_edge.vertex2 = max(vertex1, vertex2);
+				}
+
+#ifdef _DEBUG
+				cout << "  Starting edge: " << endl;
+				cout << "      vertex 1 : " << vertex1 << endl;
+				cout << "      vertex 2 : " << vertex2 << endl;
+				cout << "      cell 1 : " << cell1 << endl;
+				cout << "      cell 2 : " << cell2 << endl;
+
+				if(new_edge.vertex1 == -1){
+					cout << "  Edge is missing vertex 1" << endl;
+				} else if(new_edge.vertex2 == -1){
+					cout << "  Edge is missing vertex 2" << endl;
+				}
+#endif
+
+				if(cell2 == -1){
+					new_edge.cell1 = cell1;
+					new_edge.cell2 = -1;
+				} else {
+					new_edge.cell1 = min(cell1, cell2);
+					new_edge.cell2 = max(cell1, cell2);
+				}
+				add_edge = true;
+
+				if(new_edge.vertex1 == -1 || new_edge.vertex2 == -1){
+					if(new_edge.cell1 == -1 || new_edge.cell2 == -1){
+						add_edge = false;
+					}
+
+#ifdef _DEBUG
+					cout << "   Cell 1 complete: " << completeCellMask.at(new_edge.cell1) << endl;
+					if(new_edge.cell2 != -1) {
+						cout << "   Cell 2 complete: " << completeCellMask.at(new_edge.cell2) << endl;
+					}
+#endif
+
+					if(completeCellMask.at(new_edge.cell1) != 0 || (new_edge.cell2 != -1 && completeCellMask.at(new_edge.cell2) != 0) ){
+						add_edge = false;
+					}
+				}
+
+
+				if(add_edge){
+#ifdef _DEBUG
+					cout << " Adding edge" << endl;
+#endif
+					out_pair = edge_idx_hash.insert(new_edge);
+					if(out_pair.second == false){
+						cout << " Failed to add edge." << endl;
+					}
+				} else {
+#ifdef _DEBUG
+					cout << " Not adding edge" << endl;
+#endif
+				}
 			}
 		}
 	}
@@ -1486,8 +1588,6 @@ int buildAreas(){/*{{{*/
 	pnt edge_loc1, edge_loc2;
 	pnt cell_loc;
 	pnt vec1, vec2;
-	double angle_sum;
-	double angle;
 
 #ifdef _DEBUG
 	cout << endl << endl << "Begin function: buildAreas" << endl << endl;
@@ -1503,34 +1603,8 @@ int buildAreas(){/*{{{*/
 
 	for(iCell = 0; iCell < cells.size(); iCell++){
 		areaCell.at(iCell) = 0.0;
-
-		// Check for full cells, by summing the angles between the two vertices of each edge.
-		// If they sum to something close to 2*Pi, it's a full cell, otherwise it's not.
-		// Non-complete cells get negative area so we can easily remove later.
-		angle_sum = 0.0;
-		for(j = 0; j < edgesOnCell.at(iCell).size(); j++){
-			iEdge = edgesOnCell.at(iCell).at(j);
-			vertex1 = verticesOnEdge.at(iEdge).at(0);
-			vertex2 = verticesOnEdge.at(iEdge).at(1);
-
-			if(vertex2 != -1){
-				vert_loc1 = vertices.at(vertex1);
-				vert_loc2 = vertices.at(vertex2);
-
-				if(!spherical){
-					vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-					vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-				}
-
-				vec1 = vert_loc1 - cells.at(iCell);
-				vec2 = vert_loc2 - cells.at(iCell);
-
-				angle = acos( vec2.dot(vec1) / (vec1.magnitude() * vec2.magnitude()));
-				angle_sum += angle;
-			}
-		}
-
-		if(angle_sum > 2.0 * M_PI * 0.9){ // Not likely to be a full cell if angle_sum is less than 90% of 2*Pi
+		
+		if(completeCellMask.at(iCell) == 1){
 			for(j = 0; j < edgesOnCell.at(iCell).size(); j++){
 				iEdge = edgesOnCell.at(iCell).at(j);
 
@@ -1557,8 +1631,6 @@ int buildAreas(){/*{{{*/
 			}
 		} else {
 			cout << "   Non complete cell found at " << iCell << endl;
-			cout << "   angles (rad) sum to " << angle_sum << endl;
-			cout << "   angles (deg) sum to " << angle_sum*180.0/M_PI << endl;
 			areaCell.at(iCell) = -1;
 		}
 	}
