@@ -559,7 +559,8 @@ int firstOrderingVerticesOnCell(){/*{{{*/
 
 	for(iCell = 0; iCell < cells.size(); iCell++){
 #ifdef _DEBUG
-		cout << "new cell:" << endl;
+		cout << "new cell: " << iCell << endl;
+		cout << "    " << cells.at(iCell) << endl;
 #endif
 		if(spherical){
 			normal = cells.at(iCell);
@@ -674,7 +675,7 @@ int firstOrderingVerticesOnCell(){/*{{{*/
 		}
 #endif
 	}
-	
+
 	return 0;
 }/*}}}*/
 int buildCompleteCellMask(){/*{{{*/
@@ -700,28 +701,80 @@ int buildCompleteCellMask(){/*{{{*/
 	int j, k, l;
 	pnt vert_loc1, vert_loc2;
 	pnt vec1, vec2;
-	double angle, angle_sum;
+	pnt cross, normal;
+	double angle, angle_sum, dot;
 	bool complete;
 
 	completeCellMask.clear();
 	completeCellMask.resize(cells.size());
+
+	if(!spherical) {
+		normal = pnt(0.0, 0.0, 1.0);
+	}
 
 	// Iterate over all cells
 	for(iCell = 0; iCell < cells.size(); iCell++){
 		complete = false;
 		angle_sum = 0.0;
 
+		if(spherical){
+			normal = cells.at(iCell);
+		}
+
 #ifdef _DEBUG
 		cout << "  Checking " << iCell << " for completeness" << endl;
+		cout << "           " << cells.at(iCell) << endl;
 #endif
 
 		// Since verticesOnEdge is ordered already, compute angles between
 		// neighboring vertex/vertex pairs if they are both valid vertices. Sum
 		// the angles, and if the angles are close to 2.0 * Pi then the cell is
 		// "complete"
-		for(j = 0; j < verticesOnCell.at(iCell).size()-1; j++){
-			vertex1 = verticesOnCell.at(iCell).at(j);
-			vertex2 = verticesOnCell.at(iCell).at(j+1);
+		if(verticesOnCell.at(iCell).size() >= cellsOnCell.at(iCell).size()){
+			for(j = 0; j < verticesOnCell.at(iCell).size()-1; j++){
+				vertex1 = verticesOnCell.at(iCell).at(j);
+				vertex2 = verticesOnCell.at(iCell).at(j+1);
+
+				if(vertex1 != -1 && vertex2 != -1){
+					vert_loc1 = vertices.at(vertex1);
+					vert_loc2 = vertices.at(vertex2);
+
+					if(!spherical){
+						vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+						vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+					}
+
+					vec1 = vert_loc1 - cells.at(iCell);
+					vec2 = vert_loc2 - cells.at(iCell);
+
+					cross = vec1.cross(vec2);
+					dot = cross.dot(normal);
+
+#ifdef _DEBUG
+					cout << "         vec1 : " << vec1 << endl;
+					cout << "         vec2 : " << vec2 << endl;
+					cout << "        cross : " << cross << endl;
+					cout << "          dot : " << dot << endl;
+#endif
+
+					if(dot > 0){
+
+						angle = acos( vec2.dot(vec1) / (vec1.magnitude() * vec2.magnitude()));
+						angle_sum += angle;
+
+#ifdef _DEBUG
+						cout << "        adding angle (rad) : " << angle << endl;
+						cout << "        adding angle (deg) : " << angle * 180.0 / M_PI << endl;
+						cout << "        new sum : " << angle_sum << endl;
+#endif
+					} else {
+						cout << "     complete check has non CCW edge..." << endl;
+					}
+				}
+			}
+
+			vertex1 = verticesOnCell.at(iCell).at(verticesOnCell.at(iCell).size() - 1);
+			vertex2 = verticesOnCell.at(iCell).at(0);
 
 			if(vertex1 != -1 && vertex2 != -1){
 				vert_loc1 = vertices.at(vertex1);
@@ -735,40 +788,30 @@ int buildCompleteCellMask(){/*{{{*/
 				vec1 = vert_loc1 - cells.at(iCell);
 				vec2 = vert_loc2 - cells.at(iCell);
 
-				angle = acos( vec2.dot(vec1) / (vec1.magnitude() * vec2.magnitude()));
-				angle_sum += angle;
+				cross = vec1.cross(vec2);
+				dot = cross.dot(normal);
 
 #ifdef _DEBUG
-				cout << "        adding angle (rad) : " << angle << endl;
-				cout << "        adding angle (deg) : " << angle * 180.0 / M_PI << endl;
-				cout << "        new sum : " << angle_sum << endl;
+				cout << "         vec1 : " << vec1 << endl;
+				cout << "         vec2 : " << vec2 << endl;
+				cout << "        cross : " << cross << endl;
+				cout << "          dot : " << dot << endl;
 #endif
-			}
-		}
 
-		vertex1 = verticesOnCell.at(iCell).at(verticesOnCell.at(iCell).size() - 1);
-		vertex2 = verticesOnCell.at(iCell).at(0);
+				if(dot > 0) {
 
-		if(vertex1 != -1 && vertex2 != -1){
-			vert_loc1 = vertices.at(vertex1);
-			vert_loc2 = vertices.at(vertex2);
-
-			if(!spherical){
-				vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-				vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-			}
-
-			vec1 = vert_loc1 - cells.at(iCell);
-			vec2 = vert_loc2 - cells.at(iCell);
-
-			angle = acos( vec2.dot(vec1) / (vec1.magnitude() * vec2.magnitude()));
-			angle_sum += angle;
+					angle = acos( vec2.dot(vec1) / (vec1.magnitude() * vec2.magnitude()));
+					angle_sum += angle;
 
 #ifdef _DEBUG
-			cout << "        adding angle (rad) : " << angle << endl;
-			cout << "        adding angle (deg) : " << angle * 180.0 / M_PI << endl;
-			cout << "        new sum : " << angle_sum << endl;
+					cout << "        adding angle (rad) : " << angle << endl;
+					cout << "        adding angle (deg) : " << angle * 180.0 / M_PI << endl;
+					cout << "        new sum : " << angle_sum << endl;
 #endif
+				} else {
+					cout << "     complete check has non CCW edge..." << endl;
+				}
+			}
 		}
 
 		if(angle_sum > 2.0 * M_PI * 0.98){
@@ -860,6 +903,14 @@ int buildEdges(){/*{{{*/
 
 				add_edge = true;
 
+#ifdef _DEBUG
+				cout << "1 Starting edge: " << endl;
+				cout << "      vertex 1 : " << vertex1 << endl;
+				cout << "      vertex 2 : " << vertex2 << endl;
+				cout << "      cell 1 : " << cell1 << endl;
+				cout << "      cell 2 : " << cell2 << endl;
+#endif
+
 				if(vertex1 != -1 && vertex2 != -1){
 					new_edge.vertex1 = min(vertex1, vertex2);
 					new_edge.vertex2 = max(vertex1, vertex2);
@@ -909,6 +960,14 @@ int buildEdges(){/*{{{*/
 			}
 
 			add_edge = true;
+
+#ifdef _DEBUG
+			cout << "  Starting edge: " << endl;
+			cout << "      vertex 1 : " << vertex1 << endl;
+			cout << "      vertex 2 : " << vertex2 << endl;
+			cout << "      cell 1 : " << cell1 << endl;
+			cout << "      cell 2 : " << cell2 << endl;
+#endif
 
 			if(vertex1 != -1 && vertex2 != -1){
 				new_edge.vertex1 = min(vertex1, vertex2);
@@ -1292,6 +1351,14 @@ int orderVertexArrays(){/*{{{*/
 			}
 		}
 
+#ifdef _DEBUG
+		cout << "edgesOnVertex("<< iVertex <<"): ";
+		for(j = 0; j < edgesOnVertex.at(iVertex).size(); j++){
+			cout << edgesOnVertex.at(iVertex).at(j) << " ";
+		}
+		cout << endl;
+#endif
+
 		cellsOnVertex.at(iVertex).clear();
 #ifdef _DEBUG
 		cout << "CellsOnVertex("<< iVertex << "): ";
@@ -1318,7 +1385,7 @@ int orderVertexArrays(){/*{{{*/
 			}
 		}
 #ifdef _DEBUG
-		cout << endl;
+		cout << endl << endl;
 #endif
 	}/*}}}*/
 
