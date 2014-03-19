@@ -176,8 +176,7 @@ int main ( int argc, char *argv[] ) {
 	error = buildCompleteCellMask();
 	if(error) return 1;
 
-	cout << "Build and order edges," << endl;
-	cout << "   dvEdge, and dcEdge." << endl;
+	cout << "Build and order edges, dvEdge, and dcEdge." << endl;
 	error = buildEdges();
 	if(error) return 1;
 
@@ -932,9 +931,12 @@ int buildEdges(){/*{{{*/
 					cout << " Adding edge" << endl;
 #endif
 					out_pair = edge_idx_hash.insert(new_edge);
+
+#ifdef _DEBUG
 					if(out_pair.second == false){
 						cout << " Failed to add edge." << endl;
 					}
+#endif
 				} else {
 #ifdef _DEBUG
 					cout << " Not adding edge" << endl;
@@ -990,9 +992,11 @@ int buildEdges(){/*{{{*/
 				cout << " Adding edge" << endl;
 #endif
 				out_pair = edge_idx_hash.insert(new_edge);
+#ifdef _DEBUG
 				if(out_pair.second == false){
 					cout << " Failed to add edge." << endl;
 				}
+#endif
 			} else {
 #ifdef _DEBUG
 				cout << " Not adding edge" << endl;
@@ -1079,9 +1083,11 @@ int buildEdges(){/*{{{*/
 					cout << " Adding edge" << endl;
 #endif
 					out_pair = edge_idx_hash.insert(new_edge);
+#ifdef _DEBUG
 					if(out_pair.second == false){
 						cout << " Failed to add edge." << endl;
 					}
+#endif
 				} else {
 #ifdef _DEBUG
 					cout << " Not adding edge" << endl;
@@ -1649,6 +1655,7 @@ int buildAreas(){/*{{{*/
 	int iVertex, iCell, iEdge, i, j;
 	int vertex1, vertex2;
 	int edge1, edge2;
+	int incomplete_cells;
 	pnt vert_loc1, vert_loc2;
 	pnt edge_loc1, edge_loc2;
 	pnt cell_loc;
@@ -1665,6 +1672,8 @@ int buildAreas(){/*{{{*/
 	areaCell.resize(cells.size());
 	areaTriangle.resize(vertices.size());
 	kiteAreasOnVertex.resize(vertices.size());
+
+	incomplete_cells = 0;
 
 	for(iCell = 0; iCell < cells.size(); iCell++){
 		areaCell.at(iCell) = 0.0;
@@ -1695,7 +1704,10 @@ int buildAreas(){/*{{{*/
 				}
 			}
 		} else {
+			incomplete_cells++;
+#ifdef _DEBUG
 			cout << "   Non complete cell found at " << iCell << endl;
+#endif
 			areaCell.at(iCell) = -1;
 		}
 	}
@@ -1735,6 +1747,8 @@ int buildAreas(){/*{{{*/
 			}
 		}
 	}
+
+	cout << "     Found " << incomplete_cells << " incomplete cells. Each is marked with an area of -1." << endl;
 
 	return 0;
 }/*}}}*/
