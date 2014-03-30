@@ -6,8 +6,8 @@
 DensityFunction::DensityFunction()
 {
 	minX = minY = 0.0;
-	maxX = 100000.0;
-	maxY = 86602.5;
+	maxX = 40.0;
+	maxY = 40.0 * 0.866025403784439;
 }
 
 
@@ -28,7 +28,7 @@ double DensityFunction::f(double x, double y)
 	double x0 = 0.5*(minX + maxX);
 	double y0 = 0.5*(minY + maxY);
 	double xd, yd;
-  
+
 	xd = (x-x0) / (maxX-minY);
 //	yd = (y-y0) / (maxY-minY);
 	yd = (y-y0) / (maxX-minX);
@@ -42,30 +42,6 @@ double DensityFunction::f(double x, double y)
 		return pow(1.0 + 1.0*(1.0 + cos(PI*(r-R1)/(R2-R1))),4.0);
 	else
 		return 1.0;
-
-#if 0
-	if (r < R)
-		return pow(1.0 + (1.0 + cos(PI*r/R)), 4.0);
-//		return 1.0 + 1.0*(1.0 + cos(PI*r/R));
-	else
-		return 1.0;
-
-	if (xd < R1)
-		xd = 5.0;
-	else if (xd >= R1 && xd < R2)
-		xd = 1.0 + 1.0*(1.0 + cos(PI*xd/0.125));
-	else
-		xd = 1.0;
-
-	if (yd < R1)
-		yd = 5.0;
-	else if (yd >= R1 && yd < R2)
-		yd = 1.0 + 1.0*(1.0 + cos(PI*yd/0.125));
-	else
-		yd = 1.0;
-
-	return xd*yd;
-#endif
 }
 
 

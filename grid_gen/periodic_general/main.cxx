@@ -11,10 +11,15 @@
 #include "netcdf.h"
 using namespace std;
 
-const int do_restart = 1;
+const int do_restart = 0;
 
-#define NCOLS 100
-#define NROWS 100
+/* Sets the period of the grid in x and y */
+#define X_PERIOD 40.0
+#define Y_PERIOD 40.0*0.866025403784439
+
+/* Sets the width of the zone of cells that are immovable along the x and y boundaries */
+#define X_BUFFER_W 5.0
+#define Y_BUFFER_W 5.0
 
 #define ALLOC_INT2D(ARR,I,J) (ARR) = new int*[(I)]; for(int i=0; i<(I); i++) (ARR)[i] = new int[(J)];
 #define DEALLOC_INT2D(ARR,I,J) for(int i=0; i<(I); i++) delete [] (ARR)[i]; delete [] (ARR);
@@ -47,8 +52,8 @@ int main(int argc, char ** argv)
 	vector<Point> * vcs;
 	Point * cells;
 	Point p3;
-	Triangle t[8];
-	Point p[8], p2[8];
+	Triangle t;
+	Point p, p2;
 	vector<Point> * clist;
 	vector<Point> * vlist;
 	vector<Point> * elist;
@@ -57,56 +62,72 @@ int main(int argc, char ** argv)
 	ifstream cellsOnCell("cellsOnCell.txt");
 	ifstream verticesOnCell("verticesOnCell.txt");
 	ifstream edgesOnCell("edgesOnCell.txt");
-//	ofstream restart("restart.dat");
 	FILE * restart;
 
-	const int MAXITR = 0;
+	const int MAXITR = 100;
 
-	if (do_restart)
-		pset.initFromTextFile("restart.dat");
-	else
-		pset.initFromTextFile("centroids.txt");
+	pset.initFromTextFile("centroids.txt");
 
-/*
- * Lloyd iteration
- */
+
+	/*
+	 * Set flags in point set for immovable "boundary" points
+	 */
+	npts = pset.size();
+	for (i=0; i<npts; i++) {
+		if (pset[i]->getX() < (float)( X_BUFFER_W ) || pset[i]->getX() > (float)( X_PERIOD - X_BUFFER_W )) 
+			pset[i]->setBoundaryPoint(1);
+		if (pset[i]->getY() < (float)( Y_BUFFER_W ) || pset[i]->getY() > (float)( Y_PERIOD - Y_BUFFER_W )) 
+			pset[i]->setBoundaryPoint(1);
+	}
+
+
+	/*
+	 * Lloyd iteration
+	 */
 	for (iter=0; iter<MAXITR; iter++) {
-//		cout << "Iteration " << iter << endl;
+		cout << "Iteration " << iter << endl;
 		fprintf(stderr, "Iteration %i\n", iter);
 		vcs = pset.getVoronoiDiagram();
 		fprintf(stderr, "	got Voronoi diagram\n");
 		npts = pset.size();
 		for (i=0; i<npts; i++) {
-			np = 0;	// AAAAAAARGH was omp_get_thread_num();
 			if (!pset[i]->isBoundaryPoint()) {
 				total_mass = 0.0;
-				p[np].setXY(0.0, 0.0);
+				p.setXY(0.0, 0.0);
 				for (int j=0; j<vcs[i].size(); j++) {
-					t[np] = Triangle(*pset[i], vcs[i][j], vcs[i][(j+1)%vcs[i].size()]);
-					p2[np] = t[np].centroid(f, &mass);
-//mass = 0.5*(1.0 + mass);
-					p[np] = p[np] + p2[np] * mass;
+					t = Triangle(*pset[i], vcs[i][j], vcs[i][(j+1)%vcs[i].size()]);
+					p2 = t.centroid(f, &mass);
+					p = p + p2 * mass;
 					total_mass += mass;
 				}
  
-				p[np] = p[np] * (1.0 / total_mass);
-				pset[i]->setXY(p[np].getX(), p[np].getY());
-				pset[i]->setX(pset[i]->getX() < 2000.0 ? 2000.0 : pset[i]->getX());
-				pset[i]->setX(pset[i]->getX() > 98000.0 ? 98000.0 : pset[i]->getX());
-				pset[i]->setY(pset[i]->getY() < 2165.07 ? 2165.07 : pset[i]->getY());
-				pset[i]->setY(pset[i]->getY() > 84726.14 ? 84726.14 : pset[i]->getY());
+				p = p * (1.0 / total_mass);
+				pset[i]->setXY(p.getX(), p.getY());
+ 
+				/* If point has drifted into boundary region, push it back... */
+				pset[i]->setX(pset[i]->getX() < (float)( X_BUFFER_W ) ? (float)( X_BUFFER_W ) : pset[i]->getX());
+				pset[i]->setX(pset[i]->getX() > (float)( X_PERIOD - X_BUFFER_W ) ? (float)( X_PERIOD - X_BUFFER_W ) : pset[i]->getX());
+				pset[i]->setY(pset[i]->getY() < (float)( Y_BUFFER_W ) ? (float)( Y_BUFFER_W ) : pset[i]->getY());
+				pset[i]->setY(pset[i]->getY() > (float)( Y_PERIOD - Y_BUFFER_W ) ? (float)( Y_PERIOD - Y_BUFFER_W ) : pset[i]->getY());
 			}
 		}
 		delete [] vcs;
 	}
 
 	
-	restart = fopen("restart.dat","w");
+	restart = fopen("restart.txt","w");
 	for(i=0; i<pset.size(); i++) {
-		fprintf(restart, "%lf %lf %i\n", pset[i]->getX(), pset[i]->getY(), pset[i]->isBoundaryPoint());
+		fprintf(restart, "%lf %lf\n", pset[i]->getX(), pset[i]->getY());
 	}
 	fclose(restart);
 
+	pset.printToTextFile("debug.dat");
+
+	/*
+	 * To get a triangulation of the points, we'll need to make copies of the boundary points
+	 */
+
+#if 0
 	pset.printToTextFile("cvt.dat");
 
 
@@ -169,6 +190,7 @@ int main(int argc, char ** argv)
 	delete [] clist;
 	delete [] vlist;
 	delete [] elist;
+#endif
 
 	return 0;
 }
@@ -201,6 +223,7 @@ void compute_grid_meta(int nPoints, Point * points, vector<Point> * clist, vecto
 	Triangle t(p1, p2, p3);  // We don't care about initial triangle vertices
 	ofstream graph_info("graph.info");
 
+#if OLDCODE
 	nCells = nPoints;
 cout << "nCells=" << nCells << endl;
   
@@ -522,6 +545,8 @@ assert(shared_vtx2);
 		kiteAreasOnVertex[i][1] = 0.0;
 		kiteAreasOnVertex[i][2] = 0.0;
 	}
+#endif
+
 #if 0
 	// This code is not correct, in particular, when a ccw sort of edges and vertices leaves
 	//	 two edges or vertices in the list consecutively (the j%2 test breaks down)
@@ -579,6 +604,7 @@ assert(shared_vtx2);
 #endif
 
 
+#ifdef OLDCODE
 	ALLOC_INT2D(edgesOnEdge, nEdges, 2*maxEdges)
 	nEdgesOnEdge = new int[nEdges];
   
@@ -1085,6 +1111,7 @@ for(i=0; i<nEdges; i++) {
 	DEALLOC_INT2D(edgesOnEdge, nEdges, 2*maxEdges)
 	DEALLOC_REAL2D(kiteAreasOnVertex, nVertices, 3)
 	DEALLOC_REAL2D(weightsOnEdge, nEdges, 2*maxEdges);
+#endif
 }
 
 
