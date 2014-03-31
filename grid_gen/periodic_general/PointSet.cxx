@@ -128,7 +128,7 @@ vector<Point> * PointSet::getVoronoiDiagram()
 		p = it->circumcenter();
 		for (i=0; i<3; i++) {
 			n = it->getVertex(i).getNum();
-			assert(n >= 0 && n < nPoints);
+			//assert(n >= 0 && n < nPoints);
 			voronoiCorners[n].push_back(p);
 		}
 	}

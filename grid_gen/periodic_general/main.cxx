@@ -11,8 +11,6 @@
 #include "netcdf.h"
 using namespace std;
 
-const int do_restart = 0;
-
 /* Sets the period of the grid in x and y */
 #define X_PERIOD 40.0
 #define Y_PERIOD 40.0*0.866025403784439
@@ -49,12 +47,17 @@ int main(int argc, char ** argv)
 	int i, ii, jj, n, iter, idx, npts, np;
 	DensityFunction f;
 	PointSet pset;
+	PointSet out_pset;
 	vector<Point> * vcs;
 	Point * cells;
+	Point * temp_p;
+	Point * temp_pp;
 	Point p3;
 	Triangle t;
 	Point p, p2;
 	vector<Point> * clist;
+	vector<Triangle> * triangulation;
+	vector<Triangle>::iterator it;
 	vector<Point> * vlist;
 	vector<Point> * elist;
 	double xcell, ycell;
@@ -121,11 +124,119 @@ int main(int argc, char ** argv)
 	}
 	fclose(restart);
 
-	pset.printToTextFile("debug.dat");
 
 	/*
 	 * To get a triangulation of the points, we'll need to make copies of the boundary points
 	 */
+	npts = pset.size();
+	for (i=0; i<npts; i++) {
+		temp_p = new Point(pset[i]->getX(), pset[i]->getY(), 0);
+		temp_p->setNum(pset[i]->getNum());
+		if (pset[i]->isBoundaryPoint())
+			temp_p->setBoundaryPoint(1);
+		out_pset.addPoint(*temp_p);
+
+		/* If this is a boundary point, add it again in a periodic way */
+		if (temp_p->isBoundaryPoint()) {
+
+			if (temp_p->getX() < (float)( X_BUFFER_W )) {
+
+				/* RIGHT SIDE */
+				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
+				temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+				temp_pp->setX(temp_pp->getX() + (float)( X_PERIOD ));
+				out_pset.addPoint(*temp_pp);
+
+				if (temp_p->getY() < (float)( Y_BUFFER_W )) {
+
+					/* UPPER-RIGHT CORNER */
+					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
+					temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+					temp_pp->setX(temp_pp->getX() + (float)( X_PERIOD ));
+					temp_pp->setY(temp_pp->getY() + (float)( Y_PERIOD ));
+					out_pset.addPoint(*temp_pp);
+				}
+				else if (temp_p->getY() > (float)( Y_PERIOD - Y_BUFFER_W )) {
+
+					/* LOWER-RIGHT CORNER */
+					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
+					temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+					temp_pp->setX(temp_pp->getX() + (float)( X_PERIOD ));
+					temp_pp->setY(temp_pp->getY() - (float)( Y_PERIOD ));
+					out_pset.addPoint(*temp_pp);
+				}
+			}
+			else if (temp_p->getX() > (float)( X_PERIOD - X_BUFFER_W )) {
+
+				/* LEFT SIDE */
+				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
+				temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+				temp_pp->setX(temp_pp->getX() - (float)( X_PERIOD ));
+				out_pset.addPoint(*temp_pp);
+
+				if (temp_p->getY() < (float)( Y_BUFFER_W )) {
+
+					/* UPPER-LEFT CORNER */
+					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
+					temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+					temp_pp->setX(temp_pp->getX() - (float)( X_PERIOD ));
+					temp_pp->setY(temp_pp->getY() + (float)( Y_PERIOD ));
+					out_pset.addPoint(*temp_pp);
+				}
+				else if (temp_p->getY() > (float)( Y_PERIOD - Y_BUFFER_W )) {
+
+					/* LOWER-LEFT CORNER */
+					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
+					temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+					temp_pp->setX(temp_pp->getX() - (float)( X_PERIOD ));
+					temp_pp->setY(temp_pp->getY() - (float)( Y_PERIOD ));
+					out_pset.addPoint(*temp_pp);
+				}
+			}
+
+			if (temp_p->getY() < (float)( Y_BUFFER_W )) {
+
+				/* TOP SIDE */
+				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
+				temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+				temp_pp->setY(temp_pp->getY() + (float)( Y_PERIOD ));
+				out_pset.addPoint(*temp_pp);
+			}
+			else if (temp_p->getY() > (float)( Y_PERIOD - Y_BUFFER_W )) {
+
+				/* BOTTOM SIDE */
+				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
+				temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+				temp_pp->setY(temp_pp->getY() - (float)( Y_PERIOD ));
+				out_pset.addPoint(*temp_pp);
+			}
+			
+		}
+		
+	}
+
+	out_pset.printToTextFile("debug.dat");
+
+	triangulation = out_pset.getTriangulation();
+        for (it = triangulation->begin(); it != triangulation->end(); it++) {
+		ii = 0;
+		for (int j=0; j<3; j++) {
+			if (it->getVertex(j).getNum() > 0)
+				ii++;
+		}
+
+		if (ii > 1) {
+			for (int j=0; j<3; j++) {
+				if (it->getVertex(j).getNum() < 0)
+					cout << -1 * (it->getVertex(j).getNum() - 1) << " ";
+				else
+					cout << it->getVertex(j).getNum() << " ";
+			}
+			cout << endl;
+		}
+	}
+
+	delete triangulation;
 
 #if 0
 	pset.printToTextFile("cvt.dat");

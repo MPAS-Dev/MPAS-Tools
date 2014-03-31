@@ -89,7 +89,7 @@ readsites(PointSet * p)
 	for(j=0; j<p->nPoints; j++) {
 	   sites[nsites].coord.x = p->points[j]->getX();
 	   sites[nsites].coord.y = p->points[j]->getY();
-	   sites[nsites].sitenbr = nsites ;
+	   sites[nsites].sitenbr = p->points[j]->getNum() ;
 	   sites[nsites++].refcnt = 0 ;
 	   if (nsites % 20000 == 0) {
 		  sites = (Site *)realloc(sites,(nsites+20000)*sizeof(Site));
