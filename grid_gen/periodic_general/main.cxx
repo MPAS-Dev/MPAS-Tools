@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <set>
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -58,6 +59,9 @@ int main(int argc, char ** argv)
 	vector<Point> * clist;
 	vector<Triangle> * triangulation;
 	vector<Triangle>::iterator it;
+	set<Triangle> delaunay_tri;
+	set<Triangle>::iterator dti;
+	Triangle * tri;
 	vector<Point> * vlist;
 	vector<Point> * elist;
 	double xcell, ycell;
@@ -225,15 +229,22 @@ int main(int argc, char ** argv)
 				ii++;
 		}
 
-		if (ii > 1) {
+		if (ii > 0) {
+			tri = new Triangle();
+
 			for (int j=0; j<3; j++) {
-				if (it->getVertex(j).getNum() < 0)
-					cout << -1 * (it->getVertex(j).getNum() - 1) << " ";
-				else
-					cout << it->getVertex(j).getNum() << " ";
+				tri->setVertex(j, it->getVertex(j));
+				if (tri->getVertex(j).getNum() < 0)
+					tri->getVertex(j).setNum(-1 * (tri->getVertex(j).getNum() - 1));
 			}
-			cout << endl;
+			dti = delaunay_tri.find(*tri);
+			if (dti == delaunay_tri.end()) 
+				delaunay_tri.insert(*tri);
 		}
+	}
+
+        for (dti = delaunay_tri.begin(); dti != delaunay_tri.end(); dti++) {
+		cout << "TRI " << dti->getVertex(0).getNum() << " " << dti->getVertex(1).getNum() << " " << dti->getVertex(2).getNum() << endl;
 	}
 
 	delete triangulation;
