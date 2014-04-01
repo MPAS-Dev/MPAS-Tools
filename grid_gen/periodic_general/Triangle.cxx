@@ -203,6 +203,80 @@ Point Triangle::circumcenter()
 }
 
 
+void Triangle::normalizeVertices(double xmin, double xmax, double ymin, double ymax)
+{
+	int nless, ngreater;
+	double x, y;
+
+	/*
+	 * Scan through x-coordinates and count the number that are at most the lower bound
+         *    and that are greater than the upper bound
+	 */
+	nless = ngreater = 0;
+	for(int j=0; j<3; j++) {
+		x = points[j].getX();
+
+		if (x <= xmin)
+			nless++;
+		else if (x > xmax)
+			ngreater++;
+	}
+
+	/*
+	 * If at least two corners of the triangle are below the lower bound, shift all corners
+	 */
+	if (nless > 1) {
+		for(int j=0; j<3; j++) {
+			x = points[j].getX();
+			points[j].setX(x + xmax - xmin);
+		}
+	}
+	/*
+	 * Else if at least two corners of the triangle are more the upper bound, shift all corners
+	 */
+	else if (ngreater > 1) {
+		for(int j=0; j<3; j++) {
+			x = points[j].getX();
+			points[j].setX(x - xmax + xmin);
+		}
+	}
+
+
+	/*
+	 * Scan through y-coordinates and count the number that are at most the lower bound
+         *    and that are greater than the upper bound
+	 */
+	nless = ngreater = 0;
+	for(int j=0; j<3; j++) {
+		y = points[j].getY();
+
+		if (y <= ymin)
+			nless++;
+		else if (y > ymax)
+			ngreater++;
+	}
+
+	/*
+	 * If at least two corners of the triangle are below the lower bound, shift all corners
+	 */
+	if (nless > 1) {
+		for(int j=0; j<3; j++) {
+			y = points[j].getY();
+			points[j].setY(y + ymax - ymin);
+		}
+	}
+	/*
+	 * Else if at least two corners of the triangle are more the upper bound, shift all corners
+	 */
+	else if (ngreater > 1) {
+		for(int j=0; j<3; j++) {
+			y = points[j].getY();
+			points[j].setY(y - ymax + ymin);
+		}
+	}
+}
+
+
 double Triangle::det(double m[3][3])
 {
 	return m[0][0] * (m[1][1]*m[2][2] - m[1][2]*m[2][1]) - m[0][1] * (m[1][0]*m[2][2] - m[1][2]*m[2][0]) + m[0][2] * (m[1][0]*m[2][1] - m[1][1]*m[2][0]);

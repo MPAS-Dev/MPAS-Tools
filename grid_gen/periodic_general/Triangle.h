@@ -22,6 +22,7 @@ class Triangle
 		Point centroid();
 		Point centroid(DensityFunction& d, double * mass);
 		Point circumcenter();
+		void normalizeVertices(double xmin, double xmax, double ymin, double ymax);
 		friend bool operator==(Triangle& lhs, Triangle& rhs);
 		friend bool operator<(Triangle const& lhs, Triangle const& rhs);
 };
