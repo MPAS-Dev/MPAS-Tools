@@ -129,6 +129,6 @@ Point Point::operator*(double s)
 
 ostream& operator<<(ostream& output, const Point& p)
 {
-	output << "(" << p.x << ", " << p.y << ")";
+	output << p.x << " " << p.y;
 	return output;
 }
