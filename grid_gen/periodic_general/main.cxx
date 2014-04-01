@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <set>
+#include <list>
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
@@ -11,6 +12,8 @@
 #include "DensityFunction.h"
 #include "netcdf.h"
 using namespace std;
+
+#define EPS 1.0e-7
 
 /* Sets the period of the grid in x and y */
 #define X_PERIOD 40.0
@@ -61,17 +64,20 @@ int main(int argc, char ** argv)
 	vector<Triangle>::iterator it;
 	set<Triangle> delaunay_tri;
 	set<Triangle>::iterator dti;
+	list<Triangle> norm_dt;
+	list<Triangle>::iterator norm_dti;
 	Triangle * tri;
 	vector<Point> * vlist;
 	vector<Point> * elist;
 	double xcell, ycell;
+	double x, y;
 	double total_mass, mass; 
 	ifstream cellsOnCell("cellsOnCell.txt");
 	ifstream verticesOnCell("verticesOnCell.txt");
 	ifstream edgesOnCell("edgesOnCell.txt");
 	FILE * restart;
 
-	const int MAXITR = 1000;
+	const int MAXITR = 10;
 
 	pset.initFromTextFile("centroids.txt");
 
@@ -81,9 +87,9 @@ int main(int argc, char ** argv)
 	 */
 	npts = pset.size();
 	for (i=0; i<npts; i++) {
-		if (pset[i]->getX() < (float)( X_BUFFER_W ) || pset[i]->getX() > (float)( X_PERIOD - X_BUFFER_W )) 
+		if (pset[i]->getX() < (double)( X_BUFFER_W ) || pset[i]->getX() > (double)( X_PERIOD - X_BUFFER_W )) 
 			pset[i]->setBoundaryPoint(1);
-		if (pset[i]->getY() < (float)( Y_BUFFER_W ) || pset[i]->getY() > (float)( Y_PERIOD - Y_BUFFER_W )) 
+		if (pset[i]->getY() < (double)( Y_BUFFER_W ) || pset[i]->getY() > (double)( Y_PERIOD - Y_BUFFER_W )) 
 			pset[i]->setBoundaryPoint(1);
 	}
 
@@ -110,10 +116,10 @@ int main(int argc, char ** argv)
 				pset[i]->setXY(p.getX(), p.getY());
  
 				/* If point has drifted into boundary region, push it back... */
-				pset[i]->setX(pset[i]->getX() < (float)( X_BUFFER_W ) ? (float)( X_BUFFER_W ) : pset[i]->getX());
-				pset[i]->setX(pset[i]->getX() > (float)( X_PERIOD - X_BUFFER_W ) ? (float)( X_PERIOD - X_BUFFER_W ) : pset[i]->getX());
-				pset[i]->setY(pset[i]->getY() < (float)( Y_BUFFER_W ) ? (float)( Y_BUFFER_W ) : pset[i]->getY());
-				pset[i]->setY(pset[i]->getY() > (float)( Y_PERIOD - Y_BUFFER_W ) ? (float)( Y_PERIOD - Y_BUFFER_W ) : pset[i]->getY());
+				pset[i]->setX(pset[i]->getX() < (double)( X_BUFFER_W ) ? (double)( X_BUFFER_W ) : pset[i]->getX());
+				pset[i]->setX(pset[i]->getX() > (double)( X_PERIOD - X_BUFFER_W ) ? (double)( X_PERIOD - X_BUFFER_W ) : pset[i]->getX());
+				pset[i]->setY(pset[i]->getY() < (double)( Y_BUFFER_W ) ? (double)( Y_BUFFER_W ) : pset[i]->getY());
+				pset[i]->setY(pset[i]->getY() > (double)( Y_PERIOD - Y_BUFFER_W ) ? (double)( Y_PERIOD - Y_BUFFER_W ) : pset[i]->getY());
 			}
 		}
 		delete [] vcs;
@@ -141,75 +147,75 @@ int main(int argc, char ** argv)
 		/* If this is a boundary point, add it again in a periodic way */
 		if (temp_p->isBoundaryPoint()) {
 
-			if (temp_p->getX() < (float)( X_BUFFER_W )) {
+			if (temp_p->getX() < (double)( X_BUFFER_W )) {
 
 				/* RIGHT SIDE */
 				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
 				temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
-				temp_pp->setX(temp_pp->getX() + (float)( X_PERIOD ));
+				temp_pp->setX(temp_pp->getX() + (double)( X_PERIOD ));
 				out_pset.addPoint(*temp_pp);
 
-				if (temp_p->getY() < (float)( Y_BUFFER_W )) {
+				if (temp_p->getY() < (double)( Y_BUFFER_W )) {
 
 					/* UPPER-RIGHT CORNER */
 					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
 					temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
-					temp_pp->setX(temp_pp->getX() + (float)( X_PERIOD ));
-					temp_pp->setY(temp_pp->getY() + (float)( Y_PERIOD ));
+					temp_pp->setX(temp_pp->getX() + (double)( X_PERIOD ));
+					temp_pp->setY(temp_pp->getY() + (double)( Y_PERIOD ));
 					out_pset.addPoint(*temp_pp);
 				}
-				else if (temp_p->getY() > (float)( Y_PERIOD - Y_BUFFER_W )) {
+				else if (temp_p->getY() > (double)( Y_PERIOD - Y_BUFFER_W )) {
 
 					/* LOWER-RIGHT CORNER */
 					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
 					temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
-					temp_pp->setX(temp_pp->getX() + (float)( X_PERIOD ));
-					temp_pp->setY(temp_pp->getY() - (float)( Y_PERIOD ));
+					temp_pp->setX(temp_pp->getX() + (double)( X_PERIOD ));
+					temp_pp->setY(temp_pp->getY() - (double)( Y_PERIOD ));
 					out_pset.addPoint(*temp_pp);
 				}
 			}
-			else if (temp_p->getX() > (float)( X_PERIOD - X_BUFFER_W )) {
+			else if (temp_p->getX() > (double)( X_PERIOD - X_BUFFER_W )) {
 
 				/* LEFT SIDE */
 				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
 				temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
-				temp_pp->setX(temp_pp->getX() - (float)( X_PERIOD ));
+				temp_pp->setX(temp_pp->getX() - (double)( X_PERIOD ));
 				out_pset.addPoint(*temp_pp);
 
-				if (temp_p->getY() < (float)( Y_BUFFER_W )) {
+				if (temp_p->getY() < (double)( Y_BUFFER_W )) {
 
 					/* UPPER-LEFT CORNER */
 					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
 					temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
-					temp_pp->setX(temp_pp->getX() - (float)( X_PERIOD ));
-					temp_pp->setY(temp_pp->getY() + (float)( Y_PERIOD ));
+					temp_pp->setX(temp_pp->getX() - (double)( X_PERIOD ));
+					temp_pp->setY(temp_pp->getY() + (double)( Y_PERIOD ));
 					out_pset.addPoint(*temp_pp);
 				}
-				else if (temp_p->getY() > (float)( Y_PERIOD - Y_BUFFER_W )) {
+				else if (temp_p->getY() > (double)( Y_PERIOD - Y_BUFFER_W )) {
 
 					/* LOWER-LEFT CORNER */
 					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
 					temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
-					temp_pp->setX(temp_pp->getX() - (float)( X_PERIOD ));
-					temp_pp->setY(temp_pp->getY() - (float)( Y_PERIOD ));
+					temp_pp->setX(temp_pp->getX() - (double)( X_PERIOD ));
+					temp_pp->setY(temp_pp->getY() - (double)( Y_PERIOD ));
 					out_pset.addPoint(*temp_pp);
 				}
 			}
 
-			if (temp_p->getY() < (float)( Y_BUFFER_W )) {
+			if (temp_p->getY() < (double)( Y_BUFFER_W )) {
 
 				/* TOP SIDE */
 				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
 				temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
-				temp_pp->setY(temp_pp->getY() + (float)( Y_PERIOD ));
+				temp_pp->setY(temp_pp->getY() + (double)( Y_PERIOD ));
 				out_pset.addPoint(*temp_pp);
 			}
-			else if (temp_p->getY() > (float)( Y_PERIOD - Y_BUFFER_W )) {
+			else if (temp_p->getY() > (double)( Y_PERIOD - Y_BUFFER_W )) {
 
 				/* BOTTOM SIDE */
 				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
 				temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
-				temp_pp->setY(temp_pp->getY() - (float)( Y_PERIOD ));
+				temp_pp->setY(temp_pp->getY() - (double)( Y_PERIOD ));
 				out_pset.addPoint(*temp_pp);
 			}
 			
@@ -262,17 +268,27 @@ int main(int argc, char ** argv)
 		}
 	}
 
-/*
+
+	/*
+	 * Scan through triangles and ensure that corner locations are in the range (0,X_PERIOD],(0,Y_PERIOD]
+	 */
         for (dti = delaunay_tri.begin(); dti != delaunay_tri.end(); dti++) {
-		cout << "TRI " << dti->getVertex(0).getNum() << " " << dti->getVertex(1).getNum() << " " << dti->getVertex(2).getNum() << endl;
+		t = *dti;
+		t.normalizeVertices((double)( EPS ), (double)( X_PERIOD + EPS ), (double)( EPS ), (double)( Y_PERIOD + EPS ));
+		norm_dt.push_back(t);
 	}
-*/
-        for (dti = delaunay_tri.begin(); dti != delaunay_tri.end(); dti++) {
-		cout << dti->getVertex(0).getX() << " " << dti->getVertex(0).getY() << endl;
-		cout << dti->getVertex(1).getX() << " " << dti->getVertex(1).getY() << endl;
-		cout << dti->getVertex(2).getX() << " " << dti->getVertex(2).getY() << endl;
-		cout << dti->getVertex(0).getX() << " " << dti->getVertex(0).getY() << endl;
+
+
+        for (norm_dti = norm_dt.begin(); norm_dti != norm_dt.end(); norm_dti++) {
+		cout << norm_dti->getVertex(0).getX() << " " << norm_dti->getVertex(0).getY() << endl;
+		cout << norm_dti->getVertex(1).getX() << " " << norm_dti->getVertex(1).getY() << endl;
+		cout << norm_dti->getVertex(2).getX() << " " << norm_dti->getVertex(2).getY() << endl;
+		cout << norm_dti->getVertex(0).getX() << " " << norm_dti->getVertex(0).getY() << endl;
 		cout << " " << endl;
+	}
+
+        for (norm_dti = norm_dt.begin(); norm_dti != norm_dt.end(); norm_dti++) {
+		cout << norm_dti->circumcenter() << endl;
 	}
 	
 
