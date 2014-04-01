@@ -54,13 +54,13 @@ void Point::setNum(int n)
 }
 
 
-double Point::getX()
+double Point::getX() const
 {
 	return x;
 }
 
 
-double Point::getY()
+double Point::getY() const
 {
 	return y;
 }
@@ -76,13 +76,13 @@ double Point::distance(Point& p)
 }
 
 
-int Point::isBoundaryPoint()
+int Point::isBoundaryPoint() const
 {
 	return boundary_point;
 }
 
 
-int Point::getNum()
+int Point::getNum() const
 {
 	return num;
 }

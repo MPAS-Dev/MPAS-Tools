@@ -19,11 +19,11 @@ class Point
 		void setXY(double x, double y);
 		void setBoundaryPoint(int boundary_point);
 		void setNum(int n);
-		double getX();
-		double getY();
+		double getX() const;
+		double getY() const;
 		double distance(Point& p);
-		int isBoundaryPoint();
-		int getNum();
+		int isBoundaryPoint() const;
+		int getNum() const;
 		Point operator+(Point p);
 		Point operator-(Point p);
 		Point operator*(double s);
