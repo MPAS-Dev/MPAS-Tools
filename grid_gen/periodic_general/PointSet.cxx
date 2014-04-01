@@ -74,7 +74,6 @@ void PointSet::addPoint(double x, double y, int boundary_point)
 	Point * p = new Point(x, y, boundary_point);
 	p->setNum(nPoints);
 	nPoints++;
-	cout << "Adding " << x << "," << y << endl;
 	
 	points.push_back(p);
 }
@@ -84,7 +83,6 @@ void PointSet::addPoint(Point& p)
 {
 	Point * pp = new Point(p);
 	nPoints++;
-	cout << "Adding " << p.getX() << "," << p.getY() << endl;
 	
 	points.push_back(pp);
 }
