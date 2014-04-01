@@ -17,8 +17,8 @@ using namespace std;
 #define Y_PERIOD 40.0*0.866025403784439
 
 /* Sets the width of the zone of cells that are immovable along the x and y boundaries */
-#define X_BUFFER_W 5.0
-#define Y_BUFFER_W 5.0
+#define X_BUFFER_W 3.0
+#define Y_BUFFER_W 3.0
 
 #define ALLOC_INT2D(ARR,I,J) (ARR) = new int*[(I)]; for(int i=0; i<(I); i++) (ARR)[i] = new int[(J)];
 #define DEALLOC_INT2D(ARR,I,J) for(int i=0; i<(I); i++) delete [] (ARR)[i]; delete [] (ARR);
@@ -71,7 +71,7 @@ int main(int argc, char ** argv)
 	ifstream edgesOnCell("edgesOnCell.txt");
 	FILE * restart;
 
-	const int MAXITR = 100;
+	const int MAXITR = 1000;
 
 	pset.initFromTextFile("centroids.txt");
 
@@ -93,9 +93,7 @@ int main(int argc, char ** argv)
 	 */
 	for (iter=0; iter<MAXITR; iter++) {
 		cout << "Iteration " << iter << endl;
-		fprintf(stderr, "Iteration %i\n", iter);
 		vcs = pset.getVoronoiDiagram();
-		fprintf(stderr, "	got Voronoi diagram\n");
 		npts = pset.size();
 		for (i=0; i<npts; i++) {
 			if (!pset[i]->isBoundaryPoint()) {
@@ -147,7 +145,7 @@ int main(int argc, char ** argv)
 
 				/* RIGHT SIDE */
 				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
-				temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+				temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
 				temp_pp->setX(temp_pp->getX() + (float)( X_PERIOD ));
 				out_pset.addPoint(*temp_pp);
 
@@ -155,7 +153,7 @@ int main(int argc, char ** argv)
 
 					/* UPPER-RIGHT CORNER */
 					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
-					temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+					temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
 					temp_pp->setX(temp_pp->getX() + (float)( X_PERIOD ));
 					temp_pp->setY(temp_pp->getY() + (float)( Y_PERIOD ));
 					out_pset.addPoint(*temp_pp);
@@ -164,7 +162,7 @@ int main(int argc, char ** argv)
 
 					/* LOWER-RIGHT CORNER */
 					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
-					temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+					temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
 					temp_pp->setX(temp_pp->getX() + (float)( X_PERIOD ));
 					temp_pp->setY(temp_pp->getY() - (float)( Y_PERIOD ));
 					out_pset.addPoint(*temp_pp);
@@ -174,7 +172,7 @@ int main(int argc, char ** argv)
 
 				/* LEFT SIDE */
 				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
-				temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+				temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
 				temp_pp->setX(temp_pp->getX() - (float)( X_PERIOD ));
 				out_pset.addPoint(*temp_pp);
 
@@ -182,7 +180,7 @@ int main(int argc, char ** argv)
 
 					/* UPPER-LEFT CORNER */
 					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
-					temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+					temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
 					temp_pp->setX(temp_pp->getX() - (float)( X_PERIOD ));
 					temp_pp->setY(temp_pp->getY() + (float)( Y_PERIOD ));
 					out_pset.addPoint(*temp_pp);
@@ -191,7 +189,7 @@ int main(int argc, char ** argv)
 
 					/* LOWER-LEFT CORNER */
 					temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
-					temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+					temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
 					temp_pp->setX(temp_pp->getX() - (float)( X_PERIOD ));
 					temp_pp->setY(temp_pp->getY() - (float)( Y_PERIOD ));
 					out_pset.addPoint(*temp_pp);
@@ -202,7 +200,7 @@ int main(int argc, char ** argv)
 
 				/* TOP SIDE */
 				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
-				temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+				temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
 				temp_pp->setY(temp_pp->getY() + (float)( Y_PERIOD ));
 				out_pset.addPoint(*temp_pp);
 			}
@@ -210,7 +208,7 @@ int main(int argc, char ** argv)
 
 				/* BOTTOM SIDE */
 				temp_pp = new Point(temp_p->getX(), temp_p->getY(), 0);
-				temp_pp->setNum(-1 * (temp_p->getNum() + 1));
+				temp_pp->setNum(-1 * (temp_p->getNum() + 1));           /* Bdy points have negative indices */
 				temp_pp->setY(temp_pp->getY() - (float)( Y_PERIOD ));
 				out_pset.addPoint(*temp_pp);
 			}
@@ -221,31 +219,62 @@ int main(int argc, char ** argv)
 
 	out_pset.printToTextFile("debug.dat");
 
+
+	/*
+	 * Having obtained a triangulation of "real" generating points as well as "ghost" points,
+	 *    we need to scan through the triangles and keep a unique set that triangulates a truly
+	 *    doubly-periodic grid
+	 */
 	triangulation = out_pset.getTriangulation();
         for (it = triangulation->begin(); it != triangulation->end(); it++) {
-		ii = 0;
-		for (int j=0; j<3; j++) {
-			if (it->getVertex(j).getNum() > 0)
-				ii++;
-		}
 
-		if (ii > 0) {
+		/* 
+		 * Ghost/halo points have a negative index; if all of the vertices of a triangle
+		 *    are negative, the triangle is redundant
+		 */
+		ii = 0;
+		for (int j=0; j<3; j++)
+			if ( it->getVertex(j).getNum() >= 0 )
+				ii++;
+		
+		/* 
+		 * If at least one corner of the triangle is non-negative, we consider keeping it,
+		 *    but only if it isn't redundant with another triangle already added to the set
+		 */
+		if ( ii > 0 ) {
 			tri = new Triangle();
 
 			for (int j=0; j<3; j++) {
-				tri->setVertex(j, it->getVertex(j));
-				if (tri->getVertex(j).getNum() < 0)
-					tri->getVertex(j).setNum(-1 * (tri->getVertex(j).getNum() - 1));
+				temp_p = new Point(it->getVertex(j).getX(), it->getVertex(j).getY(), 0);
+				temp_p->setNum(it->getVertex(j).getNum());
+	
+				/* Set point number back to positive value */
+				if (temp_p->getNum() < 0)
+					temp_p->setNum(-1 * (temp_p->getNum() + 1));
+				tri->setVertex(j, *temp_p);
 			}
+
 			dti = delaunay_tri.find(*tri);
 			if (dti == delaunay_tri.end()) 
 				delaunay_tri.insert(*tri);
+			else
+				delete tri;
 		}
 	}
 
+/*
         for (dti = delaunay_tri.begin(); dti != delaunay_tri.end(); dti++) {
 		cout << "TRI " << dti->getVertex(0).getNum() << " " << dti->getVertex(1).getNum() << " " << dti->getVertex(2).getNum() << endl;
 	}
+*/
+        for (dti = delaunay_tri.begin(); dti != delaunay_tri.end(); dti++) {
+		cout << dti->getVertex(0).getX() << " " << dti->getVertex(0).getY() << endl;
+		cout << dti->getVertex(1).getX() << " " << dti->getVertex(1).getY() << endl;
+		cout << dti->getVertex(2).getX() << " " << dti->getVertex(2).getY() << endl;
+		cout << dti->getVertex(0).getX() << " " << dti->getVertex(0).getY() << endl;
+		cout << " " << endl;
+	}
+	
 
 	delete triangulation;
 
