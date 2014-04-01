@@ -30,7 +30,7 @@ void Triangle::setVertex(int i, Point p)
 }
 
 
-Point Triangle::getVertex(int i)
+Point Triangle::getVertex(int i) const
 {
 	assert(i >= 0 && i <= 2);
 	return points[i];
@@ -206,4 +206,71 @@ Point Triangle::circumcenter()
 double Triangle::det(double m[3][3])
 {
 	return m[0][0] * (m[1][1]*m[2][2] - m[1][2]*m[2][1]) - m[0][1] * (m[1][0]*m[2][2] - m[1][2]*m[2][0]) + m[0][2] * (m[1][0]*m[2][1] - m[1][1]*m[2][0]);
+}
+
+
+bool operator==(Triangle& lhs, Triangle& rhs)
+{
+	int a[3], b[3];
+	int j;
+
+	a[0] = lhs.getVertex(0).getNum();
+	a[1] = lhs.getVertex(1).getNum();
+	a[2] = lhs.getVertex(2).getNum();
+
+	if (a[1] < a[0]) { j = a[1]; a[1] = a[0]; a[0] = j; }
+	if (a[2] < a[0]) { j = a[2]; a[2] = a[0]; a[0] = j; }
+	if (a[2] < a[1]) { j = a[2]; a[2] = a[1]; a[1] = j; }
+
+	b[0] = rhs.getVertex(0).getNum();
+	b[1] = rhs.getVertex(1).getNum();
+	b[2] = rhs.getVertex(2).getNum();
+
+	if (b[1] < b[0]) { j = b[1]; b[1] = b[0]; b[0] = j; }
+	if (b[2] < b[0]) { j = b[2]; b[2] = b[0]; b[0] = j; }
+	if (b[2] < b[1]) { j = b[2]; b[2] = b[1]; b[1] = j; }
+
+	if (a[0] == b[0] && a[1] == b[1] && a[2] == b[2])
+		return true;
+	
+	return false;
+}
+
+
+bool operator<(Triangle const& lhs, Triangle const& rhs)
+{
+	int a[3], b[3];
+	int j;
+
+	a[0] = lhs.points[0].getNum();
+	a[1] = lhs.points[1].getNum();
+	a[2] = lhs.points[2].getNum();
+
+	if (a[1] < a[0]) { j = a[1]; a[1] = a[0]; a[0] = j; }
+	if (a[2] < a[0]) { j = a[2]; a[2] = a[0]; a[0] = j; }
+	if (a[2] < a[1]) { j = a[2]; a[2] = a[1]; a[1] = j; }
+
+	b[0] = rhs.points[0].getNum();
+	b[1] = rhs.points[1].getNum();
+	b[2] = rhs.points[2].getNum();
+
+	if (b[1] < b[0]) { j = b[1]; b[1] = b[0]; b[0] = j; }
+	if (b[2] < b[0]) { j = b[2]; b[2] = b[0]; b[0] = j; }
+	if (b[2] < b[1]) { j = b[2]; b[2] = b[1]; b[1] = j; }
+
+	if (a[0] < b[0]) {
+		return true;
+	}
+	else if (a[0] == b[0]) {
+		if (a[1] < b[1]) {
+			return true;
+		}
+		else if (a[1] == b[1]) {
+			if (a[2] < b[2]) {
+				return true;
+			}
+		}
+	}
+	
+	return false;
 }

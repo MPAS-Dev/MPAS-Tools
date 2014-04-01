@@ -17,10 +17,13 @@ class Triangle
 		Triangle(Point a, Point b, Point c);
 		~Triangle();
 		void setVertex(int i, Point p);
-		Point getVertex(int i);
+		Point getVertex(int i) const;
 		double area();
 		Point centroid();
 		Point centroid(DensityFunction& d, double * mass);
 		Point circumcenter();
+		friend bool operator==(Triangle& lhs, Triangle& rhs);
+		friend bool operator<(Triangle const& lhs, Triangle const& rhs);
 };
+
 #endif
