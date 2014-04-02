@@ -132,3 +132,26 @@ ostream& operator<<(ostream& output, const Point& p)
 	output << p.x << " " << p.y;
 	return output;
 }
+
+
+bool operator<(Point const& lhs, Point const& rhs)
+{
+        int a[2], b[2];
+
+        a[0] = lhs.getX();
+        a[1] = lhs.getY();
+
+        b[0] = rhs.getX();
+        b[1] = rhs.getY();
+
+        if (a[0] < b[0]) {
+                return true;
+        }
+        else if (a[0] == b[0]) {
+                if (a[1] < b[1]) {
+                        return true;
+                }
+        }
+
+        return false;
+}

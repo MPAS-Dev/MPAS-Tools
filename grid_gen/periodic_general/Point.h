@@ -28,5 +28,6 @@ class Point
 		Point operator-(Point p);
 		Point operator*(double s);
 		friend ostream& operator<<(ostream& output, const Point& p);
+		friend bool operator<(Point const& lhs, Point const& rhs);
 };
 #endif
