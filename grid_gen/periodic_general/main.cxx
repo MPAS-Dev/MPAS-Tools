@@ -29,12 +29,14 @@ using namespace std;
 #define ALLOC_REAL2D(ARR,I,J) (ARR) = new double*[(I)]; for(int i=0; i<(I); i++) (ARR)[i] = new double[(J)];
 #define DEALLOC_REAL2D(ARR,I,J) for(int i=0; i<(I); i++) delete [] (ARR)[i]; delete [] (ARR);
 
-void compute_grid_meta(int nPoints, Point * cells, vector<Point> * alist, vector<Point> * clist, vector<Point> * elist);
 int obtuse_triangle(Triangle &t);
+
 void write_netcdf(int nCells, int nVertices, int vertexDegree, 
 		double *xCell, double *yCell, double *zCell, 
 		double *xVertex, double *yVertex, double *zVertex, 
-		double *meshDensity, int *cellsOnVertex);
+		double *meshDensity, int *cellsOnVertex,
+		double x_period, double y_period);
+
 Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1);
 
 int main(int argc, char ** argv)
@@ -58,15 +60,16 @@ int main(int argc, char ** argv)
 	list<Triangle> norm_dt;
 	list<Triangle>::iterator norm_dti;
 	vector< vector<Point> > vertices_on_cell;
+	vector< vector<Point> > cells_on_cell;
+	vector< set<Point> > coc;
+	set<Point>::iterator cell_iter;
+	vector< vector<Point> > cv_on_cell;
 	Triangle * tri;
 	vector<Point> * vlist;
 	vector<Point> * elist;
 	double xcell, ycell;
 	double x, y;
 	double total_mass, mass; 
-	ifstream cellsOnCell("cellsOnCell.txt");
-	ifstream verticesOnCell("verticesOnCell.txt");
-	ifstream edgesOnCell("edgesOnCell.txt");
 	FILE * restart;
 	int nCells, nVertices, vertexDegree;
 	double *xCell, *yCell, *zCell, *xVertex, *yVertex, *zVertex, *meshDensity;
@@ -335,7 +338,7 @@ int main(int argc, char ** argv)
 	/*
 	 * Write fields to NetCDF file
 	 */
-	write_netcdf(nCells, nVertices, vertexDegree, xCell, yCell, zCell, xVertex, yVertex, zVertex, meshDensity, cellsOnVertex);
+	write_netcdf(nCells, nVertices, vertexDegree, xCell, yCell, zCell, xVertex, yVertex, zVertex, meshDensity, cellsOnVertex, (double)( X_PERIOD ), (double)( Y_PERIOD ));
 
 	vertices_on_cell.resize(nCells);
 	for (i=0; i<nVertices; i++) {
@@ -351,10 +354,83 @@ int main(int argc, char ** argv)
 		p.setX(xCell[i]);
 		p.setY(yCell[i]);
 		orderCCW_normalize(vertices_on_cell[i], p, (double)( X_PERIOD ), (double)( Y_PERIOD ));
+/*
 		for (int j=0; j<vertices_on_cell[i].size(); j++)
 			cout << vertices_on_cell[i][j] << endl;
 		cout << vertices_on_cell[i][0] << endl;
-//		cout << "area=" << poly_area(vertices_on_cell[i]) << endl;
+		cout << endl;
+*/
+	}
+
+	coc.resize(nCells);
+	for (i=0; i<nVertices; i++) {
+
+		/* First cell on vertex */
+		temp_p = new Point(xCell[cellsOnVertex[3*i]-1], yCell[cellsOnVertex[3*i]-1], 0);
+		temp_p->setNum(cellsOnVertex[3*i]-1);
+
+		cell_iter = coc[cellsOnVertex[3*i+1]-1].find(*temp_p);
+		if (cell_iter == coc[cellsOnVertex[3*i+1]-1].end()) {
+			coc[cellsOnVertex[3*i+1]-1].insert(*temp_p);	
+		}
+
+		cell_iter = coc[cellsOnVertex[3*i+2]-1].find(*temp_p);
+		if (cell_iter == coc[cellsOnVertex[3*i+2]-1].end()) {
+			coc[cellsOnVertex[3*i+2]-1].insert(*temp_p);	
+		}
+
+		/* Second cell on vertex */
+		temp_p = new Point(xCell[cellsOnVertex[3*i+1]-1], yCell[cellsOnVertex[3*i+1]-1], 0);
+		temp_p->setNum(cellsOnVertex[3*i+1]-1);
+
+		cell_iter = coc[cellsOnVertex[3*i]-1].find(*temp_p);
+		if (cell_iter == coc[cellsOnVertex[3*i]-1].end()) {
+			coc[cellsOnVertex[3*i]-1].insert(*temp_p);	
+		}
+
+		cell_iter = coc[cellsOnVertex[3*i+2]-1].find(*temp_p);
+		if (cell_iter == coc[cellsOnVertex[3*i+2]-1].end()) {
+			coc[cellsOnVertex[3*i+2]-1].insert(*temp_p);	
+		}
+
+		/* Third cell on vertex */
+		temp_p = new Point(xCell[cellsOnVertex[3*i+2]-1], yCell[cellsOnVertex[3*i+2]-1], 0);
+		temp_p->setNum(cellsOnVertex[3*i+2]-1);
+
+		cell_iter = coc[cellsOnVertex[3*i]-1].find(*temp_p);
+		if (cell_iter == coc[cellsOnVertex[3*i]-1].end()) {
+			coc[cellsOnVertex[3*i]-1].insert(*temp_p);	
+		}
+
+		cell_iter = coc[cellsOnVertex[3*i+1]-1].find(*temp_p);
+		if (cell_iter == coc[cellsOnVertex[3*i+1]-1].end()) {
+			coc[cellsOnVertex[3*i+1]-1].insert(*temp_p);	
+		}
+	}
+
+	cells_on_cell.resize(nCells);
+	for (i=0; i<nCells; i++) {
+		for (cell_iter = coc[i].begin(); cell_iter != coc[i].end(); cell_iter++) {
+				cells_on_cell[i].push_back(*cell_iter);
+		}
+	}
+
+	cv_on_cell.resize(nCells);
+	for (i=0; i<nCells; i++) {
+		for (int j=0; j<cells_on_cell[i].size(); j++) {
+			cv_on_cell[i].push_back(cells_on_cell[i][j]);
+		}
+		for (int j=0; j<vertices_on_cell[i].size(); j++) {
+			cv_on_cell[i].push_back(vertices_on_cell[i][j]);
+		}
+		orderCCW_normalize(cv_on_cell[i], *pset[i], (double)( X_PERIOD ), (double)( Y_PERIOD ));
+	}
+
+	for (i=0; i<nCells; i++)
+	{
+		for (int j=0; j<cv_on_cell[i].size(); j++)
+			cout << cv_on_cell[i][j] << endl;
+		cout << cv_on_cell[i][0] << endl;
 		cout << endl;
 	}
 
@@ -413,7 +489,8 @@ Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1)
 void write_netcdf(int nCells, int nVertices, int vertexDegree, 
 		double * xCell, double * yCell, double * zCell,
 		double * xVertex, double * yVertex, double * zVertex,
-	 	double * meshDensity, int * cellsOnVertex
+	 	double * meshDensity, int * cellsOnVertex,
+		double x_period, double y_period
 	  )
 {
 	int i, j, k;
@@ -455,6 +532,8 @@ void write_netcdf(int nCells, int nVertices, int vertexDegree,
 
 	ncerr = nc_put_att_text(ncid, NC_GLOBAL, "on_a_sphere", 16, "NO              ");
 	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "sphere_radius", NC_DOUBLE, 1, &sphere_radius);
+	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "x_period", NC_DOUBLE, 1, &x_period);
+	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "y_period", NC_DOUBLE, 1, &y_period);
 
 	ncerr = nc_enddef(ncid);
 
