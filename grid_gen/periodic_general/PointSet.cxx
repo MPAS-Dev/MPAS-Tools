@@ -113,6 +113,8 @@ vector<Point> * PointSet::getVoronoiDiagram()
 	int i, n;
 	int nobtuse;
 
+	double PI = 2.0 * acos(0.0);
+
 	// 1) Get a triangulation
 	t = PointSet::getTriangulation();
 
@@ -120,9 +122,9 @@ vector<Point> * PointSet::getVoronoiDiagram()
 	//	 Add this point to the list of Voronoi corner for each of the triangle's vertices
 	nobtuse = 0;
 	for (it = triangulation->begin(); it != triangulation->end(); it++) {
-		if (fabs(angle(it->getVertex(0), it->getVertex(1), it->getVertex(2))) > 3.1415926536/2.0) nobtuse++;
-		if (fabs(angle(it->getVertex(1), it->getVertex(2), it->getVertex(0))) > 3.1415926536/2.0) nobtuse++;
-		if (fabs(angle(it->getVertex(2), it->getVertex(0), it->getVertex(1))) > 3.1415926536/2.0) nobtuse++;
+		if (fabs(angle(it->getVertex(0), it->getVertex(1), it->getVertex(2))) > PI/2.0) nobtuse++;
+		if (fabs(angle(it->getVertex(1), it->getVertex(2), it->getVertex(0))) > PI/2.0) nobtuse++;
+		if (fabs(angle(it->getVertex(2), it->getVertex(0), it->getVertex(1))) > PI/2.0) nobtuse++;
 		p = it->circumcenter();
 		for (i=0; i<3; i++) {
 			n = it->getVertex(i).getNum();
@@ -282,10 +284,63 @@ void orderCCW(vector<Point>& vc, Point p)
 	double ftemp;
 	Point ptemp;
 
-	const double PI = 3.14159265;
+	double PI = 2.0 * acos(0.0);
 
 	vsize = vc.size();
 	angles = new double[vsize];
+
+	angles[0] = 0.0;
+	for (i=1; i<vsize; i++) {
+		angles[i] = angle(p, vc[0], vc[i]);
+		if (angles[i] < 0.0) angles[i] += 2.0 * PI;
+	}
+
+	for(i=1; i<vsize; i++) {
+		for(j=i+1; j<vsize; j++) {
+			if (angles[j] < angles[i]) {
+				ftemp = angles[i];
+				angles[i] = angles[j];
+				angles[j] = ftemp;
+
+				ptemp = vc[i];
+				vc[i] = vc[j];
+				vc[j] = ptemp;
+			}
+		}
+	}
+
+	delete [] angles;
+}
+
+
+void orderCCW_normalize(vector<Point>& vc, Point p, double x_period, double y_period)
+{
+	int i, j;
+	int vsize;
+	double * angles;
+	double ftemp;
+	Point ptemp;
+
+	double PI = 2.0 * acos(0.0);
+
+	vsize = vc.size();
+	angles = new double[vsize];
+
+	for (i=0; i<vsize; i++) {
+		if ( (vc[i].getX() - p.getX()) > (x_period / 2.0) ) {
+			vc[i].setX( vc[i].getX() - x_period );
+		}
+		else if ( (vc[i].getX() - p.getX()) < (-x_period / 2.0) ) {
+			vc[i].setX( vc[i].getX() + x_period );
+		}
+
+		if ( (vc[i].getY() - p.getY()) > (y_period / 2.0) ) {
+			vc[i].setY( vc[i].getY() - y_period );
+		}
+		else if ( (vc[i].getY() - p.getY()) < (-y_period / 2.0) ) {
+			vc[i].setY( vc[i].getY() + y_period );
+		}
+	}
 
 	angles[0] = 0.0;
 	for (i=1; i<vsize; i++) {
@@ -319,7 +374,7 @@ void orderCCW_print(vector<Point>& vc, Point p)
 	double ftemp;
 	Point ptemp;
 
-	const double PI = 3.14159265;
+	double PI = 2.0 * acos(0.0);
 
 	vsize = vc.size();
 	angles = new double[vsize];
@@ -347,4 +402,34 @@ void orderCCW_print(vector<Point>& vc, Point p)
 	}
 
 	delete [] angles;
+}
+
+double poly_area(vector<Point>& vc)
+{
+	Point centroid(0.0, 0.0, 0);
+	int i;
+	double poly_area;
+	Triangle t;
+
+
+	/* Find centroid of the vector of points */
+	for (i=0; i<vc.size(); i++)
+		centroid = centroid + vc[i];	
+	centroid = centroid * (1.0 / (double)vc.size());
+
+	
+	/*
+	 * Compute the area of the polygon by summing the areas of triangles
+	 *    in a triangulation of the polygon
+	 */
+	poly_area = 0.0;
+	t.setVertex(0, centroid);
+	t.setVertex(1, vc[vc.size()-1]);
+	for (i=0; i<vc.size(); i++) {
+		t.setVertex(2, vc[i]);
+		poly_area += t.area();
+		t.setVertex(1, t.getVertex(2));
+	}
+
+	return poly_area;
 }
