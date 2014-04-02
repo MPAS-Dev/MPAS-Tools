@@ -4,17 +4,21 @@ OMP =
 CXX = g++
 CXXFLAGS = -O3 $(OMP) -I$(NETCDF)/include
 
-OBJS = main.o Point.o Triangle.o DensityFunction.o PointSet.o
+OBJS = Point.o Triangle.o DensityFunction.o PointSet.o
 
 all: libfortune.a
 	( $(MAKE) periodic_general )
+	( $(MAKE) mkgrid )
 
 libfortune.a:
 	( cd fortune; $(MAKE) all "CC=$(CXX)" "CFLAGS=$(CXXFLAGS)")
 	( ln -s fortune/libfortune.a . )
 
-periodic_general: $(OBJS)
-	$(CXX) -O3 $(OMP) -o periodic_general $(OBJS) -L$(NETCDF)/lib -L. -lnetcdf -lfortune
+periodic_general: main.o $(OBJS)
+	$(CXX) -O3 $(OMP) -o periodic_general main.o $(OBJS) -L$(NETCDF)/lib -L. -lnetcdf -lfortune
+
+mkgrid: mkgrid.o $(OBJS)
+	$(CXX) -O3 $(OMP) -o mkgrid mkgrid.o $(OBJS) -L$(NETCDF)/lib -L. -lnetcdf -lfortune
 
 clean:
 	( cd fortune; $(MAKE) clean )
