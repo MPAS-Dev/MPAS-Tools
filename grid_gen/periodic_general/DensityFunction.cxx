@@ -22,7 +22,7 @@ double DensityFunction::f(double x, double y)
 	const double R = 0.125;	// Radius of bell
 	const double R1 = 0.0875;	// Radius of bell
 	const double R2 = 0.1750;	// Radius of bell
-	const double PI = 3.141592653;
+	const double PI = 2.0 * acos(0.0);
 
 	double r;
 	double x0 = 0.5*(minX + maxX);
