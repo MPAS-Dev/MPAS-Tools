@@ -2,10 +2,7 @@
 #include <vector>
 #include <set>
 #include <list>
-#include <assert.h>
 #include <math.h>
-#include <stdio.h>
-#include <unistd.h>
 #include "PointSet.h"
 #include "Triangle.h"
 #include "DensityFunction.h"
@@ -20,46 +17,43 @@ using namespace std;
 #define ALLOC_REAL2D(ARR,I,J) (ARR) = new double*[(I)]; for(int i=0; i<(I); i++) (ARR)[i] = new double[(J)];
 #define DEALLOC_REAL2D(ARR,I,J) for(int i=0; i<(I); i++) delete [] (ARR)[i]; delete [] (ARR);
 
-void write_netcdf(int nCells, int nVertices, int vertexDegree, 
-		double *xCell, double *yCell, double *zCell, 
-		double *xVertex, double *yVertex, double *zVertex, 
-		double *meshDensity, int *cellsOnVertex,
-		double x_period, double y_period);
+void read_netcdf(int *nCells, int *nVertices, int *vertexDegree, 
+		double **xCell, double **yCell, double **zCell, 
+		double **xVertex, double **yVertex, double **zVertex, 
+		double **meshDensity, int **cellsOnVertex,
+		double *x_period, double *y_period);
 
 Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1);
 
 int main(int argc, char ** argv)
 {
-	int i, ii, jj, n, iter, idx, npts, np;
-	DensityFunction f;
-	PointSet pset;
-	PointSet out_pset;
-	vector<Point> * vcs;
-	Point * cells;
-	Point * temp_p;
-	Point * temp_pp;
-	Point p3;
-	Triangle t;
-	Point p, p2;
-	vector<Point> * clist;
-	vector<Triangle> * triangulation;
-	vector<Triangle>::iterator it;
-	set<Triangle> delaunay_tri;
-	set<Triangle>::iterator dti;
-	list<Triangle> norm_dt;
-	list<Triangle>::iterator norm_dti;
-	vector< vector<Point> > vertices_on_cell;
-	vector< vector<Point> > cells_on_cell;
-	vector< set<Point> > coc;
-	set<Point>::iterator cell_iter;
-	vector< vector<Point> > cv_on_cell;
-	Triangle * tri;
-	vector<Point> * vlist;
-	vector<Point> * elist;
-	double xcell, ycell;
-	double x, y;
-	double total_mass, mass; 
-	FILE * restart;
+//	int i, ii, jj, n, iter, idx, npts, np;
+//	DensityFunction f;
+//	PointSet pset;
+//	PointSet out_pset;
+//	Point * cells;
+//	Point * temp_p;
+//	Point * temp_pp;
+//	Point p3;
+//	Triangle t;
+//	Point p, p2;
+//	vector<Point> * clist;
+//	vector<Triangle> * triangulation;
+//	vector<Triangle>::iterator it;
+//	set<Triangle> delaunay_tri;
+//	set<Triangle>::iterator dti;
+//	list<Triangle> norm_dt;
+//	list<Triangle>::iterator norm_dti;
+//	vector< vector<Point> > vertices_on_cell;
+//	vector< vector<Point> > cells_on_cell;
+//	vector< set<Point> > coc;
+//	set<Point>::iterator cell_iter;
+//	vector< vector<Point> > cv_on_cell;
+//	Triangle * tri;
+//	double xcell, ycell;
+//	double x, y;
+//	double total_mass, mass; 
+//	FILE * restart;
 	int nCells, nVertices, vertexDegree;
 	double *xCell, *yCell, *zCell, *xVertex, *yVertex, *zVertex, *meshDensity;
 	int *cellsOnVertex;
@@ -69,8 +63,17 @@ int main(int argc, char ** argv)
 	/*
 	 * Read basic grid info from NetCDF file
 	 */
-	write_netcdf(nCells, nVertices, vertexDegree, xCell, yCell, zCell, xVertex, yVertex, zVertex, meshDensity, cellsOnVertex, x_period, y_period);
+	read_netcdf(&nCells, &nVertices, &vertexDegree, &xCell, &yCell, &zCell, &xVertex, &yVertex, &zVertex, &meshDensity, &cellsOnVertex, &x_period, &y_period);
 
+	cout << "Read from input file:" << endl;
+	cout << "   nCells    = " << nCells << endl;
+	cout << "   nVertices = " << nVertices << endl;
+	cout << "   vertexDegree = " << vertexDegree << endl;
+	cout << "   x_period = " << x_period << endl;
+	cout << "   y_period = " << y_period << endl;
+	cout << endl;
+
+#if 0
 	vertices_on_cell.resize(nCells);
 	for (i=0; i<nVertices; i++) {
 		temp_p = new Point(xVertex[i], yVertex[i], 0);
@@ -164,6 +167,16 @@ int main(int argc, char ** argv)
 		cout << cv_on_cell[i][0] << endl;
 		cout << endl;
 	}
+#endif
+
+        free(xCell);
+        free(yCell);
+        free(zCell);
+        free(xVertex);
+        free(yVertex);
+        free(zVertex);
+        free(meshDensity);
+        free(cellsOnVertex);
 
 	return 0;
 }
@@ -187,72 +200,66 @@ Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1)
 }
 
 
-void write_netcdf(int nCells, int nVertices, int vertexDegree, 
-		double * xCell, double * yCell, double * zCell,
-		double * xVertex, double * yVertex, double * zVertex,
-	 	double * meshDensity, int * cellsOnVertex,
-		double x_period, double y_period
+void read_netcdf(int *nCells, int *nVertices, int *vertexDegree, 
+		double **xCell, double **yCell, double **zCell,
+		double **xVertex, double **yVertex, double **zVertex,
+	 	double **meshDensity, int **cellsOnVertex,
+		double *x_period, double *y_period
 	  )
 {
-	int i, j, k;
 	int ncerr;
 	int ncid;
 	int dimIDnCells, dimIDnVertices, dimIDvertexDegree;
 	int varIDxCell, varIDyCell, varIDzCell;
 	int varIDxVertex, varIDyVertex, varIDzVertex;
 	int varIDcellsOnVertex, varIDmeshDensity;
-	
-	int dimids1[1];
-	int dimids2[2];
-	int dimids3[3];
-	size_t start1[1], count1[1];
-	size_t start2[2], count2[2];
-	size_t start3[3], count3[3];
-
-	double sphere_radius = 0.0;
+	size_t temp;
 
 
-	ncerr = nc_create("grid.nc", NC_SHARE, &ncid);
+	ncerr = nc_open("grid.nc", NC_SHARE, &ncid);
 
-	ncerr = nc_def_dim(ncid, "nCells", (size_t)nCells, &dimIDnCells);
-	ncerr = nc_def_dim(ncid, "nVertices", (size_t)nVertices, &dimIDnVertices);
-	ncerr = nc_def_dim(ncid, "vertexDegree", (size_t)vertexDegree, &dimIDvertexDegree);
+	ncerr = nc_inq_dimid(ncid, "nCells", &dimIDnCells);
+	ncerr = nc_inq_dimid(ncid, "nVertices", &dimIDnVertices);
+	ncerr = nc_inq_dimid(ncid, "vertexDegree", &dimIDvertexDegree);
 
-	dimids1[0] = dimIDnCells;
-	ncerr = nc_def_var(ncid, "xCell", NC_DOUBLE, 1, dimids1, &varIDxCell);
-	ncerr = nc_def_var(ncid, "yCell", NC_DOUBLE, 1, dimids1, &varIDyCell);
-	ncerr = nc_def_var(ncid, "zCell", NC_DOUBLE, 1, dimids1, &varIDzCell);
-	ncerr = nc_def_var(ncid, "meshDensity", NC_DOUBLE, 1, dimids1, &varIDmeshDensity);
-	dimids1[0] = dimIDnVertices;
-	ncerr = nc_def_var(ncid, "xVertex", NC_DOUBLE, 1, dimids1, &varIDxVertex);
-	ncerr = nc_def_var(ncid, "yVertex", NC_DOUBLE, 1, dimids1, &varIDyVertex);
-	ncerr = nc_def_var(ncid, "zVertex", NC_DOUBLE, 1, dimids1, &varIDzVertex);
-	dimids2[0] = dimIDnVertices;
-	dimids2[1] = dimIDvertexDegree;
-	ncerr = nc_def_var(ncid, "cellsOnVertex", NC_INT, 2, dimids2, &varIDcellsOnVertex);
+	ncerr = nc_inq_dimlen(ncid, dimIDnCells, &temp);
+	*nCells = (int)temp;
 
-	ncerr = nc_put_att_text(ncid, NC_GLOBAL, "on_a_sphere", 16, "NO              ");
-	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "sphere_radius", NC_DOUBLE, 1, &sphere_radius);
-	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "x_period", NC_DOUBLE, 1, &x_period);
-	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "y_period", NC_DOUBLE, 1, &y_period);
+	ncerr = nc_inq_dimlen(ncid, dimIDnVertices, &temp);
+	*nVertices = (int)temp;
 
-	ncerr = nc_enddef(ncid);
+	ncerr = nc_inq_dimlen(ncid, dimIDvertexDegree, &temp);
+	*vertexDegree = (int)temp;
 
-	start1[0] = 0;
-	start2[0] = 0;
-	start2[1] = 0;
-	count1[0] = nCells;
-	ncerr = nc_put_vara_double(ncid, varIDxCell, start1, count1, xCell);
-	ncerr = nc_put_vara_double(ncid, varIDyCell, start1, count1, yCell);
-	ncerr = nc_put_vara_double(ncid, varIDzCell, start1, count1, zCell);
-	ncerr = nc_put_vara_double(ncid, varIDmeshDensity, start1, count1, meshDensity);
-	count1[0] = nVertices;
-	ncerr = nc_put_vara_double(ncid, varIDxVertex, start1, count1, xVertex);
-	ncerr = nc_put_vara_double(ncid, varIDyVertex, start1, count1, yVertex);
-	ncerr = nc_put_vara_double(ncid, varIDzVertex, start1, count1, zVertex);
-	count2[0] = nVertices;
-	count2[1] = vertexDegree;
-	ncerr = nc_put_vara_int(ncid, varIDcellsOnVertex, start2, count2, cellsOnVertex);
+	ncerr = nc_inq_varid(ncid, "xCell", &varIDxCell);
+	ncerr = nc_inq_varid(ncid, "yCell", &varIDyCell);
+	ncerr = nc_inq_varid(ncid, "zCell", &varIDzCell);
+	ncerr = nc_inq_varid(ncid, "meshDensity", &varIDmeshDensity);
+	ncerr = nc_inq_varid(ncid, "xVertex", &varIDxVertex);
+	ncerr = nc_inq_varid(ncid, "yVertex", &varIDyVertex);
+	ncerr = nc_inq_varid(ncid, "zVertex", &varIDzVertex);
+	ncerr = nc_inq_varid(ncid, "cellsOnVertex", &varIDcellsOnVertex);
+
+	ncerr = nc_get_att_double(ncid, NC_GLOBAL, "x_period", x_period);
+	ncerr = nc_get_att_double(ncid, NC_GLOBAL, "y_period", y_period);
+
+	*xCell = (double *)malloc(sizeof(double) * (*nCells));
+	*yCell = (double *)malloc(sizeof(double) * (*nCells));
+	*zCell = (double *)malloc(sizeof(double) * (*nCells));
+	*meshDensity = (double *)malloc(sizeof(double) * (*nCells));
+	*xVertex = (double *)malloc(sizeof(double) * (*nVertices));
+	*yVertex = (double *)malloc(sizeof(double) * (*nVertices));
+	*zVertex = (double *)malloc(sizeof(double) * (*nVertices));
+	*cellsOnVertex = (int *)malloc(sizeof(int) * (*nVertices) * (*vertexDegree));
+
+	ncerr = nc_get_var_double(ncid, varIDxCell, *xCell);
+	ncerr = nc_get_var_double(ncid, varIDyCell, *yCell);
+	ncerr = nc_get_var_double(ncid, varIDzCell, *zCell);
+	ncerr = nc_get_var_double(ncid, varIDmeshDensity, *meshDensity);
+	ncerr = nc_get_var_double(ncid, varIDxVertex, *xVertex);
+	ncerr = nc_get_var_double(ncid, varIDyVertex, *yVertex);
+	ncerr = nc_get_var_double(ncid, varIDzVertex, *zVertex);
+	ncerr = nc_get_var_int(ncid, varIDcellsOnVertex, *cellsOnVertex);
 
 	ncerr = nc_close(ncid);
 }
