@@ -30,7 +30,7 @@ fprintf(['** load_large_variables simulation: ' dir '\n'])
 filename = [wd '/' dir '/' netcdf_file ];
 ncid = netcdf.open(filename,'nc_nowrite');
 
-nAccumulate = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'nAccumulate')); 
+nAverage = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'nAverage')); 
 
 [dimname,nVertLevels]= netcdf.inqDim(ncid,netcdf.inqDimID(ncid,'nVertLevels'));
 [dimname,nCells]= netcdf.inqDim(ncid,netcdf.inqDimID(ncid,'nCells'));
@@ -48,7 +48,7 @@ sectionData = zeros(nVertLevels,nPoints,nSections,nVars);
 for iVar=1:nVars
   temptext = char(var_name(iVar));
   fprintf(['loading: ' temptext '\n'])
-  if (temptext(1:6)=='ke_acc')
+  if (temptext(1:3)=='keA')
     % assume zonal and meridional velocity are in index 1 and 2.
     sectionData(:,:,:,iVar) = sqrt(sectionData(:,:,:,1).^2 + sectionData(:,:,:,2).^2)/2;
   else
@@ -59,9 +59,9 @@ for iVar=1:nVars
     %acc_var = netcdf.getVar(ncid,netcdf.inqVarID(ncid,char(var_name(iVar)))); 
     %mean_var = zeros(nVertLevels, nCells);
     %for i=1:nTimeSlices
-    %  mean_var = mean_var + nAccumulate(i)*squeeze(acc_var(:,:,i));
+    %  mean_var = mean_var + nAverage(i)*squeeze(acc_var(:,:,i));
     %end
-    %mean_var = mean_var/sum(nAccumulate)*var_conv_factor(iVar);
+    %mean_var = mean_var/sum(nAverage)*var_conv_factor(iVar);
 			       
     for iSection = 1:nSections
       for iPt = 1:nPoints

@@ -1,4 +1,4 @@
-function compute_transport ...
+function tr_total = compute_transport ...
    (wd,dir,netcdf_file, var_name, ...
     sectionEdgeIndex, sectionEdgeSign, ...
     nEdgesInSection, sectionData,sectionText,sectionAbbreviation)
@@ -31,9 +31,10 @@ fprintf(['** Compute transport: ' dir '\n'])
 filename = [wd '/' dir '/' netcdf_file ];
 ncid = netcdf.open(filename,'nc_nowrite');
 
-hZLevel = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'hZLevel'));
+refLayerThickness = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'refLayerThickness'));
 dvEdge = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'dvEdge'));
 [dimname,nVertLevels]= netcdf.inqDim(ncid,netcdf.inqDimID(ncid,'nVertLevels'));
+[dimname,nTimeSlices]= netcdf.inqDim(ncid,netcdf.inqDimID(ncid,'Time'));
 netcdf.close(ncid)
 
 nSections = length(nEdgesInSection);
@@ -43,23 +44,24 @@ m3ps_to_Sv = 1e-6; % m^3/sec flux to Sverdrups
 
 % the volume transport
 tr = zeros(nVertLevels,maxNEdgesInSection,nSections);
-tr_total = zeros(nSections,1);
+tr_total = zeros(nSections,nTimeSlices);
+
+for iTime=1:nTimeSlices
 header='  ';
 data_str='  ';
-
 for iSection = 1:nSections
    for i=1:nEdgesInSection(iSection)
       iEdge = sectionEdgeIndex(i,iSection);
       for k=1:nVertLevels
 	 % Compute transport.
-	 % I am assuming here that sectionData(:,:,:,1) contains acc_u
-	 tr(k,i,iSection) = sectionEdgeSign(i,iSection)...
-	     *sectionData(k,i,iSection,1)*dvEdge(iEdge)* ...
-	     hZLevel(k)*m3ps_to_Sv;
-	 tr_total(iSection) = tr_total(iSection) + tr(k,i,iSection);
+	 % I am assuming here that sectionData(:,:,:,1) contains avgNormalVelocity
+	 tr(k,i,iSection,iTime) = sectionEdgeSign(i,iSection)...
+	     *sectionData(k,i,iSection,1,iTime)*dvEdge(iEdge)* ...
+	     refLayerThickness(k)*m3ps_to_Sv;
+	 tr_total(iSection,iTime) = tr_total(iSection,iTime) + tr(k,i,iSection,iTime);
 
 	 % This is edge velocity
-	 tr(k,i,iSection) = sectionEdgeSign(i,iSection)*sectionData(k,i,iSection,1);
+	 %tr(k,i,iSection,iTime) = sectionEdgeSign(i,iSection)*sectionData(k,i,iSection,1,iTime);
       end
    end
    
@@ -73,25 +75,26 @@ for iSection = 1:nSections
    %colorbar  
 
    % note: flow computed in matlab only matches that computed in
-   % MPAS-O if they both use hZLevel.  To do a verification check,
+   % MPAS-O if they both use refLayerThickness.  To do a verification check,
    % replace the line 
    %     * h_edge(k,iEdge)*m3ps_to_Sv;
    % in mpas_ocn_time_average.F with the line
-   %     * hZLevel(k,iEdge)*m3ps_to_Sv;
+   %     * refLayerThickness(k,iEdge)*m3ps_to_Sv;
 
    temptext = char(sectionText(iSection));
-   fprintf(['Section %3i, ' temptext(1:22) ' observed flow:' ...
-	    temptext(63:75) ' mpas flow: %20.15f Sv\n'],iSection,tr_total(iSection))
+%   fprintf(['Section %3i, ' temptext(1:22) ' observed flow:' ...
+%	    temptext(63:75) ' mpas flow: %20.15f Sv\n'],iSection,tr_total(iSection))
 
-%   fprintf(['Section %3i, ' temptext(1:20) 'observed flow:' ...
-%	    temptext(63:75) ' mpas flow: %6.1f Sv\n'],iSection,tr_total(iSection))
-
-   header = [header sectionAbbreviation(iSection,:) '   '];
-   data_str = [data_str num2str_fixed(tr_total(iSection),'%4.1f',8)...
+   header = [header sectionAbbreviation(iSection,:) '  '];
+   data_str = [data_str num2str_fixed(tr_total(iSection,iTime),'%4.1f',7)...
 	      '   '];
 end
 
-fprintf(['\n Summary, in Sv: \n' header ' Simulation: \n' data_str '  ' dir '\n'])
+if iTime==1
+fprintf(['\n Summary, in Sv: \n' header '\n' ])
+end
+fprintf([data_str '  \n'])
+end
 
 
 fprintf('\n')

@@ -1,5 +1,5 @@
 function [cellsOnVertexSection, cellWeightsSection, latSection,lonSection, ...
-	  depth, botDepth, maxLevelCellSection] = find_cell_weights ...
+	  refMidDepth, refBottomDepth, maxLevelCellSection] = find_cell_weights ...
    (wd,dir,netcdf_file,sectionText,coord,nPoints)
 
 % This function reads grid data from an MPAS-Ocean grid or restart
@@ -33,7 +33,7 @@ function [cellsOnVertexSection, cellWeightsSection, latSection,lonSection, ...
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fprintf(['** find_cell_sections, simulation: ' dir '\n'])
  
-filename = [wd '/' dir '/' netcdf_file ];
+filename = [wd '/' dir '/' netcdf_file ]
 ncid = netcdf.open(filename,'nc_nowrite');
 
 xCell = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'xCell'));
@@ -45,7 +45,8 @@ xVertex = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'xVertex'));
 yVertex = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'yVertex'));
 zVertex = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'zVertex'));
 cellsOnVertex = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'cellsOnVertex'));
-hZLevel = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'hZLevel'));
+refLayerThickness = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'refLayerThickness'));
+refBottomDepth = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'refBottomDepth'));
 maxLevelCell = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'maxLevelCell'));
 sphere_radius = netcdf.getAtt(ncid,netcdf.getConstant('NC_GLOBAL'),'sphere_radius');
 [dimname,nVertices]= netcdf.inqDim(ncid,netcdf.inqDimID(ncid,'nVertices'));
@@ -56,13 +57,10 @@ netcdf.close(ncid)
 nSections = size(coord,1);
 
 % Compute depth of center of each layer, for plotting
-depth(1) = hZLevel(1)/2;
-botDepth(1) = hZLevel(1);
+refMidDepth(1) = refLayerThickness(1)/2;
 for i=2:nVertLevels
-  depth(i) = depth(i-1) + 0.5*(hZLevel(i) + hZLevel(i-1));
-  botDepth(i) = botDepth(i-1) + hZLevel(i);
+  refMidDepth(i) = refMidDepth(i-1) + 0.5*(refLayerThickness(i) + refLayerThickness(i-1));
 end
-depth(1)=0;  % make top layer plot to surface
 
 latSection = zeros(nPoints,nSections);
 lonSection = zeros(nPoints,nSections);
@@ -86,6 +84,7 @@ for iSection=1:nSections
    
    vInd = find(latVertex>minLat&latVertex<maxLat ...
 	      &lonVertex>minLon&lonVertex<maxLon);
+
    distToVertex = zeros(length(vInd),1);
    
    for iPt=1:nPoints
@@ -117,10 +116,17 @@ for iSection=1:nSections
      [mindist,i] = min(distToVertex);
      iVertex = vInd(i);
      nearestVertexSection(iPt,iSection) = iVertex;
-     cellsOnVertexSection(:,iPt,iSection) = cellsOnVertex(:,iVertex);
      latVertexSection(iPt,iSection) = latVertex(iVertex)*180/pi;
      lonVertexSection(iPt,iSection) = lonVertex(iVertex)*180/pi;
+     cellsOnVertexSection(:,iPt,iSection) = cellsOnVertex(:,iVertex);
 
+     maxInd=max(cellsOnVertexSection(:,iPt,iSection));
+     for i=1:length(cellsOnVertexSection(:,iPt,iSection))
+       if cellsOnVertexSection(i,iPt,iSection)==0
+	 cellsOnVertexSection(i,iPt,iSection)=maxInd;
+       end
+     end
+     
      maxLevelCellSection(iPt,iSection) = min(... 
 	 maxLevelCell(cellsOnVertexSection(:,iPt,iSection)));
      
@@ -146,7 +152,7 @@ for iSection=1:nSections
    end
 
    % print out if desired:
-   fprintf('lat: desired, vertex  lon: desired, vertex\n')
+   %fprintf('lat: desired, vertex  lon: desired, vertex\n')
    %fprintf('%10.2f %10.2f %10.2f %10.2f\n', ...
    %[latSection(:,iSection) latVertexSection(:,iSection) ...
    % lonSection(:,iSection) lonVertexSection(:,iSection) ]')

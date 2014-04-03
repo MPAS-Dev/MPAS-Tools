@@ -1,19 +1,16 @@
-function sub_plot_cell_sections(dir,coord, ...
-   latCellDeg,lonCellDeg, ...
-   sectionCellIndex, nCellsInSection,fid_latex)
+function sub_plot_section_locations(dir,coord, ...
+       latSection,lonSection,fid_latex)
 
-% Plot cell section locations on world map
+% Plot section locations on world map
 
-% Mark Petersen, MPAS-Ocean Team, LANL, May 2012
+% Mark Petersen, MPAS-Ocean Team, LANL, Sep 2012
 
 %%%%%%%%%% input arguments %%%%%%%%%
 % dir                text string, name of simulation
 % coord(nSections,4)  endpoints of sections, with one section per row as
 %                     [startlat startlon endlat endlon]
-% latCellDeg(nCells)                         lat arrays for all cells
-% lonCellDeg(nCells)                         lon arrays for all cells  
-% sectionCellIndex(maxCells,nSections)       cell index of each section
-% nCellsInSection(nSections)                 number of cells in each section
+% latSection(nPoints,nSections) lat coordinates of each section
+% lonSection(nPoints,nSections) lon coordinates of each section
 % fid_latex           file ID of latex file
 
 fprintf(['** sub_plot_cell_sections, on figure 1.\n'])
@@ -22,13 +19,8 @@ nSections = size(coord,1);
 
 figure(1); clf
 
-if (min(lonCellDeg)>-1e-8)
-  minLon = 0.0;
-  latTrans = 360;
-else
   minLon = -180.0;
-  latTrans = 0.0;
-end
+  latTrans = 360.0;
    
    % plot topo data of the earth.  This is just low-rez one deg
    % data for visual reference.
@@ -52,9 +44,9 @@ end
    set(gca,'YTick',15*[-20:20])
 
    % half world
-   axis([-240+latTrans 0+latTrans -80 70]) 
-   set(gca,'XTick',20*[-10:20])
-   set(gca,'YTick',10*[-20:20])
+%   axis([-360+latTrans 0+latTrans -80 70]) 
+%   set(gca,'XTick',20*[-10:20])
+%   set(gca,'YTick',10*[-20:20])
 
    % N Atlantic
 %   axis([-90+latTrans -5+latTrans -5 70]) 
@@ -71,39 +63,32 @@ end
 %   set(gca,'XTick',[0:1:300])
 %   set(gca,'YTick',[-20:.1:20])
  
- 
-   % plot cells.  This is just done for debugging.
-   %plot(lonCellDeg,latCellDeg,'.y')
-
+   hold on
    grid on
 
    for iSection=1:nSections
-     latCoordDeg = [coord(iSection,1) coord(iSection,3)];
-     lonCoordDeg = [coord(iSection,2) coord(iSection,4)];
-
-     h=plot([mod(lonCoordDeg,360)],[latCoordDeg],'*-');
+     h=plot(coord(iSection,[2 2 4 4 2 4 2 4]),...
+	    coord(iSection,[1 3 3 1 1 3 3 1]),'y-');
      set(h,'Color','y','LineWidth',1)
-
-     for i=1:nCellsInSection(iSection)-1
-	h = line([lonCellDeg(sectionCellIndex(i,iSection)) lonCellDeg(sectionCellIndex(i+1,iSection))],...
-		 [latCellDeg(sectionCellIndex(i,iSection)) latCellDeg(sectionCellIndex(i+1,iSection))]);
-	set(h,'Color',[1 0 0],'LineWidth',2)
-      end
+     h=text(lonSection(1,iSection),latSection(1,iSection), ...
+	    num2str(iSection));
+     
+     set(h,'Color',[1 1 1],'FontWeight','bold')
+     %h=plot(lonSection(:,iSection),latSection(:,iSection),'y.');
    end
 
    ylabel('latitude')
    xlabel('longitude')
-   title(['Domain: ' regexprep(dir,'_','\\_') ' Cells in cross sections. '])
+   title(['Domain: ' regexprep(dir,'_','\\_') ' Areas for means. '])
 
    set(gcf,'PaperPositionMode','auto','color',[.8 1 .8], ...
-	   'PaperPosition',[0.25 0.25 8 8])
+	   'PaperPosition',[0.25 0.25 6 4])
 
    subplot('position',[0 .95 1 .05]); axis off
    text(.005,.7,[ date ]);
 
-   dir_name1 =  regexprep(dir,'\.','_');
-   dir_name2 =  regexprep(dir_name1,'/','_');
-   filename=['f/' dir_name2 '_cell_map' ];
+   unix(['mkdir -p f/' dir ]);
+   filename=['f/' dir '/' 'mean_location_map' ];
    print('-djpeg',[filename '.jpg'])
    
    % put printing text in a latex file

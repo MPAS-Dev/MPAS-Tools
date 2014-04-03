@@ -1,4 +1,4 @@
-function transport_sections
+%function transport_sections
 
 % Specify data files, coordinates and text, then call functions
 % to find edge sections, load data, and compute transport through
@@ -14,7 +14,7 @@ function transport_sections
 % sectionText,sectionAbbreviation,sectionCoord \
 % your_file_section_edge_data.nc your_restart_file.nc
 %
-% Mark Petersen, MPAS-Ocean Team, LANL, May 2012
+% Mark Petersen, MPAS-Ocean Team, LANL, March 2014
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -28,36 +28,36 @@ unix('mkdir -p f netcdf_files docs text_files');
 % The text string [wd '/' sim(i).dir '/' sim(i).netcdf_file ] is the file path,
 % where wd is the working directory and dir is the run directory.
 
-wd = '/var/tmp/mpeterse/runs/todds_runs/P1';
+wd = '/var/tmp/mpeterse/runs/';
 
 % These files only need to contain a small number of variables.
 % You may need to reduce the file size before copying to a local
 % machine using:
-% ncks -v acc_u, \
-% nAccumulate,latVertex,lonVertex,verticesOnEdge,edgesOnVertex,hZLevel,\
+% ncks -v avgNormalVelocity, \
+% nAverage,latVertex,lonVertex,verticesOnEdge,edgesOnVertex,refLayerThickness,\
 % dvEdge \
 % file_in.nc file_out.nc
 %
-% and acc_u is only required if the flux is computed by this matlab script.
+% and avgNormalVelocity is only required if the flux is computed by this matlab script.
 
-sim(1).dir = 'x5.NA.15km/average';
-sim(1).netcdf_file = ['total_avg_o.x5.NA.15km.0012-01-01_00.00.00.nc'];
+clear sim
+for j=1:10
+  sim(j).dir='m91a';
+  sim(j).netcdf_file = ['output.00' num2str_fixed0(10+j,'%g',2) '-12-01_00.00.00.nc_transport_vars.nc'];
+end
 
-%sim(1).dir = 'x5.NA.75km_15km';
-%sim(1).netcdf_file = ['o.x5.NA.75km_15km.0027-01-01_00.00.00_acc_u.nc'];
+clear sim
+for j=1:10
+  sim(j).dir='m91c';
+  sim(j).netcdf_file = ['output.00' num2str_fixed0(12+j,'%g',2) '-03-01_00.00.00.nc_transport_vars.nc'];
+end
 
-%sim(2).dir = 'x5.NA.75km_15km/LEITH';
-%sim(2).netcdf_file = ['o.x5.NA.75km_15km.0027-01-01_00.00.00_acc_u.nc'];
+clear sim
+for j=1:10
+  sim(j).dir='m91f'; % b, d, e f
+  sim(j).netcdf_file = ['output.00' num2str_fixed0(12+j,'%g',2) '-02-01_00.00.00.nc_transport_vars.nc'];
+end
 
-%sim(3).dir = 'x1.15km';
-%sim(3).netcdf_file = ['o.x1.15km.0018-11-03_00.00.00_acc_u.nc'];
-
-%sim(4).dir = 'x5.NA.37.5km_7.5km';
-%sim(4).netcdf_file = ['o.x5.NA.37.5km_7.5km.0007-01-01_00.00.00_acc_u.nc'];
-
-%clear sim
-%sim(1).dir='x1.120km';
-%sim(1).netcdf_file = 'output120km.0001-10-22_12:30:00.nc';
 
 
 
@@ -139,7 +139,7 @@ sectionCoord = [...
 % var_lims(nVars,3)  contour line definition: min, max, interval 
 
 var_name = {...
-'acc_u',...
+'avgNormalVelocity',...
 };
 
 var_conv_factor = [1 1 1]; % No conversion here.
@@ -155,7 +155,7 @@ var_lims = [-10 10 2.5; -10 10 2.5; 0 20 2.5];
 find_edge_sections_flag         = true ;
 write_edge_sections_text_flag   = true ;
 write_edge_sections_netcdf_flag = true ;
-plot_edge_sections_flag         = true ;
+plot_edge_sections_flag         = false ;
 compute_transport_flag          = true ;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -171,7 +171,7 @@ sectionCoord(:,4) = mod(sectionCoord(:,4),360);
 
 for iSim = 1:length(sim)
 
-  fprintf(['**** simulation: ' sim(iSim).dir '\n'])
+  fprintf(['**** simulation: ' sim(iSim).dir '  ' sim(iSim).netcdf_file '\n'])
   unix(['mkdir -p docs/' sim(iSim).netcdf_file '_dir/f']);
   fid_latex = fopen('temp.tex','w');
   fprintf(fid_latex,['%% file created by plot_mpas_cross_sections, ' date '\n\n']);
@@ -243,14 +243,49 @@ for iSim = 1:length(sim)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   if compute_transport_flag
-    compute_transport ...
+    sim(iSim).tr_total = compute_transport ...
      (wd,sim(iSim).dir,sim(iSim).netcdf_file, var_name,  ...
       sim(iSim).sectionEdgeIndex, sim(iSim).sectionEdgeSign, sim(iSim).nEdgesInSection, ...
-      sim(iSim).sectionData,sectionText,sectionAbbreviation)
+      sim(iSim).sectionData,sectionText,sectionAbbreviation);
+    
+    if iSim==1
+      tr_total = sim(iSim).tr_total';
+    else
+      tr_total = [tr_total; sim(iSim).tr_total'];
+    end
+    
   end
 
   fclose(fid_latex);
   
 end % iSim
 
+% tr_total
+mean_transport = mean(tr_total,1);
+%fprintf(['mean over time, ' sim(1).dir ' \n' ])
+fprintf('%10.2f',mean_transport)
+fprintf([' mean, ' sim(1).dir ' \n'])
 
+var_transport = var(tr_total,1);
+%fprintf(['variance over time, ' sim(1).dir ' \n' ])
+fprintf('%10.2f',var_transport)
+fprintf([' var,  ' sim(1).dir ' \n'])
+
+std_transport = std(tr_total,1);
+%fprintf(['stdev over time, ' sim(1).dir ' \n' ])
+fprintf('%10.2f',std_transport)
+fprintf([' std,  ' sim(1).dir ' \n'])
+
+min_transport = min(tr_total,[],1);
+%fprintf(['minimum over time, ' sim(1).dir ' \n' ])
+fprintf('%10.2f',min_transport)
+fprintf([' min,  ' sim(1).dir ' \n'])
+
+max_transport = max(tr_total,[],1);
+%fprintf(['maximum over time, ' sim(1).dir ' \n' ])
+fprintf('%10.2f',max_transport)
+fprintf([' max,  ' sim(1).dir ' \n'])
+
+filename = ['data/' sim(1).dir '_total_transport_small_data_file.mat']
+clear sim
+save(filename)

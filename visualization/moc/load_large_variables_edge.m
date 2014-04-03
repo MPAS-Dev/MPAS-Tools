@@ -30,7 +30,7 @@ fprintf(['** load_large_variables simulation: ' dir '\n'])
 filename = [wd '/' dir '/' netcdf_file ];
 ncid = netcdf.open(filename,'nc_nowrite');
 
-nAccumulate = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'nAccumulate')); 
+nAverage = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'nAverage')); 
 
 [dimname,nVertLevels]= netcdf.inqDim(ncid,netcdf.inqDimID(ncid,'nVertLevels'));
 [dimname,nEdges]= netcdf.inqDim(ncid,netcdf.inqDimID(ncid,'nEdges'));
@@ -52,18 +52,21 @@ for iVar=1:nVars
   temptext = char(var_name(iVar));
   fprintf(['loading: ' temptext '\n'])
   
-    acc_var = netcdf.getVar(ncid,netcdf.inqVarID(ncid,char(var_name(iVar)))); 
-    mean_var = zeros(nVertLevels, nEdges);
-    for i=1:nTimeSlices
-      mean_var = mean_var + nAccumulate(i)*squeeze(acc_var(:,:,i));
-    end
-    mean_var = mean_var/sum(nAccumulate)*var_conv_factor(iVar);
-			       
+%    acc_var = netcdf.getVar(ncid,netcdf.inqVarID(ncid,char(var_name(iVar)))); 
+%    mean_var = zeros(nVertLevels, nEdges);
+%    for i=1:nTimeSlices
+%      mean_var = mean_var + nAverage(i)*squeeze(acc_var(:,:,i));
+%    end
+%    mean_var = mean_var/sum(nAverage)*var_conv_factor(iVar);
+
+    avgNormalVelocity = netcdf.getVar(ncid,netcdf.inqVarID(ncid,'avgNormalVelocity')); 
+
     for iSection = 1:nSections
       for i=1:nEdgesInSection(iSection)
         iEdge = sectionEdgeIndex(i,iSection);
         for k=1:nVertLevels
-          sectionData(k,i,iSection,iVar) = mean_var(k,iEdge);
+%          sectionData(k,i,iSection,iVar) = mean_var(k,iEdge);
+          sectionData(k,i,iSection,iVar) = avgNormalVelocity(k,iEdge);
         end
       end
     end

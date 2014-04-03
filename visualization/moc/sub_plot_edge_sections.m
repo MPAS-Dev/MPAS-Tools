@@ -31,7 +31,7 @@ else
   minLon = -180.0;
   latTrans = 0.0;
 end
-   
+
    % plot topo data of the earth.  This is just low-rez one deg
    % data for visual reference.
    load('topo.mat','topo','topomap1');
