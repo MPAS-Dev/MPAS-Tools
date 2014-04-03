@@ -27,12 +27,11 @@ Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1);
 
 int main(int argc, char ** argv)
 {
-//	int i, ii, jj, n, iter, idx, npts, np;
+	int i, j;
 //	DensityFunction f;
-//	PointSet pset;
 //	PointSet out_pset;
 //	Point * cells;
-//	Point * temp_p;
+	Point * temp_p;
 //	Point * temp_pp;
 //	Point p3;
 //	Triangle t;
@@ -44,11 +43,15 @@ int main(int argc, char ** argv)
 //	set<Triangle>::iterator dti;
 //	list<Triangle> norm_dt;
 //	list<Triangle>::iterator norm_dti;
-//	vector< vector<Point> > vertices_on_cell;
-//	vector< vector<Point> > cells_on_cell;
-//	vector< set<Point> > coc;
-//	set<Point>::iterator cell_iter;
-//	vector< vector<Point> > cv_on_cell;
+	vector< set<Point> > cellsOnCell_temp;
+	vector< vector<Point> > cellsOnVertex_v;
+	vector< vector<Point> > verticesOnCell_v;
+	vector< vector<Point> > cellsOnCell_v;
+	vector<Point> cells_v;
+	vector<Point> vertices_v;
+	vector<Point> edges_v;
+	set<Point>::iterator cell_iter;        /* TESTING CODE */
+	vector< vector<Point> > cv_on_cell;    /* TESTING CODE */
 //	Triangle * tri;
 //	double xcell, ycell;
 //	double x, y;
@@ -73,91 +76,122 @@ int main(int argc, char ** argv)
 	cout << "   y_period = " << y_period << endl;
 	cout << endl;
 
-#if 0
-	vertices_on_cell.resize(nCells);
+	/*
+	 * vector of cells
+	 */
+	cells_v.resize(nCells);
+	for (i=0; i<nCells; i++) {
+		temp_p = new Point(xCell[i], yCell[i], 0);
+		temp_p->setNum(i);
+		cells_v[i] = *temp_p;
+	}
+
+
+	/*
+	 * vector of vertices
+	 */
+	vertices_v.resize(nVertices);
 	for (i=0; i<nVertices; i++) {
 		temp_p = new Point(xVertex[i], yVertex[i], 0);
 		temp_p->setNum(i);
+		vertices_v[i] = *temp_p;
+	}
+
+
+	/*
+	 * cellsOnVertex
+	 */
+	cellsOnVertex_v.resize(nVertices);
+	for (i=0; i<nVertices; i++) {
+		cellsOnVertex_v[i].resize(3);
+		for (j=0; j<3; j++) {
+			cellsOnVertex_v[i][j] = cells_v[cellsOnVertex[3*i+j]-1];
+		}
+	}	
+
+
+	/*
+	 * verticesOnCell
+	 */
+	verticesOnCell_v.resize(nCells);
+	for (i=0; i<nVertices; i++) {
 		for (int j=0; j<3; j++) {
-			vertices_on_cell[cellsOnVertex[3*i+j]-1].push_back(*temp_p);
+			verticesOnCell_v[cellsOnVertex_v[i][j].getNum()].push_back(vertices_v[i]);
 		}
 	}
 
+
+/* TESTING CODE */
+#if 0
 	for (i=0; i<nCells; i++)
 	{
-		p.setX(xCell[i]);
-		p.setY(yCell[i]);
-		orderCCW_normalize(vertices_on_cell[i], p, x_period, y_period);
-/*
-		for (int j=0; j<vertices_on_cell[i].size(); j++)
-			cout << vertices_on_cell[i][j] << endl;
-		cout << vertices_on_cell[i][0] << endl;
-		cout << endl;
-*/
-	}
+		orderCCW_normalize(verticesOnCell_v[i], cells_v[i], x_period, y_period);
 
-	coc.resize(nCells);
+		for (j=0; j<verticesOnCell_v[i].size(); j++)
+			cout << verticesOnCell_v[i][j] << endl;
+		cout << verticesOnCell_v[i][0] << endl;
+		cout << endl;
+	}
+#endif
+
+
+	/*
+	 * cellsOnCell
+	 */
+	cellsOnCell_temp.resize(nCells);
 	for (i=0; i<nVertices; i++) {
 
 		/* First cell on vertex */
-		temp_p = new Point(xCell[cellsOnVertex[3*i]-1], yCell[cellsOnVertex[3*i]-1], 0);
-		temp_p->setNum(cellsOnVertex[3*i]-1);
-
-		cell_iter = coc[cellsOnVertex[3*i+1]-1].find(*temp_p);
-		if (cell_iter == coc[cellsOnVertex[3*i+1]-1].end()) {
-			coc[cellsOnVertex[3*i+1]-1].insert(*temp_p);	
+		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].find(cellsOnVertex_v[i][0]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].end()) {
+		        cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].insert(cellsOnVertex_v[i][0]);
 		}
 
-		cell_iter = coc[cellsOnVertex[3*i+2]-1].find(*temp_p);
-		if (cell_iter == coc[cellsOnVertex[3*i+2]-1].end()) {
-			coc[cellsOnVertex[3*i+2]-1].insert(*temp_p);	
+		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].find(cellsOnVertex_v[i][0]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].end()) {
+		        cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].insert(cellsOnVertex_v[i][0]);
 		}
 
 		/* Second cell on vertex */
-		temp_p = new Point(xCell[cellsOnVertex[3*i+1]-1], yCell[cellsOnVertex[3*i+1]-1], 0);
-		temp_p->setNum(cellsOnVertex[3*i+1]-1);
-
-		cell_iter = coc[cellsOnVertex[3*i]-1].find(*temp_p);
-		if (cell_iter == coc[cellsOnVertex[3*i]-1].end()) {
-			coc[cellsOnVertex[3*i]-1].insert(*temp_p);	
+		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].find(cellsOnVertex_v[i][1]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].end()) {
+		        cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].insert(cellsOnVertex_v[i][1]);
 		}
 
-		cell_iter = coc[cellsOnVertex[3*i+2]-1].find(*temp_p);
-		if (cell_iter == coc[cellsOnVertex[3*i+2]-1].end()) {
-			coc[cellsOnVertex[3*i+2]-1].insert(*temp_p);	
+		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].find(cellsOnVertex_v[i][1]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].end()) {
+		        cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].insert(cellsOnVertex_v[i][1]);
 		}
 
 		/* Third cell on vertex */
-		temp_p = new Point(xCell[cellsOnVertex[3*i+2]-1], yCell[cellsOnVertex[3*i+2]-1], 0);
-		temp_p->setNum(cellsOnVertex[3*i+2]-1);
-
-		cell_iter = coc[cellsOnVertex[3*i]-1].find(*temp_p);
-		if (cell_iter == coc[cellsOnVertex[3*i]-1].end()) {
-			coc[cellsOnVertex[3*i]-1].insert(*temp_p);	
+		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].find(cellsOnVertex_v[i][2]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].end()) {
+		        cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].insert(cellsOnVertex_v[i][2]);
 		}
 
-		cell_iter = coc[cellsOnVertex[3*i+1]-1].find(*temp_p);
-		if (cell_iter == coc[cellsOnVertex[3*i+1]-1].end()) {
-			coc[cellsOnVertex[3*i+1]-1].insert(*temp_p);	
+		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].find(cellsOnVertex_v[i][2]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].end()) {
+		        cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].insert(cellsOnVertex_v[i][2]);
 		}
 	}
 
-	cells_on_cell.resize(nCells);
+	cellsOnCell_v.resize(nCells);
 	for (i=0; i<nCells; i++) {
-		for (cell_iter = coc[i].begin(); cell_iter != coc[i].end(); cell_iter++) {
-				cells_on_cell[i].push_back(*cell_iter);
+		for (cell_iter = cellsOnCell_temp[i].begin(); cell_iter != cellsOnCell_temp[i].end(); cell_iter++) {
+				cellsOnCell_v[i].push_back(*cell_iter);
 		}
 	}
 
+/* TESTING CODE */
 	cv_on_cell.resize(nCells);
 	for (i=0; i<nCells; i++) {
-		for (int j=0; j<cells_on_cell[i].size(); j++) {
-			cv_on_cell[i].push_back(cells_on_cell[i][j]);
+		for (int j=0; j<cellsOnCell_v[i].size(); j++) {
+			cv_on_cell[i].push_back(cellsOnCell_v[i][j]);
 		}
-		for (int j=0; j<vertices_on_cell[i].size(); j++) {
-			cv_on_cell[i].push_back(vertices_on_cell[i][j]);
+		for (int j=0; j<verticesOnCell_v[i].size(); j++) {
+			cv_on_cell[i].push_back(verticesOnCell_v[i][j]);
 		}
-		orderCCW_normalize(cv_on_cell[i], *pset[i], x_period, y_period);
+		orderCCW_normalize(cv_on_cell[i], cells_v[i], x_period, y_period);
 	}
 
 	for (i=0; i<nCells; i++)
@@ -167,7 +201,6 @@ int main(int argc, char ** argv)
 		cout << cv_on_cell[i][0] << endl;
 		cout << endl;
 	}
-#endif
 
         free(xCell);
         free(yCell);
