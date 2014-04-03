@@ -19,8 +19,8 @@ nSections = size(coord,1);
 
 figure(1); clf
 
-  minLon = 0.0;
-  latTrans = 360;
+  minLon = -180.0;  % may be 0 or -180
+  latTrans = 360.0;
    
    % plot topo data of the earth.  This is just low-rez one deg
    % data for visual reference.
@@ -44,9 +44,9 @@ figure(1); clf
    set(gca,'YTick',15*[-20:20])
 
    % half world
-   axis([-360+latTrans 0+latTrans -80 70]) 
-   set(gca,'XTick',20*[-10:20])
-   set(gca,'YTick',10*[-20:20])
+%   axis([-360+latTrans 0+latTrans -80 70]) 
+%   set(gca,'XTick',20*[-10:20])
+%   set(gca,'YTick',10*[-20:20])
 
    % N Atlantic
 %   axis([-90+latTrans -5+latTrans -5 70]) 
@@ -67,10 +67,9 @@ figure(1); clf
    grid on
 
    for iSection=1:nSections
-     h=plot(lonSection(:,iSection),latSection(:,iSection),'r-');
+     h=plot(lonSection(:,iSection),latSection(:,iSection),'y-');
      h=text(lonSection(1,iSection),latSection(1,iSection), ...
-	    num2str(iSection))
-     get(h)
+	    num2str(iSection));
      
      set(h,'Color',[1 1 1],'FontWeight','bold')
      %h=plot(lonSection(:,iSection),latSection(:,iSection),'y.');

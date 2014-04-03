@@ -81,6 +81,9 @@ netcdf.close(ncid)
 if (min(lonVertex)<-1e-8)
   lonVertex = mod(lonVertex,2*pi);
 end
+% inserted for lon -180:180
+lonVertex = mod(lonVertex+pi,2*pi)-pi;
+
 % convert to degrees for plotting:
 latVertexDeg = latVertex*180/pi;
 lonVertexDeg = lonVertex*180/pi;

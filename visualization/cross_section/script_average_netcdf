@@ -5,7 +5,7 @@
 #   2. Average timeslices within each output file.
 #   3. Average among output files created in step 2.
 # In step 2, output files already averaged will not be recomputed.
-# Step 3 does not use nAccumulate to weight the average.  This is not a 
+# Step 3 does not use nAverage to weight the average.  This is not a 
 # problem if all output files use the same number of timeslices 
 # (like 12 months in an annual file).
 #
@@ -29,7 +29,7 @@
 # could run on conejo or lobo with no trouble, and it took 2 minutes
 # to average each 10-slice file for one variable.
 
-# Mark Petersen, MPAS-Ocean Team, LANL, May 2012
+# Mark Petersen, MPAS-Ocean Team, LANL, April 2014
 
 ########################################################################
 #
@@ -38,9 +38,9 @@
 ########################################################################
 
 # variables
-set varList = ( acc_uReconstructZonal acc_uReconstructMeridional )
-# To compute transport through sections, include acc_u as follows:
-#set varList = ( acc_uReconstructZonal acc_uReconstructMeridional acc_u )
+set varList = ( avgZonalVelocity avgMeridionalVelocity )
+# Possible variables of interest include: 
+#set varList = ( avgNormalVelocity avgVertVelocityTop avgVelocityZonal avgVelocityMeridional temperature potentialDensity salinity uBolusGMZonal uBolusGMMeridional )
 
 # This is the list of output files that averages should be computed from.
 set outputFileList = o*00.nc
@@ -81,7 +81,7 @@ if ( -f $newFile ) then
 else
    echo "    File $newFile does not exists.  Generating grid file..."
 
-   ncks -v latVertex,lonVertex,verticesOnEdge,edgesOnVertex,hZLevel,dvEdge,latCell,lonCell,cellsOnCell,nEdgesOnCell,maxLevelCell \
+   ncks -v nAverage,latVertex,lonVertex,verticesOnEdge,edgesOnVertex,refLayerThickness,dvEdge,latCell,lonCell,refBottomDepth,areaCell,xCell,yCell,zCell,xVertex,yVertex,zVertex,cellsOnVertex,maxLevelCell \
      $lastFileName $newFile
 endif
 echo
@@ -98,8 +98,8 @@ foreach varName ($varList)
       else
          echo "    File $newFile does not exists.  Computing internal average..."
 
-         ncwa -y avg -v $varName    -w nAccumulate -a Time    $ncfile $newFile
-         ncwa -y ttl -v nAccumulate -a Time -A $ncfile $newFile
+         ncwa -y avg -v $varName    -w nAverage -a Time    $ncfile $newFile
+         ncwa -y ttl -v nAverage -a Time -A $ncfile $newFile
       endif
 
    end
@@ -113,7 +113,7 @@ foreach varName ($varList)
    set finalFile = total_avg_${lastFileName}
    echo "  Computing total average among files.  Appending to "$finalFile" (expect warnings for repeat dims)"
    ncea -y avg -v $varName    -A *_${varName}_internal_avg.nc $finalFile
-   ncea -y ttl -v nAccumulate -A *_${varName}_internal_avg.nc $finalFile
+   ncea -y ttl -v nAverage -A *_${varName}_internal_avg.nc $finalFile
    echo
 
 end
