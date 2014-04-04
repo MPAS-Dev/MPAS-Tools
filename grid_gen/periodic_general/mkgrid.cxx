@@ -27,7 +27,7 @@ Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1);
 
 int main(int argc, char ** argv)
 {
-	int i, j, ii, jj;
+	int i, j, k, ii, jj;
 //	DensityFunction f;
 //	PointSet out_pset;
 //	Point * cells;
@@ -45,13 +45,18 @@ int main(int argc, char ** argv)
 //	list<Triangle>::iterator norm_dti;
 	vector< set<Point> > cellsOnCell_temp;
 	vector< vector<Point> > cellsOnVertex_v;
+	vector< vector<Point> > edgesOnVertex_v;
 	vector< vector<Point> > verticesOnCell_v;
 	vector< vector<Point> > cellsOnCell_v;
+	vector< vector<Point> > cellsOnEdge_v;
+	vector< vector<Point> > verticesOnEdge_v;
+	vector< vector<Point> > edgesOnCell_v;
 	vector<Point> cells_v;
 	vector<Point> vertices_v;
 	vector<Point> edges_v;
+	vector<Point> edge_segments;
 	set<Point>::iterator cell_iter;        /* TESTING CODE */
-	vector< vector<Point> > cv_on_cell;    /* TESTING CODE */
+//	vector< vector<Point> > cv_on_cell;    /* TESTING CODE */
 //	Triangle * tri;
 //	double xcell, ycell;
 //	double x, y;
@@ -170,57 +175,79 @@ int main(int argc, char ** argv)
 		}
 	}
 
-/* TESTING CODE */
-	cv_on_cell.resize(nCells);
-	for (i=0; i<nCells; i++) {
-		for (int j=0; j<cellsOnCell_v[i].size(); j++) {
-			cv_on_cell[i].push_back(cellsOnCell_v[i][j]);
-		}
-		for (int j=0; j<verticesOnCell_v[i].size(); j++) {
-			cv_on_cell[i].push_back(verticesOnCell_v[i][j]);
-		}
-		orderCCW_normalize(cv_on_cell[i], cells_v[i], x_period, y_period);
-	}
-
 	/* Place cellsOnCell, verticesOnCell in CCW order */
 	for (i=0; i<nCells; i++) {
-		for (j=0; j<cv_on_cell[i].size(); j+=2) {
-			cellsOnCell_v[i][j/2] = cv_on_cell[i][j];
-			verticesOnCell_v[i][j/2] = cv_on_cell[i][j+1];
-		}
+		orderCCW_normalize(cellsOnCell_v[i], cells_v[i], x_period, y_period);
+		orderCCW_normalize(verticesOnCell_v[i], cells_v[i], x_period, y_period);
 	}
-
-cout << "cellsOnCell" << endl;
-for (i=0; i<nCells; i++) {
-	cout << "CELL " << i << endl;
-	for (j=0; j<cellsOnCell_v[i].size(); j++) {
-		cout << " " << cellsOnCell_v[i][j].getNum() << endl;
-	}
-	cout << endl;
-}
-cout << "verticesOnCell" << endl;
-for (i=0; i<nCells; i++) {
-	for (j=0; j<verticesOnCell_v[i].size(); j++) {
-		cout << " " << verticesOnCell_v[i][j].getNum() << endl;
-	}
-	cout << endl;
-}
 
 
 	/*
-	 * edgesOnCell
+	 * cellsOnEdge, verticesOnEdge
 	 */
 	nEdges = nVertices + nCells;
 	edges_v.resize(nEdges);
+	cellsOnEdge_v.resize(nEdges);
+	verticesOnEdge_v.resize(nEdges);
+	edgesOnCell_v.resize(nCells);
+	edgesOnVertex_v.resize(nVertices);
+	edge_segments.resize(4);   /* Used to hold the two vertices and two cells that determine the edge location */
 	ii = 0;
 	for (i=0; i<nCells; i++) {
+		edge_segments[0] = cells_v[i];
 		for (j=0; j<cellsOnCell_v[i].size(); j++) {
 			if (cells_v[i].getNum() < cellsOnCell_v[i][j].getNum()) {
-				jj = (j - 1 + cellsOnCell_v[i].size()) % cellsOnCell_v[i].size();
-				edges_v[ii++] = segment_intersect(cells_v[i], cellsOnCell_v[i][j], verticesOnCell_v[i][jj], verticesOnCell_v[i][j]);
-				/* Now we can set edgesOnCell_v, cellsOnEdge_v, verticesOnEdge_v, dcEdge_v, dvEdge_v */
+
+				/* Need to scan through all vertices and find the two that are shared with cellsOnCell_v[i][j] */
+				edge_segments[1] = cellsOnCell_v[i][j];
+				for (k=0; k<verticesOnCell_v[i].size(); k++) {
+					for (int kk=0; kk<verticesOnCell_v[cellsOnCell_v[i][j].getNum()].size(); kk++) {
+						if (verticesOnCell_v[i][k].getNum() == verticesOnCell_v[cellsOnCell_v[i][j].getNum()][kk].getNum()) {
+							edge_segments[2] = verticesOnCell_v[i][k];
+							goto foo;
+						}
+					}
+				}
+				cerr << "No matching vertex 1..." << endl;
+foo:
+				cout << " Found matching vertex 1 as " << edge_segments[2].getNum() << endl;
+				for (k=k+1; k<verticesOnCell_v[i].size(); k++) {
+					for (int kk=0; kk<verticesOnCell_v[cellsOnCell_v[i][j].getNum()].size(); kk++) {
+						if (verticesOnCell_v[i][k].getNum() == verticesOnCell_v[cellsOnCell_v[i][j].getNum()][kk].getNum()) {
+							edge_segments[3] = verticesOnCell_v[i][k];
+							goto foo2;
+						}
+					}
+				}
+				cerr << "No matching vertex 2..." << endl;
+foo2:
+				cout << " Found matching vertex 2 as " << edge_segments[3].getNum() << endl;
+
+				periodic_normalize(edge_segments, x_period, y_period);
+				cellsOnEdge_v[ii].resize(2);
+				cellsOnEdge_v[ii][0] = edge_segments[0];
+				cellsOnEdge_v[ii][1] = edge_segments[1];
+				verticesOnEdge_v[ii].resize(2);
+				verticesOnEdge_v[ii][0] = edge_segments[2];
+				verticesOnEdge_v[ii][1] = edge_segments[3];
+				edges_v[ii] = segment_intersect(edge_segments[0], edge_segments[1], edge_segments[2], edge_segments[3]);
+				edges_v[ii].setNum(ii);
+				edgesOnCell_v[i].push_back(edges_v[ii]);
+				edgesOnVertex_v[edge_segments[2].getNum()].push_back(edges_v[ii]);
+				edgesOnVertex_v[edge_segments[3].getNum()].push_back(edges_v[ii]);
+				ii++;
+
+	/* Should also add the edge to cellOnCell[i][j]'s list of edges */
 			}
 		}
+	}
+
+
+	/*
+	 * dcEdge, dvEdge
+	 */
+	for (i=0; i<nEdges; i++) {
+
 	}
 
 cout << "nEdges = " << nEdges << " " << ii << endl;
