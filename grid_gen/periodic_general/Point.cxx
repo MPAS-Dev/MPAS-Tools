@@ -136,13 +136,13 @@ ostream& operator<<(ostream& output, const Point& p)
 
 bool operator<(Point const& lhs, Point const& rhs)
 {
-        int a[2], b[2];
+        double a[2], b[2];
 
-        a[0] = lhs.getX();
-        a[1] = lhs.getY();
+        a[0] = lhs.x;
+        a[1] = lhs.y;
 
-        b[0] = rhs.getX();
-        b[1] = rhs.getY();
+        b[0] = rhs.x;
+        b[1] = rhs.y;
 
         if (a[0] < b[0]) {
                 return true;
