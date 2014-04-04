@@ -366,6 +366,105 @@ void orderCCW_normalize(vector<Point>& vc, Point p, double x_period, double y_pe
 }
 
 
+void orderCCW_normalize2(vector<Point>& vc1, vector<Point>& vc2, Point p, double x_period, double y_period)
+{
+	int i, j;
+	double * angles;
+	double ftemp;
+	Point ptemp;
+
+	double PI = 2.0 * acos(0.0);
+
+	if (vc1.size() != vc2.size()) {
+		cerr << "Error: In orderCCW_normalize2, input vectors have different size." << endl;
+		return;
+	}
+
+	angles = new double[vc1.size()];
+
+
+	/* Normalize points in vc1 */
+	for (i=0; i<vc1.size(); i++) {
+		if ( (vc1[i].getX() - p.getX()) > (x_period / 2.0) ) {
+			vc1[i].setX( vc1[i].getX() - x_period );
+		}
+		else if ( (vc1[i].getX() - p.getX()) < (-x_period / 2.0) ) {
+			vc1[i].setX( vc1[i].getX() + x_period );
+		}
+
+		if ( (vc1[i].getY() - p.getY()) > (y_period / 2.0) ) {
+			vc1[i].setY( vc1[i].getY() - y_period );
+		}
+		else if ( (vc1[i].getY() - p.getY()) < (-y_period / 2.0) ) {
+			vc1[i].setY( vc1[i].getY() + y_period );
+		}
+	}
+
+
+	/* Normalize points in vc2 */
+	for (i=0; i<vc1.size(); i++) {
+		if ( (vc1[i].getX() - p.getX()) > (x_period / 2.0) ) {
+			vc1[i].setX( vc1[i].getX() - x_period );
+		}
+		else if ( (vc1[i].getX() - p.getX()) < (-x_period / 2.0) ) {
+			vc1[i].setX( vc1[i].getX() + x_period );
+		}
+
+		if ( (vc1[i].getY() - p.getY()) > (y_period / 2.0) ) {
+			vc1[i].setY( vc1[i].getY() - y_period );
+		}
+		else if ( (vc1[i].getY() - p.getY()) < (-y_period / 2.0) ) {
+			vc1[i].setY( vc1[i].getY() + y_period );
+		}
+	}
+
+
+	/* Order points in vc1 */
+	angles[0] = 0.0;
+	for (i=1; i<vc1.size(); i++) {
+		angles[i] = angle(p, vc1[0], vc1[i]);
+		if (angles[i] < 0.0) angles[i] += 2.0 * PI;
+	}
+
+	for(i=1; i<vc1.size(); i++) {
+		for(j=i+1; j<vc1.size(); j++) {
+			if (angles[j] < angles[i]) {
+				ftemp = angles[i];
+				angles[i] = angles[j];
+				angles[j] = ftemp;
+
+				ptemp = vc1[i];
+				vc1[i] = vc1[j];
+				vc1[j] = ptemp;
+			}
+		}
+	}
+
+
+	/* Order points in vc2 */
+	for (i=0; i<vc2.size(); i++) {
+		angles[i] = angle(p, vc1[0], vc2[i]);
+		if (angles[i] < 0.0) angles[i] += 2.0 * PI;
+	}
+
+	for(i=0; i<vc2.size(); i++) {
+		for(j=i+1; j<vc2.size(); j++) {
+			if (angles[j] < angles[i]) {
+				ftemp = angles[i];
+				angles[i] = angles[j];
+				angles[j] = ftemp;
+
+				ptemp = vc2[i];
+				vc2[i] = vc2[j];
+				vc2[j] = ptemp;
+			}
+		}
+	}
+
+	delete [] angles;
+}
+
+
 void orderCCW_print(vector<Point>& vc, Point p)
 {
 	int i, j;
@@ -432,4 +531,26 @@ double poly_area(vector<Point>& vc)
 	}
 
 	return poly_area;
+}
+
+
+void periodic_normalize(vector<Point>& vc, double x_period, double y_period)
+{
+	int i;
+
+	for (i=1; i<vc.size(); i++) {
+		if ( (vc[i].getX() - vc[0].getX()) > (x_period / 2.0) ) {
+			vc[i].setX( vc[i].getX() - x_period );
+		}
+		else if ( (vc[i].getX() - vc[0].getX()) < (-x_period / 2.0) ) {
+			vc[i].setX( vc[i].getX() + x_period );
+		}
+
+		if ( (vc[i].getY() - vc[0].getY()) > (y_period / 2.0) ) {
+			vc[i].setY( vc[i].getY() - y_period );
+		}
+		else if ( (vc[i].getY() - vc[0].getY()) < (-y_period / 2.0) ) {
+			vc[i].setY( vc[i].getY() + y_period );
+		}
+	}
 }

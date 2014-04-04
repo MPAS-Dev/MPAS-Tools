@@ -70,6 +70,8 @@ class PointSet
 double angle(Point o, Point p1, Point p2);
 void orderCCW(vector<Point>& vc, Point p);
 void orderCCW_normalize(vector<Point>& vc, Point p, double x_period, double y_period);
+void orderCCW_normalize2(vector<Point>& vc1, vector<Point>& vc2, Point p, double x_period, double y_period);
 double poly_area(vector<Point>& vc);
 void orderCCW_print(vector<Point>& vc, Point p);
+void periodic_normalize(vector<Point>& vc, double x_period, double y_period);
 #endif
