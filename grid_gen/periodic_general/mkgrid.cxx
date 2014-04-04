@@ -27,7 +27,7 @@ Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1);
 
 int main(int argc, char ** argv)
 {
-	int i, j;
+	int i, j, ii, jj;
 //	DensityFunction f;
 //	PointSet out_pset;
 //	Point * cells;
@@ -57,7 +57,7 @@ int main(int argc, char ** argv)
 //	double x, y;
 //	double total_mass, mass; 
 //	FILE * restart;
-	int nCells, nVertices, vertexDegree;
+	int nCells, nVertices, nEdges, vertexDegree;
 	double *xCell, *yCell, *zCell, *xVertex, *yVertex, *zVertex, *meshDensity;
 	int *cellsOnVertex;
 	double x_period, y_period;
@@ -105,7 +105,7 @@ int main(int argc, char ** argv)
 	for (i=0; i<nVertices; i++) {
 		cellsOnVertex_v[i].resize(3);
 		for (j=0; j<3; j++) {
-			cellsOnVertex_v[i][j] = cells_v[cellsOnVertex[3*i+j]-1];
+			cellsOnVertex_v[i][j] = cells_v[cellsOnVertex[3*i+j]];
 		}
 	}	
 
@@ -121,58 +121,46 @@ int main(int argc, char ** argv)
 	}
 
 
-/* TESTING CODE */
-#if 0
-	for (i=0; i<nCells; i++)
-	{
-		orderCCW_normalize(verticesOnCell_v[i], cells_v[i], x_period, y_period);
-
-		for (j=0; j<verticesOnCell_v[i].size(); j++)
-			cout << verticesOnCell_v[i][j] << endl;
-		cout << verticesOnCell_v[i][0] << endl;
-		cout << endl;
-	}
-#endif
-
-
 	/*
 	 * cellsOnCell
 	 */
 	cellsOnCell_temp.resize(nCells);
 	for (i=0; i<nVertices; i++) {
-
 		/* First cell on vertex */
-		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].find(cellsOnVertex_v[i][0]);
-		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].end()) {
-		        cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].insert(cellsOnVertex_v[i][0]);
+		cell_iter      = cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].find(cellsOnVertex_v[i][1]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].end()) {
+		                 cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].insert(cellsOnVertex_v[i][1]);
 		}
 
-		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].find(cellsOnVertex_v[i][0]);
-		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].end()) {
-		        cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].insert(cellsOnVertex_v[i][0]);
+		cell_iter      = cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].find(cellsOnVertex_v[i][2]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].end()) {
+		                 cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].insert(cellsOnVertex_v[i][2]);
 		}
 
 		/* Second cell on vertex */
-		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].find(cellsOnVertex_v[i][1]);
-		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].end()) {
-		        cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].insert(cellsOnVertex_v[i][1]);
+		cell_iter      = cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].find(cellsOnVertex_v[i][0]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].end()) {
+		                 cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].insert(cellsOnVertex_v[i][0]);
 		}
 
-		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].find(cellsOnVertex_v[i][1]);
-		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].end()) {
-		        cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].insert(cellsOnVertex_v[i][1]);
+		cell_iter      = cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].find(cellsOnVertex_v[i][2]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].end()) {
+		                 cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].insert(cellsOnVertex_v[i][2]);
 		}
 
 		/* Third cell on vertex */
-		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].find(cellsOnVertex_v[i][2]);
-		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].end()) {
-		        cellsOnCell_temp[cellsOnVertex_v[i][0].getNum()].insert(cellsOnVertex_v[i][2]);
+		cell_iter      = cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].find(cellsOnVertex_v[i][0]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].end()) {
+		                 cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].insert(cellsOnVertex_v[i][0]);
+		}
+		else {
 		}
 
-		cell_iter = cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].find(cellsOnVertex_v[i][2]);
-		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].end()) {
-		        cellsOnCell_temp[cellsOnVertex_v[i][1].getNum()].insert(cellsOnVertex_v[i][2]);
+		cell_iter      = cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].find(cellsOnVertex_v[i][1]);
+		if (cell_iter == cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].end()) {
+		                 cellsOnCell_temp[cellsOnVertex_v[i][2].getNum()].insert(cellsOnVertex_v[i][1]);
 		}
+
 	}
 
 	cellsOnCell_v.resize(nCells);
@@ -194,13 +182,53 @@ int main(int argc, char ** argv)
 		orderCCW_normalize(cv_on_cell[i], cells_v[i], x_period, y_period);
 	}
 
-	for (i=0; i<nCells; i++)
-	{
-		for (int j=0; j<cv_on_cell[i].size(); j++)
-			cout << cv_on_cell[i][j] << endl;
-		cout << cv_on_cell[i][0] << endl;
-		cout << endl;
+	/* Place cellsOnCell, verticesOnCell in CCW order */
+	for (i=0; i<nCells; i++) {
+		for (j=0; j<cv_on_cell[i].size(); j+=2) {
+			cellsOnCell_v[i][j/2] = cv_on_cell[i][j];
+			verticesOnCell_v[i][j/2] = cv_on_cell[i][j+1];
+		}
 	}
+
+cout << "cellsOnCell" << endl;
+for (i=0; i<nCells; i++) {
+	cout << "CELL " << i << endl;
+	for (j=0; j<cellsOnCell_v[i].size(); j++) {
+		cout << " " << cellsOnCell_v[i][j].getNum() << endl;
+	}
+	cout << endl;
+}
+cout << "verticesOnCell" << endl;
+for (i=0; i<nCells; i++) {
+	for (j=0; j<verticesOnCell_v[i].size(); j++) {
+		cout << " " << verticesOnCell_v[i][j].getNum() << endl;
+	}
+	cout << endl;
+}
+
+
+	/*
+	 * edgesOnCell
+	 */
+	nEdges = nVertices + nCells;
+	edges_v.resize(nEdges);
+	ii = 0;
+	for (i=0; i<nCells; i++) {
+		for (j=0; j<cellsOnCell_v[i].size(); j++) {
+			if (cells_v[i].getNum() < cellsOnCell_v[i][j].getNum()) {
+				jj = (j - 1 + cellsOnCell_v[i].size()) % cellsOnCell_v[i].size();
+				edges_v[ii++] = segment_intersect(cells_v[i], cellsOnCell_v[i][j], verticesOnCell_v[i][jj], verticesOnCell_v[i][j]);
+				/* Now we can set edgesOnCell_v, cellsOnEdge_v, verticesOnEdge_v, dcEdge_v, dvEdge_v */
+			}
+		}
+	}
+
+cout << "nEdges = " << nEdges << " " << ii << endl;
+for (i=0; i<nEdges; i++)
+{
+	cout << edges_v[i] << endl;
+}
+cout << endl;
 
         free(xCell);
         free(yCell);
