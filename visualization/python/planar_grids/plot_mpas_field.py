@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Script capable of plotting most MPAS fields.  Invoke with 'python plot_mpas_field.py --help for details about how to use.
 # Matt Hoffman, June 14, 2012
 
@@ -57,7 +57,7 @@ if not options.time:
 else:
         if options.time=='a':
            time_slices = numpy.arange( xtime.shape[0] )  # this is an easier way to get the time length than querying the dimension since the way to do that depends on which NetCDF module is being used...
-           print "Animating all" + str(time_slices.size) + " time levels." 
+           print "Animating all" + str(time_slices.size) + " time levels."
         else:
            time_slices = int(options.time)
            print "Using time level " +  options.time
@@ -108,7 +108,7 @@ plottitle = varname
 if 'Time' in dims:
    time_length = var.shape[0]  # Assume time is the first dimension
    if 'nVertLevels' in dims:
-      plottitle = plottitle + ', for layer ' + str(vert_level) 
+      plottitle = plottitle + ', for layer ' + str(vert_level)
       var_slice = var[:,:,vert_level]
    else:
       var_slice = var[:,:]
@@ -167,7 +167,7 @@ for t in iterlist:
 
     if options.printval:
        for iCell in range(x.shape[0]):
-            plt.text(x[iCell], y[iCell], '{0:.1f}'.format(var_slice[t,iCell]), horizontalalignment='center', verticalalignment='center',  fontsize=3) 
+            plt.text(x[iCell], y[iCell], '{0:.1f}'.format(var_slice[t,iCell]), horizontalalignment='center', verticalalignment='center',  fontsize=3)
        dpi=300
     else:
        dpi=150
@@ -178,7 +178,7 @@ for t in iterlist:
     plt.draw()
     time.sleep(0.05)
     if options.saveimages:
-        plotname =  varname + '.' + '{0:04d}'.format(t) + '.'  + options.filename + '.png' 
+        plotname =  varname + '.' + '{0:04d}'.format(t) + '.'  + options.filename + '.png'
         #plt.ioff()
         plt.savefig(plotname,dpi=dpi)
         #plt.ion()
