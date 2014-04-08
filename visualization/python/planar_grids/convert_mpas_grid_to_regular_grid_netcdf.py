@@ -1,8 +1,8 @@
-#!/usr/bin/python
-# Script to re-grid variables in a planar MPAS output file to 
-# a regular rectangular grid in a new file.  
+#!/usr/bin/env python
+# Script to re-grid variables in a planar MPAS output file to
+# a regular rectangular grid in a new file.
 # Currently, the script is setup to regrid any 2d and 3d variables that have dimensions of both Time
-# and nCells.  The output filename has the '.regulargrid.nc' appended to it.  
+# and nCells.  The output filename has the '.regulargrid.nc' appended to it.
 # It uses a Natural Neighbors algorithm.
 # All global and variable attributes are copied over.  Supporing Scientific.IO.NetCDF requires doing this in a clumsy way.  The netCDF4 module allows the use of the .ncattrs() method to get just the NetCDF attributes and none of the python attributes for those objects, but this is not implemented for cross-compatibility.
 # Matt Hoffman, LANL, June 28, 2012
@@ -56,7 +56,7 @@ except:
   ymin = yIn.min()
   ymax = yIn.max()
 
-# Make a guess at the proper dimensions of the output file 
+# Make a guess at the proper dimensions of the output file
 dcedge = filein.variables['dcEdge']
 resolution = dcedge[:].max()
 # Compute nx and ny from the info in the input file, or use values supplied on command line
@@ -94,7 +94,7 @@ for a in dir(filein):
      setattr(fileout, a, getattr(filein, a) )
 
 # ====Create x,y,time coordinate variables
-try: 
+try:
   print 'Attempting to copy time coordinate variable'
   newTime = fileout.createVariable('xtime', 'c', ('Time', 'StrLen') )
   # Copy over attributes
@@ -142,9 +142,9 @@ for var in filein.variables.keys():
        for a in dir(thevar):
           if not (any(x in a for x in ('typecode', 'assignValue', 'chunking', 'delncattr', 'dimensions', 'dtype', 'endian', 'filters', 'getValue', 'get_var_chunk_cache', 'getncattr', 'group', 'maskandscale', 'ncattrs', 'ndim', 'set_auto_maskandscale', 'set_var_chunk_cache', 'setncattr', 'shape', 'size') ) or ('_' in a) ):  # don't copy these
              setattr(newVar, a, getattr(thevar, a) )
-             
+
        # Loop over time, and vert levels if needed, interpolating each 2d field for this variable
-       for t in range(0,time_length):      
+       for t in range(0,time_length):
           if 'nVertLevels' in thevar.dimensions:
              for v in range(0,vert_levs):
                 originalvalue = thevar[t,:,v]
@@ -158,11 +158,11 @@ for var in filein.variables.keys():
              # Create an interpolator object for this variable
              interpolator = matplotlib.delaunay.NNInterpolator(triang, originalvalue, default_value=0.0)
              # use the object to regrid
-             varGridded = interpolator[ymin:ymax:ny*1j, xmin:xmax:nx*1j]            
+             varGridded = interpolator[ymin:ymax:ny*1j, xmin:xmax:nx*1j]
              newVar[t,:,:] = varGridded[:,:]
 
 print 'Saved re-gridded fields to: ', fileoutname
- 
+
 
 fileout.sync()
 filein.close()
