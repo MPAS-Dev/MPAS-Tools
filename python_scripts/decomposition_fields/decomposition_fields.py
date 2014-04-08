@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import sys, os, glob, shutil, numpy, math
 
 from netCDF4 import *
@@ -33,12 +33,12 @@ cellsOnEdge_full = grid.variables['cellsOnEdge'][:] -1
 cellsOnVertex_full = grid.variables['cellsOnVertex'][:] -1
 
 try:
-	cellDecomposition_full = grid.createVariable('cellDecompositon', 'i4', ( 'nCells' ,) ) 
+	cellDecomposition_full = grid.createVariable('cellDecompositon', 'i4', ( 'nCells' ,) )
 except:
 	cellDecomposition_full = grid.variables['cellDecompositon']
 
 try:
-	triangleDecomposition_full = grid.createVariable('triangleDecomposition', 'i4', ( 'nVertices' ,) ) 
+	triangleDecomposition_full = grid.createVariable('triangleDecomposition', 'i4', ( 'nVertices' ,) )
 except:
 	triangleDecomposition_full = grid.variables['triangleDecomposition']
 

@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Script capable of plotting most MPAS fields on a planar mesh as a cross-section at a constant y location.  Invoke with 'python plot_mpas_field_xsect.py --help for details about how to use.
 # Matt Hoffman, Jan. 2013
 
@@ -52,7 +52,7 @@ if not options.time:
 else:
         if options.time=='a':
            time_slices = numpy.arange( xtime.shape[0] )  # this is an easier way to get the time length than querying the dimension since the way to do that depends on which NetCDF module is being used...
-           print "Animating all" + str(time_slices.size) + " time levels." 
+           print "Animating all" + str(time_slices.size) + " time levels."
         else:
            time_slices = int(options.time)
            print "Using time level " +  options.time
@@ -174,7 +174,7 @@ for t in iterlist:
 
    # save if needed.
    if options.saveimages:
-        plotname =  varname + '.xsect.' + '{0:04d}'.format(t) + '.'  + options.filename + '.png' 
+        plotname =  varname + '.xsect.' + '{0:04d}'.format(t) + '.'  + options.filename + '.png'
 
         plt.savefig(plotname)
         print 'Saved plot as ' + plotname

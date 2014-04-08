@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import sys, os, glob, shutil, numpy, math
 
 from netCDF4 import *
@@ -42,17 +42,17 @@ global_min_dc = min(dcEdge_full)
 global_max_dc = max(dcEdge_full)
 
 try:
-	cellQuality_full = grid.createVariable('cellQuality', 'f8', ( 'nCells' ,) ) 
+	cellQuality_full = grid.createVariable('cellQuality', 'f8', ( 'nCells' ,) )
 except:
 	cellQuality_full = grid.variables['cellQuality']
 
 try:
-	triangleQuality_full = grid.createVariable('triangleQuality', 'f8', ( 'nVertices' ,) ) 
+	triangleQuality_full = grid.createVariable('triangleQuality', 'f8', ( 'nVertices' ,) )
 except:
 	triangleQuality_full = grid.variables['triangleQuality']
 
 try:
-	triangleAngleQuality_full = grid.createVariable('triangleAngleQuality', 'f8', ( 'nVertices' ,) ) 
+	triangleAngleQuality_full = grid.createVariable('triangleAngleQuality', 'f8', ( 'nVertices' ,) )
 except:
 	triangleAngleQuality_full = grid.variables['triangleAngleQuality']
 

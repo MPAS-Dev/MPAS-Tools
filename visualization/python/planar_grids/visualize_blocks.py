@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Basic script for visualizing block decompositionss.  Invoke with 'python plot_mpas_field.py --help for details about how to use.
 # Matt Hoffman, June 14, 2012
 
@@ -24,11 +24,11 @@ if not options.blockfile:
 	print "No block filename provided. Using graph.info.part.2."
         options.blockfile = "graph.info.part.2"
 
-try: 
+try:
   f = netCDF4.Dataset(options.gridfile,'r')
 except:
   sys.exit('Error loading grid file.')
-  
+
 
 # Get grid stuff
 #times = f.variables['xtime']  # Not needed unless trying to print actual time stamp
@@ -51,7 +51,7 @@ plottitle = 'block decomposition for grid file ' + options.gridfile + ' and grap
 print '** Beginning to create plot.'
 fig = plt.figure(1, facecolor='w')
 ax = fig.add_subplot(111, aspect='equal')
-plt.scatter(xCell[:], yCell[:], 60, blocks, edgecolors='none') 
+plt.scatter(xCell[:], yCell[:], 60, blocks, edgecolors='none')
 plt.colorbar()
 plt.title( plottitle )
 
