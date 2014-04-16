@@ -1,3 +1,7 @@
+% Eulerian velocity from prognostic momentum equation
+%var_name = {'avgNormalVelocity'};
+% total transport velocity
+var_name = {'avgNormalTransportVelocity'}
 
 % plot transport results for gm
 
@@ -35,8 +39,8 @@ nSims = 6;
 ntrans = 12;
 
 dir = 'm91';
-abc = 'abcdef';
-kappa = [80 100 200 400 800 1600];
+abc = 'klmnop';
+kappa = [80 100 200 500 1000 2000];
 
 data_mean = zeros(nSims,ntrans);
 data_std = zeros(size(data_mean));
@@ -45,14 +49,13 @@ data_min = zeros(size(data_mean));
 
 
 for iSim=1:nSims
-  filename = ['data/' dir abc(iSim) '_total_transport_small_data_file.mat'];
+  filename = ['data/' dir abc(iSim) '_' char(var_name) '_small_data_file.mat'];
   load(filename,'mean_transport','std_transport','min_transport','max_transport');
 
   data_mean(iSim,:) =  mean_transport;
   data_std(iSim,:) =  std_transport;
   data_max(iSim,:) =  max_transport;
   data_min(iSim,:) =  min_transport;
-    
 end
 
 
@@ -81,13 +84,17 @@ for iTrans = 1:3
   ttxt = char(sectionText(iTrans))
   title(ttxt(1:23))
   xlabel('GM kappa value, m^2/s.  Far left is GM off')
-  ylabel('transport, Sv, 10-year mean')
-  legend('10 year mean','mean+/-monthly std dev','min/max of monthly means','Location','SouthWest' )
-  xlim([70 2000])
+  ylabel('transport, Sv, 3-year mean')
+  legend('3 year mean','mean+/-monthly std dev','min/max of monthly means','Location','SouthWest' )
+  xlim([70 2500])
+
+  % for log-log plot comparison to Dana95
+  %axis([1e2 1e4 50 200])
+  %set(gca,'YTick',[50 100 200])
   
   set(gcf,'PaperPositionMode','auto','color',[.8 1 .8], ...
 	'PaperPosition',[0 0 4 3])
-  fig=[char(dir) abc(1:nsims) '_transport' num2str(iTrans)];
+  fig=[char(dir) abc(1:nSims) '_'  char(var_name) '_' num2str(iTrans)];
   print('-depsc2',['f/' fig '.eps']);
   print('-djpeg',['f/' fig '.jpg']);
   unix(['epstopdf f/' fig '.eps --outfile=f/' fig '.pdf']);

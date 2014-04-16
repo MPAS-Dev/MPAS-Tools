@@ -33,10 +33,11 @@ wd = '/var/tmp/mpeterse/runs/';
 % dvEdge,latCell,lonCell,cellsOnCell,nEdgesOnCell \
 % file_in.nc file_out.nc
 
-abc='abcdef'
+dir='m91';
+abc='klmnop';
 
 for j=1:length(abc)
-  sim(j).dir = ['m91' abc(j)];
+  sim(j).dir = [dir abc(j)];
   sim(j).netcdf_file = ['output_total_avg.nc'];
 end
 
@@ -45,31 +46,24 @@ end
 %  Specify section coordinates and text
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% sectionText        a cell array with text describing each section
-sectionText = {
-'N Atlantic zonal mean',...
-'N Atlantic EUC zonal mean',...
-'Eq Pacific 140W lon',...
-	      };
+% Choose Atlantic or global MOC
+%region='Atlant' 
+ region='global'
 
-% coord(nSections,4)  endpoints of sections, with one section per row as
-%                     [startLat startLon endLat endLon]
-% Traverse from south to north, and from east to west.
-% Then positive velocities are eastward and northward.
-coord = [...
-  -35 -97 70 -1;...   % N Atlantic zonal mean
-  ];
-
-% number of points to plot for each figure
-nLat = 100;
-nLon = 100;
-
-% Direction to take mean: zonal (z) or meridional (m)
-meanDirection = 'z';
-
-% plotDepth(nSections) depth to which to plot each section
-plotDepth = 5000*ones(1,size(coord,1));
-
+% Compute MOC using section
+%   [startlat startlon endlat endlon]
+if region=='Atlant' 
+  sectionText = {'Atlantic MOC'};
+  sectionCoord = [-34.5 19.9 -34.5  -55] % '34.5S, South America to Africa -63 to 22
+  mocLat = [-34.5:.5:70];
+elseif region=='global'
+  sectionText = {'Global MOC'};
+  mocLat = [-80:.5:85];
+else
+  fprintf('Incorrect region name')
+  return
+end
+  
 % For plotting, only four plots are allowed per row.
 % Choose sections above for each page.
 % page.name          name of this group of sections 
@@ -88,13 +82,21 @@ page(1).sectionID = [1:1];
 % var_conv_factor    multiply each variable by this unit conversion.
 % var_lims(nVars,3)  contour line definition: min, max, interval 
 
-var_conv_factor = [100 100 1]; % convert m/s to cm/s for velocities
+% Typical variables used for plotting:
+% Eulerian velocity from prognostic momentum equation
+hor_var_name = {'avgNormalVelocity'};vert_var_name = {'avgVertVelocityTop'};fign=1;
+% total transport velocity
+%hor_var_name = {'avgNormalTransportVelocity'}; vert_var_name = {'avgVertTransportVelocityTop'};fign=2
+% remaining: eddy-induced transport
+%hor_var_name = {'avgNormalGMBolusVelocity'}; vert_var_name = {'avgVertGMBolusVelocityTop'};fign=3
 
-%var_lims = [-20 20 2.0; -10 10 1.0; 0 20 2.5];
-var_lims = [-1 1 .1; -10 10 1.0; 0 20 2.5];
-%var_lims = [-5 5 .5; -10 10 1.0; 0 20 2.5];
-
-%var_lims = [-110 110 10.0; -10 10 1.0; 0 20 2.5];
+var_conv_factor = [1 1 1]; % No conversion here.
+if region=='Atlant' 
+  contour_lims = [-10:2:10];
+elseif region=='global'
+  contour_lims = [-40:4:40];
+  %contour_lims = [-20:4:-4 -2 2 4:4:20];  % for Bolus velocity MOS
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -114,10 +116,16 @@ latex_command = 'latex';
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+if region=='Atlant' 
+  find_edge_sections_flag         = true ;
+  plot_edge_sections_flag         = false ;
+  compute_transport_flag          = true ;
+elseif region=='global'
+  find_edge_sections_flag         = true ;
+  plot_edge_sections_flag         = true ;
+  compute_transport_flag          = false ;
+end
 load_vertical_velocity_flag     = true ;
-find_edge_sections_flag         = true ;
-plot_edge_sections_flag         = false ;
-compute_transport_flag          = true ;
 compute_moc_flag                = true ;
 plot_moc_flag                   = true ;
 
@@ -127,9 +135,7 @@ plot_moc_flag                   = true ;
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% change the coordinate range to be 0 to 360.
-coord(:,2) = mod(coord(:,2),360);
-coord(:,4) = mod(coord(:,4),360);
+nSections = 1;
 
 for iSim = 1:length(sim)
 
@@ -145,8 +151,8 @@ for iSim = 1:length(sim)
 
   if load_vertical_velocity_flag
     [sim(iSim).avgVertVelocityTop, sim(iSim).botDepth, ...
-     sim(iSim).latCell,sim(iSim).lonCell, sim(iSim).areaCell] = ...
-        load_vertical_velocity(wd,sim(iSim).dir,sim(iSim).netcdf_file);
+     sim(iSim).latCell,sim(iSim).lonCell, sim(iSim).areaCell,nVertLevels] = ...
+        load_vertical_velocity(wd,sim(iSim).dir,sim(iSim).netcdf_file,vert_var_name);
   end
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -156,16 +162,6 @@ for iSim = 1:length(sim)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   if find_edge_sections_flag 
-    sectionText = {'35S, Atlantic, South America to Africa		                                                 '};
-    sectionAbbreviation = [...
-    '35S Atlc'];
-
-    %   [startlat startlon endlat endlon]
-    sectionCoord = [...
-     -34.5 19.9 -34.5  -55] % '35S, South America to Africa -63 to 22
-    var_name = {'avgNormalVelocity'};
-    var_conv_factor = [1 1 1]; % No conversion here.
-
     [sim(iSim).sectionEdgeIndex, sim(iSim).sectionEdgeSign, sim(iSim).nEdgesInSection, ...
      sim(iSim).latSectionVertex,sim(iSim).lonSectionVertex, ...
      sim(iSim).latVertexDeg,sim(iSim).lonVertexDeg] ...
@@ -195,7 +191,7 @@ for iSim = 1:length(sim)
 
   if compute_transport_flag
     [sim(iSim).sectionData] = load_large_variables_edge ...
-       (wd,sim(iSim).dir,sim(iSim).netcdf_file, var_name, var_conv_factor, ...
+       (wd,sim(iSim).dir,sim(iSim).netcdf_file, hor_var_name, var_conv_factor, ...
         sim(iSim).sectionEdgeIndex, sim(iSim).nEdgesInSection);
   end
   
@@ -207,9 +203,11 @@ for iSim = 1:length(sim)
 
   if compute_transport_flag
     transport = compute_transport ...
-     (wd,sim(iSim).dir,sim(iSim).netcdf_file, var_name,  ...
+     (wd,sim(iSim).dir,sim(iSim).netcdf_file, hor_var_name,  ...
       sim(iSim).sectionEdgeIndex, sim(iSim).sectionEdgeSign, sim(iSim).nEdgesInSection, ...
       sim(iSim).sectionData,sectionText,sectionAbbreviation);
+  else
+    transport = zeros(nVertLevels,nSections);
   end
   
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -219,8 +217,12 @@ for iSim = 1:length(sim)
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
   if compute_moc_flag
-    mocLat = [-34.5 -34:.5:70];
-    [sim(iSim).landMask] = land_mask_Atlantic(sim(iSim).latCell,sim(iSim).lonCell);
+    if region=='Atlant' 
+      [sim(iSim).landMask] = land_mask_Atlantic(sim(iSim).latCell,sim(iSim).lonCell);
+    elseif region=='global'
+      [sim(iSim).landMask] = land_mask_global(sim(iSim).latCell,sim(iSim).lonCell);
+    end
+    
     [sim(iSim).mocTop] = compute_moc_from_w ...
        (sim(iSim).avgVertVelocityTop, sim(iSim).botDepth, ...
      sim(iSim).latCell,sim(iSim).lonCell, sim(iSim).areaCell,transport,mocLat,sim(iSim).landMask);
@@ -232,13 +234,9 @@ for iSim = 1:length(sim)
   %  Plot MOC
   %
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  var_lims_moc = [-50 50 10];
-  sectionText = {
-  'moc streamfunction',...
-     };
   if plot_moc_flag
     plot_moc(sim(iSim).dir,sectionText,sim(iSim).mocTop,mocLat, ...
-	     sim(iSim).botDepth)
+	     sim(iSim).botDepth,contour_lims,vert_var_name(1),fign)
   end
   
 %  doc_dir = ['docs/' regexprep(sim(iSim).dir,'/','_') '_' ...
