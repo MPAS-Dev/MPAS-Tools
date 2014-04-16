@@ -29,36 +29,22 @@ unix('mkdir -p f netcdf_files docs text_files');
 % where wd is the working directory and dir is the run directory.
 
 wd = '/var/tmp/mpeterse/runs/';
+dir='m91';
+abc = 'klmnop';
+
+for letter=1:length(abc)
 
 % These files only need to contain a small number of variables.
 % You may need to reduce the file size before copying to a local
 % machine using:
-% ncks -v avgNormalVelocity, \
-% nAverage,latVertex,lonVertex,verticesOnEdge,edgesOnVertex,refLayerThickness,\
-% dvEdge \
+% ncks -v avgNormalVelocity,avgNormalTransportVelocity,nAverage,latVertex,lonVertex,verticesOnEdge,edgesOnVertex,refLayerThickness,dvEdge \
 % file_in.nc file_out.nc
-%
-% and avgNormalVelocity is only required if the flux is computed by this matlab script.
 
 clear sim
-for j=1:10
-  sim(j).dir='m91a';
-  sim(j).netcdf_file = ['output.00' num2str_fixed0(10+j,'%g',2) '-12-01_00.00.00.nc_transport_vars.nc'];
+for j=1:3
+  sim(j).dir=[dir abc(letter)];
+  sim(j).netcdf_file = ['output.00' num2str_fixed0(16+j,'%g',2) '-02-01_00.00.00.nc_transport_vars.nc'];
 end
-
-clear sim
-for j=1:10
-  sim(j).dir='m91c';
-  sim(j).netcdf_file = ['output.00' num2str_fixed0(12+j,'%g',2) '-03-01_00.00.00.nc_transport_vars.nc'];
-end
-
-clear sim
-for j=1:10
-  sim(j).dir='m91f'; % b, d, e f
-  sim(j).netcdf_file = ['output.00' num2str_fixed0(12+j,'%g',2) '-02-01_00.00.00.nc_transport_vars.nc'];
-end
-
-
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -138,9 +124,10 @@ sectionCoord = [...
 % var_conv_factor    multiply each variable by this unit conversion.
 % var_lims(nVars,3)  contour line definition: min, max, interval 
 
-var_name = {...
-'avgNormalVelocity',...
-};
+% Eulerian velocity from prognostic momentum equation
+var_name = {'avgNormalVelocity'};
+% total transport velocity
+%var_name = {'avgNormalTransportVelocity'}
 
 var_conv_factor = [1 1 1]; % No conversion here.
 
@@ -153,9 +140,9 @@ var_lims = [-10 10 2.5; -10 10 2.5; 0 20 2.5];
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 find_edge_sections_flag         = true ;
-write_edge_sections_text_flag   = true ;
-write_edge_sections_netcdf_flag = true ;
-plot_edge_sections_flag         = false ;
+write_edge_sections_text_flag   = false ;
+write_edge_sections_netcdf_flag = false ;
+plot_edge_sections_flag         = true ;
 compute_transport_flag          = true ;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -232,7 +219,7 @@ for iSim = 1:length(sim)
 
   if compute_transport_flag
     [sim(iSim).sectionData] = load_large_variables_edge ...
-       (wd,sim(iSim).dir,sim(iSim).netcdf_file, var_name, var_conv_factor, ...
+       (wd,sim(iSim).dir,sim(iSim).netcdf_file, var_name,var_conv_factor, ...
         sim(iSim).sectionEdgeIndex, sim(iSim).nEdgesInSection);
   end
   
@@ -244,7 +231,7 @@ for iSim = 1:length(sim)
 
   if compute_transport_flag
     sim(iSim).tr_total = compute_transport ...
-     (wd,sim(iSim).dir,sim(iSim).netcdf_file, var_name,  ...
+     (wd,sim(iSim).dir,sim(iSim).netcdf_file, ...
       sim(iSim).sectionEdgeIndex, sim(iSim).sectionEdgeSign, sim(iSim).nEdgesInSection, ...
       sim(iSim).sectionData,sectionText,sectionAbbreviation);
     
@@ -286,6 +273,8 @@ max_transport = max(tr_total,[],1);
 fprintf('%10.2f',max_transport)
 fprintf([' max,  ' sim(1).dir ' \n'])
 
-filename = ['data/' sim(1).dir '_total_transport_small_data_file.mat']
+filename = ['data/' sim(1).dir '_' char(var_name) '_small_data_file.mat']
 clear sim
 save(filename)
+
+end % letter

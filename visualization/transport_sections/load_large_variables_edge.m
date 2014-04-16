@@ -45,14 +45,14 @@ for iVar=1:nVars
   temptext = char(var_name(iVar));
   fprintf(['loading: ' temptext '\n'])
   
-    acc_var = netcdf.getVar(ncid,netcdf.inqVarID(ncid,char(var_name(iVar)))); 
+    avg_var = netcdf.getVar(ncid,netcdf.inqVarID(ncid,char(var_name(iVar)))); 
     mean_var = zeros(nVertLevels, nEdges);
     for iTime=1:nTimeSlices
        for iSection = 1:nSections
          for i=1:nEdgesInSection(iSection)
            iEdge = sectionEdgeIndex(i,iSection);
            for k=1:nVertLevels
-             sectionData(k,i,iSection,iVar,iTime) = acc_var(k,iEdge,iTime);
+             sectionData(k,i,iSection,iVar,iTime) = avg_var(k,iEdge,iTime);
            end
          end
        end

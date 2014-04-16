@@ -73,7 +73,7 @@ cellWeightsSection   = zeros(vertexDegree,nLat,nLon,nSections);
 margin=.5;
 
 for iSection=1:nSections
-   fprintf('Finding nearest vertex for Section %g \n',iSection)
+   fprintf('Finding nearest vertices for Section %g \n',iSection)
    latSection(:,iSection) = linspace(coord(iSection,1),coord(iSection,3),nLat);
    lonSection(:,iSection) = linspace(coord(iSection,2),coord(iSection,4),nLon);
 

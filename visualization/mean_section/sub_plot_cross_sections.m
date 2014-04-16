@@ -77,9 +77,9 @@ for iVar=1:nVars
 
       % right column
 	
-px = [.54];
+px = [.53];
 py=.53;
-pw = [.87];  ph=[.83]; % width and height of plots
+pw = [.85];  ph=[.83]; % width and height of plots
       ha=subplot('position',[px(1)-pw/2 py-ph/2 pw ph]);
       temptext = char(sectionText(iSection));
       hold on
@@ -192,7 +192,8 @@ pw = [.87];  ph=[.83]; % width and height of plots
 %      text(.005,.7,[ date ]);
 
    unix(['mkdir -p f/' dir ]);
-   temp=['f/' dir '/' netcdfFile '_' pageName num2str(iRow) '_var' num2str(iVar)];
+   temp=['f/' dir '/' netcdfFile '_' pageName num2str(iRow) '_' ...
+	 char(var_name(iVar))];
    filename = regexprep(temp,'\.','_');
    print('-djpeg',[filename '.jpg']);
    print('-depsc2',[filename '.eps']);
