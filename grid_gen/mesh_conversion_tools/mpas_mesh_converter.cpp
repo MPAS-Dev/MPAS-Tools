@@ -477,7 +477,7 @@ int buildUnorderedCellConnectivity(){/*{{{*/
 	//    It will also compute an unordered cellsOnCell that can be considered invalid for actual use (e.g. quad grids).
 	//    This ordering should happen regardless of it the mesh is planar or spherical.
 	
-	int iVertex, iCell, newCell, j, k, l;
+	int iVertex, iCell, newCell, j, k, l, m, matches;
 	bool add;
 
 #ifdef _DEBUG
@@ -523,7 +523,30 @@ int buildUnorderedCellConnectivity(){/*{{{*/
 					}
 
 					if(add) {
-						cellsOnCell.at(iCell).push_back(newCell);
+						if(newCell != -1){
+							matches = 0;
+							for(l = 0; l < verticesOnCell.at(iCell).size(); l++){
+								for(m = 0; m < verticesOnCell.at(newCell).size(); m++){
+									if(verticesOnCell.at(iCell).at(l) == verticesOnCell.at(newCell).at(m)){
+										matches++;
+									}
+								}
+							}
+
+							if(matches == 2){
+								cellsOnCell.at(iCell).push_back(newCell);
+#ifdef _DEBUG
+								cout << "   Found two shared vertices for cell edge. Adding cell." << endl;
+#endif
+							} else {
+#ifdef _DEBUG
+								cout << "   Only found " << matches << " shared vertices for cell edge. Not adding cell." << endl;
+#endif
+
+							}
+						} else {
+							cellsOnCell.at(iCell).push_back(newCell);
+						}
 					}
 				}
 			}
@@ -818,6 +841,8 @@ int buildCompleteCellMask(){/*{{{*/
 		}
 
 #ifdef _DEBUG
+		cout << "   Vertices on cell: " << verticesOnCell.at(iCell).size();
+		cout << "   Cells on cell: " << cellsOnCell.at(iCell).size();
 		if(complete){
 			cout << "   Is complete!" << endl;
 		} else {
