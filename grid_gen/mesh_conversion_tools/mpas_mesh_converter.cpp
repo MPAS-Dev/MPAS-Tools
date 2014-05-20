@@ -16,7 +16,7 @@
 #include "edge.h"
 
 #define MESH_SPEC 1.0
-#define ID_LEN 40
+#define ID_LEN 10
 
 using namespace std;
 //using namespace tr1;
@@ -2239,6 +2239,7 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 	 * **********************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
+	char mesh_spec_str[1024];
 	
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
@@ -2282,8 +2283,10 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 	}
 	id_str = gen_random(ID_LEN);
 
+	sprintf(mesh_spec_str, "%2.1lf", (double)MESH_SPEC);
+
 	if (!(history = grid.add_att(   "history", history_str.c_str() ))) return NC_ERR;
-	if (!(spec = grid.add_att(   "mesh_spec", (double)MESH_SPEC ))) return NC_ERR;
+	if (!(spec = grid.add_att(   "mesh_spec", mesh_spec_str ))) return NC_ERR;
 	if (!(conventions = grid.add_att(   "Conventions", "MPAS" ))) return NC_ERR;
 	if (!(source = grid.add_att(   "source", "MpasMeshConverter.x" ))) return NC_ERR;
 	if (!(id = grid.add_att(   "mesh_id", id_str.c_str() ))) return NC_ERR;
@@ -3063,7 +3066,7 @@ int writeGraphFile(const string outputFilename){/*{{{*/
 string gen_random(const int len) {/*{{{*/
 	static const char alphanum[] =
 		"0123456789"
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+//		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		"abcdefghijklmnopqrstuvwxyz";
 
 	string rand_str = "";

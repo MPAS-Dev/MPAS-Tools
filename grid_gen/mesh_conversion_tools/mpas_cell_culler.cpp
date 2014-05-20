@@ -11,7 +11,7 @@
 
 #include "netcdf_utils.h"
 
-#define ID_LEN 40
+#define ID_LEN 10
 
 using namespace std;
 
@@ -1279,7 +1279,7 @@ int mapAndOutputVertexFields( const string inputFilename, const string outputFil
 string gen_random(const int len) {/*{{{*/
 	static const char alphanum[] =
 		"0123456789"
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+//		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		"abcdefghijklmnopqrstuvwxyz";
 
 	string rand_str = "";
