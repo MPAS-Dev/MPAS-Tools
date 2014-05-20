@@ -24,7 +24,7 @@ using namespace std;
 int nCells, nVertices, vertex_degree;
 int maxEdges;
 bool spherical, periodic;
-double xOffset, yOffset;
+double sphereRadius, xOffset, yOffset;
 double xCellRange[2];
 double yCellRange[2];
 double zCellRange[2];
@@ -296,6 +296,10 @@ int readGridInput(const string inputFilename){/*{{{*/
 	cout << "   Reading on_a_sphere" << endl;
 #endif
 	spherical = netcdf_mpas_read_onsphere(inputFilename);
+#ifdef _DEBUG
+	cout << "   Reading sphere_radius" << endl;
+#endif
+	sphereRadius = netcdf_mpas_read_sphereradius(inputFilename);
 #ifdef _DEBUG
 	cout << "   Reading history" << endl;
 #endif
@@ -2256,7 +2260,7 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 		if (!(radiusAtt = grid.add_att(   "sphere_radius", 0.0))) return NC_ERR;
 	} else {
 		if (!(sphereAtt = grid.add_att(   "on_a_sphere", "YES\0"))) return NC_ERR;
-		if (!(radiusAtt = grid.add_att(   "sphere_radius", 1.0))) return NC_ERR;
+		if (!(radiusAtt = grid.add_att(   "sphere_radius", sphereRadius))) return NC_ERR;
 	}
 
 	history_str += "MpasMeshConverter.x ";
@@ -2338,13 +2342,16 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	idxTo = new int[nCells];
 	i = 0;
 	for(pnt_itr = cells.begin(); pnt_itr != cells.end(); ++pnt_itr){
-		x[i] = (*pnt_itr).x;
-		y[i] = (*pnt_itr).y;
-		z[i] = (*pnt_itr).z;
 		if(!spherical){
+			x[i] = (*pnt_itr).x;
+			y[i] = (*pnt_itr).y;
+			z[i] = (*pnt_itr).z;
 			lat[i] = 0.0;
 			lon[i] = 0.0;
 		} else {
+			x[i] = (*pnt_itr).x * sphereRadius;
+			y[i] = (*pnt_itr).y * sphereRadius;
+			z[i] = (*pnt_itr).z * sphereRadius;
 			lat[i] = (*pnt_itr).getLat();
 			lon[i] = (*pnt_itr).getLon();
 		}
@@ -2381,13 +2388,16 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 
 	i = 0;
 	for(pnt_itr = edges.begin(); pnt_itr != edges.end(); ++pnt_itr){
-		x[i] = (*pnt_itr).x;
-		y[i] = (*pnt_itr).y;
-		z[i] = (*pnt_itr).z;
 		if(!spherical){
+			x[i] = (*pnt_itr).x;
+			y[i] = (*pnt_itr).y;
+			z[i] = (*pnt_itr).z;
 			lat[i] = 0.0;
 			lon[i] = 0.0;
 		} else {
+			x[i] = (*pnt_itr).x * sphereRadius;
+			y[i] = (*pnt_itr).y * sphereRadius;
+			z[i] = (*pnt_itr).z * sphereRadius;
 			lat[i] = (*pnt_itr).getLat();
 			lon[i] = (*pnt_itr).getLon();
 		}
@@ -2424,13 +2434,16 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 
 	i = 0;
 	for(pnt_itr = vertices.begin(); pnt_itr != vertices.end(); ++pnt_itr){
-		x[i] = (*pnt_itr).x;
-		y[i] = (*pnt_itr).y;
-		z[i] = (*pnt_itr).z;
 		if(!spherical){
+			x[i] = (*pnt_itr).x;
+			y[i] = (*pnt_itr).y;
+			z[i] = (*pnt_itr).z;
 			lat[i] = 0.0;
 			lon[i] = 0.0;
 		} else {
+			x[i] = (*pnt_itr).x * sphereRadius;
+			y[i] = (*pnt_itr).y * sphereRadius;
+			z[i] = (*pnt_itr).z * sphereRadius;
 			lat[i] = (*pnt_itr).getLat();
 			lon[i] = (*pnt_itr).getLon();
 		}
@@ -2822,6 +2835,12 @@ int outputCellParameters( const string outputFilename) {/*{{{*/
 	int nCells = nCellsDim->size();
 	int i, j;
 
+	if(spherical){
+		for(i = 0; i < nCells; i ++){
+			areaCell[i] = areaCell[i] * sphereRadius * sphereRadius;
+		}
+	}
+
 	if (!(areacVar = grid.add_var("areaCell", ncDouble, nCellsDim))) return NC_ERR;
 	if (!areacVar->put(&areaCell[0],nCells)) return NC_ERR;
 
@@ -2864,6 +2883,12 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
 
 	double *tmp_arr;
 
+	if(spherical){
+		for(i = 0; i < nVertices; i++){
+			areaTriangle[i] = areaTriangle[i] * sphereRadius * sphereRadius;
+		}
+	}
+
 	// Build and write areaTriangle
 	if (!(areatVar = grid.add_var("areaTriangle", ncDouble, nVerticesDim))) return NC_ERR;
 	if (!areatVar->put(&areaTriangle[0],nVertices)) return NC_ERR;
@@ -2876,7 +2901,11 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
 	for(vec_dbl_itr = kiteAreasOnVertex.begin(); vec_dbl_itr != kiteAreasOnVertex.end(); ++vec_dbl_itr){
 		j = 0;
 		for(dbl_itr = (*vec_dbl_itr).begin(); dbl_itr != (*vec_dbl_itr).end(); ++dbl_itr){
-			tmp_arr[i*vertexDegree + j] = (*dbl_itr);
+			if(!spherical){
+				tmp_arr[i*vertexDegree + j] = (*dbl_itr);
+			} else {
+				tmp_arr[i*vertexDegree + j] = (*dbl_itr) * sphereRadius * sphereRadius;
+			}
 			j++;
 			count++;
 		}
@@ -2928,6 +2957,13 @@ int outputEdgeParameters( const string outputFilename) {/*{{{*/
 	int i, j;
 
 	double *tmp_arr;
+
+	if(spherical){
+		for(i = 0; i < nEdges; i++){
+			dcEdge[i] = dcEdge[i] * sphereRadius;
+			dvEdge[i] = dvEdge[i] * sphereRadius;
+		}
+	}
 
 	//Build and write angleEdge
 	if (!(angleVar = grid.add_var("angleEdge", ncDouble, nEdgesDim))) return NC_ERR;
