@@ -52,7 +52,7 @@ def write_dimension_table(latex, registry, mode):#{{{
 	latex.write('\label{sec:%s_dimensions}\n'%(mode))
 	latex.write('{\small\n')
 	latex.write('\\begin{center}\n')
-	latex.write('\\begin{longtable}{| p{1.0in} || p{1.0in} | p{4.0in} |}\n')
+	latex.write('\\begin{longtable}{| p{1.2in} || p{1.0in} | p{4.0in} |}\n')
 	latex.write('	\hline \n')
 	latex.write('	%s \\endfirsthead\n'%dimension_table_header)
 	latex.write('	\hline \n')
@@ -311,7 +311,6 @@ def write_namelist_sections(latex, sorted_opts, forward_registry, analysis_regis
 				opt_name = nml_opt.attrib["name"]
 
 				if(in_forward == False and opt_name == opt):
-					print " Found %s in %s -- forward"%(opt, nml_rec.attrib["name"])
 					in_forward = True
 					forward_rec_name = nml_rec.attrib["name"]
 					if(not found):
@@ -375,7 +374,6 @@ def write_namelist_sections(latex, sorted_opts, forward_registry, analysis_regis
 				if(in_analysis == False and opt_name == opt):
 					in_analysis = True
 					analysis_rec_name = nml_rec.attrib["name"]
-					print " Found %s in %s -- analysis"%(opt, nml_rec.attrib["name"])
 					if(not found):
 						found = True
 						opt_type = nml_opt.attrib["type"]
@@ -530,6 +528,10 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 									var_arr_name = var_arr.attrib["name"]
 									var_type = var_arr.attrib["type"]
 									var_dims = var_arr.attrib["dimensions"]
+									try:
+									    var_time_levels = var_arr.attrib["time_levs"]
+									except:
+									    var_time_levels = var_struct.attrib["time_levs"]
 
 									# Extract var persistence#{{{
 									try:
@@ -559,10 +561,9 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 
 									if int(struct_time_levs) > 1:
 										var_index = "domain %% blocklist %% %s %% index_%s"%(struct_name, var_name_in_code.replace('_','\_'))
-										var_path = "domain %% blocklist %% %s %% time_levs(:) %% %s %% %s"%(struct_name, struct_name, var_arr_name)
 									else:
 										var_index = "domain %% blocklist %% %s %% index_%s"%(struct_name, var_name_in_code.replace('_','\_'))
-										var_path = "domain %% blocklist %% %s %% %s"%(struct_name, var_arr_name)
+									var_path = "%s"%(var_arr_name)
 #}}}
 
 									# Extract var description#{{{
@@ -607,6 +608,10 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 								struct_time_levs = var_struct.attrib['time_levs']
 								var_type = var.attrib["type"]
 								var_dims = var.attrib["dimensions"]
+								try:
+								    var_time_levels = var.attrib["time_levs"]
+								except:
+								    var_time_levels = var_struct.attrib["time_levs"]
 
 								# Extract var persistence#{{{
 								try:
@@ -688,6 +693,10 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 									var_arr_name = var_arr.attrib["name"]
 									var_type = var_arr.attrib["type"]
 									var_dims = var_arr.attrib["dimensions"]
+									try:
+									    var_time_levels = var_arr.attrib["time_levs"]
+									except:
+									    var_time_levels = var_struct.attrib["time_levs"]
 
 									# Extract var persistence#{{{
 									try:
@@ -717,10 +726,10 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 
 									if int(struct_time_levs) > 1:
 										var_index = "domain %% blocklist %% %s %% index_%s"%(struct_name, var_name_in_code.replace('_','\_'))
-										var_path = "domain %% blocklist %% %s %% time_levs(:) %% %s %% %s"%(struct_name, struct_name, var_arr_name)
+										var_path = "%s"%(var_arr_name)
 									else:
 										var_index = "domain %% blocklist %% %s %% index_%s"%(struct_name, var_name_in_code.replace('_','\_'))
-										var_path = "domain %% blocklist %% %s %% %s"%(struct_name, var_arr_name)
+										var_path = "%s"%(var_arr_name)
 #}}}
 
 									# Extract var description#{{{
@@ -765,6 +774,10 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 								struct_time_levs = var_struct.attrib['time_levs']
 								var_type = var.attrib["type"]
 								var_dims = var.attrib["dimensions"]
+								try:
+								    var_time_levels = var.attrib["time_levs"]
+								except:
+								    var_time_levels = var_struct.attrib["time_levs"]
 
 								# Extract var persistence#{{{
 								try:
@@ -874,17 +887,20 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 				latex.write('        \hline \n')
 				latex.write('        Persistence: & %s \\\\\n'%var_persistence)
 				latex.write('        \hline \n')
+				latex.write('        Number of time levels: & %s \\\\\n'%var_time_levels)
+				latex.write('        \hline \n')
 				if(in_forward and not forward_streams == ""):
-					latex.write('		 Default streams in forward mode: & %s \\\\\n'%forward_streams)
+					latex.write('		 Forward mode streams: & %s \\\\\n'%forward_streams)
 					latex.write('        \hline \n')
 				if(in_analysis and not analysis_streams == ""):
-					latex.write('		 Default streams in analysis mode: & %s \\\\\n'%analysis_streams)
+					latex.write('		 Analysis mode streams: & %s \\\\\n'%analysis_streams)
 					latex.write('        \hline \n')
 
 				if(in_var_array):
-					latex.write('		 Index in %s Array: & %s \\\\\n'%(var_arr_name.replace('_','\_'), var_index.replace('_','\_').replace('%','\%')))
+					latex.write("		 Index in %s Array: & '%s' in '%s' pool \\\\\n"%(var_name.replace('_','\_'), var_name.replace('_', '\_'), struct_name.replace('_','\_')))
 					latex.write('		 \hline \n')
-				latex.write('		 Location in code: & %s \\\\\n'%var_path.replace('_','\_').replace('%','\%'))
+				pool_path="'%s' in '%s' pool\n"%(var_path, struct_name)
+				latex.write('            Pool path: & %s \\\\\n'%pool_path.replace('_', '\_'))
 				latex.write('		 \hline \n')
 				if(in_var_array):
 					latex.write('		 Array Group: & %s \\\\\n'%var_arr_group.replace('_','\_'))
