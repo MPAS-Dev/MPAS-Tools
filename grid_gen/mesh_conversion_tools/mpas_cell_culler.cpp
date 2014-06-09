@@ -1106,8 +1106,8 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 					weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
 				}
 			}
+			nEdgesOnEdgeNew[edgeMap.at(iEdge)] = edgeCount;
 		}
-		nEdgesOnEdgeNew[iEdge] = edgeCount;
 	}
 
 	if (!(nEoeVar = grid.add_var("nEdgesOnEdge", ncInt, nEdgesDim))) return NC_ERR;
