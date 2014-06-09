@@ -51,5 +51,6 @@ void netcdf_mpas_read_dcedge ( string filename, int nedges, double dcedge[] );
 void netcdf_mpas_read_angleedge ( string filename, int nedges, double angleedge[] );
 void netcdf_mpas_read_weightsonedge ( string filename, int nedges, int maxedges2, double weightsonedge[] );
 void netcdf_mpas_read_edgesonedge ( string filename, int nedges, int maxedges2, int edgesonedge[] );
+void netcdf_mpas_read_nedgesonedge ( string filename, int nedges, int nedgesonedge[] );
 /* }}} */
 

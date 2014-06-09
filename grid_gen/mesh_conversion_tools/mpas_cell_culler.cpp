@@ -965,7 +965,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 	int vertexDegree = vertexDegreeDim->size();
 	int two = twoDim->size();
 
-	int *nEdgesOnEdgeNew;
+	int *nEdgesOnEdgeOld, *nEdgesOnEdgeNew;
 	int *edgesOnEdgeOld, *edgesOnEdgeNew;
 	int *cellsOnEdgeOld, *cellsOnEdgeNew;
 	int *verticesOnEdgeOld, *verticesOnEdgeNew;
@@ -1062,12 +1062,14 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 	delete[] verticesOnEdgeNew;
 
 	// Map edgesOnEdge, nEdgesOnEdge, and weightsOnEdge
+	nEdgesOnEdgeOld = new int[nEdges];
 	nEdgesOnEdgeNew = new int[nEdges];
 	edgesOnEdgeOld = new int[nEdges*maxEdges*2];
 	edgesOnEdgeNew = new int[nEdgesNew*maxEdges2New];
 	weightsOnEdgeOld = new double[nEdges*maxEdges*2];
 	weightsOnEdgeNew = new double[nEdgesNew*maxEdges2New];
 
+	netcdf_mpas_read_nedgesonedge( inputFilename, nEdges, nEdgesOnEdgeOld );
 	netcdf_mpas_read_edgesonedge( inputFilename, nEdges, maxEdges*2, edgesOnEdgeOld );
 	netcdf_mpas_read_weightsonedge( inputFilename, nEdges, maxEdges*2, weightsOnEdgeOld );
 
@@ -1088,7 +1090,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 			}
 
 			if(cell1 != -1 && cell2 != -1){
-				for(int j = 0; j < maxEdges2New; j++){
+				for(int j = 0; j < nEdgesOnEdgeOld[iEdge]; j++){
 					int eoe = edgesOnEdgeOld[iEdge*maxEdges*2 + j] - 1;
 
 					if(eoe != -1 && eoe < edgeMap.size()){
@@ -1101,10 +1103,15 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 					}
 				}
 			} else if ( cell1 == -1  || cell2 == -1){
-				for(int j = 0; j < maxEdges2New; j++){
+				for(int j = 0; j < nEdgesOnEdgeOld[iEdge]; j++){
 					edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
 					weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
 				}
+			}
+
+			for(int j = edgeCount; j < maxEdges2New; j++){
+				edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
+				weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
 			}
 			nEdgesOnEdgeNew[edgeMap.at(iEdge)] = edgeCount;
 		}
@@ -1117,6 +1124,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 	if (!(woeVar = grid.add_var("weightsOnEdge", ncDouble, nEdgesDim, maxEdges2Dim))) return NC_ERR;
 	if (!woeVar->put(weightsOnEdgeNew,nEdgesNew,maxEdges2New)) return NC_ERR;
 
+	delete[] nEdgesOnEdgeOld;
 	delete[] cellsOnEdgeOld;
 	delete[] edgesOnEdgeOld;
 	delete[] edgesOnEdgeNew;

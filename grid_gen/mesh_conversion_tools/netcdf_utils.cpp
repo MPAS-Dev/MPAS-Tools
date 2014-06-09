@@ -2299,6 +2299,64 @@ void netcdf_mpas_read_edgesonedge ( string filename, int nedges, int maxedges2, 
 
 	return;
 }/*}}}*/
+//****************************************************************************80
+void netcdf_mpas_read_nedgesonedge ( string filename, int nedges, int nedgesonedge[] ){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_NEDGESONEDGE gets the nEdgesOnEdge information.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    06/09/2014
+	//
+	//  Author:
+	//
+	//    Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Input, int NEDGES, the number of edges.
+	//
+	//    Output, int NEDGESONEDGE[NEDGES], the number of edges on each edge.
+	//
+	NcVar *var_id;
+	//
+	//  Open the file.
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//
+	//  Get the variable values.
+	//
+#ifdef _DEBUG
+	cout << "   Reading nEdgesOnEdge" << endl;
+#endif
+	var_id = ncid.get_var ( "nEdgesOnEdge" );
+	(*var_id).get ( &nedgesonedge[0], nedges );
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return;
+}/*}}}*/
 
 /* }}} */
 
