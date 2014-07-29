@@ -2214,6 +2214,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	NcDim *THREEDim;
 	NcDim *vertexDegreeDim;
 	NcDim *timeDim;
+	NcDim *nVertLevelsDim;
 	
 	// write dimensions
 	if (!(nCellsDim =		grid.add_dim(	"nCells",		cells.size())		)) return NC_ERR;
@@ -2223,6 +2224,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	if (!(maxEdges2Dim =	grid.add_dim(	"maxEdges2",	maxEdges*2)			)) return NC_ERR;
 	if (!(TWODim =			grid.add_dim(	"TWO",			2)					)) return NC_ERR;
 	if (!(vertexDegreeDim = grid.add_dim(   "vertexDegree", vertex_degree)		)) return NC_ERR;
+	if (!(nVertLevelsDim =  grid.add_dim(   "nVertLevels", 1)					)) return NC_ERR;
 	if (!(timeDim = 		grid.add_dim(   "Time")								)) return NC_ERR;
 
 	grid.close();
