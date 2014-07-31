@@ -190,10 +190,14 @@ contains
       ierr = nf_get_vara_double(ncid, varid, 1, nEdges, angleEdge)
 
       ierr = nf_inq_varid(ncid, "fEdge", varid)
-      ierr = nf_get_vara_double(ncid, varid, 1, nEdges, fEdge)
+      if (ierr == NF_NOERR) then
+         ierr = nf_get_vara_double(ncid, varid, 1, nEdges, fEdge)
+      end if
 
       ierr = nf_inq_varid(ncid, "fVertex", varid)
-      ierr = nf_get_vara_double(ncid, varid, 1, nVertices, fVertex)
+      if (ierr == NF_NOERR) then
+         ierr = nf_get_vara_double(ncid, varid, 1, nVertices, fVertex)
+      end if
 
       ierr = nf_inq_varid(ncid, "verticesOnEdge", varid)
       ierr = nf_get_vara_int(ncid, varid, onEdgeStart, onEdgeCount, verticesOnEdge)
@@ -307,10 +311,14 @@ contains
       ierr = nf_put_vara_double(ncid, varid, 1, nEdges, angleEdge)
 
       ierr = nf_inq_varid(ncid, "fEdge", varid)
-      ierr = nf_put_vara_double(ncid, varid, 1, nEdges, fEdge)
+      if (ierr == NF_NOERR) then
+         ierr = nf_put_vara_double(ncid, varid, 1, nEdges, fEdge)
+      end if
 
       ierr = nf_inq_varid(ncid, "fVertex", varid)
-      ierr = nf_put_vara_double(ncid, varid, 1, nVertices, fVertex)
+      if (ierr == NF_NOERR) then
+         ierr = nf_put_vara_double(ncid, varid, 1, nVertices, fVertex)
+      end if
 
       ierr = nf_close(ncid)
 

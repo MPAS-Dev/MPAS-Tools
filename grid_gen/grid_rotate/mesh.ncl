@@ -54,13 +54,10 @@ begin
   res@lbLabelBarOn      = False
 
   h   = f->areaCell(:)
-  u   = f->u(0,:,0)
-  v   = f->v(0,:,0)
 
   xpoly = new((/4/), "double")
   ypoly = new((/4/), "double")
 
-  h(:) = 1.0
   res@cnConstFLabelOn = False
   map = gsn_csm_contour_map(wks,h,res)
 
