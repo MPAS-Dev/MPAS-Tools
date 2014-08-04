@@ -17,6 +17,7 @@ using namespace std;
 
 int nCells, nVertices, nEdges, vertexDegree, maxEdges;
 bool spherical;
+double sphere_radius;
 string in_history = "";
 string in_mesh_id = "";
 string in_parent_id = "";
@@ -180,6 +181,10 @@ int readGridInput(const string inputFilename){/*{{{*/
 	cout << "   Reading on_a_sphere" << endl;
 #endif
 	spherical = netcdf_mpas_read_onsphere(inputFilename);
+#ifdef _DEBUG
+	cout << "   Reading sphere_radius" << endl;
+#endif
+	sphere_radius = netcdf_mpas_read_sphereradius(inputFilename);
 #ifdef _DEBUG
 	cout << "   Reading history" << endl;
 #endif
@@ -472,7 +477,7 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
 		if (!(radiusAtt = grid.add_att(   "sphere_radius", 0.0))) return NC_ERR;
 	} else {
 		if (!(sphereAtt = grid.add_att(   "on_a_sphere", "YES\0"))) return NC_ERR;
-		if (!(radiusAtt = grid.add_att(   "sphere_radius", 1.0))) return NC_ERR;
+		if (!(radiusAtt = grid.add_att(   "sphere_radius", sphere_radius))) return NC_ERR;
 	}
 
 	history_str += "MpasCellCuller.x ";
