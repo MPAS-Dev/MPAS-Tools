@@ -25,6 +25,7 @@ int netcdf_mpas_read_dim ( string filename, string dim_name );
 void netcdf_mpas_read_xyzcell ( string filename, int ncells, double xcell[], double ycell[], double zcell[] );
 void netcdf_mpas_read_latloncell ( string filename, int ncells, double latcell[], double loncell[] );
 void netcdf_mpas_read_areacell ( string filename, int ncells, double areacell[] );
+void netcdf_mpas_read_nedgesoncell ( string filename, int ncells, int edgesoncell[] );
 void netcdf_mpas_read_cellsoncell ( string filename, int ncells, int maxedges, int cellsoncell[] );
 void netcdf_mpas_read_edgesoncell ( string filename, int ncells, int maxedges, int edgesoncell[] );
 void netcdf_mpas_read_verticesoncell ( string filename, int ncells, int maxedges, int verticesoncell[] );

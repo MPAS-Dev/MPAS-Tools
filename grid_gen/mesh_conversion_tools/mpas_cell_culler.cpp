@@ -768,28 +768,22 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 
 	double *meshDensityOld, *meshDensityNew;
 	double *areaCellNew;
-	int *tmp_arr_old, *nEdgesOnCellNew;
+	int *tmp_arr_old, *nEdgesOnCellOld, *nEdgesOnCellNew;
 	int *tmp_arr_new;
 	
 	tmp_arr_old = new int[nCells*maxEdges];
-	nEdgesOnCellNew = new int[nCells];
+	nEdgesOnCellOld = new int[nCells];
+	nEdgesOnCellNew = new int[nCellsNew];
 
 	netcdf_mpas_read_edgesoncell ( inputFilename, nCells, maxEdges, tmp_arr_old );
+	netcdf_mpas_read_nedgesoncell ( inputFilename, nCells, nEdgesOnCellOld );
 
-	// Need to count edges on cell, to get maxEdgesNew
+	// Need to map nEdgesOnCell to get maxEdges
 	maxEdgesNew = 0;
 	for(int iCell = 0; iCell < nCells; iCell++){
 		if(cellMap.at(iCell) != -1){
-			edgeCount = 0;
-			for(int j = 0; j < maxEdges; j++){
-				int iEdge = tmp_arr_old[iCell*maxEdges + j] - 1;
-				if(iEdge != -1 && iEdge < edgeMap.size() && edgeMap.at( iEdge ) != -1){
-					edgeCount++;
-				}
-			}
-
-			nEdgesOnCellNew[cellMap.at(iCell)] = edgeCount;
-			maxEdgesNew = max(maxEdgesNew, edgeCount);
+			nEdgesOnCellNew[cellMap.at(iCell)] = nEdgesOnCellOld[iCell];
+			maxEdgesNew = max(maxEdgesNew, nEdgesOnCellNew[cellMap.at(iCell)]);
 		}
 	}
 	tmp_arr_new = new int[nCells * maxEdgesNew];
@@ -801,8 +795,6 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 	// Write nEdgesOncell to output file
 	if (!(nEocVar = grid.add_var("nEdgesOnCell", ncInt, nCellsDim))) return NC_ERR;
 	if (!nEocVar->put(nEdgesOnCellNew,nCellsNew)) return NC_ERR;
-
-	delete[] nEdgesOnCellNew;
 
 	// Map edgesOnCell
 	for(int iCell = 0; iCell < nCells; iCell++){
@@ -831,52 +823,41 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 
 	netcdf_mpas_read_cellsoncell ( inputFilename, nCells, maxEdges, tmp_arr_old );
 
-	// Determine number of edges in graph
+	// Map cellsOnCell, and determine number of edges in graph.
 	edgeCount = 0;
-
-	// Map cellsOnCell
 	for(int iCell = 0; iCell < nCells; iCell++){
 		if(cellMap.at(iCell) != -1){
-			for(int j = 0; j < maxEdgesNew; j++){
+			for(int j = 0; j < nEdgesOnCellOld[iCell]; j++){
 				int coc = tmp_arr_old[iCell*maxEdges + j] - 1;
 
-				if(coc != -1 && coc < cellMap.size()){
-					if(cellMap.at(coc) != -1) {
-						edgeCount++;
-					}
-				}
-			}
-		}
-	}
-
-	edgeCount = edgeCount / 2;
-
-	// Build graph.info file
-	ofstream graph("culled_graph.info");
-
-	graph << nCellsNew << " " << edgeCount << endl;
-	// Map cellsOnCell
-	for(int iCell = 0; iCell < nCells; iCell++){
-		if(cellMap.at(iCell) != -1){
-			for(int j = 0; j < maxEdgesNew; j++){
-				int coc = tmp_arr_old[iCell*maxEdges + j] - 1;
-
-				if(coc != -1 && coc < cellMap.size()){
+				if(coc != -1 && coc < nCells && cellMap.at(coc) < nCellsNew && cellMap.at(coc) != -1){
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = cellMap.at(coc)+1;
-					if(cellMap.at(coc) != -1) {
-						graph << cellMap.at(coc)+1 << " ";
-					}
+					edgeCount++;
 				} else {
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = 0;
 				}
 			}
-			graph << endl;
 		}
+	}
+	edgeCount = edgeCount / 2;
+
+	// Build graph.info file
+	ofstream graph("culled_graph.info");
+	graph << nCellsNew << " " << edgeCount << endl;
+	for(int iCell = 0; iCell < nCellsNew; iCell++){
+		for(int j = 0; j < nEdgesOnCellNew[iCell]; j++){
+			if (tmp_arr_new[iCell * maxEdgesNew + j] != 0) {
+				graph << tmp_arr_new[iCell * maxEdgesNew + j] << " ";
+			}
+		}
+		graph << endl;
 	}
 	graph.close();
 
 	if (!(cocVar = grid.add_var("cellsOnCell", ncInt, nCellsDim, maxEdgesDim))) return NC_ERR;
 	if (!cocVar->put(tmp_arr_new,nCellsNew,maxEdgesNew)) return NC_ERR;
+	delete[] nEdgesOnCellNew;
+	delete[] nEdgesOnCellOld;
 
 	netcdf_mpas_read_verticesoncell ( inputFilename, nCells, maxEdges, tmp_arr_old );
 

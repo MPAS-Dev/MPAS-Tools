@@ -1059,6 +1059,64 @@ void netcdf_mpas_read_areacell ( string filename, int ncells, double areacell[] 
 	return;
 }/*}}}*/
 //****************************************************************************80
+void netcdf_mpas_read_nedgesoncell ( string filename, int ncells, int nedgesoncell[] ){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_NEDGESONCELL gets the nEdgesOnCell information.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    08/08/2014
+	//
+	//  Author:
+	//
+	//    Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Input, int NCELLS, the number of cells.
+	//
+	//    Output, int NEDGESONCELL[NCELLS];
+	//
+	NcVar *var_id;
+	//
+	//  Open the file.
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//
+	//  Get the variable values.
+	//
+#ifdef _DEBUG
+	cout << "   Reading edgesOnCell" << endl;
+#endif
+	var_id = ncid.get_var ( "nEdgesOnCell" );
+	(*var_id).get ( &nedgesoncell[0], ncells );
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return;
+}/*}}}*/
+//****************************************************************************80
 void netcdf_mpas_read_cellsoncell ( string filename, int ncells, int maxedges, int cellsoncell[] ){/*{{{*/
 	//****************************************************************************80
 	//
