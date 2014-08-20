@@ -2,7 +2,7 @@
 
 OMP =
 CXX = g++
-CXXFLAGS = -O3 $(OMP) -I$(NETCDF)/include
+CXXFLAGS = -O3 $(OMP) -I$(NETCDF)/include -I/usr/include/
 
 OBJS = Point.o Triangle.o DensityFunction.o PointSet.o
 
