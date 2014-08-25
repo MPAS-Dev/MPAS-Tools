@@ -424,9 +424,10 @@ void write_netcdf(int nCells, int nVertices, int vertexDegree,
 	ncerr = nc_def_var(ncid, "cellsOnVertex", NC_INT, 2, dimids2, &varIDcellsOnVertex);
 
 	ncerr = nc_put_att_text(ncid, NC_GLOBAL, "on_a_sphere", 16, "NO              ");
+	ncerr = nc_put_att_text(ncid, NC_GLOBAL, "is_periodic", 16, "YES             ");
 	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "sphere_radius", NC_DOUBLE, 1, &sphere_radius);
-	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "x_period", NC_DOUBLE, 1, &x_period);
-	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "y_period", NC_DOUBLE, 1, &y_period);
+	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "x_offset", NC_DOUBLE, 1, &x_period);
+	ncerr = nc_put_att_double(ncid, NC_GLOBAL, "y_offset", NC_DOUBLE, 1, &y_period);
 
 	ncerr = nc_enddef(ncid);
 
