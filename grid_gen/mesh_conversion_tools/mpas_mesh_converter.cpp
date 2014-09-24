@@ -1991,10 +1991,10 @@ int buildEdgesOnEdgeArrays(){/*{{{*/
 						}
 					}
 
-					if(cell1 == cellsOnEdge.at(cur_edge).at(0)){
-						weightsOnEdge.at(iEdge).push_back( 1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
-					} else {
+					if(cell2 == cellsOnEdge.at(cur_edge).at(0)){
 						weightsOnEdge.at(iEdge).push_back( -1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
+					} else {
+						weightsOnEdge.at(iEdge).push_back( 1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 					}
 
 					last_edge = edgesOnCell.at(cell2).at(i);
@@ -2047,10 +2047,10 @@ int buildEdgesOnEdgeArrays(){/*{{{*/
 						}
 					}
 
-					if(cell1 == cellsOnEdge.at(cur_edge).at(0)){
-						weightsOnEdge.at(iEdge).push_back( 1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
-					} else {
+					if(cell2 == cellsOnEdge.at(cur_edge).at(0)){
 						weightsOnEdge.at(iEdge).push_back( -1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
+					} else {
+						weightsOnEdge.at(iEdge).push_back( 1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 					}
 
 					last_edge = edgesOnCell.at(cell2).at(i);
