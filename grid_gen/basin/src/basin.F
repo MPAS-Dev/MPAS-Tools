@@ -1616,10 +1616,7 @@ else
 
 endif  ! initial_conditions
 
-
-if (trim(initial_conditions).ne.'realistic_WOCE') then
-
-      ! set coriolis parameter for grid
+   ! set coriolis parameter for grid
    write(6,*) ' setting Coriolis parameter'
    if(on_a_sphere.eq.'YES') then
        do i = 1,nVerticesNew
@@ -1646,8 +1643,6 @@ if (trim(initial_conditions).ne.'realistic_WOCE') then
           fCellNew(i) = f0 + (yCellNew(i) - ymid) * beta
        enddo
    endif
-
-endif
 
 write(6,*) ' done get_init_conditions'
 
