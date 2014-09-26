@@ -1176,7 +1176,6 @@ elseif (initial_conditions.eq.'isopycnal_3layer') then
 
 elseif (initial_conditions.eq.'realistic_PHC') then
 
-
 surfaceWindStressNew = 0.0
 surfaceWindStressNew = 0.0
 do iEdge=1,nEdgesNew
@@ -1194,10 +1193,9 @@ do iEdge=1,nEdgesNew
     exit
    endif
   enddo
-  ulat = TAUX(ix,iy)
-  ulon = TAUY(ix,iy)
-  !write(6,*) 'getting wind stress for ', lonEdgeNew(iEdge)/dtr, latEdgeNew(iEdge)/dtr
-  !write(6,*) rlon, u_lon(ix), rlat, u_lat(iy)
+  ulon = TAUX(ix,iy)
+  ulat = TAUY(ix,iy)
+  !write(6,*) rlon, t_lon(ix), rlat, t_lat(iy)
 
   call transform_from_lonlat_to_xyz(xin,yin,zin,ulon,ulat,ux,uy,uz)
   if(boundaryEdgeNew(1,iEdge).eq.1) then
