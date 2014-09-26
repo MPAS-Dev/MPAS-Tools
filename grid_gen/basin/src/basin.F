@@ -505,6 +505,7 @@ real :: y0_embayment, surfaceTemperature, bottomTemperature, betaTemperature,bot
 real :: bottomSalinity, surfaceSalinity, cavitySalinity, refSalinity, maxDepth, xWindStress, yWindStress
 real :: x_0, x_1,x_2,x_3,width,cff1, deltaTemperature
 real :: totalSubIceThickness, y1,y2,y3, d1,d2,d3
+real :: lat1, lat2, lat3, lat4, T1, T2
 integer :: iTracer, ix, iy, ndata, i, j, k, ixt, iyt, ncull, jcount, iNoData, kdata(nVertLevelsMod), iMonth, kMax
 logical :: flag_lat
 
@@ -537,6 +538,47 @@ if (initial_conditions.eq.'uniform_TS') then
          layerThicknessNew(1,k,iCell) = hZLevel(k)
       enddo
    enddo  
+
+elseif (initial_conditions.eq.'gradT_lat') then
+
+! This is a very simple test case that can test grid connectivity, Coriolis
+! force, and pressure gradient on a sphere.  It is simply a temperature
+! gradient in latitude, which produces two zonal jets.
+
+   salinityNew = uniform_S 
+   normalVelocityNew = 0.0
+   surfaceWindStressNew = 0.0
+
+   do iCell=1,nCellsNew
+      do k=1, nVertLevelsMod
+         layerThicknessNew(1,k,iCell) = hZLevel(k)
+      enddo
+   enddo  
+
+   lat1 = 30.0*pi/180.0
+   lat2 = 60.0*pi/180.0
+   lat3 = 80.0*pi/180.0
+   lat4 = 85.0*pi/180.0
+   T1 = 100.0
+   T2 = 0.0
+   do iCell = 1,nCellsNew
+      if(abs(latCellNew(iCell)) < lat1 ) then
+         temperatureNew(1,:,iCell) = T1
+      elseif(abs(latCellNew(iCell)) < lat2 ) then
+         temperatureNew(1,:,iCell) = T1 + (T2-T1)*(abs(latCellNew(iCell)) - lat1)/(lat2-lat1)
+      else 
+         temperatureNew(1,:,iCell) = T2
+      endif
+
+      if(abs(latCellNew(iCell)) < lat3 ) then
+         tracer1New(1,:,iCell) = sin(lonCellNew(iCell)*10)
+      elseif(abs(latCellNew(iCell)) > lat4 ) then
+         tracer1New(1,:,iCell) = 0
+      else
+         tracer1New(1,:,iCell) = sin(lonCellNew(iCell)*10) * (abs(latCellNew(iCell)) - lat4)/(lat3-lat4)
+      endif
+
+   enddo
 
 elseif (initial_conditions.eq.'lock_exchange_Ilicak1') then
 
