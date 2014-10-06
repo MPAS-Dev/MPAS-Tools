@@ -6,9 +6,7 @@
 #include <iomanip>
 #include <string>
 #include <vector>
-#ifdef _LINUX
-	#include <unistd.h>
-#endif
+#include <unistd.h>
 
 #include "constants.h"
 #include "vec_utils.h"
@@ -81,6 +79,7 @@ bool on_sphere;
 bool draw_sphere;
 double sphere_radius;
 int color_bar = 0;
+int color_map = 1;
 double missing_value = -1e34;
 
 double line_factor = 1.008;
@@ -1625,6 +1624,122 @@ void color_mesh(){/*{{{*/
 	}
 	return;
 }/*}}}*/
+
+
+void color_mapping_standard(float h, float& r, float& g, float& b){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    COLOR_MAP_STANDARD converts an array value to a r,g,b colour with a fixed 
+	//    saturation and brightness and varying hue
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    6 Oct 2014
+	//
+	//  Author:
+	//
+	//    Adrian Turner
+	//
+	float s, v;
+
+	s = 1.0;
+	v = 1.0;
+
+	hsv_to_rgb(h, s, v, b, g, r);
+
+}/*}}}*/
+
+void color_mapping_jet(float h, float& r, float& g, float& b){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    COLOR_MAP_JET converts an array value to a r,g,b colour using  
+	//    the matlab jet colourmap
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    6 Oct 2014
+	//
+	//  Author:
+	//
+	//    Adrian Turner
+	//
+
+        b = fmax(fmin(fmin(4.0 * h + 0.5, -4.0 * h + 2.5),1.0),0.0);
+
+	g = fmax(fmin(fmin(4.0 * h - 0.5, -4.0 * h + 3.5),1.0),0.0);
+	
+	r = fmax(fmin(fmin(4.0 * h - 1.5, -4.0 * h + 4.5),1.0),0.0);
+
+}/*}}}*/
+
+void color_mapping(double value, double min, double max, double missing_value, float& r, float& g, float& b){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    COLOR_MAP converts an array value to a r,g,b colour
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    6 Oct 2014
+	//
+	//  Author:
+	//
+	//    Adrian Turner
+	//
+	float h;
+
+	if(value == missing_value){
+		r = 0.5;
+		g = 0.5;
+		b = 0.5;
+	} else {
+		if(max-min != 0.0){
+			if(value >= max){
+				h = 1.0;
+			} else if (value <= min){
+				h = 0.0;
+			} else {
+				h = (value - min)/(max - min);
+			}
+		} else {
+			h = (value - min)/1.0;
+		}
+
+		switch(color_map){
+			case 0:
+			        h = h * range_factor;
+				color_mapping_standard(h, r, g, b);
+				break;
+		       	case 1:
+	       			color_mapping_jet(h, r, g, b);
+       				break;
+		       	default:
+                                h = h * range_factor;
+				color_mapping_standard(h, r, g, b);
+	       			break;
+       		}
+
+	}
+
+}/*}}}*/
+
 void color_cells(){/*{{{*/
 	//****************************************************************************80
 	//
@@ -1639,10 +1754,12 @@ void color_cells(){/*{{{*/
 	//  Modified:
 	//
 	//    30 December 2010
+        //     6 October  2014
 	//
 	//  Author:
 	//
 	//    Doug Jacobsen
+        //    Adrian Turner (color map)
 	//
 
 	int i, j, k, o;
@@ -1653,13 +1770,10 @@ void color_cells(){/*{{{*/
 	int vert_dim;
 	int time_dim;
 	int num_items;
-	float h, s, v;
 	float r, g, b;
 
 	cell_colors.clear();
 
-	s = 1.0;
-	v = 1.0;
 	if(cell_field == -1){
 		for(i = 0; i < ncells; i++){
 			o = nedgesoncell[i];
@@ -1689,25 +1803,7 @@ void color_cells(){/*{{{*/
 
 			o = nedgesoncell[i];
 
-			if(cell_values[i] == missing_value){
-				r = 0.5;
-				g = 0.5;
-				b = 0.5;
-			} else {
-				if((max-min) != 0.0){
-					if(cell_values[i] >= max){
-						h = range_factor;
-					} else if (cell_values[i] <= min){
-						h = 0.0;
-					} else {
-						h = (cell_values[i] - min)/(max-min) * range_factor;
-					}
-				} else {
-					h = (cell_values[i] - min) * range_factor;
-				}
-
-				hsv_to_rgb(h, s, v, b, g, r);
-			}
+			color_mapping(cell_values[i], min, max, missing_value, r, g, b);
 
 			for(j = 0; j < o*3; j++){
 				cell_colors.push_back(r);
@@ -1734,21 +1830,20 @@ void color_triangles(){/*{{{*/
 	//  Modified:
 	//
 	//    30 December 2010
+        //     6 October  2014
 	//
 	//  Author:
 	//
 	//    Doug Jacobsen
+        //    Adrian Turner (color map)
 	//
 
 	int i, j;
 	double max, min;
-	float h, s, v;
 	float r, g, b;
 
 	vertex_colors.clear();
 
-	s = 1.0;
-	v = 1.0;
 	if(vertex_field == -1){
 		for(i = 0; i < nvertices; i++){
 			for(j = 0; j < 3; j++){
@@ -1773,25 +1868,8 @@ void color_triangles(){/*{{{*/
 		cout << "Min: " << min << " Max: " << max << endl;
 
 		for(i = 0; i < nvertices; i++){
-			if(triangle_values[i] == missing_value){
-				r = 0.5;
-				g = 0.5;
-				b = 0.5;
-			} else { 
-				if(max-min != 0.0){
-					if(triangle_values[i] >= max){
-						h = range_factor;
-					} else if (triangle_values[i] <= min){
-						h = 0.0;
-					} else {
-						h = (triangle_values[i] - min)/(max-min)*range_factor;
-					}
-				}else{
-					h = (triangle_values[i] - min)/1.0 * range_factor;
-				}
 
-				hsv_to_rgb(h, s, v, b, g, r);
-			}
+			color_mapping(triangle_values[i], min, max, missing_value, r, g, b);
 
 			for(j = 0; j < 3; j++){
 				vertex_colors.push_back(r);
@@ -1817,20 +1895,19 @@ void color_edges(){/*{{{*/
 	//  Modified:
 	//
 	//    30 December 2010
+        //     6 October  2014
 	//
 	//  Author:
 	//
 	//    Doug Jacobsen
+        //    Adrian Turner (color map)
 	//
 	int i, j, o;
 	double max, min;
-	float h, s, v;
 	float r, g, b;
 
 	edge_colors.clear();
 
-	s = 1.0;
-	v = 1.0;
 	if(edge_field == -1){
 		for(i = 0; i < nedges; i++){
 			for(j = 0; j < 6; j++){
@@ -1855,25 +1932,8 @@ void color_edges(){/*{{{*/
 		cout << "Min: " << min << " Max: " << max << endl;
 
 		for(i = 0; i < nedges; i++){
-			if(edge_values[i] == missing_value){
-				r = 0.5;
-				g = 0.5;
-				b = 0.5;
-			} else {
-				if(max-min != 0.0){
-					if(edge_values[i] >= max){
-						h = range_factor;
-					} else if (edge_values[i] <= min){
-						h = 0.0;
-					} else {
-						h = (edge_values[i] - min)/(max-min)*range_factor;
-					}
-				} else {
-					h = (edge_values[i] - min)/1.0 * range_factor;
-				}
 
-				hsv_to_rgb(h, s, v, b, g, r);
-			}
+			color_mapping(edge_values[i], min, max, missing_value, r, g, b);
 
 			for(j = 0; j < 6; j++){
 				edge_colors.push_back(r);
@@ -2091,6 +2151,20 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 				}
 			}
 
+			break;
+		case KEY_m:
+			color_map = (color_map + 1) % 2;
+			switch(color_map){
+				case 0:
+					cout << "Color mapping based on variable hue" << endl;
+					break;
+				case 1:
+					cout << "Color mapping with matlab jet" << endl;
+					break;
+				default:
+					break;
+			}
+			color_mesh();
 			break;
 		case KEY_w:
 			draw_lines = (draw_lines + 1) % 4;

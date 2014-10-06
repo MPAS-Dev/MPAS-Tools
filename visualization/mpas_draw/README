@@ -50,6 +50,8 @@ MpasDraw.x:
 			Coloring on all time takes longer to build the scaling range (if number of time steps is large)
 			but the color bar is static. Also, this colorbar only has to be computed once for the entire run of MpasDraw
 
+		m: (colormap)
+			Toggles the available colormaps. Options: Variable hue, Matlab jet (default)
 
 		r: (reset)
 			The lowercase r key resets the plot to the default parameters (for color, timestep, vertical level, position, rotation, and color bar).
@@ -76,6 +78,7 @@ MpasDraw.x:
 			Change the percent of available color space.
 			1-9: 10*Number Pressed% of Color range (eg. 10% = 1, 20% = 2...)
 			0: 100% of Color range
+			(Not available in matlab jet colormap)
 
 		q:
 			The lowercase q key saves the current buffer as a screenshot to ss.0000.tga. You can afterwards convert the .tga file to any format.
