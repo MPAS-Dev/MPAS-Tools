@@ -1,8 +1,8 @@
 #Assumes ${NETCDF} is defined to the root of the netcdf library
 
 CC=g++
-CFLAGS= -O3 -std=c++11
-DFLAGS= -g -std=c++11 -D_DEBUG
+CFLAGS= -O3 -std=c++0x
+DFLAGS= -g -std=c++0x -D_DEBUG
 CONV_EXECUTABLE= MpasMeshConverter.x
 CULL_EXECUTABLE= MpasCellCuller.x
 

@@ -11,16 +11,16 @@ Purpose:
 
 	mpas_cell_culler.cpp is a piece of software designed remove
 	cells/edge/vertices from an MPAS mesh.  As input, this software takes a
-	valid MPAS mesh with one additional field "cellMask". This new field should
+	valid MPAS mesh with one additional field "cullCell". This new field should
 	be nCells integers. A 1 means the cell should be kept, and a 0 means the
 	cell should be removed.
 	
 Requirements:
-	mpas_mesh_converter.cpp requires the c++ netcdf libraries to be able to read/write a NetCDF files.
+	mpas_mesh_converter.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
 	It also requires the tr1 headers for c++, specifically unordered_set.
 	It has been tested using g++ version 4.8.1
 
-	mpas_cell_culler.cpp requires the c++ netcdf libraries to be able to read/write a NetCDF files.
+	mpas_cell_culler.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
 	It has been tested using g++ version 4.8.1
 
 Usage of mpas_mesh_converter.cpp:
@@ -50,7 +50,7 @@ Usage of mpas_mesh_converter.cpp:
 						   If ommitted, a random string will be placed in the output file.
 	output_name:
 		The output_name should be the name of the NetCDF file that will be generated. It will be a valid MPAS mesh.
-		No initial conditions are placed in this file.
+		No initial conditions are placed in this file. If input_name is specified, output_name defaults to mesh.nc.
 
 
 Usage of mpas_cell_culler.cpp:
@@ -60,12 +60,13 @@ Usage of mpas_cell_culler.cpp:
 		The input name should be the name of a NetCDF file that is a fully valid MPAS file.
 		It is required to have all of the fields an output file from MpasMeshConverter.x contains.
 		There is one additional field:
-		cellMask -- (Optional) Should be dimensioned nCells. Should contain a 0 for all cells that should be removed
-					and a 1 for all cells that should be kept.
+		cullCell -- (Optional) Should be dimensioned nCells. Should contain a 1 for all cells that should be removed
+					and a 0 for all cells that should be kept.
 
 	output_name:
 		The output_name should be the name of the NetCDF file that will be generated. It will be the same as the input file,
-		with cells, edges, and vertices removed where appropriate. Also, the cellMask field will be removed.
+		with cells, edges, and vertices removed where appropriate. Also, the cullCell field will be removed.
+		If input_name is specified, outputname defaults to culled_mesh.nc.
 
 
 Notes for mpas_mesh_converter.cpp:
@@ -79,4 +80,4 @@ Notes for mpas_mesh_converter.cpp:
 
 Notes for mpas_cell_culler.cpp:
 	- Cells that contain negative area will be removed in addition to all cells that have
-		a cellMask value of 0.
+		a cullCell value of 1.

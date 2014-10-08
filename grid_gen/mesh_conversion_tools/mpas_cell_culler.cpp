@@ -11,12 +11,13 @@
 
 #include "netcdf_utils.h"
 
-#define ID_LEN 40
+#define ID_LEN 10
 
 using namespace std;
 
 int nCells, nVertices, nEdges, vertexDegree, maxEdges;
 bool spherical;
+double sphere_radius;
 string in_history = "";
 string in_mesh_id = "";
 string in_parent_id = "";
@@ -24,7 +25,7 @@ double in_mesh_spec = 1.0;
 
 // Connectivity and location information {{{
 
-vector<int> cellMask;
+vector<int> cullCell;
 vector<int> cellMap;
 vector<int> vertexMap;
 vector<int> edgeMap;
@@ -55,8 +56,8 @@ string gen_random(const int len);
 
 int main ( int argc, char *argv[] ) {
 	int error;
-	string out_name = "culled.nc";
-	string in_name = "grid.nc";
+	string out_name = "culled_mesh.nc";
+	string in_name = "mesh.nc";
 
 	cout << endl << endl;
 	cout << "************************************************************" << endl;
@@ -90,7 +91,7 @@ int main ( int argc, char *argv[] ) {
 
 		cout << "\n";
 		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Output name not specified. Using default of culled.nc\n";
+		cout << "  Output name not specified. Using default of culled_mesh.nc\n";
 	}
 	else if (argc == 3)
 	{
@@ -140,7 +141,7 @@ int main ( int argc, char *argv[] ) {
 		exit(error);
 	}
 
-	cout << "Mapping and writing cell fields" << endl;
+	cout << "Mapping and writing cell fields and culled_graph.info" << endl;
 	if(error = mapAndOutputCellFields(in_name, out_name)){
 		cout << "Error - " << error << endl;
 		exit(error);
@@ -181,6 +182,10 @@ int readGridInput(const string inputFilename){/*{{{*/
 #endif
 	spherical = netcdf_mpas_read_onsphere(inputFilename);
 #ifdef _DEBUG
+	cout << "   Reading sphere_radius" << endl;
+#endif
+	sphere_radius = netcdf_mpas_read_sphereradius(inputFilename);
+#ifdef _DEBUG
 	cout << "   Reading history" << endl;
 #endif
 	in_history = netcdf_mpas_read_history(inputFilename);
@@ -214,11 +219,11 @@ int readGridInput(const string inputFilename){/*{{{*/
 	netcdf_mpas_read_areacell ( inputFilename, nCells, &areaCell[0] );
 
 #ifdef _DEBUG
-	cout << " Read cellMask" << endl;
+	cout << " Read cullCell" << endl;
 #endif
-	cellMask.clear();
-	cellMask.resize(nCells);
-	netcdf_mpas_read_cellmask ( inputFilename, nCells, &cellMask[0] );
+	cullCell.clear();
+	cullCell.resize(nCells);
+	netcdf_mpas_read_cullcell ( inputFilename, nCells, &cullCell[0] );
 
 	// Build cellsOnVertex information
 	cellsonvertex_list = new int[nVertices * vertexDegree];
@@ -284,7 +289,7 @@ int markCells(){/*{{{*/
 	cells_removed = 0;
 	for(int iCell = 0; iCell < nCells; iCell++){
 		// Remove all cells with negative area, and cells that shouldn't be in the grid.
-		if(areaCell.at(iCell) < 0 || cellMask.at(iCell) == 0){
+		if(areaCell.at(iCell) < 0 || cullCell.at(iCell) == 1){
 			cellMap.at(iCell) = -1;
 			cells_removed++;
 		} else {
@@ -353,11 +358,17 @@ int markEdges(){/*{{{*/
 		// Only keep an edge if it has two vertices
 		// after vertex removal and at least one cell
 		// after cell removal.
-		keep_edge = cellMap.at(cell1) != -1;
-		if(cell2 != -1){
-			keep_edge = keep_edge || cellMap.at(cell2) != -1;
+		if(vertex2 != -1){
+			keep_edge = (vertexMap.at(vertex1) != -1 && vertexMap.at(vertex2) != -1);
+		} else {
+			keep_edge = false;
 		}
-		keep_edge = keep_edge && (vertexMap.at(vertex1) != -1) && (vertexMap.at(vertex2) != -1);
+
+		if(cell2 != -1){
+			keep_edge = keep_edge && (cellMap.at(cell1) != -1 || cellMap.at(cell2) != -1);
+		} else {
+			keep_edge = keep_edge && (cellMap.at(cell1) != -1);
+		}
 
 		if(keep_edge){
 			edgeMap.at(iEdge) = new_idx;
@@ -408,6 +419,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	NcDim *TWODim;
 	NcDim *THREEDim;
 	NcDim *vertexDegreeDim;
+	NcDim *nVertLevelsDim;
 	NcDim *timeDim;
 
 	nCellsNew = 0;
@@ -429,9 +441,10 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	if (!(nCellsDim =		grid.add_dim(	"nCells",		nCellsNew)		)) return NC_ERR;
 	if (!(nEdgesDim =		grid.add_dim(	"nEdges",		nEdgesNew)		)) return NC_ERR;
 	if (!(nVerticesDim =	grid.add_dim(	"nVertices",	nVerticesNew)	)) return NC_ERR;
-	if (!(TWODim =			grid.add_dim(	"TWO",			2)					)) return NC_ERR;
-	if (!(vertexDegreeDim = grid.add_dim(   "vertexDegree", vertexDegree)		)) return NC_ERR;
-	if (!(timeDim = 		grid.add_dim(   "Time")								)) return NC_ERR;
+	if (!(TWODim =			grid.add_dim(	"TWO",			2)				)) return NC_ERR;
+	if (!(vertexDegreeDim = grid.add_dim(   "vertexDegree", vertexDegree)	)) return NC_ERR;
+	if (!(nVertLevelsDim =  grid.add_dim(   "nVertLevels", 1)				)) return NC_ERR;
+	if (!(timeDim = 		grid.add_dim(   "Time")							)) return NC_ERR;
 
 	grid.close();
 	
@@ -468,7 +481,7 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
 		if (!(radiusAtt = grid.add_att(   "sphere_radius", 0.0))) return NC_ERR;
 	} else {
 		if (!(sphereAtt = grid.add_att(   "on_a_sphere", "YES\0"))) return NC_ERR;
-		if (!(radiusAtt = grid.add_att(   "sphere_radius", 1.0))) return NC_ERR;
+		if (!(radiusAtt = grid.add_att(   "sphere_radius", sphere_radius))) return NC_ERR;
 	}
 
 	history_str += "MpasCellCuller.x ";
@@ -723,6 +736,8 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 	 * areaCell
 	 * meshDensity
 	 *
+	 * It also writes the graph.info file which can be used to decompose the mesh.
+	 *
 	 * ***************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
@@ -738,10 +753,12 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 	
 	// fetch dimensions
 	NcDim *nCellsDim = grid.get_dim( "nCells" );
+	NcDim *nEdgesDim = grid.get_dim( "nEdges" );
 	NcDim *maxEdgesDim;
 	NcDim *maxEdges2Dim;
 
 	int nCellsNew = nCellsDim->size();
+	int nEdgesNew = nEdgesDim->size();
 	int maxEdgesNew;
 	int edgeCount;
 
@@ -751,28 +768,22 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 
 	double *meshDensityOld, *meshDensityNew;
 	double *areaCellNew;
-	int *tmp_arr_old, *nEdgesOnCellNew;
+	int *tmp_arr_old, *nEdgesOnCellOld, *nEdgesOnCellNew;
 	int *tmp_arr_new;
 	
 	tmp_arr_old = new int[nCells*maxEdges];
-	nEdgesOnCellNew = new int[nCells];
+	nEdgesOnCellOld = new int[nCells];
+	nEdgesOnCellNew = new int[nCellsNew];
 
 	netcdf_mpas_read_edgesoncell ( inputFilename, nCells, maxEdges, tmp_arr_old );
+	netcdf_mpas_read_nedgesoncell ( inputFilename, nCells, nEdgesOnCellOld );
 
-	// Need to count edges on cell, to get maxEdgesNew
+	// Need to map nEdgesOnCell to get maxEdges
 	maxEdgesNew = 0;
 	for(int iCell = 0; iCell < nCells; iCell++){
 		if(cellMap.at(iCell) != -1){
-			edgeCount = 0;
-			for(int j = 0; j < maxEdges; j++){
-				int iEdge = tmp_arr_old[iCell*maxEdges + j] - 1;
-				if(iEdge != -1 && edgeMap.at( iEdge ) != -1){
-					edgeCount++;
-				}
-			}
-
-			nEdgesOnCellNew[cellMap.at(iCell)] = edgeCount;
-			maxEdgesNew = max(maxEdgesNew, edgeCount);
+			nEdgesOnCellNew[cellMap.at(iCell)] = nEdgesOnCellOld[iCell];
+			maxEdgesNew = max(maxEdgesNew, nEdgesOnCellNew[cellMap.at(iCell)]);
 		}
 	}
 	tmp_arr_new = new int[nCells * maxEdgesNew];
@@ -785,8 +796,6 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 	if (!(nEocVar = grid.add_var("nEdgesOnCell", ncInt, nCellsDim))) return NC_ERR;
 	if (!nEocVar->put(nEdgesOnCellNew,nCellsNew)) return NC_ERR;
 
-	delete[] nEdgesOnCellNew;
-
 	// Map edgesOnCell
 	for(int iCell = 0; iCell < nCells; iCell++){
 #ifdef _DEBUG
@@ -796,7 +805,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 			for(int j = 0; j < maxEdgesNew; j++){
 				int iEdge = tmp_arr_old[iCell*maxEdges + j] - 1;
 
-				if(iEdge != -1){
+				if(iEdge != -1 && iEdge < edgeMap.size()){
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = edgeMap.at(iEdge)+1;
 				} else {
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = 0;
@@ -814,23 +823,41 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 
 	netcdf_mpas_read_cellsoncell ( inputFilename, nCells, maxEdges, tmp_arr_old );
 
-	// Map cellsOnCell
+	// Map cellsOnCell, and determine number of edges in graph.
+	edgeCount = 0;
 	for(int iCell = 0; iCell < nCells; iCell++){
 		if(cellMap.at(iCell) != -1){
-			for(int j = 0; j < maxEdgesNew; j++){
+			for(int j = 0; j < nEdgesOnCellOld[iCell]; j++){
 				int coc = tmp_arr_old[iCell*maxEdges + j] - 1;
 
-				if(coc != -1){
+				if(coc != -1 && coc < nCells && cellMap.at(coc) < nCellsNew && cellMap.at(coc) != -1){
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = cellMap.at(coc)+1;
+					edgeCount++;
 				} else {
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = 0;
 				}
 			}
 		}
 	}
+	edgeCount = edgeCount / 2;
+
+	// Build graph.info file
+	ofstream graph("culled_graph.info");
+	graph << nCellsNew << " " << edgeCount << endl;
+	for(int iCell = 0; iCell < nCellsNew; iCell++){
+		for(int j = 0; j < nEdgesOnCellNew[iCell]; j++){
+			if (tmp_arr_new[iCell * maxEdgesNew + j] != 0) {
+				graph << tmp_arr_new[iCell * maxEdgesNew + j] << " ";
+			}
+		}
+		graph << endl;
+	}
+	graph.close();
 
 	if (!(cocVar = grid.add_var("cellsOnCell", ncInt, nCellsDim, maxEdgesDim))) return NC_ERR;
 	if (!cocVar->put(tmp_arr_new,nCellsNew,maxEdgesNew)) return NC_ERR;
+	delete[] nEdgesOnCellNew;
+	delete[] nEdgesOnCellOld;
 
 	netcdf_mpas_read_verticesoncell ( inputFilename, nCells, maxEdges, tmp_arr_old );
 
@@ -840,7 +867,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 			for(int j = 0; j < maxEdgesNew; j++){
 				int iVertex = tmp_arr_old[iCell*maxEdges + j] - 1;
 
-				if(iVertex != -1){
+				if(iVertex != -1 && iVertex < vertexMap.size()){
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = vertexMap.at(iVertex)+1;
 				} else {
 					tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] = 0;
@@ -930,7 +957,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 	int vertexDegree = vertexDegreeDim->size();
 	int two = twoDim->size();
 
-	int *nEdgesOnEdgeNew;
+	int *nEdgesOnEdgeOld, *nEdgesOnEdgeNew;
 	int *edgesOnEdgeOld, *edgesOnEdgeNew;
 	int *cellsOnEdgeOld, *cellsOnEdgeNew;
 	int *verticesOnEdgeOld, *verticesOnEdgeNew;
@@ -1027,12 +1054,14 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 	delete[] verticesOnEdgeNew;
 
 	// Map edgesOnEdge, nEdgesOnEdge, and weightsOnEdge
+	nEdgesOnEdgeOld = new int[nEdges];
 	nEdgesOnEdgeNew = new int[nEdges];
 	edgesOnEdgeOld = new int[nEdges*maxEdges*2];
 	edgesOnEdgeNew = new int[nEdgesNew*maxEdges2New];
 	weightsOnEdgeOld = new double[nEdges*maxEdges*2];
 	weightsOnEdgeNew = new double[nEdgesNew*maxEdges2New];
 
+	netcdf_mpas_read_nedgesonedge( inputFilename, nEdges, nEdgesOnEdgeOld );
 	netcdf_mpas_read_edgesonedge( inputFilename, nEdges, maxEdges*2, edgesOnEdgeOld );
 	netcdf_mpas_read_weightsonedge( inputFilename, nEdges, maxEdges*2, weightsOnEdgeOld );
 
@@ -1053,10 +1082,10 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 			}
 
 			if(cell1 != -1 && cell2 != -1){
-				for(int j = 0; j < maxEdges2New; j++){
+				for(int j = 0; j < nEdgesOnEdgeOld[iEdge]; j++){
 					int eoe = edgesOnEdgeOld[iEdge*maxEdges*2 + j] - 1;
 
-					if(eoe != -1){
+					if(eoe != -1 && eoe < edgeMap.size()){
 						edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = edgeMap.at(eoe) + 1;
 						weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = weightsOnEdgeOld[iEdge*maxEdges*2 + j];
 						edgeCount++;
@@ -1066,13 +1095,18 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 					}
 				}
 			} else if ( cell1 == -1  || cell2 == -1){
-				for(int j = 0; j < maxEdges2New; j++){
+				for(int j = 0; j < nEdgesOnEdgeOld[iEdge]; j++){
 					edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
 					weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
 				}
 			}
+
+			for(int j = edgeCount; j < maxEdges2New; j++){
+				edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
+				weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
+			}
+			nEdgesOnEdgeNew[edgeMap.at(iEdge)] = edgeCount;
 		}
-		nEdgesOnEdgeNew[iEdge] = edgeCount;
 	}
 
 	if (!(nEoeVar = grid.add_var("nEdgesOnEdge", ncInt, nEdgesDim))) return NC_ERR;
@@ -1082,6 +1116,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 	if (!(woeVar = grid.add_var("weightsOnEdge", ncDouble, nEdgesDim, maxEdges2Dim))) return NC_ERR;
 	if (!woeVar->put(weightsOnEdgeNew,nEdgesNew,maxEdges2New)) return NC_ERR;
 
+	delete[] nEdgesOnEdgeOld;
 	delete[] cellsOnEdgeOld;
 	delete[] edgesOnEdgeOld;
 	delete[] edgesOnEdgeNew;
@@ -1244,7 +1279,7 @@ int mapAndOutputVertexFields( const string inputFilename, const string outputFil
 string gen_random(const int len) {/*{{{*/
 	static const char alphanum[] =
 		"0123456789"
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+//		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		"abcdefghijklmnopqrstuvwxyz";
 
 	string rand_str = "";

@@ -222,6 +222,249 @@ double netcdf_mpas_read_sphereradius(string filename){/*{{{*/
 
 }/*}}}*/
 //****************************************************************************80
+bool netcdf_mpas_read_isperiodic(string filename){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_ISPERIODIC determines if a mesh is intended to be periodic.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    7 March 2014
+	//
+	//  Author:
+	//
+	//     Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Output, int NETCDF_MPAS_READ_ISPERIODIC, true or false based on the global
+	//    										 attribute, is_periodic. Default is false
+	//
+	NcAtt *att_id;
+	NcValues *vals;
+	bool valid;
+	string tmp_name;
+	string sph_name = "is_periodic";
+	//
+	//  Open the file.
+	//
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//  Get Ntime, which is a NETCDF dimension.
+	//
+	valid = false;
+
+	for(int i = 0; i < ncid.num_atts() && !valid; i++){
+		tmp_name = ncid.get_att(i)->name();
+
+		if(sph_name == tmp_name){
+			valid = true;
+		}
+	}
+
+	if(valid){
+		att_id = ncid.get_att(sph_name.c_str());
+		
+		vals = att_id -> values();
+
+		sph_name = "YES";
+
+		for(int i = 0; i < vals -> num(); i++){
+			tmp_name = vals -> as_string(i);
+			if(tmp_name.find(sph_name) != string::npos){
+				return true;
+			}
+		}
+	} else {
+		return false;
+	}
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return false;
+
+}/*}}}*/
+//****************************************************************************80
+double netcdf_mpas_read_xoffset(string filename){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_XOFFSET reads the global attribute x_offset
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    11 February 2014
+	//
+	//  Author:
+	//
+	//     Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Output, double NETCDF_MPAS_READ_XOFFSET, the value of the global
+	//    										 attribute, x_offset
+	//
+	NcAtt *att_id;
+	NcValues *vals;
+	bool valid;
+	string tmp_name;
+	string sph_name = "x_offset";
+	//
+	//  Open the file.
+	//
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//  Get Ntime, which is a NETCDF dimension.
+	//
+	valid = false;
+
+	for(int i = 0; i < ncid.num_atts() && !valid; i++){
+		tmp_name = ncid.get_att(i)->name();
+
+		if(sph_name == tmp_name){
+			valid = true;
+		}
+	}
+
+	if(valid){
+		att_id = ncid.get_att(sph_name.c_str());
+		
+		vals = att_id -> values();
+
+		for(int i = 0; i < vals -> num(); i++){
+			tmp_name = vals -> as_string(i);
+
+			return atof(vals -> as_string(i));
+		}
+	} else {
+		return -1.0;
+	}
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return -1.0;
+
+}/*}}}*/
+//****************************************************************************80
+double netcdf_mpas_read_yoffset(string filename){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_YOFFSET reads the global attribute y_offset
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    11 February 2014
+	//
+	//  Author:
+	//
+	//     Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Output, double NETCDF_MPAS_READ_YOFFSET, the value of the global
+	//    										 attribute, y_offset
+	//
+	NcAtt *att_id;
+	NcValues *vals;
+	bool valid;
+	string tmp_name;
+	string sph_name = "y_offset";
+	//
+	//  Open the file.
+	//
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//  Get Ntime, which is a NETCDF dimension.
+	//
+	valid = false;
+
+	for(int i = 0; i < ncid.num_atts() && !valid; i++){
+		tmp_name = ncid.get_att(i)->name();
+
+		if(sph_name == tmp_name){
+			valid = true;
+		}
+	}
+
+	if(valid){
+		att_id = ncid.get_att(sph_name.c_str());
+		
+		vals = att_id -> values();
+
+		for(int i = 0; i < vals -> num(); i++){
+			tmp_name = vals -> as_string(i);
+
+			return atof(vals -> as_string(i));
+		}
+	} else {
+		return -1.0;
+	}
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return -1.0;
+
+}/*}}}*/
+//****************************************************************************80
 string netcdf_mpas_read_history(string filename){/*{{{*/
 	//****************************************************************************80
 	//
@@ -816,6 +1059,64 @@ void netcdf_mpas_read_areacell ( string filename, int ncells, double areacell[] 
 	return;
 }/*}}}*/
 //****************************************************************************80
+void netcdf_mpas_read_nedgesoncell ( string filename, int ncells, int nedgesoncell[] ){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_NEDGESONCELL gets the nEdgesOnCell information.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    08/08/2014
+	//
+	//  Author:
+	//
+	//    Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Input, int NCELLS, the number of cells.
+	//
+	//    Output, int NEDGESONCELL[NCELLS];
+	//
+	NcVar *var_id;
+	//
+	//  Open the file.
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//
+	//  Get the variable values.
+	//
+#ifdef _DEBUG
+	cout << "   Reading edgesOnCell" << endl;
+#endif
+	var_id = ncid.get_var ( "nEdgesOnCell" );
+	(*var_id).get ( &nedgesoncell[0], ncells );
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return;
+}/*}}}*/
+//****************************************************************************80
 void netcdf_mpas_read_cellsoncell ( string filename, int ncells, int maxedges, int cellsoncell[] ){/*{{{*/
 	//****************************************************************************80
 	//
@@ -1063,13 +1364,13 @@ void netcdf_mpas_read_mesh_density ( string filename, int ncells, double mesh_de
 	return;
 }/*}}}*/
 //****************************************************************************80
-void netcdf_mpas_read_cellmask ( string filename, int ncells, int cellmask[] ){/*{{{*/
+void netcdf_mpas_read_cullcell ( string filename, int ncells, int cullcell[] ){/*{{{*/
 
 	//****************************************************************************80
 	//
 	//  Purpose:
 	//
-	//    NETCDF_MPAS_READ_MESH_CELLMASK reads cellMask
+	//    NETCDF_MPAS_READ_MESH_CULLCELL reads cullCell
 	//
 	//  Licensing:
 	//
@@ -1095,7 +1396,7 @@ void netcdf_mpas_read_cellmask ( string filename, int ncells, int cellmask[] ){/
 	//
 	//    Input, int NCELLS, the number of nodes.
 	//
-	//    Output, int cellmask[NCELLS] a mask on cells, 1 if the cell is kept, 0 if it's removed.
+	//    Output, int cullcell[NCELLS] a mask on cells, 1 if the cell is kept, 0 if it's removed.
 	//
 	NcVar *var_id;
 	//
@@ -1111,15 +1412,15 @@ void netcdf_mpas_read_cellmask ( string filename, int ncells, int cellmask[] ){/
 	//  Get the variable values.
 	//
 #ifdef _DEBUG
-	cout << "   Reading cellMask" << endl;
+	cout << "   Reading cullCell" << endl;
 #endif
-	var_id = ncid.get_var ( "cellMask" );
+	var_id = ncid.get_var ( "cullCell" );
 	if(var_id == NULL){
 		for(int i = 0; i < ncells; i++){
-			cellmask[i] = 1;
+			cullcell[i] = 0;
 		}
 	} else {
-		(*var_id).get ( &cellmask[0], ncells );
+		(*var_id).get ( &cullcell[0], ncells );
 	}
 	//
 	//  Close the file.
@@ -2049,6 +2350,64 @@ void netcdf_mpas_read_edgesonedge ( string filename, int nedges, int maxedges2, 
 #endif
 	var_id = ncid.get_var ( "edgesOnEdge" );
 	(*var_id).get ( &edgesonedge[0], nedges, maxedges2 );
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return;
+}/*}}}*/
+//****************************************************************************80
+void netcdf_mpas_read_nedgesonedge ( string filename, int nedges, int nedgesonedge[] ){/*{{{*/
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_NEDGESONEDGE gets the nEdgesOnEdge information.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    06/09/2014
+	//
+	//  Author:
+	//
+	//    Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Input, int NEDGES, the number of edges.
+	//
+	//    Output, int NEDGESONEDGE[NEDGES], the number of edges on each edge.
+	//
+	NcVar *var_id;
+	//
+	//  Open the file.
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//
+	//  Get the variable values.
+	//
+#ifdef _DEBUG
+	cout << "   Reading nEdgesOnEdge" << endl;
+#endif
+	var_id = ncid.get_var ( "nEdgesOnEdge" );
+	(*var_id).get ( &nedgesonedge[0], nedges );
 	//
 	//  Close the file.
 	//

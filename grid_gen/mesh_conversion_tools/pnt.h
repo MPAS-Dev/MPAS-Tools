@@ -148,13 +148,13 @@ class pnt {/*{{{*/
 
 			dist_vec = (*this) - p;
 
-			if(fabs(dist_vec.x) > xRef * 0.5){
+			if(fabs(dist_vec.x) > xRef * 0.6){
 #ifdef _DEBUG
 				std::cout << "   Fixing x periodicity " << endl;
 #endif
 				(*this).x += -(dist_vec.x/fabs(dist_vec.x)) * xRef;
 			}
-			if(fabs(dist_vec.y) > yRef * 0.5){
+			if(fabs(dist_vec.y) > yRef * 0.6){
 #ifdef _DEBUG
 				std::cout << "   Fixing y periodicity " << endl;
 #endif
@@ -200,16 +200,12 @@ class pnt {/*{{{*/
 		double getLon() const {/*{{{*/
 			double lon;
 
-			lon = atan2(y,x);
+			lon = atan2(y, x);
 
-			if(lon < -M_PI){
-				lon = lon + M_2_PI;
-			} else if (lon > M_PI) {
-				lon = lon - M_2_PI;
+			if(lon < 0.0) {
+				lon = 2.0*M_PI + lon;
 			}
-
-			return lon+M_PI;
-
+			return lon;
 		}/*}}}*/
 		double sphereDistance(const pnt &p) const {/*{{{*/
 			double arg;

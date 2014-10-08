@@ -16,14 +16,15 @@
 #include "edge.h"
 
 #define MESH_SPEC 1.0
-#define ID_LEN 40
+#define ID_LEN 10
 
 using namespace std;
 //using namespace tr1;
 
 int nCells, nVertices, vertex_degree;
 int maxEdges;
-bool spherical;
+bool spherical, periodic;
+double sphereRadius, xOffset, yOffset;
 double xCellRange[2];
 double yCellRange[2];
 double zCellRange[2];
@@ -42,6 +43,7 @@ string in_parent_id = "";
 vector<pnt> cells;
 vector<pnt> edges;
 vector<pnt> vertices;
+vector<int> completeCellMask;
 vector< vector<int> > nEdgesOnCell;
 vector< vector<int> > cellsOnEdge;
 vector< vector<int> > verticesOnEdge;
@@ -79,6 +81,7 @@ struct int_hasher {/*{{{*/
 int readGridInput(const string inputFilename);
 int buildUnorderedCellConnectivity();
 int firstOrderingVerticesOnCell();
+int buildCompleteCellMask();
 int buildEdges();
 int orderVertexArrays();
 int orderCellArrays();
@@ -98,13 +101,14 @@ int outputCellParameters(const string outputFilename);
 int outputVertexParameters(const string outputFilename);
 int outputEdgeParameters(const string outputFilename);
 int outputMeshDensity(const string outputFilename);
+int writeGraphFile(const string outputFilename);
 /*}}}*/
 
 string gen_random(const int len);
 
 int main ( int argc, char *argv[] ) {
 	int error;
-	string out_name = "output.nc";
+	string out_name = "mesh.nc";
 	string in_name = "grid.nc";
 
 	cout << endl << endl;
@@ -140,7 +144,7 @@ int main ( int argc, char *argv[] ) {
 
 		cout << "\n";
 		cout << "MPAS_MESH_CONVERTER:\n";
-		cout << "  Output name not specified. Using default of output.nc\n";
+		cout << "  Output name not specified. Using default of mesh.nc\n";
 	}
 	else if (argc == 3)
 	{
@@ -168,8 +172,11 @@ int main ( int argc, char *argv[] ) {
 	error = firstOrderingVerticesOnCell();
 	if(error) return 1;
 
-	cout << "Build and order edges," << endl;
-	cout << "   dvEdge, and dcEdge." << endl;
+	cout << "Build complete cell mask." << endl;
+	error = buildCompleteCellMask();
+	if(error) return 1;
+
+	cout << "Build and order edges, dvEdge, and dcEdge." << endl;
 	error = buildEdges();
 	if(error) return 1;
 
@@ -244,6 +251,12 @@ int main ( int argc, char *argv[] ) {
 		cout << "Error - " << error << endl;
 		exit(error);
 	}
+
+	cout << "Write graph.info file" << endl;
+	if(error = writeGraphFile("graph.info")){
+		cout << "Error - " << error << endl;
+		exit(error);
+	}
 }
 
 /* Building/Ordering functions {{{ */
@@ -284,6 +297,10 @@ int readGridInput(const string inputFilename){/*{{{*/
 #endif
 	spherical = netcdf_mpas_read_onsphere(inputFilename);
 #ifdef _DEBUG
+	cout << "   Reading sphere_radius" << endl;
+#endif
+	sphereRadius = netcdf_mpas_read_sphereradius(inputFilename);
+#ifdef _DEBUG
 	cout << "   Reading history" << endl;
 #endif
 	in_history = netcdf_mpas_read_history(inputFilename);
@@ -296,6 +313,21 @@ int readGridInput(const string inputFilename){/*{{{*/
 	cout << "   Reading parent_id" << endl;
 #endif
 	in_parent_id = netcdf_mpas_read_parentid(inputFilename);
+
+#ifdef _DEBUG
+	cout << "   Reading is_periodic" << endl;
+#endif
+	periodic = netcdf_mpas_read_isperiodic(inputFilename);
+
+#ifdef _DEBUG
+	cout << "   Reading x_offset" << endl;
+#endif
+	xOffset = netcdf_mpas_read_xoffset(inputFilename);
+
+#ifdef _DEBUG
+	cout << "   Reading y_offset" << endl;
+#endif
+	yOffset = netcdf_mpas_read_yoffset(inputFilename);
 
 	cout << "Read dimensions:" << endl;
 	cout << "    nCells = " << nCells << endl;
@@ -387,15 +419,38 @@ int readGridInput(const string inputFilename){/*{{{*/
 	yVertexDistance = fabs(yVertexRange[1] - yVertexRange[0]);
 	zVertexDistance = fabs(zVertexRange[1] - zVertexRange[0]);
 
-	if(vertexDegree == 4){
+	if(periodic){
 		// Quads are not staggered in the y direction, so need to offset by
 		// max distance + min distance
-		xPeriodicFix = xCellRange[0] + xCellRange[1];
-		yPeriodicFix = yCellRange[0] + yCellRange[1];
-	} else {
+		if(vertexDegree == 4){
+			if(xOffset < 0.0){
+				xPeriodicFix = xCellRange[0] + xCellRange[1];
+			} else {
+				xPeriodicFix = xOffset;
+			}
+
+			if(yOffset < 0.0){
+				yPeriodicFix = yCellRange[0] + yCellRange[1];
+			} else {
+				yPeriodicFix = yOffset;
+			}
 		// Triangles can be staggered, so only offset my max distance
-		xPeriodicFix = xCellRange[1];
-		yPeriodicFix = yCellRange[1];
+		} else {
+			if(xOffset < 0.0){
+				xPeriodicFix = xCellRange[1];
+			} else {
+				xPeriodicFix = xOffset;
+			}
+
+			if(yOffset < 0.0){
+				yPeriodicFix = yCellRange[1];
+			} else {
+				yPeriodicFix = yOffset;
+			}
+		}
+	} else {
+		xPeriodicFix = 1.0e5 * abs(xCellRange[1] + xCellRange[0]);
+		yPeriodicFix = 1.0e5 * abs(yCellRange[1] + yCellRange[0]);
 	}
 
 #ifdef _DEBUG
@@ -405,6 +460,10 @@ int readGridInput(const string inputFilename){/*{{{*/
 	cout << "vertex Maxes: " << xVertexRange[1] << " " << yVertexRange[1] << " " << zVertexRange[1] << endl;
 	cout << "cell Distances: " << xCellDistance << " " << yCellDistance << " " << zCellDistance << endl;
 	cout << "vertex Distances: " << xVertexDistance << " " << yVertexDistance << " " << zVertexDistance << endl;
+	cout << "xPeriodicFix: " << xPeriodicFix << endl;
+	cout << "yPeriodicFix: " << yPeriodicFix << endl;
+	cout << "xOffset: " << xOffset << endl;
+	cout << "yOffset: " << yOffset << endl;
 #endif
 
 	if(!spherical && (zCellDistance > 0.0 || zVertexDistance > 0.0)){
@@ -417,11 +476,12 @@ int readGridInput(const string inputFilename){/*{{{*/
 	return 0;
 }/*}}}*/
 int buildUnorderedCellConnectivity(){/*{{{*/
-	// buildVerticesOnCell should assume that cellsOnVertex hasn't been ordered properly yet.
-	//    It should compute the inverse of cellsOnVertex (verticesOnCell) and order the vertices CCW around the cell.
+	// buildUnorderedCellConnectivity should assume that cellsOnVertex hasn't been ordered properly yet.
+	//    It should compute the inverse of cellsOnVertex (verticesOnCell) unordered.
+	//    It will also compute an unordered cellsOnCell that can be considered invalid for actual use (e.g. quad grids).
 	//    This ordering should happen regardless of it the mesh is planar or spherical.
 	
-	int iVertex, iCell, j;
+	int iVertex, iCell, newCell, j, k, l, m, matches;
 	bool add;
 
 #ifdef _DEBUG
@@ -444,6 +504,54 @@ int buildUnorderedCellConnectivity(){/*{{{*/
 
 				if(add) {
 					verticesOnCell.at(iCell).push_back(iVertex);
+				}
+			}
+		}
+	}
+
+
+	cellsOnCell.clear();
+	cellsOnCell.resize(cells.size());
+	for(iCell = 0; iCell < cells.size(); iCell++){
+		for(j = 0; j < verticesOnCell.at(iCell).size(); j++){
+			iVertex = verticesOnCell.at(iCell).at(j);
+			for(k = 0; k < cellsOnVertex.at(iVertex).size(); k++){
+				newCell = cellsOnVertex.at(iVertex).at(k);
+
+				if(newCell != iCell){
+					add = true;
+					for(l = 0; l < cellsOnCell.at(iCell).size(); l++){
+						if(cellsOnCell.at(iCell).at(l) == newCell){
+							add = false;
+						}
+					}
+
+					if(add) {
+						if(newCell != -1){
+							matches = 0;
+							for(l = 0; l < verticesOnCell.at(iCell).size(); l++){
+								for(m = 0; m < verticesOnCell.at(newCell).size(); m++){
+									if(verticesOnCell.at(iCell).at(l) == verticesOnCell.at(newCell).at(m)){
+										matches++;
+									}
+								}
+							}
+
+							if(matches == 2){
+								cellsOnCell.at(iCell).push_back(newCell);
+#ifdef _DEBUG
+								cout << "   Found two shared vertices for cell edge. Adding cell." << endl;
+#endif
+							} else {
+#ifdef _DEBUG
+								cout << "   Only found " << matches << " shared vertices for cell edge. Not adding cell." << endl;
+#endif
+
+							}
+						} else {
+							cellsOnCell.at(iCell).push_back(newCell);
+						}
+					}
 				}
 			}
 		}
@@ -477,7 +585,8 @@ int firstOrderingVerticesOnCell(){/*{{{*/
 
 	for(iCell = 0; iCell < cells.size(); iCell++){
 #ifdef _DEBUG
-		cout << "new cell:" << endl;
+		cout << "new cell: " << iCell << endl;
+		cout << "    " << cells.at(iCell) << endl;
 #endif
 		if(spherical){
 			normal = cells.at(iCell);
@@ -576,8 +685,182 @@ int firstOrderingVerticesOnCell(){/*{{{*/
 			cout << endl;
 #endif
 		}
+
+#ifdef _DEBUG
+		cout << "  Sorted verticesOnCell: ";
+		for(j = 0; j < verticesOnCell.at(iCell).size(); j++){
+			cout << verticesOnCell.at(iCell).at(j) << " ";
+		}
+		cout << endl;
+		for(j = 0; j < verticesOnCell.at(iCell).size(); j++){
+			cout << "  cellsOnVertex " << verticesOnCell.at(iCell).at(j) << ": ";
+			for(k = 0; k < cellsOnVertex.at(verticesOnCell.at(iCell).at(j)).size(); k++){
+				cout <<  cellsOnVertex.at(verticesOnCell.at(iCell).at(j)).at(k) << " ";
+			}
+			cout << endl;
+		}
+#endif
 	}
-	
+
+	return 0;
+}/*}}}*/
+int buildCompleteCellMask(){/*{{{*/
+	/*
+	 * The buildCompleteCellMask function parses an ordered 
+	 * verticesOnCell field to determine if a cell is complete. It takes each
+	 * vertex-vertex pair (from verticesOnCell) and determines the angle
+	 * between them. If only one vertex is shared, the "edge" is skipped.
+	 *
+	 * These angles are summed up around each cell. If the total
+	 * angle is close to 2.0*Pi then the cell is marked as complete. Otherwise
+	 * it is marked as incomplete.
+	 *
+	 * The complete check is used when building edges. If an edge only has one
+	 * vertex, but is connected to two complete cells, the edge is not added to
+	 * the set. This resolves an issue related to quad grids, where a possible
+	 * edge connects two cells across a vertex (where the edge mid point would
+	 * be the vertex location). Using this check removes these edges from the
+	 * possible set of edges.
+	 *
+	 */
+	int iCell, iCell2, vertex1, vertex2;
+	int j, k, l;
+	pnt vert_loc1, vert_loc2;
+	pnt vec1, vec2;
+	pnt cross, normal;
+	double angle, angle_sum, dot;
+	bool complete;
+
+	completeCellMask.clear();
+	completeCellMask.resize(cells.size());
+
+	if(!spherical) {
+		normal = pnt(0.0, 0.0, 1.0);
+	}
+
+	// Iterate over all cells
+	for(iCell = 0; iCell < cells.size(); iCell++){
+		complete = false;
+		angle_sum = 0.0;
+
+		if(spherical){
+			normal = cells.at(iCell);
+		}
+
+#ifdef _DEBUG
+		cout << "  Checking " << iCell << " for completeness" << endl;
+		cout << "           " << cells.at(iCell) << endl;
+#endif
+
+		// Since verticesOnEdge is ordered already, compute angles between
+		// neighboring vertex/vertex pairs if they are both valid vertices. Sum
+		// the angles, and if the angles are close to 2.0 * Pi then the cell is
+		// "complete"
+		if(verticesOnCell.at(iCell).size() >= cellsOnCell.at(iCell).size()){
+			for(j = 0; j < verticesOnCell.at(iCell).size()-1; j++){
+				vertex1 = verticesOnCell.at(iCell).at(j);
+				vertex2 = verticesOnCell.at(iCell).at(j+1);
+
+				if(vertex1 != -1 && vertex2 != -1){
+					vert_loc1 = vertices.at(vertex1);
+					vert_loc2 = vertices.at(vertex2);
+
+					if(!spherical){
+						vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+						vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+					}
+
+					vec1 = vert_loc1 - cells.at(iCell);
+					vec2 = vert_loc2 - cells.at(iCell);
+
+					cross = vec1.cross(vec2);
+					dot = cross.dot(normal);
+
+#ifdef _DEBUG
+					cout << "         vec1 : " << vec1 << endl;
+					cout << "         vec2 : " << vec2 << endl;
+					cout << "        cross : " << cross << endl;
+					cout << "          dot : " << dot << endl;
+#endif
+
+					if(dot > 0){
+
+						angle = acos( vec2.dot(vec1) / (vec1.magnitude() * vec2.magnitude()));
+						angle_sum += angle;
+
+#ifdef _DEBUG
+						cout << "        adding angle (rad) : " << angle << endl;
+						cout << "        adding angle (deg) : " << angle * 180.0 / M_PI << endl;
+						cout << "        new sum : " << angle_sum << endl;
+#endif
+					} else {
+						cout << "     complete check has non CCW edge..." << endl;
+					}
+				}
+			}
+
+			vertex1 = verticesOnCell.at(iCell).at(verticesOnCell.at(iCell).size() - 1);
+			vertex2 = verticesOnCell.at(iCell).at(0);
+
+			if(vertex1 != -1 && vertex2 != -1){
+				vert_loc1 = vertices.at(vertex1);
+				vert_loc2 = vertices.at(vertex2);
+
+				if(!spherical){
+					vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+					vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+				}
+
+				vec1 = vert_loc1 - cells.at(iCell);
+				vec2 = vert_loc2 - cells.at(iCell);
+
+				cross = vec1.cross(vec2);
+				dot = cross.dot(normal);
+
+#ifdef _DEBUG
+				cout << "         vec1 : " << vec1 << endl;
+				cout << "         vec2 : " << vec2 << endl;
+				cout << "        cross : " << cross << endl;
+				cout << "          dot : " << dot << endl;
+#endif
+
+				if(dot > 0) {
+
+					angle = acos( vec2.dot(vec1) / (vec1.magnitude() * vec2.magnitude()));
+					angle_sum += angle;
+
+#ifdef _DEBUG
+					cout << "        adding angle (rad) : " << angle << endl;
+					cout << "        adding angle (deg) : " << angle * 180.0 / M_PI << endl;
+					cout << "        new sum : " << angle_sum << endl;
+#endif
+				} else {
+					cout << "     complete check has non CCW edge..." << endl;
+				}
+			}
+		}
+
+		if(angle_sum > 2.0 * M_PI * 0.98){
+			complete = true;
+		}
+
+#ifdef _DEBUG
+		cout << "   Vertices on cell: " << verticesOnCell.at(iCell).size();
+		cout << "   Cells on cell: " << cellsOnCell.at(iCell).size();
+		if(complete){
+			cout << "   Is complete!" << endl;
+		} else {
+			cout << "   Is not complete!" << endl;
+		}
+#endif
+
+		if(complete){
+			completeCellMask.at(iCell) = 1;
+		} else {
+			completeCellMask.at(iCell) = 0;
+		}
+	}
+
 	return 0;
 }/*}}}*/
 int buildEdges(){/*{{{*/
@@ -615,8 +898,7 @@ int buildEdges(){/*{{{*/
 	double vert1_x_movement, vert1_y_movement;
 	double vert2_x_movement, vert2_y_movement;
 	double temp, dot;
-	bool vert1_periodic, vert2_periodic;
-	bool fixed_edge;
+	bool fixed_edge, add_edge;
 
 #ifdef _DEBUG
 	cout << endl << endl << "Begin function: buildEdges" << endl << endl;
@@ -626,71 +908,221 @@ int buildEdges(){/*{{{*/
 
 	land = 0;
 
+	// Build all edges
 	for(iCell = 0; iCell < cells.size(); iCell++){
-		vertex1 = verticesOnCell.at(iCell).at(verticesOnCell.at(iCell).size()-1);
-		vertex2 = verticesOnCell.at(iCell).at(0);
-		cell1 = iCell;
-		cell2 = -1;
+		if(completeCellMask.at(iCell) == 1) {
+			// Build edges from every vertex/vertex pair around a cell if the cell is complete
+			for(l = 0; l < verticesOnCell.at(iCell).size()-1; l++){
+				vertex1 = verticesOnCell.at(iCell).at(l);	
+				vertex2 = verticesOnCell.at(iCell).at(l+1);	
 
-		// Find matching cells for vertex pair.
-		for(k = 0; k < cellsOnVertex.at(vertex1).size(); k++){
-			if(cellsOnVertex.at(vertex1).at(k) != iCell){
-				for(l = 0; l < cellsOnVertex.at(vertex2).size(); l++){
-					if(cellsOnVertex.at(vertex1).at(k) >= 0){
-						if(cellsOnVertex.at(vertex1).at(k) == cellsOnVertex.at(vertex2).at(l)){
-							if(cell2 == -1){
-								cell2 = cellsOnVertex.at(vertex1).at(k);
+				// Find cell shaerd by vertices, that's not iCell
+				cell1 = iCell;
+				cell2 = -1;
+				for(j = 0; j < cellsOnVertex.at(vertex1).size(); j++){
+					if(cellsOnVertex.at(vertex1).at(j) != -1 && cellsOnVertex.at(vertex1).at(j) != iCell){
+						for(k = 0; k < cellsOnVertex.at(vertex2).size(); k++){
+							if(cellsOnVertex.at(vertex1).at(j) == cellsOnVertex.at(vertex2).at(k)){
+								cell2 = cellsOnVertex.at(vertex1).at(j);
 							}
 						}
 					}
 				}
+
+				add_edge = true;
+
+#ifdef _DEBUG
+				cout << "1 Starting edge: " << endl;
+				cout << "      vertex 1 : " << vertex1 << endl;
+				cout << "      vertex 2 : " << vertex2 << endl;
+				cout << "      cell 1 : " << cell1 << endl;
+				cout << "      cell 2 : " << cell2 << endl;
+#endif
+
+				if(vertex1 != -1 && vertex2 != -1){
+					new_edge.vertex1 = min(vertex1, vertex2);
+					new_edge.vertex2 = max(vertex1, vertex2);
+
+					if(cell2 != -1){
+						new_edge.cell1 = min(cell1, cell2);
+						new_edge.cell2 = max(cell1, cell2);
+					} else {
+						new_edge.cell1 = cell1;
+						new_edge.cell2 = cell2;
+					}
+
+				} else {
+					add_edge = false;
+				}
+
+				if(add_edge){
+#ifdef _DEBUG
+					cout << " Adding edge" << endl;
+#endif
+					out_pair = edge_idx_hash.insert(new_edge);
+
+#ifdef _DEBUG
+					if(out_pair.second == false){
+						cout << " Failed to add edge." << endl;
+					}
+#endif
+				} else {
+#ifdef _DEBUG
+					cout << " Not adding edge" << endl;
+#endif
+				}
+
 			}
-		}
-		
-		new_edge.vertex1 = min(vertex1, vertex2);
-		new_edge.vertex2 = max(vertex1, vertex2);
-		if(cell2 == -1){
-			new_edge.cell1 = cell1;
-			new_edge.cell2 = -1;
-		} else {
-			new_edge.cell1 = min(cell1, cell2);
-			new_edge.cell2 = max(cell1, cell2);
-		}
 
-		out_pair = edge_idx_hash.insert(new_edge);
+			vertex1 = verticesOnCell.at(iCell).at(verticesOnCell.at(iCell).size() - 1);
+			vertex2 = verticesOnCell.at(iCell).at(0);
 
-		for(j = 1; j < verticesOnCell.at(iCell).size(); j++){
-			vertex1 = verticesOnCell.at(iCell).at(j-1);
-			vertex2 = verticesOnCell.at(iCell).at(j);
+			// Find cell shaerd by vertices, that's not iCell
 			cell1 = iCell;
 			cell2 = -1;
+			for(j = 0; j < cellsOnVertex.at(vertex1).size(); j++){
+				if(cellsOnVertex.at(vertex1).at(j) != -1 && cellsOnVertex.at(vertex1).at(j) != iCell){
+					for(k = 0; k < cellsOnVertex.at(vertex2).size(); k++){
+						if(cellsOnVertex.at(vertex1).at(j) == cellsOnVertex.at(vertex2).at(k)){
+							cell2 = cellsOnVertex.at(vertex1).at(j);
+						}
+					}
+				}
+			}
 
-			// Find matching cells for vertex pair.
-			for(k = 0; k < cellsOnVertex.at(vertex1).size(); k++){
-				if(cellsOnVertex.at(vertex1).at(k) != iCell){
-					for(l = 0; l < cellsOnVertex.at(vertex2).size(); l++){
-						if(cellsOnVertex.at(vertex1).at(k) >= 0){
-							if(cellsOnVertex.at(vertex1).at(k) == cellsOnVertex.at(vertex2).at(l)){
-								if(cell2 == -1){
-									cell2 = cellsOnVertex.at(vertex1).at(k);
+			add_edge = true;
+
+#ifdef _DEBUG
+			cout << "  Starting edge: " << endl;
+			cout << "      vertex 1 : " << vertex1 << endl;
+			cout << "      vertex 2 : " << vertex2 << endl;
+			cout << "      cell 1 : " << cell1 << endl;
+			cout << "      cell 2 : " << cell2 << endl;
+#endif
+
+			if(vertex1 != -1 && vertex2 != -1){
+				new_edge.vertex1 = min(vertex1, vertex2);
+				new_edge.vertex2 = max(vertex1, vertex2);
+
+				if(cell2 != -1){
+					new_edge.cell1 = min(cell1, cell2);
+					new_edge.cell2 = max(cell1, cell2);
+				} else {
+					new_edge.cell1 = cell1;
+					new_edge.cell2 = cell2;
+				}
+
+			} else {
+				add_edge = false;
+			}
+
+			if(add_edge){
+#ifdef _DEBUG
+				cout << " Adding edge" << endl;
+#endif
+				out_pair = edge_idx_hash.insert(new_edge);
+#ifdef _DEBUG
+				if(out_pair.second == false){
+					cout << " Failed to add edge." << endl;
+				}
+#endif
+			} else {
+#ifdef _DEBUG
+				cout << " Not adding edge" << endl;
+#endif
+			}
+
+		} else {
+			// Build edges from every cell/cell pair only if cell is not complete
+			for(l = 0; l < cellsOnCell.at(iCell).size(); l++){
+				cell1 = iCell;
+				cell2 = cellsOnCell.at(iCell).at(l);
+
+				// Find vertex pair for cell pair
+				vertex1 = -1;
+				vertex2 = -1;
+
+				for(j = 0; j < verticesOnCell.at(cell1).size(); j++){
+					if(cell2 != -1){
+						for(k = 0; k < verticesOnCell.at(cell2).size(); k++){
+							if(verticesOnCell.at(cell1).at(j) == verticesOnCell.at(cell2).at(k)) {
+								if(vertex1 == -1){
+									vertex1 = verticesOnCell.at(cell1).at(j);	
+								} else if(vertex2 == -1) {
+									vertex2 = verticesOnCell.at(cell1).at(j);
+								} else {
+									cout << " Found more than 2 vertices for edge? " << endl;
 								}
 							}
 						}
 					}
 				}
-			}
 
-			new_edge.vertex1 = min(vertex1, vertex2);
-			new_edge.vertex2 = max(vertex1, vertex2);
-			if(cell2 == -1){
-				new_edge.cell1 = cell1;
-				new_edge.cell2 = -1;
-			} else {
-				new_edge.cell1 = min(cell1, cell2);
-				new_edge.cell2 = max(cell1, cell2);
-			}
+				if(vertex2 == -1) {
+					new_edge.vertex1 = vertex1;
+					new_edge.vertex2 = vertex2;
+				} else {
+					new_edge.vertex1 = min(vertex1, vertex2);
+					new_edge.vertex2 = max(vertex1, vertex2);
+				}
 
-			out_pair = edge_idx_hash.insert(new_edge);
+#ifdef _DEBUG
+				cout << "  Starting edge: " << endl;
+				cout << "      vertex 1 : " << vertex1 << endl;
+				cout << "      vertex 2 : " << vertex2 << endl;
+				cout << "      cell 1 : " << cell1 << endl;
+				cout << "      cell 2 : " << cell2 << endl;
+
+				if(new_edge.vertex1 == -1){
+					cout << "  Edge is missing vertex 1" << endl;
+				} else if(new_edge.vertex2 == -1){
+					cout << "  Edge is missing vertex 2" << endl;
+				}
+#endif
+
+				if(cell2 == -1){
+					new_edge.cell1 = cell1;
+					new_edge.cell2 = -1;
+				} else {
+					new_edge.cell1 = min(cell1, cell2);
+					new_edge.cell2 = max(cell1, cell2);
+				}
+				add_edge = true;
+
+				if(new_edge.vertex1 == -1 || new_edge.vertex2 == -1){
+					if(new_edge.cell1 == -1 || new_edge.cell2 == -1){
+						add_edge = false;
+					}
+
+#ifdef _DEBUG
+					cout << "   Cell 1 complete: " << completeCellMask.at(new_edge.cell1) << endl;
+					if(new_edge.cell2 != -1) {
+						cout << "   Cell 2 complete: " << completeCellMask.at(new_edge.cell2) << endl;
+					}
+#endif
+
+					if(completeCellMask.at(new_edge.cell1) != 0 || (new_edge.cell2 != -1 && completeCellMask.at(new_edge.cell2) != 0) ){
+						add_edge = false;
+					}
+				}
+
+
+				if(add_edge){
+#ifdef _DEBUG
+					cout << " Adding edge" << endl;
+#endif
+					out_pair = edge_idx_hash.insert(new_edge);
+#ifdef _DEBUG
+					if(out_pair.second == false){
+						cout << " Failed to add edge." << endl;
+					}
+#endif
+				} else {
+#ifdef _DEBUG
+					cout << " Not adding edge" << endl;
+#endif
+				}
+			}
 		}
 	}
 
@@ -722,7 +1154,12 @@ int buildEdges(){/*{{{*/
 
 		cell_loc1 = cells.at(cell1);
 		vert_loc1 = vertices.at(vertex1);
-		vert_loc2 = vertices.at(vertex2);
+		if(vertex2 != -1) {
+			vert_loc2 = vertices.at(vertex2);
+		} else {
+			vert_loc2 = vert_loc1;
+		}
+
 		if(spherical){
 			normal = cells.at(cell1);
 		} else {
@@ -731,45 +1168,56 @@ int buildEdges(){/*{{{*/
 			// So, they are exactly the mid point between vertices.
 			// Since the edge will be "owned" by whatever processor owns cell1, make sure edge is close to cell1.
 			// So, fix periodicity relative to cell1.
-
-#ifdef _DEBUG
-			cout << "   Fixing periodicity of vertex 1" << endl;
-#endif
 			vert_loc1.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
-
-#ifdef _DEBUG
-			cout << "   Fixing periodicity of vertex 2" << endl;
-#endif
-			vert_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
 		}
 
 		if(cell2 != -1){
 			cell_loc2 = cells.at(cell2);
+			if(vertex2 != -1){
+				vert_loc2 = vertices.at(vertex2);
 
-			if(!spherical) {
-#ifdef _DEBUG
-				cout << "   Fixing periodicity of cell 2" << endl;
-#endif
-				cell_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
-				edge_loc = planarIntersect(cell_loc1, cell_loc2, vert_loc1, vert_loc2);
-				dvEdge.at(iEdge) = (vert_loc2 - vert_loc1).magnitude();
-				dcEdge.at(iEdge) = (cell_loc2 - cell_loc1).magnitude();
-			} else { // If spherical
-				edge_loc = gcIntersect(cell_loc1, cell_loc2, vert_loc1, vert_loc2);
-				dvEdge.at(iEdge) = vert_loc2.sphereDistance(vert_loc1);
-				dcEdge.at(iEdge) = cell_loc2.sphereDistance(cell_loc1);
+				if(!spherical) {
+					cell_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
+					vert_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
+					edge_loc = planarIntersect(cell_loc1, cell_loc2, vert_loc1, vert_loc2);
+					dvEdge.at(iEdge) = (vert_loc2 - vert_loc1).magnitude();
+					dcEdge.at(iEdge) = (cell_loc2 - cell_loc1).magnitude();
+				} else { // If spherical
+					edge_loc = gcIntersect(cell_loc1, cell_loc2, vert_loc1, vert_loc2);
+					dvEdge.at(iEdge) = vert_loc2.sphereDistance(vert_loc1);
+					dcEdge.at(iEdge) = cell_loc2.sphereDistance(cell_loc1);
+				}
+			} else {
+				edge_loc = (cell_loc1 + cell_loc2) * 0.5;
+				vert_loc2 = edge_loc;
+				if(!spherical){
+					dcEdge.at(iEdge) = (cell_loc2 - cell_loc1).magnitude();
+					dvEdge.at(iEdge) = dcEdge.at(iEdge) / sqrt(3.0);
+				} else {
+					dcEdge.at(iEdge) = cell_loc2.sphereDistance(cell_loc1);
+					dvEdge.at(iEdge) = dcEdge.at(iEdge) / sqrt(3.0);
+				}
 			}
 		} else {
-			edge_loc = (vert_loc1 + vert_loc2) * 0.5;
-			cell_loc2 = edge_loc;
-			if(!spherical){
-				// Set dv and dc Edge values on plane
-				dvEdge.at(iEdge) = (vert_loc2 - vert_loc1).magnitude();
-				dcEdge.at(iEdge) = sqrt(3.0) * dvEdge.at(iEdge);
+			if(vertex2 != -1){
+				vert_loc2 = vertices.at(vertex2);
+				if(!spherical){
+					// Set dv and dc Edge values on plane
+					vert_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
+					edge_loc = (vert_loc1 + vert_loc2) * 0.5;
+					dvEdge.at(iEdge) = (vert_loc2 - vert_loc1).magnitude();
+					dcEdge.at(iEdge) = sqrt(3.0) * dvEdge.at(iEdge);
+				} else {
+					// Set dv and dc Edge values on Sphere
+					edge_loc = (vert_loc1 + vert_loc2) * 0.5;
+					edge_loc.normalize();
+					dvEdge.at(iEdge) = vert_loc2.sphereDistance(vert_loc1);
+					dcEdge.at(iEdge) = sqrt(3.0) * dvEdge.at(iEdge);
+				}
+				cell_loc2 = edge_loc;
 			} else {
-				// Set dv and dc Edge values on Sphere
-				dvEdge.at(iEdge) = vert_loc2.sphereDistance(vert_loc1);
-				dcEdge.at(iEdge) = sqrt(3.0) * dvEdge.at(iEdge);
+				cout << " ERROR: Edge found with only 1 cell and 1 vertex...." << endl;
+				return 1;
 			}
 		}
 
@@ -789,8 +1237,13 @@ int buildEdges(){/*{{{*/
 		}
 		cout << "         v1: " << vertices.at(vertex1) << endl;
 		cout << "    mod? v1: " << vert_loc1 << endl;
-		cout << "         v2: " << vertices.at(vertex2) << endl;
-		cout << "    mod? v2: " << vert_loc2 << endl;
+		if(vertex2 != -1) {
+			cout << "         v2: " << vertices.at(vertex2) << endl;
+			cout << "    mod? v2: " << vert_loc2 << endl;
+		} else {
+			cout << "         v2: land" << endl;
+			cout << "    mod? v2: " << vert_loc2 << endl;
+		}
 #endif
 
 		u_vec = cell_loc2 - cell_loc1;
@@ -800,12 +1253,21 @@ int buildEdges(){/*{{{*/
 		dot = cross.dot(normal);
 
 		if(dot < 0){
+			if(vertex2 != -1){
 #ifdef _DEBUG
-			cout << "   swapping vertex " << vertex1 << " and " << vertex2 << endl;
+				cout << "   swapping vertex " << vertex1 << " and " << vertex2 << endl;
 #endif
-			swp = vertex2;
-			vertex2 = vertex1;
-			vertex1 = swp;
+				swp = vertex2;
+				vertex2 = vertex1;
+				vertex1 = swp;
+			} else {
+#ifdef _DEBUG
+				cout << "   swapping cell " << cell1 << " and " << cell2 << endl;
+#endif
+				swp = cell2;
+				cell2 = cell1;
+				cell1 = swp;
+			}
 		}
 
 		edges.push_back(edge_loc);
@@ -854,8 +1316,13 @@ int orderVertexArrays(){/*{{{*/
 		vertex1 = verticesOnEdge.at(iEdge).at(0);
 		vertex2 = verticesOnEdge.at(iEdge).at(1);
 
-		edgesOnVertex.at(vertex1).push_back(iEdge);
-		edgesOnVertex.at(vertex2).push_back(iEdge);
+		if(vertex1 != -1) {
+			edgesOnVertex.at(vertex1).push_back(iEdge);
+		} 
+
+		if(vertex2 != -1){
+			edgesOnVertex.at(vertex2).push_back(iEdge);
+		}
 	}/*}}}*/
 
 	if(!spherical){
@@ -919,7 +1386,18 @@ int orderVertexArrays(){/*{{{*/
 			}
 		}
 
+#ifdef _DEBUG
+		cout << "edgesOnVertex("<< iVertex <<"): ";
+		for(j = 0; j < edgesOnVertex.at(iVertex).size(); j++){
+			cout << edgesOnVertex.at(iVertex).at(j) << " ";
+		}
+		cout << endl;
+#endif
+
 		cellsOnVertex.at(iVertex).clear();
+#ifdef _DEBUG
+		cout << "CellsOnVertex("<< iVertex << "): ";
+#endif
 
 		// Using the ordered edges. Buld cellsOnVertex in the correct order.
 		for(j = 0; j < edgesOnVertex.at(iVertex).size(); j++){
@@ -930,11 +1408,20 @@ int orderVertexArrays(){/*{{{*/
 			if(iVertex == verticesOnEdge.at(edge1).at(0)){
 				cell1 = cellsOnEdge.at(edge1).at(0);
 				cellsOnVertex.at(iVertex).push_back( cellsOnEdge.at(edge1).at(0) );
+#ifdef _DEBUG
+				cout << cellsOnEdge.at(edge1).at(0) << " ";
+#endif
 			} else {
 				cell1 = cellsOnEdge.at(edge1).at(1);
 				cellsOnVertex.at(iVertex).push_back( cellsOnEdge.at(edge1).at(1) );
+#ifdef _DEBUG
+				cout << cellsOnEdge.at(edge1).at(1) << " ";
+#endif
 			}
 		}
+#ifdef _DEBUG
+		cout << endl << endl;
+#endif
 	}/*}}}*/
 
 	return 0;
@@ -946,15 +1433,16 @@ int orderCellArrays(){/*{{{*/
 	 */
 	int iCell, iVertex, iEdge, iEdge2, add_cell;	
 	int cell1, cell2, vertex1, vertex2, prev_vertex;
-	int edge_idx;
+	int edge_idx, loc_edge_idx;
 	int i, j, k, swp_idx;
 	pnt normal, cross;
 	pnt vec1, vec2;
 	pnt vert_loc, edge_loc, cell_loc;
+	pnt edge_loc1, edge_loc2;
 	pnt next_edge_loc;
 	double swp;
 	double dot, mag1, mag2, angle, min_angle;
-	bool found;
+	bool found, bad_vertices;
 
 #ifdef _DEBUG
 	cout << endl << endl << "Begin function: orderCellArrays" << endl << endl;
@@ -994,7 +1482,104 @@ int orderCellArrays(){/*{{{*/
 			normal = cells.at(iCell);
 		}
 
+#ifdef _DEBUG
+		cout << endl;
+		cout << "   Starting edgesOnCell: ";
+		for(i = 0; i < edgesOnCell.at(iCell).size(); i++){
+			cout << edgesOnCell.at(iCell).at(i) << " ";
+		}
+		cout << endl;
+#endif
 
+		// /*
+		// Determine starting edge. It should either be the first edge in the set, 
+		// or the only edge such that all other edges are CCW from it.
+		edge_idx = edgesOnCell.at(iCell).at(0);
+		loc_edge_idx = 0;
+#ifdef _DEBUG
+				cout << "Finding starting edge for cell " << iCell << endl;
+#endif
+		for(j = 0; j < edgesOnCell.at(iCell).size(); j++){
+			iEdge = edgesOnCell.at(iCell).at(j);
+			vertex1 = verticesOnEdge.at(iEdge).at(0);
+			vertex2 = verticesOnEdge.at(iEdge).at(1);
+
+			if(vertex2 == -1){
+#ifdef _DEBUG
+				cout << "   Start edge: " << iEdge << endl;
+				cout << "               " << edges.at(iEdge) << endl;
+				cout << "           v1: " << vertex1 << endl;
+				cout << "           v2: " << vertex2 << endl;
+#endif
+				edge_loc1 = edges.at(iEdge);
+				edge_loc1 = vertices.at(vertex1);
+				if(!spherical){
+					edge_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+				}
+
+				vec1 = edge_loc1 - cells.at(iCell);
+				mag1 = vec1.magnitude();
+
+				// If edge only has one vertex. Need to find edge that shares the vertex.
+				// This edge is kept if the neighboring edge is CCW from it.
+				for(k = 0; k < edgesOnCell.at(iCell).size(); k++){
+					if(j != k){
+						iEdge2 = edgesOnCell.at(iCell).at(k);
+#ifdef _DEBUG
+						cout << "    Test edge: " << iEdge2 << endl;
+						cout << "               " << edges.at(iEdge2) << endl;
+						cout << "           v1: " << verticesOnEdge.at(iEdge2).at(0) << endl;
+						cout << "           v2: " << verticesOnEdge.at(iEdge2).at(1) << endl;
+#endif
+
+						if(vertex1 == verticesOnEdge.at(iEdge2).at(0) || vertex1 == verticesOnEdge.at(iEdge2).at(1)){
+							// This edge is a neighboring edge. Check for CCW ordering.
+							if(vertex1 == verticesOnEdge.at(iEdge2).at(0)) {
+								vertex2 = verticesOnEdge.at(iEdge2).at(1);
+							} else {
+								vertex2 = verticesOnEdge.at(iEdge2).at(0);
+							}
+							edge_loc2 = edges.at(iEdge2);
+							edge_loc2 = vertices.at(vertex2);
+
+							if(!spherical){
+								edge_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+							}
+
+							vec2 = edge_loc2 - cells.at(iCell);
+							mag2 = vec2.magnitude();
+
+							cross = vec1.cross(vec2);
+							dot = cross.dot(normal) / (cross.magnitude() * normal.magnitude());
+
+#ifdef _DEBUG
+							cout << "     Vec1: " << vec1 << endl;
+							cout << "     Vec2: " << vec2 << endl;
+							cout << "    Cross: " << cross << endl;
+							cout << "      dot: " << dot << endl;
+#endif
+							if(dot > 0){
+#ifdef _DEBUG
+								cout << "       Found edge: " << iEdge << endl;
+#endif
+								edge_idx = iEdge;
+								loc_edge_idx = j;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Swap edge_idx with first edge.
+		if(loc_edge_idx != 0){
+#ifdef _DEBUG
+			cout << "     Swapping edges: " << edgesOnCell.at(iCell).at(loc_edge_idx) << " and " << edgesOnCell.at(iCell).at(0) << endl;
+#endif
+			edgesOnCell.at(iCell).at(loc_edge_idx) = edgesOnCell.at(iCell).at(0);
+			edgesOnCell.at(iCell).at(0) = edge_idx;
+		}
+		// */
 
 		// Order all edges in CCW relative to the first edge.
 		// Loop over all vertices except the last two as a starting vertex.
@@ -1007,7 +1592,10 @@ int orderCellArrays(){/*{{{*/
 			// Also, add vertex that is CCW relative to current edge location.
 			if(cellsOnEdge.at(iEdge).at(0) == iCell){
 				cellsOnCell.at(iCell).push_back(cellsOnEdge.at(iEdge).at(1));
-				verticesOnCell.at(iCell).push_back(verticesOnEdge.at(iEdge).at(1));
+
+				if(verticesOnEdge.at(iEdge).at(1) != -1){
+					verticesOnCell.at(iCell).push_back(verticesOnEdge.at(iEdge).at(1));
+				}
 			} else {
 				cellsOnCell.at(iCell).push_back(cellsOnEdge.at(iEdge).at(0));
 				verticesOnCell.at(iCell).push_back(verticesOnEdge.at(iEdge).at(0));
@@ -1015,9 +1603,6 @@ int orderCellArrays(){/*{{{*/
 
 
 			if(!spherical){
-#ifdef _DEBUG
-				cout << "   checking periodicity on edge 1" << endl;
-#endif
 				edge_loc.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
 			}
 
@@ -1034,9 +1619,6 @@ int orderCellArrays(){/*{{{*/
 				next_edge_loc = edges.at(iEdge2);
 
 				if(!spherical){
-#ifdef _DEBUG
-					cout << "   checking periodicity on edge 2" << endl;
-#endif
 					next_edge_loc.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
 				}
 
@@ -1060,30 +1642,6 @@ int orderCellArrays(){/*{{{*/
 				swp = edgesOnCell.at(iCell).at(j+1);
 				edgesOnCell.at(iCell).at(j+1) = edgesOnCell.at(iCell).at(swp_idx);
 				edgesOnCell.at(iCell).at(swp_idx) = swp;
-
-				/* 
-				iEdge = edgesOnCell.at(iCell).at(j+1);
-				// Add cell across edge to cellsOnCell
-				// Also, add vertex that is CCW relative to current edge location.
-				if(cellsOnEdge.at(iEdge).at(0) == iCell){
-					cellsOnCell.at(iCell).push_back(cellsOnEdge.at(iEdge).at(1));
-					verticesOnCell.at(iCell).push_back(verticesOnEdge.at(iEdge).at(1));
-				} else {
-					cellsOnCell.at(iCell).push_back(cellsOnEdge.at(iEdge).at(0));
-					verticesOnCell.at(iCell).push_back(verticesOnEdge.at(iEdge).at(0));
-				} // */
-			} else {
-				/*
-				iEdge = edgesOnCell.at(iCell).at(j+1);
-				// Add cell across edge to cellsOnCell
-				// Also, add vertex that is CCW relative to current edge location.
-				if(cellsOnEdge.at(iEdge).at(0) == iCell){
-					cellsOnCell.at(iCell).push_back(cellsOnEdge.at(iEdge).at(1));
-					verticesOnCell.at(iCell).push_back(verticesOnEdge.at(iEdge).at(1));
-				} else {
-					cellsOnCell.at(iCell).push_back(cellsOnEdge.at(iEdge).at(0));
-					verticesOnCell.at(iCell).push_back(verticesOnEdge.at(iEdge).at(0));
-				} // */
 			}
 		}
 
@@ -1126,12 +1684,11 @@ int buildAreas(){/*{{{*/
 	int iVertex, iCell, iEdge, i, j;
 	int vertex1, vertex2;
 	int edge1, edge2;
+	int incomplete_cells;
 	pnt vert_loc1, vert_loc2;
 	pnt edge_loc1, edge_loc2;
 	pnt cell_loc;
 	pnt vec1, vec2;
-	double angle_sum;
-	double angle;
 
 #ifdef _DEBUG
 	cout << endl << endl << "Begin function: buildAreas" << endl << endl;
@@ -1145,34 +1702,12 @@ int buildAreas(){/*{{{*/
 	areaTriangle.resize(vertices.size());
 	kiteAreasOnVertex.resize(vertices.size());
 
+	incomplete_cells = 0;
+
 	for(iCell = 0; iCell < cells.size(); iCell++){
 		areaCell.at(iCell) = 0.0;
-
-		// Check for full cells, by summing the angles between the two vertices of each edge.
-		// If they sum to something close to 2*Pi, it's a full cell, otherwise it's not.
-		// Non-complete cells get negative area so we can easily remove later.
-		angle_sum = 0.0;
-		for(j = 0; j < edgesOnCell.at(iCell).size()-1; j++){
-			iEdge = edgesOnCell.at(iCell).at(j);
-			vertex1 = verticesOnEdge.at(iEdge).at(0);
-			vertex2 = verticesOnEdge.at(iEdge).at(1);
-
-			vert_loc1 = vertices.at(vertex1);
-			vert_loc2 = vertices.at(vertex2);
-
-			if(!spherical){
-				vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-				vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-			}
-
-			vec1 = vert_loc1 - cells.at(iCell);
-			vec2 = vert_loc2 - cells.at(iCell);
-
-			angle = acos( vec2.dot(vec1) / (vec1.magnitude() * vec2.magnitude()));
-			angle_sum += angle;
-		}
-
-		if(angle_sum > M_2_PI * 0.8){ // Not likely to be a full cell if angle_sum is less than 80% of 2*Pi
+		
+		if(completeCellMask.at(iCell) == 1){
 			for(j = 0; j < edgesOnCell.at(iCell).size(); j++){
 				iEdge = edgesOnCell.at(iCell).at(j);
 
@@ -1184,21 +1719,24 @@ int buildAreas(){/*{{{*/
 					vertex2 = verticesOnEdge.at(iEdge).at(0);
 				}
 
-				vert_loc1 = vertices.at(vertex1);
-				vert_loc2 = vertices.at(vertex2);
+				if(vertex1 != -1 && vertex2 != -1){
+					vert_loc1 = vertices.at(vertex1);
+					vert_loc2 = vertices.at(vertex2);
 
-				if(!spherical){
-					vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-					vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-					areaCell.at(iCell) += planarTriangleArea(cells.at(iCell), vert_loc1, vert_loc2);
-				} else {
-					areaCell.at(iCell) += sphericalTriangleArea(cells.at(iCell), vert_loc1, vert_loc2);
+					if(!spherical){
+						vert_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+						vert_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+						areaCell.at(iCell) += planarTriangleArea(cells.at(iCell), vert_loc1, vert_loc2);
+					} else {
+						areaCell.at(iCell) += sphericalTriangleArea(cells.at(iCell), vert_loc1, vert_loc2);
+					}
 				}
 			}
 		} else {
+			incomplete_cells++;
+#ifdef _DEBUG
 			cout << "   Non complete cell found at " << iCell << endl;
-			cout << "   angles (rad) sum to " << angle_sum << endl;
-			cout << "   angles (deg) sum to " << angle_sum*180.0/M_PI << endl;
+#endif
 			areaCell.at(iCell) = -1;
 		}
 	}
@@ -1238,6 +1776,8 @@ int buildAreas(){/*{{{*/
 			}
 		}
 	}
+
+	cout << "     Found " << incomplete_cells << " incomplete cells. Each is marked with an area of -1." << endl;
 
 	return 0;
 }/*}}}*/
@@ -1317,12 +1857,14 @@ int buildEdgesOnEdgeArrays(){/*{{{*/
 					shared_vertex = verticesOnEdge.at(last_edge).at(1);
 				}
 
-				// Find cell 1 on shared vertex (to get kite area)
-				for(j = 0; j < cellsOnVertex.at(shared_vertex).size(); j++){
-					iCell = cellsOnVertex.at(shared_vertex).at(j);
+				if(shared_vertex != -1) {
+					// Find cell 1 on shared vertex (to get kite area)
+					for(j = 0; j < cellsOnVertex.at(shared_vertex).size(); j++){
+						iCell = cellsOnVertex.at(shared_vertex).at(j);
 
-					if(iCell == cell1){
-						area_sum += kiteAreasOnVertex.at(shared_vertex).at(j) / areaCell.at(cell1);
+						if(iCell == cell1){
+							area_sum += kiteAreasOnVertex.at(shared_vertex).at(j) / areaCell.at(cell1);
+						}
 					}
 				}
 
@@ -1372,11 +1914,13 @@ int buildEdgesOnEdgeArrays(){/*{{{*/
 				}
 
 				// Find cell 1 on shared vertex (to get kite area)
-				for(j = 0; j < cellsOnVertex.at(shared_vertex).size(); j++){
-					iCell = cellsOnVertex.at(shared_vertex).at(j);
+				if(shared_vertex != -1){
+					for(j = 0; j < cellsOnVertex.at(shared_vertex).size(); j++){
+						iCell = cellsOnVertex.at(shared_vertex).at(j);
 
-					if(iCell == cell1){
-						area_sum += kiteAreasOnVertex.at(shared_vertex).at(j) / areaCell.at(cell1);
+						if(iCell == cell1){
+							area_sum += kiteAreasOnVertex.at(shared_vertex).at(j) / areaCell.at(cell1);
+						}
 					}
 				}
 
@@ -1437,18 +1981,20 @@ int buildEdgesOnEdgeArrays(){/*{{{*/
 					}
 
 					// Find cell 1 on shared vertex (to get kite area)
-					for(j = 0; j < cellsOnVertex.at(shared_vertex).size(); j++){
-						iCell = cellsOnVertex.at(shared_vertex).at(j);
+					if(shared_vertex != -1){
+						for(j = 0; j < cellsOnVertex.at(shared_vertex).size(); j++){
+							iCell = cellsOnVertex.at(shared_vertex).at(j);
 
-						if(iCell == cell2){
-							area_sum += kiteAreasOnVertex.at(shared_vertex).at(j) / areaCell.at(cell2);
+							if(iCell == cell2){
+								area_sum += kiteAreasOnVertex.at(shared_vertex).at(j) / areaCell.at(cell2);
+							}
 						}
 					}
 
-					if(cell1 == cellsOnEdge.at(cur_edge).at(0)){
-						weightsOnEdge.at(iEdge).push_back( 1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
-					} else {
+					if(cell2 == cellsOnEdge.at(cur_edge).at(0)){
 						weightsOnEdge.at(iEdge).push_back( -1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
+					} else {
+						weightsOnEdge.at(iEdge).push_back( 1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 					}
 
 					last_edge = edgesOnCell.at(cell2).at(i);
@@ -1491,18 +2037,20 @@ int buildEdgesOnEdgeArrays(){/*{{{*/
 					}
 
 					// Find cell 1 on shared vertex (to get kite area)
-					for(j = 0; j < cellsOnVertex.at(shared_vertex).size(); j++){
-						iCell = cellsOnVertex.at(shared_vertex).at(j);
+					if(shared_vertex != -1){
+						for(j = 0; j < cellsOnVertex.at(shared_vertex).size(); j++){
+							iCell = cellsOnVertex.at(shared_vertex).at(j);
 
-						if(iCell == cell2){
-							area_sum += kiteAreasOnVertex.at(shared_vertex).at(j) / areaCell.at(cell2);
+							if(iCell == cell2){
+								area_sum += kiteAreasOnVertex.at(shared_vertex).at(j) / areaCell.at(cell2);
+							}
 						}
 					}
 
-					if(cell1 == cellsOnEdge.at(cur_edge).at(0)){
-						weightsOnEdge.at(iEdge).push_back( 1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
-					} else {
+					if(cell2 == cellsOnEdge.at(cur_edge).at(0)){
 						weightsOnEdge.at(iEdge).push_back( -1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
+					} else {
+						weightsOnEdge.at(iEdge).push_back( 1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 					}
 
 					last_edge = edgesOnCell.at(cell2).at(i);
@@ -1570,7 +2118,11 @@ int buildAngleEdge(){/*{{{*/
 		}
 
 		vertex_loc1 = vertices.at(vertex1);
-		vertex_loc2 = vertices.at(vertex2);
+		if(vertex2 != -1){
+			vertex_loc2 = vertices.at(vertex2);
+		} else {
+			vertex_loc2 = edges.at(iEdge);
+		}
 
 		if(!spherical){
 			cell_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);	
@@ -1662,6 +2214,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	NcDim *THREEDim;
 	NcDim *vertexDegreeDim;
 	NcDim *timeDim;
+	NcDim *nVertLevelsDim;
 	
 	// write dimensions
 	if (!(nCellsDim =		grid.add_dim(	"nCells",		cells.size())		)) return NC_ERR;
@@ -1671,6 +2224,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	if (!(maxEdges2Dim =	grid.add_dim(	"maxEdges2",	maxEdges*2)			)) return NC_ERR;
 	if (!(TWODim =			grid.add_dim(	"TWO",			2)					)) return NC_ERR;
 	if (!(vertexDegreeDim = grid.add_dim(   "vertexDegree", vertex_degree)		)) return NC_ERR;
+	if (!(nVertLevelsDim =  grid.add_dim(   "nVertLevels", 1)					)) return NC_ERR;
 	if (!(timeDim = 		grid.add_dim(   "Time")								)) return NC_ERR;
 
 	grid.close();
@@ -1687,6 +2241,7 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 	 * **********************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
+	char mesh_spec_str[1024];
 	
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
@@ -1708,7 +2263,7 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 		if (!(radiusAtt = grid.add_att(   "sphere_radius", 0.0))) return NC_ERR;
 	} else {
 		if (!(sphereAtt = grid.add_att(   "on_a_sphere", "YES\0"))) return NC_ERR;
-		if (!(radiusAtt = grid.add_att(   "sphere_radius", 1.0))) return NC_ERR;
+		if (!(radiusAtt = grid.add_att(   "sphere_radius", sphereRadius))) return NC_ERR;
 	}
 
 	history_str += "MpasMeshConverter.x ";
@@ -1730,8 +2285,10 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 	}
 	id_str = gen_random(ID_LEN);
 
+	sprintf(mesh_spec_str, "%2.1lf", (double)MESH_SPEC);
+
 	if (!(history = grid.add_att(   "history", history_str.c_str() ))) return NC_ERR;
-	if (!(spec = grid.add_att(   "mesh_spec", (double)MESH_SPEC ))) return NC_ERR;
+	if (!(spec = grid.add_att(   "mesh_spec", mesh_spec_str ))) return NC_ERR;
 	if (!(conventions = grid.add_att(   "Conventions", "MPAS" ))) return NC_ERR;
 	if (!(source = grid.add_att(   "source", "MpasMeshConverter.x" ))) return NC_ERR;
 	if (!(id = grid.add_att(   "mesh_id", id_str.c_str() ))) return NC_ERR;
@@ -1790,13 +2347,16 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	idxTo = new int[nCells];
 	i = 0;
 	for(pnt_itr = cells.begin(); pnt_itr != cells.end(); ++pnt_itr){
-		x[i] = (*pnt_itr).x;
-		y[i] = (*pnt_itr).y;
-		z[i] = (*pnt_itr).z;
 		if(!spherical){
+			x[i] = (*pnt_itr).x;
+			y[i] = (*pnt_itr).y;
+			z[i] = (*pnt_itr).z;
 			lat[i] = 0.0;
 			lon[i] = 0.0;
 		} else {
+			x[i] = (*pnt_itr).x * sphereRadius;
+			y[i] = (*pnt_itr).y * sphereRadius;
+			z[i] = (*pnt_itr).z * sphereRadius;
 			lat[i] = (*pnt_itr).getLat();
 			lon[i] = (*pnt_itr).getLon();
 		}
@@ -1833,13 +2393,16 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 
 	i = 0;
 	for(pnt_itr = edges.begin(); pnt_itr != edges.end(); ++pnt_itr){
-		x[i] = (*pnt_itr).x;
-		y[i] = (*pnt_itr).y;
-		z[i] = (*pnt_itr).z;
 		if(!spherical){
+			x[i] = (*pnt_itr).x;
+			y[i] = (*pnt_itr).y;
+			z[i] = (*pnt_itr).z;
 			lat[i] = 0.0;
 			lon[i] = 0.0;
 		} else {
+			x[i] = (*pnt_itr).x * sphereRadius;
+			y[i] = (*pnt_itr).y * sphereRadius;
+			z[i] = (*pnt_itr).z * sphereRadius;
 			lat[i] = (*pnt_itr).getLat();
 			lon[i] = (*pnt_itr).getLon();
 		}
@@ -1876,13 +2439,16 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 
 	i = 0;
 	for(pnt_itr = vertices.begin(); pnt_itr != vertices.end(); ++pnt_itr){
-		x[i] = (*pnt_itr).x;
-		y[i] = (*pnt_itr).y;
-		z[i] = (*pnt_itr).z;
 		if(!spherical){
+			x[i] = (*pnt_itr).x;
+			y[i] = (*pnt_itr).y;
+			z[i] = (*pnt_itr).z;
 			lat[i] = 0.0;
 			lon[i] = 0.0;
 		} else {
+			x[i] = (*pnt_itr).x * sphereRadius;
+			y[i] = (*pnt_itr).y * sphereRadius;
+			z[i] = (*pnt_itr).z * sphereRadius;
 			lat[i] = (*pnt_itr).getLat();
 			lon[i] = (*pnt_itr).getLon();
 		}
@@ -2274,6 +2840,12 @@ int outputCellParameters( const string outputFilename) {/*{{{*/
 	int nCells = nCellsDim->size();
 	int i, j;
 
+	if(spherical){
+		for(i = 0; i < nCells; i ++){
+			areaCell[i] = areaCell[i] * sphereRadius * sphereRadius;
+		}
+	}
+
 	if (!(areacVar = grid.add_var("areaCell", ncDouble, nCellsDim))) return NC_ERR;
 	if (!areacVar->put(&areaCell[0],nCells)) return NC_ERR;
 
@@ -2316,6 +2888,12 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
 
 	double *tmp_arr;
 
+	if(spherical){
+		for(i = 0; i < nVertices; i++){
+			areaTriangle[i] = areaTriangle[i] * sphereRadius * sphereRadius;
+		}
+	}
+
 	// Build and write areaTriangle
 	if (!(areatVar = grid.add_var("areaTriangle", ncDouble, nVerticesDim))) return NC_ERR;
 	if (!areatVar->put(&areaTriangle[0],nVertices)) return NC_ERR;
@@ -2328,7 +2906,11 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
 	for(vec_dbl_itr = kiteAreasOnVertex.begin(); vec_dbl_itr != kiteAreasOnVertex.end(); ++vec_dbl_itr){
 		j = 0;
 		for(dbl_itr = (*vec_dbl_itr).begin(); dbl_itr != (*vec_dbl_itr).end(); ++dbl_itr){
-			tmp_arr[i*vertexDegree + j] = (*dbl_itr);
+			if(!spherical){
+				tmp_arr[i*vertexDegree + j] = (*dbl_itr);
+			} else {
+				tmp_arr[i*vertexDegree + j] = (*dbl_itr) * sphereRadius * sphereRadius;
+			}
 			j++;
 			count++;
 		}
@@ -2380,6 +2962,13 @@ int outputEdgeParameters( const string outputFilename) {/*{{{*/
 	int i, j;
 
 	double *tmp_arr;
+
+	if(spherical){
+		for(i = 0; i < nEdges; i++){
+			dcEdge[i] = dcEdge[i] * sphereRadius;
+			dvEdge[i] = dvEdge[i] * sphereRadius;
+		}
+	}
 
 	//Build and write angleEdge
 	if (!(angleVar = grid.add_var("angleEdge", ncDouble, nEdgesDim))) return NC_ERR;
@@ -2458,12 +3047,28 @@ int outputMeshDensity( const string outputFilename) {/*{{{*/
 
 	return 0;
 }/*}}}*/
+int writeGraphFile(const string outputFilename){/*{{{*/
+	ofstream graph(outputFilename.c_str());
+
+	graph << cells.size() << " " << edges.size() << endl;
+
+	for(int i = 0; i < cellsOnCell.size(); i++){
+		for(int j = 0; j < cellsOnCell.at(i).size(); j++){
+			graph << cellsOnCell.at(i).at(j)+1 << " ";
+		}
+		graph << endl;
+	}
+
+	graph.close();
+
+	return 0;
+}/*}}}*/
 /*}}}*/
 
 string gen_random(const int len) {/*{{{*/
 	static const char alphanum[] =
 		"0123456789"
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+//		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		"abcdefghijklmnopqrstuvwxyz";
 
 	string rand_str = "";

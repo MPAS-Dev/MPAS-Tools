@@ -306,7 +306,7 @@ program hexagonal_periodic_grid
    !
    ! Write grid to grid.nc file
    !
-   call write_netcdf_init( nCells, nEdges, nVertices, maxEdges, nVertLevels, nTracers, vertexDegree )
+   call write_netcdf_init( nCells, nEdges, nVertices, maxEdges, nVertLevels, nTracers, vertexDegree, dc, nx, ny )
  
    call write_netcdf_fields( 1, &
                              latCell, lonCell, xCell, yCell, zCell, indexToCellID, &

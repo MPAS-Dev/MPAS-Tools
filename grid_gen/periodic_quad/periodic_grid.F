@@ -258,7 +258,7 @@ program square_periodic_grid
    !
    ! Write grid to grid.nc file
    !
-   call write_netcdf_init( nCells, nEdges, nVertices, maxEdges, nVertLevels, nTracers, nVertexDegree)
+   call write_netcdf_init( nCells, nEdges, nVertices, maxEdges, nVertLevels, nTracers, nVertexDegree, dc, nx, ny)
  
    call write_netcdf_fields( 1, &
                              latCell, lonCell, xCell, yCell, zCell, indexToCellID, &

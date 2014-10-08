@@ -75,7 +75,10 @@ module write_netcdf
                                maxEdges, &
                                nVertLevels, &
                                nTracers, &
-                               vertexDegree &
+                               vertexDegree, &
+                               dc, &
+                               nx, &
+                               ny &
                                )
  
       implicit none
@@ -89,11 +92,16 @@ module write_netcdf
       integer, intent(in) :: nVertLevels
       integer, intent(in) :: nTracers
       integer, intent(in) :: vertexDegree
+      real (kind=8), intent(in) :: dc
+      integer, intent(in) :: nx
+      integer, intent(in) :: ny
  
       integer :: nferr
       integer, dimension(10) :: dimlist
       character (len=16) :: on_a_sphere
+      character (len=16) :: is_periodic
       real (kind=8) :: sphere_radius
+      real (kind=8) :: x_offset, y_offset
  
  
       wrLocalnCells = nCells
@@ -103,8 +111,11 @@ module write_netcdf
       wrLocalnVertLevels = nVertLevels
       wrLocalnTracers = nTracers
 
-      on_a_sphere = 'NO              '
+      on_a_sphere = 'NO'
+      is_periodic = 'YES'
       sphere_radius = 0.0
+      x_offset = (nx) * dc
+      y_offset = (ny) * (dc * sqrt(3.0)) / 2.0
  
       nferr = nf_create('grid.nc', IOR(NF_CLOBBER,NF_64BIT_OFFSET), wr_ncid)
  
@@ -127,7 +138,10 @@ module write_netcdf
       ! Define attributes
       !
       nferr = nf_put_att_text(wr_ncid, NF_GLOBAL, 'on_a_sphere', 16, on_a_sphere)
+      nferr = nf_put_att_text(wr_ncid, NF_GLOBAL, 'is_periodic', 16, is_periodic)
       nferr = nf_put_att_double(wr_ncid, NF_GLOBAL, 'sphere_radius', NF_DOUBLE, 1, sphere_radius)
+      nferr = nf_put_att_double(wr_ncid, NF_GLOBAL, 'x_offset', NF_DOUBLE, 1, x_offset)
+      nferr = nf_put_att_double(wr_ncid, NF_GLOBAL, 'y_offset', NF_DOUBLE, 1, y_offset)
 
  
       !

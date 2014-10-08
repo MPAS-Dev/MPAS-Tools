@@ -8,6 +8,9 @@ int netcdf_mpas_read_num_vars(string filename);
 /* Attribute reading functions {{{*/
 bool netcdf_mpas_read_onsphere(string filename);
 double netcdf_mpas_read_sphereradius(string filename);
+bool netcdf_mpas_read_isperiodic(string filename);
+double netcdf_mpas_read_xoffset(string filename);
+double netcdf_mpas_read_yoffset(string filename);
 string netcdf_mpas_read_history(string filename);
 string netcdf_mpas_read_meshid(string filename);
 string netcdf_mpas_read_parentid(string filename);
@@ -22,11 +25,12 @@ int netcdf_mpas_read_dim ( string filename, string dim_name );
 void netcdf_mpas_read_xyzcell ( string filename, int ncells, double xcell[], double ycell[], double zcell[] );
 void netcdf_mpas_read_latloncell ( string filename, int ncells, double latcell[], double loncell[] );
 void netcdf_mpas_read_areacell ( string filename, int ncells, double areacell[] );
+void netcdf_mpas_read_nedgesoncell ( string filename, int ncells, int edgesoncell[] );
 void netcdf_mpas_read_cellsoncell ( string filename, int ncells, int maxedges, int cellsoncell[] );
 void netcdf_mpas_read_edgesoncell ( string filename, int ncells, int maxedges, int edgesoncell[] );
 void netcdf_mpas_read_verticesoncell ( string filename, int ncells, int maxedges, int verticesoncell[] );
 void netcdf_mpas_read_mesh_density ( string filename, int ncells, double mesh_density[] );
-void netcdf_mpas_read_cellmask ( string filename, int ncells, int cellmask[] );
+void netcdf_mpas_read_cullcell ( string filename, int ncells, int cullcell[] );
 /* }}} */
 
 /* Vertex Reading Functions {{{*/
@@ -48,5 +52,6 @@ void netcdf_mpas_read_dcedge ( string filename, int nedges, double dcedge[] );
 void netcdf_mpas_read_angleedge ( string filename, int nedges, double angleedge[] );
 void netcdf_mpas_read_weightsonedge ( string filename, int nedges, int maxedges2, double weightsonedge[] );
 void netcdf_mpas_read_edgesonedge ( string filename, int nedges, int maxedges2, int edgesonedge[] );
+void netcdf_mpas_read_nedgesonedge ( string filename, int nedges, int nedgesonedge[] );
 /* }}} */
 
