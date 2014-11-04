@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import collections
 from optparse import OptionParser
 import xml.etree.ElementTree as ET
@@ -559,10 +559,6 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 									except:
 										var_name_in_code = var_name
 
-									if int(struct_time_levs) > 1:
-										var_index = "domain %% blocklist %% %s %% index_%s"%(struct_name, var_name_in_code.replace('_','\_'))
-									else:
-										var_index = "domain %% blocklist %% %s %% index_%s"%(struct_name, var_name_in_code.replace('_','\_'))
 									var_path = "%s"%(var_arr_name)
 #}}}
 
@@ -637,10 +633,7 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 								except:
 									var_name_in_code = var_name
 
-								if int(struct_time_levs) > 1:
-									var_path = "domain %% blocklist %% %s %% time_levs(:) %% %s %% %s"%(struct_name, struct_name, var_name)
-								else:
-									var_path = "domain %% blocklist %% %s %% %s"%(struct_name, var_name)
+								var_path = "%s"%(var_name)
 #}}}
 
 								# Extract var description#{{{
