@@ -883,10 +883,10 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 				latex.write('        Number of time levels: & %s \\\\\n'%var_time_levels)
 				latex.write('        \hline \n')
 				if(in_forward and not forward_streams == ""):
-					latex.write('		 Forward mode streams: & %s \\\\\n'%forward_streams)
+					latex.write('		 Forward mode streams: & %s \\\\\n'%forward_streams.replace("_", "\_"))
 					latex.write('        \hline \n')
 				if(in_analysis and not analysis_streams == ""):
-					latex.write('		 Analysis mode streams: & %s \\\\\n'%analysis_streams)
+					latex.write('		 Analysis mode streams: & %s \\\\\n'%analysis_streams.replace("_", "\_"))
 					latex.write('        \hline \n')
 
 				if(in_var_array):
