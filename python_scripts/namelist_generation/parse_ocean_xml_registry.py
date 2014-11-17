@@ -882,17 +882,11 @@ def write_variable_sections(latex, sorted_structs, forward_registry, analysis_re
 				latex.write('        \hline \n')
 				latex.write('        Number of time levels: & %s \\\\\n'%var_time_levels)
 				latex.write('        \hline \n')
-				if(in_forward and not forward_streams == ""):
-					latex.write('		 Forward mode streams: & %s \\\\\n'%forward_streams.replace("_", "\_"))
-					latex.write('        \hline \n')
-				if(in_analysis and not analysis_streams == ""):
-					latex.write('		 Analysis mode streams: & %s \\\\\n'%analysis_streams.replace("_", "\_"))
-					latex.write('        \hline \n')
 
 				if(in_var_array):
 					latex.write("		 Index in %s Array: & '%s' in '%s' pool \\\\\n"%(var_name.replace('_','\_'), var_name.replace('_', '\_'), struct_name.replace('_','\_')))
 					latex.write('		 \hline \n')
-				pool_path="'%s' in '%s' pool\n"%(var_path, struct_name)
+				pool_path="'%s' in '%s' pool"%(var_path, struct_name)
 				latex.write('            Pool path: & %s \\\\\n'%pool_path.replace('_', '\_'))
 				latex.write('		 \hline \n')
 				if(in_var_array):
