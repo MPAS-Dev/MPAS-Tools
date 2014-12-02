@@ -315,8 +315,8 @@ int main(int argc, char ** argv)
 		yVertex[i] = p.getY();
 		zVertex[i] = 0.0;
 		for (int j=0; j<3; j++)
-//			cellsOnVertex[ii++] = norm_dti->getVertex(j).getNum() + 1;   /* NB: indices are 1-based in MPAS */
-			cellsOnVertex[ii++] = norm_dti->getVertex(j).getNum();       /* For now, keep all indices 0-based */
+			cellsOnVertex[ii++] = norm_dti->getVertex(j).getNum() + 1;   /* indices are 1-based in MPAS */
+//			cellsOnVertex[ii++] = norm_dti->getVertex(j).getNum();       /* Do not use the 0-based indices when making meshes for MPAS */
 		i++;
 	}
 
