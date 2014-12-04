@@ -144,9 +144,9 @@ for i in arange(0, nVertices):
 
 		q = (b_len + c_len - a_len) * (c_len + a_len - b_len) * (a_len + b_len - c_len) / (a_len * b_len * c_len)
 
-		angle1 = math.acos( (b_len**2 + c_len**2 - a_len**2) / (2 * b_len * c_len))
-		angle2 = math.acos( (a_len**2 + c_len**2 - b_len**2) / (2 * a_len * c_len))
-		angle3 = math.acos( (a_len**2 + b_len**2 - c_len**2) / (2 * a_len * b_len))
+		angle1 = math.acos( max(-1.0, min(1.0, (b_len**2 + c_len**2 - a_len**2) / (2 * b_len * c_len))))
+		angle2 = math.acos( max(-1.0, min(1.0, (a_len**2 + c_len**2 - b_len**2) / (2 * a_len * c_len))))
+		angle3 = math.acos( max(-1.0, min(1.0, (a_len**2 + b_len**2 - c_len**2) / (2 * a_len * b_len))))
 
 		angle_quality = min(min(angle1, angle2), angle3) / max(max(angle1, angle2), angle3)
 
