@@ -11,6 +11,7 @@
 #include <netcdfcpp.h>
 #include <float.h>
 #include <sstream>
+#include <limits>
 
 #define ID_LEN 10
 
@@ -18,8 +19,8 @@ using namespace std;
 //using namespace tr1;
 
 int nCells, nVertices, vertexDegree;
-bool spherical;
-double sphereRadius;
+bool spherical=false;
+double sphereRadius=1.0;
 int connectivityBase;
 string in_history = "";
 string in_file_id = "";
@@ -174,7 +175,7 @@ int readGridInput(const string inputFilename){/*{{{*/
 	}
 	cells.close();
 
-	if( (xRange[1] - xRange[0]) != 0.0 && (yRange[1] - yRange[0]) != 0.0 && (zRange[1] - zRange[0]) != 0.0){
+	if( fabs(xRange[1] - xRange[0]) > FLT_EPSILON && fabs(yRange[1] - yRange[0]) > FLT_EPSILON && fabs(zRange[1] - zRange[0]) > FLT_EPSILON ){
 		spherical = true;
 	}
 
@@ -285,11 +286,12 @@ int buildVertices(){/*{{{*/
 					 xCell[v3], yCell[v3], zCell[v3],
 					 &x, &y, &z);
 
-		norm = sqrt( x*x + y*y + z*z );
-
-		x = (x / norm) * sphereRadius;
-		y = (y / norm) * sphereRadius;
-		z = (z / norm) * sphereRadius;
+		if (spherical){
+			norm = sqrt( x*x + y*y + z*z );
+			x = (x / norm) * sphereRadius;
+			y = (y / norm) * sphereRadius;
+			z = (z / norm) * sphereRadius;
+		}
 
 		xVertex.push_back(x);
 		yVertex.push_back(y);
@@ -380,7 +382,7 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 	// write attributes
 	if(!spherical){
 		if (!(sphereAtt = grid.add_att(   "on_a_sphere", "NO\0"))) return NC_ERR;
-		if (!(radiusAtt = grid.add_att(   "sphere_radius", 0.0))) return NC_ERR;
+		if (!(radiusAtt = grid.add_att(   "sphere_radius", 1.0))) return NC_ERR;
 	} else {
 		if (!(sphereAtt = grid.add_att(   "on_a_sphere", "YES\0"))) return NC_ERR;
 		if (!(radiusAtt = grid.add_att(   "sphere_radius", sphereRadius))) return NC_ERR;
