@@ -1482,88 +1482,92 @@ int orderCellArrays(){/*{{{*/
 			normal = cells.at(iCell);
 		}
 
+		if ( edgesOnCell.at(iCell).size() != 0 ) {
 #ifdef _DEBUG
 		cout << endl;
-		cout << "   Starting edgesOnCell: ";
-		for(i = 0; i < edgesOnCell.at(iCell).size(); i++){
-			cout << edgesOnCell.at(iCell).at(i) << " ";
-		}
-		cout << endl;
+			cout << "   Starting edgesOnCell on cell: " << iCell << endl;
+			cout << "   Starting edgesOnCell size: " << edgesOnCell.at(iCell).size() << endl;
+			cout << "   Starting edgesOnCell: ";
+			for(i = 0; i < edgesOnCell.at(iCell).size(); ++i){
+				cout << edgesOnCell.at(iCell).at(i) << " ";
+			}
+			cout << endl;
 #endif
 
-		// /*
-		// Determine starting edge. It should either be the first edge in the set, 
-		// or the only edge such that all other edges are CCW from it.
-		edge_idx = edgesOnCell.at(iCell).at(0);
-		loc_edge_idx = 0;
-#ifdef _DEBUG
-				cout << "Finding starting edge for cell " << iCell << endl;
-#endif
-		for(j = 0; j < edgesOnCell.at(iCell).size(); j++){
-			iEdge = edgesOnCell.at(iCell).at(j);
-			vertex1 = verticesOnEdge.at(iEdge).at(0);
-			vertex2 = verticesOnEdge.at(iEdge).at(1);
+			// /*
+			// Determine starting edge. It should either be the first edge in the set, 
+			// or the only edge such that all other edges are CCW from it.
+			edge_idx = edgesOnCell.at(iCell).at(0);
+			loc_edge_idx = 0;
+	#ifdef _DEBUG
+					cout << "Finding starting edge for cell " << iCell << endl;
+	#endif
+			for(j = 0; j < edgesOnCell.at(iCell).size(); j++){
+				iEdge = edgesOnCell.at(iCell).at(j);
+				vertex1 = verticesOnEdge.at(iEdge).at(0);
+				vertex2 = verticesOnEdge.at(iEdge).at(1);
 
-			if(vertex2 == -1){
-#ifdef _DEBUG
-				cout << "   Start edge: " << iEdge << endl;
-				cout << "               " << edges.at(iEdge) << endl;
-				cout << "           v1: " << vertex1 << endl;
-				cout << "           v2: " << vertex2 << endl;
-#endif
-				edge_loc1 = edges.at(iEdge);
-				edge_loc1 = vertices.at(vertex1);
-				if(!spherical){
-					edge_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-				}
+				if(vertex2 == -1){
+	#ifdef _DEBUG
+					cout << "   Start edge: " << iEdge << endl;
+					cout << "               " << edges.at(iEdge) << endl;
+					cout << "           v1: " << vertex1 << endl;
+					cout << "           v2: " << vertex2 << endl;
+	#endif
+					edge_loc1 = edges.at(iEdge);
+					edge_loc1 = vertices.at(vertex1);
+					if(!spherical){
+						edge_loc1.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+					}
 
-				vec1 = edge_loc1 - cells.at(iCell);
-				mag1 = vec1.magnitude();
+					vec1 = edge_loc1 - cells.at(iCell);
+					mag1 = vec1.magnitude();
 
-				// If edge only has one vertex. Need to find edge that shares the vertex.
-				// This edge is kept if the neighboring edge is CCW from it.
-				for(k = 0; k < edgesOnCell.at(iCell).size(); k++){
-					if(j != k){
-						iEdge2 = edgesOnCell.at(iCell).at(k);
-#ifdef _DEBUG
-						cout << "    Test edge: " << iEdge2 << endl;
-						cout << "               " << edges.at(iEdge2) << endl;
-						cout << "           v1: " << verticesOnEdge.at(iEdge2).at(0) << endl;
-						cout << "           v2: " << verticesOnEdge.at(iEdge2).at(1) << endl;
-#endif
+					// If edge only has one vertex. Need to find edge that shares the vertex.
+					// This edge is kept if the neighboring edge is CCW from it.
+					for(k = 0; k < edgesOnCell.at(iCell).size(); k++){
+						if(j != k){
+							iEdge2 = edgesOnCell.at(iCell).at(k);
+	#ifdef _DEBUG
+							cout << "    Test edge: " << iEdge2 << endl;
+							cout << "               " << edges.at(iEdge2) << endl;
+							cout << "           v1: " << verticesOnEdge.at(iEdge2).at(0) << endl;
+							cout << "           v2: " << verticesOnEdge.at(iEdge2).at(1) << endl;
+	#endif
 
-						if(vertex1 == verticesOnEdge.at(iEdge2).at(0) || vertex1 == verticesOnEdge.at(iEdge2).at(1)){
-							// This edge is a neighboring edge. Check for CCW ordering.
-							if(vertex1 == verticesOnEdge.at(iEdge2).at(0)) {
-								vertex2 = verticesOnEdge.at(iEdge2).at(1);
-							} else {
-								vertex2 = verticesOnEdge.at(iEdge2).at(0);
-							}
-							edge_loc2 = edges.at(iEdge2);
-							edge_loc2 = vertices.at(vertex2);
+							if(vertex1 == verticesOnEdge.at(iEdge2).at(0) || vertex1 == verticesOnEdge.at(iEdge2).at(1)){
+								// This edge is a neighboring edge. Check for CCW ordering.
+								if(vertex1 == verticesOnEdge.at(iEdge2).at(0)) {
+									vertex2 = verticesOnEdge.at(iEdge2).at(1);
+								} else {
+									vertex2 = verticesOnEdge.at(iEdge2).at(0);
+								}
+								edge_loc2 = edges.at(iEdge2);
+								edge_loc2 = vertices.at(vertex2);
 
-							if(!spherical){
-								edge_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
-							}
+								if(!spherical){
+									edge_loc2.fixPeriodicity(cells.at(iCell), xPeriodicFix, yPeriodicFix);
+								}
 
-							vec2 = edge_loc2 - cells.at(iCell);
-							mag2 = vec2.magnitude();
+								vec2 = edge_loc2 - cells.at(iCell);
+								mag2 = vec2.magnitude();
 
-							cross = vec1.cross(vec2);
-							dot = cross.dot(normal) / (cross.magnitude() * normal.magnitude());
+								cross = vec1.cross(vec2);
+								dot = cross.dot(normal) / (cross.magnitude() * normal.magnitude());
 
-#ifdef _DEBUG
-							cout << "     Vec1: " << vec1 << endl;
-							cout << "     Vec2: " << vec2 << endl;
-							cout << "    Cross: " << cross << endl;
-							cout << "      dot: " << dot << endl;
-#endif
-							if(dot > 0){
-#ifdef _DEBUG
-								cout << "       Found edge: " << iEdge << endl;
-#endif
-								edge_idx = iEdge;
-								loc_edge_idx = j;
+	#ifdef _DEBUG
+								cout << "     Vec1: " << vec1 << endl;
+								cout << "     Vec2: " << vec2 << endl;
+								cout << "    Cross: " << cross << endl;
+								cout << "      dot: " << dot << endl;
+	#endif
+								if(dot > 0){
+	#ifdef _DEBUG
+									cout << "       Found edge: " << iEdge << endl;
+	#endif
+									edge_idx = iEdge;
+									loc_edge_idx = j;
+								}
 							}
 						}
 					}
