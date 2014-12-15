@@ -14,6 +14,7 @@ parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename", help="Path to grid file", metavar="FILE")
 parser.add_option("-b", "--bins", dest="num_bins", help="Number of bins for histogram", metavar="NUMBINS")
 parser.add_option("-q", "--quiet", dest="quiet", action="store_true", default=False, help="Turns off display of plots, though they are still saved in quality.png")
+parser.add_option("-r", "--radius", dest="radius", help="Radius of sphere to expand for grid spacing", metavar="RAD")
 
 options, args = parser.parse_args()
 
@@ -26,13 +27,18 @@ if not options.num_bins:
 else:
 	num_bins = int(options.num_bins)
 
+if not options.radius:
+	radius = 1.0
+else:
+	radius = float(options.radius)
+
 grid = NetCDFFile(options.filename, 'a')
 
 nCells = len(grid.dimensions['nCells'])
 nEdges = len(grid.dimensions['nEdges'])
 nVertices = len(grid.dimensions['nVertices'])
-nVertLevels = len(grid.dimensions['nVertLevels'])
 
+latCell_full = grid.variables['latCell'][:]
 dcEdge_full = grid.variables['dcEdge'][:]
 nEdgesOnCell_full = grid.variables['nEdgesOnCell'][:]
 edgesOnCell_full = grid.variables['edgesOnCell'][:] - 1
@@ -42,17 +48,22 @@ global_min_dc = min(dcEdge_full)
 global_max_dc = max(dcEdge_full)
 
 try:
-	cellQuality_full = grid.createVariable('cellQuality', 'f8', ( 'nCells' ,) )
+	cellQuality_full = grid.createVariable('cellQuality', 'f8', ( 'nCells' ,) ) 
 except:
 	cellQuality_full = grid.variables['cellQuality']
 
 try:
-	triangleQuality_full = grid.createVariable('triangleQuality', 'f8', ( 'nVertices' ,) )
+	gridSpacing_full = grid.createVariable('gridSpacing', 'f8', ( 'nCells' ,) ) 
+except:
+	gridSpacing_full = grid.variables['gridSpacing']
+
+try:
+	triangleQuality_full = grid.createVariable('triangleQuality', 'f8', ( 'nVertices' ,) ) 
 except:
 	triangleQuality_full = grid.variables['triangleQuality']
 
 try:
-	triangleAngleQuality_full = grid.createVariable('triangleAngleQuality', 'f8', ( 'nVertices' ,) )
+	triangleAngleQuality_full = grid.createVariable('triangleAngleQuality', 'f8', ( 'nVertices' ,) ) 
 except:
 	triangleAngleQuality_full = grid.variables['triangleAngleQuality']
 
@@ -61,9 +72,8 @@ try:
 except:
 	obtuseTriangle_full = grid.variables['obtuseTriangle']
 
-grid_spacing_coords = np.arange(global_min_dc, global_max_dc, (global_max_dc - global_min_dc)/num_bins)
-grid_num_bins = shape(grid_spacing_coords)[0]
-grid_spacing_bins = np.zeros(grid_num_bins)
+grid_spacing_coords = np.zeros(nCells)
+grid_spacing_bins = np.zeros(nCells)
 
 bin_coords = np.arange(0.0, 1.0, 1.0/num_bins)
 vor_quality_bins = np.zeros(num_bins)
@@ -102,8 +112,9 @@ for i in arange(0, nCells):
 		ave_dc = ave_dc + dcEdge
 
 	ave_dc = ave_dc / nEdgesOnCell
-	bin_num = min(int(((ave_dc - global_min_dc) / global_max_dc) * num_bins), grid_num_bins-1)
-	grid_spacing_bins[bin_num] = grid_spacing_bins[bin_num] + 1
+	grid_spacing_coords[i] = latCell_full[i] * 180.0 / math.pi
+	grid_spacing_bins[i] = ave_dc * radius
+	gridSpacing_full[i] = ave_dc * radius
 
 	sigma = min_dc / max_dc
 	cellQuality_full[i] = sigma
@@ -133,9 +144,9 @@ for i in arange(0, nVertices):
 
 		q = (b_len + c_len - a_len) * (c_len + a_len - b_len) * (a_len + b_len - c_len) / (a_len * b_len * c_len)
 
-		angle1 = math.acos( (b_len**2 + c_len**2 - a_len**2) / (2 * b_len * c_len))
-		angle2 = math.acos( (a_len**2 + c_len**2 - b_len**2) / (2 * a_len * c_len))
-		angle3 = math.acos( (a_len**2 + b_len**2 - c_len**2) / (2 * a_len * b_len))
+		angle1 = math.acos( max(-1.0, min(1.0, (b_len**2 + c_len**2 - a_len**2) / (2 * b_len * c_len))))
+		angle2 = math.acos( max(-1.0, min(1.0, (a_len**2 + c_len**2 - b_len**2) / (2 * a_len * c_len))))
+		angle3 = math.acos( max(-1.0, min(1.0, (a_len**2 + b_len**2 - c_len**2) / (2 * a_len * b_len))))
 
 		angle_quality = min(min(angle1, angle2), angle3) / max(max(angle1, angle2), angle3)
 
@@ -203,11 +214,9 @@ ax.set_xlim([0,10])
 
 ax = fig.add_subplot(224)
 ax.set_title('Grid spacing histogram')
-ax.set_xlabel('Average grid size (km)')
-ax.set_ylabel('Number of cells with grid spacing')
-ax.bar(grid_spacing_coords, grid_spacing_bins, (global_max_dc - global_min_dc)/num_bins, color='r')
-ax.set_ylim([0,nCells])
-ax.set_xlim([global_min_dc,global_max_dc])
+ax.set_xlabel('Latitude (deg)')
+ax.set_ylabel('Grid spacing (m)')
+ax.scatter(grid_spacing_coords, grid_spacing_bins, color='r')
 
 plt.tight_layout()
 plt.draw()
