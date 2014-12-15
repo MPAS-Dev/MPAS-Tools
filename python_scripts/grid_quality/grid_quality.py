@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import sys, os, glob, shutil, numpy, math
 
 from netCDF4 import *
