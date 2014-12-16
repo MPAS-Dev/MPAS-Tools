@@ -10,6 +10,7 @@
 //#include <tr1/unordered_set>
 #include <unordered_set>
 #include <time.h>
+#include <float.h>
 
 #include "netcdf_utils.h"
 #include "pnt.h"
@@ -23,6 +24,7 @@ using namespace std;
 
 int nCells, nVertices, vertex_degree;
 int maxEdges;
+int obtuseTriangles = 0;
 bool spherical, periodic;
 double sphereRadius, xOffset, yOffset;
 double xCellRange[2];
@@ -61,6 +63,11 @@ vector<double> areaCell;
 vector<double> areaTriangle;
 vector<double> angleEdge;
 vector<double> meshDensity;
+vector<double> cellQuality;
+vector<double> gridSpacing;
+vector<double> triangleQuality;
+vector<double> triangleAngleQuality;
+vector<int> obtuseTriangle;
 
 // }}}
 
@@ -88,6 +95,7 @@ int orderCellArrays();
 int buildAreas();
 int buildEdgesOnEdgeArrays();
 int buildAngleEdge();
+int buildMeshQualities();
 /*}}}*/
 
 /* Output functions {{{*/
@@ -101,6 +109,7 @@ int outputCellParameters(const string outputFilename);
 int outputVertexParameters(const string outputFilename);
 int outputEdgeParameters(const string outputFilename);
 int outputMeshDensity(const string outputFilename);
+int outputMeshQualities(const string outputFilename);
 int writeGraphFile(const string outputFilename);
 /*}}}*/
 
@@ -200,6 +209,10 @@ int main ( int argc, char *argv[] ) {
 	error = buildAngleEdge();
 	if(error) return 1;
 
+	cout << "Building mesh qualities." << endl;
+	error = buildMeshQualities();
+	if(error) return 1;
+
 	cout << "Writing grid dimensions" << endl;
 	if(error = outputGridDimensions(out_name)){
 		cout << "Error - " << error << endl;
@@ -242,6 +255,12 @@ int main ( int argc, char *argv[] ) {
 	}
 	cout << "Writing vertex parameters" << endl;
 	if(error = outputVertexParameters(out_name)){
+		cout << "Error - " << error << endl;
+		exit(error);
+	}
+
+	cout << "Writing mesh qualities" << endl;
+	if(error = outputMeshQualities(out_name)){
 		cout << "Error - " << error << endl;
 		exit(error);
 	}
@@ -2177,6 +2196,99 @@ int buildAngleEdge(){/*{{{*/
 
 	return 0;
 }/*}}}*/
+int buildMeshQualities(){/*{{{*/
+	/*
+	 * buildMeshQualities constructs fields describing the quality of the mesh, including:
+	 *		- cellQuality: a double between 0 and 1 describing how uniform the cell is
+	 *		- gridSpacing: an estimate of the grid spacing of each cell
+	 *		- triangleQuality: a double between 0 and 1 describing how uniform the cell is based on edge lenghts
+	 *		- triangleAngleQuality: a double between 0 and 1 describing how uniform the cell is based on the angles of the triangle
+	 *		- obtuseTriangle: an integer either 0 or 1 that flags triangles with an obtuse angle (set to 1)
+	 */
+
+	int iCell, iVertex, iEdge;
+	int i, j;
+	double maxEdge, minEdge, spacing;
+	double angle, maxAngle, minAngle;
+	int obtuse;
+
+	cellQuality.clear();
+	gridSpacing.clear();
+	triangleQuality.clear();
+	triangleAngleQuality.clear();
+	obtuseTriangle.clear();
+
+	cellQuality.resize(cells.size());
+	gridSpacing.resize(cells.size());
+
+	triangleQuality.resize(vertices.size());
+	triangleAngleQuality.resize(vertices.size());
+	obtuseTriangle.resize(vertices.size());
+
+
+	for ( iCell = 0; iCell < cells.size(); iCell++ ) {
+		maxEdge = 0.0;
+		minEdge = DBL_MAX;
+		spacing = 0.0;
+
+		for ( j = 0; j < edgesOnCell.at(iCell).size(); j++ ) {
+			iEdge = edgesOnCell.at(iCell).at(j);
+
+			maxEdge = max(maxEdge, dvEdge.at(iEdge));
+			minEdge = min(minEdge, dvEdge.at(iEdge));
+
+			spacing += dcEdge.at(iEdge);
+		}
+
+		cellQuality.at(iCell) = minEdge / maxEdge;
+		gridSpacing.at(iCell) = spacing / edgesOnCell.at(iCell).size(); 
+	}
+
+	for ( iVertex = 0; iVertex < vertices.size(); iVertex++ ) {
+		maxEdge = 0.0;
+		minEdge = DBL_MAX;
+		maxAngle = 0.0;
+		minAngle = DBL_MAX;
+		obtuse = 0;
+
+
+		for ( j = 0; j < edgesOnVertex.at(iVertex).size(); j++ ) {
+			iEdge = edgesOnVertex.at(iVertex).at(j);
+
+			maxEdge = max(maxEdge, dcEdge.at(iEdge));
+			minEdge = min(minEdge, dcEdge.at(iEdge));
+			triangleQuality.at(iVertex) = minEdge / maxEdge;
+
+			if ( vertex_degree == 3 ) {
+				double a_len, b_len, c_len;
+				double angle1, angle2, angle3;
+
+				a_len = dcEdge.at(edgesOnVertex.at(iVertex).at(0));
+				b_len = dcEdge.at(edgesOnVertex.at(iVertex).at(1));
+				c_len = dcEdge.at(edgesOnVertex.at(iVertex).at(2));
+
+				angle1 = acos( max(-1.0, min(1.0, (b_len * b_len + c_len * c_len - a_len * a_len) / (2 * b_len * c_len))));
+				angle2 = acos( max(-1.0, min(1.0, (a_len * a_len + c_len * c_len - b_len * c_len) / (2 * a_len * c_len))));
+				angle3 = acos( max(-1.0, min(1.0, (a_len * a_len + b_len * b_len - c_len * c_len) / (2 * a_len * b_len))));
+
+				minAngle = min(angle1, min(angle2, angle3));
+				maxAngle = max(angle1, max(angle2, angle3));
+
+				if ( maxAngle > M_PI_2 ) {
+					obtuse = 1;
+					obtuseTriangles++;
+				}
+
+				triangleAngleQuality.at(iVertex) = minAngle / maxAngle;
+				obtuseTriangle.at(iVertex) = obtuse;
+			}
+		}
+	}
+
+	cout << "\tMesh contains: " << obtuseTriangles << " obtuse triangles." << endl;
+
+	return 0;
+}/*}}}*/
 /*}}}*/
 
 /* Output functions {{{*/
@@ -3048,6 +3160,68 @@ int outputMeshDensity( const string outputFilename) {/*{{{*/
 	//Write meshDensity
 	if (!(cDensVar = grid.add_var("meshDensity", ncDouble, nCellsDim))) return NC_ERR;
 	if (!cDensVar->put(&meshDensity.at(0),nCells)) return NC_ERR;
+
+	return 0;
+}/*}}}*/
+int outputMeshQualities( const string outputFilename) {/*{{{*/
+	/***************************************************************************
+	 *
+	 * This function writes the mesh quality variables.
+	 *		- cellQuality
+	 *		- gridSpacing
+	 *		- triangleQuality
+	 *		- triangleAnalgeQuality
+	 *		- obtuseTriangle
+	 *
+	 * *************************************************************************/
+	// Return this code to the OS in case of failure.
+	static const int NC_ERR = 2;
+	
+	// set error behaviour (matches fortran behaviour)
+	NcError err(NcError::verbose_nonfatal);
+	
+	// open the scvtmesh file
+	NcFile grid(outputFilename.c_str(), NcFile::Write);
+	
+	// check to see if the file was opened
+	if(!grid.is_valid()) return NC_ERR;
+
+	// fetch dimensions
+	NcDim *nCellsDim = grid.get_dim( "nCells" );
+	NcDim *nVerticesDim = grid.get_dim( "nVertices" );
+
+	NcVar *cellQualityVar, *gridSpacingVar, *triangleQualityVar;
+	NcVar *triangleAngleQualityVar, *obtuseTriangleVar;
+
+	int nCells = nCellsDim->size();
+	int nVertices = nVerticesDim->size();
+	int i, j, k;
+
+	// Write cellQuality
+	if (!(cellQualityVar = grid.add_var("cellQuality", ncDouble, nCellsDim))) return NC_ERR;
+	if (!cellQualityVar->put(&cellQuality.at(0), nCells)) return NC_ERR;
+
+	// Write gridSpacing
+	if (!(gridSpacingVar = grid.add_var("gridSpacing", ncDouble, nCellsDim))) return NC_ERR;
+	if (!gridSpacingVar->put(&gridSpacing.at(0), nCells)) return NC_ERR;
+
+	// Write triangleQuality
+	if (!(triangleQualityVar = grid.add_var("triangleQuality", ncDouble, nVerticesDim))) return NC_ERR;
+	if (!triangleQualityVar->put(&triangleQuality.at(0), nVertices)) return NC_ERR;
+
+	// Write triangleAngleQuality
+	if (!(triangleAngleQualityVar = grid.add_var("triangleAngleQuality", ncDouble, nVerticesDim))) return NC_ERR;
+	if (!triangleAngleQualityVar->put(&triangleAngleQuality.at(0), nVertices)) return NC_ERR;
+
+	// Write obtuseTriangle
+	if (!(obtuseTriangleVar = grid.add_var("obtuseTriangle", ncInt, nVerticesDim))) return NC_ERR;
+	if (!obtuseTriangleVar->put(&obtuseTriangle.at(0), nVertices)) return NC_ERR;
+
+	cellQuality.clear();
+	gridSpacing.clear();
+	triangleQuality.clear();
+	triangleAngleQuality.clear();
+	obtuseTriangle.clear();
 
 	return 0;
 }/*}}}*/
