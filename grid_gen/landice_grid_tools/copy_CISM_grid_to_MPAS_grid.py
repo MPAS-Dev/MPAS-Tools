@@ -37,9 +37,13 @@ def BilinearInterp(x, y, Value, xCell, yCell):
        xgrid = math.floor( (xCell[i]-x[0]) / dx )
        if xgrid >= len(x) - 1:
           xgrid = len(x) - 2
+       elif xgrid < 0:
+          xgrid = 0
        ygrid = math.floor( (yCell[i]-y[0]) / dy )
        if ygrid >= len(y) - 1:
           ygrid = len(y) - 2
+       elif ygrid < 0:
+          ygrid = 0
        #print xgrid, ygrid
        ValueCell[i] = Value[ygrid,xgrid] * (x[xgrid+1] - xCell[i]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
                  Value[ygrid+1,xgrid] * (x[xgrid+1] - xCell[i]) * (yCell[i] - y[ygrid]) / (dx * dy) + \
@@ -86,6 +90,9 @@ try:
       y1 = infile.variables['y1'][:]
       dy1 = y1[1] - y1[0]
       print 'y1 min/max/dx:', y1.min(), y1.max(), dy1
+
+      ##x1 = x1 - (x1.max()-x1.min())/2.0  # This was for some shifted CISM grid but should not be used in general.
+      ##y1 = y1 - (y1.max()-y1.min())/2.0
     except:
       print 'Input file is missing x1 and/or y1.  Might not be a problem.'
     
@@ -94,6 +101,10 @@ try:
       print 'x0 min/max:', x0.min(), x0.max()
       y0 = infile.variables['y0'][:]
       print 'y0 min/max:', y0.min(), y0.max()
+
+      ##x0 = x0 - (x0.max()-x0.min())/2.0
+      ##y0 = y0 - (y0.max()-y0.min())/2.0
+
     except:
       print 'Input file is missing x0 and/or y0.  Might not be a problem.'
 

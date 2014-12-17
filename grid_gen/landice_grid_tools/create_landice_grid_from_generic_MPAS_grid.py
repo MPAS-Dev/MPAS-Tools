@@ -47,7 +47,8 @@ for dim in filein.dimensions.keys():
         if options.levels is None:
           # If nVertLevels is in the input file, and a value for it was not
           # specified on the command line, then use the value from the file (do nothing here)
-          print "Using nVertLevels from the intput file:", filein.dimensions[dim]
+          print "Using nVertLevels from the intput file:", len(filein.dimensions[dim])
+          dimvalue = len(filein.dimensions[dim])
         else:
           # if nVertLevels is in the input file, but a value WAS specified
           # on the command line, then use the command line value
