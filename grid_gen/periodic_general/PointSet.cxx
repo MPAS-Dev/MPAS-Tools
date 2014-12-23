@@ -23,12 +23,12 @@ PointSet::~PointSet()
 }
 
 
-int PointSet::initFromTextFile(const char * filename)
+int PointSet::initFromTextFile(double X_PERIOD, double Y_PERIOD, const char * filename)
 {
 	ifstream fin(filename);
 	double xloc, yloc;
 	Point * p;
-	DensityFunction d;
+	DensityFunction d(X_PERIOD, Y_PERIOD);
 	ifstream new_edges("new_edges");
 
 	assert(fin.is_open());

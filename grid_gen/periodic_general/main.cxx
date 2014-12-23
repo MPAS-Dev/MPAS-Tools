@@ -42,7 +42,7 @@ Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1);
 int main(int argc, char ** argv)
 {
 	int i, ii, jj, n, iter, idx, npts, np;
-	DensityFunction f;
+	DensityFunction f(X_PERIOD, Y_PERIOD);
 	PointSet pset;
 	PointSet out_pset;
 	vector<Point> * vcs;
@@ -77,7 +77,7 @@ int main(int argc, char ** argv)
 
 	const int MAXITR = 100;
 
-	pset.initFromTextFile("centroids.txt");
+	pset.initFromTextFile(X_PERIOD, Y_PERIOD, "centroids.txt");
 
 
 	/*

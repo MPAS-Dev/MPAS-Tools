@@ -52,7 +52,7 @@ class PointSet
 	public:
 		PointSet();
 		~PointSet();
-		int initFromTextFile(const char *);
+		int initFromTextFile(double X_PERIOD, double Y_PERIOD, const char *);
 		void print();
 		void printToTextFile(const char *);
 		void addPoint(double x, double y, int boundary_point);

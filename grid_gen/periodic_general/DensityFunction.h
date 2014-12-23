@@ -10,7 +10,7 @@ class DensityFunction
 		double minX, maxX, minY, maxY;
 		double f(double x, double y);
 	public:
-		DensityFunction();
+		DensityFunction(double X_PERIOD, double Y_PERIOD);
 		~DensityFunction();
 		double evaluate(Point& p);
 		Point * randomPoint();

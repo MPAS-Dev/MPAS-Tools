@@ -3,11 +3,11 @@
 #include "DensityFunction.h"
 
 
-DensityFunction::DensityFunction()
+DensityFunction::DensityFunction(double X_PERIOD, double Y_PERIOD)
 {
 	minX = minY = 0.0;
-	maxX = 40.0;
-	maxY = 40.0 * 0.866025403784439;
+	maxX = X_PERIOD;
+	maxY = Y_PERIOD;
 }
 
 
