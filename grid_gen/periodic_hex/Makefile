@@ -34,7 +34,7 @@ LDFLAGS = -O3 -m64
 #LDFLAGS = -O3
 
 
-CPP = cpp -C -P -traditional
+CPP = cpp -P -traditional
 CPPFLAGS = 
 CPPINCLUDES = 
 INCLUDES = -I$(NETCDF)/include

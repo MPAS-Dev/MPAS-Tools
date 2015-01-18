@@ -5,7 +5,7 @@ module cell_indexing
    integer, parameter :: maxEdges = 6
 
    integer :: nx, ny, nVertLevels, nTracers, vertexDegree
-   real (kind=8) :: dc
+   real (kind=8) :: dc, x0, y0
    integer, dimension(20) :: nproc
 
 
@@ -16,11 +16,13 @@ module cell_indexing
 
       implicit none
 
-      namelist /periodic_grid/ nx, ny, dc, nVertLevels, nTracers, nproc, vertexDegree
+      namelist /periodic_grid/ nx, ny, dc, x0, y0, nVertLevels, nTracers, nproc, vertexDegree
 
       nx = 200
       ny = 200
       dc = 10000.
+      x0 = 0.
+      y0 = 0.
       nVertLevels = 1
       nTracers = 2
       nproc(:) = -1

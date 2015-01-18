@@ -217,12 +217,12 @@ program hexagonal_periodic_grid
       lonCell(iCell) = 0.0
 
       if (mod(iRow,2) == 1) then
-         xCell(iCell) = dc*real(iCol) - 0.5*dc
-         yCell(iCell) = dc*real(iRow)*sqrt(THREE) / TWO
+         xCell(iCell) = x0 + dc*real(iCol) - 0.5*dc
+         yCell(iCell) = y0 + dc*real(iRow)*sqrt(THREE) / TWO
          zCell(iCell) = 0.0
       else
-         xCell(iCell) = dc*real(iCol)
-         yCell(iCell) = dc*real(iRow)*sqrt(THREE) / TWO
+         xCell(iCell) = x0 + dc*real(iCol)
+         yCell(iCell) = y0 + dc*real(iRow)*sqrt(THREE) / TWO
          zCell(iCell) = 0.0
       end if
 
