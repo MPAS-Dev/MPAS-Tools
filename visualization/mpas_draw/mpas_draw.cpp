@@ -102,7 +102,8 @@ static GLfloat theta[3] = { 0.0, 0.0, 0.0 };
 double theta_speed = 0.020;
 
 int ntime;
-int nvertlevels;
+int 	nvertdimension;  // this is the size of the dimension being currently treated as the vertical dimension
+string vertdimensionname; // this is the name of the dimension being currently treated as the vertical dimension
 int ncells;
 int nvertices;
 int nedges;
@@ -113,6 +114,7 @@ int pixel_width;
 int edge_field = -1;
 int cell_field = -1;
 int vertex_field = -1;
+
 int cur_level = 0;
 int cur_time = 0;
 int cur_screenshot = 1;
@@ -656,7 +658,6 @@ void build_connectivity(){/*{{{*/
 	//  Get sizes.
 	//
 	ntime = netcdf_mpas_read_dim(filename, "Time" );
-	nvertlevels = netcdf_mpas_read_dim(filename, "nVertLevels");
 	ncells = netcdf_mpas_read_dim (filename, "nCells");
 	nvertices = netcdf_mpas_read_dim(filename, "nVertices");
 	nedges = netcdf_mpas_read_dim(filename, "nEdges");
@@ -681,7 +682,6 @@ void build_connectivity(){/*{{{*/
 	}
 
 	cout << "  The number of time steps NTIME   = " << ntime << "\n";
-	cout << "  The number of vertical levels NVERTLEVELS = " << nvertlevels << "\n";
 	cout << "  The number of cells NCELLS       = " << ncells << "\n";
 	cout << "  The number of vertices NVERTICES =  " << nvertices << "\n";
 	cout << "  The number of edges NEDGES =  " << nedges << "\n";
@@ -1767,7 +1767,6 @@ void color_cells(){/*{{{*/
 	long *dims;
 	int num_dims = 0;
 	int cell_dim;
-	int vert_dim;
 	int time_dim;
 	int num_items;
 	float r, g, b;
@@ -2036,15 +2035,15 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 
 			exit( 0 );
 		case KEY_l:
-			cur_level = (cur_level + 1) % nvertlevels;
-			cout << "Current vertical level: " << cur_level+1 << " out of " << nvertlevels << endl;
+			cur_level = (cur_level + 1) % nvertdimension;
+			cout << "l/L keys control dimension: " << vertdimensionname << "; Current dimension value: " << cur_level+1 << " out of " << nvertdimension << endl;
 			color_mesh();
 			break;
 		case KEY_L:
-			cur_level = (cur_level - 1) % nvertlevels;
+			cur_level = (cur_level - 1) % nvertdimension;
 			if(cur_level < 0)
-				cur_level = nvertlevels - 1;
-			cout << "Current vertical level: " << cur_level+1 << " out of " << nvertlevels << endl;
+				cur_level = nvertdimension - 1;
+			cout << "l/L keys control dimension: " << vertdimensionname << "; Current dimension value: " << cur_level+1 << " out of " << nvertdimension << endl;
 			color_mesh();
 			break;
 		case KEY_t:
@@ -2185,6 +2184,9 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 				case 0:
 					vertex_field = netcdf_mpas_list_nvertex_fields(filename);
 					netcdf_mpas_print_field_info(filename, vertex_field);
+					netcdf_mpas_get_vert_dim_info(filename, vertex_field, nvertdimension, vertdimensionname); // Update vertical dimension info
+					cur_level = cur_level % nvertdimension;
+					cout << "l/L keys control dimension: " << vertdimensionname << "; Current dimension value: " << cur_level+1 << " out of " << nvertdimension << endl;
 					if(vertex_field >= 0 && color_bar == 2){
 						build_range(vertex_field);
 						cout << " Range of values: Min = " << ranges.at(vertex_field).at(0) << ", Max = " << ranges.at(vertex_field).at(1) << endl;
@@ -2193,6 +2195,9 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 				case 1:
 					cell_field = netcdf_mpas_list_ncell_fields(filename);
 					netcdf_mpas_print_field_info(filename, cell_field);
+					netcdf_mpas_get_vert_dim_info(filename, cell_field, nvertdimension, vertdimensionname); // Update vertical dimension info
+					cur_level = cur_level % nvertdimension;
+					cout << "l/L keys control dimension: " << vertdimensionname << "; Current dimension value: " << cur_level+1 << " out of " << nvertdimension << endl;
 					if(cell_field >= 0 && color_bar == 2){
 						build_range(cell_field);
 						cout << " Range of values: Min = " << ranges.at(cell_field).at(0) << ", Max = " << ranges.at(cell_field).at(1) << endl;
@@ -2201,6 +2206,9 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 				case 2:
 					edge_field = netcdf_mpas_list_nedge_fields(filename);
 					netcdf_mpas_print_field_info(filename, edge_field);
+					netcdf_mpas_get_vert_dim_info(filename, edge_field, nvertdimension, vertdimensionname); // Update vertical dimension info
+					cur_level = cur_level % nvertdimension;
+					cout << "l/L keys control dimension: " << vertdimensionname << "; Current dimension value: " << cur_level+1 << " out of " << nvertdimension << endl;
 					if(edge_field >= 0 && color_bar == 2){
 						build_range(edge_field);
 						cout << " Range of values: Min = " << ranges.at(edge_field).at(0) << ", Max = " << ranges.at(edge_field).at(1) << endl;

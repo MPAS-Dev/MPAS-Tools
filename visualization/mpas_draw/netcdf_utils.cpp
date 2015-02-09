@@ -1435,7 +1435,7 @@ void netcdf_mpas_read_field(string filename, int id, double values[], int cur_ti
 	NcVar *var_id;
 	int num_dims;
 	int type;
-	int nCells, nEdges, nVertices, nVertLevels;
+	int nCells, nEdges, nVertices;
 	int elementDim, timeDim, vertLevelsDim;
 	long *dims;
 	//
@@ -1459,18 +1459,17 @@ void netcdf_mpas_read_field(string filename, int id, double values[], int cur_ti
 		dims[i] = var_id->get_dim(i)->size();
 		if(strcmp(var_id->get_dim(i)->name(), "nCells") == 0 || strcmp(var_id->get_dim(i)->name(), "nEdges") == 0 || strcmp(var_id->get_dim(i)->name(), "nVertices") == 0){
 			elementDim = i;
+			if (i+1 <= num_dims-1){
+				vertLevelsDim = i+1; // Assume the 'vertical' dimension is the one after the horizontal dimension.  This would need to be treated more carefully if more than 3d fields are supported.
+			}
 		}
 		if(strcmp(var_id->get_dim(i)->name(), "Time") == 0){
 			timeDim = i;
-		}
-		if(strcmp(var_id->get_dim(i)->name(), "nVertLevels") == 0){
-			vertLevelsDim = i;
 		}
 	}
 	nCells = netcdf_mpas_read_dim (filename, "nCells");
 	nEdges = netcdf_mpas_read_dim (filename, "nEdges");
 	nVertices = netcdf_mpas_read_dim (filename, "nVertices");
-	nVertLevels = netcdf_mpas_read_dim (filename, "nVertLevels");
 
 	type = var_id->type();
 	if(type == 6){ // NCDOUBLE
@@ -1696,6 +1695,73 @@ void netcdf_mpas_read_full_field(string filename, int id, double values[]){/*{{{
 	//  Close the file.
 	//
 	ncid.close ( );
+
+	return;
+}/*}}}*/
+
+
+//****************************************************************************
+void  netcdf_mpas_get_vert_dim_info(string filename, int id, int& dim_size, string& dim_name){/*{{{*/
+	//**************************************************************************
+	//
+	//  Purpose:
+	//
+	//    netcdf_mpas_get_vert_dim_info gets the size and name of the 'vertical'
+	//    dimension of a field, if one exists.  The 'vertical' dimension is defined
+	//    as the first dimension after the horizontal dimension.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    21 January 2014
+	//
+	//  Author:
+	//
+	//    Matthew Hoffman
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Input, int id, the variable id
+	//
+	//    Output, int dim_size, the size of the dimension
+	//
+	//    Output, int dim_name, the name of the dimension
+
+	NcVar *var_id;
+	int num_dims;
+
+	// Initialize return values
+	dim_size = 1;
+	dim_name = "n/a";
+
+	//
+	//  Open the file.
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+
+	//
+	//  Get the variable and its dimensions
+	//
+	var_id = ncid.get_var (id);
+	num_dims = var_id->num_dims();
+
+	for(int i = 0; i < num_dims; i++){
+		if(strcmp(var_id->get_dim(i)->name(), "nCells") == 0 || strcmp(var_id->get_dim(i)->name(), "nEdges") == 0 || strcmp(var_id->get_dim(i)->name(), "nVertices") == 0){
+			if (i+1 <= num_dims-1){
+				// Assume the 'vertical' dimension is the one after the horizontal dimension.  This would need to be treated more carefully if more than 3d fields are supported.
+				dim_size = var_id->get_dim(i+1)->size();
+				dim_name = var_id->get_dim(i+1)->name();
+			}
+		}
+	}
 
 	return;
 }/*}}}*/
