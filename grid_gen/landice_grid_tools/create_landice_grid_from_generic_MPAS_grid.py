@@ -15,6 +15,8 @@ parser = OptionParser()
 parser.add_option("-i", "--in", dest="fileinName", help="input filename.  Defaults to 'grid.nc'", metavar="FILENAME")
 parser.add_option("-o", "--out", dest="fileoutName", help="output filename.  Defaults to 'landice_grid.nc'", metavar="FILENAME")
 parser.add_option("-l", "--level", dest="levels", help="Number of vertical levels to use in the output file.  Defaults to the number in the input file", metavar="FILENAME")
+parser.add_option("--beta", dest="beta", action="store_true", help="Use this flag to include the field 'beta' in the resulting file.")
+parser.add_option("--diri", dest="dirichlet", action="store_true", help="Use this flag to include the fields 'dirichletVelocityMask', 'uReconstructX', 'uReconstructY' needed for specifying Dirichlet velocity boundary conditions in the resulting file.")
 options, args = parser.parse_args()
 
 if not options.fileinName:
@@ -31,7 +33,9 @@ filein = Dataset(options.fileinName,'r')
 # Define the new file to be output 
 fileout = Dataset(options.fileoutName,"w",format=filein.file_format)
 
+# ============================================
 # Copy over all the dimensions to the new file
+# ============================================
 # Note: looping over dimensions seems to result in them being written in seemingly random order.
 #       I don't think this matters but it is not aesthetically pleasing.
 #       It may be better to list them explicitly as I do for the grid variables, 
@@ -66,7 +70,9 @@ if 'nVertLevels' not in fileout.dimensions:
    else:
        print "Using nVertLevels specified on the command line:", int(options.levels)
        fileout.createDimension('nVertLevels', int(options.levels))
-print '' # make a space in stdout
+# Also create the nVertInterfaces dimension, even if none of the variables require it.
+fileout.createDimension('nVertInterfaces', len(fileout.dimensions['nVertLevels']) + 1)  # nVertInterfaces = nVertLevels + 1
+print 'Added new dimension nVertInterfaces to output file with value of ' + str(len(fileout.dimensions['nVertInterfaces'])) + '.'
 
 # Create the dimensions needed for time-dependent forcings
 # Note: These have been disabled in the fresh implementation of the landice core.  MH 9/19/13
@@ -76,7 +82,11 @@ print '' # make a space in stdout
 #fileout.createDimension('nBasalHeatFluxTimeSlices', 1)
 #fileout.createDimension('nMarineBasalMassBalTimeSlices', 1)
 
+print 'Finished creating dimensions in output file.\n' # include an extra blank line here
+
+# ============================================
 # Copy over all of the required grid variables to the new file
+# ============================================
 vars2copy = ('latCell', 'lonCell', 'xCell', 'yCell', 'zCell', 'indexToCellID', 'latEdge', 'lonEdge', 'xEdge', 'yEdge', 'zEdge', 'indexToEdgeID', 'latVertex', 'lonVertex', 'xVertex', 'yVertex', 'zVertex', 'indexToVertexID', 'cellsOnEdge', 'nEdgesOnCell', 'nEdgesOnEdge', 'edgesOnCell', 'edgesOnEdge', 'weightsOnEdge', 'dvEdge', 'dcEdge', 'angleEdge', 'areaCell', 'areaTriangle', 'cellsOnCell', 'verticesOnCell', 'verticesOnEdge', 'edgesOnVertex', 'cellsOnVertex', 'kiteAreasOnVertex')
 for varname in vars2copy:
    thevar = filein.variables[varname]
@@ -92,32 +102,46 @@ for varname in vars2copy:
    else: # not on a sphere
      newVar[:] = thevar[:]
 
+# ============================================
 # Create the land ice variables (all the shallow water vars in the input file can be ignored)
+# ============================================
 nVertLevels = len(fileout.dimensions['nVertLevels'])
 datatype = filein.variables['xCell'].dtype  # Get the datatype for double precision float
+datatypeInt = filein.variables['indexToCellID'].dtype  # Get the datatype for integers
 #  Note: it may be necessary to make sure the Time dimension has size 1, rather than the 0 it defaults to.  For now, letting it be 0 which seems to be fine.
-newvar = fileout.createVariable('layerThicknessFractions', datatype, ('nVertLevels', ))
-newvar[:] = numpy.zeros(newvar.shape)
+layerThicknessFractions = fileout.createVariable('layerThicknessFractions', datatype, ('nVertLevels', ))
+layerThicknessFractions[:] = numpy.zeros(layerThicknessFractions.shape)
 # Assign default values to layerThicknessFractions.  By default they will be uniform fractions.  Users can modify them in a subsequent step, but doing this here ensures the most likely values are already assigned. (Useful for e.g. setting up Greenland where the state variables are copied over but the grid variables are not modified.)
-newvar[:] = 1.0 / nVertLevels
+layerThicknessFractions[:] = 1.0 / nVertLevels
 
 
 # With Scientific.IO.netCDF, entries are appended along the unlimited dimension one at a time by assigning to a slice.
 # Therefore we need to assign to time level 0, and what we need to assign is a zeros array that is the shape of the new variable, exluding the time dimension!
 newvar = fileout.createVariable('thickness', datatype, ('Time', 'nCells'))
-newvar[0,:] = numpy.zeros( newvar.shape[1:] )   
-newvar = fileout.createVariable('normalVelocity', datatype, ('Time', 'nEdges', 'nVertLevels'))
-newvar[0,:,:] = numpy.zeros( newvar.shape[1:] )   
+newvar[0,:] = numpy.zeros( newvar.shape[1:] )
 newvar = fileout.createVariable('temperature', datatype, ('Time', 'nCells', 'nVertLevels'))
-newvar[0,:,:] = numpy.zeros( newvar.shape[1:] )   
+newvar[0,:,:] = numpy.zeros( newvar.shape[1:] )
 # These landice variables are stored in the mesh currently, and therefore do not have a time dimension.
 #    It may make sense to eventually move them to state.
 newvar = fileout.createVariable('bedTopography', datatype, ('nCells',))
 newvar[:] = numpy.zeros(newvar.shape)
 newvar = fileout.createVariable('sfcMassBal', datatype, ('nCells',))
 newvar[:] = numpy.zeros(newvar.shape)
-newvar = fileout.createVariable('beta', datatype, ('nCells',))
-newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
+print 'Added default variables: thickness, temperature, bedTopography, sfcMassBal'
+
+if options.beta:
+   newvar = fileout.createVariable('beta', datatype, ('nCells',))
+   newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
+   print 'Added optional variable: beta'
+
+if options.dirichlet:
+   newvar = fileout.createVariable('dirichletVelocityMask', datatypeInt, ('Time', 'nCells', 'nVertInterfaces'))
+   newvar[:] = 0  # default: no Dirichlet b.c.
+   newvar = fileout.createVariable('uReconstructX', datatype, ('Time', 'nCells', 'nVertInterfaces',))
+   newvar[:] = 0.0
+   newvar = fileout.createVariable('uReconstructY', datatype, ('Time', 'nCells', 'nVertInterfaces',))
+   newvar[:] = 0.0
+   print 'Added optional variables: dirichletVelocityMask, uReconstructX, uReconstructY'
 
 # These boundary conditions are currently part of mesh, and are time independent.  If they change, make sure to adjust the dimensions here and in Registry.
 # Note: These have been disabled in the fresh implementation of the landice core.  MH 9/19/13
@@ -132,7 +156,11 @@ newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
 #newvar = fileout.createVariable('marineBasalMassBalTimeSeries', datatype, ( 'nCells', 'nMarineBasalMassBalTimeSlices',))
 #newvar[:] = numpy.zeros(newvar.shape)
 
+print 'Finished creating variables in output file.\n' # include an extra blank line here
+
+# ============================================
 # Copy over all of the netcdf global attributes
+# ============================================
 print "---- Copying global attributes from input file to output file ----"
 for name in filein.ncattrs():
   # sphere radius needs to be set to that of the earth if on a sphere
@@ -144,16 +172,6 @@ for name in filein.ncattrs():
     setattr(fileout, name, getattr(filein, name) )
     print 'Copied global attribute  ', name, '=', getattr(filein, name)
 
-## Copy over the two attributes that are required by MPAS.  If any others exist in the input file, give a warning.
-#setattr(fileout, 'on_a_sphere', getattr(filein, 'on_a_sphere'))
-#if filein.on_a_sphere == "YES             ":
-#  setattr(fileout, 'sphere_radius', sphere_radius)
-#else:
-#  setattr(fileout, 'sphere_radius', -1.0)
-## If there are others that need to be copied, this script will need to be modified.
-#print "** File had ", len(dir(filein)) - 5, "global attributes.  Copied on_a_sphere and sphere_radius."
-#print "** Global attributes and functions: "
-#print dir(filein)
 
 filein.close()
 fileout.close()
