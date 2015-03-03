@@ -2225,6 +2225,9 @@ int buildMeshQualities(){/*{{{*/
 	triangleAngleQuality.resize(vertices.size());
 	obtuseTriangle.resize(vertices.size());
 
+#ifdef _DEBUG
+	cout << "Starting mesh quality calcs." <<endl;
+#endif
 
 	for ( iCell = 0; iCell < cells.size(); iCell++ ) {
 		maxEdge = 0.0;
@@ -2239,10 +2242,17 @@ int buildMeshQualities(){/*{{{*/
 
 			spacing += dcEdge.at(iEdge);
 		}
-
-		cellQuality.at(iCell) = minEdge / maxEdge;
+		if (maxEdge > 0.0) {
+			cellQuality.at(iCell) = minEdge / maxEdge;
+		} else {
+			cellQuality.at(iCell) = 0.0;
+		}
 		gridSpacing.at(iCell) = spacing / edgesOnCell.at(iCell).size(); 
 	}
+
+#ifdef _DEBUG
+	cout << "Starting loop over vertices." <<endl;
+#endif
 
 	for ( iVertex = 0; iVertex < vertices.size(); iVertex++ ) {
 		maxEdge = 0.0;
@@ -2251,36 +2261,62 @@ int buildMeshQualities(){/*{{{*/
 		minAngle = DBL_MAX;
 		obtuse = 0;
 
+#ifdef _DEBUG
+	cout << "vertex:" << iVertex <<endl;
+#endif
 
 		for ( j = 0; j < edgesOnVertex.at(iVertex).size(); j++ ) {
+#ifdef _DEBUG
+			cout << "  edge:" << j <<endl;
+#endif
 			iEdge = edgesOnVertex.at(iVertex).at(j);
 
 			maxEdge = max(maxEdge, dcEdge.at(iEdge));
 			minEdge = min(minEdge, dcEdge.at(iEdge));
 			triangleQuality.at(iVertex) = minEdge / maxEdge;
 
+#ifdef _DEBUG
+			cout << "  triangleQuality:" << minEdge / maxEdge <<endl;
+#endif
+
 			if ( vertex_degree == 3 ) {
 				double a_len, b_len, c_len;
 				double angle1, angle2, angle3;
 
-				a_len = dcEdge.at(edgesOnVertex.at(iVertex).at(0));
-				b_len = dcEdge.at(edgesOnVertex.at(iVertex).at(1));
-				c_len = dcEdge.at(edgesOnVertex.at(iVertex).at(2));
+				if (edgesOnVertex.at(iVertex).size() == 3) {
+					a_len = dcEdge.at(edgesOnVertex.at(iVertex).at(0));
+#ifdef _DEBUG
+					cout << "  length 1:" << a_len <<endl;
+#endif
 
-				angle1 = acos( max(-1.0, min(1.0, (b_len * b_len + c_len * c_len - a_len * a_len) / (2 * b_len * c_len))));
-				angle2 = acos( max(-1.0, min(1.0, (a_len * a_len + c_len * c_len - b_len * c_len) / (2 * a_len * c_len))));
-				angle3 = acos( max(-1.0, min(1.0, (a_len * a_len + b_len * b_len - c_len * c_len) / (2 * a_len * b_len))));
+					b_len = dcEdge.at(edgesOnVertex.at(iVertex).at(1));
+#ifdef _DEBUG
+					cout << "  length 2:" << b_len<< endl;
+#endif
 
-				minAngle = min(angle1, min(angle2, angle3));
-				maxAngle = max(angle1, max(angle2, angle3));
+					c_len = dcEdge.at(edgesOnVertex.at(iVertex).at(2));
+#ifdef _DEBUG
+					cout << "  length 3:" << c_len <<endl;
+#endif
 
-				if ( maxAngle > M_PI_2 ) {
-					obtuse = 1;
-					obtuseTriangles++;
+					angle1 = acos( max(-1.0, min(1.0, (b_len * b_len + c_len * c_len - a_len * a_len) / (2 * b_len * c_len))));
+					angle2 = acos( max(-1.0, min(1.0, (a_len * a_len + c_len * c_len - b_len * c_len) / (2 * a_len * c_len))));
+					angle3 = acos( max(-1.0, min(1.0, (a_len * a_len + b_len * b_len - c_len * c_len) / (2 * a_len * b_len))));
+
+					minAngle = min(angle1, min(angle2, angle3));
+					maxAngle = max(angle1, max(angle2, angle3));
+
+					if ( maxAngle > M_PI_2 ) {
+						obtuse = 1;
+						obtuseTriangles++;
+					}
+
+					triangleAngleQuality.at(iVertex) = minAngle / maxAngle;
+					obtuseTriangle.at(iVertex) = obtuse;
+				} else {
+					triangleAngleQuality.at(iVertex) = 1.0;
+					obtuseTriangle.at(iVertex) = 0;
 				}
-
-				triangleAngleQuality.at(iVertex) = minAngle / maxAngle;
-				obtuseTriangle.at(iVertex) = obtuse;
 			}
 		}
 	}
