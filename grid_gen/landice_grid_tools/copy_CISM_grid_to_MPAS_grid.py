@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Copy fields from a regular CISM grid into a pre-existing MPAS grid 
 
 import sys, numpy

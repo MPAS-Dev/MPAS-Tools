@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Script for adding a field named cullMask to an MPAS land ice grid for use with the crop_landice_grid.F tool that actually culls the unwanted cells.
 # Matt Hoffman, February 28, 2013
 
