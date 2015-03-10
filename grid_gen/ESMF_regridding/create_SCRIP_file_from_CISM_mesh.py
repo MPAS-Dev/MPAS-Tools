@@ -66,7 +66,7 @@ dy = y1[1] - y1[0]
 # Dimensions
 fout.createDimension("grid_size", nx * ny)
 fout.createDimension("grid_corners", 4 )
-fout.createDimension("grid_rank", 2)
+fout.createDimension("grid_rank", 1)
 
 # Variables
 grid_center_lat = fout.createVariable('grid_center_lat', 'f8', ('grid_size',))
@@ -119,7 +119,7 @@ grid_corner_lon[:] = grid_corner_lon_local[:]
 grid_corner_lat[:] = grid_corner_lat_local[:]
 
 grid_imask[:] = 1  # For now, assume we don't want to mask anything out - but eventually may want to exclude certain cells from the input mesh during interpolation
-grid_dims[:] = (nx, ny)
+grid_dims[:] = (nx * ny)
 
 
 # plot some stuff
