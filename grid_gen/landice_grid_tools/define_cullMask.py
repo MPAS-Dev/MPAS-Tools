@@ -1,5 +1,5 @@
-#!/usr/bin/python
-# Script for adding a field named cullMask to an MPAS land ice grid for use with the crop_landice_grid.F tool that actually culls the unwanted cells.
+#!/usr/bin/env python
+# Script for adding a field named cullMask to an MPAS land ice grid for use with the MpasCellCuller tool that actually culls the unwanted cells.
 # Matt Hoffman, February 28, 2013
 
 import sys
@@ -20,27 +20,31 @@ if not options.file:
 	print "No grid filename provided. Using landice_grid.nc."
         options.file = "landice_grid.nc"
 
-try: 
+try:
   f = NetCDFFile(options.file,'r+')
 except:
   sys.exit('Error loading grid file.')
-  
 
-datatype = f.variables['indexToCellID'].dtype  # Get the datatype for integer
+
+xCell = f.variables['xCell'][:]
+yCell = f.variables['yCell'][:]
+nCells = len(f.dimensions['nCells'])
+
+
 
 # Try to add the new variable
 if 'cullCell' not in f.variables:
+  datatype = f.variables['indexToCellID'].dtype  # Get the datatype for integer
   f.createVariable('cullCell', datatype, ('nCells',))
 
 # -- Get needed fields from the file --
-cullCell = f.variables['cullCell']
-cullCell[:] = 0  # Initialize to cull no cells
 
-xCell = f.variables['xCell']
-yCell = f.variables['yCell']
+cullCell = np.zeros((nCells, ))  # Initialize to cull no cells
+
 
 try:
-  thickness = f.variables['thickness']
+  thickness = f.variables['thickness'][0,:]
+  print 'Using thickness field at time 0'
 except:
   print "The field 'thickness' is not available.  Some culling methods will not work."
 
@@ -50,16 +54,16 @@ maskmeth = 2
 
 # 1. only keep cells with ice
 if maskmeth == 1:
-  cullCell[thickness[0,:] == 0.0] = 1
+  cullCell[thickness == 0.0] = 1
 
 # 2. add a buffer of X cells around the ice 
 elif maskmeth == 2:
 
-  buffersize=2  # number of cells to expand
+  buffersize=5  # number of cells to expand
 
   keepCellMask = np.copy(cullCell[:])   # to use existing code, do this.  not very efficient but fine for now.
   keepCellMask[:] = 0
-  keepCellMask[thickness[0,:] > 0.0] = 1  # start with the mask being where ice is
+  keepCellMask[thickness > 0.0] = 1  # start with the mask being where ice is
   print 'Num of cells to keep:', sum(keepCellMask)
   cellsOnCell = f.variables['cellsOnCell']
   for i in range(buffersize):
@@ -101,6 +105,7 @@ plt.draw()
 plt.show()
 
 
+f.variables['cullCell'][:] = cullCell
 f.close()
 
 

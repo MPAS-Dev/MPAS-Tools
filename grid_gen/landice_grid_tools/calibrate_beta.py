@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 # Script for calibrating beta using MPAS 
 # Note that the script currenly assumes that the target velocity is an observed surface velocity, as opposed to a balance velocity - but that distinction may not matter too much.
 # Matt Hoffman, March 2013
