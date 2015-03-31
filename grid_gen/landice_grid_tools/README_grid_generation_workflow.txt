@@ -13,7 +13,8 @@ Note most of the example commands below are using absolute paths to things on Ma
 
 1. Make MPAS grid
 Here using periodic_hex tool for uniform density planar mesh.
-MPAS-Tools: grid_gen/periodic_hex
+Location: in MPAS-Tools repo at grid_gen/periodic_hex
+Run 'make' to compile it.
 
 Set namelist.input for the mesh dimensions required for a 20km GIS mesh:
 &periodic_grid
@@ -29,18 +30,19 @@ Run:
 ./periodic_grid
 
 
-2. Strip out periodic cells - ESMF can't handle that!
+2. Strip out periodic cells - ESMF can't handle that! (This step only needed if using ESMF regridding)
 In same directory.
 > python mark_periodic_boundaries_for_culling.py grid.nc
 Then use the cell culler:
 ~/documents/mpas-git/Tools/grid_gen/mesh_conversion_tools/MpasCellCuller.x grid.nc
+(this tool has to be compiled - just run make)
 
 
 3. Make an empty MPAS LI mesh with 10 vertical levels
 python ~/documents/mpas-git/Tools/grid_gen/landice_grid_tools/create_landice_grid_from_generic_MPAS_grid.py --beta -l 10 -i culled_mesh.nc -o landice_grid.nc
 
 
-4. Setup lat/long values on the MPAS mesh
+4. Setup lat/long values on the MPAS mesh (This step might only be needed if using ESMF regridding)
 python ~/documents/mpas-git/Tools/grid_gen/landice_grid_tools/set_lat_lon_fields_in_planar_MPAS_grid.py -f landice_grid.nc -p gis-bamber -d /Users/mhoffman/documents/greenland_geometry/10-5-2-GIS/gis_10km.ice2sea.050213.nc
 (This tool could perhaps use some revising, or be broken into two.  It shifts the grid to the center of the CISM grid, and THEN adds lat lon values that will be needed later.)
 
@@ -63,7 +65,7 @@ Note: ESMF is available on Mustang if you don't want to deal with installing it 
 
 
 8. interpolate data from CISM grid to MPAS grid
-python -i ~/documents/mpas-git/Tools/grid_gen/landice_grid_tools/create_landice_grid_from_generic_MPAS_grid.py -c /Users/mhoffman/documents/greenland_geometry/10-5-2-GIS/gis_10km.ice2sea.050213.nc -m landice_grid.nc -w weight-c.nc
+python -i ~/documents/mpas-git/Tools/grid_gen/landice_grid_tools/interpolate_cism_grid_to_mpas_grid.py -c /Users/mhoffman/documents/greenland_geometry/10-5-2-GIS/gis_10km.ice2sea.050213.nc -m landice_grid.nc -w weight-c.nc
 Note: if you leave off the -w option (and the corresponding filename), the script will use a bilinear interpolation scheme written in python.  This means you could skip steps 5-7 above.  The bilinear interpolation can have issues if the CISM mesh is much finer than the MPAS mesh because it will only use a few of the CISM cells that within the MPAS cells to determine the value at the MPAS cell.  This can be unrepresentative by sampling high-frequency topographic variations.  However, if you are going to crop the mesh to the extent of Greenland (next steps), you can get away with the potentially less accurate bilinear interpolation during this step.  You might, however, prefer to use the ESMF method when you re-populate the IC in step 14.
 The interpolation script will try to interpolate a bunch of different CISM fields if they exist.  For example, it will try to interpolate temp and beta.  If you want it to try tempstag instead, you have to comment/uncomment some lines in the dictionary that matches up the CISM to MPAS field names.  It does do vertical interpolation as well, so the CISM and MPAS vertical levels do NOT need to match!
 
@@ -75,6 +77,7 @@ This script has some hard-coded options you might want to look at in the code.  
 
 10. cull it
 ~/documents/mpas-git/Tools/grid_gen/mesh_conversion_tools/MpasCellCuller.x landice_grid.nc culled_landice_grid.nc
+(this tool has to be compiled - just run make)
 
 
 11. make LI grid - the culling tool spits out a bare-minimum MPAS mesh, so we now need to repeat a number of steps...
