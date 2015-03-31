@@ -36,8 +36,10 @@ Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1);
 	double EPS = 1.0e-7;
 	double X_PERIOD = 1.0;
 	double Y_PERIOD = 1.0;
-	double X_BUFFER_W = 0.1;
-	double Y_BUFFER_W = 0.1;
+	double X_BUFFER_FRAC = 0.05;
+	double Y_BUFFER_FRAC = 0.05;
+	double X_BUFFER_W = 1.0;  // Buffer width in length units - these get calculated automatically from X/Y_BUFFER_FRAC
+	double Y_BUFFER_W = 1.0;
 	int NUMPOINTS = 200;
 	int MAXITR = 100;
 	int USE_MC = 1; // 1=true, 0=read from file
@@ -497,10 +499,10 @@ void readParamsFile(){
 		pout << X_PERIOD << endl;
 		pout << "Domain height (y)" << endl;
 		pout << Y_PERIOD << endl;
-		pout << "Width of buffer along domain edge in which to keep points fixed in x" << endl;
-		pout << X_BUFFER_W << endl;
-		pout << "Width of buffer along domain edge in which to keep points fixed in y" << endl;
-		pout << Y_BUFFER_W << endl;
+		pout << "Fraction of domain to set as a buffer in which initial point locations remain fixed, x-direction" << endl;
+		pout << X_BUFFER_FRAC << endl;
+		pout << "Fraction of domain to set as a buffer in which initial point locations remain fixed, y-direction" << endl;
+		pout << Y_BUFFER_FRAC << endl;
 
 		pout.close();
 
@@ -527,11 +529,13 @@ void readParamsFile(){
 	params >> Y_PERIOD;
 	params.ignore(10000,'\n');
 	getline(params,junk);
-	params >> X_BUFFER_W;
+	params >> X_BUFFER_FRAC;
 	params.ignore(10000,'\n');
 	getline(params,junk);
-	params >> Y_BUFFER_W;
+	params >> Y_BUFFER_FRAC;
 	params.ignore(10000,'\n');
+
+	params.close();
 
 	cout << "=== Specified settings are: ===" << endl;
 	cout << "Convergence tolerance to use:" << endl;
@@ -546,11 +550,11 @@ void readParamsFile(){
 	cout << X_PERIOD << endl;
 	cout << "Domain height (y)" << endl;
 	cout << Y_PERIOD << endl;
-	cout << "Width of buffer along domain edge in which to keep points fixed in x" << endl;
-	cout << X_BUFFER_W << endl;
-	cout << "Width of buffer along domain edge in which to keep points fixed in y" << endl;
-	cout << Y_BUFFER_W << endl;
+	cout << "Fraction of domain to set as a buffer in which initial point locations remain fixed, x-direction" << endl;
+	cout << X_BUFFER_FRAC << endl;
+	cout << "Fraction of domain to set as a buffer in which initial point locations remain fixed, y-direction" << endl;
+	cout << Y_BUFFER_FRAC << endl;
 
-
-	params.close();
+	X_BUFFER_W = X_PERIOD * X_BUFFER_FRAC;
+	Y_BUFFER_W = Y_PERIOD * Y_BUFFER_FRAC;
 }
