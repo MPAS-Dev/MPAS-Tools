@@ -68,23 +68,23 @@ Point * DensityFunction::randomPoint()
 
 void DensityFunction::randomPoint(Point& p)
 {
-	const double rhoMax = 3.0;	// maximum value of density function
+	const double rhoMax = 1.0;	// maximum value of density function
 
 	double x, y, U;
 	double rrm;
 
 	rrm = 1.0 / (double)RAND_MAX;
 
-	x = (double)rand() * rrm;
-	y = (double)rand() * rrm;
+	x = (minX + (maxX - minX) * (double)rand() * rrm) ;
+	y = (minY + (maxY - minY) * (double)rand() * rrm) ;
 	// for general pdf, scale x and y to lie in domain of pdf
 	U = (double)rand() * rrm;
 	while(rhoMax * U >= DensityFunction::f(x, y)) {
-		x = (double)rand() * rrm;
-		y = (double)rand() * rrm;
+		x = (minX + (maxX - minX) * (double)rand() * rrm) ;
+		y = (minY + (maxY - minY) * (double)rand() * rrm) ;
 		U = (double)rand() * rrm;
 	}
 
-	p.setX(minX + (maxX - minX)*x);
-	p.setY(minY + (maxY - minY)*y);
+	p.setX(x);
+	p.setY(y);
 }

@@ -23,6 +23,30 @@ PointSet::~PointSet()
 }
 
 
+void PointSet::makeMCPoints(int n, double X_PERIOD, double Y_PERIOD)
+{
+	//Create Monte Carlo random point set
+	int i;
+	srand48(time(NULL));
+	double x, y;
+	Point * p;
+	DensityFunction density(X_PERIOD, Y_PERIOD);
+
+	for(i = 0; i < n; i++){
+		p = density.randomPoint();
+//		x = drand48();
+//		y = drand48();
+
+
+//		p = new Point(x, y, 0);
+		p->setNum(nPoints);
+		nPoints++;
+		points.push_back(p);
+
+	}
+}
+
+
 int PointSet::initFromTextFile(double X_PERIOD, double Y_PERIOD, const char * filename)
 {
 	ifstream fin(filename);

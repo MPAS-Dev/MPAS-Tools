@@ -75,9 +75,11 @@ int main(int argc, char ** argv)
 	double *xCell, *yCell, *zCell, *xVertex, *yVertex, *zVertex, *meshDensity;
 	int *cellsOnVertex;
 
-	const int MAXITR = 10000;
+	const int MAXITR = 1000;
 
-	pset.initFromTextFile(X_PERIOD, Y_PERIOD, "centroids.txt");
+
+	pset.makeMCPoints(1500, X_PERIOD, Y_PERIOD);
+	//pset.initFromTextFile(X_PERIOD, Y_PERIOD, "centroids.txt");
 
 
 	/*
