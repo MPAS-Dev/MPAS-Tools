@@ -13,16 +13,6 @@
 #include "netcdf.h"
 using namespace std;
 
-#define EPS 1.0e-7
-
-/* Sets the period of the grid in x and y */
-#define X_PERIOD 40.0
-#define Y_PERIOD 40.0*0.866025403784439
-
-/* Sets the width of the zone of cells that are immovable along the x and y boundaries */
-#define X_BUFFER_W 3.0
-#define Y_BUFFER_W 3.0
-
 #define ALLOC_INT2D(ARR,I,J) (ARR) = new int*[(I)]; for(int i=0; i<(I); i++) (ARR)[i] = new int[(J)];
 #define DEALLOC_INT2D(ARR,I,J) for(int i=0; i<(I); i++) delete [] (ARR)[i]; delete [] (ARR);
 
@@ -37,10 +27,29 @@ void write_netcdf(int nCells, int nVertices, int vertexDegree,
 		double *meshDensity, int *cellsOnVertex,
 		double x_period, double y_period);
 
+void readParamsFile();
+
 Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1);
+
+
+// run-time parameters
+	double EPS = 1.0e-7;
+	double X_PERIOD = 1.0;
+	double Y_PERIOD = 1.0;
+	double X_BUFFER_W = 0.1;
+	double Y_BUFFER_W = 0.1;
+	int NUMPOINTS = 200;
+	int MAXITR = 100;
+	int USE_MC = 1; // 1=true, 0=read from file
+
+
 
 int main(int argc, char ** argv)
 {
+
+// read user-specified settings
+	readParamsFile();
+
 	int i, ii, jj, n, iter, idx, npts, np;
 	DensityFunction f(X_PERIOD, Y_PERIOD);
 	PointSet pset;
@@ -75,11 +84,18 @@ int main(int argc, char ** argv)
 	double *xCell, *yCell, *zCell, *xVertex, *yVertex, *zVertex, *meshDensity;
 	int *cellsOnVertex;
 
-	const int MAXITR = 1000;
 
 
-	pset.makeMCPoints(1500, X_PERIOD, Y_PERIOD);
-	//pset.initFromTextFile(X_PERIOD, Y_PERIOD, "centroids.txt");
+
+
+
+	if (USE_MC == 1) {
+		cout << "MC" <<endl;
+		pset.makeMCPoints(NUMPOINTS, X_PERIOD, Y_PERIOD);
+	} else {
+		cout << "file" <<endl;
+		pset.initFromTextFile(X_PERIOD, Y_PERIOD, "centroids.txt");
+	}
 
 
 	/*
@@ -450,4 +466,91 @@ void write_netcdf(int nCells, int nVertices, int vertexDegree,
 	ncerr = nc_put_vara_int(ncid, varIDcellsOnVertex, start2, count2, cellsOnVertex);
 
 	ncerr = nc_close(ncid);
+}
+
+
+
+
+/* ***** Setup Routines ***** */
+void readParamsFile(){
+	//Read in parameters from Params.
+	//If Params doesn't exist, write out Params with a default set of parameters
+	string junk;
+	ifstream params("Params.txt");
+	int temp_restart_mode;
+	int temp_fileio_mode;
+
+	if(!params){
+		cout << "Error opening Params.txt file." << endl;
+		cout << "Writing a default Params.txt file." << endl;
+		cout << "Exiting, please set up Params.txt, and rerun." << endl;
+		ofstream pout("Params.txt");
+		pout << "Convergence tolerance to use:" << endl;
+		pout << EPS << endl;
+		pout << "Maximum number of iterations to perform:" << endl;
+		pout << MAXITR << endl;
+		pout << "How to get initial pointset. 0=from file; 1=Monte Carlo points from density function" << endl;
+		pout << USE_MC << endl;
+		pout << "If using Monte Carlo points, how many do you want?" << endl;
+		pout << NUMPOINTS << endl;
+		pout << "Domain width (x)" << endl;
+		pout << X_PERIOD << endl;
+		pout << "Domain height (y)" << endl;
+		pout << Y_PERIOD << endl;
+		pout << "Width of buffer along domain edge in which to keep points fixed in x" << endl;
+		pout << X_BUFFER_W << endl;
+		pout << "Width of buffer along domain edge in which to keep points fixed in y" << endl;
+		pout << Y_BUFFER_W << endl;
+
+		pout.close();
+
+		exit(1);
+	}
+	
+
+	getline(params,junk);
+	params >> EPS;
+	params.ignore(10000,'\n');
+	getline(params,junk);
+	params >> MAXITR;
+	params.ignore(10000,'\n');
+	getline(params,junk);
+	params >> USE_MC;
+	params.ignore(10000,'\n');
+	getline(params,junk);
+	params >> NUMPOINTS;
+	params.ignore(10000,'\n');
+	getline(params,junk);
+	params >> X_PERIOD;
+	params.ignore(10000,'\n');
+	getline(params,junk);
+	params >> Y_PERIOD;
+	params.ignore(10000,'\n');
+	getline(params,junk);
+	params >> X_BUFFER_W;
+	params.ignore(10000,'\n');
+	getline(params,junk);
+	params >> Y_BUFFER_W;
+	params.ignore(10000,'\n');
+
+	cout << "=== Specified settings are: ===" << endl;
+	cout << "Convergence tolerance to use:" << endl;
+	cout << EPS << endl;
+	cout << "Maximum number of iterations to perform:" << endl;
+	cout << MAXITR << endl;
+	cout << "How to get initial pointset. 0=from file; 1=Monte Carlo points from density function" << endl;
+	cout << USE_MC << endl;
+	cout << "If using Monte Carlo points, how many do you want?" << endl;
+	cout << NUMPOINTS << endl;
+	cout << "Domain width (x)" << endl;
+	cout << X_PERIOD << endl;
+	cout << "Domain height (y)" << endl;
+	cout << Y_PERIOD << endl;
+	cout << "Width of buffer along domain edge in which to keep points fixed in x" << endl;
+	cout << X_BUFFER_W << endl;
+	cout << "Width of buffer along domain edge in which to keep points fixed in y" << endl;
+	cout << Y_BUFFER_W << endl;
+
+
+	params.close();
 }

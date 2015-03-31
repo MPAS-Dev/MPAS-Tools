@@ -34,11 +34,7 @@ void PointSet::makeMCPoints(int n, double X_PERIOD, double Y_PERIOD)
 
 	for(i = 0; i < n; i++){
 		p = density.randomPoint();
-//		x = drand48();
-//		y = drand48();
 
-
-//		p = new Point(x, y, 0);
 		p->setNum(nPoints);
 		nPoints++;
 		points.push_back(p);
