@@ -1,5 +1,7 @@
 #!/usr/bin/env python
-# Take MPAS planar land ice file and 1) shift its coordinates to a desired location and 2) populate the lat/lon fields
+'''
+Take MPAS planar grid and populate the lat/lon fields based on a specified projection.
+'''
 
 import sys
 import netCDF4
@@ -31,10 +33,9 @@ projections['latlon'] = pyproj.Proj(proj='latlong', datum='WGS84')
 
 print "== Gathering information.  (Invoke with --help for more details. All arguments are optional)"
 parser = OptionParser()
-parser.description = "This script 1) translates the coordinate system of the MPAS mesh specified with the -f flag so that the center of the domain is the center of the domain in the file specified by the -d flag; 2) populates all of the MPAS lat and lon fields based on the projection specified by the -p option."
+parser.description = "This script populates the MPAS lat and lon fields based on the projection specified by the -p option."
 parser.add_option("-f", "--file", dest="fileInName", help="MPAS land ice file name.", default="landice_grid.nc", metavar="FILENAME")
-parser.add_option("-d", "--datafile", dest="dataFileName", help="data file name from which to get domain information.  Required.  Uses x1 and y1 fields.", metavar="FILENAME")
-parser.add_option("-p", "--proj", dest="projection", help="projection used for the data. Valid options are:"  + str(projections.keys()), metavar="PROJ")
+parser.add_option("-p", "--proj", dest="projection", help="projection used for the data. Valid options are: \n"  + str(projections.keys()), metavar="PROJ")
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
         option.help += (" " if option.help else "") + "[default: %default]"
@@ -42,11 +43,9 @@ options, args = parser.parse_args()
 
 if not options.projection:
     sys.exit('Error: data projection required with -p or --proj command line argument. Valid options are: ' + str(projections.keys()))
-if not options.dataFileName:
-    sys.exit('Error: datafile required with -d or --datafile command line argument.')
 
 if not options.fileInName:
-    print "No output filename specified, so using 'landice_grid.nc'."
+    print "No filename specified, so using 'landice_grid.nc'."
     options.fileInName = 'landice_grid.nc'
 print '' # make a space in stdout before further output
 
@@ -69,38 +68,12 @@ lonVertex = f.variables['lonVertex']
 latEdge = f.variables['latEdge']
 lonEdge = f.variables['lonEdge']
 
-fd = netCDF4.Dataset(options.dataFileName, 'r')
-x1 = fd.variables['x1'][:]
-y1 = fd.variables['y1'][:]
-
-
-# step 1, perform a shift
-
-mpasXcenter = (xCell[:].min() + xCell[:].max()) * 0.5
-mpasYcenter = (yCell[:].min() + yCell[:].max()) * 0.5
-
-
-dataXcenter = (x1[:].min() + x1[:].max()) * 0.5
-dataYcenter = (y1[:].min() + y1[:].max()) * 0.5
-
-
-xOffset = dataXcenter - mpasXcenter
-yOffset = dataYcenter - mpasYcenter
-
-xCell[:] += xOffset
-yCell[:] += yOffset
-xVertex[:] += xOffset
-yVertex[:] += yOffset
-xEdge[:] += xOffset
-yEdge[:] += yOffset
-
-
-# step 2, populate x,y fields
+# populate x,y fields
 # MPAS uses lat/lon in radians, so have pyproj return fields in radians.
 lonCell[:], latCell[:] = pyproj.transform(projections[options.projection], projections['latlon'], xCell[:], yCell[:], radians=True)
 lonVertex[:], latVertex[:] = pyproj.transform(projections[options.projection], projections['latlon'], xVertex[:], yVertex[:], radians=True)
 lonEdge[:], latEdge[:] = pyproj.transform(projections[options.projection], projections['latlon'], xEdge[:], yEdge[:], radians=True)
 
-
 f.close()
-fd.close()
+
+print "Lat/lon calculations completed."

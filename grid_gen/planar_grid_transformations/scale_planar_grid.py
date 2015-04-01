@@ -1,14 +1,11 @@
 #!/usr/bin/env python
-import sys, os, glob, shutil, numpy, math
-
-from netCDF4 import *
+import numpy, math
 from netCDF4 import Dataset as NetCDFFile
-
 from optparse import OptionParser
 
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename", help="Path to grid file", metavar="FILE")
-parser.add_option("-s", "--scale", dest="scale", help="linear scale factor", default=1.0, metavar="FILE")
+parser.add_option("-s", "--scale", dest="scale", help="linear scale factor", default=1.0, metavar="SCALE")
 options, args = parser.parse_args()
 
 if not options.filename:
