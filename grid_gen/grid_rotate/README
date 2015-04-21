@@ -60,6 +60,35 @@ III.  RUNNING THE CODE
 
       > grid_rotate input_filename.nc output_filename.nc
 
+   This tool can also be used to rotate a planar mesh, by using the fact that a
+   planar mesh is in the same 3d coordinate system as a spherical mesh, but that
+   z=0 everywhere in a planar mesh.  For example, to rotate a planar mesh by 90 deg,
+   the following nameslist settings will work:
+
+&input
+     config_original_latitude_degrees = 0
+   config_original_longitude_degrees = 0
+
+   config_new_latitude_degrees = 0
+   config_new_longitude_degrees = 90
+   config_birdseye_rotation_counter_clockwise_degrees = 0
+/
+
+   Alternatively, perhaps more intuitively, the following also works (specifying
+   the origin of the rotation to be the north pole, without modifying it, and then
+   using the bird's eye rotation):
+
+&input
+   config_original_latitude_degrees = 90
+   config_original_longitude_degrees = 0
+
+   config_new_latitude_degrees = 90
+   config_new_longitude_degrees = 0
+   config_birdseye_rotation_counter_clockwise_degrees = 90
+/
+
+   Note that if you have filled the lat/lon fields on a planar mesh, you may need
+   to re-calculate them after using this tool.
 
 IV.   ADDITIONAL TOOLS
     
