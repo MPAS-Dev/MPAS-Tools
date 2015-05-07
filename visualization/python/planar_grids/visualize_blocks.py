@@ -7,6 +7,8 @@ import numpy as np
 from optparse import OptionParser
 import matplotlib.pyplot as plt
 import netCDF4
+import matplotlib.cm as cm
+import matplotlib
 
 print "** Gathering information."
 parser = OptionParser()
@@ -51,7 +53,8 @@ plottitle = 'block decomposition for grid file ' + options.gridfile + ' and grap
 print '** Beginning to create plot.'
 fig = plt.figure(1, facecolor='w')
 ax = fig.add_subplot(111, aspect='equal')
-plt.scatter(xCell[:], yCell[:], 60, blocks, edgecolors='none')
+cmap = matplotlib.colors.ListedColormap ( np.random.rand ( 256,3))
+plt.scatter(xCell[:], yCell[:], c=blocks, s=12, edgecolors='none' , cmap=cmap)
 plt.colorbar()
 plt.title( plottitle )
 
