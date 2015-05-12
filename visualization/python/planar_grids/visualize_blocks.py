@@ -35,25 +35,31 @@ except:
 # Get grid stuff
 #times = f.variables['xtime']  # Not needed unless trying to print actual time stamp
 try:
-  xCell = f.variables['xCell']
-  yCell = f.variables['yCell']
+  xCell = f.variables['xCell'][:]
+  yCell = f.variables['yCell'][:]
+  nCells = len(f.dimensions['nCells'])
 except:
   sys.exit('xCell and/or yCell is/are missing.')
 
 try:
-  blocks = np.genfromtxt(options.blockfile)
+  blocks = np.genfromtxt(options.blockfile, dtype='int')
 except:
   sys.exit('block file could not be read properly.')
 
-# Get the needed slice and determine the plot title.  Make some assumptions about how dimensions are arranged:
-plottitle = 'block decomposition for grid file ' + options.gridfile + ' and graph file ' + options.blockfile
+if nCells != len(blocks):
+    sys.exit('Error: Number of lines in block file does not equal nCells in the grid file!')
 
+counts = np.bincount(blocks)
+print '  Min number of cells per block: ', counts.min()
+print '  Mean number of cells per block:', counts.mean()
+print '  Max number of cells per block: ', counts.max()
 
 # MAKE THE PLOT
 print '** Beginning to create plot.'
+plottitle = 'block decomposition for grid file ' + options.gridfile + '\nand graph file ' + options.blockfile
 fig = plt.figure(1, facecolor='w')
 ax = fig.add_subplot(111, aspect='equal')
-cmap = matplotlib.colors.ListedColormap ( np.random.rand ( 256,3))
+cmap = matplotlib.colors.ListedColormap ( np.random.rand (nCells, 3))
 plt.scatter(xCell[:], yCell[:], c=blocks, s=12, edgecolors='none' , cmap=cmap)
 plt.colorbar()
 plt.title( plottitle )
