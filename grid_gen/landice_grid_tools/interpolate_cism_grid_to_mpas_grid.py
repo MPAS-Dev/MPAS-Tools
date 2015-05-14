@@ -57,8 +57,8 @@ fieldInfo = OrderedDict()
 fieldInfo['thickness'] =     {'CISMname':'thk',  'scalefactor':1.0, 'CISMgrid':1, 'vertDim':False}
 fieldInfo['bedTopography'] = {'CISMname':'topg', 'scalefactor':1.0, 'CISMgrid':1, 'vertDim':False}
 fieldInfo['sfcMassBal'] =    {'CISMname':'acab', 'scalefactor':910.0/(3600.0*24.0*365.0), 'CISMgrid':1, 'vertDim':False}  # Assuming default CISM density
-fieldInfo['temperature'] =   {'CISMname':'temp', 'scalefactor':1.0, 'CISMgrid':1, 'vertDim':True}
-#fieldInfo['temperature'] =   {'CISMname':'tempstag', 'scalefactor':1.0, 'CISMgrid':1, 'vertDim':True}  # pick one or the other
+#fieldInfo['temperature'] =   {'CISMname':'temp', 'scalefactor':1.0, 'CISMgrid':1, 'vertDim':True}
+fieldInfo['temperature'] =   {'CISMname':'tempstag', 'scalefactor':1.0, 'CISMgrid':1, 'vertDim':True}  # pick one or the other
 fieldInfo['beta'] =          {'CISMname':'beta', 'scalefactor':1.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
 #fieldInfo['observedSpeed'] = {'CISMname':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
 
@@ -124,7 +124,11 @@ def BilinearInterp(Value, CISMgridType):
 def interpolate_field(MPASfieldName):
 
     CISMfieldName = fieldInfo[MPASfieldName]['CISMname']
-    CISMfield = CISMfile.variables[CISMfieldName][timelev,:,:]
+    if 'time' in CISMfile.variables[CISMfieldName].dimensions:
+        CISMfield = CISMfile.variables[CISMfieldName][timelev,:,:]
+    else:
+        CISMfield = CISMfile.variables[CISMfieldName][:,:]
+
     print '  CISM %s min/max:'%CISMfieldName, CISMfield.min(), CISMfield.max()
 
     # Call the appropriate routine for actually doing the interpolation
@@ -149,8 +153,10 @@ def interpolate_field(MPASfieldName):
 def interpolate_field_with_layers(MPASfieldName):
 
     CISMfieldName = fieldInfo[MPASfieldName]['CISMname']
-    CISMfield = CISMfile.variables[CISMfieldName][timelev,:,:,:]
-
+    if 'time' in CISMfile.variables[CISMfieldName].dimensions:
+        CISMfield = CISMfile.variables[CISMfieldName][timelev,:,:]
+    else:
+        CISMfield = CISMfile.variables[CISMfieldName][:,:]
 
     # create array for interpolated CISM field at all layers
     cismVerticalDimSize = CISMfield.shape[0] # vertical index is the first (since we've eliminated time already)

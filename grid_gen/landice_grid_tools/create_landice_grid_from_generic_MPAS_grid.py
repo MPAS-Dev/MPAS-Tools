@@ -112,8 +112,12 @@ datatypeInt = filein.variables['indexToCellID'].dtype  # Get the datatype for in
 layerThicknessFractions = fileout.createVariable('layerThicknessFractions', datatype, ('nVertLevels', ))
 layerThicknessFractions[:] = numpy.zeros(layerThicknessFractions.shape)
 # Assign default values to layerThicknessFractions.  By default they will be uniform fractions.  Users can modify them in a subsequent step, but doing this here ensures the most likely values are already assigned. (Useful for e.g. setting up Greenland where the state variables are copied over but the grid variables are not modified.)
+
+# uniform layer fractions (default)
 layerThicknessFractions[:] = 1.0 / nVertLevels
 
+# explictly specify layer fractions
+#layerThicknessFractions[:] = [0.1663,0.1516,0.1368,0.1221,0.1074,0.0926,0.0779,0.0632,0.0484,0.0337]
 
 # With Scientific.IO.netCDF, entries are appended along the unlimited dimension one at a time by assigning to a slice.
 # Therefore we need to assign to time level 0, and what we need to assign is a zeros array that is the shape of the new variable, exluding the time dimension!
