@@ -14,6 +14,8 @@ print "** Gathering information."
 parser = OptionParser()
 parser.add_option("-g", "--gridfile", dest="gridfile", help="grid file to visualize; default: grid.nc", metavar="FILE")
 parser.add_option("-b", "--blockfile", dest="blockfile", help="block file to visualize; default: graph.info.part.2", metavar="FILE")
+parser.add_option("-c", "--colormap", dest="cmap", help="color map to use: 'jet' or 'random'; default: 'random'", metavar="COLORMAP")
+parser.add_option("-m", "--mark", dest="mark", help="block number to mark with black stars", metavar="NUMBER")
 
 
 options, args = parser.parse_args()
@@ -55,14 +57,23 @@ print '  Mean number of cells per block:', counts.mean()
 print '  Max number of cells per block: ', counts.max()
 
 # MAKE THE PLOT
+
+if options.cmap == 'jet':
+   cmap = plt.get_cmap('jet')
+else:
+   cmap = matplotlib.colors.ListedColormap ( np.random.rand (blocks.max(), 3))
+
 print '** Beginning to create plot.'
 plottitle = 'block decomposition for grid file ' + options.gridfile + '\nand graph file ' + options.blockfile
 fig = plt.figure(1, facecolor='w')
 ax = fig.add_subplot(111, aspect='equal')
-cmap = matplotlib.colors.ListedColormap ( np.random.rand (nCells, 3))
 plt.scatter(xCell[:], yCell[:], c=blocks, s=12, edgecolors='none' , cmap=cmap)
 plt.colorbar()
 plt.title( plottitle )
+
+if options.mark:
+   ind = np.where(blocks == int(options.mark))
+   plt.plot(xCell[ind], yCell[ind], 'k*')
 
 plt.draw()
 plt.show()
