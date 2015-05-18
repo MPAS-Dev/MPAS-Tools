@@ -52,9 +52,16 @@ if nCells != len(blocks):
     sys.exit('Error: Number of lines in block file does not equal nCells in the grid file!')
 
 counts = np.bincount(blocks)
-print '  Min number of cells per block: ', counts.min()
+print '  Min number of cells per block: ', counts.min(), ' in block(s) ', np.where(counts==counts.min())[0] #np.argmin(counts)
 print '  Mean number of cells per block:', counts.mean()
-print '  Max number of cells per block: ', counts.max()
+print '  Max number of cells per block: ', counts.max(), ' in block(s) ', np.where(counts==counts.max())[0] #np.argmax(counts)
+print '=== Smallest 10% of blocks ==='
+nBlocks = len(counts)
+sortArgs = counts.argsort()
+countBlockNum = np.arange(nBlocks)
+for b in range(int(np.ceil(nBlocks*0.1))):
+        print '  Block #%i: %i cells'%(countBlockNum[sortArgs[b]],counts[sortArgs[b]])
+
 
 # MAKE THE PLOT
 
