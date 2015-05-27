@@ -46,7 +46,7 @@ vector<pnt> cells;
 vector<pnt> edges;
 vector<pnt> vertices;
 vector<int> completeCellMask;
-vector< vector<int> > nEdgesOnCell;
+vector<int> nEdgesOnCell;
 vector< vector<int> > cellsOnEdge;
 vector< vector<int> > verticesOnEdge;
 vector< vector<int> > edgesOnVertex;
@@ -3264,11 +3264,26 @@ int outputMeshQualities( const string outputFilename) {/*{{{*/
 int writeGraphFile(const string outputFilename){/*{{{*/
 	ofstream graph(outputFilename.c_str());
 
-	graph << cells.size() << " " << edges.size() << endl;
+	int edgeCount = 0;
+
+	for (int iCell = 0; iCell < nCells; iCell++){
+		for ( int j = 0; j < cellsOnCell.at(iCell).size(); j++){
+			int coc = cellsOnCell.at(iCell).at(j);
+
+			if ( coc >= 0 && coc < nCells ) {
+				edgeCount++;
+			}
+		}
+	}
+
+	edgeCount = edgeCount / 2;
+	graph << cells.size() << " " << edgeCount << endl;
 
 	for(int i = 0; i < cellsOnCell.size(); i++){
 		for(int j = 0; j < cellsOnCell.at(i).size(); j++){
-			graph << cellsOnCell.at(i).at(j)+1 << " ";
+			if ( cellsOnCell.at(i).at(j) >= 0 ) {
+				graph << cellsOnCell.at(i).at(j)+1 << " ";
+			}
 		}
 		graph << endl;
 	}
