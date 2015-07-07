@@ -26,7 +26,7 @@ int nCells, nVertices, vertex_degree;
 int maxEdges;
 int obtuseTriangles = 0;
 bool spherical, periodic;
-double sphereRadius, xOffset, yOffset;
+double sphereRadius, xPeriod, yPeriod;
 double xCellRange[2];
 double yCellRange[2];
 double zCellRange[2];
@@ -339,20 +339,25 @@ int readGridInput(const string inputFilename){/*{{{*/
 	periodic = netcdf_mpas_read_isperiodic(inputFilename);
 
 #ifdef _DEBUG
-	cout << "   Reading x_offset" << endl;
+	cout << "   Reading x_period" << endl;
 #endif
-	xOffset = netcdf_mpas_read_xoffset(inputFilename);
+	xPeriod = netcdf_mpas_read_xperiod(inputFilename);
 
 #ifdef _DEBUG
-	cout << "   Reading y_offset" << endl;
+	cout << "   Reading y_period" << endl;
 #endif
-	yOffset = netcdf_mpas_read_yoffset(inputFilename);
+	yPeriod = netcdf_mpas_read_yperiod(inputFilename);
 
 	cout << "Read dimensions:" << endl;
 	cout << "    nCells = " << nCells << endl;
 	cout << "    nVertices = " << nVertices << endl;
 	cout << "    vertexDegree = " << vertexDegree << endl;
 	cout << "    Spherical? = " << spherical << endl;
+	cout << "    Periodic? = " << periodic << endl;
+	if ( periodic ) {
+		cout << "    x_period = " << xPeriod << endl;
+		cout << "    y_period = " << yPeriod << endl;
+	}
 
 	// Build cell center location information
 	xcell = new double[nCells];
@@ -439,32 +444,32 @@ int readGridInput(const string inputFilename){/*{{{*/
 	zVertexDistance = fabs(zVertexRange[1] - zVertexRange[0]);
 
 	if(periodic){
-		// Quads are not staggered in the y direction, so need to offset by
+		// Quads are not staggered in the y direction, so need to period by
 		// max distance + min distance
 		if(vertexDegree == 4){
-			if(xOffset < 0.0){
+			if(xPeriod < 0.0){
 				xPeriodicFix = xCellRange[0] + xCellRange[1];
 			} else {
-				xPeriodicFix = xOffset;
+				xPeriodicFix = xPeriod;
 			}
 
-			if(yOffset < 0.0){
+			if(yPeriod < 0.0){
 				yPeriodicFix = yCellRange[0] + yCellRange[1];
 			} else {
-				yPeriodicFix = yOffset;
+				yPeriodicFix = yPeriod;
 			}
-		// Triangles can be staggered, so only offset my max distance
+		// Triangles can be staggered, so only period my max distance
 		} else {
-			if(xOffset < 0.0){
+			if(xPeriod < 0.0){
 				xPeriodicFix = xCellRange[1];
 			} else {
-				xPeriodicFix = xOffset;
+				xPeriodicFix = xPeriod;
 			}
 
-			if(yOffset < 0.0){
+			if(yPeriod < 0.0){
 				yPeriodicFix = yCellRange[1];
 			} else {
-				yPeriodicFix = yOffset;
+				yPeriodicFix = yPeriod;
 			}
 		}
 	} else {
@@ -473,6 +478,8 @@ int readGridInput(const string inputFilename){/*{{{*/
 	}
 
 #ifdef _DEBUG
+	xPeriod = xPeriodicFix;
+	yPeriod = yPeriodicFix;
 	cout << "cell Mins: " << xCellRange[0] << " " << yCellRange[0] << " " << zCellRange[0] << endl;
 	cout << "vertex Mins: " << xVertexRange[0] << " " << yVertexRange[0] << " " << zVertexRange[0] << endl;
 	cout << "cell Maxes: " << xCellRange[1] << " " << yCellRange[1] << " " << zCellRange[1] << endl;
@@ -481,8 +488,8 @@ int readGridInput(const string inputFilename){/*{{{*/
 	cout << "vertex Distances: " << xVertexDistance << " " << yVertexDistance << " " << zVertexDistance << endl;
 	cout << "xPeriodicFix: " << xPeriodicFix << endl;
 	cout << "yPeriodicFix: " << yPeriodicFix << endl;
-	cout << "xOffset: " << xOffset << endl;
-	cout << "yOffset: " << yOffset << endl;
+	cout << "xPeriod: " << xPeriod << endl;
+	cout << "yPeriod: " << yPeriod << endl;
 #endif
 
 	if(!spherical && (zCellDistance > 0.0 || zVertexDistance > 0.0)){
