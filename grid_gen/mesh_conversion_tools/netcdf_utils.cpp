@@ -40,8 +40,8 @@ int netcdf_mpas_read_num_vars(string filename){/*{{{*/
 	long int var_size;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -97,8 +97,8 @@ bool netcdf_mpas_read_onsphere(string filename){/*{{{*/
 	//
 	//  Open the file.
 	//
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -180,8 +180,8 @@ double netcdf_mpas_read_sphereradius(string filename){/*{{{*/
 	//
 	//  Open the file.
 	//
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -262,8 +262,8 @@ bool netcdf_mpas_read_isperiodic(string filename){/*{{{*/
 	//
 	//  Open the file.
 	//
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -305,12 +305,12 @@ bool netcdf_mpas_read_isperiodic(string filename){/*{{{*/
 
 }/*}}}*/
 //****************************************************************************80
-double netcdf_mpas_read_xoffset(string filename){/*{{{*/
+double netcdf_mpas_read_xperiod(string filename){/*{{{*/
 	//****************************************************************************80
 	//
 	//  Purpose:
 	//
-	//    NETCDF_MPAS_READ_XOFFSET reads the global attribute x_offset
+	//    NETCDF_MPAS_READ_XPERIOD reads the global attribute x_period
 	//
 	//  Licensing:
 	//
@@ -334,19 +334,19 @@ double netcdf_mpas_read_xoffset(string filename){/*{{{*/
 	//
 	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
 	//
-	//    Output, double NETCDF_MPAS_READ_XOFFSET, the value of the global
-	//    										 attribute, x_offset
+	//    Output, double NETCDF_MPAS_READ_XPERIOD, the value of the global
+	//    										 attribute, x_period
 	//
 	NcAtt *att_id;
 	NcValues *vals;
 	bool valid;
 	string tmp_name;
-	string sph_name = "x_offset";
+	string sph_name = "x_period";
 	//
 	//  Open the file.
 	//
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -385,12 +385,12 @@ double netcdf_mpas_read_xoffset(string filename){/*{{{*/
 
 }/*}}}*/
 //****************************************************************************80
-double netcdf_mpas_read_yoffset(string filename){/*{{{*/
+double netcdf_mpas_read_yperiod(string filename){/*{{{*/
 	//****************************************************************************80
 	//
 	//  Purpose:
 	//
-	//    NETCDF_MPAS_READ_YOFFSET reads the global attribute y_offset
+	//    NETCDF_MPAS_READ_YPERIOD reads the global attribute y_period
 	//
 	//  Licensing:
 	//
@@ -414,19 +414,19 @@ double netcdf_mpas_read_yoffset(string filename){/*{{{*/
 	//
 	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
 	//
-	//    Output, double NETCDF_MPAS_READ_YOFFSET, the value of the global
-	//    										 attribute, y_offset
+	//    Output, double NETCDF_MPAS_READ_YPERIOD, the value of the global
+	//    										 attribute, y_period
 	//
 	NcAtt *att_id;
 	NcValues *vals;
 	bool valid;
 	string tmp_name;
-	string sph_name = "y_offset";
+	string sph_name = "y_period";
 	//
 	//  Open the file.
 	//
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -505,8 +505,8 @@ string netcdf_mpas_read_history(string filename){/*{{{*/
 	//
 	//  Open the file.
 	//
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -584,8 +584,8 @@ string netcdf_mpas_read_meshid(string filename){/*{{{*/
 	//
 	//  Open the file.
 	//
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -663,8 +663,8 @@ string netcdf_mpas_read_parentid(string filename){/*{{{*/
 	//
 	//  Open the file.
 	//
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -743,8 +743,8 @@ double netcdf_mpas_read_meshspec(string filename){/*{{{*/
 	//
 	//  Open the file.
 	//
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -828,8 +828,8 @@ int netcdf_mpas_read_dim ( string filename, string dim_name ){/*{{{*/
 	string tmp_name;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -904,8 +904,8 @@ void netcdf_mpas_read_xyzcell ( string filename, int ncells, double xcell[], dou
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -973,8 +973,8 @@ void netcdf_mpas_read_latloncell ( string filename, int ncells, double latcell[]
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1037,8 +1037,8 @@ void netcdf_mpas_read_areacell ( string filename, int ncells, double areacell[] 
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1095,8 +1095,8 @@ void netcdf_mpas_read_nedgesoncell ( string filename, int ncells, int nedgesonce
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1155,8 +1155,8 @@ void netcdf_mpas_read_cellsoncell ( string filename, int ncells, int maxedges, i
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1215,8 +1215,8 @@ void netcdf_mpas_read_edgesoncell ( string filename, int ncells, int maxedges, i
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1275,8 +1275,8 @@ void netcdf_mpas_read_verticesoncell ( string filename, int ncells, int maxedges
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1334,8 +1334,8 @@ void netcdf_mpas_read_mesh_density ( string filename, int ncells, double mesh_de
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1401,8 +1401,8 @@ void netcdf_mpas_read_cullcell ( string filename, int ncells, int cullcell[] ){/
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1472,8 +1472,8 @@ void netcdf_mpas_read_xyzvertex ( string filename, int nvertices, double xvertex
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1541,8 +1541,8 @@ void netcdf_mpas_read_latlonvertex ( string filename, int nvertices, double latv
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1605,8 +1605,8 @@ void netcdf_mpas_read_areatriangle ( string filename, int nvertices, double area
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1663,8 +1663,8 @@ void netcdf_mpas_read_cellsonvertex ( string filename, int nvertices, int vertex
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1723,8 +1723,8 @@ void netcdf_mpas_read_kiteareasonvertex ( string filename, int nvertices, int ve
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1783,8 +1783,8 @@ void netcdf_mpas_read_edgesonvertex ( string filename, int nvertices, int vertex
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1848,8 +1848,8 @@ void netcdf_mpas_read_xyzedge ( string filename, int nedges, double xedge[], dou
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1918,8 +1918,8 @@ void netcdf_mpas_read_latlonedge ( string filename, int nedges, double latedge[]
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -1981,8 +1981,8 @@ void netcdf_mpas_read_verticesonedge ( string filename, int nedges, int vertices
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -2039,8 +2039,8 @@ void netcdf_mpas_read_cellsonedge ( string filename, int nedges, int cellsonedge
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -2098,8 +2098,8 @@ void netcdf_mpas_read_dvedge ( string filename, int nedges, double dvedge[] ){/*
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -2157,8 +2157,8 @@ void netcdf_mpas_read_dcedge ( string filename, int nedges, double dcedge[] ){/*
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -2216,8 +2216,8 @@ void netcdf_mpas_read_angleedge ( string filename, int nedges, double angleedge[
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -2276,8 +2276,8 @@ void netcdf_mpas_read_weightsonedge ( string filename, int nedges, int maxedges2
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -2336,8 +2336,8 @@ void netcdf_mpas_read_edgesonedge ( string filename, int nedges, int maxedges2, 
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif
@@ -2394,8 +2394,8 @@ void netcdf_mpas_read_nedgesonedge ( string filename, int nedges, int nedgesoned
 	NcVar *var_id;
 	//
 	//  Open the file.
-	#ifdef _64BITOFFSET
-		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
 	#else
 		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
 	#endif

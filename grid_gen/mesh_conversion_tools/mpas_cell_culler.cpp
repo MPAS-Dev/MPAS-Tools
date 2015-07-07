@@ -16,8 +16,8 @@
 using namespace std;
 
 int nCells, nVertices, nEdges, vertexDegree, maxEdges;
-bool spherical;
-double sphere_radius;
+bool spherical, periodic;
+double sphere_radius, xPeriod, yPeriod;
 string in_history = "";
 string in_mesh_id = "";
 string in_parent_id = "";
@@ -202,6 +202,22 @@ int readGridInput(const string inputFilename){/*{{{*/
 #endif
 	in_mesh_spec = netcdf_mpas_read_meshspec(inputFilename);
 
+#ifdef _DEBUG
+	cout << "   Reading is_periodic" << endl;
+#endif
+	periodic = netcdf_mpas_read_isperiodic(inputFilename);
+
+#ifdef _DEBUG
+	cout << "   Reading x_period" << endl;
+#endif
+	xPeriod = netcdf_mpas_read_xperiod(inputFilename);
+
+#ifdef _DEBUG
+	cout << "   Reading y_period" << endl;
+#endif
+	yPeriod = netcdf_mpas_read_yperiod(inputFilename);
+
+
 
 	cout << "Read dimensions:" << endl;
 	cout << "    nCells = " << nCells << endl;
@@ -210,6 +226,11 @@ int readGridInput(const string inputFilename){/*{{{*/
 	cout << "    vertexDegree = " << vertexDegree << endl;
 	cout << "    maxEdges = " << maxEdges << endl;
 	cout << "    Spherical? = " << spherical << endl;
+	cout << "    Periodic? = " << periodic << endl;
+	if ( periodic ) {
+		cout << "    x_period = " << xPeriod << endl;
+		cout << "    y_period = " << yPeriod << endl;
+	}
 
 #ifdef _DEBUG
 	cout << " Read areaCell" << endl;
@@ -469,7 +490,7 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
 
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	NcBool sphereAtt, radiusAtt;
+	NcBool sphereAtt, radiusAtt, periodicAtt, xPeriodAtt, yPeriodAtt;
 	NcBool history, id, spec, conventions, source, parent_id;
 	string history_str = "";
 	string id_str = "";
@@ -482,6 +503,14 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
 	} else {
 		if (!(sphereAtt = grid.add_att(   "on_a_sphere", "YES\0"))) return NC_ERR;
 		if (!(radiusAtt = grid.add_att(   "sphere_radius", sphere_radius))) return NC_ERR;
+	}
+
+	if(!periodic){
+		if (!(periodicAtt = grid.add_att(   "is_periodic", "NO\0"))) return NC_ERR;
+	} else {
+		if (!(periodicAtt = grid.add_att(   "is_periodic", "YES\0"))) return NC_ERR;
+		if (!(xPeriodAtt = grid.add_att(   "x_period", xPeriod))) return NC_ERR;
+		if (!(xPeriodAtt = grid.add_att(   "y_period", yPeriod))) return NC_ERR;
 	}
 
 	history_str += "MpasCellCuller.x ";
