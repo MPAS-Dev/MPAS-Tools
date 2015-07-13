@@ -33,10 +33,11 @@ def circumcenter(on_sphere, x1, y1, z1, x2, y2, z2, x3, y3, z3):#{{{
 		yv = ((p1.x**2 + p1.y**2) * (p3.x - p2.x) + (p2.x**2 + p2.y**2) * (p1.x - p3.x) + (p3.x**2 + p3.y**2) * (p2.x - p1.x)) / d
 		zv = 0.0
 
-                xv = p1.x + p2.x + p3.x
-                xv = xv / 3.0
-                yv = p1.y + p2.y + p3.y
-                yv = yv / 3.0
+                # Optional method to use barycenter instead.
+                #xv = p1.x + p2.x + p3.x
+                #xv = xv / 3.0
+                #yv = p1.y + p2.y + p3.y
+                #yv = yv / 3.0
 	return point(xv, yv, zv)
 
 #}}}
