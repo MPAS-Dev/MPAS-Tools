@@ -107,9 +107,9 @@ vertexDegree_dim = grid.createDimension('vertexDegree', vertexDegree)
 # Create cell variables and sphere_radius
 sphere_radius = 0.0
 
-xCell_full = grid.createVariable('xCell', 'f8', ( 'nCells' ,) )
-yCell_full = grid.createVariable('yCell', 'f8', ( 'nCells' ,) )
-zCell_full = grid.createVariable('zCell', 'f8', ( 'nCells' ,) )
+xCell_full = numpy.zeros( (nCells,) )
+yCell_full = numpy.zeros( (nCells,) )
+zCell_full = numpy.zeros( (nCells,) )
 
 cell_info = open(options.node, 'r')
 cell_info.readline()  # read header
@@ -132,7 +132,7 @@ else:
 	grid.sphere_radius = 0.0
 
 # Create cellsOnVertex
-cellsOnVertex_full = grid.createVariable('cellsOnVertex', 'i4', ( 'nVertices' , 'vertexDegree' ,) )
+cellsOnVertex_full = numpy.zeros( (nVertices, vertexDegree), dtype=numpy.int32)
 
 cov_info = open(options.ele, 'r')
 cov_info.readline()  # read header
@@ -151,15 +151,15 @@ cov_info.close()
 
 read_vertices=False  # we don't have vertex information from Triangle to read.. I don't think
 if read_vertices:
-	del xCell_full
-	del yCell_full
-	del zCell_full
-	del cellsOnVertex_full
+	#del xCell_full
+	#del yCell_full
+	#del zCell_full
+	#del cellsOnVertex_full
 
 	# Create vertex variables
-	xVertex_full = grid.createVariable('xVertex', 'f8', ( 'nVertices' ,) )
-	yVertex_full = grid.createVariable('yVertex', 'f8', ( 'nVertices' ,) )
-	zVertex_full = grid.createVariable('zVertex', 'f8', ( 'nVertices' ,) )
+	xVertex_full = numpy.zeros( (nVertices,) )
+	yVertex_full = numpy.zeros( (nVertices,) )
+	zVertex_full = numpy.zeros( (nVertices,) )
 
 	vertex_info = open(options.vertices, 'r')
 	i = 0
@@ -171,15 +171,15 @@ if read_vertices:
 		i = i+1
 	vertex_info.close()
 
-	del xVertex_full
-	del yVertex_full
-	del zVertex_full
+	#del xVertex_full
+	#del yVertex_full
+	#del zVertex_full
 
 else:
 	# Create vertex variables
-	xVertex_full = grid.createVariable('xVertex', 'f8', ( 'nVertices' ,) )
-	yVertex_full = grid.createVariable('yVertex', 'f8', ( 'nVertices' ,) )
-	zVertex_full = grid.createVariable('zVertex', 'f8', ( 'nVertices' ,) )
+	xVertex_full = numpy.zeros( (nVertices,) )
+	yVertex_full = numpy.zeros( (nVertices,) )
+	zVertex_full = numpy.zeros( (nVertices,) )
 
 	for iVertex in arange(0, nVertices):
 		cell1 = cellsOnVertex_full[iVertex,0]
@@ -201,13 +201,13 @@ else:
 		yVertex_full[iVertex] = pv.y
 		zVertex_full[iVertex] = pv.z
 
-	del xCell_full
-	del yCell_full
-	del zCell_full
-	del xVertex_full
-	del yVertex_full
-	del zVertex_full
-	del cellsOnVertex_full
+	#del xCell_full
+	#del yCell_full
+	#del zCell_full
+	#del xVertex_full
+	#del yVertex_full
+	#del zVertex_full
+	#del cellsOnVertex_full
 
 if not options.density:
 	meshDensity_full = grid.createVariable('meshDensity', 'f8', ( 'nCells' ,) )
@@ -225,6 +225,21 @@ else:
 		iCell = iCell+1
 
 	del meshDensity_full
+
+var = grid.createVariable('xCell', 'f8', ( 'nCells' ,) )
+var[:] = xCell_full
+var = grid.createVariable('yCell', 'f8', ( 'nCells' ,) )
+var[:] = yCell_full
+var = grid.createVariable('zCell', 'f8', ( 'nCells' ,) )
+var[:] = zCell_full
+var = grid.createVariable('xVertex', 'f8', ( 'nVertices' ,) )
+var[:] = xVertex_full
+var = grid.createVariable('yVertex', 'f8', ( 'nVertices' ,) )
+var[:] = yVertex_full
+var = grid.createVariable('zVertex', 'f8', ( 'nVertices' ,) )
+var[:] = zVertex_full
+var = grid.createVariable('cellsOnVertex', 'i4', ( 'nVertices' , 'vertexDegree' ,) )
+var[:] = cellsOnVertex_full
 
 grid.sync()
 grid.close()
