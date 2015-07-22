@@ -43,6 +43,7 @@ Point segment_intersect(Point& p0, Point &p1, Point &q0, Point&q1);
 	int NUMPOINTS = 200;
 	int MAXITR = 100;
 	int USE_MC = 1; // 1=true, 0=read from file
+	int USE_DATA_DENSITY = 0; // 1=true, 0=analytic density function in DensityFunction.cxx
 
 
 
@@ -53,7 +54,7 @@ int main(int argc, char ** argv)
 	readParamsFile();
 
 	int i, ii, jj, n, iter, idx, npts, np;
-	DensityFunction f(X_PERIOD, Y_PERIOD);
+	DensityFunction f(X_PERIOD, Y_PERIOD, USE_DATA_DENSITY);
 	PointSet pset;
 	PointSet out_pset;
 	vector<Point> * vcs;
@@ -93,10 +94,10 @@ int main(int argc, char ** argv)
 
 	if (USE_MC == 1) {
 		cout << "MC" <<endl;
-		pset.makeMCPoints(NUMPOINTS, X_PERIOD, Y_PERIOD);
+		pset.makeMCPoints(NUMPOINTS, X_PERIOD, Y_PERIOD, USE_DATA_DENSITY);
 	} else {
 		cout << "file" <<endl;
-		pset.initFromTextFile(X_PERIOD, Y_PERIOD, "centroids.txt");
+		pset.initFromTextFile(X_PERIOD, Y_PERIOD, USE_DATA_DENSITY, "centroids.txt");
 	}
 
 
@@ -472,7 +473,6 @@ void write_netcdf(int nCells, int nVertices, int vertexDegree,
 
 
 
-
 /* ***** Setup Routines ***** */
 void readParamsFile(){
 	//Read in parameters from Params.
@@ -503,6 +503,8 @@ void readParamsFile(){
 		pout << X_BUFFER_FRAC << endl;
 		pout << "Fraction of domain to set as a buffer in which initial point locations remain fixed, y-direction" << endl;
 		pout << Y_BUFFER_FRAC << endl;
+		pout << "Use data density in file named density.nc with variables x, y, density. 1=true, 0=analytic density function in DensityFunction.cxx" << endl;
+		pout << USE_DATA_DENSITY << endl;
 
 		pout.close();
 
@@ -534,6 +536,9 @@ void readParamsFile(){
 	getline(params,junk);
 	params >> Y_BUFFER_FRAC;
 	params.ignore(10000,'\n');
+	getline(params,junk);
+	params >> USE_DATA_DENSITY;
+	params.ignore(10000,'\n');
 
 	params.close();
 
@@ -554,6 +559,8 @@ void readParamsFile(){
 	cout << X_BUFFER_FRAC << endl;
 	cout << "Fraction of domain to set as a buffer in which initial point locations remain fixed, y-direction" << endl;
 	cout << Y_BUFFER_FRAC << endl;
+	cout << "Use data density in file named density.nc with variables x, y, density. 1=true, 0=analytic density function in DensityFunction.cxx" << endl;
+	cout << USE_DATA_DENSITY << endl;
 
 	X_BUFFER_W = X_PERIOD * X_BUFFER_FRAC;
 	Y_BUFFER_W = Y_PERIOD * Y_BUFFER_FRAC;

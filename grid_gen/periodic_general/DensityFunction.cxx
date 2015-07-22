@@ -1,13 +1,26 @@
 #include <cstdlib>
 #include <math.h>
 #include "DensityFunction.h"
+#include "netcdf.h"
+#include <valarray>
 
-
-DensityFunction::DensityFunction(double X_PERIOD, double Y_PERIOD)
+DensityFunction::DensityFunction(double X_PERIOD, double Y_PERIOD, int USE_DATA_DENSITY)
 {
+
 	minX = minY = 0.0;
 	maxX = X_PERIOD;
 	maxY = Y_PERIOD;
+	use_data_density = USE_DATA_DENSITY;
+
+	if (use_data_density == 1){
+		read_density_netcdf(&xPosDG, &yPosDG, &densityDG, dxDG, dyDG);
+
+		dxDG = xPosDG[1] - xPosDG[0];
+		cout << "  dx=" << dxDG <<endl;
+
+		dyDG = yPosDG[1] - yPosDG[0];
+		cout << "  dy=" << dyDG <<endl;
+	}
 }
 
 
@@ -18,6 +31,17 @@ DensityFunction::~DensityFunction()
 
 
 double DensityFunction::f(double x, double y)
+{
+// Densities should vary from 0 to 1.
+
+	if (use_data_density == 1){
+		return DataDensityFunction(x, y);
+	} else {
+		return AnalyticDensityFunction(x, y);
+	}
+}
+
+double DensityFunction::AnalyticDensityFunction(double x, double y)
 {
 	const double R1 = 0.03;	// inner Radius of bell
 	const double R2 = 0.30;	// outer Radius of bell
@@ -48,6 +72,14 @@ double DensityFunction::f(double x, double y)
 	else
 		return D2;
 }
+
+
+
+double DensityFunction::DataDensityFunction(double x, double y)
+{
+	return UniformValue(x, y);
+}
+
 
 
 double DensityFunction::evaluate(Point& p)
@@ -88,3 +120,122 @@ void DensityFunction::randomPoint(Point& p)
 	p.setX(x);
 	p.setY(y);
 }
+
+
+
+/* ***** Read density function data ***** */
+void DensityFunction::read_density_netcdf(double **xPosDG, double **yPosDG, double **densityDG, int dxDG, int dyDG)
+{
+	int ncerr;
+	int ncid;
+	int x_dimID, y_dimID;
+	int x_dim, y_dim;
+	int x_id, y_id, density_id;
+	size_t temp;
+
+	cout << "Reading in data density function from density.nc" <<endl;
+
+	// Open file
+	ncerr = nc_open("density.nc", NC_NOWRITE, &ncid);
+
+	// Get needed dimensions
+	ncerr = nc_inq_dimid(ncid, "x", &x_dimID);
+	ncerr = nc_inq_dimlen(ncid, x_dimID, &temp);
+	x_dim = (int)temp;
+	ncerr = nc_inq_dimid(ncid, "y", &y_dimID);
+	ncerr = nc_inq_dimlen(ncid, y_dimID, &temp);
+	y_dim = (int)temp;
+	cout << "  Got dimensions from file." <<endl;
+
+	// Allocate variables to read into
+	*xPosDG = (double *)malloc(sizeof(double) * (x_dim));
+	*yPosDG = (double *)malloc(sizeof(double) * (y_dim));
+	*densityDG = (double *)malloc(sizeof(double) * (x_dim) * (y_dim));
+	cout << "  Allocated internal variables." <<endl;
+
+	// Get needed variables
+	ncerr = nc_inq_varid (ncid, "x", &x_id);
+	ncerr = nc_get_var_double(ncid, x_id, *xPosDG);
+
+	ncerr = nc_inq_varid (ncid, "y", &y_id);
+	ncerr = nc_get_var_double(ncid, y_id, *yPosDG);
+
+	ncerr = nc_inq_varid (ncid, "density", &density_id);
+	ncerr = nc_get_var_double(ncid, density_id, *densityDG);
+	cout << "  Got variables from file." <<endl;
+
+
+	// Close file
+	ncerr = nc_close(ncid);
+
+	nxDG = x_dim;
+	cout << "  nx=" << nxDG <<endl;
+
+	nyDG = y_dim;
+	cout << "  ny=" << nyDG <<endl;
+
+	cout << "Completed reading data density." <<endl;
+
+}
+
+
+// Data density helpers
+
+double DensityFunction::UniformValue(double x, double y)
+{
+// Gives the value of the density function cell that x,y falls inside of.
+
+	int xpos, ypos; // the cells that the point falls in
+
+	xpos = (int) floor( (x - xPosDG[0]) / dxDG);  // floor should not be needed since c++ will truncate...
+	if (xpos < 0) {
+		xpos = 0;
+	} else if (xpos >= nxDG - 1) {
+		xpos = nxDG - 2;
+	}
+	ypos = (int) floor( (y - yPosDG[0]) / dyDG);
+	if (ypos < 0) {
+		ypos = 0;
+	} else if (ypos >= nyDG - 1) {
+		ypos = nyDG - 2;
+	}
+
+	return densityDG[ypos * nxDG +  xpos];
+}
+
+
+//def BilinearInterp(Value, CISMgridType):
+//    # Calculate bilinear interpolation of Value field from x, y to new ValueCell field (return value)  at xCell, yCell
+//    # This assumes that x, y, Value are regular CISM style grids and xCell, yCell, ValueCell are 1-D unstructured MPAS style grids
+//  try:
+//    if CISMgridType == 0:
+//        x = x0; y = y0
+//    elif CISMgridType == 1:
+//        x = x1; y = y1
+//    else:
+//        sys.exit('Error: unknown CISM grid type specified.')
+//    dx = x[1] - x[0]
+//    dy = y[1] - y[0]
+//    ValueCell = np.zeros(xCell.shape)
+//    for i in range(len(xCell)):
+//       # Calculate the CISM grid cell indices (these are the lower index)
+//       xgrid = math.floor( (xCell[i]-x[0]) / dx )
+//       if xgrid >= len(x) - 1:
+//          xgrid = len(x) - 2
+//       elif xgrid < 0:
+//          xgrid = 0
+//       ygrid = math.floor( (yCell[i]-y[0]) / dy )
+//       if ygrid >= len(y) - 1:
+//          ygrid = len(y) - 2
+//       elif ygrid < 0:
+//          ygrid = 0
+//       #print xgrid, ygrid
+//       ValueCell[i] = Value[ygrid,xgrid] * (x[xgrid+1] - xCell[i]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
+//                 Value[ygrid+1,xgrid] * (x[xgrid+1] - xCell[i]) * (yCell[i] - y[ygrid]) / (dx * dy) + \
+//                 Value[ygrid,xgrid+1] * (xCell[i] - x[xgrid]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
+//                 Value[ygrid+1,xgrid+1] * (xCell[i] - x[xgrid]) * (yCell[i] - y[ygrid]) / (dx * dy) 
+//  except:
+//     'error in BilinearInterp'
+//  return ValueCell
+
+

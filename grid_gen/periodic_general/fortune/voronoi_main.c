@@ -84,15 +84,17 @@ readsites(PointSet * p)
 	int i ;
 	int j ;
 
+	int MaxSize = 20000;
+
 	nsites = 0 ;
-	sites = (Site *) myalloc(20000 * sizeof(Site));
+	sites = (Site *) myalloc(MaxSize * sizeof(Site));
 	for(j=0; j<p->nPoints; j++) {
 	   sites[nsites].coord.x = p->points[j]->getX();
 	   sites[nsites].coord.y = p->points[j]->getY();
 	   sites[nsites].sitenbr = p->points[j]->getNum() ;
 	   sites[nsites++].refcnt = 0 ;
-	   if (nsites % 20000 == 0) {
-		  sites = (Site *)realloc(sites,(nsites+20000)*sizeof(Site));
+	   if (nsites % MaxSize == 0) {
+		  sites = (Site *)realloc(sites,(nsites+MaxSize)*sizeof(Site));
 	   }
 	}
 
