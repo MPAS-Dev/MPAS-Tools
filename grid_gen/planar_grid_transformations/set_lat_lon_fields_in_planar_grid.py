@@ -25,6 +25,9 @@ projections['gis-bamber'] = pyproj.Proj('+proj=stere +lat_ts=71.0 +lat_0=90 +lon
 # GIMP projection: This is also polar stereographic but with different standard parallel and using the WGS84 ellipsoid.
 projections['gis-gimp'] = pyproj.Proj('+proj=stere +lat_ts=70.0 +lat_0=90 +lon_0=315.0 +k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84')
 
+# BEDMAP2 projection
+projections['ais-bedmap2'] = pyproj.Proj('+proj=stere +lat_ts=-71.0 +lat_0=90 +lon_0=0.0 +k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84')  # Note: BEDMAP2 elevations use EIGEN-GL04C geoid
+
 # Standard Lat/Long
 projections['latlon'] = pyproj.Proj(proj='latlong', datum='WGS84')
 # ===================================
