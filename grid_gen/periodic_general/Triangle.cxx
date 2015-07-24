@@ -83,8 +83,8 @@ void Triangle::divide_segment(Point p1, Point p2, Point list[], int n)
 
 Point Triangle::centroid(DensityFunction& d, double * mass)
 {
-	//const int GLEV = 6;  // Also change 25 if changing this value
-	const int GLEV = 17;  // Also change 256 if changing this value
+	const int GLEV = 6;  // Also change 25 if changing this value
+	//const int GLEV = 17;  // Also change 256 if changing this value
 	//const int GLEV = 19;  // Also change 324 if changing this value
 	int i, j, k;
 	double density, total_weight;
@@ -92,7 +92,7 @@ Point Triangle::centroid(DensityFunction& d, double * mass)
 	Point line[GLEV][GLEV];
 	Point p1p2[GLEV];
 	Point p1p3[GLEV];
-	Point p[256][3];
+	Point p[25][3];
 	Triangle t(o,o,o);	// Initially, we don't care what t is
 
 	divide_segment(points[0], points[1], p1p2, GLEV);
@@ -126,7 +126,7 @@ Point Triangle::centroid(DensityFunction& d, double * mass)
 
 	o.setXY(0.0, 0.0);
 	total_weight = 0.0;
-	for(i=0; i<256; i++) {
+	for(i=0; i<25; i++) {
 		t = Triangle(p[i][0], p[i][1], p[i][2]);
 		c = t.centroid();
 		density = d.evaluate(c);
