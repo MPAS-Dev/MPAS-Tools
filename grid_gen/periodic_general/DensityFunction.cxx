@@ -77,7 +77,8 @@ double DensityFunction::AnalyticDensityFunction(double x, double y)
 
 double DensityFunction::DataDensityFunction(double x, double y)
 {
-	return UniformValue(x, y);
+//	return UniformValue(x, y);
+	return BilinearInterp(x, y);
 }
 
 
@@ -204,38 +205,34 @@ double DensityFunction::UniformValue(double x, double y)
 }
 
 
-//def BilinearInterp(Value, CISMgridType):
-//    # Calculate bilinear interpolation of Value field from x, y to new ValueCell field (return value)  at xCell, yCell
-//    # This assumes that x, y, Value are regular CISM style grids and xCell, yCell, ValueCell are 1-D unstructured MPAS style grids
-//  try:
-//    if CISMgridType == 0:
-//        x = x0; y = y0
-//    elif CISMgridType == 1:
-//        x = x1; y = y1
-//    else:
-//        sys.exit('Error: unknown CISM grid type specified.')
-//    dx = x[1] - x[0]
-//    dy = y[1] - y[0]
-//    ValueCell = np.zeros(xCell.shape)
-//    for i in range(len(xCell)):
-//       # Calculate the CISM grid cell indices (these are the lower index)
-//       xgrid = math.floor( (xCell[i]-x[0]) / dx )
-//       if xgrid >= len(x) - 1:
-//          xgrid = len(x) - 2
-//       elif xgrid < 0:
-//          xgrid = 0
-//       ygrid = math.floor( (yCell[i]-y[0]) / dy )
-//       if ygrid >= len(y) - 1:
-//          ygrid = len(y) - 2
-//       elif ygrid < 0:
-//          ygrid = 0
-//       #print xgrid, ygrid
-//       ValueCell[i] = Value[ygrid,xgrid] * (x[xgrid+1] - xCell[i]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
-//                 Value[ygrid+1,xgrid] * (x[xgrid+1] - xCell[i]) * (yCell[i] - y[ygrid]) / (dx * dy) + \
-//                 Value[ygrid,xgrid+1] * (xCell[i] - x[xgrid]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
-//                 Value[ygrid+1,xgrid+1] * (xCell[i] - x[xgrid]) * (yCell[i] - y[ygrid]) / (dx * dy) 
-//  except:
-//     'error in BilinearInterp'
-//  return ValueCell
 
+double DensityFunction::BilinearInterp(double x, double y)
+{
+// Gives the value of the density function at x,y using Bilinear Interpolation
+
+	int xpos, ypos; // the cells that the point falls in
+	double value;
+
+	xpos = (int) floor( (x - xPosDG[0]) / dxDG);  // floor should not be needed since c++ will truncate...
+	if (xpos < 0) {
+		xpos = 0;
+	} else if (xpos >= nxDG - 1) {
+		xpos = nxDG - 2;
+	}
+	ypos = (int) floor( (y - yPosDG[0]) / dyDG);
+	if (ypos < 0) {
+		ypos = 0;
+	} else if (ypos >= nyDG - 1) {
+		ypos = nyDG - 2;
+	}
+
+	value = (
+		densityDG[ypos * nxDG +  xpos] * (xPosDG[xpos+1] - x) * (yPosDG[ypos+1] - y) +
+		densityDG[(ypos+1) * nxDG +  xpos] * (xPosDG[xpos+1] - x) * (y - yPosDG[ypos]) +
+		densityDG[ypos * nxDG +  xpos+1] * (x - xPosDG[xpos]) * (yPosDG[ypos+1] - y) +
+		densityDG[(ypos+1) * nxDG +  xpos+1] * (x - xPosDG[xpos]) * (y - yPosDG[ypos])
+		)	/ (dxDG * dyDG);
+
+	return value;
+}
 
