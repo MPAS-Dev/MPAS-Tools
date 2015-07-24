@@ -11,6 +11,7 @@
 #include "Triangle.h"
 #include "DensityFunction.h"
 #include "netcdf.h"
+#include <stdlib.h>
 using namespace std;
 
 #define ALLOC_INT2D(ARR,I,J) (ARR) = new int*[(I)]; for(int i=0; i<(I); i++) (ARR)[i] = new int[(J)];
@@ -93,10 +94,10 @@ int main(int argc, char ** argv)
 
 
 	if (USE_MC == 1) {
-		cout << "MC" <<endl;
+		cout << "Generating Monte Carlo points..." <<endl;
 		pset.makeMCPoints(NUMPOINTS, X_PERIOD, Y_PERIOD, USE_DATA_DENSITY);
 	} else {
-		cout << "file" <<endl;
+		cout << "Reading points from file 'centroids.txt'..." <<endl;
 		pset.initFromTextFile(X_PERIOD, Y_PERIOD, USE_DATA_DENSITY, "centroids.txt");
 	}
 
@@ -144,6 +145,7 @@ int main(int argc, char ** argv)
 		delete [] vcs;
 	}
 
+	cout << "Writing restart.txt..." << endl;
 	
 	restart = fopen("restart.txt","w");
 	for(i=0; i<pset.size(); i++) {
@@ -151,10 +153,10 @@ int main(int argc, char ** argv)
 	}
 	fclose(restart);
 
-
 	/*
 	 * To get a triangulation of the points, we'll need to make copies of the boundary points
 	 */
+	cout << "Creating triangulation..." << endl;
 	npts = pset.size();
 	for (i=0; i<npts; i++) {
 		temp_p = new Point(pset[i]->getX(), pset[i]->getY(), 0);
@@ -243,14 +245,15 @@ int main(int argc, char ** argv)
 	}
 
 
+
 	/*
 	 * Having obtained a triangulation of "real" generating points as well as "ghost" points,
 	 *    we need to scan through the triangles and keep a unique set that triangulates a truly
 	 *    doubly-periodic grid
 	 */
+	cout << "Finding unique set of triangles..." << endl;
 	triangulation = out_pset.getTriangulation();
         for (it = triangulation->begin(); it != triangulation->end(); it++) {
-
 		/* 
 		 * Ghost/halo points have a negative index; if all of the vertices of a triangle
 		 *    are negative, the triangle is redundant
@@ -285,6 +288,7 @@ int main(int argc, char ** argv)
 		}
 	}
 
+	cout << "Ensuring corner locations are in range of domain..." << endl;
 
 	/*
 	 * Scan through triangles and ensure that corner locations are in the range (0,X_PERIOD],(0,Y_PERIOD]
@@ -302,6 +306,7 @@ int main(int argc, char ** argv)
 	/*
 	 * Generate {x,y,z}{Cell,Vertex}, meshDensity, and cellsOnVertex fields into simple arrays
 	 */
+	cout << "Generating {x,y,z}{Cell,Vertex}, meshDensity, and cellsOnVertex fields into simple arrays..." << endl;
 	nCells = pset.size();
 	nVertices = norm_dt.size();
 	vertexDegree = 3;
@@ -345,6 +350,7 @@ int main(int argc, char ** argv)
 	/*
 	 * Write fields to NetCDF file
 	 */
+	cout << "Writing to netCDF file..." << endl;
 	write_netcdf(nCells, nVertices, vertexDegree, xCell, yCell, zCell, xVertex, yVertex, zVertex, meshDensity, cellsOnVertex, (double)( X_PERIOD ), (double)( Y_PERIOD ));
 
 
@@ -357,6 +363,8 @@ int main(int argc, char ** argv)
 	free(meshDensity);
 	free(cellsOnVertex);
 
+
+	cout << "Successful completion." << endl;
 	return 0;
 }
 
