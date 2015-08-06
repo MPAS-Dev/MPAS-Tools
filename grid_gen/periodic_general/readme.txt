@@ -16,7 +16,8 @@ periodic_general, mkgrid
 characteristics.
 * mkgrid could potentially (with some additional modifications) be used on the output
 to create a netCDF file.  However, the MpasMeshConverter.x program in the standard 
-MPAS mesh generation toolchain can do this instead.
+MPAS mesh generation toolchain can do this instead.  This executable is no longer needed for
+building meshes for MPAS.
 
 
 
@@ -24,45 +25,20 @@ MPAS mesh generation toolchain can do this instead.
 Setting up periodic_general
 -----------------------------------------------
 
-periodic_general takes a set of seed centroid points from the file "centroids.txt".
+Runtime options in periodic_general are controlled by a file called "Params.txt".  If this file
+does not exist, when the exeutable is run it will create a copy of the file and abort.  You can
+then edit the options in the file and re-run it.  Most of the options in the file should be
+fairly self-explanatory but documentation is currently limited.
+
+There are two ways to seed the generators (controlled in Params.txt):
+1. Random points based on the density function.
+2. Input from the file "centroids.txt".
 This file is a list of x,y coordinate pairs, one per line.  An example centroids.txt
 file is part of the repository in this directory.  Note that your final mesh will
 have the same number of points as were input in centroids.txt, but they will be moved
 around to satisfy the density function under the constraint of the CVT property.
 
-
-Near the top of main.cxx are a number of parameters that may be adjusted:
-
-#define EPS 1.0e-7
-
-/* Sets the period of the grid in x and y */
-#define X_PERIOD 40.0
-#define Y_PERIOD 40.0*0.866025403784439
-
-/* Sets the width of the zone of cells that are immovable along the x and y boundaries */
-#define X_BUFFER_W 3.0
-#define Y_BUFFER_W 3.0
-
-
-Also, in the function main, you may wish to adjust the maximum number of Lloyd's iterations:
-        const int MAXITR = 100;
-
-
 You likely also want to update DensityFunction.cxx.
-
-These values should reflect the size of your domain.  TODO: Could/should these be specified in main.cxx or somewhere else more general?
-DensityFunction::DensityFunction()
-{
-        minX = minY = 0.0;
-        maxX = 40.0;
-        maxY = 40.0 * 0.866025403784439;
-}
-
-The function double DensityFunction::f(double x, double y) can be modified to be
-any user-specified density function.
-
-The randomPoint functions are not currently used.  They could be used to add the ability
-to generate an initial random pointset.
 
 
 -----------------------------------------------
@@ -70,8 +46,7 @@ Running periodic_general
 -----------------------------------------------
 
 Execute: ./periodic_general
-The program will run for the number of iterations specified in MAXITR - currently
-there is no ability to stop if some convergence criterion is reached. TODO: Add ability to use a convergence criterion.
+
 Output for each iteration is displayed like:
 
 Iteration 0
