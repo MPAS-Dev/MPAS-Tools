@@ -84,7 +84,7 @@ def write_definition_file(registry):#{{{
 			definitions.write("Valid values: %s\n"%(option_possible_values))
 			definitions.write("Default: %s\n"%(option_default_value))
 			definitions.write("</entry>\n\n")
-			
+
 
 	# Write definitions footer
 	definitions.write('</namelist_definition>\n')
@@ -110,14 +110,9 @@ def write_defaults_file(registry, defaults_tree, use_defaults):#{{{
 			option_type = option.attrib["type"]
 			option_default_value = option.attrib["default_value"]
 
-			# Write the built in default.
-			if option_type == 'character':
-				defaults.write("<%s>'%s'</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
-			else:
-				defaults.write("<%s>%s</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
-			
 			# Extract defaults other than the built in default...
 			if use_defaults:
+				wrote_opt = False
 				for nml_defaults in defaults_tree.iter("namelist_defaults"):
 					for def_option in nml_defaults.iter("%s"%(option_name.strip())):
  						if ( not len(def_option.attrib) == 0 ):
@@ -125,6 +120,35 @@ def write_defaults_file(registry, defaults_tree, use_defaults):#{{{
 							for key, val in def_option.attrib.items():
 								defaults.write(" %s=\"%s\""%(key.strip(), val.strip()))
 							defaults.write(">%s</%s>\n"%(def_option.text, option_name.strip()))
+							wrote_opt = True
+						elif len(def_option.attrib) == 0:
+							if not option_default_value.strip() == def_option.text.strip().strip("'"):
+								print " Default values don't match for option: %s"%(option_name.strip())
+								print " Values are: Reg (%s) Def (%s)"%(option_default_value.strip(), def_option.text.strip())
+								print " Writing both. Clean up manually..."
+
+								if option_type == 'character':
+									defaults.write("<%s>'%s'</%s> <!-- From registry -->\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
+								else:
+									defaults.write("<%s>%s</%s> <!-- From registry -->\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
+
+								defaults.write("<%s>%s</%s> <!-- From old defaults -->\n"%(option_name.strip(), def_option.text.strip(), option_name.strip()))
+							else:
+								defaults.write("<%s>%s</%s>\n"%(option_name.strip(), def_option.text.strip(), option_name.strip()))
+							wrote_opt = True
+				if not wrote_opt:
+					if option_type == 'character':
+						defaults.write("<%s>'%s'</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
+					else:
+						defaults.write("<%s>%s</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
+					wrote_opt = True
+			else:
+				# Write the built in default.
+				if option_type == 'character':
+					defaults.write("<%s>'%s'</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
+				else:
+					defaults.write("<%s>%s</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
+
 
 	# Write definitions footer
 	defaults.write('\n')
