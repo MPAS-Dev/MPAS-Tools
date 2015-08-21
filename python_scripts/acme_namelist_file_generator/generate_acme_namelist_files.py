@@ -41,7 +41,7 @@ to these diferences and allows the conflicts to be manually resolved.
 """
 
 import collections
-import argparse
+from optparse import OptionParser
 import xml.etree.ElementTree as ET
 
 def write_definition_file(registry):#{{{
@@ -108,10 +108,22 @@ def write_definition_file(registry):#{{{
 		for option in record.iter("nml_option"):
 			option_name = option.attrib["name"]
 			option_type = option.attrib["type"]
-			option_description = option.attrib["description"]
-			option_units = option.attrib["units"]
+			try:
+				option_description = option.attrib["description"]
+			except:
+				option_description = 'MISSING DESCRIPTION'
+
+			try:
+				option_units = option.attrib["units"]
+			except:
+				option_units = 'MISSING UNITS'
+
 			option_default_value = option.attrib["default_value"]
-			option_possible_values = option.attrib["possible_values"]
+
+			try:
+				option_possible_values = option.attrib["possible_values"]
+			except:
+				option_possible_values = 'MISSING POSSIBLE VALUES'
 
 			if ( option_type == "character" ):
 				entry_type = "char*1024"
@@ -123,7 +135,7 @@ def write_definition_file(registry):#{{{
 			definitions.write("%s\n"%(option_description))
 			definitions.write("\n")
 			definitions.write("Valid values: %s\n"%(option_possible_values))
-			definitions.write("Default: %s\n"%(option_default_value))
+			definitions.write("Default: Defined in namelist_defaults.xml\n")
 			definitions.write("</entry>\n\n")
 
 
@@ -169,11 +181,15 @@ def write_defaults_file(registry, defaults_tree, use_defaults):#{{{
 								print " Writing both. Clean up manually..."
 
 								if option_type == 'character':
-									defaults.write("<%s>'%s'</%s> <!-- From registry -->\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
+									defaults.write("<<<<<<<<< FROM REGISTRY\n")
+									defaults.write("<%s>'%s'</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
 								else:
-									defaults.write("<%s>%s</%s> <!-- From registry -->\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
+									defaults.write("<<<<<<<<< FROM REGISTRY\n")
+									defaults.write("<%s>%s</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
 
-								defaults.write("<%s>%s</%s> <!-- From old defaults -->\n"%(option_name.strip(), def_option.text.strip(), option_name.strip()))
+								defaults.write("=======================\n")
+								defaults.write("<%s>%s</%s>\n"%(option_name.strip(), def_option.text.strip(), option_name.strip()))
+								defaults.write("<<<<<<<<< FROM OLD DEFAULTS\n")
 							else:
 								defaults.write("<%s>%s</%s>\n"%(option_name.strip(), def_option.text.strip(), option_name.strip()))
 							wrote_opt = True
@@ -229,9 +245,9 @@ def write_build_namelist_section(registry):#{{{
 	build_nml.close()
 #}}}
 
-parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument("-r", "--registry", dest="registry", help="Path to Preprocessed Registry file", metavar="FILE")
-parser.add_argument("-d", "--defaults", dest="defaults", help="Path to namelist defaults file (Optional)", metavar="FILE")
+parser = OptionParser()
+parser.add_option("-r", "--registry", dest="registry", help="Path to Preprocessed Registry file", metavar="FILE")
+parser.add_option("-d", "--defaults", dest="defaults", help="Path to namelist defaults file (Optional)", metavar="FILE")
 
 options, args = parser.parse_args()
 
