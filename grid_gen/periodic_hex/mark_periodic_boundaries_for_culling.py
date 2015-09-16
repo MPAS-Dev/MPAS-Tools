@@ -24,6 +24,8 @@ print "== Gathering information.  (Invoke with --help for more details. All argu
 parser = OptionParser()
 parser.description = "This script takes an MPAS grid file and marks the edge rows and columns for culling, e.g., to remove periodicity."
 parser.add_option("-f", "--file", dest="inFile", help="MPAS grid file name used as input.", default="grid.nc", metavar="FILENAME")
+parser.add_option("-x", "--xonly", dest="xonly", help="Only cull periodicity in x direction.", action='store_true', default=False)
+parser.add_option("-y", "--yonly", dest="yonly", help="Only cull periodicity in y direction.", action='store_true', default=False)
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
         option.help += (" " if option.help else "") + "[default: %default]"
@@ -49,15 +51,19 @@ else:
 cullCell_local = np.zeros( (nCells,) )
 
 # For a periodic hex, the upper and lower rows need to be marked
-cullCell_local[np.nonzero(yCell == yCell.min())] = 1
-cullCell_local[np.nonzero(yCell == yCell.max())] = 1
+if not options.xonly:
+    print 'culling y-periodic cells'
+    cullCell_local[np.nonzero(yCell == yCell.min())] = 1
+    cullCell_local[np.nonzero(yCell == yCell.max())] = 1
 
 # For a periodidic hex the leftmost and rightmost *TWO* columns need to be marked
-unique_Xs=np.array(sorted(list(set(xCell[:]))))
-cullCell_local[np.nonzero(xCell == unique_Xs[0])] = 1
-cullCell_local[np.nonzero(xCell == unique_Xs[1])] = 1
-cullCell_local[np.nonzero(xCell == unique_Xs[-1])] = 1
-cullCell_local[np.nonzero(xCell == unique_Xs[-2])] = 1
+if not options.yonly:
+    print 'culling x-periodic cells'
+    unique_Xs=np.array(sorted(list(set(xCell[:]))))
+    cullCell_local[np.nonzero(xCell == unique_Xs[0])] = 1
+    cullCell_local[np.nonzero(xCell == unique_Xs[1])] = 1
+    cullCell_local[np.nonzero(xCell == unique_Xs[-1])] = 1
+    cullCell_local[np.nonzero(xCell == unique_Xs[-2])] = 1
 
 cullCell[:] = cullCell_local
 
