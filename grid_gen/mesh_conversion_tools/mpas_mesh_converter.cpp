@@ -2410,7 +2410,7 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	NcBool sphereAtt, radiusAtt;
+	NcBool sphereAtt, radiusAtt, periodicAtt, xPeriodAtt, yPeriodAtt;
 	NcBool history, id, spec, conventions, source, parent_id;
 	string history_str = "";
 	string id_str = "";
@@ -2423,6 +2423,14 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 	} else {
 		if (!(sphereAtt = grid.add_att(   "on_a_sphere", "YES\0"))) return NC_ERR;
 		if (!(radiusAtt = grid.add_att(   "sphere_radius", sphereRadius))) return NC_ERR;
+	}
+
+	if(!periodic){
+		if (!(periodicAtt = grid.add_att(   "is_periodic", "NO\0"))) return NC_ERR;
+	} else {
+		if (!(periodicAtt = grid.add_att(   "is_periodic", "YES\0"))) return NC_ERR;
+		if (!(xPeriodAtt = grid.add_att(   "x_period", xPeriod))) return NC_ERR;
+		if (!(xPeriodAtt = grid.add_att(   "y_period", yPeriod))) return NC_ERR;
 	}
 
 	history_str += "MpasMeshConverter.x ";
