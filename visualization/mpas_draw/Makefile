@@ -7,8 +7,12 @@ DBGFLAGS= -g -m64
 
 #OFFSETFLAG=-D_64BITOFFSET
 
-PLATFORM=_MACOS
-PLATFORM=_LINUX
+platform=$(shell uname)
+ifeq ($(platform),Darwin)
+	PLATFORM=_MACOS
+else
+	PLATFORM=_LINUX
+endif
 
 ifeq ($(PLATFORM),_LINUX)
 	CXXLIBS = -I$(NETCDF)/include -L$(NETCDF)/lib -lGL -lglut -lnetcdf_c++ -lnetcdf -lGLU -lstdc++
