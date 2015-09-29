@@ -37,7 +37,7 @@ double xCellDistance, yCellDistance, zCellDistance;
 double xVertexDistance, yVertexDistance, zVertexDistance;
 double xPeriodicFix, yPeriodicFix;
 string in_history = "";
-string in_mesh_id = "";
+string in_file_id = "";
 string in_parent_id = "";
 
 // Connectivity and location information {{{
@@ -324,9 +324,9 @@ int readGridInput(const string inputFilename){/*{{{*/
 #endif
 	in_history = netcdf_mpas_read_history(inputFilename);
 #ifdef _DEBUG
-	cout << "   Reading mesh_id" << endl;
+	cout << "   Reading file_id" << endl;
 #endif
-	in_mesh_id = netcdf_mpas_read_meshid(inputFilename);
+	in_file_id = netcdf_mpas_read_fileid(inputFilename);
 
 #ifdef _DEBUG
 	cout << "   Reading parent_id" << endl;
@@ -2373,7 +2373,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	NcDim *THREEDim;
 	NcDim *vertexDegreeDim;
 	NcDim *timeDim;
-	NcDim *nVertLevelsDim;
+//	NcDim *nVertLevelsDim;
 	
 	// write dimensions
 	if (!(nCellsDim =		grid.add_dim(	"nCells",		cells.size())		)) return NC_ERR;
@@ -2383,7 +2383,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	if (!(maxEdges2Dim =	grid.add_dim(	"maxEdges2",	maxEdges*2)			)) return NC_ERR;
 	if (!(TWODim =			grid.add_dim(	"TWO",			2)					)) return NC_ERR;
 	if (!(vertexDegreeDim = grid.add_dim(   "vertexDegree", vertex_degree)		)) return NC_ERR;
-	if (!(nVertLevelsDim =  grid.add_dim(   "nVertLevels", 1)					)) return NC_ERR;
+//	if (!(nVertLevelsDim =  grid.add_dim(   "nVertLevels", 1)					)) return NC_ERR;
 	if (!(timeDim = 		grid.add_dim(   "Time")								)) return NC_ERR;
 
 	grid.close();
@@ -2434,8 +2434,8 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 		history_str += in_history;
 	}
 
-	if(in_mesh_id != "" ){
-		parent_str = in_mesh_id;
+	if(in_file_id != "" ){
+		parent_str = in_file_id;
 		if(in_parent_id != ""){
 			parent_str += "\n";
 			parent_str += in_parent_id;
@@ -2450,7 +2450,7 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 	if (!(spec = grid.add_att(   "mesh_spec", mesh_spec_str ))) return NC_ERR;
 	if (!(conventions = grid.add_att(   "Conventions", "MPAS" ))) return NC_ERR;
 	if (!(source = grid.add_att(   "source", "MpasMeshConverter.x" ))) return NC_ERR;
-	if (!(id = grid.add_att(   "mesh_id", id_str.c_str() ))) return NC_ERR;
+	if (!(id = grid.add_att(   "file_id", id_str.c_str() ))) return NC_ERR;
 
 	grid.close();
 	

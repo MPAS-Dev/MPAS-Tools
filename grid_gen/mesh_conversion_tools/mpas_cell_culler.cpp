@@ -19,7 +19,7 @@ int nCells, nVertices, nEdges, vertexDegree, maxEdges;
 bool spherical, periodic;
 double sphere_radius, xPeriod, yPeriod;
 string in_history = "";
-string in_mesh_id = "";
+string in_file_id = "";
 string in_parent_id = "";
 double in_mesh_spec = 1.0;
 
@@ -190,9 +190,9 @@ int readGridInput(const string inputFilename){/*{{{*/
 #endif
 	in_history = netcdf_mpas_read_history(inputFilename);
 #ifdef _DEBUG
-	cout << "   Reading mesh_id" << endl;
+	cout << "   Reading file_id" << endl;
 #endif
-	in_mesh_id = netcdf_mpas_read_meshid(inputFilename);
+	in_file_id = netcdf_mpas_read_fileid(inputFilename);
 #ifdef _DEBUG
 	cout << "   Reading parent_id" << endl;
 #endif
@@ -440,7 +440,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	NcDim *TWODim;
 	NcDim *THREEDim;
 	NcDim *vertexDegreeDim;
-	NcDim *nVertLevelsDim;
+//	NcDim *nVertLevelsDim;
 	NcDim *timeDim;
 
 	nCellsNew = 0;
@@ -464,7 +464,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	if (!(nVerticesDim =	grid.add_dim(	"nVertices",	nVerticesNew)	)) return NC_ERR;
 	if (!(TWODim =			grid.add_dim(	"TWO",			2)				)) return NC_ERR;
 	if (!(vertexDegreeDim = grid.add_dim(   "vertexDegree", vertexDegree)	)) return NC_ERR;
-	if (!(nVertLevelsDim =  grid.add_dim(   "nVertLevels", 1)				)) return NC_ERR;
+//	if (!(nVertLevelsDim =  grid.add_dim(   "nVertLevels", 1)				)) return NC_ERR;
 	if (!(timeDim = 		grid.add_dim(   "Time")							)) return NC_ERR;
 
 	grid.close();
@@ -522,8 +522,8 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
 		history_str += in_history;
 	}
 
-	if(in_mesh_id != "" ){
-		parent_str = in_mesh_id;
+	if(in_file_id != "" ){
+		parent_str = in_file_id;
 		if(in_parent_id != ""){
 			parent_str += "\n";
 			parent_str += in_parent_id;
@@ -537,7 +537,7 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
 	if (!(spec = grid.add_att(   "mesh_spec", in_mesh_spec ))) return NC_ERR;
 	if (!(conventions = grid.add_att(   "Conventions", "MPAS" ))) return NC_ERR;
 	if (!(source = grid.add_att(   "source", "MpasCellCuller.x" ))) return NC_ERR;
-	if (!(id = grid.add_att(   "mesh_id", id_str.c_str() ))) return NC_ERR;
+	if (!(id = grid.add_att(   "file_id", id_str.c_str() ))) return NC_ERR;
 
 	grid.close();
 	

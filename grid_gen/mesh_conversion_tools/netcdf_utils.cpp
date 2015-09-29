@@ -544,12 +544,12 @@ string netcdf_mpas_read_history(string filename){/*{{{*/
 
 }/*}}}*/
 //****************************************************************************80
-string netcdf_mpas_read_meshid(string filename){/*{{{*/
+string netcdf_mpas_read_fileid(string filename){/*{{{*/
 	//****************************************************************************80
 	//
 	//  Purpose:
 	//
-	//    NETCDF_MPAS_READ_MESHID reads the mesh_id attribute from a file.
+	//    NETCDF_MPAS_READ_FILEID reads the file_id attribute from a file.
 	//
 	//  Licensing:
 	//
@@ -573,13 +573,13 @@ string netcdf_mpas_read_meshid(string filename){/*{{{*/
 	//
 	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
 	//
-	//    Output, string NETCDF_MPAS_READ_MESHID, the value of the mesh_id attribute
+	//    Output, string NETCDF_MPAS_READ_FILEID, the value of the file_id attribute
 	//
 	NcAtt *att_id;
 	NcValues *vals;
 	bool valid;
 	string tmp_name;
-	string sph_name = "mesh_id";
+	string sph_name = "file_id";
 	string id_str = "";
 	//
 	//  Open the file.
