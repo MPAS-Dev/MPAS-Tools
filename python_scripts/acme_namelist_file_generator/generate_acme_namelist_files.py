@@ -224,11 +224,15 @@ def write_build_namelist_section(registry):#{{{
 	bld_nl_sec_filename = "build-namelist-section"
 	print "=== Writing section of the 'build-namelist' file that writes a list of namelist options to: " + bld_nl_sec_filename
 	build_nml = open(bld_nl_sec_filename, 'w+')
-	build_nml = open('build-namelist-section', 'w+')
+
+	group_list = open('build-namelist-group-list', 'w+')
+
+	group_list.write('my @groups = qw(')
 
 	for record in registry.iter("nml_record"):
 		record_name = record.attrib["name"]
 		message="# Namelist group: %s #\n"%(record_name.strip())
+		group_list.write('%s\n                '%(record_name.strip().lower()))
 
 		comment_message=""
 		first = True
@@ -251,6 +255,8 @@ def write_build_namelist_section(registry):#{{{
 	
 		build_nml.write("\n")
 
+	group_list.write(');\n')
+	group_list.close()
 	build_nml.close()
 	print "   NOTE: You should ensure the build-namelist generated has the correct syntax. Some options need additional logic this script is not capable of generating."
 	print "=== Complete.\n"
