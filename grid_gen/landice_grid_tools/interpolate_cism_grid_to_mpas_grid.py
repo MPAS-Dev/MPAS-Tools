@@ -321,7 +321,12 @@ for MPASfieldName in fieldInfo:
   except:
     print '  problem with %s field (e.g. not found in input file), skipping...'%MPASfieldName
 
-
+# Update history attribute of netCDF file
+if hasattr(MPASfile, 'history'):
+   newhist = '\n'.join([getattr(MPASfile, 'history'), ' '.join(sys.argv[:]) ] )
+else:
+   newhist = sys.argv[:]
+setattr(MPASfile, 'history', newhist )
 
 CISMfile.close()
 MPASfile.close()
