@@ -57,13 +57,13 @@ timelevout = 0
 #----------------------------
 # Map MPAS-CISM field names - add new fields here as needed
 fieldInfo = OrderedDict()
-fieldInfo['thickness'] =     {'CISMname':'thk',  'scalefactor':1.0, 'CISMgrid':1, 'vertDim':False}
-fieldInfo['bedTopography'] = {'CISMname':'topg', 'scalefactor':1.0, 'CISMgrid':1, 'vertDim':False}
-fieldInfo['sfcMassBal'] =    {'CISMname':'acab', 'scalefactor':910.0/(3600.0*24.0*365.0), 'CISMgrid':1, 'vertDim':False}  # Assuming default CISM density
-#fieldInfo['temperature'] =   {'CISMname':'temp', 'scalefactor':1.0, 'CISMgrid':1, 'vertDim':True}
-fieldInfo['temperature'] =   {'CISMname':'tempstag', 'scalefactor':1.0, 'CISMgrid':1, 'vertDim':True}  # pick one or the other
-fieldInfo['beta'] =          {'CISMname':'beta', 'scalefactor':1.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
-#fieldInfo['observedSpeed'] = {'CISMname':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
+fieldInfo['thickness'] =     {'CISMname':'thk',  'scalefactor':1.0, 'offset':0.0, 'CISMgrid':1, 'vertDim':False}
+fieldInfo['bedTopography'] = {'CISMname':'topg', 'scalefactor':1.0, 'offset':0.0, 'CISMgrid':1, 'vertDim':False}
+fieldInfo['sfcMassBal'] =    {'CISMname':'acab', 'scalefactor':910.0/(3600.0*24.0*365.0), 'offset':0.0, 'CISMgrid':1, 'vertDim':False}  # Assuming default CISM density
+#fieldInfo['temperature'] =   {'CISMname':'temp', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':True}
+fieldInfo['temperature'] =   {'CISMname':'tempstag', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':True}  # pick one or the other
+fieldInfo['beta'] =          {'CISMname':'beta', 'scalefactor':1.0, 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
+#fieldInfo['observedSpeed'] = {'CISMname':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
 
 
 #----------------------------
@@ -183,6 +183,10 @@ def interpolate_field(MPASfieldName):
     if fieldInfo[MPASfieldName]['scalefactor'] != 1.0:
         MPASfield *= fieldInfo[MPASfieldName]['scalefactor']
         print '  scaled MPAS %s min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+    if fieldInfo[MPASfieldName]['offset'] != 0.0:
+        MPASfield += fieldInfo[MPASfieldName]['offset']
+        print '  offset MPAS %s min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+
 
     return MPASfield
 
@@ -224,6 +228,9 @@ def interpolate_field_with_layers(MPASfieldName):
     if fieldInfo[MPASfieldName]['scalefactor'] != 1.0:
         mpas_grid_cism_layers *= fieldInfo[MPASfieldName]['scalefactor']
         print '  scaled MPAS %s on CISM vertical layers, min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+    if fieldInfo[MPASfieldName]['offset'] != 0.0:
+        MPASfield += fieldInfo[MPASfieldName]['offset']
+        print '  offset MPAS %s min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
 
     # ------------
     # Now interpolate vertically
