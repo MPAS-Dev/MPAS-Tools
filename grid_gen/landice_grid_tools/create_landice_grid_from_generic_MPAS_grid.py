@@ -171,6 +171,10 @@ for name in filein.ncattrs():
   if name == 'sphere_radius' and getattr(filein, 'on_a_sphere') == "YES             ":
     setattr(fileout, 'sphere_radius', sphere_radius)
     print 'Set global attribute   sphere_radius = ', str(sphere_radius)
+  elif name =='history':
+    # Update history attribute of netCDF file
+    newhist = '\n'.join([getattr(f, 'history'), ' '.join(sys.argv[:]) ] )
+    setattr(fileout, 'history', newhist )
   else:
     # Otherwise simply copy the attr
     setattr(fileout, name, getattr(filein, name) )

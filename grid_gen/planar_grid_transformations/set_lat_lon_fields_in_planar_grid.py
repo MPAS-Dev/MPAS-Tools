@@ -21,12 +21,13 @@ projections = dict()
 # NOTE!!!!!!  egm08_25.gtx can be downloaded from:  http://download.osgeo.org/proj/vdatum/egm08_25/egm08_25.gtx  and the path in the projection specification line should point to it!
 #projections['gis-bamber'] = pyproj.Proj('+proj=stere +lat_ts=71.0 +lat_0=90 +lon_0=321.0 +k_0=1.0 +x_0=800000.0 +y_0=3400000.0 +geoidgrids=./egm08_25.gtx')
 projections['gis-bamber'] = pyproj.Proj('+proj=stere +lat_ts=71.0 +lat_0=90 +lon_0=321.0 +k_0=1.0 +x_0=800000.0 +y_0=3400000.0 +ellps=WGS84')  # This version ignores the vertical datum shift, which should be a very small error for horizontal-only positions
+projections['gis-bamber-shift'] = pyproj.Proj('+proj=stere +lat_ts=71.0 +lat_0=90 +lon_0=321.0 +k_0=1.0 +x_0=1300000.0 +y_0=3500000.0 +ellps=WGS84')  # This version ignores the vertical datum shift, which should be a very small error for horizontal-only positions
 
 # GIMP projection: This is also polar stereographic but with different standard parallel and using the WGS84 ellipsoid.
 projections['gis-gimp'] = pyproj.Proj('+proj=stere +lat_ts=70.0 +lat_0=90 +lon_0=315.0 +k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84')
 
 # BEDMAP2 projection
-projections['ais-bedmap2'] = pyproj.Proj('+proj=stere +lat_ts=-71.0 +lat_0=90 +lon_0=0.0 +k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84')  # Note: BEDMAP2 elevations use EIGEN-GL04C geoid
+projections['ais-bedmap2'] = pyproj.Proj('+proj=stere +lat_ts=-71.0 +lat_0=-90 +lon_0=0.0 +k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84')  # Note: BEDMAP2 elevations use EIGEN-GL04C geoid
 
 # Standard Lat/Long
 projections['latlon'] = pyproj.Proj(proj='latlong', datum='WGS84')
@@ -55,6 +56,8 @@ print '' # make a space in stdout before further output
 
 # =================================================
 
+print "Using {} projection, defined as: {}".format(options.projection, projections[options.projection].srs)
+
 # get needed fields
 f = netCDF4.Dataset(options.fileInName, 'r+')
 xCell = f.variables['xCell']
@@ -71,11 +74,24 @@ lonVertex = f.variables['lonVertex']
 latEdge = f.variables['latEdge']
 lonEdge = f.variables['lonEdge']
 
+print "Input file xCell min/max values:", xCell[:].min(), xCell[:].max()
+print "Input file yCell min/max values:", yCell[:].min(), yCell[:].max()
+
 # populate x,y fields
 # MPAS uses lat/lon in radians, so have pyproj return fields in radians.
 lonCell[:], latCell[:] = pyproj.transform(projections[options.projection], projections['latlon'], xCell[:], yCell[:], radians=True)
 lonVertex[:], latVertex[:] = pyproj.transform(projections[options.projection], projections['latlon'], xVertex[:], yVertex[:], radians=True)
 lonEdge[:], latEdge[:] = pyproj.transform(projections[options.projection], projections['latlon'], xEdge[:], yEdge[:], radians=True)
+
+print "Calculated latCell min/max values (radians):", latCell[:].min(), latCell[:].max()
+print "Calculated lonCell min/max values (radians):", lonCell[:].min(), lonCell[:].max()
+
+# Update history attribute of netCDF file
+if hasattr(f, 'history'):
+   newhist = '\n'.join([getattr(f, 'history'), ' '.join(sys.argv[:]) ] )
+else:
+   newhist = sys.argv[:]
+setattr(f, 'history', newhist )
 
 f.close()
 

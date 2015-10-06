@@ -106,6 +106,14 @@ plt.show()
 
 
 f.variables['cullCell'][:] = cullCell
+
+# Update history attribute of netCDF file
+if hasattr(f, 'history'):
+   newhist = '\n'.join([getattr(f, 'history'), ' '.join(sys.argv[:]) ] )
+else:
+   newhist = sys.argv[:]
+setattr(f, 'history', newhist )
+
 f.close()
 
 

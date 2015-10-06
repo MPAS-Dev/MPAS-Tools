@@ -66,7 +66,7 @@ grid_dims = fout.createVariable('grid_dims', 'i4', ('grid_rank',))
 
 grid_center_lat[:] = latCell[:]*57.29577951308
 grid_center_lon[:] = lonCell[:]*57.29577951308
-grid_area[:] = areaCell[:]*0.24635127E-13
+grid_area[:] = areaCell[:]*0.24635127E-13 # SCRIP uses square radians
 grid_imask[:] = 1  # For now, assume we don't want to mask anything out - but eventually may want to exclude certain cells from the input mesh during interpolation
 grid_dims[:] = nCells
 
@@ -95,5 +95,20 @@ grid_corner_lon[:] = grid_corner_lon_local[:]*57.29577951308
 #plt.plot(grid_corner_lon[i, 5], grid_corner_lat[i, 5], 'rx')
 #plt.show()
 
+# Update history attribute of netCDF file
+if hasattr(fin, 'history'):
+   newhist = '\n'.join([getattr(fin, 'history'), ' '.join(sys.argv[:]) ] )
+else:
+   newhist = sys.argv[:]
+setattr(fout, 'history', newhist )
+
+print "Input latCell min/max values (radians):", latCell[:].min(), latCell[:].max()
+print "Input lonCell min/max values (radians):", lonCell[:].min(), lonCell[:].max()
+print "Calculated grid_center_lat min/max values (degrees):", grid_center_lat[:].min(), grid_center_lat[:].max()
+print "Calculated grid_center_lon min/max values (degrees):", grid_center_lon[:].min(), grid_center_lon[:].max()
+print "Calculated grid_area min/max values (sq radians):", grid_area[:].min(), grid_area[:].max()
+
 fin.close()
 fout.close()
+
+print "Creation of SCRIP file is complete."
