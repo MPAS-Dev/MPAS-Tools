@@ -86,6 +86,13 @@ lonEdge[:], latEdge[:] = pyproj.transform(projections[options.projection], proje
 print "Calculated latCell min/max values (radians):", latCell[:].min(), latCell[:].max()
 print "Calculated lonCell min/max values (radians):", lonCell[:].min(), lonCell[:].max()
 
+# Update history attribute of netCDF file
+if hasattr(f, 'history'):
+   newhist = '\n'.join([getattr(f, 'history'), ' '.join(sys.argv[:]) ] )
+else:
+   newhist = sys.argv[:]
+setattr(f, 'history', newhist )
+
 f.close()
 
 print "Lat/lon calculations completed."
