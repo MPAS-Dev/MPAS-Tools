@@ -126,21 +126,36 @@ def BilinearInterp(Value, CISMgridType):
 
 def delaunay_interp_weights(xy, uv, d=2):
     tri = qhull.Delaunay(xy)
+    print "    Delaunay triangulation complete."
     simplex = tri.find_simplex(uv)
+    print "    find_simplex complete."
     vertices = np.take(tri.simplices, simplex, axis=0)
+    print "    identified vertices."
     temp = np.take(tri.transform, simplex, axis=0)
+    print "    np.take complete."
     delta = uv - temp[:, d]
     bary = np.einsum('njk,nk->nj', temp[:, :d, :], delta)
+    print "    calculating bary complete."
     return vertices, np.hstack((bary, 1 - bary.sum(axis=1, keepdims=True)))
 
 #----------------------------
 
-def delaunay_interpolate(values):
+def delaunay_interpolate(values, CISMgridType):
+    if CISMgridType == 0:
+       vtx = vtx0; wts = wts0
+    elif CISMgridType == 1:
+       vtx = vtx1; wts = wts1
+    else:
+        sys.exit('Error: unknown CISM grid type specified.')
+
     return np.einsum('nj,nj->n', np.take(values, vtx), wts)
 
 #----------------------------
 
 def interpolate_field(MPASfieldName):
+
+    if fieldInfo[MPASfieldName]['CISMgrid'] == 0 and options.interpType == 'e':
+       assert "This CISM field is on the staggered grid, and currently this script does not support a second ESMF weight file for the staggered grid."
 
     CISMfieldName = fieldInfo[MPASfieldName]['CISMname']
     if 'time' in CISMfile.variables[CISMfieldName].dimensions:
@@ -151,16 +166,18 @@ def interpolate_field(MPASfieldName):
     print '  CISM %s min/max:'%CISMfieldName, CISMfield.min(), CISMfield.max()
 
     # Call the appropriate routine for actually doing the interpolation
-    if options.interpType == 'b' or fieldInfo[MPASfieldName]['CISMgrid'] == 0:  # for now, there is no capability to use a second weight file for the staggered grid - but would be easy to add later
+    if options.interpType == 'b':
         print "  ...Interpolating to %s using built-in bilinear method..." % MPASfieldName
         MPASfield = BilinearInterp(CISMfield, fieldInfo[MPASfieldName]['CISMgrid'])
+    elif options.interpType == 'd':
+        print "  ...Interpolating to %s using barycentric method..." % MPASfieldName
+        MPASfield = delaunay_interpolate(CISMfield, fieldInfo[MPASfieldName]['CISMgrid'])
     elif options.interpType == 'e':
         print "  ...Interpolating to %s using ESMF-weights method..." % MPASfieldName
         MPASfield = ESMF_interp(CISMfield)
-    elif options.interpType == 'd':
-        print "  ...Interpolating to %s using barycentric method..." % MPASfieldName
-        MPASfield = delaunay_interpolate(CISMfield)
- 
+    else:
+        sys.exit('ERROR: Unknown interpolation method specified')
+
     print '  interpolated MPAS %s min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
 
     if fieldInfo[MPASfieldName]['scalefactor'] != 1.0:
@@ -175,6 +192,9 @@ def interpolate_field(MPASfieldName):
 
 def interpolate_field_with_layers(MPASfieldName):
 
+    if fieldInfo[MPASfieldName]['CISMgrid'] == 0 and options.interpType == 'e':
+       assert "This CISM field is on the staggered grid, and currently this script does not support a second ESMF weight file for the staggered grid."
+
     CISMfieldName = fieldInfo[MPASfieldName]['CISMname']
     if 'time' in CISMfile.variables[CISMfieldName].dimensions:
         CISMfield = CISMfile.variables[CISMfieldName][timelev,:,:]
@@ -186,14 +206,19 @@ def interpolate_field_with_layers(MPASfieldName):
     mpas_grid_cism_layers = np.zeros( (cismVerticalDimSize, nCells) ) # make it the size of the CISM vertical layers, but the MPAS horizontal layers
 
     for z in range(cismVerticalDimSize):
-        print '  CISM %s, layer %s min/max:'%(z,CISMfieldName), CISMfield[z,:,:].min(), CISMfield[z,:,:].max()
+        print '  CISM layer %s, layer %s min/max:'%(z,CISMfieldName), CISMfield[z,:,:].min(), CISMfield[z,:,:].max()
         # Call the appropriate routine for actually doing the interpolation
-        if options.interpType == 'bilinear' or fieldInfo[MPASfieldName]['CISMgrid'] == 0:  # for now, there is no capability to use a second weight file for the staggered grid - but would be easy to add later
-            print "  ...Layer %s, Interpolating to %s using built-in bilinear method..." % (z, MPASfieldName)
+        if options.interpType == 'b':
+            print "  ...Layer %s, Interpolating this layer to MPAS grid using built-in bilinear method..." % (z)
             mpas_grid_cism_layers[z,:] = BilinearInterp(CISMfield[z,:,:], fieldInfo[MPASfieldName]['CISMgrid'])
-        else:
-            print "  ...Layer %s, Interpolating to %s using ESMF-weights method..." % (z, MPASfieldName)
+        elif options.interpType == 'd':
+            print "  ...Layer %s, Interpolating this layer to MPAS grid using built-in barycentric method..." % (z)
+            mpas_grid_cism_layers[z,:] = delaunay_interpolate(CISMfield[z,:,:], fieldInfo[MPASfieldName]['CISMgrid'])
+        elif options.interpType == 'e':
+            print "  ...Layer %s, Interpolating this layer to MPAS grid using ESMF-weights method..." % (z)
             mpas_grid_cism_layers[z,:] = ESMF_interp(CISMfield[z,:,:])
+        else:
+            sys.exit('ERROR: Unknown interpolation method specified')
         print '  interpolated MPAS %s, layer %s min/max:'%(MPASfieldName, z), mpas_grid_cism_layers[z,:].min(), mpas_grid_cism_layers[z,:].max()
 
     if fieldInfo[MPASfieldName]['scalefactor'] != 1.0:
@@ -203,8 +228,11 @@ def interpolate_field_with_layers(MPASfieldName):
     # ------------
     # Now interpolate vertically
     cism_layers = CISMfile.variables[CISMfile.variables[CISMfieldName].dimensions[1]][:]  # 2nd dimension is the vertical one - get it's name and then get the variable that has the same name
+    print "  CISM layer field {} has layers: {}".format(CISMfile.variables[CISMfieldName].dimensions[1], cism_layers)
     MPASfield = vertical_interp_MPAS_grid(mpas_grid_cism_layers, cism_layers)
     print '  MPAS %s on MPAS vertical layers, min/max of all layers:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+
+    del mpas_grid_cism_layers
 
     return MPASfield
 
@@ -290,6 +318,7 @@ try:
       mpasLayerCenters[0] = 0.5 * layerThicknessFractions[0]
       for k in range(nVertLevels)[1:]:  # skip the first level
           mpasLayerCenters[k] = mpasLayerCenters[k-1] + 0.5 * layerThicknessFractions[k-1] + 0.5 * layerThicknessFractions[k]
+      print "  Using MPAS layer centers at sigma levels: {}".format(mpasLayerCenters)
     except:
       print 'Output file is missing the variable layerThicknessFractions.  Might not be a problem.'
 
@@ -318,16 +347,31 @@ print '=================='
 #----------------------------
 # Setup Delaunay/barycentric interpolation weights if needed
 if options.interpType == 'd':
-   [Yi,Xi] = np.meshgrid(x1[:], y1[:])
-   cismXY = np.zeros([Xi.shape[0]*Xi.shape[1],2])
-   cismXY[:,0] = Yi.flatten()
-   cismXY[:,1] = Xi.flatten()
    mpasXY = np.vstack((xCell[:], yCell[:])).transpose()
 
-   print 'Building interpolation weights'
+   [Yi,Xi] = np.meshgrid(x1[:], y1[:])
+   cismXY1 = np.zeros([Xi.shape[0]*Xi.shape[1],2])
+   cismXY1[:,0] = Yi.flatten()
+   cismXY1[:,1] = Xi.flatten()
+
+   print '\nBuilding interpolation weights: CISM x1/y1 -> MPAS'
    start = time.clock()
-   vtx, wts = delaunay_interp_weights(cismXY, mpasXY)
+   vtx1, wts1 = delaunay_interp_weights(cismXY1, mpasXY)
    end = time.clock(); print 'done in ', end-start
+
+   if 'x0' in CISMfile.variables:
+     # Need to setup separate weights for this grid
+      [Yi,Xi] = np.meshgrid(x0[:], y0[:])
+      cismXY0 = np.zeros([Xi.shape[0]*Xi.shape[1],2])
+      cismXY0[:,0] = Yi.flatten()
+      cismXY0[:,1] = Xi.flatten()
+
+      print 'Building interpolation weights: CISM x0/y0 -> MPAS'
+      start = time.clock()
+      vtx0, wts0 = delaunay_interp_weights(cismXY0, mpasXY)
+      end = time.clock(); print 'done in ', end-start
+
+
 
 #----------------------------
 # try each field.  If it exists in the input file, it will be copied.  If not, it will be skipped.
