@@ -11,6 +11,9 @@ import netCDF4
 from optparse import OptionParser
 import math
 from collections import OrderedDict
+import scipy.interpolate as spint
+import scipy.spatial.qhull as qhull
+import time
 
 
 print "== Gathering information.  (Invoke with --help for more details. All arguments are optional)\n"
@@ -18,7 +21,8 @@ parser = OptionParser()
 parser.description = "This script interpolates from a CISM grid to an MPAS grid using an ESMF weight interpolation file."
 parser.add_option("-c", "--cism", dest="cismFile", help="CISM grid file to input.", default="cism.nc", metavar="FILENAME")
 parser.add_option("-m", "--mpas", dest="mpasFile", help="MPAS grid file to output.", default="landice_grid.nc", metavar="FILENAME")
-parser.add_option("-w", "--weight", dest="weightFile", help="ESMF weight file to input.  If not included, bilinear interpolation will be used", metavar="FILENAME")
+parser.add_option("-i", "--interp", dest="interpType", help="interpolation method to use. b=bilinear, d=barycentric, e=ESMF", default="b", metavar="METHOD")
+parser.add_option("-w", "--weight", dest="weightFile", help="ESMF weight file to input.  Only used by ESMF interpolation method", metavar="FILENAME")
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
         option.help += (" " if option.help else "") + "[default: %default]"
@@ -27,8 +31,10 @@ options, args = parser.parse_args()
 print "  CISM input file:  " + options.cismFile
 print "  MPAS file to be modified:  " + options.mpasFile
 
-if options.weightFile:
-    interpType = 'weight'
+print "  Interolation method to be used:  " + options.interpType
+print "    (b=bilinear, d=barycentric, e=esmf)"
+
+if options.weightFile and options.interpType == 'e':
     print "  Interpolation will be performed using ESMF-weights method, where possible, using weights file:  " + options.weightFile
     #----------------------------
     # Get weights from file
@@ -38,9 +44,6 @@ if options.weightFile:
     row = wfile.variables['row'][:]
     wfile.close()
     #----------------------------
-else:
-    interpType = 'bilinear'
-    print "  Bilinear interpolation will be performed."
 
 print '' # make a space in stdout before further output
 
@@ -121,6 +124,22 @@ def BilinearInterp(Value, CISMgridType):
 
 #----------------------------
 
+def delaunay_interp_weights(xy, uv, d=2):
+    tri = qhull.Delaunay(xy)
+    simplex = tri.find_simplex(uv)
+    vertices = np.take(tri.simplices, simplex, axis=0)
+    temp = np.take(tri.transform, simplex, axis=0)
+    delta = uv - temp[:, d]
+    bary = np.einsum('njk,nk->nj', temp[:, :d, :], delta)
+    return vertices, np.hstack((bary, 1 - bary.sum(axis=1, keepdims=True)))
+
+#----------------------------
+
+def delaunay_interpolate(values):
+    return np.einsum('nj,nj->n', np.take(values, vtx), wts)
+
+#----------------------------
+
 def interpolate_field(MPASfieldName):
 
     CISMfieldName = fieldInfo[MPASfieldName]['CISMname']
@@ -132,12 +151,16 @@ def interpolate_field(MPASfieldName):
     print '  CISM %s min/max:'%CISMfieldName, CISMfield.min(), CISMfield.max()
 
     # Call the appropriate routine for actually doing the interpolation
-    if interpType == 'bilinear' or fieldInfo[MPASfieldName]['CISMgrid'] == 0:  # for now, there is no capability to use a second weight file for the staggered grid - but would be easy to add later
+    if options.interpType == 'b' or fieldInfo[MPASfieldName]['CISMgrid'] == 0:  # for now, there is no capability to use a second weight file for the staggered grid - but would be easy to add later
         print "  ...Interpolating to %s using built-in bilinear method..." % MPASfieldName
         MPASfield = BilinearInterp(CISMfield, fieldInfo[MPASfieldName]['CISMgrid'])
-    else:
+    elif options.interpType == 'e':
         print "  ...Interpolating to %s using ESMF-weights method..." % MPASfieldName
         MPASfield = ESMF_interp(CISMfield)
+    elif options.interpType == 'd':
+        print "  ...Interpolating to %s using barycentric method..." % MPASfieldName
+        MPASfield = delaunay_interpolate(CISMfield)
+ 
     print '  interpolated MPAS %s min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
 
     if fieldInfo[MPASfieldName]['scalefactor'] != 1.0:
@@ -165,7 +188,7 @@ def interpolate_field_with_layers(MPASfieldName):
     for z in range(cismVerticalDimSize):
         print '  CISM %s, layer %s min/max:'%(z,CISMfieldName), CISMfield[z,:,:].min(), CISMfield[z,:,:].max()
         # Call the appropriate routine for actually doing the interpolation
-        if interpType == 'bilinear' or fieldInfo[MPASfieldName]['CISMgrid'] == 0:  # for now, there is no capability to use a second weight file for the staggered grid - but would be easy to add later
+        if options.interpType == 'bilinear' or fieldInfo[MPASfieldName]['CISMgrid'] == 0:  # for now, there is no capability to use a second weight file for the staggered grid - but would be easy to add later
             print "  ...Layer %s, Interpolating to %s using built-in bilinear method..." % (z, MPASfieldName)
             mpas_grid_cism_layers[z,:] = BilinearInterp(CISMfield[z,:,:], fieldInfo[MPASfieldName]['CISMgrid'])
         else:
@@ -292,6 +315,19 @@ print '  yCell min, max: ', yCell.min(), yCell.max()
 print '=================='
 
 
+#----------------------------
+# Setup Delaunay/barycentric interpolation weights if needed
+if options.interpType == 'd':
+   [Yi,Xi] = np.meshgrid(x1[:], y1[:])
+   cismXY = np.zeros([Xi.shape[0]*Xi.shape[1],2])
+   cismXY[:,0] = Yi.flatten()
+   cismXY[:,1] = Xi.flatten()
+   mpasXY = np.vstack((xCell[:], yCell[:])).transpose()
+
+   print 'Building interpolation weights'
+   start = time.clock()
+   vtx, wts = delaunay_interp_weights(cismXY, mpasXY)
+   end = time.clock(); print 'done in ', end-start
 
 #----------------------------
 # try each field.  If it exists in the input file, it will be copied.  If not, it will be skipped.
@@ -300,10 +336,12 @@ for MPASfieldName in fieldInfo:
     print '\n## %s ##'%MPASfieldName
 
 
+    start = time.clock()
     if fieldInfo[MPASfieldName]['vertDim']:
       MPASfield = interpolate_field_with_layers(MPASfieldName)
     else:
       MPASfield = interpolate_field(MPASfieldName)
+    end = time.clock(); print '  interpolation done in ', end-start
 
     # Don't allow negative thickness.
     if MPASfieldName == 'thickness' and MPASfield.min() < 0.0:
