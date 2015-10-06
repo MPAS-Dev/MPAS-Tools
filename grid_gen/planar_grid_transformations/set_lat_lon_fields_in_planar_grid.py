@@ -56,6 +56,8 @@ print '' # make a space in stdout before further output
 
 # =================================================
 
+print "Using {} projection, defined as: {}".format(options.projection, projections[options.projection].srs)
+
 # get needed fields
 f = netCDF4.Dataset(options.fileInName, 'r+')
 xCell = f.variables['xCell']
@@ -72,11 +74,17 @@ lonVertex = f.variables['lonVertex']
 latEdge = f.variables['latEdge']
 lonEdge = f.variables['lonEdge']
 
+print "Input file xCell min/max values:", xCell[:].min(), xCell[:].max()
+print "Input file yCell min/max values:", yCell[:].min(), yCell[:].max()
+
 # populate x,y fields
 # MPAS uses lat/lon in radians, so have pyproj return fields in radians.
 lonCell[:], latCell[:] = pyproj.transform(projections[options.projection], projections['latlon'], xCell[:], yCell[:], radians=True)
 lonVertex[:], latVertex[:] = pyproj.transform(projections[options.projection], projections['latlon'], xVertex[:], yVertex[:], radians=True)
 lonEdge[:], latEdge[:] = pyproj.transform(projections[options.projection], projections['latlon'], xEdge[:], yEdge[:], radians=True)
+
+print "Calculated latCell min/max values (radians):", latCell[:].min(), latCell[:].max()
+print "Calculated lonCell min/max values (radians):", lonCell[:].min(), lonCell[:].max()
 
 f.close()
 
