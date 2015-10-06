@@ -227,10 +227,10 @@ def interpolate_field_with_layers(MPASfieldName):
 
     if fieldInfo[MPASfieldName]['scalefactor'] != 1.0:
         mpas_grid_cism_layers *= fieldInfo[MPASfieldName]['scalefactor']
-        print '  scaled MPAS %s on CISM vertical layers, min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+        print '  scaled MPAS %s on CISM vertical layers, min/max:'%MPASfieldName, mpas_grid_cism_layers.min(), mpas_grid_cism_layers.max()
     if fieldInfo[MPASfieldName]['offset'] != 0.0:
-        MPASfield += fieldInfo[MPASfieldName]['offset']
-        print '  offset MPAS %s min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+        mpas_grid_cism_layers += fieldInfo[MPASfieldName]['offset']
+        print '  offset MPAS %s on CISM vertical layers, min/max:'%MPASfieldName, mpas_grid_cism_layers.min(), mpas_grid_cism_layers.max()
 
     # ------------
     # Now interpolate vertically
