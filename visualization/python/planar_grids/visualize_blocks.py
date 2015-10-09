@@ -16,6 +16,7 @@ parser.add_option("-g", "--gridfile", dest="gridfile", help="grid file to visual
 parser.add_option("-b", "--blockfile", dest="blockfile", help="block file to visualize; default: graph.info.part.2", metavar="FILE")
 parser.add_option("-c", "--colormap", dest="cmap", help="color map to use: 'jet' or 'random'; default: 'random'", metavar="COLORMAP")
 parser.add_option("-m", "--mark", dest="mark", help="block number to mark with black stars", metavar="NUMBER")
+parser.add_option("-s", "--spherical", dest="spherical", help="plot in lat/lon coordinates", metavar="bool")
 
 
 options, args = parser.parse_args()
@@ -37,8 +38,12 @@ except:
 # Get grid stuff
 #times = f.variables['xtime']  # Not needed unless trying to print actual time stamp
 try:
-  xCell = f.variables['xCell'][:]
-  yCell = f.variables['yCell'][:]
+  if options.spherical:
+    xCell = f.variables['lonCell'][:]
+    yCell = f.variables['latCell'][:]
+  else:
+    xCell = f.variables['xCell'][:]
+    yCell = f.variables['yCell'][:]
   nCells = len(f.dimensions['nCells'])
 except:
   sys.exit('xCell and/or yCell is/are missing.')
