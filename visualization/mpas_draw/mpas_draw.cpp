@@ -2048,7 +2048,7 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 			break;
 		case KEY_t:
 			cur_time = (cur_time + 1) % ntime;
-			cout << "Current time level: " << cur_time+1 << " out of " << ntime << endl;
+			cout << "Current time level: " << cur_time+1 << " out of " << ntime << ".  xtime=" << netcdf_mpas_get_xtime(filename, cur_time) << endl;
 			color_mesh();
 			break;
 		case KEY_T:
