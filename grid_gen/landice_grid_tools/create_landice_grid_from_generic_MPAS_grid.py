@@ -87,7 +87,11 @@ print 'Finished creating dimensions in output file.\n' # include an extra blank 
 # ============================================
 # Copy over all of the required grid variables to the new file
 # ============================================
+print "Beginning to copy mesh variables to output file."
 vars2copy = ('latCell', 'lonCell', 'xCell', 'yCell', 'zCell', 'indexToCellID', 'latEdge', 'lonEdge', 'xEdge', 'yEdge', 'zEdge', 'indexToEdgeID', 'latVertex', 'lonVertex', 'xVertex', 'yVertex', 'zVertex', 'indexToVertexID', 'cellsOnEdge', 'nEdgesOnCell', 'nEdgesOnEdge', 'edgesOnCell', 'edgesOnEdge', 'weightsOnEdge', 'dvEdge', 'dcEdge', 'angleEdge', 'areaCell', 'areaTriangle', 'cellsOnCell', 'verticesOnCell', 'verticesOnEdge', 'edgesOnVertex', 'cellsOnVertex', 'kiteAreasOnVertex')
+for varname in vars2copy:
+   print "-",
+print "|"
 for varname in vars2copy:
    thevar = filein.variables[varname]
    datatype = thevar.dtype
@@ -101,6 +105,11 @@ for varname in vars2copy:
        newVar[:] = thevar[:]
    else: # not on a sphere
      newVar[:] = thevar[:]
+   del newVar, thevar
+   sys.stdout.write("* "); sys.stdout.flush()
+fileout.sync()
+print "|"
+print "Finished copying mesh variables to output file.\n"
 
 # ============================================
 # Create the land ice variables (all the shallow water vars in the input file can be ignored)
@@ -127,14 +136,14 @@ newvar = fileout.createVariable('temperature', datatype, ('Time', 'nCells', 'nVe
 newvar[0,:,:] = numpy.zeros( newvar.shape[1:] )
 # These landice variables are stored in the mesh currently, and therefore do not have a time dimension.
 #    It may make sense to eventually move them to state.
-newvar = fileout.createVariable('bedTopography', datatype, ('nCells',))
+newvar = fileout.createVariable('bedTopography', datatype, ('Time', 'nCells',))
 newvar[:] = numpy.zeros(newvar.shape)
-newvar = fileout.createVariable('sfcMassBal', datatype, ('nCells',))
+newvar = fileout.createVariable('sfcMassBal', datatype, ('Time', 'nCells',))
 newvar[:] = numpy.zeros(newvar.shape)
 print 'Added default variables: thickness, temperature, bedTopography, sfcMassBal'
 
 if options.beta:
-   newvar = fileout.createVariable('beta', datatype, ('nCells',))
+   newvar = fileout.createVariable('beta', datatype, ('Time', 'nCells',))
    newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
    print 'Added optional variable: beta'
 
@@ -160,7 +169,9 @@ if options.dirichlet:
 #newvar = fileout.createVariable('marineBasalMassBalTimeSeries', datatype, ( 'nCells', 'nMarineBasalMassBalTimeSlices',))
 #newvar[:] = numpy.zeros(newvar.shape)
 
-print 'Finished creating variables in output file.\n' # include an extra blank line here
+print "Completed creating land ice variables in new file. Now syncing to file."
+fileout.sync()
+print "Syncing complete.\n"
 
 # ============================================
 # Copy over all of the netcdf global attributes
@@ -173,7 +184,7 @@ for name in filein.ncattrs():
     print 'Set global attribute   sphere_radius = ', str(sphere_radius)
   elif name =='history':
     # Update history attribute of netCDF file
-    newhist = '\n'.join([getattr(f, 'history'), ' '.join(sys.argv[:]) ] )
+    newhist = '\n'.join([getattr(filein, 'history'), ' '.join(sys.argv[:]) ] )
     setattr(fileout, 'history', newhist )
   else:
     # Otherwise simply copy the attr
