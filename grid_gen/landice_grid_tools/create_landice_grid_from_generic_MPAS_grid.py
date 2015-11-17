@@ -136,14 +136,14 @@ newvar = fileout.createVariable('temperature', datatype, ('Time', 'nCells', 'nVe
 newvar[0,:,:] = numpy.zeros( newvar.shape[1:] )
 # These landice variables are stored in the mesh currently, and therefore do not have a time dimension.
 #    It may make sense to eventually move them to state.
-newvar = fileout.createVariable('bedTopography', datatype, ('nCells',))
+newvar = fileout.createVariable('bedTopography', datatype, ('Time', 'nCells',))
 newvar[:] = numpy.zeros(newvar.shape)
-newvar = fileout.createVariable('sfcMassBal', datatype, ('nCells',))
+newvar = fileout.createVariable('sfcMassBal', datatype, ('Time', 'nCells',))
 newvar[:] = numpy.zeros(newvar.shape)
 print 'Added default variables: thickness, temperature, bedTopography, sfcMassBal'
 
 if options.beta:
-   newvar = fileout.createVariable('beta', datatype, ('nCells',))
+   newvar = fileout.createVariable('beta', datatype, ('Time', 'nCells',))
    newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
    print 'Added optional variable: beta'
 
