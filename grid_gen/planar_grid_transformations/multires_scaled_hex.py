@@ -22,9 +22,9 @@ import netCDF4
 import shutil
 
 
-def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=5000., alpha=1.05, ntimes=15, nlayers=0, plot=False):
+def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=5000., dxscale=0.10, ntimes=15, nlayers=0, plot=False):
     """
-    Scales a hexagonal mesh from a radial region (xc,yc) with radius via an alpha scaling factor over ntimes
+    Scales a hexagonal mesh from a radial region (xc,yc) with radius via an dxscale scaling factor over ntimes
     layers of cells.  Stretching can be alternated via nlayers (experimental), which may prove useful via
     CVT smoothing codes.
 
@@ -44,7 +44,7 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
     y = ds.variables['yVertex'] - ycenter
     xc = ds.variables['xCell'] - xcenter
     yc = ds.variables['yCell'] - ycenter
-    
+
 
     # form rings aound the center
     dx = np.median(ds.variables['dvEdge'])
@@ -55,9 +55,8 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
         vertices.append(ds.variables['verticesOnCell'][acell,:ds.variables['nEdgesOnCell'][acell]]-1)
     vertices = np.unique(vertices).tolist()
 
-    dalpha = alpha - 1.0
-    alpha = 1.0
     for i in 1+np.arange(ntimes):
+        print 'Processing layer %d of %d...'%(i,ntimes)
         for acell in cells[:]:
             for cellneighs in ds.variables['cellsOnCell'][acell]-1:
                 cells.append(cellneighs)
@@ -66,12 +65,10 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
         cells = np.unique(cells).tolist()
         vertices = np.unique(vertices).tolist()
         # now have list of vertices and cells to NOT scale
-    
-        # alpha factor scaling
-        if i <= ntimes/2.0:
-            alpha += dalpha/ntimes
-        else:
-            alpha -= dalpha/ntimes
+
+        rmax = np.max(np.sqrt(xc[cells]*xc[cells] + yc[cells]*yc[cells]))
+        # compute alpha to get approximate dx
+        alpha = (dxscale*dx+rmax)/rmax
 
         # number of layers to scale
         if nlayers == 0 or not np.mod(i,nlayers):
@@ -94,9 +91,10 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
             plt.axis('equal')
             plt.show()
 
+    print 'done!'
     # now write output
     ds.variables['xCell'][:] = xc + xcenter
-    ds.variables['yCell'][:]= yc + ycenter
+    ds.variables['yCell'][:] = yc + ycenter
     ds.variables['xVertex'][:] = x + xcenter
     ds.variables['yVertex'][:] = y + ycenter
 
@@ -112,7 +110,7 @@ if __name__ == "__main__":
     parser.add_option("-x", "--xc", dest="xc", help="X location of centered region", metavar="FLOAT")
     parser.add_option("-y", "--yc", dest="yc", help="Y location of centered region", metavar="FLOAT")
     parser.add_option("-r", "--radius", dest="radius", help="Radius of centered region", metavar="FLOAT")
-    parser.add_option("-a", "--alpha", dest="alpha", help="Scale factor for multiresolution", metavar="FLOAT")
+    parser.add_option("-s", "--dxscale", dest="dxscale", help="Scale factor for multiresolution", metavar="FLOAT")
     parser.add_option("-n", "--ntimes", dest="ntimes", help="Number of cell layers to scale for multiresolution", metavar="INT")
 
 
@@ -133,10 +131,10 @@ if __name__ == "__main__":
         parser.error("Radius of centered region is a required input... e.g., -r '5000.'")
     else:
         options.radius = float(options.radius)
-    if not options.alpha:
+    if not options.dxscale:
         parser.error("Scale factor ... e.g., -a '1.05'")
     else:
-        options.alpha = float(options.alpha)
+        options.dxscale = float(options.dxscale)
     if not options.ntimes:
         parser.error("Number of cell layers to scale ... e.g., -n '15'")
     else:
@@ -144,4 +142,4 @@ if __name__ == "__main__":
 
 
     multires_scaled_hex(options.inputfilename, options.outputfilename, options.xc, options.yc, options.radius, \
-            options.alpha, options.ntimes)
+            options.dxscale, options.ntimes)
