@@ -138,6 +138,10 @@ void DensityFunction::read_density_netcdf(double **xPosDG, double **yPosDG, doub
 
 	// Open file
 	ncerr = nc_open("density.nc", NC_NOWRITE, &ncid);
+        if (ncerr>0) {
+           cout << "Error reading density.nc.  Aborting." << endl;
+           exit(1);
+        }
 
 	// Get needed dimensions
 	ncerr = nc_inq_dimid(ncid, "x", &x_dimID);
