@@ -30,7 +30,7 @@ def fix_periodicity_numexpr(px, xc, L):
     return pfix
 
 
-def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=5000., dxscale=0.10, ntimes=15, nlayers=0, plot=False):
+def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=5000., dxscale=0.10, ntimes=15, nllyod=20, nlayers=0, plot=False):
     """
     Scales a hexagonal mesh from a radial region (xc,yc) with radius via an dxscale scaling factor over ntimes
     layers of cells.  Stretching can be alternated via nlayers (experimental), which may prove useful via
@@ -100,38 +100,47 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
             plt.show()
 
     print 'done!'
-    ds.variables['xCell'][:] = xc + xcenter
-    ds.variables['yCell'][:] = yc + ycenter
-
-    ds.variables['xVertex'][:] = x
-    ds.variables['yVertex'][:] = y
 
     # compute vertex locations from circumcenters to ensure grid is Voronoi
     interior = np.prod(ds.variables['cellsOnVertex'][:],axis=1) > 0
-    xcv = xc[ds.variables['cellsOnVertex'][interior,:]-1]
-    ycv = yc[ds.variables['cellsOnVertex'][interior,:]-1]
-    # handle periodicity
-    if ds.is_periodic == 'YES':
-        xcv = fix_periodicity_numexpr(xcv, np.mean(xcv,axis=1)[:,np.newaxis], ds.x_period)
-        ycv = fix_periodicity_numexpr(ycv, np.mean(ycv,axis=1)[:,np.newaxis], ds.y_period)
-    #circumcenter calc from https://en.wikipedia.org/wiki/Circumscribed_circle
-    ax = xcv[:,0]
-    bx = xcv[:,1] - ax
-    cx = xcv[:,2] - ax
-    ay = ycv[:,0]
-    by = ycv[:,1] - ay
-    cy = ycv[:,2] - ay
-    d = ne.evaluate('2*(bx*cy-by*cx)')
-    x = ne.evaluate('(cy*(bx*bx+by*by)-by*(cx*cx+cy*cy))/d + ax')
-    y = ne.evaluate('(bx*(cx*cx+cy*cy)-cx*(bx*bx+by*by))/d + ay')
 
-    ds.variables['xVertex'][interior] = x
-    ds.variables['yVertex'][interior] = y
+    verticesOnCell = ds.variables['verticesOnCell'][:,:]-1
+    for ic, nedge in enumerate(ds.variables['nEdgesOnCell'][:]):
+        verticesOnCell[ic,nedge:] = np.nan
 
-    ds.variables['xVertex'][:] += xcenter
-    ds.variables['yVertex'][:] += ycenter
+    for nl in np.arange(nllyod):
+        print 'On iteration %d of %d'%(nl+1, nllyod)
+        if nl > 0:
+            # update xc generators to be centroid of cells
+            xc = np.nanmean(x[verticesOnCell], axis=1)
+            yc = np.nanmean(y[verticesOnCell], axis=1)
+
+        # update Voronoi diagram to be consistent with generators
+        xcv = xc[ds.variables['cellsOnVertex'][interior,:]-1]
+        ycv = yc[ds.variables['cellsOnVertex'][interior,:]-1]
+        # handle periodicity
+        if ds.is_periodic == 'YES':
+            xcv = fix_periodicity_numexpr(xcv, np.mean(xcv,axis=1)[:,np.newaxis], ds.x_period)
+            ycv = fix_periodicity_numexpr(ycv, np.mean(ycv,axis=1)[:,np.newaxis], ds.y_period)
+        #circumcenter calc from https://en.wikipedia.org/wiki/Circumscribed_circle
+        ax = xcv[:,0]
+        bx = xcv[:,1] - ax
+        cx = xcv[:,2] - ax
+        ay = ycv[:,0]
+        by = ycv[:,1] - ay
+        cy = ycv[:,2] - ay
+        d = ne.evaluate('2*(bx*cy-by*cx)')
+        x[interior] = ne.evaluate('(cy*(bx*bx+by*by)-by*(cx*cx+cy*cy))/d + ax')
+        y[interior] = ne.evaluate('(bx*(cx*cx+cy*cy)-cx*(bx*bx+by*by))/d + ay')
+
+    ds.variables['xCell'][:] = xc + xcenter
+    ds.variables['yCell'][:] = yc + ycenter
+    ds.variables['xVertex'][:] = x + xcenter
+    ds.variables['yVertex'][:] = y + ycenter
 
     ds.close()
+
+    print 'finished grid'
 
 
 if __name__ == "__main__":
@@ -145,6 +154,7 @@ if __name__ == "__main__":
     parser.add_option("-r", "--radius", dest="radius", help="Radius of centered region", metavar="FLOAT")
     parser.add_option("-s", "--dxscale", dest="dxscale", help="Scale factor for multiresolution", metavar="FLOAT")
     parser.add_option("-n", "--ntimes", dest="ntimes", help="Number of cell layers to scale for multiresolution", metavar="INT")
+    parser.add_option("-t", "--nlloyd", dest="nlloyd", help="Number of times to apply Lloyd smoothing", metavar="INT")
 
 
     options, args = parser.parse_args()
@@ -172,7 +182,11 @@ if __name__ == "__main__":
         parser.error("Number of cell layers to scale ... e.g., -n '15'")
     else:
         options.ntimes = int(options.ntimes)
+    if not options.ntimes:
+        parser.error("Number of times to apply Lloyd iterations... e.g., -t '15'")
+    else:
+        options.nlloyd= int(options.nlloyd)
 
 
     multires_scaled_hex(options.inputfilename, options.outputfilename, options.xc, options.yc, options.radius, \
-            options.dxscale, options.ntimes)
+            options.dxscale, options.ntimes, options.nlloyd)
