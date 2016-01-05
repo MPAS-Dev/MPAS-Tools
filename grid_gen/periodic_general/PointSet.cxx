@@ -43,12 +43,11 @@ void PointSet::makeMCPoints(int n, double X_PERIOD, double Y_PERIOD, int USE_DAT
 }
 
 
-int PointSet::initFromTextFile(double X_PERIOD, double Y_PERIOD, int USE_DATA_DENSITY, const char * filename)
+int PointSet::initFromTextFile(double X_PERIOD, double Y_PERIOD, const char * filename)
 {
 	ifstream fin(filename);
 	double xloc, yloc;
 	Point * p;
-	DensityFunction d(X_PERIOD, Y_PERIOD, USE_DATA_DENSITY);
 	ifstream new_edges("new_edges");
 
 	assert(fin.is_open());

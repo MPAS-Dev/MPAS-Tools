@@ -52,7 +52,7 @@ class PointSet
 	public:
 		PointSet();
 		~PointSet();
-		int initFromTextFile(double X_PERIOD, double Y_PERIOD, int USE_DATA_DENSITY, const char *);
+		int initFromTextFile(double X_PERIOD, double Y_PERIOD, const char *);
 		void makeMCPoints(int n, double X_PERIOD, double Y_PERIOD, int USE_DATA_DENSITY);
 		void print();
 		void printToTextFile(const char *);

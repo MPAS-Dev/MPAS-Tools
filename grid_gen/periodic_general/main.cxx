@@ -98,7 +98,7 @@ int main(int argc, char ** argv)
 		pset.makeMCPoints(NUMPOINTS, X_PERIOD, Y_PERIOD, USE_DATA_DENSITY);
 	} else {
 		cout << "Reading points from file 'centroids.txt'..." <<endl;
-		pset.initFromTextFile(X_PERIOD, Y_PERIOD, USE_DATA_DENSITY, "centroids.txt");
+		pset.initFromTextFile(X_PERIOD, Y_PERIOD, "centroids.txt");
 	}
 
 
