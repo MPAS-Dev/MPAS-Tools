@@ -2,13 +2,13 @@
 # Phillip J. Wolfram
 # 12/22/2015
 """
-multires_scaled_hex.py 
+multires_scaled_hex.py
 
 Takes an existing MPAS mesh and coarse or refines the mesh outside a radial
 region.  Mesh input should be a periodic_hex mesh.  Topology of mesh is
 retained, which ensures that there are no non-hexagons within the mesh.
 
-Example usage is 
+Example usage is
 
     python multires_scaled_hex.py -i 250m_mesh.nc -o scaled_250m_mesh.nc
 
@@ -17,9 +17,17 @@ Phillip J. Wolfram
 """
 import matplotlib.pyplot as plt
 import numpy as np
+import numexpr as ne
 from scipy.spatial import cKDTree as KDTree
 import netCDF4
 import shutil
+
+def fix_periodicity_numexpr(px, xc, L):
+    """ fix periodicity similar to in mpas_vector_operations """
+    pfix = ne.evaluate('px - (abs(px-xc) > L/2.0)*((px-xc)/abs(px-xc))*L')
+    idx = np.where((px-xc) == 0)
+    pfix[idx] = (px*np.ones_like(pfix))[idx]
+    return pfix
 
 
 def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=5000., dxscale=0.10, ntimes=15, nlayers=0, plot=False):
@@ -51,7 +59,7 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
     dv = np.median(ds.variables['dcEdge'])/2.0
     cells = np.array(centerall).tolist()
     vertices = []
-    for acell in centerall: 
+    for acell in centerall:
         vertices.append(ds.variables['verticesOnCell'][acell,:ds.variables['nEdgesOnCell'][acell]]-1)
     vertices = np.unique(vertices).tolist()
 
@@ -92,11 +100,36 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
             plt.show()
 
     print 'done!'
-    # now write output
     ds.variables['xCell'][:] = xc + xcenter
     ds.variables['yCell'][:] = yc + ycenter
-    ds.variables['xVertex'][:] = x + xcenter
-    ds.variables['yVertex'][:] = y + ycenter
+
+    ds.variables['xVertex'][:] = x
+    ds.variables['yVertex'][:] = y
+
+    # compute vertex locations from circumcenters to ensure grid is Voronoi
+    interior = np.prod(ds.variables['cellsOnVertex'][:],axis=1) > 0
+    xcv = xc[ds.variables['cellsOnVertex'][interior,:]-1]
+    ycv = yc[ds.variables['cellsOnVertex'][interior,:]-1]
+    # handle periodicity
+    if ds.is_periodic == 'YES':
+        xcv = fix_periodicity_numexpr(xcv, np.mean(xcv,axis=1)[:,np.newaxis], ds.x_period)
+        ycv = fix_periodicity_numexpr(ycv, np.mean(ycv,axis=1)[:,np.newaxis], ds.y_period)
+    #circumcenter calc from https://en.wikipedia.org/wiki/Circumscribed_circle
+    ax = xcv[:,0]
+    bx = xcv[:,1] - ax
+    cx = xcv[:,2] - ax
+    ay = ycv[:,0]
+    by = ycv[:,1] - ay
+    cy = ycv[:,2] - ay
+    d = ne.evaluate('2*(bx*cy-by*cx)')
+    x = ne.evaluate('(cy*(bx*bx+by*by)-by*(cx*cx+cy*cy))/d + ax')
+    y = ne.evaluate('(bx*(cx*cx+cy*cy)-cx*(bx*bx+by*by))/d + ay')
+
+    ds.variables['xVertex'][interior] = x
+    ds.variables['yVertex'][interior] = y
+
+    ds.variables['xVertex'][:] += xcenter
+    ds.variables['yVertex'][:] += ycenter
 
     ds.close()
 
