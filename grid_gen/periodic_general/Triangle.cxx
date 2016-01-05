@@ -83,16 +83,17 @@ void Triangle::divide_segment(Point p1, Point p2, Point list[], int n)
 
 Point Triangle::centroid(DensityFunction& d, double * mass)
 {
-	const int GLEV = 6;  // Also change 25 if changing this value
-	//const int GLEV = 17;  // Also change 256 if changing this value
-	//const int GLEV = 19;  // Also change 324 if changing this value
+        // GLEV should be manually set for desired accuracy.  values of 6-19 give moderate to high accuracy.
+        // 2 is the smallest allowable value.
+	const int GLEV = 6;  // Number of points along each triangle edge to be sampled.  Must be >=2
+        int numTri = pow(GLEV - 1, 2);  // Number of triangles created by subdividing based on GLEV
 	int i, j, k;
 	double density, total_weight;
 	Point o, c;
 	Point line[GLEV][GLEV];
 	Point p1p2[GLEV];
 	Point p1p3[GLEV];
-	Point p[25][3];
+	Point p[numTri][3];
 	Triangle t(o,o,o);	// Initially, we don't care what t is
 
 	divide_segment(points[0], points[1], p1p2, GLEV);
@@ -126,7 +127,7 @@ Point Triangle::centroid(DensityFunction& d, double * mass)
 
 	o.setXY(0.0, 0.0);
 	total_weight = 0.0;
-	for(i=0; i<25; i++) {
+	for(i=0; i<numTri; i++) {
 		t = Triangle(p[i][0], p[i][1], p[i][2]);
 		c = t.centroid();
 		density = d.evaluate(c);
