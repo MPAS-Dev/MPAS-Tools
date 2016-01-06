@@ -133,6 +133,7 @@ void DensityFunction::read_density_netcdf(double **xPosDG, double **yPosDG, doub
 	int x_dim, y_dim;
 	int x_id, y_id, density_id;
 	size_t temp;
+        double max_density;
 
 	cout << "Reading in data density function from density.nc" <<endl;
 
@@ -169,6 +170,14 @@ void DensityFunction::read_density_netcdf(double **xPosDG, double **yPosDG, doub
 	ncerr = nc_get_var_double(ncid, density_id, *densityDG);
 	cout << "  Got variables from file." <<endl;
 
+        // Normalize data density to have a max of 1.0
+        max_density = 0.0;
+        for( int i = 0; i < x_dim*y_dim; i++ ) max_density = std::max(max_density, *(*densityDG+i));
+        cout << "  Max density value is: " << max_density << ". Normalizing density field to have max of 1.0." << endl;
+        for( int i = 0; i < x_dim*y_dim; i++ )  *(*densityDG+i) = *(*densityDG+i) / max_density;
+        //max_density = 0.0;
+        //for( int i = 0; i < x_dim*y_dim; i++ ) max_density = std::max(max_density, *(*densityDG+i));
+        //cout << "  new Max density value is: " << max_density << endl;
 
 	// Close file
 	ncerr = nc_close(ncid);
