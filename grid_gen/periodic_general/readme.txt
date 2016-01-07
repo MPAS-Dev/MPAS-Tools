@@ -38,8 +38,29 @@ file is part of the repository in this directory.  Note that your final mesh wil
 have the same number of points as were input in centroids.txt, but they will be moved
 around to satisfy the density function under the constraint of the CVT property.
 
-You likely also want to update DensityFunction.cxx.
+There are two ways to specify density functions (controlled in Params.txt):
+1. An analytic density function.  This is hard-coded in DensityFunction.cxx.  Edit the
+fucntion AnalyticDensityFunction as needed for your application and re-compile.
+2. A data density function.  periodic_general will look for a netCDF file named "density.nc" 
+using a regular grid.  The format of the file should look like this:
+netcdf density {
+dimensions:
+        x = 834 ;
+        y = 834 ;
+variables:
+        double x(x) ;
+        double y(y) ;
+        double density(y, x) ;
+}
+periodic_general will perform bilinear interpolation from the density grid to evaluate the
+density at any location in the periodic_general domain.  Extrapolation will be performed for 
+regions of the periodic_general domain that fall outside of the extent of the density field.
 
+There are two hard-coded parameters that users may want to adjust before compiling.
+1. GLEV in Triangle.cxx:  This controls how many times each triangle is subdivided when 
+the centroid is calculated.  The value chosen is a tradeoff between speed and accuracy.
+This parameter very strongly affects the time the code takes to run.
+2. MaxSize in fortune/voronoi_main.c:  This limits the number of cells that can be generated.
 
 -----------------------------------------------
 Running periodic_general
@@ -92,7 +113,7 @@ Next Steps
 -----------------------------------------------
 
 You can view the pointset generated in grid.nc with the simple python script
-plot_grid.py before continuing.
+plot_grid.py before continuing.  View the script to see some commented out plot options.
 
 The grid.nc file contains the set of information required by the MpasMeshConverter.x program,
 which is the next step in the MPAS mesh generation toolchain.
