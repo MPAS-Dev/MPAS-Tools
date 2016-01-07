@@ -84,7 +84,7 @@ readsites(PointSet * p)
 	int i ;
 	int j ;
 
-	int MaxSize = 20000;
+	int MaxSize = 2000000;
 
 	nsites = 0 ;
 	sites = (Site *) myalloc(MaxSize * sizeof(Site));
