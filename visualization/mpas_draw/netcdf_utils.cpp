@@ -1772,7 +1772,7 @@ void  netcdf_mpas_get_vert_dim_info(string filename, int id, int& dim_size, stri
 }/*}}}*/
 
 //****************************************************************************
-string netcdf_mpas_get_xtime(string filename, int cur_time){/*{{{*/
+int netcdf_mpas_get_xtime(string filename, int cur_time, char *xtime){/*{{{*/
 	//**************************************************************************
 	//
 	//  Purpose:
@@ -1803,6 +1803,8 @@ string netcdf_mpas_get_xtime(string filename, int cur_time){/*{{{*/
 	//    Output, int dim_name, the name of the dimension
 
 	NcVar *var_id;
+	string name;
+	int num_vars;
 
 	//
 	//  Open the file.
@@ -1815,15 +1817,23 @@ string netcdf_mpas_get_xtime(string filename, int cur_time){/*{{{*/
 	//
 	//  Get the variable and its dimensions
 	//
-	var_id = ncid.get_var ("xtime");
-        char xtime[64];
-	(*var_id).get ( &xtime[0], cur_time, 64 );
+	
+	num_vars = ncid.num_vars();
 
-        cout << "DEBUG: xtime=" << xtime << endl;
+	for ( int i = 0; i < num_vars; i++ ) {
+		var_id = ncid.get_var(i);
+		name = var_id->name();
+		if ( name == "xtime" ) {
+			(*var_id).set_cur(cur_time);
+			(*var_id).get ( &xtime[0], 1, 64 );
+			ncid.close();
+			return 1;
+		}
+	}
+
 	//
 	//  Close the file.
 	//
-	ncid.close ( );
-        string xtimestr(xtime);
-	return xtimestr;
+	ncid.close();
+	return 0;
 }/*}}}*/

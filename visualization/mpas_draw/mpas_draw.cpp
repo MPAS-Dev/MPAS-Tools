@@ -2015,6 +2015,8 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 	//    Geoff Womeldorff, Doug Jacobsen
 	//
 
+	char xtime[64];
+	int xtime_found;
 
 	usleep( 100 );
 
@@ -2047,15 +2049,29 @@ void keyPressed( unsigned char key, int x, int y ) {/*{{{*/
 			color_mesh();
 			break;
 		case KEY_t:
-			cur_time = (cur_time + 1) % ntime;
-			cout << "Current time level: " << cur_time+1 << " out of " << ntime << ".  xtime=" << netcdf_mpas_get_xtime(filename, cur_time) << endl;
+			if ( ntime > 0 ) {
+				cur_time = (cur_time + 1) % ntime;
+			}
+			xtime_found = netcdf_mpas_get_xtime(filename, cur_time, &xtime[0]);
+			if ( xtime_found ) {
+				cout << "Current time level: " << cur_time+1 << " out of " << ntime << ".  xtime=" << xtime << endl;
+			} else {
+				cout << "Current time level: " << cur_time+1 << " out of " << ntime << "." << endl;
+			}
 			color_mesh();
 			break;
 		case KEY_T:
-			cur_time = (cur_time - 1) % ntime;
-			if(cur_time < 0)
-				cur_time = ntime-1;
-			cout << "Current time level: " << cur_time+1 << " out of " << ntime << endl;
+			if ( ntime > 0 ) {
+				cur_time = (cur_time - 1) % ntime;
+				if(cur_time < 0)
+					cur_time = ntime-1;
+			}
+			xtime_found = netcdf_mpas_get_xtime(filename, cur_time, &xtime[0]);
+			if ( xtime_found ) {
+				cout << "Current time level: " << cur_time+1 << " out of " << ntime << ".  xtime=" << xtime << endl;
+			} else {
+				cout << "Current time level: " << cur_time+1 << " out of " << ntime << "." << endl;
+			}
 			color_mesh();
 			break;
 		case KEY_s:
