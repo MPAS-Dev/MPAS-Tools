@@ -22,3 +22,4 @@ void netcdf_mpas_print_field_info(string filename, int id);
 void netcdf_mpas_read_field(string filename, int id, double values[], int cur_time, int cur_level);
 void netcdf_mpas_read_full_field(string filename, int id, double values[]);
 int netcdf_mpas_get_vert_dim_info(string filename, int id, int& dim_size, string& dim_name);
+int netcdf_mpas_get_xtime(string filename, int cur_time, char *xtime);

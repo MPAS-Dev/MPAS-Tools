@@ -1763,5 +1763,77 @@ void  netcdf_mpas_get_vert_dim_info(string filename, int id, int& dim_size, stri
 		}
 	}
 
+        //
+	//  Close the file.
+	//
+	ncid.close ( );
+
 	return;
+}/*}}}*/
+
+//****************************************************************************
+int netcdf_mpas_get_xtime(string filename, int cur_time, char *xtime){/*{{{*/
+	//**************************************************************************
+	//
+	//  Purpose:
+	//
+	//    netcdf_mpas_get_xtime gets the value of the xtime variable for
+        //    a specified time level.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    10 November 2015
+	//
+	//  Author:
+	//
+	//    Matthew Hoffman
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Input, int cur_time, the time level for which to get xtime
+	//
+	//    Output, int dim_size, the size of the dimension
+	//
+	//    Output, int dim_name, the name of the dimension
+
+	NcVar *var_id;
+	string name;
+	int num_vars;
+
+	//
+	//  Open the file.
+	#ifdef _64BITOFFSET
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Offset64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+
+	//
+	//  Get the variable and its dimensions
+	//
+	
+	num_vars = ncid.num_vars();
+
+	for ( int i = 0; i < num_vars; i++ ) {
+		var_id = ncid.get_var(i);
+		name = var_id->name();
+		if ( name == "xtime" ) {
+			(*var_id).set_cur(cur_time);
+			(*var_id).get ( &xtime[0], 1, 64 );
+			ncid.close();
+			return 1;
+		}
+	}
+
+	//
+	//  Close the file.
+	//
+	ncid.close();
+	return 0;
 }/*}}}*/
