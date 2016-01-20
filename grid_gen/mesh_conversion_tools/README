@@ -14,6 +14,13 @@ Purpose:
 	valid MPAS mesh with one additional field "cullCell". This new field should
 	be nCells integers. A 1 means the cell should be kept, and a 0 means the
 	cell should be removed.
+
+	mpas_mask_creator.cpp is a piece of software designed to create cell masks
+	from region definitions. Region definitions are defined in geojson files,
+	and can be created using the tools contained within the repository located
+	at:
+	https://github.com/MPAS-Dev/geometric_features
+	Masks have a value of 0 or 1, and are integers.
 	
 Requirements:
 	mpas_mesh_converter.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
@@ -21,6 +28,9 @@ Requirements:
 	It has been tested using g++ version 4.8.1
 
 	mpas_cell_culler.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
+	It has been tested using g++ version 4.8.1
+
+	mpas_mask_creator.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
 	It has been tested using g++ version 4.8.1
 
 Usage of mpas_mesh_converter.cpp:
@@ -68,6 +78,27 @@ Usage of mpas_cell_culler.cpp:
 		with cells, edges, and vertices removed where appropriate. Also, the cullCell field will be removed.
 		If input_name is specified, outputname defaults to culled_mesh.nc.
 
+Usage of mpas_mask_creator.cpp:
+	./MpasMaskCreator.x [input_mesh] [output_masks] [feature_group1] [feature_group2] ... [feature_groupN]
+
+	input_name:
+		The input name should be the path to a NetCDF file that is a fully valid MPAS file.
+
+	output_masks:
+		The output masks should be the path to a NetCDF file that will be
+		generated. It will contain all of the mask information after applying
+		the region specifications to the input name mesh file.
+	
+	feature_groupN:
+		After the output masks argument, the mask creator can take an arbitrary
+		number of feature files. The mask creator assumes each file is a group
+		of features (regions, transects, point data, etc.). Each file must be
+		formatted as geojson, and the name of each group should be contained
+		within the file.
+
+		The mask creator assumes the latitude and longitude contained within
+		each geojson file are given in degrees, and that the latitude ranges
+		from -90 to 90, while the longitude ranges from -180 to 180.
 
 Notes for mpas_mesh_converter.cpp:
 	- The output mesh should have an attribute "mesh_spec" which defined which

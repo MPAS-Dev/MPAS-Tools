@@ -6,16 +6,35 @@
 class pnt {/*{{{*/
 	public:
 		double x, y, z;
+		double lat, lon;
 		int idx;
 
-		pnt(double x_, double y_, double z_, int idx_)
-			:  x(x_), y(y_), z(z_), idx(idx_) {	}
+		pnt(double x_, double y_, double z_, int idx_) {
+			(*this).x = x_;
+			(*this).y = y_;
+			(*this).z = z_;
+			(*this).idx = idx_;
+			(*this).buildLat();
+			(*this).buildLon();
+		}
 
-		pnt(double x_, double y_, double z_)
-			: x(x_), y(y_), z(z_), idx(0) { }
+		pnt(double x_, double y_, double z_) {
+			(*this).x = x_;
+			(*this).y = y_;
+			(*this).z = z_;
+			(*this).idx = 0;
+			(*this).buildLat();
+			(*this).buildLon();
+		}
 
-		pnt()
-			: x(0.0), y(0.0), z(0.0), idx(0) { }
+		pnt() {
+			(*this).x = 0.0;
+			(*this).y = 0.0;
+			(*this).z = 0.0;
+			(*this).idx = 0;
+			(*this).lat = 0.0;
+			(*this).lon = 0.0;
+		}
 
 		friend pnt operator*(const double d, const pnt &p);
 		friend std::ostream & operator<<(std::ostream &os, const pnt &p);
@@ -26,6 +45,8 @@ class pnt {/*{{{*/
 			y = p.y;
 			z = p.z;
 			idx = p.idx;
+			(*this).buildLat();
+			(*this).buildLon();
 			return *this;
 		}/*}}}*/
 		bool operator==(const pnt &p) const {/*{{{*/
@@ -192,12 +213,18 @@ class pnt {/*{{{*/
 			z = z_;
 		}/*}}}*/
 		double getLat() const {/*{{{*/
+			return (*this).lat;
+		}/*}}}*/
+		double getLon() const {/*{{{*/
+			return (*this).lon;
+		}/*}}}*/
+		void buildLat() {/*{{{*/
 			double dl;
 
 			dl = sqrt((*this).x*(*this).x + (*this).y*(*this).y + (*this).z*(*this).z);
-			return asin(z/dl);
+			(*this).lat = asin(z/dl);
 		}/*}}}*/
-		double getLon() const {/*{{{*/
+		void buildLon() {/*{{{*/
 			double lon;
 
 			lon = atan2(y, x);
@@ -205,7 +232,8 @@ class pnt {/*{{{*/
 			if(lon < 0.0) {
 				lon = 2.0*M_PI + lon;
 			}
-			return lon;
+
+			(*this).lon = lon;
 		}/*}}}*/
 		double sphereDistance(const pnt &p) const {/*{{{*/
 			double arg;
@@ -462,6 +490,8 @@ pnt pntFromLatLon(const double &lat, const double &lon){/*{{{*/
 	temp.y = sin(lon) * cos(lat);
 	temp.z = sin(lat);
 	temp.normalize();
+	temp.buildLat();
+	temp.buildLon();
 	return temp;
 }/*}}}*/
 /*}}}*/
