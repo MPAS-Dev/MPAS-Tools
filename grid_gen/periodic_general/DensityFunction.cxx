@@ -112,7 +112,11 @@ void DensityFunction::randomPoint(Point& p)
 	y = (minY + (maxY - minY) * (double)rand() * rrm) ;
 	// for general pdf, scale x and y to lie in domain of pdf
 	U = (double)rand() * rrm;
-	while(rhoMax * U >= DensityFunction::f(x, y)) {
+        // The power of 0.5 is needed to get the proper density of points.
+        // The logic is that grid spacing in 2d is approximately equal to
+        // density to the 1/4 power.  However, cell area is approximately
+        // grid spacing squared, leading to a 1/2 power.
+	while(rhoMax * U >= pow(DensityFunction::f(x, y), 0.5)) {
 		x = (minX + (maxX - minX) * (double)rand() * rrm) ;
 		y = (minY + (maxY - minY) * (double)rand() * rrm) ;
 		U = (double)rand() * rrm;
