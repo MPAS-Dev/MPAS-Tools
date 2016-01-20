@@ -2,6 +2,7 @@
 #include <fstream>
 #include <assert.h>
 #include <math.h>
+#include <cstdlib>
 #include "PointSet.h"
 #include "DensityFunction.h"
 
@@ -27,7 +28,7 @@ void PointSet::makeMCPoints(int n, double X_PERIOD, double Y_PERIOD, int USE_DAT
 {
 	//Create Monte Carlo random point set
 	int i;
-	srand48(time(NULL));
+	srand(2); // set the seed for reproducibility
 	double x, y;
 	Point * p;
 	DensityFunction density(X_PERIOD, Y_PERIOD, USE_DATA_DENSITY);
