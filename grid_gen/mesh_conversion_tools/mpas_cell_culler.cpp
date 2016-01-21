@@ -8,6 +8,7 @@
 #include <math.h>
 #include <assert.h>
 #include <time.h>
+#include <string.h>
 
 #include "netcdf_utils.h"
 
@@ -17,6 +18,8 @@ using namespace std;
 
 int nCells, nVertices, nEdges, vertexDegree, maxEdges;
 bool spherical, periodic;
+bool cullMasks = false;
+bool invertMask = false;
 double sphere_radius, xPeriod, yPeriod;
 string in_history = "";
 string in_file_id = "";
@@ -38,6 +41,7 @@ vector<double> areaCell;
 
 /* Input/Marking Functions {{{ */
 int readGridInput(const string inputFilename);
+int mergeCellMasks(const string masksFilename);
 int markCells();
 int markVertices();
 int markEdges();
@@ -52,12 +56,31 @@ int mapAndOutputEdgeFields(const string inputFilename, const string outputFilena
 int mapAndOutputVertexFields(const string inputFilename, const string outputFilename);
 /*}}}*/
 
+void print_usage(){
+	cout << endl << endl;
+	cout << "Usage:" << endl;
+	cout << "\tMpasCellCuller.x [input_name] [output_name] [[-m/-i] masks_name]" << endl;
+	cout << endl;
+	cout << "\t\tinput_name:" << endl;
+	cout << "\t\t\tThis argument specifies the input MPAS mesh." << endl;
+	cout << "\t\toutput_name:" << endl;
+	cout << "\t\t\tThis argument specifies the output culled MPAS mesh." << endl;
+	cout << "\t\t\tIf not specified, it defaults to culled_mesh.nc, but" << endl;
+	cout << "\t\t\tit is required if additional arguments are specified." << endl;
+	cout << "\t\t-m/-i:" << endl;
+	cout << "\t\t\tThis argument controls how a set of masks is used when culling a mesh." << endl;
+	cout << "\t\t\tThe -m argument applies a mask to cull based on (i.e. where the mask is 1, the mesh will be culled)." << endl;
+	cout << "\t\t\tThe -i argument applies the inverse mask to cull based on (i.e. where the mask is 0, the mesh will be culled)." << endl;
+	cout << "\t\t\tIf this argument is specified, the masks_name argument is required" << endl;
+}
+
 string gen_random(const int len);
 
 int main ( int argc, char *argv[] ) {
 	int error;
 	string out_name = "culled_mesh.nc";
 	string in_name = "mesh.nc";
+	string mask_name = "masks.nc";
 
 	cout << endl << endl;
 	cout << "************************************************************" << endl;
@@ -98,18 +121,43 @@ int main ( int argc, char *argv[] ) {
 		in_name = argv[1];
 		out_name = argv[2];
 	}
+	else if ( argc == 4 )
+	{
+		cout << "\n";
+		cout << " ERROR: Incorrect number of arguments specified. See usage statement" << endl;
+		print_usage();
+		exit(1);
+	}
+	else if ( argc == 5 )
+	{
+		cullMasks = true;
+		in_name = argv[1];
+		out_name = argv[2];
+		if ( strcmp(argv[3], "-m") == 0 ){
+			invertMask = false;
+		} else if ( strcmp(argv[3], "-i") == 0 ){
+			invertMask = true;
+		}
+		mask_name = argv[4];
+	}
+
 
 	if(out_name == in_name){
 		cout << "   ERROR: Input and Output names are the same." << endl;
 		return 1;
 	}
 
-
 	srand(time(NULL));
 
 	cout << "Reading input grid." << endl;
 	error = readGridInput(in_name);
 	if(error) return 1;
+
+	if ( cullMasks ) {
+		cout << "Reading in mask information." << endl;
+		error = mergeCellMasks(mask_name);
+		if(error) return 1;
+	}
 
 	cout << "Marking cells for removal." << endl;
 	error = markCells();
@@ -297,6 +345,40 @@ int readGridInput(const string inputFilename){/*{{{*/
 	}
 
 	delete[] cellsonedge_list;
+
+	return 0;
+}/*}}}*/
+int mergeCellMasks(const string masksFilename){/*{{{*/
+	int nRegions;
+	int *regionCellMasks, *flattenedMask;
+	int i, j;
+
+	nRegions = netcdf_mpas_read_dim(masksFilename, "nRegions");
+
+	regionCellMasks = new int[nCells*nRegions];
+	flattenedMask = new int[nCells];
+
+	netcdf_mpas_read_regioncellmasks(masksFilename, nCells, nRegions, regionCellMasks);
+
+	for ( i = 0; i < nCells; i++){
+		flattenedMask[i] = 0;
+		for ( j = 0; j < nRegions; j++){
+			flattenedMask[i] = max(flattenedMask[i], regionCellMasks[i * nRegions + j]);
+		}
+	}
+
+	if ( invertMask ) {
+		for (i = 0; i < nCells; i++){
+			flattenedMask[i] = (flattenedMask[i] + 1) % 2;
+		}
+	}
+
+	for ( i = 0; i < nCells; i++ ){
+		cullCell[i] = max(cullCell[i], flattenedMask[i]);
+	}
+
+	delete[] regionCellMasks;
+	delete[] flattenedMask;
 
 	return 0;
 }/*}}}*/

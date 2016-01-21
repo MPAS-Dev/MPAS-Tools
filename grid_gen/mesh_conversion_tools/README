@@ -64,7 +64,7 @@ Usage of mpas_mesh_converter.cpp:
 
 
 Usage of mpas_cell_culler.cpp:
-	./MpasCellCuller.x [input_name] [output_name]
+	./MpasCellCuller.x [input_name] [output_name] [[-m/-i] mask_file]
 
 	input_name:
 		The input name should be the name of a NetCDF file that is a fully valid MPAS file.
@@ -77,6 +77,20 @@ Usage of mpas_cell_culler.cpp:
 		The output_name should be the name of the NetCDF file that will be generated. It will be the same as the input file,
 		with cells, edges, and vertices removed where appropriate. Also, the cullCell field will be removed.
 		If input_name is specified, outputname defaults to culled_mesh.nc.
+	
+	-m/-i:
+		These flags allow the addition of a masks file to be used to define
+		cells that should be culled.
+		If the -m flag is used, the masks file is used to cull the mesh.
+		Meaning, where any mask in the masks file is 1, the mesh will be
+		culled.
+		If the -i flag is used, the inverse of the masks file is used to cull
+		the mesh. Meaning where all masks in the masks file are 0, the mesh
+		will be culled.
+	
+	mask_file:
+		The mask_file argument should be the name of a NetCDF file containing
+		the regionCellMasks field, which defines masks for culling cells.
 
 Usage of mpas_mask_creator.cpp:
 	./MpasMaskCreator.x [input_mesh] [output_masks] [feature_group1] [feature_group2] ... [feature_groupN]
