@@ -23,6 +23,7 @@ parser.add_option("-c", "--cism", dest="cismFile", help="CISM grid file to input
 parser.add_option("-m", "--mpas", dest="mpasFile", help="MPAS grid file to output.", default="landice_grid.nc", metavar="FILENAME")
 parser.add_option("-i", "--interp", dest="interpType", help="interpolation method to use. b=bilinear, d=barycentric, e=ESMF", default="b", metavar="METHOD")
 parser.add_option("-w", "--weight", dest="weightFile", help="ESMF weight file to input.  Only used by ESMF interpolation method", metavar="FILENAME")
+parser.add_option("-t", "--thickness-only", dest="thicknessOnly", action="store_true", default=False, help="Only interpolate thickness and ignore all other variables (useful for setting up a cullMask)")
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
         option.help += (" " if option.help else "") + "[default: %default]"
@@ -58,14 +59,13 @@ timelevout = 0
 # Map MPAS-CISM field names - add new fields here as needed
 fieldInfo = OrderedDict()
 fieldInfo['thickness'] =     {'CISMname':'thk',  'scalefactor':1.0, 'offset':0.0, 'CISMgrid':1, 'vertDim':False}
-fieldInfo['bedTopography'] = {'CISMname':'topg', 'scalefactor':1.0, 'offset':0.0, 'CISMgrid':1, 'vertDim':False}
-fieldInfo['sfcMassBal'] =    {'CISMname':'acab', 'scalefactor':910.0/(3600.0*24.0*365.0), 'offset':0.0, 'CISMgrid':1, 'vertDim':False}  # Assuming default CISM density
-#fieldInfo['temperature'] =   {'CISMname':'temp', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':True}
-fieldInfo['temperature'] =   {'CISMname':'tempstag', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':True}  # pick one or the other
-fieldInfo['beta'] =          {'CISMname':'beta', 'scalefactor':1.0, 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
-#fieldInfo['observedSpeed'] = {'CISMname':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
-
-
+if not options.thicknessOnly:
+  fieldInfo['bedTopography'] = {'CISMname':'topg', 'scalefactor':1.0, 'offset':0.0, 'CISMgrid':1, 'vertDim':False}
+  fieldInfo['sfcMassBal'] =    {'CISMname':'acab', 'scalefactor':910.0/(3600.0*24.0*365.0), 'offset':0.0, 'CISMgrid':1, 'vertDim':False}  # Assuming default CISM density
+  #fieldInfo['temperature'] =   {'CISMname':'temp', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':True}
+  fieldInfo['temperature'] =   {'CISMname':'tempstag', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':True}  # pick one or the other
+  fieldInfo['beta'] =          {'CISMname':'beta', 'scalefactor':1.0, 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
+  #fieldInfo['observedSpeed'] = {'CISMname':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
 #----------------------------
 
 #----------------------------

@@ -22,6 +22,8 @@ options, args = parser.parse_args()
 if not options.fileinName:
     print "No input filename specified, so using 'grid.nc'."
     options.fileinName = 'grid.nc'
+else:
+    print "Input file is:", options.fileinName
 if not options.fileoutName:
     print "No output filename specified, so using 'landice_grid.nc'."
     options.fileoutName = 'landice_grid.nc'
