@@ -35,6 +35,35 @@ filein = Dataset(options.fileinName,'r')
 # Define the new file to be output 
 fileout = Dataset(options.fileoutName,"w",format=filein.file_format)
 
+
+# ============================================
+# Copy over all of the netcdf global attributes
+# ============================================
+# Do this first as doing it last is slow for big files since adding
+# attributes forces the contents to get reorganized.
+print "---- Copying global attributes from input file to output file ----"
+for name in filein.ncattrs():
+  # sphere radius needs to be set to that of the earth if on a sphere
+  if name == 'sphere_radius' and getattr(filein, 'on_a_sphere') == "YES             ":
+    setattr(fileout, 'sphere_radius', sphere_radius)
+    print 'Set global attribute   sphere_radius = ', str(sphere_radius)
+  elif name =='history':
+    # Update history attribute of netCDF file
+    newhist = '\n'.join([getattr(filein, 'history'), ' '.join(sys.argv[:]) ] )
+    setattr(fileout, 'history', newhist )
+  else:
+    # Otherwise simply copy the attr
+    setattr(fileout, name, getattr(filein, name) )
+    print 'Copied global attribute  ', name, '=', getattr(filein, name)
+
+# Update history attribute of netCDF file if we didn't above
+if not hasattr(fileout, 'history'):
+   setattr(fileout, 'history', sys.argv[:] )
+
+fileout.sync()
+print '' # make a space in stdout before further output
+
+
 # ============================================
 # Copy over all the dimensions to the new file
 # ============================================
@@ -43,6 +72,7 @@ fileout = Dataset(options.fileoutName,"w",format=filein.file_format)
 #       It may be better to list them explicitly as I do for the grid variables, 
 #       but this way ensures they all get included and is easier.
 # Note: The UNLIMITED time dimension will return a dimension value of None with Scientific.IO.  This is what is supposed to happen.  See below for how to deal with assigning values to a variable with a unlimited dimension.  Special handling is needed with the netCDF module.
+print "---- Copying dimensions from input file to output file ----"
 for dim in filein.dimensions.keys():
     if dim == 'nTracers': 
         pass  # Do nothing - we don't want this dimension 
@@ -83,7 +113,7 @@ print 'Added new dimension nVertInterfaces to output file with value of ' + str(
 #fileout.createDimension('nSfcAirTempTimeSlices', 1)
 #fileout.createDimension('nBasalHeatFluxTimeSlices', 1)
 #fileout.createDimension('nMarineBasalMassBalTimeSlices', 1)
-
+fileout.sync()
 print 'Finished creating dimensions in output file.\n' # include an extra blank line here
 
 # ============================================
@@ -171,28 +201,8 @@ if options.dirichlet:
 #newvar = fileout.createVariable('marineBasalMassBalTimeSeries', datatype, ( 'nCells', 'nMarineBasalMassBalTimeSlices',))
 #newvar[:] = numpy.zeros(newvar.shape)
 
-print "Completed creating land ice variables in new file. Now syncing to file."
 fileout.sync()
-print "Syncing complete.\n"
-
-# ============================================
-# Copy over all of the netcdf global attributes
-# ============================================
-print "---- Copying global attributes from input file to output file ----"
-for name in filein.ncattrs():
-  # sphere radius needs to be set to that of the earth if on a sphere
-  if name == 'sphere_radius' and getattr(filein, 'on_a_sphere') == "YES             ":
-    setattr(fileout, 'sphere_radius', sphere_radius)
-    print 'Set global attribute   sphere_radius = ', str(sphere_radius)
-  elif name =='history':
-    # Update history attribute of netCDF file
-    newhist = '\n'.join([getattr(filein, 'history'), ' '.join(sys.argv[:]) ] )
-    setattr(fileout, 'history', newhist )
-  else:
-    # Otherwise simply copy the attr
-    setattr(fileout, name, getattr(filein, name) )
-    print 'Copied global attribute  ', name, '=', getattr(filein, name)
-
+print "Completed creating land ice variables in new file. Now syncing to file."
 
 filein.close()
 fileout.close()
