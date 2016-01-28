@@ -397,9 +397,9 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				if ( geometry["type"].asString() == "Polygon" ) {
 
 					regionVertices.clear();
-					for (int i = 0; i < coordinates.size(); i++){
-						double lon = (coordinates[i][0].asDouble() + 180.0) * M_PI/180.0;
-						double lat = coordinates[i][1].asDouble() * M_PI/180.0;
+					for (int i = 0; i < coordinates[0].size(); i++){
+						double lon = (coordinates[0][i][0].asDouble() + 180.0) * M_PI/180.0;
+						double lat = coordinates[0][i][1].asDouble() * M_PI/180.0;
 #ifdef _DEBUG
 						cout << " Added a region vertex: " << lat << ", " << lon << endl;
 #endif
@@ -412,11 +412,11 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 					polygonList.push_back(regionVertices);
 
 				} else if (geometry["type"].asString() == "MultiPolygon" ) {
-					for (int i = 0; i < coordinates.size(); i++){
+					for (int i = 0; i < coordinates[0].size(); i++){
 						regionVertices.clear();
-						for (int j = 0; j < coordinates[i].size(); j++){
-							double lon = (coordinates[i][j][0].asDouble() + 180.0) * M_PI/180.0;
-							double lat = coordinates[i][j][1].asDouble() * M_PI/180.0;
+						for (int j = 0; j < coordinates[0][i].size(); j++){
+							double lon = (coordinates[0][i][j][0].asDouble() + 180.0) * M_PI/180.0;
+							double lat = coordinates[0][i][j][1].asDouble() * M_PI/180.0;
 #ifdef _DEBUG
 							cout << " Added a region vertex: " << lat << ", " << lon << endl;
 #endif
