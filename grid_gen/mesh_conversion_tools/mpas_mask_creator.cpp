@@ -366,7 +366,6 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 
 	pointIndices.clear();
 	regionIndices.clear();
-	pointGroupNames.push_back(groupName);
 
 	for ( int i = 0; i < root["features"].size(); i++ ){
 		Json::Value feature = root["features"][i];
@@ -477,7 +476,7 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 #endif
 
 				pnt point = pntFromLatLon(lat, lon);
-				point.idx = 0;
+				point.idx = pointIdx;
 
 				pointLocations.push_back(point);
 				pointNames.push_back(featureName);
