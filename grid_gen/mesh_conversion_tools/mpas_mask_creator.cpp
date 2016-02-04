@@ -467,8 +467,8 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 			}
 
 			if ( add_point ) {
-				double lon = (feature["properties"]["geometry"]["coordinates"][0].asDouble() + 180.0) * M_PI/180.0 ;
-				double lat = feature["properties"]["geometry"]["coordinates"][1].asDouble() * M_PI/180.0;
+				double lon = (feature["geometry"]["coordinates"][0].asDouble() + 180.0) * M_PI/180.0 ;
+				double lat = feature["geometry"]["coordinates"][1].asDouble() * M_PI/180.0;
 				pointIdx = pointNames.size();
 
 #ifdef _DEBUG
