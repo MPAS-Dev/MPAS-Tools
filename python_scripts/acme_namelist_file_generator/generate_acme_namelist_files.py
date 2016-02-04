@@ -3,19 +3,19 @@
 This script can be used to autogenerate some of the files used by ACME/CESM to
 define namelist options for each component.  These files are:
 
-* models/<COMPONENT>/<MODEL>/bld/build-namelist:
+* models/<COMPONENT>/bld/build-namelist:
   This perl script builds the namelist that ACME uses for the component.
   It creates the default namelist that the component will use by a hardcoded
   list of namelist options that should be included.
   It uses the namelist_definition_*.xml file to validate the data type of
-  each namelist option that it attempts to add to the default namelist.  It then 
+  each namelist option that it attempts to add to the default namelist.  It then
   uses namelist_defaults_*.xml  to assign default values for each of these options.
 
-* models/<COMPONENT>/<MODEL>/bld/namelist-files/namelist_definition_<MODEL>.xml:
+* models/<COMPONENT>/bld/namelist-files/namelist_definition_<MODEL>.xml:
   This xml file defines the namelist options that exist for this component,
   including a description of each that is used for documentation purposes.
 
-* models/<COMPONENT>/<MODEL>/bld/namelist-files/namelist_defaults_<MODEL>.xml:
+* models/<COMPONENT>/bld/namelist-files/namelist_defaults_<MODEL>.xml:
   This xml file defines the default value for each namelist option defined in
   namelist_definition_*.xml.  The default values defined here for ACME could differ
   from the defaults used in standalone MPAS.
@@ -23,19 +23,23 @@ define namelist options for each component.  These files are:
 This script requires a processed registry file from a compiled instance of MPAS
 (e.g., src/core_<CORE>/Registry_processed.xml).  The Registry definitions of MPAS
 namelist options are used to automatically generate:
-* the entire namelist_definition_*.xml file
-* the entire namelist_defaults_*.xml file
-* the section of the build-namelist file that adds namelist options to the default
-  namelist file.  It will add every namelist option found in the Registry file 
-  specified.  The content of the file created  should then be manually copied into 
-  build-namelist in the appropriate location,  replacing its previous contents.
+* namelist_definitions.xml: the entire namelist_definition_*.xml file
+* namelist_defaults.xml: the entire namelist_defaults_*.xml file
+* build-namelist-group-list: the section of the build-namelist file that defines
+  which namelist groups exist.  The content of the file created should be manually
+  copied into build-namelist in the appropriate location, replacing its previous contents.
+* build-namelist-section:  the section of the build-namelist file that adds
+  namelist options to the default  namelist file.  Every namelist option found in
+  the Registry file  specified will be added.  The content of the file created
+  should then be manually copied into  build-namelist in the appropriate location,
+  replacing its previous contents.
 
 Optionally, a pre-existing namelist_defaults_*.xml file can be specified.  If it is,
-there will be warnings to the screen and lines written to the newly generated 
-namelist_default_*.xml file that is output indicating where the values in the 
-pre-existing namelist_defaults file differ from those in the MPAS Registry file.  
-This is useful when the defaults used for ACME differ from those used in standalone 
-MPAS, and the ACME defaults should be preserved.  This information alerts the operator 
+there will be warnings to the screen and lines written to the newly generated
+namelist_default_*.xml file that is output indicating where the values in the
+pre-existing namelist_defaults file differ from those in the MPAS Registry file.
+This is useful when the defaults used for ACME differ from those used in standalone
+MPAS, and the ACME defaults should be preserved.  This information alerts the operator
 to these diferences and allows the conflicts to be manually resolved.
 
 """
@@ -252,7 +256,7 @@ def write_build_namelist_section(registry):#{{{
 		for option in record.iter("nml_option"):
 			option_name = option.attrib["name"]
 			build_nml.write("add_default($nl, '%s');\n"%(option_name.strip()))
-	
+
 		build_nml.write("\n")
 
 	group_list.write(');\n')
