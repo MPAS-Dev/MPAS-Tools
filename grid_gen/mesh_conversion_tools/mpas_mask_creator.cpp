@@ -20,6 +20,8 @@
 #define MESH_SPEC 1.0
 #define ID_LEN 10
 
+//#define _WRITE_POINT_MASK
+
 using namespace std;
 
 int nCells, nVertices;
@@ -38,6 +40,7 @@ string in_parent_id = "";
 
 // Mask and location information {{{
 
+int *cellPointMasks;
 int *cellMasks, *vertexMasks, *pointCellIndices;
 vector<pnt> cells;
 vector<pnt> vertices;
@@ -614,9 +617,15 @@ int buildPointIndices(vector<pnt> testLocations, vector<pnt> staticLocations, in
 		idx = -1;
 		minDist = HUGE_VAL;
 		for ( iStaticLoc = 0; iStaticLoc < staticLocations.size(); iStaticLoc++){
-			dist = testLocations[iTestLoc].dot(staticLocations[iStaticLoc]);
+			dist = testLocations[iTestLoc].dotForAngle(staticLocations[iStaticLoc]);
 
 			if ( dist < minDist ) {
+#ifdef _DEBUG
+				cout << "    Old dist / idx: " << minDist << " " << idx << endl;
+				cout << "    New dist / idx: " << dist << " " << iStaticLoc << endl;
+				cout << "    Static Lat/Lon: " << staticLocations[iStaticLoc].getLat() << " " << staticLocations[iStaticLoc].getLon() << endl;
+				cout << "    Test Lat/Lon: " << testLocations[iTestLoc].getLat() << " " << testLocations[iTestLoc].getLon() << endl;
+#endif
 				minDist = dist;
 				idx = iStaticLoc;
 			}
@@ -773,7 +782,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 	int *indices;
 	int *counts;
 	char *names;
-	int i, j;
+	int i, j, idx;
 
 
 	if ( nRegions > 0 ) {
@@ -872,6 +881,21 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		NcDim *nPointGroupsDim = grid.get_dim( "nPointGroups" );
 		NcDim *maxPointsInGroupDim = grid.get_dim( "maxPointsInGroup" );
 		int nPointGroups = nPointGroupsDim->size();
+
+#ifdef _WRITE_POINT_MASK
+		// Build and write point mask for cells, to see where the points live.
+		cellPointMasks = new int[nCells];
+		for ( i = 0; i < nCells; i++ ) {
+			cellPointMasks[i] = 0;
+		}
+		for (i = 0; i < nPoints; i++){
+			idx = pointCellIndices[i];
+			cellPointMasks[ idx - 1 ] = 1;
+		}
+
+		if (!(tempVar = grid.add_var("cellPointMask", ncInt, nCellsDim))) return NC_ERR;
+		if (!tempVar->put(cellPointMasks, nCells)) return NC_ERR;
+#endif
 
 		// Build and write point index information
 		if (!(tempVar = grid.add_var("pointCellGlobalID", ncInt, nPointsDim))) return NC_ERR;
