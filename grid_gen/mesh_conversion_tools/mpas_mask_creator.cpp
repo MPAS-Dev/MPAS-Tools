@@ -41,7 +41,7 @@ string in_parent_id = "";
 // Mask and location information {{{
 
 int *cellPointMasks;
-int *cellMasks, *vertexMasks, *pointCellIndices;
+int *cellMasks, *vertexMasks, *pointCellIndices, *pointVertexIndices;
 vector<pnt> cells;
 vector<pnt> vertices;
 vector<pnt> pointLocations;
@@ -206,6 +206,13 @@ int main ( int argc, char *argv[] ) {
 	cout << "Marking vertices based on region definitions" << endl;
 	vertexMasks = new int[vertices.size() * regionPolygons.size()];
 	if(error = buildMasks(vertices, &vertexMasks[0])){
+		cout << "Error - " << error << endl;
+		exit(error);
+	}
+
+	cout << "Marking points based on vertices" << endl;
+	pointVertexIndices = new int[pointLocations.size()];
+	if(error = buildPointIndices(pointLocations, vertices, &pointVertexIndices[0])){
 		cout << "Error - " << error << endl;
 		exit(error);
 	}
@@ -637,6 +644,7 @@ int buildPointIndices(vector<pnt> testLocations, vector<pnt> staticLocations, in
 	int iTestLoc, iStaticLoc, idx;
 	double minDist, dist;
 
+	#pragma omp parallel for default(shared) private(idx, minDist, iStaticLoc, dist)
 	for ( iTestLoc = 0; iTestLoc < testLocations.size(); iTestLoc++){
 		idx = -1;
 		minDist = HUGE_VAL;
@@ -658,7 +666,7 @@ int buildPointIndices(vector<pnt> testLocations, vector<pnt> staticLocations, in
 		if ( idx == -1 ) {
 			cout << " ERROR: No locations found for test location " << iTestLoc << endl;
 			cout << testLocations[iTestLoc] << endl;
-			return 1;
+			indices[iTestLoc] = 0;
 		} else {
 			indices[iTestLoc] = idx+1;
 		}
@@ -925,6 +933,10 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		if (!(tempVar = grid.add_var("pointCellGlobalID", ncInt, nPointsDim))) return NC_ERR;
 		if (!tempVar->put(pointCellIndices, nPoints)) return NC_ERR;
 		delete[] pointCellIndices;
+
+		if (!(tempVar = grid.add_var("pointVertexGlobalID", ncInt, nPointsDim))) return NC_ERR;
+		if (!tempVar->put(pointVertexIndices, nPoints)) return NC_ERR;
+		delete[] pointVertexIndices;
 
 		// Build and write point names
 		names = new char[nPoints * StrLen];
