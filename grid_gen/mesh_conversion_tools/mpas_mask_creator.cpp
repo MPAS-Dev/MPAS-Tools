@@ -20,7 +20,7 @@
 #define MESH_SPEC 1.0
 #define ID_LEN 10
 
-//#define _WRITE_POINT_MASK
+#define _WRITE_POINT_MASK
 
 using namespace std;
 
@@ -400,8 +400,13 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 
 					regionVertices.clear();
 					for (int i = 0; i < coordinates[0].size(); i++){
-						double lon = (coordinates[0][i][0].asDouble() + 180.0) * M_PI/180.0;
+						double lon = coordinates[0][i][0].asDouble() * M_PI/180.0;
 						double lat = coordinates[0][i][1].asDouble() * M_PI/180.0;
+
+						if ( lon < 0.0 ) {
+							lon = lon + (2.0 * M_PI);
+						}
+
 #ifdef _DEBUG
 						cout << " Added a region vertex: " << lat << ", " << lon << endl;
 #endif
@@ -414,11 +419,16 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 					polygonList.push_back(regionVertices);
 
 				} else if (geometry["type"].asString() == "MultiPolygon" ) {
-					for (int i = 0; i < coordinates[0].size(); i++){
+					for (int i = 0; i < coordinates.size(); i++){
 						regionVertices.clear();
-						for (int j = 0; j < coordinates[0][i].size(); j++){
-							double lon = (coordinates[0][i][j][0].asDouble() + 180.0) * M_PI/180.0;
-							double lat = coordinates[0][i][j][1].asDouble() * M_PI/180.0;
+						for (int j = 0; j < coordinates[i][0].size(); j++){
+							double lon = coordinates[i][0][j][0].asDouble() * M_PI/180.0;
+							double lat = coordinates[i][0][j][1].asDouble() * M_PI/180.0;
+
+							if ( lon < 0.0 ) {
+								lon = lon + (2.0 * M_PI);
+							}
+
 #ifdef _DEBUG
 							cout << " Added a region vertex: " << lat << ", " << lon << endl;
 #endif
@@ -439,24 +449,26 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				regionPolygons.push_back(polygonList);
 				maxRegPolygons = max(maxRegPolygons, (int)polygonList.size());
 				nRegions = nRegions + 1;
+
+				// ** Check for region in group already
+				addRegToGroup = true;
+				for ( int_itr = regionIndices.begin(); int_itr != regionIndices.end(); int_itr++){
+					if ( regionIdx == (*int_itr) ) {
+						addRegToGroup = false;
+					}
+				}
+				if ( addRegToGroup ) {
+					regionIndices.push_back(regionIdx);
+				}
+			
+				// * Add group name to list of groups for regions, and prevent it from being added with subsequent regions
+				if ( addGroupToRegList ) {
+					regionGroupNames.push_back(groupName);
+					addGroupToRegList = false;
+				}
+
 			}
 
-			// ** Check for region in group already
-			addRegToGroup = true;
-			for ( int_itr = regionIndices.begin(); int_itr != regionIndices.end(); int_itr++){
-				if ( regionIdx == (*int_itr) ) {
-					addRegToGroup = false;
-				}
-			}
-			if ( addRegToGroup ) {
-				regionIndices.push_back(regionIdx);
-			}
-			
-			// * Add group name to list of groups for regions, and prevent it from being added with subsequent regions
-			if ( addGroupToRegList ) {
-				regionGroupNames.push_back(groupName);
-				addGroupToRegList = false;
-			}
 		} else if ( feature["properties"]["object"].asString() == "point" ) {
 			bool addPointToGroup;
 			bool add_point = true;
@@ -470,8 +482,13 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 			}
 
 			if ( add_point ) {
-				double lon = (feature["geometry"]["coordinates"][0].asDouble() + 180.0) * M_PI/180.0 ;
+				double lon = feature["geometry"]["coordinates"][0].asDouble() * M_PI/180.0 ;
 				double lat = feature["geometry"]["coordinates"][1].asDouble() * M_PI/180.0;
+
+				if ( lon < 0.0 ) {
+					lon = lon + ( 2.0 * M_PI );
+				}
+
 				pointIdx = pointNames.size();
 
 #ifdef _DEBUG
@@ -484,34 +501,41 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				pointLocations.push_back(point);
 				pointNames.push_back(featureName);
 				nPoints = nPoints + 1;
-			}
 
-			// ** Check for point in group already
-			addPointToGroup = true;
-			for ( int_itr = pointIndices.begin(); int_itr != pointIndices.end(); int_itr++){
-				if ( pointIdx == (*int_itr) ) {
-					addPointToGroup = false;
+				// ** Check for point in group already
+				addPointToGroup = true;
+				for ( int_itr = pointIndices.begin(); int_itr != pointIndices.end(); int_itr++){
+					if ( pointIdx == (*int_itr) ) {
+						addPointToGroup = false;
+					}
 				}
-			}
 
-			if ( addPointToGroup ) {
-				pointIndices.push_back(pointIdx);
-			}
+				if ( addPointToGroup ) {
+					pointIndices.push_back(pointIdx);
+				}
 
-			// * Add group name to list of groups for points, and prevent it from being added with subsequent points
-			if ( addGroupToPntList ) {
-				pointGroupNames.push_back(groupName);
-				addGroupToPntList = false;
+				// * Add group name to list of groups for points, and prevent it from being added with subsequent points
+				if ( addGroupToPntList ) {
+					pointGroupNames.push_back(groupName);
+					addGroupToPntList = false;
+				}
+
 			}
 		} else {
 			cout << "Skipping feature, can only process regions at this time..." << endl;
 		}
 	}
 
-	maxPointsInGroup = max(maxPointsInGroup, (int)pointIndices.size());
-	maxRegionsInGroup = max(maxRegionsInGroup, (int)regionIndices.size());
-	regionsInGroup.push_back(regionIndices);
-	pointsInGroup.push_back(pointIndices);
+
+	if ( (int)regionIndices.size() > 0 ) {
+		maxRegionsInGroup = max(maxRegionsInGroup, (int)regionIndices.size());
+		regionsInGroup.push_back(regionIndices);
+	}
+
+	if ( (int)pointIndices.size() > 0 ) {
+		maxPointsInGroup = max(maxPointsInGroup, (int)pointIndices.size());
+		pointsInGroup.push_back(pointIndices);
+	}
 
 	return 0;
 }/*}}}*/
