@@ -20,7 +20,7 @@
 #define MESH_SPEC 1.0
 #define ID_LEN 10
 
-#define _WRITE_POINT_MASK
+//#define _WRITE_POINT_MASK
 
 using namespace std;
 
