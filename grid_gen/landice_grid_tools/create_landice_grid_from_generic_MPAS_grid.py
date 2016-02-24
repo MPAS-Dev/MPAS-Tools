@@ -137,14 +137,14 @@ newvar = fileout.createVariable('thickness', datatype, ('Time', 'nCells'))
 newvar[0,:] = numpy.zeros( newvar.shape[1:] )
 # These landice variables are stored in the mesh currently, and therefore do not have a time dimension.
 #    It may make sense to eventually move them to state.
-newvar = fileout.createVariable('bedTopography', datatype, ('Time', 'nCells',))
+newvar = fileout.createVariable('bedTopography', datatype, ('Time', 'nCells'))
 newvar[:] = numpy.zeros(newvar.shape)
-newvar = fileout.createVariable('sfcMassBal', datatype, ('Time', 'nCells',))
+newvar = fileout.createVariable('sfcMassBal', datatype, ('Time', 'nCells'))
 newvar[:] = numpy.zeros(newvar.shape)
 print 'Added default variables: thickness, temperature, bedTopography, sfcMassBal'
 
 if options.beta:
-   newvar = fileout.createVariable('beta', datatype, ('Time', 'nCells',))
+   newvar = fileout.createVariable('beta', datatype, ('Time', 'nCells'))
    newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
    print 'Added optional variable: beta'
 
@@ -165,18 +165,6 @@ if options.thermal:
    newvar = fileout.createVariable('basalHeatFlux', datatype, ('Time', 'nCells'))
    newvar[:] = 0.0 # Default to none (W/m2)
    print 'Added optional variables: temperature, surfaceAirTemperature, basalHeatFlux'
-# These boundary conditions are currently part of mesh, and are time independent.  If they change, make sure to adjust the dimensions here and in Registry.
-# Note: These have been disabled in the fresh implementation of the landice core.  MH 9/19/13
-#newvar = fileout.createVariable('betaTimeSeries', datatype, ( 'nCells', 'nBetaTimeSlices', ))
-#newvar[:] = numpy.zeros(newvar.shape)
-#newvar = fileout.createVariable('sfcMassBalTimeSeries', datatype, ( 'nCells', 'nSfcMassBalTimeSlices', ))
-#newvar[:] = numpy.zeros(newvar.shape)
-#newvar = fileout.createVariable('sfcAirTempTimeSeries', datatype, ( 'nCells', 'nSfcAirTempTimeSlices', ))
-#newvar[:] = numpy.zeros(newvar.shape)
-#newvar = fileout.createVariable('basalHeatFluxTimeSeries', datatype, ( 'nCells', 'nBasalHeatFluxTimeSlices',))
-#newvar[:] = numpy.zeros(newvar.shape)
-#newvar = fileout.createVariable('marineBasalMassBalTimeSeries', datatype, ( 'nCells', 'nMarineBasalMassBalTimeSlices',))
-#newvar[:] = numpy.zeros(newvar.shape)
 
 print "Completed creating land ice variables in new file. Now syncing to file."
 fileout.sync()
