@@ -141,7 +141,9 @@ newvar = fileout.createVariable('bedTopography', datatype, ('Time', 'nCells'))
 newvar[:] = numpy.zeros(newvar.shape)
 newvar = fileout.createVariable('sfcMassBal', datatype, ('Time', 'nCells'))
 newvar[:] = numpy.zeros(newvar.shape)
-print 'Added default variables: thickness, temperature, bedTopography, sfcMassBal'
+newvar = fileout.createVariable('floatingBasalMassBal', datatype, ('Time', 'nCells'))
+newvar[:] = numpy.zeros(newvar.shape)
+print 'Added default variables: thickness, temperature, bedTopography, sfcMassBal, floatingBasalMassBal'
 
 if options.beta:
    newvar = fileout.createVariable('beta', datatype, ('Time', 'nCells'))
