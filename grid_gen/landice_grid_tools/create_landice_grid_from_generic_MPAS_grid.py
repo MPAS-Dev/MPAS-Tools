@@ -17,6 +17,7 @@ parser.add_option("-o", "--out", dest="fileoutName", help="output filename.  Def
 parser.add_option("-l", "--level", dest="levels", help="Number of vertical levels to use in the output file.  Defaults to the number in the input file", metavar="FILENAME")
 parser.add_option("--beta", dest="beta", action="store_true", help="Use this flag to include the field 'beta' in the resulting file.")
 parser.add_option("--diri", dest="dirichlet", action="store_true", help="Use this flag to include the fields 'dirichletVelocityMask', 'uReconstructX', 'uReconstructY' needed for specifying Dirichlet velocity boundary conditions in the resulting file.")
+parser.add_option("--thermal", dest="thermal", action="store_true", help="Use this flag to include the fields 'temperature', 'surfaceAirTemperature', 'basalHeatFlux' needed for specifying thermal initial conditions in the resulting file.")
 options, args = parser.parse_args()
 
 if not options.fileinName:
@@ -32,7 +33,7 @@ print '' # make a space in stdout before further output
 # Get the input file
 filein = Dataset(options.fileinName,'r')
 
-# Define the new file to be output 
+# Define the new file to be output
 fileout = Dataset(options.fileoutName,"w",format=filein.file_format)
 
 # ============================================
@@ -40,16 +41,16 @@ fileout = Dataset(options.fileoutName,"w",format=filein.file_format)
 # ============================================
 # Note: looping over dimensions seems to result in them being written in seemingly random order.
 #       I don't think this matters but it is not aesthetically pleasing.
-#       It may be better to list them explicitly as I do for the grid variables, 
+#       It may be better to list them explicitly as I do for the grid variables,
 #       but this way ensures they all get included and is easier.
 # Note: The UNLIMITED time dimension will return a dimension value of None with Scientific.IO.  This is what is supposed to happen.  See below for how to deal with assigning values to a variable with a unlimited dimension.  Special handling is needed with the netCDF module.
 for dim in filein.dimensions.keys():
-    if dim == 'nTracers': 
-        pass  # Do nothing - we don't want this dimension 
+    if dim == 'nTracers':
+        pass  # Do nothing - we don't want this dimension
     else:    # Copy over all other dimensions
-      if dim == 'Time':      
+      if dim == 'Time':
          dimvalue = None  # netCDF4 won't properly get this with the command below (you need to use the isunlimited method)
-      elif (dim == 'nVertLevels'): 
+      elif (dim == 'nVertLevels'):
         if options.levels is None:
           # If nVertLevels is in the input file, and a value for it was not
           # specified on the command line, then use the value from the file (do nothing here)
@@ -134,8 +135,6 @@ layerThicknessFractions[:] = 1.0 / nVertLevels
 # Therefore we need to assign to time level 0, and what we need to assign is a zeros array that is the shape of the new variable, exluding the time dimension!
 newvar = fileout.createVariable('thickness', datatype, ('Time', 'nCells'))
 newvar[0,:] = numpy.zeros( newvar.shape[1:] )
-newvar = fileout.createVariable('temperature', datatype, ('Time', 'nCells', 'nVertLevels'))
-newvar[0,:,:] = numpy.zeros( newvar.shape[1:] )
 # These landice variables are stored in the mesh currently, and therefore do not have a time dimension.
 #    It may make sense to eventually move them to state.
 newvar = fileout.createVariable('bedTopography', datatype, ('Time', 'nCells',))
@@ -158,6 +157,14 @@ if options.dirichlet:
    newvar[:] = 0.0
    print 'Added optional variables: dirichletVelocityMask, uReconstructX, uReconstructY'
 
+if options.thermal:
+   newvar = fileout.createVariable('temperature', datatype, ('Time', 'nCells', 'nVertLevels'))
+   newvar[:] = 273.15 # Give default value for temperate ice
+   newvar = fileout.createVariable('surfaceAirTemperature', datatype, ('Time', 'nCells'))
+   newvar[:] = 273.15 # Give default value for temperate ice
+   newvar = fileout.createVariable('basalHeatFlux', datatype, ('Time', 'nCells'))
+   newvar[:] = 0.0 # Default to none (W/m2)
+   print 'Added optional variables: temperature, surfaceAirTemperature, basalHeatFlux'
 # These boundary conditions are currently part of mesh, and are time independent.  If they change, make sure to adjust the dimensions here and in Registry.
 # Note: These have been disabled in the fresh implementation of the landice core.  MH 9/19/13
 #newvar = fileout.createVariable('betaTimeSeries', datatype, ( 'nCells', 'nBetaTimeSlices', ))
