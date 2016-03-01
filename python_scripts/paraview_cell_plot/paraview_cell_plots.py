@@ -58,35 +58,47 @@ def setup_time_indices(fn_pattern, local_indices, global_indices, file_names):#{
     time_bar.finish()
 #}}}
 
-def setup_dimension_values(field_var, dim_vals):#{{{
-    # Setting dimension values:
-    first_dim_set = True
-    field_dims = field_var.dimensions
-    excluded_dims = {'Time', 'nCells', 'nEdges', 'nVertices'}
-    for dim in field_dims:
-        if dim == 'Time':
-            dim_vals.append(-1)
+def setup_dimension_values( nc_file, variable_list, all_dim_vals ):#{{{
+    for var in variable_list.split(','):
+        captured_input = False
 
-        if dim == 'nCells' or dim == 'nEdges' or dim == 'nVertices':
-            dim_vals.append(-2)
+        dim_vals = []
+        field_var = nc_file.variables[var]
 
-        if not dim in excluded_dims:
-            if first_dim_set:
-                print ""
-                print "Need to define addition dimension values."
-                first_dim_set = False
+        # Setting dimension values:
+        first_dim_set = True
+        field_dims = field_var.dimensions
+        excluded_dims = {'Time', 'nCells', 'nEdges', 'nVertices'}
+        for dim in field_dims:
+            if dim == 'Time':
+                dim_vals.append(-1)
 
-            valid = False
-            while not valid:
-                print "Valid range for dimension %s between 0 and %d"%(dim, len(nc_file.dimensions[dim])-1)
-                val = raw_input("Enter a value for dimension %s: "%(dim))
-                int_val = int(val)
-                if int_val >= 0 and int_val <= len(nc_file.dimensions[dim])-1:
-                    dim_vals.append( int(val) )
-                    valid = True
-                else:
-                    print " -- Invalid value, please re-enter --"
+            if dim == 'nCells' or dim == 'nEdges' or dim == 'nVertices':
+                dim_vals.append(-2)
 
+            if not dim in excluded_dims:
+                captured_input = True
+                if first_dim_set:
+                    print ""
+                    print "Need to define additional dimension values for field %s"%(var)
+                    first_dim_set = False
+
+                valid = False
+                while not valid:
+                    print "Valid range for dimension %s between 0 and %d"%(dim, len(nc_file.dimensions[dim])-1)
+                    val = raw_input("Enter a value for dimension %s: "%(dim))
+                    int_val = int(val)
+                    if int_val >= 0 and int_val <= len(nc_file.dimensions[dim])-1:
+                        dim_vals.append( int(val) )
+                        valid = True
+                    else:
+                        print " -- Invalid value, please re-enter --"
+
+        all_dim_vals[var] = dim_vals
+        del dim_vals
+
+        if captured_input:
+            print ""
 #}}}
 
 def build_vertex_lists_xyz( nc_file, blocking, point_list ):#{{{
@@ -157,7 +169,7 @@ def build_cell_lists( nc_file, blocking, cell_list ):#{{{
 
 #}}}
 
-def build_field_time_series( local_indices, global_indices, file_names, var_name, point_list, cell_list ):#{{{
+def build_field_time_series( local_indices, global_indices, file_names, blocking, all_dim_vals, variable_list, point_list, cell_list ):#{{{
     polydata = vtk.vtkPolyData()
     polydata.SetPoints(Points)
     polydata.SetPolys(Cells)
@@ -174,75 +186,83 @@ def build_field_time_series( local_indices, global_indices, file_names, var_name
             nc_file = NetCDFFile(file_names[time_index], 'r')
             prev_file = file_names[time_index]
 
-        Colors = vtk.vtkTypeFloat64Array()
-        Colors.SetNumberOfComponents(1);
-        Colors.SetName(args.variable);
-
         nCells = len(nc_file.dimensions['nCells'])
-        nBlocks = 1 + nCells / args.blocking
+        nBlocks = 1 + nCells / blocking
 
-        field_var = nc_file.variables[args.variable]
-        field_ndims = len(field_var.dimensions)
+        for var_name in variable_list.split(','):
+            Colors = vtk.vtkTypeFloat64Array()
+            Colors.SetNumberOfComponents(1);
+            Colors.SetName(var_name);
 
-        # Build data
-        for iBlock in np.arange(0, nBlocks):
-            blockStart = iBlock * args.blocking
-            blockEnd = min( (iBlock + 1) * args.blocking, nCells )
-            blockCount = blockEnd - blockStart
+            dim_vals = all_dim_vals[var_name]
+            field_var = nc_file.variables[var_name]
+            field_ndims = len(dim_vals)
 
-            if field_ndims == 1:
-                field = field_var[blockStart:blockEnd]
-            if field_ndims == 2:
-                field = field_var[local_indices[time_index], blockStart:blockEnd]
-            elif field_ndims == 3:
-                field = field_var[local_indices[time_index], blockStart:blockEnd, 0]
-            elif field_ndims == 4:
-                field = field_var[local_indices[time_index], blockStart:blockEnd, dim_vals[2], dim_vals[3]]
-            elif field_ndims == 5:
-                field = field_var[local_indices[time_index], blockStart:blockEnd, dim_vals[2], dim_vals[3], dim_vals[4]]
+            # Build data
+            for iBlock in np.arange(0, nBlocks):
+                blockStart = iBlock * blocking
+                blockEnd = min( (iBlock + 1) * blocking, nCells )
+                blockCount = blockEnd - blockStart
 
-            for idx in np.arange(0, blockCount):
-                Colors.InsertNextTuple1(field[idx]);
+                if field_ndims == 1:
+                    field = field_var[blockStart:blockEnd]
+                if field_ndims == 2:
+                    field = field_var[local_indices[time_index], blockStart:blockEnd]
+                elif field_ndims == 3:
+                    field = field_var[local_indices[time_index], blockStart:blockEnd, 0]
+                elif field_ndims == 4:
+                    field = field_var[local_indices[time_index], blockStart:blockEnd, dim_vals[2], dim_vals[3]]
+                elif field_ndims == 5:
+                    field = field_var[local_indices[time_index], blockStart:blockEnd, dim_vals[2], dim_vals[3], dim_vals[4]]
 
-        polydata.GetCellData().SetScalars(Colors)
-        polydata.Modified()
+                for idx in np.arange(0, blockCount):
+                    Colors.InsertNextTuple1(field[idx]);
 
-        out_file = "vtk_files/time_series/%s.%d.vtp"%(args.variable, time_index)
+            polydata.GetCellData().SetScalars(Colors)
+            polydata.Modified()
 
-        writer = vtk.vtkXMLPolyDataWriter()
-        writer.SetFileName( out_file )
-        if vtk.VTK_MAJOR_VERSION <= 5:
-            writer.SetInput(polydata)
-        else:
-            writer.SetInputData(polydata)
-        writer.Write()
+            out_file = "vtk_files/time_series/%s.%d.vtp"%(var_name, time_index)
 
-        del Colors
-        del writer
+            writer = vtk.vtkXMLPolyDataWriter()
+            writer.SetFileName( out_file )
+            if vtk.VTK_MAJOR_VERSION <= 5:
+                writer.SetInput(polydata)
+            else:
+                writer.SetInputData(polydata)
+            writer.Write()
+
+            del Colors
+            del writer
+            del field
+            del field_ndims
+            del field_var
+            del dim_vals
+
         field_bar.update(time_index)
 
     nc_file.close()
     field_bar.finish()
 
     # Write pvd file, based on: http://www.paraview.org/Wiki/ParaView/Data_formats
-    pvd_file = open('vtk_files/%s.pvd'%(args.variable), 'w')
-    pvd_file.write('<?xml version="1.0"?>\n')
-    pvd_file.write('<VTKFile type="Collection" version="0.1"\n')
-    pvd_file.write('\tbyte_order="LittleEndian"\n')
-    pvd_file.write('\tcompressor="vtkZLibDataCompressor">\n')
-    pvd_file.write('<Collection>\n')
-    for time_index in time_global_indices:
-        pvd_file.write('<DataSet timestep="%d" group="" part="0"\n'%(time_index))
-        pvd_file.write('\tfile="time_series/%s.%d.vtp"/>\n'%(args.variable, time_index))
-    pvd_file.write('</Collection>\n')
-    pvd_file.write('</VTKFile>\n')
+    for var_name in variable_list.split(','):
+        pvd_file = open('vtk_files/%s.pvd'%(var_name), 'w')
+        pvd_file.write('<?xml version="1.0"?>\n')
+        pvd_file.write('<VTKFile type="Collection" version="0.1"\n')
+        pvd_file.write('\tbyte_order="LittleEndian"\n')
+        pvd_file.write('\tcompressor="vtkZLibDataCompressor">\n')
+        pvd_file.write('<Collection>\n')
+        for time_index in time_global_indices:
+            pvd_file.write('<DataSet timestep="%d" group="" part="0"\n'%(time_index))
+            pvd_file.write('\tfile="time_series/%s.%d.vtp"/>\n'%(var_name, time_index))
+        pvd_file.write('</Collection>\n')
+        pvd_file.write('</VTKFile>\n')
 #}}}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("-f", "--file_pattern", dest="filename_pattern", help="MPAS Filename pattern.", metavar="FILE", required=True)
     parser.add_argument("-b", "--blocking", dest="blocking", help="Size of blocks when reading MPAS file", metavar="BLK")
-    parser.add_argument("-v", "--variable", dest="variable", help="Variable to plot.", metavar="VAR", required=True)
+    parser.add_argument("-v", "--variable_list", dest="variable_list", help="List of variables to extract", metavar="VAR", required=True)
 
     args = parser.parse_args()
 
@@ -255,16 +275,15 @@ if __name__ == "__main__":
     Cells = vtk.vtkCellArray()
 
     time_indices = []
-    time_file = []
+    time_file_names = []
     time_global_indices = []
-    setup_time_indices(args.filename_pattern, time_indices, time_global_indices, time_file)
+    setup_time_indices(args.filename_pattern, time_indices, time_global_indices, time_file_names)
 
-    nc_file = NetCDFFile(time_file[0], 'r')
+    nc_file = NetCDFFile(time_file_names[0], 'r')
 
     # Setting dimension values:
-    dim_vals = []
-    field_var = nc_file.variables[args.variable]
-    setup_dimension_values( field_var, dim_vals )
+    all_dim_vals = {}
+    setup_dimension_values( nc_file, args.variable_list, all_dim_vals )
 
     # Build vertex list
     build_vertex_lists_xyz( nc_file, args.blocking, Points )
@@ -277,6 +296,6 @@ if __name__ == "__main__":
     if not os.path.exists('vtk_files/time_series'):
         os.makedirs('vtk_files/time_series')
 
-    build_field_time_series( time_indices, time_global_indices, time_file, args.variable, Points, Cells )
+    build_field_time_series( time_indices, time_global_indices, time_file_names, args.blocking, all_dim_vals, args.variable_list, Points, Cells )
 
 # vim: set expandtab:
