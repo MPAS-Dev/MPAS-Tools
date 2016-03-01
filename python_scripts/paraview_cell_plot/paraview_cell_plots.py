@@ -57,6 +57,7 @@ time_global_indices = []
 widgets = ['Build time indices: ', Percentage(), ' ', Bar(), ' ', ETA()]
 time_bar = ProgressBar(widgets=widgets, maxval=len(file_list)).start()
 i_global = 0
+i_file = 0
 for file in file_list:
     nc_file = NetCDFFile(file, 'r')
 
@@ -69,8 +70,9 @@ for file in file_list:
 
         i_global = i_global + 1
 
+    i_file = i_file + 1
     nc_file.close()
-    time_bar.update(time_idx)
+    time_bar.update(i_file)
 time_bar.finish()
 
 nc_file = NetCDFFile(time_file[0], 'r')
