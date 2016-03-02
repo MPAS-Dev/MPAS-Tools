@@ -142,11 +142,13 @@ def summarize_extraction(all_dim_vals, cellVarTime, cellVarNoTime, vertexVarTime
             print "      name: %s"%(var)
 
     if len(edgeVarTime) > 0:
+        print " Edge fields are currently not supported, any fields listed are ignored."
         print "   Variables with 'Time' and 'nEdges' as dimensions:"
         for var in edgeVarTime:
             print "      name: %s"%(var)
 
     if len(edgeVarNoTime) > 0:
+        print " Edge fields are currently not supported, any fields listed are ignored."
         print "   Variables with 'nEdges' and without 'Time' as dimensions:"
         for var in edgeVarNoTime:
             print "      name: %s"%(var)
