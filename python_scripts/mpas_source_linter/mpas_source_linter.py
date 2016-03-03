@@ -75,11 +75,11 @@ for block in iter(lambda: lint_file.readline(), ""):
 
 		# Test for indentation issues
 		if ( xml_file or c_file ):
-			match = re.search('%s+'%bad_indent, block)
+			match = re.search('^\t*%s+\t*'%bad_indent, block)
 			if ( not match == None ):
 				indent_error = True
 		elif ( fortran_file ):
-			match = re.search('%s+'%bad_indent, block)
+			match = re.search('^ *%s+ *'%bad_indent, block)
 			if ( not match == None ):
 				indent_error = True
 
