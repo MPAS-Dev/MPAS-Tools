@@ -10,9 +10,9 @@ VTK files for plotting in paraview.
 It can extract a field across multiple files by passing in a regular expression
 for the filename patter. As an example, one can run the script using:
 
-`./paraview_cell_plots.py -v areaCell -f "hist.comp.*.nc"`
+`./paraview_cell_plots.py -v areaCell,latVertex -f "hist.comp.*.nc"`
 
-To extract a time series of areaCell that spans multiple files.
+To extract a time series of areaCell,latVertex that spans multiple files.
 
 Requirements:
 This script requires access to the following non standard modules:
@@ -302,7 +302,28 @@ def build_field_time_series( local_indices, global_indices, file_names, blocking
         polydata.SetPoints(point_list)
         polydata.SetPolys(cell_list)
 
-        written_fields = []
+        if output_32bit:
+            Colors = vtk.vtkTypeFloat32Array()
+        else:
+            Colors = vtk.vtkTypeFloat64Array()
+
+        Colors.SetNumberOfComponents(1);
+
+        # Get dimension info to allocate the size of Colors
+        nc_file = NetCDFFile(file_names[0], 'r')
+
+        blockDim = len(nc_file.dimensions[blockDimName])
+
+        # Pre-compute the number of blocks
+        nBlocks = 1 + blockDim / blocking
+
+        nc_file.close
+
+        # Allocate the correct number of elements for the colors array
+        Colors.Allocate( blockDim+1 )
+
+        for i in np.arange(0, blockDim+1):
+            Colors.InsertNextTuple1(0.0);
 
         # Output time series
         if use_progress_bar:
@@ -320,18 +341,8 @@ def build_field_time_series( local_indices, global_indices, file_names, blocking
                 nc_file = NetCDFFile(file_names[time_index], 'r')
                 prev_file = file_names[time_index]
 
-            blockDim = len(nc_file.dimensions[blockDimName])
-            nBlocks = 1 + blockDim / blocking
-
             for var_name in variable_list:
-                if output_32bit:
-                    Colors = vtk.vtkTypeFloat32Array()
-                else:
-                    Colors = vtk.vtkTypeFloat64Array()
-
-                Colors.SetNumberOfComponents(1);
                 Colors.SetName(var_name);
-
                 dim_vals = all_dim_vals[var_name]
                 field_var = nc_file.variables[var_name]
                 field_ndims = len(dim_vals)
@@ -356,7 +367,7 @@ def build_field_time_series( local_indices, global_indices, file_names, blocking
                         field = field_var[local_indices[time_index], blockStart:blockEnd, dim_vals[2], dim_vals[3], dim_vals[4]]
 
                     for idx in np.arange(0, blockCount):
-                        Colors.InsertNextTuple1(field[idx]);
+                        Colors.SetTuple1(blockStart + idx, field[idx]);
 
                 polydata.GetCellData().SetScalars(Colors)
                 polydata.Modified()
@@ -371,7 +382,6 @@ def build_field_time_series( local_indices, global_indices, file_names, blocking
                     writer.SetInputData(polydata)
                 writer.Write()
 
-                del Colors
                 del writer
                 del field
                 del field_ndims
@@ -381,6 +391,7 @@ def build_field_time_series( local_indices, global_indices, file_names, blocking
             if use_progress_bar:
                 field_bar.update(time_index)
 
+        del Colors
         nc_file.close()
         if use_progress_bar:
             field_bar.finish()
@@ -400,7 +411,7 @@ def build_field_time_series( local_indices, global_indices, file_names, blocking
             pvd_file.write('</VTKFile>\n')
 #}}}
 
-def build_field_single_time_field( local_indices, global_indices, file_names, blocking, all_dim_vals, blockDimName, variable_list, point_list, cell_lis, output_32bitt ):#{{{
+def build_field_single_time_field( local_indices, global_indices, file_names, blocking, all_dim_vals, blockDimName, variable_list, point_list, cell_list, output_32bit ):#{{{
     if len(variable_list) > 0:
         polydata = vtk.vtkPolyData()
         polydata.SetPoints(point_list)
@@ -419,14 +430,31 @@ def build_field_single_time_field( local_indices, global_indices, file_names, bl
         blockDim = len(nc_file.dimensions[blockDimName])
         nBlocks = 1 + blockDim / blocking
 
+        if output_32bit:
+            Colors = vtk.vtkTypeFloat32Array()
+        else:
+            Colors = vtk.vtkTypeFloat64Array()
+
+        Colors.SetNumberOfComponents(1);
+
+        # Get dimension info to allocate the size of Colors
+        nc_file = NetCDFFile(file_names[0], 'r')
+
+        blockDim = len(nc_file.dimensions[blockDimName])
+
+        # Pre-compute the number of blocks
+        nBlocks = 1 + blockDim / blocking
+
+        nc_file.close
+
+        # Allocate the correct number of elements for the colors array
+        Colors.Allocate( blockDim )
+
+        for i in np.arange(0, blockDim+1):
+            Colors.InsertNextTuple1(0.0);
+
         var_index = 0
         for var_name in variable_list:
-            if output_32bit:
-                Colors = vtk.vtkTypeFloat32Array()
-            else:
-                Colors = vtk.vtkTypeFloat64Array()
-
-            Colors.SetNumberOfComponents(1);
             Colors.SetName(var_name);
 
             dim_vals = all_dim_vals[var_name]
@@ -451,7 +479,7 @@ def build_field_single_time_field( local_indices, global_indices, file_names, bl
                     field = field_var[blockStart:blockEnd, dim_vals[1], dim_vals[2], dim_vals[3]]
 
                 for idx in np.arange(0, blockCount):
-                    Colors.InsertNextTuple1(field[idx]);
+                    Colors.SetTuple1(blockStart + idx, field[idx]);
 
             polydata.GetCellData().SetScalars(Colors)
             polydata.Modified()
@@ -466,7 +494,6 @@ def build_field_single_time_field( local_indices, global_indices, file_names, bl
                 writer.SetInputData(polydata)
             writer.Write()
 
-            del Colors
             del writer
             del field
             del field_ndims
@@ -477,6 +504,7 @@ def build_field_single_time_field( local_indices, global_indices, file_names, bl
             if use_progress_bar:
                 field_bar.update(var_index)
 
+        del Colors
         nc_file.close()
         if use_progress_bar:
             field_bar.finish()
