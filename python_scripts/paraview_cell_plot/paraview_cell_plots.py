@@ -348,6 +348,11 @@ def build_field_time_series( local_indices, global_indices, file_names, blocking
                 field_ndims = len(dim_vals)
                 field_dims = field_var.dimensions
 
+                try:
+                    missing_val = field_var.missing_value
+                except:
+                    missing_val = -9999999790214767953607394487959552.000000
+
                 # Build data
                 for iBlock in np.arange(0, nBlocks):
                     blockStart = iBlock * blocking
@@ -367,7 +372,10 @@ def build_field_time_series( local_indices, global_indices, file_names, blocking
                         field = field_var[local_indices[time_index], blockStart:blockEnd, dim_vals[2], dim_vals[3], dim_vals[4]]
 
                     for idx in np.arange(0, blockCount):
-                        Colors.SetTuple1(blockStart + idx, field[idx]);
+                        if (field[idx] == missing_val):
+                            Colors.SetTuple1(blockStart + idx, float('nan'));
+                        else:
+                            Colors.SetTuple1(blockStart + idx, field[idx]);
 
                 polydata.GetCellData().SetScalars(Colors)
                 polydata.Modified()
@@ -461,6 +469,11 @@ def build_field_single_time_field( local_indices, global_indices, file_names, bl
             field_var = nc_file.variables[var_name]
             field_ndims = len(dim_vals)
 
+            try:
+                missing_val = field_var.missing_value
+            except:
+                missing_val = -9999999790214767953607394487959552.000000
+
             # Build data
             for iBlock in np.arange(0, nBlocks):
                 blockStart = iBlock * blocking
@@ -479,7 +492,10 @@ def build_field_single_time_field( local_indices, global_indices, file_names, bl
                     field = field_var[blockStart:blockEnd, dim_vals[1], dim_vals[2], dim_vals[3]]
 
                 for idx in np.arange(0, blockCount):
-                    Colors.SetTuple1(blockStart + idx, field[idx]);
+                    if ( field[idx] == missing_val  ):
+                        Colors.SetTuple1(blockStart + idx, float('nan'))
+                    else:
+                        Colors.SetTuple1(blockStart + idx, field[idx])
 
             polydata.GetCellData().SetScalars(Colors)
             polydata.Modified()
