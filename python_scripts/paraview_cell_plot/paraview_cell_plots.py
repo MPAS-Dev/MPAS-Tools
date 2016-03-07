@@ -53,7 +53,12 @@ def setup_time_indices(fn_pattern, local_indices, global_indices, file_names):#{
     for file in file_list:
         nc_file = NetCDFFile(file, 'r')
 
-        times = len(nc_file.dimensions['Time'])
+        try:
+            times = len(nc_file.dimensions['Time'])
+        except:
+            times = 1
+
+        times = max(times, 1)
 
         for time_idx in np.arange(0, times):
             local_indices.append(time_idx)
@@ -253,6 +258,74 @@ def build_dual_cell_lists( nc_file, blocking, cell_list ):#{{{
 
     if use_progress_bar:
         dual_bar.finish()
+#}}}
+
+def build_edge_cell_lists( nc_file, blocking, cell_list ):#{{{
+    nCells = len(nc_file.dimensions['nCells'])
+    nEdges = len(nc_file.dimensions['nEdges'])
+    nVertices = len(nc_file.dimensions['nVertices'])
+
+    cellsOnEdge_var = nc_file.variables['cellsOnEdge']
+    verticesOnEdge_var = nc_file.variables['verticesOnEdge']
+
+    # Build cells
+    nBlocks = 1 + nEdges / blocking
+    if use_progress_bar:
+        widgets = ['Build edge connectivity: ', Percentage(), ' ', Bar(), ' ', ETA()]
+        edge_bar = ProgressBar(widgets=widgets, maxval=nBlocks).start()
+    else:
+        print "Build edge connectivity...."
+
+    for iBlock in np.arange(0, nBlocks):
+        blockStart = iBlock * blocking
+        blockEnd = min( (iBlock + 1) * blocking, nEdges )
+        blockCount = blockEnd - blockStart
+
+        verticesOnEdge = verticesOnEdge_var[blockStart:blockEnd][:]
+        cellsOnEdge = cellsOnEdge_var[blockStart:blockEnd][:]
+
+        for idx in np.arange(0, blockCount):
+            polygon = vtk.vtkPolygon()
+            polygon.GetPointIds().SetNumberOfIds(4)
+
+            cell1 = cellsOnEdge[idx][0] - 1
+            vertex1 = verticesOnEdge[idx][0] - 1
+            cell2 = cellsOnEdge[idx][1] - 1
+            vertex2 = verticesOnEdge[idx][1] - 1
+
+            land_cell = False
+            if ( cell1 < 0 ):
+                land_cell = True
+
+            if ( cell2 < 0 ):
+                land_cell = True
+
+            if ( vertex1 < 0 ):
+                land_cell = True
+
+            if ( vertex2 < 0 ):
+                land_cell = True
+
+            if land_cell:
+                cell1 = nCells
+                cell2 = nCells
+                vertex1 = nVertices
+                vertex2 = nVertices
+
+            polygon.GetPointIds().SetId(0, cell1)
+            polygon.GetPointIds().SetId(1, vertex1 + nCells + 1) # nCells has an extra garbage cell at the end
+            polygon.GetPointIds().SetId(2, cell2)
+            polygon.GetPointIds().SetId(3, vertex2 + nCells + 1) # nCells has an extra garbage cell at the end
+
+            cell_list.InsertNextCell(polygon)
+
+        del cellsOnEdge
+        del verticesOnEdge
+        if use_progress_bar:
+            edge_bar.update(iBlock)
+
+    if use_progress_bar:
+        edge_bar.finish()
 #}}}
 
 def build_location_list_xyz( nc_file, blocking, dimName, xName, yName, zName, point_list ):#{{{
@@ -617,5 +690,27 @@ if __name__ == "__main__":
         print ""
         del Vertices
         del VertexVertices
+
+    if len(edgeVarTime) > 0 or len(edgeVarNoTime) > 0:
+        print " -- Extracting edge fields --"
+        EdgeVertices = vtk.vtkPoints()
+        Edges = vtk.vtkCellArray()
+
+        nc_file = NetCDFFile(time_file_names[0], 'r')
+
+        # Build vertex list
+        build_location_list_xyz( nc_file, args.blocking, 'nCells', 'xCell', 'yCell', 'zCell', EdgeVertices )
+        build_location_list_xyz( nc_file, args.blocking, 'nVertices', 'xVertex', 'yVertex', 'zVertex', EdgeVertices )
+
+        # Build cell list
+        build_edge_cell_lists( nc_file, args.blocking, Edges )
+
+        nc_file.close()
+
+        build_field_single_time_field( time_indices, time_global_indices, time_file_names, args.blocking,
+                                       all_dim_vals, 'nEdges', edgeVarNoTime, EdgeVertices, Edges, use_32bit )
+        build_field_time_series( time_indices, time_global_indices, time_file_names, args.blocking,
+                                 all_dim_vals, 'nEdges', edgeVarTime, EdgeVertices, Edges, use_32bit )
+
 
 # vim: set expandtab:
