@@ -75,6 +75,7 @@ int getFeatureInfo(const string featureFilename);
 int buildPolygonValues();
 int buildMasks(vector<pnt> locations, int *masks);
 int buildPointIndices(vector<pnt> testLocations, vector<pnt> staticLocations, int *indices);
+int buildAllFeatureGroups();
 /*}}}*/
 
 /* Output functions {{{*/
@@ -159,13 +160,19 @@ int main ( int argc, char *argv[] ) {
 
 	error = resetFeatureInfo();
 
-	cout << "Building region information." << endl;
+	cout << "Building feature information." << endl;
 	if (argc > 3) {
 		for ( int i = 3; i < argc; i++){
 			masks_name = argv[i];
 			error = getFeatureInfo(masks_name);
 			if(error) return 1;
 		}
+	}
+
+	cout << "Building 'all' feature groups." << endl;
+	if ( error = buildAllFeatureGroups()){
+		cout << "Error - " << error << endl;
+		exit(error);
 	}
 
 	cout << "Building polygon edge lines" << endl;
@@ -351,7 +358,7 @@ int resetFeatureInfo(){/*{{{*/
 int getFeatureInfo(const string featureFilename){/*{{{*/
 	ifstream json_file(featureFilename);	
 	Json::Value root;
-	string groupName;
+	string groupName, tempGroupName;
 	vector<int> pointIndices;
 	vector<int> regionIndices;
 	vector<pnt> regionVertices;
@@ -359,6 +366,7 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 	bool addGroupToRegList = true;
 	bool addGroupToPntList = true;
 	bool addRegToGroup;
+	bool createAllRegGroup;
 
 	json_file >> root;
 
@@ -369,6 +377,8 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 	if ( groupName == "enterNameHere" ) {
 		cout << " ** WARNING: Features file at " << featureFilename << " has an unset group name." << endl;
 		cout << "             If you want to use groups to control sets of regions, define the group name, and rerun." << endl;
+		cout << "             Using a deafult unique group name of '[feature]Group[N]' where [feature] is the feature type {region, point}" << endl;
+		cout << "             and [N] is the current number of groups for that feature type." << endl;
 	}
 #ifdef _DEBUG
 	cout << " Starting group: " << groupName << endl;
@@ -470,8 +480,13 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 			
 				// * Add group name to list of groups for regions, and prevent it from being added with subsequent regions
 				if ( addGroupToRegList ) {
-					regionGroupNames.push_back(groupName);
 					addGroupToRegList = false;
+					if ( groupName == "enterNameHere" ){
+						tempGroupName = "regionGroup" + to_string( regionGroupNames.size() + 1 );
+						regionGroupNames.push_back(tempGroupName);
+					} else {
+						regionGroupNames.push_back(groupName);
+					}
 				}
 
 			}
@@ -523,8 +538,13 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 
 				// * Add group name to list of groups for points, and prevent it from being added with subsequent points
 				if ( addGroupToPntList ) {
-					pointGroupNames.push_back(groupName);
 					addGroupToPntList = false;
+					if ( groupName == "enterNameHere" ){
+						tempGroupName = "pointGroup" + to_string( pointGroupNames.size() + 1 );
+						pointGroupNames.push_back(tempGroupName);
+					} else {
+						pointGroupNames.push_back(groupName);
+					}
 				}
 
 			}
@@ -671,6 +691,34 @@ int buildPointIndices(vector<pnt> testLocations, vector<pnt> staticLocations, in
 			indices[iTestLoc] = idx+1;
 		}
 	}
+
+	return 0;
+}/*}}}*/
+int buildAllFeatureGroups(){/*{{{*/
+	vector<int> groupIndices;
+	int featureIdx;
+
+	// 'all' region group
+	groupIndices.clear();
+
+	for ( str_itr = regionNames.begin(), featureIdx = 0; str_itr != regionNames.end(); str_itr++, featureIdx++){
+		groupIndices.push_back(featureIdx);
+	}
+
+	regionsInGroup.push_back(groupIndices);
+	regionGroupNames.push_back("all");
+	maxRegionsInGroup = max(maxRegionsInGroup, (int)groupIndices.size());
+
+	// 'all' point group
+	groupIndices.clear();
+	
+	for ( str_itr = pointNames.begin(), featureIdx = 0; str_itr != pointNames.end(); str_itr++, featureIdx++){
+		groupIndices.push_back(featureIdx);
+	}
+
+	pointsInGroup.push_back(groupIndices);
+	pointGroupNames.push_back("all");
+	maxPointsInGroup = max(maxPointsInGroup, (int)groupIndices.size());
 
 	return 0;
 }/*}}}*/
@@ -865,7 +913,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		for (str_itr = regionNames.begin(), i=0; str_itr != regionNames.end(); str_itr++, i++){
 			snprintf(&names[i*StrLen], StrLen, "%s", (*str_itr).c_str());
 		}
-		if (!(tempVar = grid.add_var("regionMaskNames", ncChar, nRegionsDim, StrLenDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("regionNames", ncChar, nRegionsDim, StrLenDim))) return NC_ERR; 
 		if (!tempVar->put(names, nRegions, StrLen)) return NC_ERR;
 		delete[] names;
 
