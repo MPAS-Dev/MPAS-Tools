@@ -42,6 +42,11 @@ def setup_time_indices(fn_pattern, local_indices, global_indices, file_names):#{
     # Build file list and time indices
     file_list = sorted(glob.glob(fn_pattern))
 
+    if len(file_list) == 0:
+        print "No files to process."
+        print "Exiting..."
+        sys.exit(0)
+
     if use_progress_bar:
         widgets = ['Build time indices: ', Percentage(), ' ', Bar(), ' ', ETA()]
         time_bar = ProgressBar(widgets=widgets, maxval=len(file_list)).start()
