@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Name: paraview_cell_plots.py
+Name: paraview_vtk_field_extractor.py
 Author: Doug Jacobsen
 Date: 03/01/2016
 
@@ -10,7 +10,7 @@ VTK files for plotting in paraview.
 It can extract a field across multiple files by passing in a regular expression
 for the filename patter. As an example, one can run the script using:
 
-`./paraview_cell_plots.py -v areaCell,latVertex -f "hist.comp.*.nc"`
+`./paraview_vtk_field_extractor.py -v areaCell,latVertex -f "hist.comp.*.nc"`
 
 To extract a time series of areaCell,latVertex that spans multiple files.
 
