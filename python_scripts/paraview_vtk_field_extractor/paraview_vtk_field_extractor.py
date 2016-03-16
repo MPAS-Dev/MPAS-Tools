@@ -290,39 +290,53 @@ def build_edge_cell_lists( nc_file, blocking, cell_list ):#{{{
         cellsOnEdge = cellsOnEdge_var[blockStart:blockEnd][:]
 
         for idx in np.arange(0, blockCount):
-            polygon = vtk.vtkPolygon()
-            polygon.GetPointIds().SetNumberOfIds(4)
 
             cell1 = cellsOnEdge[idx][0] - 1
             vertex1 = verticesOnEdge[idx][0] - 1
             cell2 = cellsOnEdge[idx][1] - 1
             vertex2 = verticesOnEdge[idx][1] - 1
 
-            land_cell = False
-            if ( cell1 < 0 ):
-                land_cell = True
+            valid_ids = 0
 
-            if ( cell2 < 0 ):
-                land_cell = True
+            if ( cell1 >= 0 ):
+                valid_ids = valid_ids + 1
 
-            if ( vertex1 < 0 ):
-                land_cell = True
+            if ( cell2 >= 0 ):
+                valid_ids = valid_ids + 1
 
-            if ( vertex2 < 0 ):
-                land_cell = True
+            if ( vertex1 >= 0 ):
+                valid_ids = valid_ids + 1
 
-            if land_cell:
-                cell1 = nCells
-                cell2 = nCells
-                vertex1 = nVertices
-                vertex2 = nVertices
+            if ( vertex2 >= 0 ):
+                valid_ids = valid_ids + 1
 
-            polygon.GetPointIds().SetId(0, cell1)
-            polygon.GetPointIds().SetId(1, vertex1 + nCells + 1) # nCells has an extra garbage cell at the end
-            polygon.GetPointIds().SetId(2, cell2)
-            polygon.GetPointIds().SetId(3, vertex2 + nCells + 1) # nCells has an extra garbage cell at the end
+            if ( valid_ids > 0 ):
+                polygon = vtk.vtkPolygon()
+                polygon.GetPointIds().SetNumberOfIds(valid_ids)
+
+                index = 0
+                if ( cell1 >= 0 ):
+                    polygon.GetPointIds().SetId(index, cell1)
+                    index = index + 1
+                if ( vertex1 >= 0 ):
+                    polygon.GetPointIds().SetId(index, vertex1 + nCells + 1) # nCells has an extra garbage cell at the end
+                    index = index + 1
+                if ( cell2 >= 0 ):
+                    polygon.GetPointIds().SetId(index, cell2)
+                    index = index + 1
+                if ( vertex2 >= 0 ):
+                    polygon.GetPointIds().SetId(index, vertex2 + nCells + 1) # nCells has an extra garbage cell at the end
+                    index = index + 1
+            else:
+                polygon = vtk.vtkPolygon()
+                polygon.GetPointIds().SetNumberOfIds(2)
+
+                polygon.GetPointIds().SetId(0, nCells + 1)
+                polygon.GetPointIds().SetId(1, nCells + 1)
+                
 
             cell_list.InsertNextCell(polygon)
+            del polygon
 
         del cellsOnEdge
         del verticesOnEdge
