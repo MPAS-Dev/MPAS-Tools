@@ -1499,6 +1499,76 @@ void netcdf_mpas_read_regioncellmasks ( string filename, int ncells, int nregion
 
 	return;
 }/*}}}*/
+//****************************************************************************80
+void netcdf_mpas_read_transectcellmasks ( string filename, int ncells, int ntransects, int transectcellmasks[] ){/*{{{*/
+
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_TRANSECTCELLMASKS reads transectCellMasks
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    21 January 2016
+	//
+	//  Author:
+	//
+	//    Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Input, int NCELLS, the number of nodes.
+	//
+	//    Input, int NTRANSECTS, the number of transects.
+	//
+	//    Output, int TRANSECTCELLMASKS[NCELLS] a mask on cells where each transect has a mask of 1 or 0 if the cell is part of the transect.
+	//
+	NcVar *var_id;
+	//
+	//  Open the file.
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	NcError err(NcError::silent_nonfatal); // Don't error if the variable isn't found.
+	//
+	//
+	//  Get the variable values.
+	//
+#ifdef _DEBUG
+	cout << "   Reading transectCellMasks" << endl;
+#endif
+	var_id = ncid.get_var ( "transectCellMasks" );
+	if(var_id == NULL){
+		for(int i = 0; i < ncells; i++){
+			for(int j = 0; j < ntransects; j++){
+				transectcellmasks[i*ntransects + j] = 0;
+			}
+		}
+	} else {
+		(*var_id).get ( &transectcellmasks[0], ncells, ntransects );
+	}
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return;
+}/*}}}*/
 /* }}} */
 
 /* Vertex Reading Functions {{{*/

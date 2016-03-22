@@ -32,6 +32,7 @@ void netcdf_mpas_read_verticesoncell ( string filename, int ncells, int maxedges
 void netcdf_mpas_read_mesh_density ( string filename, int ncells, double mesh_density[] );
 void netcdf_mpas_read_cullcell ( string filename, int ncells, int cullcell[] );
 void netcdf_mpas_read_regioncellmasks ( string filename, int ncells, int nregions, int regioncellmasks[] );
+void netcdf_mpas_read_transectcellmasks ( string filename, int ncells, int ntransects, int transectcellmasks[] );
 /* }}} */
 
 /* Vertex Reading Functions {{{*/
