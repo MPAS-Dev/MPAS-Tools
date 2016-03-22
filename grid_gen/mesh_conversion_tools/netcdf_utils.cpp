@@ -1105,7 +1105,7 @@ void netcdf_mpas_read_nedgesoncell ( string filename, int ncells, int nedgesonce
 	//  Get the variable values.
 	//
 #ifdef _DEBUG
-	cout << "   Reading edgesOnCell" << endl;
+	cout << "   Reading nEdgesOnCell" << endl;
 #endif
 	var_id = ncid.get_var ( "nEdgesOnCell" );
 	(*var_id).get ( &nedgesoncell[0], ncells );
