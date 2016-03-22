@@ -172,7 +172,7 @@ int main ( int argc, char *argv[] ) {
 		in_name = argv[1];
 
 		cout << "\n";
-		cout << "MPAS_MESH_CONVERTER:\n";
+		cout << "MPAS_MASK_CREATOR:\n";
 		cout << "  Output name not specified. Using default of " << out_name << endl;
 		cout << "  No features file specified. Using default of " << masks_name << endl;
 	}
@@ -181,7 +181,7 @@ int main ( int argc, char *argv[] ) {
 		in_name = argv[1];
 		out_name = argv[2];
 		cout << "\n";
-		cout << "MPAS_MESH_CONVERTER:\n";
+		cout << "MPAS_MASK_CREATOR:\n";
 		cout << "  No features file specified. Using default of " << masks_name << endl;
 	} else if (argc > 3)
 	{
@@ -1360,7 +1360,7 @@ int outputMaskDimensions( const string outputFilename ){/*{{{*/
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
 	
-	// open the scvtmesh file
+	// open the mpas file
 	NcFile grid(outputFilename.c_str(), NcFile::Replace, NULL, 0, NcFile::Offset64Bits);
 
 	// check to see if the file was opened
@@ -1426,7 +1426,7 @@ int outputMaskAttributes( const string outputFilename, const string inputFilenam
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
 	
-	// open the scvtmesh file
+	// open the mpas file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
 
 	// check to see if the file was opened
@@ -1484,7 +1484,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
 	
-	// open the scvtmesh file
+	// open the mpas file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
 	
 	// check to see if the file was opened
