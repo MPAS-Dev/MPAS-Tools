@@ -12,6 +12,8 @@
 #include <json/json.h>
 #include <omp.h>
 #include <string.h>
+#include <tuple>
+#include <sstream>
 
 #include "netcdf_utils.h"
 #include "pnt.h"
@@ -53,6 +55,7 @@ enum types { num_int, num_double, text };
 int *cellMasks, *vertexMasks;
 vector< vector< vector<pnt> > > regionPolygons;
 vector<string> regionNames;
+vector< vector< tuple<string, string, int>> > regionProperties;
 vector< vector<int> > regionsInGroup;
 vector<string> regionGroupNames;
 vector< vector< vector<double> > > polygonConstants;
@@ -61,6 +64,7 @@ vector< vector< vector<double> > > polygonMultiples;
 // Transect information
 vector< vector< vector<pnt> > > transectPoints;
 vector<string> transectNames;
+vector< vector< tuple<string, string, int>> > transectProperties;
 vector< vector<int> > transectsInGroup;
 vector<string> transectGroupNames;
 vector< vector< vector<int> > > closestIndexToTransectPoint;
@@ -71,6 +75,7 @@ int *pointCellIndices, *pointVertexIndices;
 int *cellPointMasks;
 vector<pnt> pointLocations;
 vector<string> pointNames;
+vector< vector< tuple<string, string, int> > > pointProperties;
 vector< vector<int> > pointsInGroup;
 vector<string> pointGroupNames;
 
@@ -94,6 +99,7 @@ vector<int>::iterator int_itr;
 /* Utility functions {{{*/
 int featureIndex( const string featureName, const vector<string> featureNames );
 int stringType ( const string testStr );
+vector< tuple<string, string, int> > extractFeatureProperties( Json::Value properties );
 vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const int start, const int end );
 /*}}}*/
 
@@ -346,6 +352,29 @@ int stringType ( const string testStr ){/*{{{*/
 		return num_double;
 	}
 	return num_int;
+}/*}}}*/
+
+vector< tuple<string, string, int> > extractFeatureProperties( Json::Value properties ){/*{{{*/
+	Json::Value::Members keys = properties.getMemberNames();
+	size_t numKeys = keys.size();
+	vector< tuple<string, string, int> > prop_vec;
+	vector<string>::iterator prop_itr;
+	tuple<string, string, int> prop_val;
+
+	prop_vec.clear();
+
+	for ( prop_itr = keys.begin(); prop_itr != keys.end(); prop_itr++ ) {
+		// We ignore name, author, tags, component, and object properties, since those are already dealt with.
+		if ( (*prop_itr) != "name" && (*prop_itr) != "author" && (*prop_itr) != "tags" && (*prop_itr) != "component" && (*prop_itr) != "object" ) {
+			get<0>(prop_val) = (*prop_itr);
+			get<1>(prop_val) = properties[ (*prop_itr) ].asString();
+			get<2>(prop_val) = stringType( properties[(*prop_itr)].asString() );
+
+			prop_vec.push_back( prop_val );
+		}
+	}
+
+	return prop_vec;
 }/*}}}*/
 
 vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const int start, const int end ){/*{{{*/
@@ -753,6 +782,7 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 	vector<pnt> transectVertices;
 	vector< vector<pnt> > polygonList;
 	vector< vector<pnt> > lineSegList;
+	vector< tuple<string, string, int> > properties;
 	bool addGroupToRegList = true;
 	bool addGroupToTrnList = true;
 	bool addGroupToPntList = true;
@@ -802,6 +832,9 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				regionNames.push_back(featureName);
 
 				Json::Value geometry = feature["geometry"];
+				properties.clear();
+				properties = extractFeatureProperties( feature["properties"] );
+				regionProperties.push_back(properties);
 				Json::Value coordinates = geometry["coordinates"];
 
 				if ( geometry["type"].asString() == "Polygon" ) {
@@ -905,6 +938,9 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				transectNames.push_back(featureName);
 
 				Json::Value geometry = feature["geometry"];
+				properties.clear();
+				properties = extractFeatureProperties( feature["properties"] );
+				transectProperties.push_back(properties);
 				Json::Value coordinates = geometry["coordinates"];
 
 				if ( geometry["type"].asString() == "LineString" ) {
@@ -1013,6 +1049,10 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 
 				pnt point = pntFromLatLon(lat, lon);
 				point.idx = pointIdx;
+
+				properties.clear();
+				properties = extractFeatureProperties( feature["properties"] );
+				regionProperties.push_back(properties);
 
 				pointLocations.push_back(point);
 				pointNames.push_back(featureName);
@@ -1461,10 +1501,14 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 	//Define nc variables
 	NcVar *tempVar;
 
+	string fieldName;
 	double *x, *y, *z, *lat, *lon;
 	int *indices;
 	int *counts;
 	char *names;
+	double *double_vals;
+	int *int_vals;
+	char *char_vals;
 	int i, j, idx;
 
 
@@ -1557,6 +1601,78 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		delete[] indices;
 		delete[] counts;
 		delete[] names;
+
+		// Write out region properties:
+		for ( i = 0; i < regionProperties[0].size(); i++ ) {
+			fieldName = get<0>( regionProperties[0][i] ) + "Regions";
+
+			if ( get<2>( regionProperties[0][i] ) == num_double ) {
+				double_vals = new double[nRegions];
+
+				for ( j = 0; j < nRegions; j++ ) {
+					double_vals[j] = 0.0;
+				}
+
+				for ( j = 0; j < regionProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < regionProperties[j].size(); k++ ) {
+						if ( get<0>( regionProperties[0][i] ) == get<0>( regionProperties[j][k] ) ) {
+							stringstream convert( get<1>( regionProperties[j][k] ) );
+							convert >> double_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncDouble, nRegionsDim))) return NC_ERR;
+				if (!tempVar->put(double_vals, nRegions)) return NC_ERR;
+
+				delete[] double_vals;
+			} else if ( get<2>( regionProperties[0][i] ) == num_int ) {
+				int_vals = new int[nRegions];
+
+				for ( j = 0; j < nRegions; j++ ) {
+					int_vals[j] = 0;
+				}
+
+				for ( j = 0; j < regionProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < regionProperties[j].size(); k++ ) {
+						if ( get<0>( regionProperties[0][i] ) == get<0>( regionProperties[j][k] ) ) {
+							stringstream convert( get<1>( regionProperties[j][k] ) );
+							convert >> int_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncInt, nRegionsDim))) return NC_ERR;
+				if (!tempVar->put(int_vals, nRegions)) return NC_ERR;
+
+				delete[] int_vals;
+			} else if ( get<2>( regionProperties[0][i] ) == text ) {
+				char_vals = new char[nRegions * StrLen];
+
+				for ( j = 0; j < nRegions; j++ ) {
+					char_vals[j * StrLen] = '\0';
+				}
+
+				for ( j = 0; j < regionProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < regionProperties[j].size(); k++ ) {
+						if ( get<0>( regionProperties[0][i] ) == get<0>( regionProperties[j][k] ) ) {
+							snprintf(&char_vals[j * StrLen], StrLen, "%s", get<1>( regionProperties[j][k] ).c_str() );
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncChar, nRegionsDim, StrLenDim))) return NC_ERR;
+				if (!tempVar->put(char_vals, nRegions, StrLen)) return NC_ERR;
+
+				delete[] char_vals;
+			}
+		}
 	}
 
 	if ( nTransects > 0 ) {
@@ -1675,6 +1791,78 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		if (!tempVar->put(indices, nTransects, maxEdgesInTransect)) return NC_ERR;
 
 		delete[] indices;
+
+		// Write out transect properties:
+		for ( i = 0; i < transectProperties[0].size(); i++ ) {
+			fieldName = get<0>( transectProperties[0][i] ) + "Transects";
+
+			if ( get<2>( transectProperties[0][i] ) == num_double ) {
+				double_vals = new double[nTransects];
+
+				for ( j = 0; j < nTransects; j++ ) {
+					double_vals[j] = 0.0;
+				}
+
+				for ( j = 0; j < transectProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < transectProperties[j].size(); k++ ) {
+						if ( get<0>( transectProperties[0][i] ) == get<0>( transectProperties[j][k] ) ) {
+							stringstream convert( get<1>( transectProperties[j][k] ) );
+							convert >> double_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncDouble, nTransectsDim))) return NC_ERR;
+				if (!tempVar->put(double_vals, nTransects)) return NC_ERR;
+
+				delete[] double_vals;
+			} else if ( get<2>( transectProperties[0][i] ) == num_int ) {
+				int_vals = new int[nTransects];
+
+				for ( j = 0; j < nTransects; j++ ) {
+					int_vals[j] = 0;
+				}
+
+				for ( j = 0; j < transectProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < transectProperties[j].size(); k++ ) {
+						if ( get<0>( transectProperties[0][i] ) == get<0>( transectProperties[j][k] ) ) {
+							stringstream convert( get<1>( transectProperties[j][k] ) );
+							convert >> int_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncInt, nTransectsDim))) return NC_ERR;
+				if (!tempVar->put(int_vals, nTransects)) return NC_ERR;
+
+				delete[] int_vals;
+			} else if ( get<2>( transectProperties[0][i] ) == text ) {
+				char_vals = new char[nTransects * StrLen];
+
+				for ( j = 0; j < nTransects; j++ ) {
+					char_vals[j * StrLen] = '\0';
+				}
+
+				for ( j = 0; j < transectProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < transectProperties[j].size(); k++ ) {
+						if ( get<0>( transectProperties[0][i] ) == get<0>( transectProperties[j][k] ) ) {
+							snprintf(&char_vals[j * StrLen], StrLen, "%s", get<1>( transectProperties[j][k] ).c_str() );
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncChar, nTransectsDim, StrLenDim))) return NC_ERR;
+				if (!tempVar->put(char_vals, nTransects, StrLen)) return NC_ERR;
+
+				delete[] char_vals;
+			}
+		}
 	}
 
 	if ( nPoints > 0 ) {
@@ -1789,6 +1977,78 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		delete[] z;
 		delete[] lat;
 		delete[] lon;
+
+		// Write out point properties:
+		for ( i = 0; i < pointProperties[0].size(); i++ ) {
+			fieldName = get<0>( pointProperties[0][i] ) + "Points";
+
+			if ( get<2>( pointProperties[0][i] ) == num_double ) {
+				double_vals = new double[nPoints];
+
+				for ( j = 0; j < nPoints; j++ ) {
+					double_vals[j] = 0.0;
+				}
+
+				for ( j = 0; j < pointProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < pointProperties[j].size(); k++ ) {
+						if ( get<0>( pointProperties[0][i] ) == get<0>( pointProperties[j][k] ) ) {
+							stringstream convert( get<1>( pointProperties[j][k] ) );
+							convert >> double_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncDouble, nPointsDim))) return NC_ERR;
+				if (!tempVar->put(double_vals, nPoints)) return NC_ERR;
+
+				delete[] double_vals;
+			} else if ( get<2>( pointProperties[0][i] ) == num_int ) {
+				int_vals = new int[nPoints];
+
+				for ( j = 0; j < nPoints; j++ ) {
+					int_vals[j] = 0;
+				}
+
+				for ( j = 0; j < pointProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < pointProperties[j].size(); k++ ) {
+						if ( get<0>( pointProperties[0][i] ) == get<0>( pointProperties[j][k] ) ) {
+							stringstream convert( get<1>( pointProperties[j][k] ) );
+							convert >> int_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncInt, nPointsDim))) return NC_ERR;
+				if (!tempVar->put(int_vals, nPoints)) return NC_ERR;
+
+				delete[] int_vals;
+			} else if ( get<2>( pointProperties[0][i] ) == text ) {
+				char_vals = new char[nPoints * StrLen];
+
+				for ( j = 0; j < nPoints; j++ ) {
+					char_vals[j * StrLen] = '\0';
+				}
+
+				for ( j = 0; j < pointProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < pointProperties[j].size(); k++ ) {
+						if ( get<0>( pointProperties[0][i] ) == get<0>( pointProperties[j][k] ) ) {
+							snprintf(&char_vals[j * StrLen], StrLen, "%s", get<1>( pointProperties[j][k] ).c_str() );
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncChar, nPointsDim, StrLenDim))) return NC_ERR;
+				if (!tempVar->put(char_vals, nPoints, StrLen)) return NC_ERR;
+
+				delete[] char_vals;
+			}
+		}
 	}
 	
 	grid.close();
