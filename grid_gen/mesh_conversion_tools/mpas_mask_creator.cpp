@@ -378,44 +378,45 @@ vector< tuple<string, string, int> > extractFeatureProperties( Json::Value prope
 }/*}}}*/
 
 vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const int start, const int end ){/*{{{*/
-	vector<double> dists;
+	vector< pair<int, double> > toCheck; // Stack of nodes to check first is node index, second is node dist. Should be sorted so last element has the smallest dist.
 	vector<int> visited;
 	vector<int> arrivedFrom;
 	vector<int> path;
 
-	int unvisitedNodes;
-	int i, currNode, testNode;
+	pair<int, double> weightedNode;
 
-	double min_dist;
+	int numChecked;
+	int i, currNode, testNode;
+	int sortIdx, swpIdx;
+	bool foundNode;
+
+	double min_dist, swpDist;
 	double edgeWeight = 1.0;
 
-	dists.clear();
+	toCheck.clear();
 	visited.clear();
 	arrivedFrom.clear();
 
+	toCheck.reserve( graph.size() / 2 );
+
 	for ( i = 0; i < graph.size(); i++ ) {
-		dists.push_back( INFINITY );
 		visited.push_back( 0 );
 		arrivedFrom.push_back( -1 );
 	}
 
-	visited[start] = 0;
-	dists[start] = 0;
+	weightedNode.first = start;
+	weightedNode.second = 0;
 
-	unvisitedNodes = (int)dists.size() - 1;
+	toCheck.push_back( weightedNode );
+	numChecked = 0;
 
-	while ( unvisitedNodes >= 0 ) {
-		min_dist = INFINITY;
-		currNode = -1;
-		for ( i = 0; i < visited.size(); i++ ) {
-			if ( ! visited[i] && dists[i] < min_dist ) {
-				min_dist = dists[i];
-				currNode = i;
-			}
-		}
+	while ( toCheck.size() > 0 ) {
+		currNode = toCheck.back().first;
+		min_dist = toCheck.back().second;
+		toCheck.pop_back();
 
-		if ( currNode == -1 ) {
-			unvisitedNodes = -1;
+		if ( visited[currNode] ) {
+			cout << " I've already visited this node? Weird! " << currNode << endl;
 			continue;
 		}
 
@@ -425,22 +426,92 @@ vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const 
 			testNode = graph[currNode][i].first;
 			edgeWeight = graph[currNode][i].second;
 
-			if ( !visited[testNode] && dists[testNode] > min_dist + edgeWeight ) {
-				dists[testNode] = min_dist + edgeWeight;
-				arrivedFrom[testNode] = currNode;
+			// Prevent cycles by only checking nodes that haven't been visited already.
+			if ( !visited[testNode] ) {
+
+				// See if node is in stack already
+				foundNode = false;
+				for ( int j = 0; j < toCheck.size() && !foundNode; j++ ){
+					if ( toCheck[j].first == testNode ) {
+						foundNode = true;
+
+						// Check the distance, and re-sort
+						// Only need to sort forward, as we would only make the distance smaller.
+						if ( toCheck[j].second > min_dist + edgeWeight ) {
+							toCheck[j].second = min_dist + edgeWeight;
+							arrivedFrom[ testNode ] = currNode;
+
+							if ( j + 1 < toCheck.size() ) {
+								bool sorted;
+								sorted = false;
+								sortIdx = j;
+
+								// Re-sort, until we find a neighboring index that has a smaller dist
+								for ( int k = j + 1; k < toCheck.size() && !sorted; k++ ) {
+									if ( toCheck[sortIdx].second < toCheck[k].second ) { 
+										//cout << " Swapping1: " << toCheck[sortIdx].first << " with " << toCheck[k].first << endl;
+										swpIdx = toCheck[sortIdx].first;
+										swpDist = toCheck[sortIdx].second;
+
+										toCheck[sortIdx].first = toCheck[k].first;
+										toCheck[sortIdx].second = toCheck[k].second;
+
+										toCheck[k].first = swpIdx;
+										toCheck[k].second = swpDist;
+
+										sortIdx = k;
+									} else {
+										sorted = true;
+									}
+								}
+							}
+						}
+					}
+				}
+
+				// If the node wasn't found, insert it at the end, and sort it backwards into place.
+				if ( !foundNode ) {
+					// Build and insert
+					weightedNode.first = testNode;
+					weightedNode.second = min_dist + edgeWeight;
+
+					arrivedFrom[ testNode ] = currNode;
+
+					toCheck.push_back( weightedNode );
+
+					// Sort, since it's added at the end of the list, we need to swap it with neighbors that are smaller
+					// Until all nodes to the left are larger than it.
+					bool sorted = false;
+					for ( int j = toCheck.size()-1; j > 0 && !sorted; j-- ) {
+						if ( toCheck[j].second > toCheck[j-1].second ) {
+							//cout << " Swapping2: " << toCheck[j].first << " with " << toCheck[j-1].first << endl;
+							swpIdx = toCheck[j].first;
+							swpDist = toCheck[j].second;
+
+							toCheck[j].first = toCheck[j-1].first;
+							toCheck[j].second = toCheck[j-1].second;
+
+							toCheck[j-1].first = swpIdx;
+							toCheck[j-1].second = swpDist;
+						} else {
+							// Assume the stack was already sorted, so if we find a neighbor that has a larger distance
+							// we can stop storting.
+							sorted = true;
+						}
+					}
+				}
 			}
 		}
 
 		if ( currNode == end ) { 
-			unvisitedNodes = -1;
+			toCheck.clear();
 		}
-		unvisitedNodes--;
+		numChecked++;
 	}
 
 	path.clear();
 
 	if ( !visited[end] || arrivedFrom[end] == -1 ) {
-		dists.clear();
 		arrivedFrom.clear();
 		visited.clear();
 		return path;
@@ -462,7 +533,6 @@ vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const 
 	}
 
 	r_path.clear();
-	dists.clear();
 	arrivedFrom.clear();
 	visited.clear();
 
