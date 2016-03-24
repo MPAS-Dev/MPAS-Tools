@@ -139,9 +139,10 @@ def setup_dimension_values_and_sort_vars( nc_file, variable_list, all_dim_vals, 
             print ""
 #}}}
 
-def summarize_extraction(all_dim_vals, time_global_indices, cellVarTime, cellVarNoTime, vertexVarTime, vertexVarNoTime, edgeVarTime, edgeVarNoTime):#{{{
+def summarize_extraction(all_dim_vals, mesh_file, time_global_indices, cellVarTime, cellVarNoTime, vertexVarTime, vertexVarNoTime, edgeVarTime, edgeVarNoTime):#{{{
     print ""
     print "Extracting a total of %d time levels."%(len(time_global_indices))
+    print "Using file '%s' as the mesh file for this extraction."%(mesh_file)
     print ""
     print "The following variables will be extracted from the input file(s)."
     print ""
@@ -625,6 +626,7 @@ if __name__ == "__main__":
         print " -- Progress bars are not available--"
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("-f", "--file_pattern", dest="filename_pattern", help="MPAS Filename pattern.", metavar="FILE", required=True)
+    parser.add_argument("-m", "--mesh_file", dest="mesh_filename", help="MPAS Mesh filename. If not set, it will use the first file in the -f flag as the mesh file.")
     parser.add_argument("-b", "--blocking", dest="blocking", help="Size of blocks when reading MPAS file", metavar="BLK")
     parser.add_argument("-v", "--variable_list", dest="variable_list", help="List of variables to extract", metavar="VAR", required=True)
     parser.add_argument("-3", "--32bit", dest="output_32bit", help="If set, the vtk files will be written using 32bit floats.", action="store_true")
@@ -646,6 +648,9 @@ if __name__ == "__main__":
     time_global_indices = []
     setup_time_indices(args.filename_pattern, time_indices, time_global_indices, time_file_names)
 
+    if not args.mesh_filename:
+        args.mesh_filename = time_file_names[0]
+
     if not os.path.exists('vtk_files/time_series'):
         os.makedirs('vtk_files/time_series')
 
@@ -661,7 +666,7 @@ if __name__ == "__main__":
     setup_dimension_values_and_sort_vars( nc_file, args.variable_list, all_dim_vals, cellVarTime, cellVarNoTime, vertexVarTime, vertexVarNoTime, edgeVarTime, edgeVarNoTime)
     nc_file.close()
 
-    summarize_extraction(all_dim_vals, time_global_indices, cellVarTime, cellVarNoTime, vertexVarTime, vertexVarNoTime, edgeVarTime, edgeVarNoTime)
+    summarize_extraction(all_dim_vals, args.mesh_filename, time_global_indices, cellVarTime, cellVarNoTime, vertexVarTime, vertexVarNoTime, edgeVarTime, edgeVarNoTime)
 
     # Handle cell variables
     if len(cellVarTime) > 0 or len(cellVarNoTime) > 0:
@@ -669,7 +674,7 @@ if __name__ == "__main__":
         CellVertices = vtk.vtkPoints()
         Cells = vtk.vtkCellArray()
 
-        nc_file = NetCDFFile(time_file_names[0], 'r')
+        nc_file = NetCDFFile(args.mesh_filename, 'r')
         # Build vertex list
         build_location_list_xyz( nc_file, args.blocking, 'nVertices', 'xVertex', 'yVertex', 'zVertex', CellVertices )
 
@@ -692,7 +697,7 @@ if __name__ == "__main__":
         VertexVertices = vtk.vtkPoints()
         Vertices = vtk.vtkCellArray()
 
-        nc_file = NetCDFFile(time_file_names[0], 'r')
+        nc_file = NetCDFFile(args.mesh_filename, 'r')
         # Build vertex list
         build_location_list_xyz( nc_file, args.blocking, 'nCells', 'xCell', 'yCell', 'zCell', VertexVertices )
 
@@ -715,7 +720,7 @@ if __name__ == "__main__":
         EdgeVertices = vtk.vtkPoints()
         Edges = vtk.vtkCellArray()
 
-        nc_file = NetCDFFile(time_file_names[0], 'r')
+        nc_file = NetCDFFile(args.mesh_filename, 'r')
 
         # Build vertex list
         build_location_list_xyz( nc_file, args.blocking, 'nCells', 'xCell', 'yCell', 'zCell', EdgeVertices )
