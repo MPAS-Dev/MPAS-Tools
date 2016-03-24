@@ -1569,6 +1569,72 @@ void netcdf_mpas_read_transectcellmasks ( string filename, int ncells, int ntran
 
 	return;
 }/*}}}*/
+//****************************************************************************80
+void netcdf_mpas_read_cellseedmask ( string filename, int ncells, int cellseedmask[] ){/*{{{*/
+
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_CELLSEEDMASK reads cellSeedMask
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    21 January 2016
+	//
+	//  Author:
+	//
+	//    Doug Jacobsen
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Input, int NCELLS, the number of nodes.
+	//
+	//    Output, int CELLSEEDMASK[NCELLS] a mask on cells where a seeded flood fill has marked cells.
+	//
+	NcVar *var_id;
+	//
+	//  Open the file.
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	NcError err(NcError::silent_nonfatal); // Don't error if the variable isn't found.
+	//
+	//
+	//  Get the variable values.
+	//
+#ifdef _DEBUG
+	cout << "   Reading cellSeedMask" << endl;
+#endif
+	var_id = ncid.get_var ( "cellSeedMask" );
+	if(var_id == NULL){
+		for(int i = 0; i < ncells; i++){
+			cellseedmask[i] = 0;
+		}
+	} else {
+		(*var_id).get ( &cellseedmask[0], ncells );
+	}
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return;
+}/*}}}*/
 /* }}} */
 
 /* Vertex Reading Functions {{{*/

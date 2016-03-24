@@ -364,7 +364,7 @@ int readGridInput(const string inputFilename){/*{{{*/
 }/*}}}*/
 int mergeCellMasks(const string masksFilename, const int maskOp){/*{{{*/
 	int nRegions, nTransects;
-	int *regionCellMasks, *transectCellMasks, *flattenedMask;
+	int *regionCellMasks, *transectCellMasks, *cellSeedMask, *flattenedMask;
 	int i, j;
 
 	nRegions = netcdf_mpas_read_dim(masksFilename, "nRegions");
@@ -372,13 +372,15 @@ int mergeCellMasks(const string masksFilename, const int maskOp){/*{{{*/
 
 	regionCellMasks = new int[nCells*nRegions];
 	transectCellMasks = new int[nCells*nTransects];
+	cellSeedMask = new int[nCells];
 	flattenedMask = new int[nCells];
 
 	netcdf_mpas_read_regioncellmasks(masksFilename, nCells, nRegions, regionCellMasks);
 	netcdf_mpas_read_transectcellmasks(masksFilename, nCells, nTransects, transectCellMasks);
+	netcdf_mpas_read_cellseedmask(masksFilename, nCells, cellSeedMask);
 
 	for ( i = 0; i < nCells; i++){
-		flattenedMask[i] = 0;
+		flattenedMask[i] = cellSeedMask[i];
 		for ( j = 0; j < nRegions; j++){
 			flattenedMask[i] = max(flattenedMask[i], regionCellMasks[i * nRegions + j]);
 		}
@@ -406,6 +408,8 @@ int mergeCellMasks(const string masksFilename, const int maskOp){/*{{{*/
 		}
 	}
 
+	delete[] cellSeedMask;
+	delete[] transectCellMasks;
 	delete[] regionCellMasks;
 	delete[] flattenedMask;
 

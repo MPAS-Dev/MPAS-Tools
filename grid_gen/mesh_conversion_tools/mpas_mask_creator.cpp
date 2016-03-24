@@ -51,6 +51,10 @@ enum types { num_int, num_double, text };
 
 // Mask and location information {{{
 
+// Seed information
+vector<pnt> seedPoints;
+vector<int> cellSeedMask;
+
 // Region information:
 int *cellMasks, *vertexMasks;
 vector< vector< vector<pnt> > > regionPolygons;
@@ -101,6 +105,7 @@ int featureIndex( const string featureName, const vector<string> featureNames );
 int stringType ( const string testStr );
 vector< tuple<string, string, int> > extractFeatureProperties( Json::Value properties );
 vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const int start, const int end );
+void buildMaskFromFloodFill( const vector<pnt> seedLocations, const vector<pnt> staticLocations, const vector< vector< pair<int, double> > > graph, vector<int> *mask );
 /*}}}*/
 
 /* Building/Reading functions {{{ */
@@ -113,6 +118,7 @@ vector< vector< pair<int, double> > > readVertexGraph(const string inputFilename
 vector< vector< pair<int, double> > > readEdgeGraph(const string inputFilename);
 int resetFeatureInfo();
 int getFeatureInfo(const string featureFilename);
+int getSeedInfo(const string seedFilename);
 vector< vector< vector<int> > > buildClosestValuesForTransects(const vector< vector< vector<pnt> > > lineSegments, const vector<pnt> staticLocations);
 vector< vector<int> > buildLinePaths( const vector< vector< vector<int> > > closestIndices, const vector< vector< pair<int, double> > > graph );
 int buildPolygonValues();
@@ -127,11 +133,24 @@ int outputMaskAttributes( const string outputFilename, const string inputFilenam
 int outputMaskFields( const string outputFilename);
 /*}}}*/
 
+void print_usage() {/*{{{*/
+	cout << endl << endl;
+	cout << " USAGE:" << endl;
+	cout << "\tMpasMaskCreator.x in_file out_file [ [-f/-s] file.geojson ]" << endl;
+	cout << "\t\tin_file: This argument defines the input file that masks will be created for." << endl;
+	cout << "\t\tout_file: This argument defines the file that masks will be written to." << endl;
+	cout << "\t\t-s file.geojson: This argument pair defines a set of points (from the geojson point definition)" << endl;
+	cout << "\t\t\tthat will be used as seed points in a flood fill algorithim. This is useful when trying to remove isolated cells from a mesh." << endl;
+	cout << "\t\t-f file.geojson: This argument pair defines a set of geojson features (regions, transects, or points)" << endl;
+	cout << "\t\t\tthat will be converted into masks / lists." << endl;
+}/*}}}*/
+
 string gen_random(const int len);
 
 int main ( int argc, char *argv[] ) {
 	int error;
-	string masks_name = "features.geojson";
+	vector<string> mask_files;
+	vector<string> seed_files;
 	string out_name = "masks.nc";
 	string in_name = "grid.nc";
 
@@ -144,49 +163,31 @@ int main ( int argc, char *argv[] ) {
 	cout << "  Compiled on " << __DATE__ << " at " << __TIME__ << ".\n";
 	cout << "************************************************************" << endl;
 	cout << endl << endl;
-	//
-	//  If the input file was not specified, get it now.
-	//
-	if ( argc <= 1 )
-	{
-		cout << "\n";
-		cout << "MPAS_MASK_CREATOR:\n";
-		cout << "  Please enter the MPAS NetCDF input filename.\n";
 
-		cin >> in_name;
-
-		cout << "\n";
-		cout << "MPAS_MASK_CREATOR:\n";
-		cout << "  Please enter the MPAS masks NetCDF output filename.\n";
-
-		cin >> out_name;
-
-		cout << "\n";
-		cout << "MPAS_MASK_CREATOR:\n";
-		cout << "  Please enter a file containing a set of regions to create masks from.\n";
-
-		cin >> masks_name;
-	}
-	else if (argc == 2)
-	{
-		in_name = argv[1];
-
-		cout << "\n";
-		cout << "MPAS_MASK_CREATOR:\n";
-		cout << "  Output name not specified. Using default of " << out_name << endl;
-		cout << "  No features file specified. Using default of " << masks_name << endl;
-	}
-	else if (argc == 3)
-	{
+	if ( argc < 5 || argc % 2 == 0 ) {
+		cout << " ERROR: Incorrect usage. See usage statement." << endl;	
+		print_usage();
+		exit(1);
+	} else {
+		string str_flag;
+		string str_file;
 		in_name = argv[1];
 		out_name = argv[2];
-		cout << "\n";
-		cout << "MPAS_MASK_CREATOR:\n";
-		cout << "  No features file specified. Using default of " << masks_name << endl;
-	} else if (argc > 3)
-	{
-		in_name = argv[1];
-		out_name = argv[2];
+
+		for ( int i = 3; i < argc; i+=2 ){
+			str_flag = argv[i];
+			str_file = argv[i+1];
+
+			if ( str_flag == "-s" ) {
+				seed_files.push_back(str_file);
+			} else if ( str_flag == "-f" ) {
+				mask_files.push_back(str_file);
+			} else {
+				cout << " ERROR: Invalid flag " << str_flag << " passed in. See usage statement." << endl;
+				print_usage();
+				exit(1);
+			}
+		}
 	}
 
 	if(in_name == out_name){
@@ -194,21 +195,27 @@ int main ( int argc, char *argv[] ) {
 		return 1;
 	}
 
-
 	srand(time(NULL));
 
 	cout << "Reading input grid." << endl;
 	error = readGridInfo(in_name);
-	if(error) return 1;
+	if(error) exit(1);
 
 	error = resetFeatureInfo();
 
-	cout << "Building feature information." << endl;
-	if (argc > 3) {
-		for ( int i = 3; i < argc; i++){
-			masks_name = argv[i];
-			error = getFeatureInfo(masks_name);
-			if(error) return 1;
+	if ( mask_files.size() > 0 ) {
+		cout << "Building feature information." << endl;
+		for ( vector<string>::iterator mask_itr = mask_files.begin(); mask_itr != mask_files.end(); mask_itr++ ) {
+			error = getFeatureInfo( (*mask_itr) );
+			if(error) exit(1);
+		}
+	}
+
+	if ( seed_files.size() > 0 ) {
+		cout << "Building seed locations." << endl;
+		for ( vector<string>::iterator seed_itr = seed_files.begin(); seed_itr != seed_files.end(); seed_itr++ ) {
+			error = getSeedInfo( (*seed_itr) );
+			if(error) exit(1);
 		}
 	}
 
@@ -253,6 +260,9 @@ int main ( int argc, char *argv[] ) {
 	cout << " Building cell transects" << endl;
 	cellPaths.clear();
 	cellPaths = buildLinePaths(closestIndexToTransectPoint, connectivityGraph);
+
+	cellSeedMask.clear();
+	buildMaskFromFloodFill( seedPoints, cells, connectivityGraph, &cellSeedMask );
 
 	cout << "Deleting cell center information" << endl;
 	cells.clear();
@@ -537,6 +547,59 @@ vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const 
 	visited.clear();
 
 	return path;
+}/*}}}*/
+
+void buildMaskFromFloodFill( const vector<pnt> seedLocations, const vector<pnt> staticLocations, const vector< vector< pair<int, double> > > graph, vector<int> *mask ){/*{{{*/
+	int i;
+	int numLocs = staticLocations.size();
+	double dist, min_dist;
+	int min_loc, idx;
+
+	vector<pnt>::const_iterator seed_itr, stat_itr;
+	vector<int> toCheck;
+
+	toCheck.clear();
+	(*mask).clear();
+
+	// Init mask with zeroes
+	for ( i = 0; i < staticLocations.size(); i++ ){
+		(*mask).push_back(0);
+	}
+
+	// Find seed locations, and add them to the toCheck vector
+	for ( seed_itr = seedLocations.begin(); seed_itr != seedLocations.end(); seed_itr++ ) {
+		min_dist = INFINITY;
+
+		for ( stat_itr = staticLocations.begin(), idx = 0; stat_itr != staticLocations.end(); stat_itr++, idx++ ) {
+			dist = (*seed_itr).dotForAngle( (*stat_itr) );
+
+			if ( min_dist > dist ) {
+				min_dist = dist;
+				min_loc = idx;
+			}
+		}
+
+		toCheck.push_back(min_loc);
+	}
+
+	// Mark all of the seed points as masked
+	for ( vector<int>::iterator idx_itr = toCheck.begin(); idx_itr != toCheck.end(); idx_itr++ ) {
+		(*mask)[ (*idx_itr) ] = 1;
+	}
+
+	// Start the flood fill. For a given location, add it's neighbors (and mask them) if they haven't been masked already.
+	while ( toCheck.size() > 0 ) {
+		int currIdx = toCheck.back();
+		toCheck.pop_back();
+
+		for ( i = 0; i < graph[currIdx].size(); i++ ) {
+			idx = graph.at(currIdx).at(i).first;
+			if ( !(*mask)[ idx ] ) {
+				toCheck.push_back( idx );
+				(*mask)[ idx ] = 1;
+			}
+		}
+	}
 }/*}}}*/
 /*}}}*/
 
@@ -824,6 +887,8 @@ vector< vector< pair<int, double> > > readEdgeGraph(const string inputFilename){
 }/*}}}*/
 int resetFeatureInfo(){/*{{{*/
 	connectivityGraph.clear();
+
+	seedPoints.clear();
 
 	regionPolygons.clear();
 	regionNames.clear();
@@ -1172,6 +1237,37 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 	if ( (int)pointIndices.size() > 0 ) {
 		maxPointsInGroup = max(maxPointsInGroup, (int)pointIndices.size());
 		pointsInGroup.push_back(pointIndices);
+	}
+
+	return 0;
+}/*}}}*/
+int getSeedInfo(const string seedFilename){/*{{{*/
+	ifstream json_file(seedFilename);	
+	Json::Value root;
+
+	json_file >> root;
+
+	json_file.close();
+
+	for ( int i = 0; i < root["features"].size(); i++ ){
+		Json::Value feature = root["features"][i];
+
+		if ( feature["properties"]["object"].asString() == "point" ) {
+			double lon = feature["geometry"]["coordinates"][0].asDouble() * M_PI/180.0 ;
+			double lat = feature["geometry"]["coordinates"][1].asDouble() * M_PI/180.0;
+
+			if ( lon < 0.0 ) {
+				lon = lon + ( 2.0 * M_PI );
+			}
+
+			pnt point = pntFromLatLon(lat, lon);
+			point.idx = seedPoints.size();
+
+#ifdef _DEBUG
+			cout << "Adding seed point with index " << seedPoints.size() << endl;
+#endif
+			seedPoints.push_back(point);
+		}
 	}
 
 	return 0;
@@ -1581,6 +1677,10 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 	char *char_vals;
 	int i, j, idx;
 
+	if ( seedPoints.size() > 0 ) {
+		if (!(tempVar = grid.add_var("cellSeedMask", ncInt, nCellsDim))) return NC_ERR; 
+		if (!tempVar->put(&cellSeedMask[0], nCells)) return NC_ERR;
+	}
 
 	if ( nRegions > 0 ) {
 		NcDim *nRegionsDim = grid.get_dim( "nRegions" );

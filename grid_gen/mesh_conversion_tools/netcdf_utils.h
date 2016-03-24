@@ -33,6 +33,7 @@ void netcdf_mpas_read_mesh_density ( string filename, int ncells, double mesh_de
 void netcdf_mpas_read_cullcell ( string filename, int ncells, int cullcell[] );
 void netcdf_mpas_read_regioncellmasks ( string filename, int ncells, int nregions, int regioncellmasks[] );
 void netcdf_mpas_read_transectcellmasks ( string filename, int ncells, int ntransects, int transectcellmasks[] );
+void netcdf_mpas_read_cellseedmask ( string filename, int ncells, int cellseedmask[] );
 /* }}} */
 
 /* Vertex Reading Functions {{{*/
