@@ -87,8 +87,28 @@ def setup_dimension_values_and_sort_vars( time_series_file, mesh_file, variable_
     cellVars = []
     vertexVars = []
     edgeVars = []
+    
+    if variable_list == 'all':
+        variables = []
+        files = [time_series_file]
+        if mesh_file is not None:
+            files.append(mesh_file)
+        for nc_file in files:
+            for var in nc_file.variables:
+                dims = nc_file.variables[var].dimensions
+                supported = False
+                for dim in ['nCells', 'nEdges', 'nVertices']:
+                    if dim in dims:
+                        supported = True
+                if supported:
+                    variables.append(str(var))
+        # make sure the variables are unique
+        variables = list(set(variables))
+        print variables
+    else:
+        variables = variable_list.split(',')
 
-    for var in variable_list.split(','):
+    for var in variables:
         captured_input = False
 
         dim_vals = []
@@ -475,6 +495,8 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
                     elif field_ndims == 4:
                         field_block = field_var[blockStart:blockEnd, dim_vals[1], dim_vals[2], dim_vals[3]]
 
+                # convert to the same type as field before masking with NaNs
+                field_block = np.array(field_block, dtype=field.dtype)
                 field_block[field_block == missing_val] = np.nan
                 field[blockStart:blockEnd] = field_block
 
