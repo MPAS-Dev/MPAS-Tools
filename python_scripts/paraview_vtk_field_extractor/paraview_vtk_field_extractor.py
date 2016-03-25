@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Name: paraview_vtk_field_extractor.py
-Author: Doug Jacobsen
+Authors: Doug Jacobsen, Xylar Asay-Davis
 Date: 03/01/2016
 
 This script is used to extract a field from a time series of NetCDF files as
@@ -82,7 +82,7 @@ def setup_time_indices(fn_pattern):#{{{
     return (local_indices, file_names)
 #}}}
 
-def setup_dimension_values_and_sort_vars( nc_file, variable_list):#{{{
+def setup_dimension_values_and_sort_vars( time_series_file, mesh_file, variable_list):#{{{
     all_dim_vals = {}
     cellVars = []
     vertexVars = []
@@ -92,6 +92,11 @@ def setup_dimension_values_and_sort_vars( nc_file, variable_list):#{{{
         captured_input = False
 
         dim_vals = []
+        # first try the mesh file, then the time series
+        if (mesh_file is not None) and (var in mesh_file.variables):
+            nc_file = mesh_file
+        else:
+            nc_file = time_series_file
         field_var = nc_file.variables[var]
 
         # Setting dimension values:
@@ -302,7 +307,7 @@ def build_location_list_xyz( nc_file, xName, yName, zName, output_32bit ):#{{{
     
 #}}}
     
-def build_field_time_series( local_time_indices, file_names, blocking, all_dim_vals,
+def build_field_time_series( local_time_indices, file_names, mesh_file, blocking, all_dim_vals,
                              blockDimName, variable_list, vertices, connectivity, offsets,
                              valid_mask, output_32bit, combine_output ):#{{{
     def write_pvd_header(prefix):
@@ -352,9 +357,13 @@ def build_field_time_series( local_time_indices, file_names, blocking, all_dim_v
         
                     
     # Get dimension info to allocate the size of Colors
-    nc_file = NetCDFFile(file_names[0], 'r')
+    time_series_file = NetCDFFile(file_names[0], 'r')
 
-    blockDim = len(nc_file.dimensions[blockDimName])
+    if mesh_file is not None:
+        # blockDim may not exist in time series file
+        blockDim = len(mesh_file.dimensions[blockDimName])
+    else:
+        blockDim = len(time_series_file.dimensions[blockDimName])
 
     # Pre-compute the number of blocks
     nBlocks = 1 + blockDim / blocking
@@ -368,9 +377,14 @@ def build_field_time_series( local_time_indices, file_names, blocking, all_dim_v
     var_has_time_dim = np.zeros(nVars,bool)
     for iVar in range(nVars):
         var_name = variable_list[iVar]
-        var_has_time_dim[iVar] = 'Time' in nc_file.variables[var_name].dimensions
+        if (mesh_file is not None) and (var_name in mesh_file.variables):
+            # we can't support time dependence in the mesh file
+            assert('Time' not in mesh_file.variables[var_name].dimensions)
+            var_has_time_dim[iVar] = False
+        else:
+            var_has_time_dim[iVar] = 'Time' in time_series_file.variables[var_name].dimensions
 
-    nc_file.close
+    time_series_file.close()
     
     if np.any(var_has_time_dim) or combine_output:
         try:
@@ -396,8 +410,8 @@ def build_field_time_series( local_time_indices, file_names, blocking, all_dim_v
 
         if prev_file != file_names[time_index]:
             if prev_file != "":
-                nc_file.close()
-            nc_file = NetCDFFile(file_names[time_index], 'r')
+                time_series_file.close()
+            time_series_file = NetCDFFile(file_names[time_index], 'r')
             prev_file = file_names[time_index]
 
         if combine_output:
@@ -419,6 +433,11 @@ def build_field_time_series( local_time_indices, file_names, blocking, all_dim_v
         for iVar in varIndices:
             var_name = variable_list[iVar]
             dim_vals = all_dim_vals[var_name]
+            if (mesh_file is not None) and (var_name in mesh_file.variables):
+                nc_file = mesh_file
+            else:
+                nc_file = time_series_file
+           
             field_var = nc_file.variables[var_name]
 
             field_ndims = len(dim_vals)
@@ -488,7 +507,7 @@ def build_field_time_series( local_time_indices, file_names, blocking, all_dim_v
             vtkFile.save()
             del vtkFile
 
-    nc_file.close()
+    time_series_file.close()
     if use_progress_bar:
         field_bar.finish()
 
@@ -537,13 +556,21 @@ if __name__ == "__main__":
 
     (time_indices, time_file_names) = setup_time_indices(args.filename_pattern)
 
+    separate_mesh_file = True
     if not args.mesh_filename:
         args.mesh_filename = time_file_names[0]
+        separate_mesh_file = False
 
     # Setting dimension values:
-    nc_file = NetCDFFile(time_file_names[0], 'r')
-    (all_dim_vals, cellVars, vertexVars, edgeVars) = setup_dimension_values_and_sort_vars( nc_file, args.variable_list)
-    nc_file.close()
+    time_series_file = NetCDFFile(time_file_names[0], 'r')
+    if separate_mesh_file :
+        mesh_file = NetCDFFile(args.mesh_filename, 'r')
+    else:
+        mesh_file = None
+    (all_dim_vals, cellVars, vertexVars, edgeVars) = setup_dimension_values_and_sort_vars( time_series_file, mesh_file, args.variable_list)
+    time_series_file.close()
+    if(mesh_file is not None):
+        mesh_file.close()
 
     summarize_extraction(args.mesh_filename, time_indices, cellVars, vertexVars, edgeVars)
 
@@ -551,19 +578,23 @@ if __name__ == "__main__":
     if len(cellVars) > 0:
         print " -- Extracting cell fields --"
 
-        nc_file = NetCDFFile(args.mesh_filename, 'r')
+        mesh_file = NetCDFFile(args.mesh_filename, 'r')
 
         # Build vertex list
-        vertices = build_location_list_xyz( nc_file, 'xVertex', 'yVertex', 'zVertex', use_32bit )
+        vertices = build_location_list_xyz( mesh_file, 'xVertex', 'yVertex', 'zVertex', use_32bit )
 
         # Build cell list
-        (connectivity, offsets, valid_mask) = build_cell_lists( nc_file, args.blocking )
+        (connectivity, offsets, valid_mask) = build_cell_lists( mesh_file, args.blocking )
 
-        nc_file.close()
+        if not separate_mesh_file:
+            mesh_file.close()
+            mesh_file = None
 
-        build_field_time_series( time_indices, time_file_names, args.blocking,
+        build_field_time_series( time_indices, time_file_names, mesh_file, args.blocking,
                                  all_dim_vals, 'nCells', cellVars, vertices, connectivity, offsets,
                                  valid_mask, use_32bit, args.combine_output )
+        if separate_mesh_file:
+            mesh_file.close()
 
         print ""
         del vertices
@@ -574,19 +605,24 @@ if __name__ == "__main__":
     if len(vertexVars) > 0:
         print " -- Extracting vertex fields --"
 
-        nc_file = NetCDFFile(args.mesh_filename, 'r')
+        mesh_file = NetCDFFile(args.mesh_filename, 'r')
 
         # Build vertex list
-        vertices = build_location_list_xyz( nc_file, 'xCell', 'yCell', 'zCell', use_32bit )
+        vertices = build_location_list_xyz( mesh_file, 'xCell', 'yCell', 'zCell', use_32bit )
 
         # Build cell list
-        (connectivity, offsets, valid_mask) = build_dual_cell_lists( nc_file, args.blocking )
+        (connectivity, offsets, valid_mask) = build_dual_cell_lists( mesh_file, args.blocking )
 
-        nc_file.close()
+        if not separate_mesh_file:
+            mesh_file.close()
+            mesh_file = None
 
-        build_field_time_series( time_indices, time_file_names, args.blocking,
+        build_field_time_series( time_indices, time_file_names, mesh_file, args.blocking,
                                  all_dim_vals, 'nVertices', vertexVars, vertices, connectivity, offsets,
                                  valid_mask, use_32bit, args.combine_output )
+
+        if separate_mesh_file:
+            mesh_file.close()
 
         print ""
         del vertices
@@ -597,11 +633,11 @@ if __name__ == "__main__":
     if len(edgeVars) > 0:
         print " -- Extracting edge fields --"
 
-        nc_file = NetCDFFile(args.mesh_filename, 'r')
+        mesh_file = NetCDFFile(args.mesh_filename, 'r')
 
         # Build vertex list
-        verticesC = build_location_list_xyz( nc_file, 'xCell', 'yCell', 'zCell', use_32bit )
-        verticesV = build_location_list_xyz( nc_file, 'xVertex', 'yVertex', 'zVertex', use_32bit )
+        verticesC = build_location_list_xyz( mesh_file, 'xCell', 'yCell', 'zCell', use_32bit )
+        verticesV = build_location_list_xyz( mesh_file, 'xVertex', 'yVertex', 'zVertex', use_32bit )
         # compine the two into a single tuple
         vertices = (np.append(verticesC[0],verticesV[0]),
                     np.append(verticesC[1],verticesV[1]),
@@ -609,13 +645,18 @@ if __name__ == "__main__":
         del verticesC, verticesV
 
         # Build cell list
-        (connectivity, offsets, valid_mask) = build_edge_cell_lists( nc_file, args.blocking )
+        (connectivity, offsets, valid_mask) = build_edge_cell_lists( mesh_file, args.blocking )
 
-        nc_file.close()
+        if not separate_mesh_file:
+            mesh_file.close()
+            mesh_file = None
 
-        build_field_time_series( time_indices, time_file_names, args.blocking,
+        build_field_time_series( time_indices, time_file_names, mesh_file, args.blocking,
                                  all_dim_vals, 'nEdges', edgeVars, vertices, connectivity, offsets,
                                  valid_mask, use_32bit, args.combine_output )
+
+        if separate_mesh_file:
+            mesh_file.close()
 
 
 # vim: set expandtab:
