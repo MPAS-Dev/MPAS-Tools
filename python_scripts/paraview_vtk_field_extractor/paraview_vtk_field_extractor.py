@@ -327,7 +327,7 @@ def build_location_list_xyz( nc_file, xName, yName, zName, output_32bit ):#{{{
 
 def build_field_time_series( local_time_indices, file_names, mesh_file, blocking, all_dim_vals,
                              blockDimName, variable_list, vertices, connectivity, offsets,
-                             valid_mask, output_32bit, combine_output ):#{{{
+                             valid_mask, output_32bit, combine_output, append ):#{{{
     def write_pvd_header(prefix):
         pvd_file = open('vtk_files/%s.pvd'%(prefix), 'w')
         pvd_file.write('<?xml version="1.0"?>\n')
@@ -435,6 +435,9 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
         if combine_output:
             # write the header for the vtp file
             vtp_file_prefix = "time_series/%s.%d"%(out_prefix, time_index)
+            file_name = 'vtk_files/%s.vtp'%(vtp_file_prefix)
+            if append and os.path.exists(file_name):
+                continue
 
             varIndices = np.arange(nVars)
             vtkFile = write_vtp_header(vtp_file_prefix, varIndices[0], varIndices)
@@ -450,6 +453,15 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
 
         for iVar in varIndices:
             var_name = variable_list[iVar]
+            if not combine_output:
+                if var_has_time_dim[iVar]:
+                    out_file_prefix = "time_series/%s.%d"%(var_name, time_index)
+                else:
+                    out_file_prefix = var_name
+                file_name = 'vtk_files/%s.vtp'%(vtp_file_prefix)
+                if append and os.path.exists(file_name):
+                    continue
+
             dim_vals = all_dim_vals[var_name]
             if (mesh_file is not None) and (var_name in mesh_file.variables):
                 nc_file = mesh_file
@@ -506,11 +518,6 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
             if combine_output:
                 vtkFile.appendData(field)
             else:
-                if var_has_time_dim[iVar]:
-                    out_file_prefix = "time_series/%s.%d"%(var_name, time_index)
-                else:
-                    out_file_prefix = var_name
-
                 vtkFile = write_vtp_header(out_file_prefix, iVar, [iVar])
 
                 vtkFile.appendData(field)
@@ -561,6 +568,7 @@ if __name__ == "__main__":
     parser.add_argument("-v", "--variable_list", dest="variable_list", help="List of variables to extract", metavar="VAR", required=True)
     parser.add_argument("-3", "--32bit", dest="output_32bit", help="If set, the vtk files will be written using 32bit floats.", action="store_true")
     parser.add_argument("-c", "--combine", dest="combine_output", help="If set, fields are written to a common file (one each for cells, edges and vertices).", action="store_true")
+    parser.add_argument("-a", "--append", dest="append", help="If set, only vtp files that do not already exist are written out.", action="store_true")
 
     args = parser.parse_args()
 
@@ -612,7 +620,7 @@ if __name__ == "__main__":
 
         build_field_time_series( time_indices, time_file_names, mesh_file, args.blocking,
                                  all_dim_vals, 'nCells', cellVars, vertices, connectivity, offsets,
-                                 valid_mask, use_32bit, args.combine_output )
+                                 valid_mask, use_32bit, args.combine_output, args.append )
         if separate_mesh_file:
             mesh_file.close()
 
@@ -639,7 +647,7 @@ if __name__ == "__main__":
 
         build_field_time_series( time_indices, time_file_names, mesh_file, args.blocking,
                                  all_dim_vals, 'nVertices', vertexVars, vertices, connectivity, offsets,
-                                 valid_mask, use_32bit, args.combine_output )
+                                 valid_mask, use_32bit, args.combine_output, args.append )
 
         if separate_mesh_file:
             mesh_file.close()
@@ -673,7 +681,7 @@ if __name__ == "__main__":
 
         build_field_time_series( time_indices, time_file_names, mesh_file, args.blocking,
                                  all_dim_vals, 'nEdges', edgeVars, vertices, connectivity, offsets,
-                                 valid_mask, use_32bit, args.combine_output )
+                                 valid_mask, use_32bit, args.combine_output, args.append )
 
         if separate_mesh_file:
             mesh_file.close()
