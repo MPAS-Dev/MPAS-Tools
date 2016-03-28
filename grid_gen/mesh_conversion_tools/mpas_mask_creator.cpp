@@ -12,6 +12,8 @@
 #include <json/json.h>
 #include <omp.h>
 #include <string.h>
+#include <tuple>
+#include <sstream>
 
 #include "netcdf_utils.h"
 #include "pnt.h"
@@ -24,36 +26,69 @@
 
 using namespace std;
 
-int nCells, nVertices;
+bool lonRangePositive = false;
+int nCells, nVertices, nEdges;
+int maxEdges, vertexDegree;
 int nRegions = 0;
+int nTransects = 0;
 int nPoints = 0;
 int maxRegPolygons = 0;
 int maxRegVertices = 0;
 int maxRegionsInGroup = 0;
 int maxPointsInGroup = 0;
-int maxEdges;
+int maxTrnLines = 0;
+int maxTrnVertices = 0;
+int maxTransectsInGroup = 0;
+int maxCellsInTransect = 0;
+int maxVerticesInTransect = 0;
+int maxEdgesInTransect = 0;
 double sphereRadius;
 bool spherical, periodic;
 string in_history = "";
 string in_file_id = "";
 string in_parent_id = "";
 
+enum types { num_int, num_double, text };
+
 // Mask and location information {{{
 
-int *cellPointMasks;
-int *cellMasks, *vertexMasks, *pointCellIndices, *pointVertexIndices;
-vector<pnt> cells;
-vector<pnt> vertices;
-vector<pnt> pointLocations;
+// Seed information
+vector<pnt> seedPoints;
+vector<int> cellSeedMask;
+
+// Region information:
+int *cellMasks, *vertexMasks;
 vector< vector< vector<pnt> > > regionPolygons;
 vector<string> regionNames;
-vector<string> pointNames;
+vector< vector< tuple<string, string, int>> > regionProperties;
 vector< vector<int> > regionsInGroup;
-vector< vector<int> > pointsInGroup;
 vector<string> regionGroupNames;
-vector<string> pointGroupNames;
 vector< vector< vector<double> > > polygonConstants;
 vector< vector< vector<double> > > polygonMultiples;
+
+// Transect information
+vector< vector< vector<pnt> > > transectPoints;
+vector<string> transectNames;
+vector< vector< tuple<string, string, int>> > transectProperties;
+vector< vector<int> > transectsInGroup;
+vector<string> transectGroupNames;
+vector< vector< vector<int> > > closestIndexToTransectPoint;
+vector< vector<int> > cellPaths, edgePaths, vertexPaths;
+
+// Point information:
+int *pointCellIndices, *pointVertexIndices;
+int *cellPointMasks;
+vector<pnt> pointLocations;
+vector<string> pointNames;
+vector< vector< tuple<string, string, int> > > pointProperties;
+vector< vector<int> > pointsInGroup;
+vector<string> pointGroupNames;
+
+// Mesh locations:
+vector<pnt> cells;
+vector<pnt> vertices;
+vector<pnt> edges;
+vector< vector< pair<int, double> > > connectivityGraph;
 
 // }}}
 
@@ -66,12 +101,27 @@ vector< vector<pnt> >::iterator poly_itr;
 vector<int>::iterator int_itr;
 // }}}
 
+/* Utility functions {{{*/
+int featureIndex( const string featureName, const vector<string> featureNames );
+int stringType ( const string testStr );
+vector< tuple<string, string, int> > extractFeatureProperties( Json::Value properties );
+vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const int start, const int end );
+void buildMaskFromFloodFill( const vector<pnt> seedLocations, const vector<pnt> staticLocations, const vector< vector< pair<int, double> > > graph, vector<int> *mask );
+/*}}}*/
+
 /* Building/Reading functions {{{ */
 int readGridInfo(const string inputFilename);
 int readCells(const string inputFilename);
 int readVertices(const string inputFilename);
+int readEdges(const string inputFilename);
+vector< vector< pair<int, double> > > readCellGraph(const string inputFilename);
+vector< vector< pair<int, double> > > readVertexGraph(const string inputFilename);
+vector< vector< pair<int, double> > > readEdgeGraph(const string inputFilename);
 int resetFeatureInfo();
 int getFeatureInfo(const string featureFilename);
+int getSeedInfo(const string seedFilename);
+vector< vector< vector<int> > > buildClosestValuesForTransects(const vector< vector< vector<pnt> > > lineSegments, const vector<pnt> staticLocations);
+vector< vector<int> > buildLinePaths( const vector< vector< vector<int> > > closestIndices, const vector< vector< pair<int, double> > > graph );
 int buildPolygonValues();
 int buildMasks(vector<pnt> locations, int *masks);
 int buildPointIndices(vector<pnt> testLocations, vector<pnt> staticLocations, int *indices);
@@ -84,11 +134,27 @@ int outputMaskAttributes( const string outputFilename, const string inputFilenam
 int outputMaskFields( const string outputFilename);
 /*}}}*/
 
+void print_usage() {/*{{{*/
+	cout << endl << endl;
+	cout << " USAGE:" << endl;
+	cout << "\tMpasMaskCreator.x in_file out_file [ [-f/-s] file.geojson ] [--positive_lon]" << endl;
+	cout << "\t\tin_file: This argument defines the input file that masks will be created for." << endl;
+	cout << "\t\tout_file: This argument defines the file that masks will be written to." << endl;
+	cout << "\t\t-s file.geojson: This argument pair defines a set of points (from the geojson point definition)" << endl;
+	cout << "\t\t\tthat will be used as seed points in a flood fill algorithim. This is useful when trying to remove isolated cells from a mesh." << endl;
+	cout << "\t\t-f file.geojson: This argument pair defines a set of geojson features (regions, transects, or points)" << endl;
+	cout << "\t\t\tthat will be converted into masks / lists." << endl;
+	cout << "\t\t--positive_lon: This argument causes the logitude range to be 0-360 degrees with the prime meridian at 0 degrees." << endl;
+	cout << "\t\t\tIf this flag is not set, the logitude range is -180-180 with 0 degrees being the prime meridian." << endl;
+	cout << "\t\t\tWhether this flag is passed in or not, any longitudes written are in the 0-360 range." << endl;
+}/*}}}*/
+
 string gen_random(const int len);
 
 int main ( int argc, char *argv[] ) {
 	int error;
-	string masks_name = "features.geojson";
+	vector<string> mask_files;
+	vector<string> seed_files;
 	string out_name = "masks.nc";
 	string in_name = "grid.nc";
 
@@ -101,49 +167,38 @@ int main ( int argc, char *argv[] ) {
 	cout << "  Compiled on " << __DATE__ << " at " << __TIME__ << ".\n";
 	cout << "************************************************************" << endl;
 	cout << endl << endl;
-	//
-	//  If the input file was not specified, get it now.
-	//
-	if ( argc <= 1 )
-	{
-		cout << "\n";
-		cout << "MPAS_MASK_CREATOR:\n";
-		cout << "  Please enter the MPAS NetCDF input filename.\n";
 
-		cin >> in_name;
-
-		cout << "\n";
-		cout << "MPAS_MASK_CREATOR:\n";
-		cout << "  Please enter the MPAS masks NetCDF output filename.\n";
-
-		cin >> out_name;
-
-		cout << "\n";
-		cout << "MPAS_MASK_CREATOR:\n";
-		cout << "  Please enter a file containing a set of regions to create masks from.\n";
-
-		cin >> masks_name;
-	}
-	else if (argc == 2)
-	{
-		in_name = argv[1];
-
-		cout << "\n";
-		cout << "MPAS_MESH_CONVERTER:\n";
-		cout << "  Output name not specified. Using default of " << out_name << endl;
-		cout << "  No features file specified. Using default of " << masks_name << endl;
-	}
-	else if (argc == 3)
-	{
+	if ( argc < 5 ) {
+		cout << " ERROR: Incorrect usage. See usage statement." << endl;	
+		print_usage();
+		exit(1);
+	} else {
+		string str_flag;
+		string str_file;
 		in_name = argv[1];
 		out_name = argv[2];
-		cout << "\n";
-		cout << "MPAS_MESH_CONVERTER:\n";
-		cout << "  No features file specified. Using default of " << masks_name << endl;
-	} else if (argc > 3)
-	{
-		in_name = argv[1];
-		out_name = argv[2];
+
+		int i = 3;
+		while ( i < argc ) {
+			str_flag = argv[i];
+
+			if ( str_flag == "-s" ) {
+				str_file = argv[i+1];
+				seed_files.push_back(str_file);
+				i += 2;
+			} else if ( str_flag == "-f" ) {
+				str_file = argv[i+1];
+				mask_files.push_back(str_file);
+				i += 2;
+			} else if ( str_flag == "--positive_lon" ) {
+				lonRangePositive = true;
+				i++;
+			} else {
+				cout << " ERROR: Invalid flag " << str_flag << " passed in. See usage statement." << endl;
+				print_usage();
+				exit(1);
+			}
+		}
 	}
 
 	if(in_name == out_name){
@@ -151,21 +206,37 @@ int main ( int argc, char *argv[] ) {
 		return 1;
 	}
 
+	// Write out the longitude range that is being used
+	cout << endl;
+	if ( lonRangePositive ) {
+		cout << "Using 0 to 360 degrees for longitude range." << endl;
+	} else {
+		cout << "Using -180 to 180 degrees for longitude range." << endl;
+	}
+	cout << endl;
+	cout << endl;
 
 	srand(time(NULL));
 
 	cout << "Reading input grid." << endl;
 	error = readGridInfo(in_name);
-	if(error) return 1;
+	if(error) exit(1);
 
 	error = resetFeatureInfo();
 
-	cout << "Building feature information." << endl;
-	if (argc > 3) {
-		for ( int i = 3; i < argc; i++){
-			masks_name = argv[i];
-			error = getFeatureInfo(masks_name);
-			if(error) return 1;
+	if ( mask_files.size() > 0 ) {
+		cout << "Building feature information." << endl;
+		for ( vector<string>::iterator mask_itr = mask_files.begin(); mask_itr != mask_files.end(); mask_itr++ ) {
+			error = getFeatureInfo( (*mask_itr) );
+			if(error) exit(1);
+		}
+	}
+
+	if ( seed_files.size() > 0 ) {
+		cout << "Building seed locations." << endl;
+		for ( vector<string>::iterator seed_itr = seed_files.begin(); seed_itr != seed_files.end(); seed_itr++ ) {
+			error = getSeedInfo( (*seed_itr) );
+			if(error) exit(1);
 		}
 	}
 
@@ -201,8 +272,22 @@ int main ( int argc, char *argv[] ) {
 		exit(error);
 	}
 
+	cout << " Building closest point location for line segments" << endl;
+	closestIndexToTransectPoint = buildClosestValuesForTransects(transectPoints, cells);
+
+	cout << " Reading cell graph" << endl;
+	connectivityGraph = readCellGraph(in_name);
+
+	cout << " Building cell transects" << endl;
+	cellPaths.clear();
+	cellPaths = buildLinePaths(closestIndexToTransectPoint, connectivityGraph);
+
+	cellSeedMask.clear();
+	buildMaskFromFloodFill( seedPoints, cells, connectivityGraph, &cellSeedMask );
+
 	cout << "Deleting cell center information" << endl;
 	cells.clear();
+	connectivityGraph.clear();
 
 	cout << "Reading vertex locations" << endl;
 	if(error = readVertices(in_name)){
@@ -224,8 +309,39 @@ int main ( int argc, char *argv[] ) {
 		exit(error);
 	}
 
+	cout << " Building closest vertex location for line segments" << endl;
+	closestIndexToTransectPoint = buildClosestValuesForTransects(transectPoints, vertices);
+
+	cout << " Reading vertex graph" << endl;
+	connectivityGraph = readVertexGraph(in_name);
+
+	cout << " Building vertex transects" << endl;
+	vertexPaths.clear();
+	vertexPaths = buildLinePaths(closestIndexToTransectPoint, connectivityGraph);
+
 	cout << "Deleting vertex information" << endl;
 	vertices.clear();
+	connectivityGraph.clear();
+
+	cout << "Reading edge locations" << endl;
+	if(error = readEdges(in_name)){
+		cout << "Error - " << error << endl;
+		exit(error);
+	}
+
+	cout << " Building closest edge location for line segments" << endl;
+	closestIndexToTransectPoint = buildClosestValuesForTransects(transectPoints, edges);
+
+	cout << " Reading edge graph" << endl;
+	connectivityGraph = readEdgeGraph(in_name);
+
+	cout << " Building edge transects" << endl;
+	edgePaths.clear();
+	edgePaths = buildLinePaths(closestIndexToTransectPoint, connectivityGraph);
+
+	cout << "Deleting edge information" << endl;
+	edges.clear();
+	connectivityGraph.clear();
 
 	cout << "Writing mask dimensions" << endl;
 	if(error = outputMaskDimensions(out_name)){
@@ -245,6 +361,269 @@ int main ( int argc, char *argv[] ) {
 	}
 }
 
+/* Utility functions {{{*/
+int featureIndex( const string featureName, const vector<string> featureNames ) {/*{{{*/
+	vector<string>::const_iterator name_itr;	
+	int idx;
+	bool found;
+
+	for ( name_itr = featureNames.begin(), idx = 0; name_itr != featureNames.end(); name_itr++, idx++ ){
+		if ( (*name_itr) == featureName ) {
+			return idx;
+		}
+	}
+
+	return -1;
+}/*}}}*/
+
+int stringType ( const string testStr ){/*{{{*/
+	if ( testStr.find_first_of("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ") != std::string::npos ) {
+		return text;
+	} else if ( testStr.find_first_of(".") != std::string::npos ) {
+		return num_double;
+	}
+	return num_int;
+}/*}}}*/
+
+vector< tuple<string, string, int> > extractFeatureProperties( Json::Value properties ){/*{{{*/
+	Json::Value::Members keys = properties.getMemberNames();
+	size_t numKeys = keys.size();
+	vector< tuple<string, string, int> > prop_vec;
+	vector<string>::iterator prop_itr;
+	tuple<string, string, int> prop_val;
+
+	prop_vec.clear();
+
+	for ( prop_itr = keys.begin(); prop_itr != keys.end(); prop_itr++ ) {
+		// We ignore name, author, tags, component, and object properties, since those are already dealt with.
+		if ( (*prop_itr) != "name" && (*prop_itr) != "author" && (*prop_itr) != "tags" && (*prop_itr) != "component" && (*prop_itr) != "object" ) {
+			get<0>(prop_val) = (*prop_itr);
+			get<1>(prop_val) = properties[ (*prop_itr) ].asString();
+			get<2>(prop_val) = stringType( properties[(*prop_itr)].asString() );
+
+			prop_vec.push_back( prop_val );
+		}
+	}
+
+	return prop_vec;
+}/*}}}*/
+
+vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const int start, const int end ){/*{{{*/
+	vector< pair<int, double> > toCheck; // Stack of nodes to check first is node index, second is node dist. Should be sorted so last element has the smallest dist.
+	vector<int> visited;
+	vector<int> arrivedFrom;
+	vector<int> path;
+
+	pair<int, double> weightedNode;
+
+	int numChecked;
+	int i, currNode, testNode;
+	int sortIdx, swpIdx;
+	bool foundNode;
+
+	double min_dist, swpDist;
+	double edgeWeight = 1.0;
+
+	toCheck.clear();
+	visited.clear();
+	arrivedFrom.clear();
+
+	toCheck.reserve( graph.size() / 2 );
+
+	for ( i = 0; i < graph.size(); i++ ) {
+		visited.push_back( 0 );
+		arrivedFrom.push_back( -1 );
+	}
+
+	weightedNode.first = start;
+	weightedNode.second = 0;
+
+	toCheck.push_back( weightedNode );
+	numChecked = 0;
+
+	while ( toCheck.size() > 0 ) {
+		currNode = toCheck.back().first;
+		min_dist = toCheck.back().second;
+		toCheck.pop_back();
+
+		if ( visited[currNode] ) {
+			cout << " I've already visited this node? Weird! " << currNode << endl;
+			continue;
+		}
+
+		visited[currNode] = 1;
+
+		for ( i = 0; i < graph[currNode].size(); i++ ) {
+			testNode = graph[currNode][i].first;
+			edgeWeight = graph[currNode][i].second;
+
+			// Prevent cycles by only checking nodes that haven't been visited already.
+			if ( !visited[testNode] ) {
+
+				// See if node is in stack already
+				foundNode = false;
+				for ( int j = 0; j < toCheck.size() && !foundNode; j++ ){
+					if ( toCheck[j].first == testNode ) {
+						foundNode = true;
+
+						// Check the distance, and re-sort
+						// Only need to sort forward, as we would only make the distance smaller.
+						if ( toCheck[j].second > min_dist + edgeWeight ) {
+							toCheck[j].second = min_dist + edgeWeight;
+							arrivedFrom[ testNode ] = currNode;
+
+							if ( j + 1 < toCheck.size() ) {
+								bool sorted;
+								sorted = false;
+								sortIdx = j;
+
+								// Re-sort, until we find a neighboring index that has a smaller dist
+								for ( int k = j + 1; k < toCheck.size() && !sorted; k++ ) {
+									if ( toCheck[sortIdx].second < toCheck[k].second ) { 
+										//cout << " Swapping1: " << toCheck[sortIdx].first << " with " << toCheck[k].first << endl;
+										swpIdx = toCheck[sortIdx].first;
+										swpDist = toCheck[sortIdx].second;
+
+										toCheck[sortIdx].first = toCheck[k].first;
+										toCheck[sortIdx].second = toCheck[k].second;
+
+										toCheck[k].first = swpIdx;
+										toCheck[k].second = swpDist;
+
+										sortIdx = k;
+									} else {
+										sorted = true;
+									}
+								}
+							}
+						}
+					}
+				}
+
+				// If the node wasn't found, insert it at the end, and sort it backwards into place.
+				if ( !foundNode ) {
+					// Build and insert
+					weightedNode.first = testNode;
+					weightedNode.second = min_dist + edgeWeight;
+
+					arrivedFrom[ testNode ] = currNode;
+
+					toCheck.push_back( weightedNode );
+
+					// Sort, since it's added at the end of the list, we need to swap it with neighbors that are smaller
+					// Until all nodes to the left are larger than it.
+					bool sorted = false;
+					for ( int j = toCheck.size()-1; j > 0 && !sorted; j-- ) {
+						if ( toCheck[j].second > toCheck[j-1].second ) {
+							//cout << " Swapping2: " << toCheck[j].first << " with " << toCheck[j-1].first << endl;
+							swpIdx = toCheck[j].first;
+							swpDist = toCheck[j].second;
+
+							toCheck[j].first = toCheck[j-1].first;
+							toCheck[j].second = toCheck[j-1].second;
+
+							toCheck[j-1].first = swpIdx;
+							toCheck[j-1].second = swpDist;
+						} else {
+							// Assume the stack was already sorted, so if we find a neighbor that has a larger distance
+							// we can stop storting.
+							sorted = true;
+						}
+					}
+				}
+			}
+		}
+
+		if ( currNode == end ) { 
+			toCheck.clear();
+		}
+		numChecked++;
+	}
+
+	path.clear();
+
+	if ( !visited[end] || arrivedFrom[end] == -1 ) {
+		arrivedFrom.clear();
+		visited.clear();
+		return path;
+	}
+
+	vector<int> r_path;
+
+	currNode = end;
+
+	while ( currNode != -1 ) {
+		r_path.push_back ( currNode );
+		currNode = arrivedFrom[currNode];
+	}
+
+	vector<int>::reverse_iterator rint_itr;
+
+	for ( rint_itr = r_path.rbegin(); rint_itr != r_path.rend(); rint_itr++ ) {
+		path.push_back( (*rint_itr) );
+	}
+
+	r_path.clear();
+	arrivedFrom.clear();
+	visited.clear();
+
+	return path;
+}/*}}}*/
+
+void buildMaskFromFloodFill( const vector<pnt> seedLocations, const vector<pnt> staticLocations, const vector< vector< pair<int, double> > > graph, vector<int> *mask ){/*{{{*/
+	int i;
+	int numLocs = staticLocations.size();
+	double dist, min_dist;
+	int min_loc, idx;
+
+	vector<pnt>::const_iterator seed_itr, stat_itr;
+	vector<int> toCheck;
+
+	toCheck.clear();
+	(*mask).clear();
+
+	// Init mask with zeroes
+	for ( i = 0; i < staticLocations.size(); i++ ){
+		(*mask).push_back(0);
+	}
+
+	// Find seed locations, and add them to the toCheck vector
+	for ( seed_itr = seedLocations.begin(); seed_itr != seedLocations.end(); seed_itr++ ) {
+		min_dist = INFINITY;
+
+		for ( stat_itr = staticLocations.begin(), idx = 0; stat_itr != staticLocations.end(); stat_itr++, idx++ ) {
+			dist = (*seed_itr).dotForAngle( (*stat_itr) );
+
+			if ( min_dist > dist ) {
+				min_dist = dist;
+				min_loc = idx;
+			}
+		}
+
+		toCheck.push_back(min_loc);
+	}
+
+	// Mark all of the seed points as masked
+	for ( vector<int>::iterator idx_itr = toCheck.begin(); idx_itr != toCheck.end(); idx_itr++ ) {
+		(*mask)[ (*idx_itr) ] = 1;
+	}
+
+	// Start the flood fill. For a given location, add it's neighbors (and mask them) if they haven't been masked already.
+	while ( toCheck.size() > 0 ) {
+		int currIdx = toCheck.back();
+		toCheck.pop_back();
+
+		for ( i = 0; i < graph[currIdx].size(); i++ ) {
+			idx = graph.at(currIdx).at(i).first;
+			if ( !(*mask)[ idx ] ) {
+				toCheck.push_back( idx );
+				(*mask)[ idx ] = 1;
+			}
+		}
+	}
+}/*}}}*/
+/*}}}*/
+
 /* Building/Ordering functions {{{ */
 int readGridInfo(const string inputFilename){/*{{{*/
 #ifdef _DEBUG
@@ -253,6 +632,9 @@ int readGridInfo(const string inputFilename){/*{{{*/
 
 	nCells = netcdf_mpas_read_dim(inputFilename, "nCells");
 	nVertices = netcdf_mpas_read_dim(inputFilename, "nVertices");
+	nEdges = netcdf_mpas_read_dim(inputFilename, "nEdges");
+	maxEdges = netcdf_mpas_read_dim(inputFilename, "maxEdges");
+	vertexDegree = netcdf_mpas_read_dim(inputFilename, "vertexDegree");
 #ifdef _DEBUG
 	cout << "   Reading on_a_sphere" << endl;
 #endif
@@ -278,6 +660,9 @@ int readGridInfo(const string inputFilename){/*{{{*/
 	cout << "Read dimensions:" << endl;
 	cout << "    nCells = " << nCells << endl;
 	cout << "    nVertices = " << nVertices << endl;
+	cout << "    nEdges = " << nEdges << endl;
+	cout << "    maxEdges = " << maxEdges << endl;
+	cout << "    vertexDegree = " << vertexDegree << endl;
 	cout << "    Spherical? = " << spherical << endl;
 
 	if ( ! spherical ) {
@@ -303,6 +688,7 @@ int readCells(const string inputFilename){/*{{{*/
 	cells.clear();
 	for(int i = 0; i < nCells; i++){
 		new_location = pntFromLatLon(latcell[i], loncell[i]);
+		new_location.setPositiveLonRange( lonRangePositive );
 		new_location.idx = i;
 
 		if(spherical) new_location.normalize();
@@ -344,11 +730,198 @@ int readVertices(const string inputFilename){/*{{{*/
 
 	return 0;
 }/*}}}*/
+int readEdges(const string inputFilename){/*{{{*/
+	double *latedge, *lonedge;
+	pnt new_location;
+
+#ifdef _DEBUG
+	cout << endl << endl << "Begin function: readEdges" << endl << endl;
+#endif
+
+	// Build cell center location information
+	latedge = new double[nEdges];
+	lonedge = new double[nEdges];
+
+	netcdf_mpas_read_latlonedge ( inputFilename, nEdges, latedge, lonedge );
+
+	edges.clear();
+	for(int i = 0; i < nEdges; i++){
+		new_location = pntFromLatLon(latedge[i], lonedge[i]);
+		new_location.idx = i;
+
+		if(spherical) new_location.normalize();
+		edges.push_back(new_location);
+	}
+
+	cout << "Built " << edges.size() << " edges." << endl;
+	delete[] latedge;
+	delete[] lonedge;
+
+	return 0;
+}/*}}}*/
+vector< vector< pair<int, double> > > readCellGraph(const string inputFilename){/*{{{*/
+	vector< vector< pair<int, double> > > graph;
+	int *cellsoncell, *edgesoncell;
+	int *nedgesoncell;
+	double *dcedge;
+	int cellid, edgeid;
+	pair<int, double> connection;
+	vector< pair<int, double> > cellList;
+
+	graph.clear();
+	nedgesoncell = new int[nCells];
+	cellsoncell = new int[nCells * maxEdges];
+	edgesoncell = new int[nCells * maxEdges];
+	dcedge = new double[nEdges];
+	netcdf_mpas_read_nedgesoncell ( inputFilename, nCells, nedgesoncell );
+	netcdf_mpas_read_edgesoncell ( inputFilename, nCells, maxEdges, edgesoncell );
+	netcdf_mpas_read_cellsoncell ( inputFilename, nCells, maxEdges, cellsoncell );
+	netcdf_mpas_read_dcedge ( inputFilename, nEdges, dcedge );
+
+	for ( int i = 0; i < nCells; i++ ) {
+		cellList.clear();
+		for ( int j = 0; j < nedgesoncell[i]; j++ ) {
+			cellid = cellsoncell[ i * maxEdges + j ] - 1;
+			edgeid = edgesoncell[ i * maxEdges + j ] - 1;
+
+			if ( cellid >= 0 ) {
+				connection.first = cellid;
+				connection.second = dcedge[edgeid];
+				cellList.push_back( connection );
+			}
+		}
+		graph.push_back(cellList);
+	}
+
+	delete[] nedgesoncell;
+	delete[] cellsoncell;
+	delete[] edgesoncell;
+	delete[] dcedge;
+	cellList.clear();
+
+	return graph;
+}/*}}}*/
+vector< vector< pair<int, double> > > readVertexGraph(const string inputFilename){/*{{{*/
+	vector< vector< pair<int, double> > > graph;
+	int *verticesonedge, *edgesonvertex;
+	double *dvedge;
+	bool add_vertid1, add_vertid2;
+	int vertid1, vertid2, edgeid;
+	pair<int, double> connection;
+	vector< pair<int, double> > vertexList;
+
+	graph.clear();
+	verticesonedge = new int[nEdges * 2];
+	edgesonvertex = new int[nVertices * vertexDegree];
+	dvedge = new double[nEdges];
+	netcdf_mpas_read_verticesonedge ( inputFilename, nEdges, verticesonedge );
+	netcdf_mpas_read_edgesonvertex ( inputFilename, nVertices, vertexDegree, edgesonvertex );
+	netcdf_mpas_read_dvedge ( inputFilename, nEdges, dvedge );
+
+	for ( int i = 0; i < nVertices; i++ ) {
+		vertexList.clear();
+
+		for ( int j = 0; j < vertexDegree; j++ ) {
+			edgeid = edgesonvertex[ i * vertexDegree + j ] - 1;
+
+			vertid1 = verticesonedge[ edgeid * 2 ] - 1;
+			vertid2 = verticesonedge[ edgeid * 2 + 1 ] - 1;
+
+			add_vertid1 = true;
+			add_vertid2 = true;
+			if ( vertid1 == i ) add_vertid1 = false;
+			if ( vertid2 == i ) add_vertid2 = false;
+
+			for ( int k = 0; k < vertexList.size() && add_vertid1 && add_vertid2; k++ ) {
+				if ( vertid1 == vertexList[k].first ) add_vertid1 = false;
+				if ( vertid2 == vertexList[k].first ) add_vertid2 = false;
+			}
+
+			if ( add_vertid1 ) {
+				connection.first = vertid1;
+				connection.second = dvedge[ edgeid ];
+				vertexList.push_back( connection );
+			}
+
+			if ( add_vertid2 ) {
+				connection.first = vertid2;
+				connection.second = dvedge[ edgeid ];
+				vertexList.push_back( connection );
+			}
+		}
+		graph.push_back( vertexList );
+	}
+
+	delete[] edgesonvertex;
+	delete[] verticesonedge;
+	delete[] dvedge;
+	vertexList.clear();
+
+	return graph;
+}/*}}}*/
+vector< vector< pair<int, double> > > readEdgeGraph(const string inputFilename){/*{{{*/
+	vector< vector< pair<int, double> > > graph;
+	int *verticesonedge, *edgesonvertex;
+	double *dvedge;
+	int vertid, edgeid;
+	bool add_edge;
+	pair<int, double> connection;
+	vector< pair<int, double> > edgeList;
+
+	graph.clear();
+	verticesonedge = new int[nEdges * 2];
+	edgesonvertex = new int[nVertices * vertexDegree];
+	dvedge = new double[nEdges];
+	netcdf_mpas_read_verticesonedge ( inputFilename, nEdges, verticesonedge );
+	netcdf_mpas_read_edgesonvertex ( inputFilename, nVertices, vertexDegree, edgesonvertex );
+	netcdf_mpas_read_dvedge ( inputFilename, nEdges, dvedge );
+
+	for ( int i = 0; i < nEdges; i++ ) {
+		edgeList.clear();
+
+		for ( int j = 0; j < 2; j++ ) {
+			vertid = verticesonedge[ i * 2 + j ] - 1;
+
+			for ( int k = 0; k < vertexDegree; k++ ) {
+				edgeid = edgesonvertex[ vertid * vertexDegree + k ] - 1;
+				add_edge = true;
+
+				for ( int l = 0; l < edgeList.size(); l++ ) {
+					if ( edgeid == edgeList[l].first ) add_edge = false;
+				}
+
+				if ( add_edge ) {
+					connection.first = edgeid;
+					connection.second = dvedge[i];
+					edgeList.push_back( connection );
+				}
+			}
+		}
+		graph.push_back( edgeList );
+	}
+
+	delete[] edgesonvertex;
+	delete[] verticesonedge;
+	delete[] dvedge;
+	edgeList.clear();
+
+	return graph;
+}/*}}}*/
 int resetFeatureInfo(){/*{{{*/
+	connectivityGraph.clear();
+
+	seedPoints.clear();
+
 	regionPolygons.clear();
 	regionNames.clear();
 	regionsInGroup.clear();
 	regionGroupNames.clear();
+
+	transectPoints.clear();
+	transectNames.clear();
+	transectsInGroup.clear();
+	transectGroupNames.clear();
+
 	polygonConstants.clear();
 	polygonMultiples.clear();
 	pointLocations.clear();
@@ -361,12 +934,15 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 	string groupName, tempGroupName;
 	vector<int> pointIndices;
 	vector<int> regionIndices;
+	vector<int> transectIndices;
 	vector<pnt> regionVertices;
+	vector<pnt> transectVertices;
 	vector< vector<pnt> > polygonList;
+	vector< vector<pnt> > lineSegList;
+	vector< tuple<string, string, int> > properties;
 	bool addGroupToRegList = true;
+	bool addGroupToTrnList = true;
 	bool addGroupToPntList = true;
-	bool addRegToGroup;
-	bool createAllRegGroup;
 
 	json_file >> root;
 
@@ -385,21 +961,23 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 #endif
 
 	pointIndices.clear();
+	transectIndices.clear();
 	regionIndices.clear();
 
 	for ( int i = 0; i < root["features"].size(); i++ ){
 		Json::Value feature = root["features"][i];
 		string featureName = feature["properties"]["name"].asString();
 
+		// Handle regions
 		if ( feature["properties"]["object"].asString() == "region" ) {
-			bool add_region = true;
+			bool addRegToGroup;
+			bool add_region;
 			int regionIdx, idx;
 
-			for ( str_itr = regionNames.begin(), idx = 0; str_itr != regionNames.end(); str_itr++, idx++){
-				if ( (*str_itr) == featureName ) {
-					add_region = false;
-					regionIdx = idx;
-				}
+			add_region = true;
+			regionIdx = featureIndex( featureName, regionNames );
+			if ( regionIdx >= 0 ) {
+				add_region = false;
 			}
 
 			if ( add_region ) {
@@ -411,6 +989,9 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				regionNames.push_back(featureName);
 
 				Json::Value geometry = feature["geometry"];
+				properties.clear();
+				properties = extractFeatureProperties( feature["properties"] );
+				regionProperties.push_back(properties);
 				Json::Value coordinates = geometry["coordinates"];
 
 				if ( geometry["type"].asString() == "Polygon" ) {
@@ -420,14 +1001,11 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 						double lon = coordinates[0][i][0].asDouble() * M_PI/180.0;
 						double lat = coordinates[0][i][1].asDouble() * M_PI/180.0;
 
-						if ( lon < 0.0 ) {
-							lon = lon + (2.0 * M_PI);
-						}
-
 #ifdef _DEBUG
 						cout << " Added a region vertex: " << lat << ", " << lon << endl;
 #endif
 						pnt point = pntFromLatLon(lat, lon);
+						point.setPositiveLonRange( lonRangePositive );
 						regionVertices.push_back(point);
 					}
 #ifdef _DEBUG
@@ -442,14 +1020,11 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 							double lon = coordinates[i][0][j][0].asDouble() * M_PI/180.0;
 							double lat = coordinates[i][0][j][1].asDouble() * M_PI/180.0;
 
-							if ( lon < 0.0 ) {
-								lon = lon + (2.0 * M_PI);
-							}
-
 #ifdef _DEBUG
 							cout << " Added a region vertex: " << lat << ", " << lon << endl;
 #endif
 							pnt point = pntFromLatLon(lat, lon);
+							point.setPositiveLonRange( lonRangePositive );
 							regionVertices.push_back(point);
 						}
 #ifdef _DEBUG
@@ -491,25 +1066,121 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 
 			}
 
+		// Handle transects
+		} else if ( feature["properties"]["object"].asString() == "transect" ) {
+			bool addTransectToGroup;
+			bool add_transect;
+			int transectIdx, idx;
+
+			add_transect = true;
+			transectIdx = featureIndex( featureName, transectNames );
+			if ( transectIdx != -1 ) {
+				add_transect = false;
+			}
+
+			if ( add_transect ) {
+				lineSegList.clear();
+				transectIdx = transectNames.size();
+
+#ifdef _DEBUG
+				cout << "Adding transect: " << featureName << " with index " << transectIdx << endl;
+#endif
+
+				transectNames.push_back(featureName);
+
+				Json::Value geometry = feature["geometry"];
+				properties.clear();
+				properties = extractFeatureProperties( feature["properties"] );
+				transectProperties.push_back(properties);
+				Json::Value coordinates = geometry["coordinates"];
+
+				if ( geometry["type"].asString() == "LineString" ) {
+					transectVertices.clear();
+
+					for ( int i = 0; i < coordinates.size(); i++ ) {
+						double lon = coordinates[i][0].asDouble() * M_PI/180.0;
+						double lat = coordinates[i][1].asDouble() * M_PI/180.0;
+
+#ifdef _DEBUG
+						cout << " Added a transect vertex: " << lat << ", " << lon << endl;
+#endif
+
+						pnt point = pntFromLatLon(lat, lon);
+						point.setPositiveLonRange( lonRangePositive );
+						transectVertices.push_back(point);
+					}
+
+#ifdef _DEBUG
+					cout << "Added a line segment with: " << coordinates.size() << " vertices" << endl;
+#endif
+					lineSegList.push_back(transectVertices);
+					maxTrnVertices = max(maxTrnVertices, (int)transectVertices.size());
+				} else if ( geometry["type"].asString() == "MultiLineString" ) {
+					for ( int i = 0; i < coordinates.size(); i++ ){
+						transectVertices.clear();
+						for ( int j = 0; j < coordinates[i].size(); j++ ){
+							double lon = coordinates[i][j][0].asDouble() * M_PI/180.0;
+							double lat = coordinates[i][j][1].asDouble() * M_PI/180.0;
+
+#ifdef _DEBUG
+							cout << " Added a transect vertex: " << lat << ", " << lon << endl;
+#endif
+							pnt point = pntFromLatLon(lat, lon);
+							point.setPositiveLonRange( lonRangePositive );
+							transectVertices.push_back(point);
+						}
+
+#ifdef _DEBUG
+						cout << "Added a transect with: " << coordinates[i].size() << " vertices" << endl;
+#endif
+						lineSegList.push_back(transectVertices);
+						maxTrnVertices = max( maxTrnVertices, (int)transectVertices.size() );
+					}
+#ifdef _DEBUG
+					cout << "Added a total of: " << coordinates.size() << " line segments" << endl;
+#endif
+				}
+
+				transectPoints.push_back(lineSegList);
+				maxTrnLines = max(maxTrnLines, (int)lineSegList.size());
+				nTransects = nTransects + 1;
+
+				addTransectToGroup = true;
+				for ( int_itr = transectIndices.begin(); int_itr != transectIndices.end(); int_itr++ ) {
+					if ( transectIdx == (*int_itr) ) {
+						addTransectToGroup = false;
+					}
+				}
+
+				if ( addTransectToGroup ) {
+					transectIndices.push_back(transectIdx);
+				}
+
+				if ( addGroupToTrnList ) {
+					addGroupToTrnList = false;
+					if ( groupName == "enterNameHere" ){
+						tempGroupName = "transectGroup" + to_string( transectGroupNames.size() + 1 );
+						transectGroupNames.push_back(tempGroupName);
+					} else {
+						transectGroupNames.push_back(groupName);
+					}
+				}
+			}
+		// Handle points
 		} else if ( feature["properties"]["object"].asString() == "point" ) {
 			bool addPointToGroup;
-			bool add_point = true;
+			bool add_point;
 			int pointIdx, idx;
 
-			for ( str_itr = pointNames.begin(), idx = 0; str_itr != pointNames.end(); str_itr++, idx++ ) {
-				if ( (*str_itr) == featureName ) {
-					add_point = false;
-					pointIdx = idx;
-				}
+			add_point = true;
+			pointIdx = featureIndex( featureName, pointNames );
+			if ( pointIdx != -1 ) {
+				add_point = false;
 			}
 
 			if ( add_point ) {
 				double lon = feature["geometry"]["coordinates"][0].asDouble() * M_PI/180.0 ;
 				double lat = feature["geometry"]["coordinates"][1].asDouble() * M_PI/180.0;
-
-				if ( lon < 0.0 ) {
-					lon = lon + ( 2.0 * M_PI );
-				}
 
 				pointIdx = pointNames.size();
 
@@ -518,7 +1189,12 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 #endif
 
 				pnt point = pntFromLatLon(lat, lon);
+				point.setPositiveLonRange( lonRangePositive );
 				point.idx = pointIdx;
+
+				properties.clear();
+				properties = extractFeatureProperties( feature["properties"] );
+				regionProperties.push_back(properties);
 
 				pointLocations.push_back(point);
 				pointNames.push_back(featureName);
@@ -559,12 +1235,124 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 		regionsInGroup.push_back(regionIndices);
 	}
 
+
+	if ( (int)transectIndices.size() > 0 ) {
+		maxTransectsInGroup = max(maxTransectsInGroup, (int)transectIndices.size());
+		transectsInGroup.push_back(transectIndices);
+	}
+
 	if ( (int)pointIndices.size() > 0 ) {
 		maxPointsInGroup = max(maxPointsInGroup, (int)pointIndices.size());
 		pointsInGroup.push_back(pointIndices);
 	}
 
 	return 0;
+}/*}}}*/
+int getSeedInfo(const string seedFilename){/*{{{*/
+	ifstream json_file(seedFilename);	
+	Json::Value root;
+
+	json_file >> root;
+
+	json_file.close();
+
+	for ( int i = 0; i < root["features"].size(); i++ ){
+		Json::Value feature = root["features"][i];
+
+		if ( feature["properties"]["object"].asString() == "point" ) {
+			double lon = feature["geometry"]["coordinates"][0].asDouble() * M_PI/180.0 ;
+			double lat = feature["geometry"]["coordinates"][1].asDouble() * M_PI/180.0;
+
+			pnt point = pntFromLatLon(lat, lon);
+			point.setPositiveLonRange( lonRangePositive );
+			point.idx = seedPoints.size();
+
+#ifdef _DEBUG
+			cout << "Adding seed point with index " << seedPoints.size() << endl;
+#endif
+			seedPoints.push_back(point);
+		}
+	}
+
+	return 0;
+}/*}}}*/
+vector< vector< vector<int> > > buildClosestValuesForTransects(const vector< vector< vector<pnt> > > lineSegments, const vector<pnt> staticLocations){/*{{{*/
+	vector< vector< vector<pnt> > >::const_iterator cseg_itr;
+	vector< vector<pnt> >::const_iterator cline_itr;
+	vector<pnt>::const_iterator cpnt_itr;
+	vector< vector< vector<int> > > closestIndices;
+
+	vector<int> minLocPoints;
+	vector< vector<int> > minLocLines;
+
+	double dist, min_dist;
+	int min_loc, idx;;
+
+	closestIndices.clear();
+
+	for ( cseg_itr = lineSegments.begin(); cseg_itr != lineSegments.end(); cseg_itr++ ) {
+		minLocLines.clear();
+
+		for ( cline_itr = (*cseg_itr).begin(); cline_itr != (*cseg_itr).end(); cline_itr++ ) {
+			minLocPoints.clear();
+			for ( cpnt_itr = (*cline_itr).begin(); cpnt_itr != (*cline_itr).end(); cpnt_itr++ ){
+				min_dist = 4.0 * M_PI;
+				for ( idx = 0; idx < staticLocations.size(); idx++ ){
+					dist = (*cpnt_itr).dotForAngle( staticLocations[idx] );
+
+					if ( dist < min_dist ) {
+						min_dist = dist;
+						min_loc = idx;
+					}
+				}
+
+				minLocPoints.push_back(min_loc);
+			}
+
+			minLocLines.push_back(minLocPoints);
+		}
+		closestIndices.push_back(minLocLines);
+	}
+
+	return closestIndices;
+}/*}}}*/
+vector< vector<int> > buildLinePaths( const vector< vector< vector<int> > > closestIndices, const vector< vector< pair<int, double> > > graph){/*{{{*/
+	vector< vector< vector<int> > >::const_iterator cseg_itr;
+	vector< vector<int> >::const_iterator cline_itr;
+	vector< vector<int> > pathIndices ;
+
+	vector<int> full_path, partial_path;
+
+	int i, j;
+	int start, end;
+
+	partial_path.clear();
+	pathIndices.clear();
+
+	for ( cseg_itr = closestIndices.begin(); cseg_itr != closestIndices.end(); cseg_itr++ ) {
+		full_path.clear();
+		for ( cline_itr = (*cseg_itr).begin(); cline_itr != (*cseg_itr).end(); cline_itr++ ) {
+			full_path.push_back( (*cline_itr).at(0) );
+			for ( i = 0; i < (*cline_itr).size() - 1; i++ ){
+				start = (*cline_itr).at( i );
+				end = (*cline_itr).at( i + 1 );
+				partial_path = walkGraph( graph, start, end );
+
+				if ( full_path[ full_path.size() - 1 ] != partial_path[0] ) {
+					full_path.push_back( partial_path[0] );
+				}
+
+				for ( j = 1; j < partial_path.size(); j++ ) {
+					full_path.push_back( partial_path[j] );
+				}
+
+				partial_path.clear();
+			}
+		}
+		pathIndices.push_back(full_path);
+	}
+
+	return pathIndices;
 }/*}}}*/
 int buildPolygonValues(){/*{{{*/
 	int iReg, iPoly, i, j;
@@ -619,6 +1407,10 @@ int buildMasks(vector<pnt> locations, int *masks){/*{{{*/
 
 	int iReg, iPoly;
 	int iLoc, i, j, idx;
+
+	if ( regionPolygons.size() <= 0 ) {
+		return 0;
+	}
 
 	#pragma omp parallel for default(shared) private(locLat, locLon, iReg, reg_itr, inReg, poly_itr, iPoly, oddSides, i, j, vert1Lat, vert1Lon, vert2Lat, vert2Lon)
 	for ( iLoc = 0; iLoc < locations.size(); iLoc++ ){
@@ -738,7 +1530,7 @@ int outputMaskDimensions( const string outputFilename ){/*{{{*/
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
 	
-	// open the scvtmesh file
+	// open the mpas file
 	NcFile grid(outputFilename.c_str(), NcFile::Replace, NULL, 0, NcFile::Offset64Bits);
 
 	// check to see if the file was opened
@@ -750,11 +1542,31 @@ int outputMaskDimensions( const string outputFilename ){/*{{{*/
 	// write dimensions
 	if (!(tempDim = grid.add_dim("nCells", nCells))) return NC_ERR;
 	if (!(tempDim = grid.add_dim("nVertices", nVertices))) return NC_ERR;
+	if (!(tempDim = grid.add_dim("nEdges", nEdges))) return NC_ERR;
 
 	if ( nRegions > 0 ) {
 		if (!(tempDim = grid.add_dim("nRegions", nRegions))) return NC_ERR;
 		if (!(tempDim = grid.add_dim("nRegionGroups", regionGroupNames.size()))) return NC_ERR;
 		if (!(tempDim = grid.add_dim("maxRegionsInGroup", maxRegionsInGroup))) return NC_ERR;
+	}
+
+	if ( nTransects > 0 ) {
+		for ( int i = 0; i < cellPaths.size(); i++ ) {
+			maxCellsInTransect = max( maxCellsInTransect, (int)cellPaths[i].size() );
+		}
+		for ( int i = 0; i < vertexPaths.size(); i++ ) {
+			maxVerticesInTransect = max( maxVerticesInTransect, (int)vertexPaths[i].size() );
+		}
+		for ( int i = 0; i < edgePaths.size(); i++ ) {
+			maxEdgesInTransect = max( maxEdgesInTransect, (int)edgePaths[i].size() );
+		}
+
+		if (!(tempDim = grid.add_dim("nTransects", nTransects))) return NC_ERR;
+		if (!(tempDim = grid.add_dim("nTransectGroups", transectGroupNames.size()))) return NC_ERR;
+		if (!(tempDim = grid.add_dim("maxTransectsInGroup", maxTransectsInGroup))) return NC_ERR;
+		if (!(tempDim = grid.add_dim("maxCellsInTransect", maxCellsInTransect))) return NC_ERR;
+		if (!(tempDim = grid.add_dim("maxVerticesInTransect", maxVerticesInTransect))) return NC_ERR;
+		if (!(tempDim = grid.add_dim("maxEdgesInTransect", maxEdgesInTransect))) return NC_ERR;
 	}
 
 	if ( nPoints > 0 ) {
@@ -784,7 +1596,7 @@ int outputMaskAttributes( const string outputFilename, const string inputFilenam
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
 	
-	// open the scvtmesh file
+	// open the mpas file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
 
 	// check to see if the file was opened
@@ -842,7 +1654,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
 	
-	// open the scvtmesh file
+	// open the mpas file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
 	
 	// check to see if the file was opened
@@ -851,6 +1663,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 	// fetch dimensions
 	NcDim *nCellsDim = grid.get_dim( "nCells" );
 	NcDim *nVerticesDim = grid.get_dim( "nVertices" );
+	NcDim *nEdgesDim = grid.get_dim( "nEdges" );
 	NcDim *StrLenDim = grid.get_dim( "StrLen" );
 
 	int StrLen = StrLenDim->size();
@@ -858,12 +1671,20 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 	//Define nc variables
 	NcVar *tempVar;
 
+	string fieldName;
 	double *x, *y, *z, *lat, *lon;
 	int *indices;
 	int *counts;
 	char *names;
+	double *double_vals;
+	int *int_vals;
+	char *char_vals;
 	int i, j, idx;
 
+	if ( seedPoints.size() > 0 ) {
+		if (!(tempVar = grid.add_var("cellSeedMask", ncInt, nCellsDim))) return NC_ERR; 
+		if (!tempVar->put(&cellSeedMask[0], nCells)) return NC_ERR;
+	}
 
 	if ( nRegions > 0 ) {
 		NcDim *nRegionsDim = grid.get_dim( "nRegions" );
@@ -954,6 +1775,268 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		delete[] indices;
 		delete[] counts;
 		delete[] names;
+
+		// Write out region properties:
+		for ( i = 0; i < regionProperties[0].size(); i++ ) {
+			fieldName = get<0>( regionProperties[0][i] ) + "Regions";
+
+			if ( get<2>( regionProperties[0][i] ) == num_double ) {
+				double_vals = new double[nRegions];
+
+				for ( j = 0; j < nRegions; j++ ) {
+					double_vals[j] = 0.0;
+				}
+
+				for ( j = 0; j < regionProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < regionProperties[j].size(); k++ ) {
+						if ( get<0>( regionProperties[0][i] ) == get<0>( regionProperties[j][k] ) ) {
+							stringstream convert( get<1>( regionProperties[j][k] ) );
+							convert >> double_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncDouble, nRegionsDim))) return NC_ERR;
+				if (!tempVar->put(double_vals, nRegions)) return NC_ERR;
+
+				delete[] double_vals;
+			} else if ( get<2>( regionProperties[0][i] ) == num_int ) {
+				int_vals = new int[nRegions];
+
+				for ( j = 0; j < nRegions; j++ ) {
+					int_vals[j] = 0;
+				}
+
+				for ( j = 0; j < regionProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < regionProperties[j].size(); k++ ) {
+						if ( get<0>( regionProperties[0][i] ) == get<0>( regionProperties[j][k] ) ) {
+							stringstream convert( get<1>( regionProperties[j][k] ) );
+							convert >> int_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncInt, nRegionsDim))) return NC_ERR;
+				if (!tempVar->put(int_vals, nRegions)) return NC_ERR;
+
+				delete[] int_vals;
+			} else if ( get<2>( regionProperties[0][i] ) == text ) {
+				char_vals = new char[nRegions * StrLen];
+
+				for ( j = 0; j < nRegions; j++ ) {
+					char_vals[j * StrLen] = '\0';
+				}
+
+				for ( j = 0; j < regionProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < regionProperties[j].size(); k++ ) {
+						if ( get<0>( regionProperties[0][i] ) == get<0>( regionProperties[j][k] ) ) {
+							snprintf(&char_vals[j * StrLen], StrLen, "%s", get<1>( regionProperties[j][k] ).c_str() );
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncChar, nRegionsDim, StrLenDim))) return NC_ERR;
+				if (!tempVar->put(char_vals, nRegions, StrLen)) return NC_ERR;
+
+				delete[] char_vals;
+			}
+		}
+	}
+
+	if ( nTransects > 0 ) {
+		NcDim *nTransectsDim = grid.get_dim( "nTransects" );
+		NcDim *nTransectGroupsDim = grid.get_dim( "nTransectGroups" );
+		NcDim *maxTransectsInGroupDim = grid.get_dim( "maxTransectsInGroup" );
+		NcDim *maxCellsInTransectDim = grid.get_dim( "maxCellsInTransect" );
+		NcDim *maxVerticesInTransectDim = grid.get_dim( "maxVerticesInTransect" );
+		NcDim *maxEdgesInTransectDim = grid.get_dim( "maxEdgesInTransect" );
+		int nTransectGroups = nTransectGroupsDim->size();
+
+		// Write out cell transect masks
+		indices = new int[nCells * nTransects];
+		for ( i = 0; i < nCells; i++ ){
+			for (j = 0; j < nTransects; j++ ) {
+				indices[i * nTransects + j ] = 0;
+			}
+		}
+
+		for ( i = 0; i < cellPaths.size(); i++ ) {
+			for ( int_itr = cellPaths[i].begin(); int_itr != cellPaths[i].end(); int_itr++ ) {
+				indices[ (*int_itr) * nTransects + i ] = 1;
+			}
+		}
+
+		if (!(tempVar = grid.add_var("transectCellMasks", ncInt, nCellsDim, nTransectsDim))) return NC_ERR;
+		if (!tempVar->put(indices, nCells, nTransects)) return NC_ERR;
+
+		delete[] indices;
+
+		// Write out cell ID list
+		indices = new int[nTransects * maxCellsInTransect];
+		for ( i = 0; i < nTransects * maxCellsInTransect; i++ ) {
+			indices[i] = 0;
+		}
+
+		for ( i = 0; i < cellPaths.size(); i++ ) {
+			for (j = 0; j < cellPaths[i].size(); j++ ) {
+				indices[i * maxCellsInTransect + j] = cellPaths[i][j] + 1;
+			}
+		}
+
+		if (!(tempVar = grid.add_var("transectCellGlobalIDs", ncInt, nTransectsDim, maxCellsInTransectDim))) return NC_ERR;
+		if (!tempVar->put(indices, nTransects, maxCellsInTransect)) return NC_ERR;
+
+		delete[] indices;
+
+		// Write out vertex transect masks
+		indices = new int[nVertices * nTransects];
+		for ( i = 0; i < nVertices; i++ ){
+			for (j = 0; j < nTransects; j++ ) {
+				indices[i * nTransects + j ] = 0;
+			}
+		}
+
+		for ( i = 0; i < vertexPaths.size(); i++ ) {
+			for ( int_itr = vertexPaths[i].begin(); int_itr != vertexPaths[i].end(); int_itr++ ) {
+				indices[ (*int_itr) * nTransects + i ] = 1;
+			}
+		}
+
+		if (!(tempVar = grid.add_var("transectVertexMasks", ncInt, nVerticesDim, nTransectsDim))) return NC_ERR;
+		if (!tempVar->put(indices, nVertices, nTransects)) return NC_ERR;
+
+		delete[] indices;
+
+		// Write out vertex ID list
+		indices = new int[nTransects * maxVerticesInTransect];
+		for ( i = 0; i < nTransects * maxVerticesInTransect; i++ ) {
+			indices[i] = 0;
+		}
+
+		for ( i = 0; i < vertexPaths.size(); i++ ) {
+			for (j = 0; j < vertexPaths[i].size(); j++ ) {
+				indices[i * maxVerticesInTransect + j] = vertexPaths[i][j] + 1;
+			}
+		}
+
+		if (!(tempVar = grid.add_var("transectVertexGlobalIDs", ncInt, nTransectsDim, maxVerticesInTransectDim))) return NC_ERR;
+		if (!tempVar->put(indices, nTransects, maxVerticesInTransect)) return NC_ERR;
+
+		delete[] indices;
+
+		// Write out edge transect masks
+		indices = new int[nEdges * nTransects];
+		for ( i = 0; i < nEdges; i++ ){
+			for (j = 0; j < nTransects; j++ ) {
+				indices[i * nTransects + j ] = 0;
+			}
+		}
+
+		for ( i = 0; i < edgePaths.size(); i++ ) {
+			for ( int_itr = edgePaths[i].begin(); int_itr != edgePaths[i].end(); int_itr++ ) {
+				indices[ (*int_itr) * nTransects + i ] = 1;
+			}
+		}
+
+		if (!(tempVar = grid.add_var("transectEdgeMasks", ncInt, nEdgesDim, nTransectsDim))) return NC_ERR;
+		if (!tempVar->put(indices, nEdges, nTransects)) return NC_ERR;
+
+		delete[] indices;
+
+		// Write out edge ID list
+		indices = new int[nTransects * maxEdgesInTransect];
+		for ( i = 0; i < nTransects * maxEdgesInTransect; i++ ) {
+			indices[i] = 0;
+		}
+
+		for ( i = 0; i < edgePaths.size(); i++ ) {
+			for (j = 0; j < edgePaths[i].size(); j++ ) {
+				indices[i * maxEdgesInTransect + j] = edgePaths[i][j] + 1;
+			}
+		}
+
+		if (!(tempVar = grid.add_var("transectEdgeGlobalIDs", ncInt, nTransectsDim, maxEdgesInTransectDim))) return NC_ERR;
+		if (!tempVar->put(indices, nTransects, maxEdgesInTransect)) return NC_ERR;
+
+		delete[] indices;
+
+		// Write out transect properties:
+		for ( i = 0; i < transectProperties[0].size(); i++ ) {
+			fieldName = get<0>( transectProperties[0][i] ) + "Transects";
+
+			if ( get<2>( transectProperties[0][i] ) == num_double ) {
+				double_vals = new double[nTransects];
+
+				for ( j = 0; j < nTransects; j++ ) {
+					double_vals[j] = 0.0;
+				}
+
+				for ( j = 0; j < transectProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < transectProperties[j].size(); k++ ) {
+						if ( get<0>( transectProperties[0][i] ) == get<0>( transectProperties[j][k] ) ) {
+							stringstream convert( get<1>( transectProperties[j][k] ) );
+							convert >> double_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncDouble, nTransectsDim))) return NC_ERR;
+				if (!tempVar->put(double_vals, nTransects)) return NC_ERR;
+
+				delete[] double_vals;
+			} else if ( get<2>( transectProperties[0][i] ) == num_int ) {
+				int_vals = new int[nTransects];
+
+				for ( j = 0; j < nTransects; j++ ) {
+					int_vals[j] = 0;
+				}
+
+				for ( j = 0; j < transectProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < transectProperties[j].size(); k++ ) {
+						if ( get<0>( transectProperties[0][i] ) == get<0>( transectProperties[j][k] ) ) {
+							stringstream convert( get<1>( transectProperties[j][k] ) );
+							convert >> int_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncInt, nTransectsDim))) return NC_ERR;
+				if (!tempVar->put(int_vals, nTransects)) return NC_ERR;
+
+				delete[] int_vals;
+			} else if ( get<2>( transectProperties[0][i] ) == text ) {
+				char_vals = new char[nTransects * StrLen];
+
+				for ( j = 0; j < nTransects; j++ ) {
+					char_vals[j * StrLen] = '\0';
+				}
+
+				for ( j = 0; j < transectProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < transectProperties[j].size(); k++ ) {
+						if ( get<0>( transectProperties[0][i] ) == get<0>( transectProperties[j][k] ) ) {
+							snprintf(&char_vals[j * StrLen], StrLen, "%s", get<1>( transectProperties[j][k] ).c_str() );
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncChar, nTransectsDim, StrLenDim))) return NC_ERR;
+				if (!tempVar->put(char_vals, nTransects, StrLen)) return NC_ERR;
+
+				delete[] char_vals;
+			}
+		}
 	}
 
 	if ( nPoints > 0 ) {
@@ -1049,8 +2132,10 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			x[i] = (*pnt_itr).x;
 			y[i] = (*pnt_itr).y;
 			z[i] = (*pnt_itr).z;
+			if ( !lonRangePositive ) (*pnt_itr).setPositiveLonRange(true);
 			lat[i] = (*pnt_itr).getLat();
 			lon[i] = (*pnt_itr).getLon();
+			if ( !lonRangePositive ) (*pnt_itr).setPositiveLonRange(lonRangePositive);
 		}
 
 		if (!(tempVar = grid.add_var("xPoint", ncDouble, nPointsDim))) return NC_ERR; 
@@ -1068,6 +2153,78 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		delete[] z;
 		delete[] lat;
 		delete[] lon;
+
+		// Write out point properties:
+		for ( i = 0; i < pointProperties[0].size(); i++ ) {
+			fieldName = get<0>( pointProperties[0][i] ) + "Points";
+
+			if ( get<2>( pointProperties[0][i] ) == num_double ) {
+				double_vals = new double[nPoints];
+
+				for ( j = 0; j < nPoints; j++ ) {
+					double_vals[j] = 0.0;
+				}
+
+				for ( j = 0; j < pointProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < pointProperties[j].size(); k++ ) {
+						if ( get<0>( pointProperties[0][i] ) == get<0>( pointProperties[j][k] ) ) {
+							stringstream convert( get<1>( pointProperties[j][k] ) );
+							convert >> double_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncDouble, nPointsDim))) return NC_ERR;
+				if (!tempVar->put(double_vals, nPoints)) return NC_ERR;
+
+				delete[] double_vals;
+			} else if ( get<2>( pointProperties[0][i] ) == num_int ) {
+				int_vals = new int[nPoints];
+
+				for ( j = 0; j < nPoints; j++ ) {
+					int_vals[j] = 0;
+				}
+
+				for ( j = 0; j < pointProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < pointProperties[j].size(); k++ ) {
+						if ( get<0>( pointProperties[0][i] ) == get<0>( pointProperties[j][k] ) ) {
+							stringstream convert( get<1>( pointProperties[j][k] ) );
+							convert >> int_vals[j];
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncInt, nPointsDim))) return NC_ERR;
+				if (!tempVar->put(int_vals, nPoints)) return NC_ERR;
+
+				delete[] int_vals;
+			} else if ( get<2>( pointProperties[0][i] ) == text ) {
+				char_vals = new char[nPoints * StrLen];
+
+				for ( j = 0; j < nPoints; j++ ) {
+					char_vals[j * StrLen] = '\0';
+				}
+
+				for ( j = 0; j < pointProperties.size(); j++ ) {
+					// Find the target propery for this region:
+
+					for ( int k = 0; k < pointProperties[j].size(); k++ ) {
+						if ( get<0>( pointProperties[0][i] ) == get<0>( pointProperties[j][k] ) ) {
+							snprintf(&char_vals[j * StrLen], StrLen, "%s", get<1>( pointProperties[j][k] ).c_str() );
+						}
+					}
+				}
+
+				if (!(tempVar = grid.add_var(fieldName.c_str(), ncChar, nPointsDim, StrLenDim))) return NC_ERR;
+				if (!tempVar->put(char_vals, nPoints, StrLen)) return NC_ERR;
+
+				delete[] char_vals;
+			}
+		}
 	}
 	
 	grid.close();

@@ -16,10 +16,11 @@
 
 using namespace std;
 
+enum { merge, invert, preserve };
+
 int nCells, nVertices, nEdges, vertexDegree, maxEdges;
 bool spherical, periodic;
 bool cullMasks = false;
-bool invertMask = false;
 double sphere_radius, xPeriod, yPeriod;
 string in_history = "";
 string in_file_id = "";
@@ -41,7 +42,7 @@ vector<double> areaCell;
 
 /* Input/Marking Functions {{{ */
 int readGridInput(const string inputFilename);
-int mergeCellMasks(const string masksFilename);
+int mergeCellMasks(const string masksFilename, const int maskOp);
 int markCells();
 int markVertices();
 int markEdges();
@@ -56,10 +57,10 @@ int mapAndOutputEdgeFields(const string inputFilename, const string outputFilena
 int mapAndOutputVertexFields(const string inputFilename, const string outputFilename);
 /*}}}*/
 
-void print_usage(){
+void print_usage(){/*{{{*/
 	cout << endl << endl;
 	cout << "Usage:" << endl;
-	cout << "\tMpasCellCuller.x [input_name] [output_name] [[-m/-i] masks_name]" << endl;
+	cout << "\tMpasCellCuller.x [input_name] [output_name] [[-m/-i/-p] masks_name]" << endl;
 	cout << endl;
 	cout << "\t\tinput_name:" << endl;
 	cout << "\t\t\tThis argument specifies the input MPAS mesh." << endl;
@@ -71,8 +72,9 @@ void print_usage(){
 	cout << "\t\t\tThis argument controls how a set of masks is used when culling a mesh." << endl;
 	cout << "\t\t\tThe -m argument applies a mask to cull based on (i.e. where the mask is 1, the mesh will be culled)." << endl;
 	cout << "\t\t\tThe -i argument applies the inverse mask to cull based on (i.e. where the mask is 0, the mesh will be culled)." << endl;
+	cout << "\t\t\tThe -p argument forces any marked cells to not be culled." << endl;
 	cout << "\t\t\tIf this argument is specified, the masks_name argument is required" << endl;
-}
+}/*}}}*/
 
 string gen_random(const int len);
 
@@ -80,7 +82,8 @@ int main ( int argc, char *argv[] ) {
 	int error;
 	string out_name = "culled_mesh.nc";
 	string in_name = "mesh.nc";
-	string mask_name = "masks.nc";
+	vector<string> mask_names;
+	vector<int> mask_ops;
 
 	cout << endl << endl;
 	cout << "************************************************************" << endl;
@@ -121,24 +124,33 @@ int main ( int argc, char *argv[] ) {
 		in_name = argv[1];
 		out_name = argv[2];
 	}
-	else if ( argc == 4 )
+	else if ( argc >= 4 && argc % 2 == 0 )
 	{
 		cout << "\n";
 		cout << " ERROR: Incorrect number of arguments specified. See usage statement" << endl;
 		print_usage();
 		exit(1);
 	}
-	else if ( argc == 5 )
+	else
 	{
 		cullMasks = true;
 		in_name = argv[1];
 		out_name = argv[2];
-		if ( strcmp(argv[3], "-m") == 0 ){
-			invertMask = false;
-		} else if ( strcmp(argv[3], "-i") == 0 ){
-			invertMask = true;
+
+		for ( int i = 3; i < argc; i+=2 ) {
+			if (strcmp(argv[i], "-m") == 0 ) {
+				mask_ops.push_back(merge);
+			} else if ( strcmp(argv[i], "-i") == 0 ){
+				mask_ops.push_back(invert);
+			} else if ( strcmp(argv[i], "-p") == 0 ){
+				mask_ops.push_back(preserve);
+			} else {
+				cout << " ERROR: Invalid option passed on the command line " << argv[i] << ". Exiting..." << endl;
+				exit(1);
+			}
+
+			mask_names.push_back( argv[i+1] );
 		}
-		mask_name = argv[4];
 	}
 
 
@@ -155,8 +167,10 @@ int main ( int argc, char *argv[] ) {
 
 	if ( cullMasks ) {
 		cout << "Reading in mask information." << endl;
-		error = mergeCellMasks(mask_name);
-		if(error) return 1;
+		for ( int i = 0; i < mask_names.size(); i++ ) {
+			error = mergeCellMasks(mask_names[i], mask_ops[i]);
+			if(error) return 1;
+		}
 	}
 
 	cout << "Marking cells for removal." << endl;
@@ -348,35 +362,54 @@ int readGridInput(const string inputFilename){/*{{{*/
 
 	return 0;
 }/*}}}*/
-int mergeCellMasks(const string masksFilename){/*{{{*/
-	int nRegions;
-	int *regionCellMasks, *flattenedMask;
+int mergeCellMasks(const string masksFilename, const int maskOp){/*{{{*/
+	int nRegions, nTransects;
+	int *regionCellMasks, *transectCellMasks, *cellSeedMask, *flattenedMask;
 	int i, j;
 
 	nRegions = netcdf_mpas_read_dim(masksFilename, "nRegions");
+	nTransects = netcdf_mpas_read_dim(masksFilename, "nTransects");
 
 	regionCellMasks = new int[nCells*nRegions];
+	transectCellMasks = new int[nCells*nTransects];
+	cellSeedMask = new int[nCells];
 	flattenedMask = new int[nCells];
 
 	netcdf_mpas_read_regioncellmasks(masksFilename, nCells, nRegions, regionCellMasks);
+	netcdf_mpas_read_transectcellmasks(masksFilename, nCells, nTransects, transectCellMasks);
+	netcdf_mpas_read_cellseedmask(masksFilename, nCells, cellSeedMask);
 
 	for ( i = 0; i < nCells; i++){
-		flattenedMask[i] = 0;
+		flattenedMask[i] = cellSeedMask[i];
 		for ( j = 0; j < nRegions; j++){
 			flattenedMask[i] = max(flattenedMask[i], regionCellMasks[i * nRegions + j]);
 		}
-	}
 
-	if ( invertMask ) {
-		for (i = 0; i < nCells; i++){
-			flattenedMask[i] = (flattenedMask[i] + 1) % 2;
+		for ( j = 0; j < nTransects; j++ ) {
+			flattenedMask[i] = max(flattenedMask[i], transectCellMasks[i * nTransects + j]);
 		}
 	}
 
-	for ( i = 0; i < nCells; i++ ){
-		cullCell[i] = max(cullCell[i], flattenedMask[i]);
+	if ( maskOp == invert || maskOp == merge ) {
+		if ( maskOp == invert ) {
+			for (i = 0; i < nCells; i++){
+				flattenedMask[i] = (flattenedMask[i] + 1) % 2;
+			}
+		}
+
+		for ( i = 0; i < nCells; i++ ){
+			cullCell[i] = max(cullCell[i], flattenedMask[i]);
+		}
+	} else if ( maskOp == preserve ) {
+		for ( i = 0; i < nCells; i++ ) {
+			if ( flattenedMask[i] && cullCell[i] ) {
+				cullCell[i] = 0;
+			}
+		}
 	}
 
+	delete[] cellSeedMask;
+	delete[] transectCellMasks;
 	delete[] regionCellMasks;
 	delete[] flattenedMask;
 

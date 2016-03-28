@@ -8,12 +8,14 @@ class pnt {/*{{{*/
 		double x, y, z;
 		double lat, lon;
 		int idx;
+		bool positiveLonRange;
 
 		pnt(double x_, double y_, double z_, int idx_) {
 			(*this).x = x_;
 			(*this).y = y_;
 			(*this).z = z_;
 			(*this).idx = idx_;
+			(*this).positiveLonRange = true;
 			(*this).buildLat();
 			(*this).buildLon();
 		}
@@ -23,6 +25,7 @@ class pnt {/*{{{*/
 			(*this).y = y_;
 			(*this).z = z_;
 			(*this).idx = 0;
+			(*this).positiveLonRange = true;
 			(*this).buildLat();
 			(*this).buildLon();
 		}
@@ -32,6 +35,7 @@ class pnt {/*{{{*/
 			(*this).y = 0.0;
 			(*this).z = 0.0;
 			(*this).idx = 0;
+			(*this).positiveLonRange = true;
 			(*this).lat = 0.0;
 			(*this).lon = 0.0;
 		}
@@ -212,6 +216,10 @@ class pnt {/*{{{*/
 			y = y_;
 			z = z_;
 		}/*}}}*/
+		void setPositiveLonRange(bool value){/*{{{*/
+			(*this).positiveLonRange = value;
+			(*this).buildLon();
+		}/*}}}*/
 		double getLat() const {/*{{{*/
 			return (*this).lat;
 		}/*}}}*/
@@ -229,8 +237,12 @@ class pnt {/*{{{*/
 
 			lon = atan2(y, x);
 
-			if(lon < 0.0) {
-				lon = 2.0*M_PI + lon;
+			// If the prime meridian is the minimum, this means the degree
+			// range is 0-360, so we need to translate.
+			if ( (*this).positiveLonRange ) {
+				if(lon < 0.0) {
+					lon = 2.0*M_PI + lon;
+				}
 			}
 
 			(*this).lon = lon;
