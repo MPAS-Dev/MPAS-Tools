@@ -24,7 +24,7 @@ Optional modules:
 progressbar
 """
 from pyevtk.vtk import VtkFile, VtkPolyData
- 
+
 import sys, os, glob
 import numpy as np
 
@@ -41,7 +41,7 @@ except:
 def setup_time_indices(fn_pattern):#{{{
     # Build file list and time indices
     file_list = sorted(glob.glob(fn_pattern))
-    
+
     local_indices = []
     file_names = []
 
@@ -78,7 +78,7 @@ def setup_time_indices(fn_pattern):#{{{
 
     if use_progress_bar:
         time_bar.finish()
-        
+
     return (local_indices, file_names)
 #}}}
 
@@ -87,7 +87,7 @@ def setup_dimension_values_and_sort_vars( time_series_file, mesh_file, variable_
     cellVars = []
     vertexVars = []
     edgeVars = []
-    
+
     if variable_list == 'all':
         variables = []
         files = [time_series_file]
@@ -104,7 +104,6 @@ def setup_dimension_values_and_sort_vars( time_series_file, mesh_file, variable_
                     variables.append(str(var))
         # make sure the variables are unique
         variables = list(set(variables))
-        print variables
     else:
         variables = variable_list.split(',')
 
@@ -194,9 +193,8 @@ def build_cell_lists( nc_file, blocking ):#{{{
 
     nEdgesOnCell_var = nc_file.variables['nEdgesOnCell']
     verticesOnCell_var = nc_file.variables['verticesOnCell']
-    
+
     offsets = np.cumsum(nEdgesOnCell_var[:], dtype=int)
-    print offsets[0], offsets[-1]
     connectivity = np.zeros(offsets[-1], dtype=int)
     valid_mask = np.ones(nCells,bool)
 
@@ -216,20 +214,20 @@ def build_cell_lists( nc_file, blocking ):#{{{
 
         nEdgesOnCell = nEdgesOnCell_var[blockStart:blockEnd]
         verticesOnCell = verticesOnCell_var[blockStart:blockEnd,:] - 1
-        
+
         for idx in range(blockCount):
             cellCount = nEdgesOnCell[idx]
             connectivity[outIndex:outIndex+cellCount] = verticesOnCell[idx,0:cellCount]
             outIndex += cellCount
- 
+
         del nEdgesOnCell
         del verticesOnCell
         if use_progress_bar:
             cell_bar.update(iBlock)
-    
+
     if use_progress_bar:
         cell_bar.finish()
-    
+
     return (connectivity, offsets, valid_mask)
 
 #}}}
@@ -239,7 +237,7 @@ def build_dual_cell_lists( nc_file, blocking ):#{{{
     vertexDegree = len(nc_file.dimensions['vertexDegree'])
 
     cellsOnVertex = nc_file.variables['cellsOnVertex'][:,:]-1
-    
+
     valid_mask = np.all(cellsOnVertex >= 0, axis=1)
     connectivity = cellsOnVertex[valid_mask,:].ravel()
     validCount = np.count_nonzero(valid_mask)
@@ -257,7 +255,7 @@ def build_edge_cell_lists( nc_file, blocking ):#{{{
     verticesOnEdge_var = nc_file.variables['verticesOnEdge']
 
     valid_mask = np.zeros(nEdges,bool)
-    
+
     connectivity = []
     offsets = []
 
@@ -277,7 +275,7 @@ def build_edge_cell_lists( nc_file, blocking ):#{{{
 
         verticesOnEdge = verticesOnEdge_var[blockStart:blockEnd,:] - 1
         cellsOnEdge = cellsOnEdge_var[blockStart:blockEnd,:] - 1
-        
+
         vertices = np.zeros((blockCount,4))
         vertices[:,0] = cellsOnEdge[:,0]
         vertices[:,1] = verticesOnEdge[:,0]
@@ -287,7 +285,7 @@ def build_edge_cell_lists( nc_file, blocking ):#{{{
         vertices[:,1] += nCells
         vertices[:,3] += nCells
         validCount = np.sum(np.array(valid,int),axis=1)
- 
+
         for idx in range(blockCount):
             if(validCount[idx] < 3):
                 continue
@@ -296,11 +294,11 @@ def build_edge_cell_lists( nc_file, blocking ):#{{{
             connectivity.extend(list(verts))
             offset += validCount[idx]
             offsets.append(offset)
-       
+
         del cellsOnEdge
         del verticesOnEdge
         del vertices, valid, validCount
-        
+
         if use_progress_bar:
             edge_bar.update(iBlock)
 
@@ -324,9 +322,9 @@ def build_location_list_xyz( nc_file, xName, yName, zName, output_32bit ):#{{{
         Y = np.array(Y,'f4')
         Z = np.array(Z,'f4')
     return (X,Y,Z)
-    
+
 #}}}
-    
+
 def build_field_time_series( local_time_indices, file_names, mesh_file, blocking, all_dim_vals,
                              blockDimName, variable_list, vertices, connectivity, offsets,
                              valid_mask, output_32bit, combine_output ):#{{{
@@ -369,13 +367,13 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
 
     if len(variable_list) == 0:
         return
-    
+
     if output_32bit:
         outType = 'float32'
     else:
         outType = 'float64'
-        
-                    
+
+
     # Get dimension info to allocate the size of Colors
     time_series_file = NetCDFFile(file_names[0], 'r')
 
@@ -405,13 +403,13 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
             var_has_time_dim[iVar] = 'Time' in time_series_file.variables[var_name].dimensions
 
     time_series_file.close()
-    
+
     if np.any(var_has_time_dim) or combine_output:
         try:
             os.makedirs('vtk_files/time_series')
         except OSError:
             pass
-    
+
     # Output time series
     if use_progress_bar:
         widgets = ['Writing time series: ', Percentage(), ' ', Bar(), ' ', ETA()]
@@ -457,7 +455,7 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
                 nc_file = mesh_file
             else:
                 nc_file = time_series_file
-           
+
             field_var = nc_file.variables[var_name]
 
             field_ndims = len(dim_vals)
@@ -476,7 +474,7 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
 
                 if var_has_time_dim[iVar]:
                     assert(field_ndims != 1)
-                    
+
                     if field_ndims == 2:
                         field_block = field_var[local_time_indices[time_index], blockStart:blockEnd]
                     elif field_ndims == 3:
