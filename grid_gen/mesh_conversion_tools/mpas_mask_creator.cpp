@@ -26,6 +26,7 @@
 
 using namespace std;
 
+bool lonRangePositive = false;
 int nCells, nVertices, nEdges;
 int maxEdges, vertexDegree;
 int nRegions = 0;
@@ -136,13 +137,16 @@ int outputMaskFields( const string outputFilename);
 void print_usage() {/*{{{*/
 	cout << endl << endl;
 	cout << " USAGE:" << endl;
-	cout << "\tMpasMaskCreator.x in_file out_file [ [-f/-s] file.geojson ]" << endl;
+	cout << "\tMpasMaskCreator.x in_file out_file [ [-f/-s] file.geojson ] [--positive_lon]" << endl;
 	cout << "\t\tin_file: This argument defines the input file that masks will be created for." << endl;
 	cout << "\t\tout_file: This argument defines the file that masks will be written to." << endl;
 	cout << "\t\t-s file.geojson: This argument pair defines a set of points (from the geojson point definition)" << endl;
 	cout << "\t\t\tthat will be used as seed points in a flood fill algorithim. This is useful when trying to remove isolated cells from a mesh." << endl;
 	cout << "\t\t-f file.geojson: This argument pair defines a set of geojson features (regions, transects, or points)" << endl;
 	cout << "\t\t\tthat will be converted into masks / lists." << endl;
+	cout << "\t\t--positive_lon: This argument causes the logitude range to be 0-360 degrees with the prime meridian at 0 degrees." << endl;
+	cout << "\t\t\tIf this flag is not set, the logitude range is -180-180 with 0 degrees being the prime meridian." << endl;
+	cout << "\t\t\tWhether this flag is passed in or not, any longitudes written are in the 0-360 range." << endl;
 }/*}}}*/
 
 string gen_random(const int len);
@@ -164,7 +168,7 @@ int main ( int argc, char *argv[] ) {
 	cout << "************************************************************" << endl;
 	cout << endl << endl;
 
-	if ( argc < 5 || argc % 2 == 0 ) {
+	if ( argc < 5 ) {
 		cout << " ERROR: Incorrect usage. See usage statement." << endl;	
 		print_usage();
 		exit(1);
@@ -174,14 +178,21 @@ int main ( int argc, char *argv[] ) {
 		in_name = argv[1];
 		out_name = argv[2];
 
-		for ( int i = 3; i < argc; i+=2 ){
+		int i = 3;
+		while ( i < argc ) {
 			str_flag = argv[i];
-			str_file = argv[i+1];
 
 			if ( str_flag == "-s" ) {
+				str_file = argv[i+1];
 				seed_files.push_back(str_file);
+				i += 2;
 			} else if ( str_flag == "-f" ) {
+				str_file = argv[i+1];
 				mask_files.push_back(str_file);
+				i += 2;
+			} else if ( str_flag == "--positive_lon" ) {
+				lonRangePositive = true;
+				i++;
 			} else {
 				cout << " ERROR: Invalid flag " << str_flag << " passed in. See usage statement." << endl;
 				print_usage();
@@ -194,6 +205,16 @@ int main ( int argc, char *argv[] ) {
 		cout << "   ERROR: Input and output names are the same." << endl;
 		return 1;
 	}
+
+	// Write out the longitude range that is being used
+	cout << endl;
+	if ( lonRangePositive ) {
+		cout << "Using 0 to 360 degrees for longitude range." << endl;
+	} else {
+		cout << "Using -180 to 180 degrees for longitude range." << endl;
+	}
+	cout << endl;
+	cout << endl;
 
 	srand(time(NULL));
 
@@ -667,6 +688,7 @@ int readCells(const string inputFilename){/*{{{*/
 	cells.clear();
 	for(int i = 0; i < nCells; i++){
 		new_location = pntFromLatLon(latcell[i], loncell[i]);
+		new_location.setPositiveLonRange( lonRangePositive );
 		new_location.idx = i;
 
 		if(spherical) new_location.normalize();
@@ -979,14 +1001,11 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 						double lon = coordinates[0][i][0].asDouble() * M_PI/180.0;
 						double lat = coordinates[0][i][1].asDouble() * M_PI/180.0;
 
-						if ( lon < 0.0 ) {
-							lon = lon + (2.0 * M_PI);
-						}
-
 #ifdef _DEBUG
 						cout << " Added a region vertex: " << lat << ", " << lon << endl;
 #endif
 						pnt point = pntFromLatLon(lat, lon);
+						point.setPositiveLonRange( lonRangePositive );
 						regionVertices.push_back(point);
 					}
 #ifdef _DEBUG
@@ -1001,14 +1020,11 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 							double lon = coordinates[i][0][j][0].asDouble() * M_PI/180.0;
 							double lat = coordinates[i][0][j][1].asDouble() * M_PI/180.0;
 
-							if ( lon < 0.0 ) {
-								lon = lon + (2.0 * M_PI);
-							}
-
 #ifdef _DEBUG
 							cout << " Added a region vertex: " << lat << ", " << lon << endl;
 #endif
 							pnt point = pntFromLatLon(lat, lon);
+							point.setPositiveLonRange( lonRangePositive );
 							regionVertices.push_back(point);
 						}
 #ifdef _DEBUG
@@ -1085,15 +1101,12 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 						double lon = coordinates[i][0].asDouble() * M_PI/180.0;
 						double lat = coordinates[i][1].asDouble() * M_PI/180.0;
 
-						if ( lon < 0.0 ) {
-							lon = lon + ( 2.0 * M_PI );
-						}
-
 #ifdef _DEBUG
 						cout << " Added a transect vertex: " << lat << ", " << lon << endl;
 #endif
 
 						pnt point = pntFromLatLon(lat, lon);
+						point.setPositiveLonRange( lonRangePositive );
 						transectVertices.push_back(point);
 					}
 
@@ -1109,14 +1122,11 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 							double lon = coordinates[i][j][0].asDouble() * M_PI/180.0;
 							double lat = coordinates[i][j][1].asDouble() * M_PI/180.0;
 
-							if ( lon < 0.0 ) {
-								lon = lon + (2.0 * M_PI);
-							}
-
 #ifdef _DEBUG
 							cout << " Added a transect vertex: " << lat << ", " << lon << endl;
 #endif
 							pnt point = pntFromLatLon(lat, lon);
+							point.setPositiveLonRange( lonRangePositive );
 							transectVertices.push_back(point);
 						}
 
@@ -1172,10 +1182,6 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				double lon = feature["geometry"]["coordinates"][0].asDouble() * M_PI/180.0 ;
 				double lat = feature["geometry"]["coordinates"][1].asDouble() * M_PI/180.0;
 
-				if ( lon < 0.0 ) {
-					lon = lon + ( 2.0 * M_PI );
-				}
-
 				pointIdx = pointNames.size();
 
 #ifdef _DEBUG
@@ -1183,6 +1189,7 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 #endif
 
 				pnt point = pntFromLatLon(lat, lon);
+				point.setPositiveLonRange( lonRangePositive );
 				point.idx = pointIdx;
 
 				properties.clear();
@@ -1256,11 +1263,8 @@ int getSeedInfo(const string seedFilename){/*{{{*/
 			double lon = feature["geometry"]["coordinates"][0].asDouble() * M_PI/180.0 ;
 			double lat = feature["geometry"]["coordinates"][1].asDouble() * M_PI/180.0;
 
-			if ( lon < 0.0 ) {
-				lon = lon + ( 2.0 * M_PI );
-			}
-
 			pnt point = pntFromLatLon(lat, lon);
+			point.setPositiveLonRange( lonRangePositive );
 			point.idx = seedPoints.size();
 
 #ifdef _DEBUG
@@ -2128,8 +2132,10 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			x[i] = (*pnt_itr).x;
 			y[i] = (*pnt_itr).y;
 			z[i] = (*pnt_itr).z;
+			if ( !lonRangePositive ) (*pnt_itr).setPositiveLonRange(true);
 			lat[i] = (*pnt_itr).getLat();
 			lon[i] = (*pnt_itr).getLon();
+			if ( !lonRangePositive ) (*pnt_itr).setPositiveLonRange(lonRangePositive);
 		}
 
 		if (!(tempVar = grid.add_var("xPoint", ncDouble, nPointsDim))) return NC_ERR; 
