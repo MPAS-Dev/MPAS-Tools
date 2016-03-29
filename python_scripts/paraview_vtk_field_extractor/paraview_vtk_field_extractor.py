@@ -629,6 +629,7 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
                 for iBlock in np.arange(0, nBlocks):
                     blockStart = iBlock * blocking
                     blockEnd = min( (iBlock + 1) * blocking, blockDim )
+
                     if has_time:
                         assert(field_ndims != 1)
 
