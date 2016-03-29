@@ -437,7 +437,10 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
         if(extra_dim_vals.size == 0):
             return ([],None)
         out_var_names = []
-        pad = np.array(np.floor(np.log10(np.amax(extra_dim_vals,axis=1))),int)+1
+        maxval = np.amax(extra_dim_vals,axis=1)
+        pad = np.ones(maxval.shape,int)
+        mask = maxval > 0
+        pad[mask] = np.array(np.floor(np.log10(maxval[mask])),int)+1
         for iHyperSlab in range(extra_dim_vals.shape[1]):
             out_var_name = var_name
             for iVal in range(extra_dim_vals.shape[0]):
@@ -526,6 +529,11 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
     time_series_file.close()
 
     any_var_has_time_dim = np.any(var_has_time_dim)
+
+    try:
+        os.makedirs('vtk_files')
+    except OSError:
+        pass
 
     if any_var_has_time_dim:
         try:
@@ -669,8 +677,9 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
                 del field_ndims
                 del field_var
 
-        timeDependentFile.save()
-        del timeDependentFile
+        if any_var_has_time_dim:
+            timeDependentFile.save()
+            del timeDependentFile
 
         if time_index == 0 and not combine_output and not np.all(var_has_time_dim):
             timeIndependentFile.save()
