@@ -124,16 +124,13 @@ def parse_extra_dim(dimName, indexString, time_series_file, mesh_file):#{{{
 
 #}}}
 
-def parse_extra_dims(args_list, time_series_file, mesh_file):#{{{
+def parse_extra_dims(dimension_list, time_series_file, mesh_file):#{{{
+    if not dimension_list:
+        return {}
+
     extra_dims = {}
-    dimCount = len(args_list)/2
-    for iDim in range(dimCount):
-        dimName = args_list[2*iDim]
-        indexString = args_list[2*iDim+1]
-        if(dimName[0:2] != '--'):
-            print "Improperly formatted extra dimension:", dimName, indexString
-            continue
-        dimName = dimName[2:]
+    for dim_item in dimension_list:
+        (dimName,indexString) = dim_item.split('=')
         indices = parse_extra_dim(dimName, indexString, time_series_file, mesh_file)
         if indices is not None:
             extra_dims[dimName] = indices
@@ -683,8 +680,8 @@ if __name__ == "__main__":
     parser.add_argument("-3", "--32bit", dest="output_32bit", help="If set, the vtk files will be written using 32bit floats.", action="store_true")
     parser.add_argument("-c", "--combine", dest="combine_output", help="If set, fields are written to a common file (one each for cells, edges and vertices).", action="store_true")
     parser.add_argument("-a", "--append", dest="append", help="If set, only vtp files that do not already exist are written out.", action="store_true")
-
-    args, unknown = parser.parse_known_args()
+    parser.add_argument("-d", "--dim_list", dest="dimension_list", nargs="+", help="A list of dimensions and associated values.")
+    args = parser.parse_args()
 
     if not args.output_32bit:
         use_32bit = False
@@ -705,11 +702,11 @@ if __name__ == "__main__":
 
     # Setting dimension values:
     time_series_file = NetCDFFile(time_file_names[0], 'r')
-    if separate_mesh_file :
+    if separate_mesh_file:
         mesh_file = NetCDFFile(args.mesh_filename, 'r')
     else:
         mesh_file = None
-    extra_dims = parse_extra_dims(unknown, time_series_file, mesh_file)
+    extra_dims = parse_extra_dims(args.dimension_list, time_series_file, mesh_file)
     (all_dim_vals, cellVars, vertexVars, edgeVars) = setup_dimension_values_and_sort_vars(
             time_series_file, mesh_file, args.variable_list, extra_dims)
     time_series_file.close()
