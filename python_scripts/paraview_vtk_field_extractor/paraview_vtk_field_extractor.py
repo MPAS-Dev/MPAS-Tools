@@ -13,6 +13,19 @@ for the filename patter. As an example, one can run the script using:
 `./paraview_vtk_field_extractor.py -v areaCell,latVertex -f "hist.comp.*.nc"`
 
 To extract a time series of areaCell,latVertex that spans multiple files.
+By default, time-independent fields on cells are written to a file
+vtk_files/staticFieldsOnCells.vtp
+and time-dependent fields on cells are written to
+vtk_files/timeDependentFieldsOnCells.pvd
+vtk_files/time_series/timeDependentFieldsOnCells.0.vtp
+vtk_files/time_series/timeDependentFieldsOnCells.1.vtp
+...
+and similarly for edges and vertices.  Time-independent fields can be
+included in each time step of the time-dependent fields for with
+the --combine flag.  This allows time-dependent and -independent fields
+to be combined in filters within Paraview at the expense of considerable
+additional storage space.
+
 
 Requirements:
 This script requires access to the following non standard modules:
@@ -512,11 +525,17 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
 
     time_series_file.close()
 
-    if np.any(var_has_time_dim) or combine_output:
+    any_var_has_time_dim = np.any(var_has_time_dim)
+
+    if any_var_has_time_dim:
         try:
             os.makedirs('vtk_files/time_series')
         except OSError:
             pass
+    else:
+        # there is no point in combining output if no fields have Time dim
+        combine_output = False
+        nTimes = 1
 
     # Output time series
     if use_progress_bar:
@@ -525,11 +544,21 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
     else:
         print "Writing time series...."
 
-    if combine_output:
+    suffix = blockDimName[1:]
+    if any_var_has_time_dim:
+        if combine_output or np.all(var_has_time_dim):
+            out_prefix = "fieldsOn%s"%suffix
+        else:
+            out_prefix = "timeDependentFieldsOn%s"%suffix
         # start the pvd file
-        out_prefix = "fieldsOn%s"%(blockDimName[1:])
         pvd_file = write_pvd_header(out_prefix)
         pvd_file.write('<Collection>\n')
+
+    if not combine_output and not np.all(var_has_time_dim):
+        out_prefix = "staticFieldsOn%s"%suffix
+        varIndices = np.arange(nVars)[var_has_time_dim == False]
+        timeIndependentFile = write_vtp_header(out_prefix, varIndices[0], varIndices)
+
 
     prev_file = ""
     for time_index in range(nTimes):
@@ -540,39 +569,42 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
             time_series_file = NetCDFFile(file_names[time_index], 'r')
             prev_file = file_names[time_index]
 
-        if combine_output:
+        if any_var_has_time_dim:
             # write the header for the vtp file
             vtp_file_prefix = "time_series/%s.%d"%(out_prefix, time_index)
             file_name = 'vtk_files/%s.vtp'%(vtp_file_prefix)
             if append and os.path.exists(file_name):
                 continue
 
-            varIndices = np.arange(nVars)
-            vtkFile = write_vtp_header(vtp_file_prefix, varIndices[0], varIndices)
+            if combine_output:
+                varIndices = np.arange(nVars)
+            else:
+                varIndices = np.arange(nVars)[var_has_time_dim]
+            timeDependentFile = write_vtp_header(vtp_file_prefix, varIndices[0], varIndices)
 
             # add time step to pdv file
             pvd_file.write('<DataSet timestep="%d" group="" part="0"\n'%(time_index))
             pvd_file.write('\tfile="%s.vtp"/>\n'%(vtp_file_prefix))
 
-        varIndices = np.arange(nVars)
-        if time_index > 0 and not combine_output:
+        if time_index == 0:
+            varIndices = np.arange(nVars)
+        else:
             # only the time-dependent variables
-            varIndices = varIndices[var_has_time_dim]
+            varIndices = np.arange(nVars)[var_has_time_dim]
+
 
         iHyperSlabProgress = 0
         for iVar in varIndices:
-            var_name = variable_list[iVar]
-            if not combine_output:
-                if var_has_time_dim[iVar]:
-                    out_file_prefix = "time_series/%s.%d"%(var_name, time_index)
-                else:
-                    out_file_prefix = var_name
-                file_name = 'vtk_files/%s.vtp'%(out_file_prefix)
-                if append and os.path.exists(file_name):
-                    continue
-                vtkFile = write_vtp_header(out_file_prefix, iVar, [iVar])
+            has_time = var_has_time_dim[iVar]
+            if has_time and time_index > 0:
+                continue
 
+            var_name = variable_list[iVar]
             (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name)
+            if has_time or combine_output:
+                vtkFile = timeDependentFile
+            else:
+                vtkFile = timeIndependentFile
             for iHyperSlab in range(len(out_var_names)):
                 if dim_list is not None:
                     dim_vals = dim_list[:,iHyperSlab]
@@ -597,8 +629,7 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
                 for iBlock in np.arange(0, nBlocks):
                     blockStart = iBlock * blocking
                     blockEnd = min( (iBlock + 1) * blocking, blockDim )
-
-                    if var_has_time_dim[iVar]:
+                    if has_time:
                         assert(field_ndims != 1)
 
                         if field_ndims == 2:
@@ -637,33 +668,21 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
                 del field_ndims
                 del field_var
 
-            if not combine_output:
-                vtkFile.save()
-                del vtkFile
+        timeDependentFile.save()
+        del timeDependentFile
 
-        if combine_output:
-            vtkFile.save()
-            del vtkFile
+        if time_index == 0 and not combine_output and not np.all(var_has_time_dim):
+            timeIndependentFile.save()
+            del timeIndependentFile
 
     time_series_file.close()
     if use_progress_bar:
         field_bar.finish()
 
-    if combine_output:
+    if any_var_has_time_dim:
         # finish the pdv file
         pvd_file.write('</Collection>\n')
         pvd_file.write('</VTKFile>\n')
-    else:
-        # Write pvd file, based on: http://www.paraview.org/Wiki/ParaView/Data_formats
-        varIndices = np.arange(nVars)[var_has_time_dim]
-        for iVar in varIndices:
-            var_name = variable_list[iVar]
-            pvd_file = write_pvd_header(var_name)
-            pvd_file.write('<Collection>\n')
-            pvd_file.write('<DataSet timestep="%d" group="" part="0"\n'%(time_index))
-            pvd_file.write('\tfile="time_series/%s.%d.vtp"/>\n'%(var_name, time_index))
-            pvd_file.write('</Collection>\n')
-            pvd_file.write('</VTKFile>\n')
 #}}}
 
 
@@ -678,7 +697,7 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--blocking", dest="blocking", help="Size of blocks when reading MPAS file", metavar="BLK")
     parser.add_argument("-v", "--variable_list", dest="variable_list", help="List of variables to extract", metavar="VAR", required=True)
     parser.add_argument("-3", "--32bit", dest="output_32bit", help="If set, the vtk files will be written using 32bit floats.", action="store_true")
-    parser.add_argument("-c", "--combine", dest="combine_output", help="If set, fields are written to a common file (one each for cells, edges and vertices).", action="store_true")
+    parser.add_argument("-c", "--combine", dest="combine_output", help="If set, time-independent fields are written to each file along with time-dependent fields.", action="store_true")
     parser.add_argument("-a", "--append", dest="append", help="If set, only vtp files that do not already exist are written out.", action="store_true")
     parser.add_argument("-d", "--dim_list", dest="dimension_list", nargs="+", help="A list of dimensions and associated values.")
     args = parser.parse_args()
