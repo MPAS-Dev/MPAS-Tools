@@ -604,7 +604,7 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
         iHyperSlabProgress = 0
         for iVar in varIndices:
             has_time = var_has_time_dim[iVar]
-            if has_time and time_index > 0:
+            if not has_time and time_index > 0:
                 continue
 
             var_name = variable_list[iVar]
