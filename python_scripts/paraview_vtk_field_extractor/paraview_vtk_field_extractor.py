@@ -13,6 +13,19 @@ for the filename patter. As an example, one can run the script using:
 `./paraview_vtk_field_extractor.py -v areaCell,latVertex -f "hist.comp.*.nc"`
 
 To extract a time series of areaCell,latVertex that spans multiple files.
+By default, time-independent fields on cells are written to a file
+vtk_files/staticFieldsOnCells.vtp
+and time-dependent fields on cells are written to
+vtk_files/timeDependentFieldsOnCells.pvd
+vtk_files/time_series/timeDependentFieldsOnCells.0.vtp
+vtk_files/time_series/timeDependentFieldsOnCells.1.vtp
+...
+and similarly for edges and vertices.  Time-independent fields can be
+included in each time step of the time-dependent fields for with
+the --combine flag.  This allows time-dependent and -independent fields
+to be combined in filters within Paraview at the expense of considerable
+additional storage space.
+
 
 Requirements:
 This script requires access to the following non standard modules:
@@ -82,7 +95,63 @@ def setup_time_indices(fn_pattern):#{{{
     return (local_indices, file_names)
 #}}}
 
-def setup_dimension_values_and_sort_vars( time_series_file, mesh_file, variable_list):#{{{
+def parse_extra_dim(dimName, indexString, time_series_file, mesh_file):#{{{
+    if (mesh_file is not None) and (dimName in mesh_file.dimensions):
+        nc_file = mesh_file
+    else:
+        nc_file = time_series_file
+    dimSize = len(nc_file.dimensions[dimName])
+    if ',' in indexString:
+        indices = []
+        for index in indexString.split(','):
+            indices.append(int(index))
+        indices = np.array(indices,int)
+    elif ':' in indexString:
+        index_list = indexString.split(':')
+        if len(index_list) in [2,3]:
+            if index_list[0] == '':
+                first = 0
+            else:
+                first = int(index_list[0])
+            if index_list[1] == '':
+                last = dimSize
+            else:
+                last = int(index_list[1])
+            if (len(index_list) == 2) or (index_list[2] == ''):
+                step = 1
+            else:
+                step = int(index_list[2])
+            indices = np.arange(first,last,step)
+        else:
+            print "Improperly formatted extra dimension:", dimName, indexString
+            return None
+    else:
+        indices = np.array([int(indexString)])
+
+    valid = np.all(np.logical_and(indices >= 0,indices <= dimSize-1))
+    if not valid:
+        print "Index (or indices) out of bounds for extra dimension:", dimName, indexString
+        return None
+
+    return indices
+
+#}}}
+
+def parse_extra_dims(dimension_list, time_series_file, mesh_file):#{{{
+    if not dimension_list:
+        return {}
+
+    extra_dims = {}
+    for dim_item in dimension_list:
+        (dimName,indexString) = dim_item.split('=')
+        indices = parse_extra_dim(dimName, indexString, time_series_file, mesh_file)
+        if indices is not None:
+            extra_dims[dimName] = indices
+    return extra_dims
+
+#}}}
+
+def setup_dimension_values_and_sort_vars(time_series_file, mesh_file, variable_list, extra_dims):#{{{
     all_dim_vals = {}
     cellVars = []
     vertexVars = []
@@ -107,6 +176,49 @@ def setup_dimension_values_and_sort_vars( time_series_file, mesh_file, variable_
     else:
         variables = variable_list.split(',')
 
+    extraDimNames = []
+    promptDimNames = []
+    for var in variables:
+        if (mesh_file is not None) and (var in mesh_file.variables):
+            nc_file = mesh_file
+        else:
+            nc_file = time_series_file
+        field_dims = nc_file.variables[var].dimensions
+        for dim in field_dims:
+            if dim not in ['Time', 'nCells', 'nEdges', 'nVertices']:
+                extraDimNames.append(str(dim))
+                if dim not in extra_dims:
+                    promptDimNames.append(str(dim))
+
+    # make sure the extra dimension names are unique
+    extraDimNames = list(set(extraDimNames))
+    promptDimNames = list(set(promptDimNames))
+
+    display_prompt = True
+    for dim in promptDimNames:
+        captured_input = True
+        if display_prompt:
+            print ""
+            print "Need to define additional dimension values"
+            display_prompt = False
+
+        if (mesh_file is not None) and (dim in mesh_file.dimensions):
+            nc_file = mesh_file
+        else:
+            nc_file = time_series_file
+        dimSize = len(nc_file.dimensions[dim])
+        valid = False
+        while not valid:
+            print "Valid range for dimension %s between 0 and %d"%(dim, dimSize-1)
+            indexString = raw_input("Enter a value for dimension %s: "%(dim))
+            indices = parse_extra_dim(dim, indexString, time_series_file, mesh_file)
+            valid = indices is not None
+            if valid:
+                extra_dims[dim] = indices
+            else:
+                print " -- Invalid value, please re-enter --"
+
+
     for var in variables:
         captured_input = False
 
@@ -119,33 +231,15 @@ def setup_dimension_values_and_sort_vars( time_series_file, mesh_file, variable_
         field_var = nc_file.variables[var]
 
         # Setting dimension values:
-        first_dim_set = True
         field_dims = field_var.dimensions
-        excluded_dims = {'Time', 'nCells', 'nEdges', 'nVertices'}
+        indices = []
         for dim in field_dims:
-            if dim == 'Time':
-                dim_vals.append(-1)
-
-            if dim == 'nCells' or dim == 'nEdges' or dim == 'nVertices':
-                dim_vals.append(-2)
-
-            if not dim in excluded_dims:
-                captured_input = True
-                if first_dim_set:
-                    print ""
-                    print "Need to define additional dimension values for field %s"%(var)
-                    first_dim_set = False
-
-                valid = False
-                while not valid:
-                    print "Valid range for dimension %s between 0 and %d"%(dim, len(nc_file.dimensions[dim])-1)
-                    val = raw_input("Enter a value for dimension %s: "%(dim))
-                    int_val = int(val)
-                    if int_val >= 0 and int_val <= len(nc_file.dimensions[dim])-1:
-                        dim_vals.append( int(val) )
-                        valid = True
-                    else:
-                        print " -- Invalid value, please re-enter --"
+            if dim not in ['Time', 'nCells', 'nEdges', 'nVertices']:
+                indices.append(extra_dims[dim])
+        if len(indices) == 0:
+            dim_vals = None
+        else:
+            dim_vals = np.array(np.meshgrid(indices,indexing='ij'))
 
         if "nCells" in field_dims:
             cellVars.append(var)
@@ -327,7 +421,7 @@ def build_location_list_xyz( nc_file, xName, yName, zName, output_32bit ):#{{{
 
 def build_field_time_series( local_time_indices, file_names, mesh_file, blocking, all_dim_vals,
                              blockDimName, variable_list, vertices, connectivity, offsets,
-                             valid_mask, output_32bit, combine_output ):#{{{
+                             valid_mask, output_32bit, combine_output, append ):#{{{
     def write_pvd_header(prefix):
         pvd_file = open('vtk_files/%s.pvd'%(prefix), 'w')
         pvd_file.write('<?xml version="1.0"?>\n')
@@ -335,6 +429,26 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
         pvd_file.write('\tbyte_order="LittleEndian"\n')
         pvd_file.write('\tcompressor="vtkZLibDataCompressor">\n')
         return pvd_file
+
+    def get_hyperslab_name_and_dims(var_name):
+        extra_dim_vals = all_dim_vals[var_name]
+        if(extra_dim_vals is None):
+            return ([var_name],None)
+        if(extra_dim_vals.size == 0):
+            return ([],None)
+        out_var_names = []
+        maxval = np.amax(extra_dim_vals,axis=1)
+        pad = np.ones(maxval.shape,int)
+        mask = maxval > 0
+        pad[mask] = np.array(np.floor(np.log10(maxval[mask])),int)+1
+        for iHyperSlab in range(extra_dim_vals.shape[1]):
+            out_var_name = var_name
+            for iVal in range(extra_dim_vals.shape[0]):
+                val = extra_dim_vals[iVal,iHyperSlab]
+                template = '%%s_%%0%dd'%pad[iVal]
+                out_var_name = template%(out_var_name,val)
+                out_var_names.append(out_var_name)
+        return (out_var_names, extra_dim_vals)
 
     def write_vtp_header(prefix, activeVarIndex, varIndices):
         vtkFile = VtkFile("vtk_files/%s"%prefix, VtkPolyData)
@@ -352,7 +466,10 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
 
         vtkFile.openData("Cell", scalars = variable_list[activeVarIndex])
         for iVar in varIndices:
-            vtkFile.addHeader(variable_list[iVar], outType, nPolygons, 1)
+            var_name = variable_list[iVar]
+            (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name)
+            for out_var_name in out_var_names:
+                vtkFile.addHeader(out_var_name, outType, nPolygons, 1)
         vtkFile.closeData("Cell")
 
         vtkFile.closePiece()
@@ -393,6 +510,7 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
     nVars = len(variable_list)
 
     var_has_time_dim = np.zeros(nVars,bool)
+    nHyperSlabs = 0
     for iVar in range(nVars):
         var_name = variable_list[iVar]
         if (mesh_file is not None) and (var_name in mesh_file.variables):
@@ -402,26 +520,53 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
         else:
             var_has_time_dim[iVar] = 'Time' in time_series_file.variables[var_name].dimensions
 
+        extra_dim_vals = all_dim_vals[var_name]
+        if (extra_dim_vals is None) or (extra_dim_vals.size == 0):
+            nHyperSlabs += 1
+        else:
+            nHyperSlabs += extra_dim_vals.shape[1]
+
     time_series_file.close()
 
-    if np.any(var_has_time_dim) or combine_output:
+    any_var_has_time_dim = np.any(var_has_time_dim)
+
+    try:
+        os.makedirs('vtk_files')
+    except OSError:
+        pass
+
+    if any_var_has_time_dim:
         try:
             os.makedirs('vtk_files/time_series')
         except OSError:
             pass
+    else:
+        # there is no point in combining output if no fields have Time dim
+        combine_output = False
+        nTimes = 1
 
     # Output time series
     if use_progress_bar:
         widgets = ['Writing time series: ', Percentage(), ' ', Bar(), ' ', ETA()]
-        field_bar = ProgressBar(widgets=widgets, maxval=nTimes*nVars*nBlocks ).start()
+        field_bar = ProgressBar(widgets=widgets, maxval=nTimes*nHyperSlabs ).start()
     else:
         print "Writing time series...."
 
-    if combine_output:
+    suffix = blockDimName[1:]
+    if any_var_has_time_dim:
+        if combine_output or np.all(var_has_time_dim):
+            out_prefix = "fieldsOn%s"%suffix
+        else:
+            out_prefix = "timeDependentFieldsOn%s"%suffix
         # start the pvd file
-        out_prefix = "fieldsOn%s"%(blockDimName[1:])
         pvd_file = write_pvd_header(out_prefix)
         pvd_file.write('<Collection>\n')
+
+    if not combine_output and not np.all(var_has_time_dim):
+        out_prefix = "staticFieldsOn%s"%suffix
+        varIndices = np.arange(nVars)[var_has_time_dim == False]
+        timeIndependentFile = write_vtp_header(out_prefix, varIndices[0], varIndices)
+
 
     prev_file = ""
     for time_index in range(nTimes):
@@ -432,120 +577,122 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
             time_series_file = NetCDFFile(file_names[time_index], 'r')
             prev_file = file_names[time_index]
 
-        if combine_output:
+        if any_var_has_time_dim:
             # write the header for the vtp file
             vtp_file_prefix = "time_series/%s.%d"%(out_prefix, time_index)
+            file_name = 'vtk_files/%s.vtp'%(vtp_file_prefix)
+            if append and os.path.exists(file_name):
+                continue
 
-            varIndices = np.arange(nVars)
-            vtkFile = write_vtp_header(vtp_file_prefix, varIndices[0], varIndices)
+            if combine_output:
+                varIndices = np.arange(nVars)
+            else:
+                varIndices = np.arange(nVars)[var_has_time_dim]
+            timeDependentFile = write_vtp_header(vtp_file_prefix, varIndices[0], varIndices)
 
             # add time step to pdv file
             pvd_file.write('<DataSet timestep="%d" group="" part="0"\n'%(time_index))
             pvd_file.write('\tfile="%s.vtp"/>\n'%(vtp_file_prefix))
 
-        varIndices = np.arange(nVars)
-        if time_index > 0 and not combine_output:
+        if time_index == 0:
+            varIndices = np.arange(nVars)
+        else:
             # only the time-dependent variables
-            varIndices = varIndices[var_has_time_dim]
+            varIndices = np.arange(nVars)[var_has_time_dim]
 
+
+        iHyperSlabProgress = 0
         for iVar in varIndices:
+            has_time = var_has_time_dim[iVar]
+            if not has_time and time_index > 0:
+                continue
+
             var_name = variable_list[iVar]
-            dim_vals = all_dim_vals[var_name]
-            if (mesh_file is not None) and (var_name in mesh_file.variables):
-                nc_file = mesh_file
+            (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name)
+            if has_time or combine_output:
+                vtkFile = timeDependentFile
             else:
-                nc_file = time_series_file
+                vtkFile = timeIndependentFile
+            for iHyperSlab in range(len(out_var_names)):
+                if dim_list is not None:
+                    dim_vals = dim_list[:,iHyperSlab]
 
-            field_var = nc_file.variables[var_name]
-
-            field_ndims = len(dim_vals)
-
-            field = np.zeros(blockDim,dtype=outType)
-
-            try:
-                missing_val = field_var.missing_value
-            except:
-                missing_val = -9999999790214767953607394487959552.000000
-
-            # Build data
-            for iBlock in np.arange(0, nBlocks):
-                blockStart = iBlock * blocking
-                blockEnd = min( (iBlock + 1) * blocking, blockDim )
-
-                if var_has_time_dim[iVar]:
-                    assert(field_ndims != 1)
-
-                    if field_ndims == 2:
-                        field_block = field_var[local_time_indices[time_index], blockStart:blockEnd]
-                    elif field_ndims == 3:
-                        field_block = field_var[local_time_indices[time_index], blockStart:blockEnd, dim_vals[2]]
-                    elif field_ndims == 4:
-                        field_block = field_var[local_time_indices[time_index], blockStart:blockEnd, dim_vals[2], dim_vals[3]]
-                    elif field_ndims == 5:
-                        field_block = field_var[local_time_indices[time_index], blockStart:blockEnd, dim_vals[2], dim_vals[3], dim_vals[4]]
+                if (mesh_file is not None) and (var_name in mesh_file.variables):
+                    nc_file = mesh_file
                 else:
-                    if field_ndims == 1:
-                        field_block = field_var[blockStart:blockEnd]
-                    elif field_ndims == 2:
-                        field_block = field_var[blockStart:blockEnd, dim_vals[1]]
-                    elif field_ndims == 3:
-                        field_block = field_var[blockStart:blockEnd, dim_vals[1], dim_vals[2]]
-                    elif field_ndims == 4:
-                        field_block = field_var[blockStart:blockEnd, dim_vals[1], dim_vals[2], dim_vals[3]]
+                    nc_file = time_series_file
 
-                # convert to the same type as field before masking with NaNs
-                field_block = np.array(field_block, dtype=field.dtype)
-                field_block[field_block == missing_val] = np.nan
-                field[blockStart:blockEnd] = field_block
+                field_var = nc_file.variables[var_name]
+
+                field_ndims = len(field_var.dimensions)
+
+                field = np.zeros(blockDim,dtype=outType)
+
+                try:
+                    missing_val = field_var.missing_value
+                except:
+                    missing_val = -9999999790214767953607394487959552.000000
+
+                # Build data
+                for iBlock in np.arange(0, nBlocks):
+                    blockStart = iBlock * blocking
+                    blockEnd = min( (iBlock + 1) * blocking, blockDim )
+
+                    if has_time:
+                        assert(field_ndims != 1)
+
+                        if field_ndims == 2:
+                            field_block = field_var[local_time_indices[time_index], blockStart:blockEnd]
+                        elif field_ndims == 3:
+                            field_block = field_var[local_time_indices[time_index], blockStart:blockEnd, dim_vals[0]]
+                        elif field_ndims == 4:
+                            field_block = field_var[local_time_indices[time_index], blockStart:blockEnd, dim_vals[0], dim_vals[1]]
+                        elif field_ndims == 5:
+                            field_block = field_var[local_time_indices[time_index], blockStart:blockEnd, dim_vals[0], dim_vals[1], dim_vals[2]]
+                    else:
+                        if field_ndims == 1:
+                            field_block = field_var[blockStart:blockEnd]
+                        elif field_ndims == 2:
+                            field_block = field_var[blockStart:blockEnd, dim_vals[0]]
+                        elif field_ndims == 3:
+                            field_block = field_var[blockStart:blockEnd, dim_vals[0], dim_vals[1]]
+                        elif field_ndims == 4:
+                            field_block = field_var[blockStart:blockEnd, dim_vals[0], dim_vals[1], dim_vals[2]]
+
+                    # convert to the same type as field before masking with NaNs
+                    field_block = np.array(field_block, dtype=field.dtype)
+                    field_block[field_block == missing_val] = np.nan
+                    field[blockStart:blockEnd] = field_block
+
+
+                field = field[valid_mask]
+
+                vtkFile.appendData(field)
 
                 if use_progress_bar:
-                    field_bar.update((time_index*nVars + iVar)*nBlocks + iBlock)
+                    field_bar.update(time_index*nHyperSlabs + iHyperSlabProgress)
+                    iHyperSlabProgress += 1
 
-            field = field[valid_mask]
+                del field
+                del field_ndims
+                del field_var
 
-            if combine_output:
-                vtkFile.appendData(field)
-            else:
-                if var_has_time_dim[iVar]:
-                    out_file_prefix = "time_series/%s.%d"%(var_name, time_index)
-                else:
-                    out_file_prefix = var_name
+        if any_var_has_time_dim:
+            timeDependentFile.save()
+            del timeDependentFile
 
-                vtkFile = write_vtp_header(out_file_prefix, iVar, [iVar])
-
-                vtkFile.appendData(field)
-
-                vtkFile.save()
-                del vtkFile
-
-            del field
-            del field_ndims
-            del field_var
-            del dim_vals
-
-        if combine_output:
-            vtkFile.save()
-            del vtkFile
+        if time_index == 0 and not combine_output and not np.all(var_has_time_dim):
+            timeIndependentFile.save()
+            del timeIndependentFile
 
     time_series_file.close()
     if use_progress_bar:
         field_bar.finish()
 
-    if combine_output:
+    if any_var_has_time_dim:
         # finish the pdv file
         pvd_file.write('</Collection>\n')
         pvd_file.write('</VTKFile>\n')
-    else:
-        # Write pvd file, based on: http://www.paraview.org/Wiki/ParaView/Data_formats
-        varIndices = np.arange(nVars)[var_has_time_dim]
-        for iVar in varIndices:
-            var_name = variable_list[iVar]
-            pvd_file = write_pvd_header(var_name)
-            pvd_file.write('<Collection>\n')
-            pvd_file.write('<DataSet timestep="%d" group="" part="0"\n'%(time_index))
-            pvd_file.write('\tfile="time_series/%s.%d.vtp"/>\n'%(var_name, time_index))
-            pvd_file.write('</Collection>\n')
-            pvd_file.write('</VTKFile>\n')
 #}}}
 
 
@@ -560,8 +707,9 @@ if __name__ == "__main__":
     parser.add_argument("-b", "--blocking", dest="blocking", help="Size of blocks when reading MPAS file", metavar="BLK")
     parser.add_argument("-v", "--variable_list", dest="variable_list", help="List of variables to extract", metavar="VAR", required=True)
     parser.add_argument("-3", "--32bit", dest="output_32bit", help="If set, the vtk files will be written using 32bit floats.", action="store_true")
-    parser.add_argument("-c", "--combine", dest="combine_output", help="If set, fields are written to a common file (one each for cells, edges and vertices).", action="store_true")
-
+    parser.add_argument("-c", "--combine", dest="combine_output", help="If set, time-independent fields are written to each file along with time-dependent fields.", action="store_true")
+    parser.add_argument("-a", "--append", dest="append", help="If set, only vtp files that do not already exist are written out.", action="store_true")
+    parser.add_argument("-d", "--dim_list", dest="dimension_list", nargs="+", help="A list of dimensions and associated values.")
     args = parser.parse_args()
 
     if not args.output_32bit:
@@ -583,11 +731,13 @@ if __name__ == "__main__":
 
     # Setting dimension values:
     time_series_file = NetCDFFile(time_file_names[0], 'r')
-    if separate_mesh_file :
+    if separate_mesh_file:
         mesh_file = NetCDFFile(args.mesh_filename, 'r')
     else:
         mesh_file = None
-    (all_dim_vals, cellVars, vertexVars, edgeVars) = setup_dimension_values_and_sort_vars( time_series_file, mesh_file, args.variable_list)
+    extra_dims = parse_extra_dims(args.dimension_list, time_series_file, mesh_file)
+    (all_dim_vals, cellVars, vertexVars, edgeVars) = setup_dimension_values_and_sort_vars(
+            time_series_file, mesh_file, args.variable_list, extra_dims)
     time_series_file.close()
     if(mesh_file is not None):
         mesh_file.close()
@@ -612,7 +762,7 @@ if __name__ == "__main__":
 
         build_field_time_series( time_indices, time_file_names, mesh_file, args.blocking,
                                  all_dim_vals, 'nCells', cellVars, vertices, connectivity, offsets,
-                                 valid_mask, use_32bit, args.combine_output )
+                                 valid_mask, use_32bit, args.combine_output, args.append )
         if separate_mesh_file:
             mesh_file.close()
 
@@ -639,7 +789,7 @@ if __name__ == "__main__":
 
         build_field_time_series( time_indices, time_file_names, mesh_file, args.blocking,
                                  all_dim_vals, 'nVertices', vertexVars, vertices, connectivity, offsets,
-                                 valid_mask, use_32bit, args.combine_output )
+                                 valid_mask, use_32bit, args.combine_output, args.append )
 
         if separate_mesh_file:
             mesh_file.close()
@@ -673,7 +823,7 @@ if __name__ == "__main__":
 
         build_field_time_series( time_indices, time_file_names, mesh_file, args.blocking,
                                  all_dim_vals, 'nEdges', edgeVars, vertices, connectivity, offsets,
-                                 valid_mask, use_32bit, args.combine_output )
+                                 valid_mask, use_32bit, args.combine_output, args.append )
 
         if separate_mesh_file:
             mesh_file.close()
