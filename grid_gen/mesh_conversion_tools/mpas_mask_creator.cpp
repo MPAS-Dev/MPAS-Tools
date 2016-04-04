@@ -1338,7 +1338,7 @@ vector< vector<int> > buildLinePaths( const vector< vector< vector<int> > > clos
 				end = (*cline_itr).at( i + 1 );
 				partial_path = walkGraph( graph, start, end );
 
-				if ( full_path[ full_path.size() - 1 ] != partial_path[0] ) {
+				if ( partial_path.size() > 0 && ( full_path[ full_path.size() - 1 ] != partial_path[0] ) ) {
 					full_path.push_back( partial_path[0] );
 				}
 
