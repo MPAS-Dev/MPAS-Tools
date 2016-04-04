@@ -14,6 +14,7 @@
 #include <string.h>
 #include <tuple>
 #include <sstream>
+#include <sys/stat.h>
 
 #include "netcdf_utils.h"
 #include "pnt.h"
@@ -204,6 +205,40 @@ int main ( int argc, char *argv[] ) {
 	if(in_name == out_name){
 		cout << "   ERROR: Input and output names are the same." << endl;
 		return 1;
+	}
+
+	// Check if input files exist
+	{
+		bool error;
+		struct stat buffer;
+
+		error = false;
+
+		if ( stat( in_name.c_str(), &buffer ) != 0 ){
+			cout << "ERROR: Input file '" << in_name << "' does not exist." << endl;
+			error = true;
+		}
+
+		for ( str_itr = mask_files.begin(); str_itr != mask_files.end(); str_itr++ ) {
+			if ( stat( (*str_itr).c_str(), &buffer ) != 0 ) {
+				cout << "ERROR: Input file '" << (*str_itr) << "' does not exist." << endl;
+				error = true;
+			}
+		}
+
+		for ( str_itr = seed_files.begin(); str_itr != seed_files.end(); str_itr++ ) {
+			if ( stat( (*str_itr).c_str(), &buffer ) != 0 ) {
+				cout << "ERROR: Input file '" << (*str_itr) << "' does not exist." << endl;
+				error = true;
+			}
+		}
+
+		if ( error ) {
+			cout << "ERROR: One or more missing input files. Exiting..." << endl;
+			exit(1);
+		}
+
+
 	}
 
 	// Write out the longitude range that is being used
