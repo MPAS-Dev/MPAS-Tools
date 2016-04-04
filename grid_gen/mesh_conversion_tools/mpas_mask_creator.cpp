@@ -859,29 +859,34 @@ vector< vector< pair<int, double> > > readVertexGraph(const string inputFilename
 		for ( int j = 0; j < vertexDegree; j++ ) {
 			edgeid = edgesonvertex[ i * vertexDegree + j ] - 1;
 
-			vertid1 = verticesonedge[ edgeid * 2 ] - 1;
-			vertid2 = verticesonedge[ edgeid * 2 + 1 ] - 1;
+			if ( edgeid != -1 ) {
+				vertid1 = verticesonedge[ edgeid * 2 ] - 1;
+				vertid2 = verticesonedge[ edgeid * 2 + 1 ] - 1;
 
-			add_vertid1 = true;
-			add_vertid2 = true;
-			if ( vertid1 == i ) add_vertid1 = false;
-			if ( vertid2 == i ) add_vertid2 = false;
+				add_vertid1 = true;
+				add_vertid2 = true;
+				if ( vertid1 == i ) add_vertid1 = false;
+				if ( vertid2 == i ) add_vertid2 = false;
 
-			for ( int k = 0; k < vertexList.size() && add_vertid1 && add_vertid2; k++ ) {
-				if ( vertid1 == vertexList[k].first ) add_vertid1 = false;
-				if ( vertid2 == vertexList[k].first ) add_vertid2 = false;
-			}
+				if ( vertid1 >= nVertices ) add_vertid1 = false;
+				if ( vertid2 >= nVertices ) add_vertid1 = false;
 
-			if ( add_vertid1 ) {
-				connection.first = vertid1;
-				connection.second = dvedge[ edgeid ];
-				vertexList.push_back( connection );
-			}
+				for ( int k = 0; k < vertexList.size() && add_vertid1 && add_vertid2; k++ ) {
+					if ( vertid1 == vertexList[k].first ) add_vertid1 = false;
+					if ( vertid2 == vertexList[k].first ) add_vertid2 = false;
+				}
 
-			if ( add_vertid2 ) {
-				connection.first = vertid2;
-				connection.second = dvedge[ edgeid ];
-				vertexList.push_back( connection );
+				if ( add_vertid1 ) {
+					connection.first = vertid1;
+					connection.second = dvedge[ edgeid ];
+					vertexList.push_back( connection );
+				}
+
+				if ( add_vertid2 ) {
+					connection.first = vertid2;
+					connection.second = dvedge[ edgeid ];
+					vertexList.push_back( connection );
+				}
 			}
 		}
 		graph.push_back( vertexList );
@@ -919,16 +924,19 @@ vector< vector< pair<int, double> > > readEdgeGraph(const string inputFilename){
 
 			for ( int k = 0; k < vertexDegree; k++ ) {
 				edgeid = edgesonvertex[ vertid * vertexDegree + k ] - 1;
-				add_edge = true;
 
-				for ( int l = 0; l < edgeList.size(); l++ ) {
-					if ( edgeid == edgeList[l].first ) add_edge = false;
-				}
+				if ( edgeid != -1 ) {
+					add_edge = true;
 
-				if ( add_edge ) {
-					connection.first = edgeid;
-					connection.second = dvedge[i];
-					edgeList.push_back( connection );
+					for ( int l = 0; l < edgeList.size(); l++ ) {
+						if ( edgeid == edgeList[l].first ) add_edge = false;
+					}
+
+					if ( add_edge ) {
+						connection.first = edgeid;
+						connection.second = dvedge[i];
+						edgeList.push_back( connection );
+					}
 				}
 			}
 		}
