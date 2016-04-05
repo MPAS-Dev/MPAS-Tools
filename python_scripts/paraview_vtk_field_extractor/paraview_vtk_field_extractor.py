@@ -96,6 +96,9 @@ def setup_time_indices(fn_pattern):#{{{
 #}}}
 
 def parse_extra_dim(dimName, indexString, time_series_file, mesh_file):#{{{
+    if indexString == '':
+        return np.zeros(0,int)
+        
     if (mesh_file is not None) and (dimName in mesh_file.dimensions):
         nc_file = mesh_file
     else:
@@ -171,10 +174,23 @@ def setup_dimension_values_and_sort_vars(time_series_file, mesh_file, variable_l
                         supported = True
                 if supported:
                     variables.append(str(var))
-        # make sure the variables are unique
-        variables = list(set(variables))
     else:
         variables = variable_list.split(',')
+
+    for suffix in ['Cells','Edges','Vertices']:
+        if 'allOn%s'%suffix in variables:
+            variables.remove('allOn%s'%suffix)
+            files = [time_series_file]
+            if mesh_file is not None:
+                files.append(mesh_file)
+            for nc_file in files:
+                for var in nc_file.variables:
+                    dims = nc_file.variables[var].dimensions
+                    if 'n%s'%suffix in dims:
+                        variables.append(str(var))
+
+    # make sure the variables are unique
+    variables = list(set(variables))
 
     extraDimNames = []
     promptDimNames = []
@@ -705,7 +721,7 @@ if __name__ == "__main__":
     parser.add_argument("-f", "--file_pattern", dest="filename_pattern", help="MPAS Filename pattern.", metavar="FILE", required=True)
     parser.add_argument("-m", "--mesh_file", dest="mesh_filename", help="MPAS Mesh filename. If not set, it will use the first file in the -f flag as the mesh file.")
     parser.add_argument("-b", "--blocking", dest="blocking", help="Size of blocks when reading MPAS file", metavar="BLK")
-    parser.add_argument("-v", "--variable_list", dest="variable_list", help="List of variables to extract", metavar="VAR", required=True)
+    parser.add_argument("-v", "--variable_list", dest="variable_list", help="List of variables to extract ('all' for all variables, 'allOnCells' for all variables on cells, etc.)", metavar="VAR", required=True)
     parser.add_argument("-3", "--32bit", dest="output_32bit", help="If set, the vtk files will be written using 32bit floats.", action="store_true")
     parser.add_argument("-c", "--combine", dest="combine_output", help="If set, time-independent fields are written to each file along with time-dependent fields.", action="store_true")
     parser.add_argument("-a", "--append", dest="append", help="If set, only vtp files that do not already exist are written out.", action="store_true")
