@@ -96,6 +96,9 @@ def setup_time_indices(fn_pattern):#{{{
 #}}}
 
 def parse_extra_dim(dimName, indexString, time_series_file, mesh_file):#{{{
+    if indexString == '':
+        return np.zeros(0,int)
+        
     if (mesh_file is not None) and (dimName in mesh_file.dimensions):
         nc_file = mesh_file
     else:
