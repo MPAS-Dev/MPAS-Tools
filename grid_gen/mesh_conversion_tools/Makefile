@@ -1,8 +1,15 @@
 #Assumes ${NETCDF} is defined to the root of the netcdf library
 
+# gfortran
 CC=g++
 CFLAGS= -O3 -std=c++0x -fopenmp
 DFLAGS= -g -std=c++0x -D_DEBUG -fopenmp
+
+# intel
+# CC=icpc
+# CFLAGS= -O3 -std=c++0x -openmp
+# DFLAGS= -g -std=c++0x -D_DEBUG -openmp
+
 CONV_EXECUTABLE= MpasMeshConverter.x
 CULL_EXECUTABLE= MpasCellCuller.x
 MASK_EXECUTABLE= MpasMaskCreator.x
@@ -23,5 +30,5 @@ debug:
 clean:
 	rm -f grid.nc
 	rm -f graph.info
-	rm -f ${CONV_EXECUTABLE} ${CULL_EXECUTABLE}
+	rm -f ${CONV_EXECUTABLE} ${CULL_EXECUTABLE} ${MASK_EXECUTABLE}
 

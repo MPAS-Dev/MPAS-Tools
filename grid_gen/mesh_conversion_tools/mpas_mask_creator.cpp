@@ -1100,7 +1100,9 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				if ( addGroupToRegList ) {
 					addGroupToRegList = false;
 					if ( groupName == "enterNameHere" ){
-						tempGroupName = "regionGroup" + to_string( regionGroupNames.size() + 1 );
+						ostringstream convert;
+						convert << regionGroupNames.size() + 1;
+						tempGroupName = "regionGroup" + convert.str();
 						regionGroupNames.push_back(tempGroupName);
 					} else {
 						regionGroupNames.push_back(groupName);
@@ -1202,7 +1204,9 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				if ( addGroupToTrnList ) {
 					addGroupToTrnList = false;
 					if ( groupName == "enterNameHere" ){
-						tempGroupName = "transectGroup" + to_string( transectGroupNames.size() + 1 );
+						ostringstream convert;
+						convert << transectGroupNames.size() + 1;
+						tempGroupName = "transectGroup" + convert.str();
 						transectGroupNames.push_back(tempGroupName);
 					} else {
 						transectGroupNames.push_back(groupName);
@@ -1259,7 +1263,9 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				if ( addGroupToPntList ) {
 					addGroupToPntList = false;
 					if ( groupName == "enterNameHere" ){
-						tempGroupName = "pointGroup" + to_string( pointGroupNames.size() + 1 );
+						ostringstream convert;
+						convert << pointGroupNames.size() + 1;
+						tempGroupName = "pointGroup" + convert.str();
 						pointGroupNames.push_back(tempGroupName);
 					} else {
 						pointGroupNames.push_back(groupName);
