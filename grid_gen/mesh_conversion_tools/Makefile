@@ -30,5 +30,5 @@ debug:
 clean:
 	rm -f grid.nc
 	rm -f graph.info
-	rm -f ${CONV_EXECUTABLE} ${CULL_EXECUTABLE}
+	rm -f ${CONV_EXECUTABLE} ${CULL_EXECUTABLE} ${MASK_EXECUTABLE}
 
