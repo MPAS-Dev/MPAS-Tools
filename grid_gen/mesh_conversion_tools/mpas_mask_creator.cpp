@@ -75,6 +75,7 @@ vector< vector<int> > transectsInGroup;
 vector<string> transectGroupNames;
 vector< vector< vector<int> > > closestIndexToTransectPoint;
 vector< vector<int> > cellPaths, edgePaths, vertexPaths;
+vector< vector<int> > edgePathSigns;
 
 // Point information:
 int *pointCellIndices, *pointVertexIndices;
@@ -123,6 +124,7 @@ int getFeatureInfo(const string featureFilename);
 int getSeedInfo(const string seedFilename);
 vector< vector< vector<int> > > buildClosestValuesForTransects(const vector< vector< vector<pnt> > > lineSegments, const vector<pnt> staticLocations);
 vector< vector<int> > buildLinePaths( const vector< vector< vector<int> > > closestIndices, const vector< vector< pair<int, double> > > graph );
+vector< vector<int> > buildEdgePathSigns( const string inputFilename, const vector< vector<int> > edgePaths );
 int buildPolygonValues();
 int buildMasks(vector<pnt> locations, int *masks);
 int buildPointIndices(vector<pnt> testLocations, vector<pnt> staticLocations, int *indices);
@@ -373,6 +375,10 @@ int main ( int argc, char *argv[] ) {
 	cout << " Building edge transects" << endl;
 	edgePaths.clear();
 	edgePaths = buildLinePaths(closestIndexToTransectPoint, connectivityGraph);
+
+	cout << " Building edge transect path signs" << endl;
+	edgePathSigns.clear();
+	edgePathSigns = buildEdgePathSigns( in_name, edgePaths );
 
 	cout << "Deleting edge information" << endl;
 	edges.clear();
@@ -1403,6 +1409,92 @@ vector< vector<int> > buildLinePaths( const vector< vector< vector<int> > > clos
 
 	return pathIndices;
 }/*}}}*/
+vector< vector<int> > buildEdgePathSigns( const string inputFilename, const vector< vector<int> > edgePaths ){/*{{{*/
+	int currEdge, nextEdge;	
+	int sharedVert, edgeSign;
+
+	vector< vector<int> >::const_iterator paths_itr;
+	vector< vector<int> > edgeSigns;
+	vector<int> pathSigns;
+
+	int *verticesonedge;
+
+	pathSigns.clear();
+	verticesonedge = new int [nEdges * 2];
+
+	netcdf_mpas_read_verticesonedge ( inputFilename, nEdges, verticesonedge );
+
+#ifdef _DEBUG
+	cout << " Building signs for: " << edgePaths.size() << " paths." << endl;
+#endif
+
+	for ( paths_itr = edgePaths.begin(); paths_itr != edgePaths.end(); paths_itr++ ) {
+		pathSigns.clear();
+#ifdef _DEBUG
+		cout << "    -- This path has: " << (*paths_itr).size() << " edges. " << endl;
+#endif
+
+		for ( int i = 0; i < (*paths_itr).size()-1; i++ ) {
+			currEdge = (*paths_itr).at(i);
+			nextEdge = (*paths_itr).at(i+1);
+
+			sharedVert = -1;
+
+			if ( verticesonedge[currEdge*2] == verticesonedge[nextEdge*2] || verticesonedge[currEdge*2] == verticesonedge[nextEdge*2 + 1] ){
+				sharedVert = 1;
+			}  else if ( verticesonedge[currEdge*2 + 1] == verticesonedge[nextEdge*2] || verticesonedge[currEdge*2 + 1] == verticesonedge[nextEdge*2 + 1] ){
+				sharedVert = 2;
+			}
+
+			if ( sharedVert == 1 ) {
+				edgeSign = -1;
+			} else if ( sharedVert == 2 ) {
+				edgeSign = 1;
+			} else {
+				cout << " ERROR: Edges " << currEdge << " and " << nextEdge << " don't share any vertices. Exiting..." << endl;
+				exit(1);
+			}
+
+			pathSigns.push_back(edgeSign);
+		}
+
+		// Need to handle the last edge.
+		if ( (*paths_itr).size() > 1 ) {
+			currEdge = (*paths_itr).at( (*paths_itr).size() - 1 );
+			nextEdge = (*paths_itr).at( (*paths_itr).size() - 2 ); // Really, edge before currEdge
+
+			sharedVert = -1;
+
+			if ( verticesonedge[currEdge*2] == verticesonedge[nextEdge*2] || verticesonedge[currEdge*2] == verticesonedge[nextEdge*2 + 1] ){
+				sharedVert = 1;
+			}  else if ( verticesonedge[currEdge*2 + 1] == verticesonedge[nextEdge*2] || verticesonedge[currEdge*2 + 1] == verticesonedge[nextEdge*2 + 1] ){
+				sharedVert = 2;
+			}
+
+			if ( sharedVert == 1 ) {
+				edgeSign = 1;
+			} else if ( sharedVert == 2 ) {
+				edgeSign = -1;
+			} else {
+				cout << " ERROR: Edges " << currEdge << " and " << nextEdge << " don't share any vertices. Exiting..." << endl;
+				exit(1);
+			}
+
+			pathSigns.push_back(edgeSign);
+
+		} else if ( (*paths_itr).size() == 1 ) {
+			// If there's only one edge, arbitrarily give it a sign of 1, since direction doesn't matter.
+			edgeSign = 1;
+			pathSigns.push_back(edgeSign);
+		}
+
+		edgeSigns.push_back(pathSigns);
+	}
+
+	delete[] verticesonedge;
+
+	return edgeSigns;
+}/*}}}*/
 int buildPolygonValues(){/*{{{*/
 	int iReg, iPoly, i, j;
 	double vert1Lat, vert1Lon;
@@ -1994,6 +2086,38 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		}
 
 		if (!(tempVar = grid.add_var("transectEdgeMasks", ncInt, nEdgesDim, nTransectsDim))) return NC_ERR;
+		if (!tempVar->put(indices, nEdges, nTransects)) return NC_ERR;
+
+		delete[] indices;
+
+		// Write out signed edge transect masks
+		indices = new int[nEdges * nTransects];
+		for ( i = 0; i < nEdges; i++ ){
+			for (j = 0; j < nTransects; j++ ) {
+				indices[i * nTransects + j ] = 0;
+			}
+		}
+
+		if ( edgePaths.size() != edgePathSigns.size() ) {
+			cout << "ERROR: Number of paths are not equal in edgePaths and edgePathSigns." << endl;
+			cout << "       " << edgePaths.size() << " != " << edgePathSigns.size() << endl;
+			cout << "Exiting..." << endl;
+			exit(1);
+		}
+
+		for ( i = 0; i < edgePaths.size(); i++ ) {
+			if ( edgePaths[i].size() != edgePathSigns[i].size() ) { 
+				cout << "ERROR: Number of edges are not equal in path " << i << endl;
+				cout << "       " << edgePaths[i].size() << " != " << edgePathSigns[i].size() << endl;
+				cout << "Exiting..." << endl;
+				exit(1);
+			}
+			for ( j = 0; j < edgePaths[i].size(); j++ ) {
+				indices[ edgePaths[i][j] * nTransects + i ] = edgePathSigns[i][j];
+			}
+		}
+
+		if (!(tempVar = grid.add_var("transectEdgeMaskSigns", ncInt, nEdgesDim, nTransectsDim))) return NC_ERR;
 		if (!tempVar->put(indices, nEdges, nTransects)) return NC_ERR;
 
 		delete[] indices;
