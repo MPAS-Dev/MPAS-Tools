@@ -40,7 +40,7 @@ zindex_to_zindex = [1:nz];
 
 %%  setup output file
 
-fname = 'ais_temp_pattyn_cism_format.nc';
+fname = '/Users/mhoffman/documents/antarctica_data/temperature/ais_temp_pattyn_cism_format.nc';
 
 unix(['rm ' fname]);
 
@@ -78,6 +78,8 @@ tic
 %     z(k)
     
     Torig = temp(:,:,k)';
+    
+    Torig(Torig<(273.15-70.0))=NaN;  % there are some regions of bad data around Lambert Glacier.  Simply remove those spots.  The extrapolation mechanism will fill them back in with something reasonable.
 
 %%  boxcar filter - create an extrapolated, smoothed version of this vertical level
 
@@ -116,7 +118,7 @@ end
 
 
 %%
-c= [210 273.15];
+c= [260 273.15];
 
 figure(5); clf; 
 ax1=subplot(1,3,1); hold all
