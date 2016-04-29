@@ -131,31 +131,28 @@ class Transect(object):
     
     def computeCumSumLayerThickness(self, layerThicknessCell, dtype):
         
-        print layerThicknessCell
-        
         cellMask = self.mask[0::2,:]
         edgeMask = self.mask[1::2,:]
 
-        assert(np.all(layerThicknessCell[cellMask] > 0.))
-        
+        sumLayerThickness = np.sum(cellMask*layerThicknessCell, axis=1)
+
         denom = (1.0*cellMask[0:-1,:] + 1.0*cellMask[1:,:])
         
         layerThicknessEdge = (cellMask[0:-1,:]*layerThicknessCell[0:-1,:]
                               + cellMask[1:,:]*layerThicknessCell[1:,:])
+
         
         layerThicknessEdge[edgeMask] /= denom[edgeMask]
-
-        assert(np.all(layerThicknessEdge[edgeMask] > 0.))
 
         layerThickness = np.zeros(self.mask.shape, dtype=dtype)
         layerThickness[0::2,:] = layerThicknessCell
         layerThickness[1::2,:] = layerThicknessEdge
         
-        assert(np.all(layerThickness[self.mask] > 0.))
-                
+
         cumSumLayerThickness = np.zeros((2*self.nCells-1,self.nLevels+1), dtype=dtype)
         cumSumLayerThickness[:,1:] = np.cumsum(self.mask*layerThickness, axis=1)
-        return cumSumLayerThickness[self.pointHorizIndices, self.pointVertIndices]
+        return (sumLayerThickness[self.pointCellIndices], 
+                cumSumLayerThickness[self.pointHorizIndices, self.pointVertIndices])
 
 def setup_time_indices(fn_pattern):#{{{
     # Build file list and time indices
@@ -418,6 +415,7 @@ def build_transects_time_series( local_time_indices, file_names, mesh_file, extr
             vtkFile.addHeader(variable_names[iVar], outType, transect.nPoints, 1)
         if layer_thickness_name is not None:
             vtkFile.addHeader('cumSumLayerThickness', outType, transect.nPoints, 1)
+            vtkFile.addHeader('sumLayerThickness', outType, transect.nPoints, 1)
         vtkFile.closeData("Point")
 
         vtkFile.closePiece()
@@ -641,9 +639,11 @@ def build_transects_time_series( local_time_indices, file_names, mesh_file, extr
                 field_ndims = len(field_var.dimensions)
                 
                 layerThicknessCell = read_transect_field(transect, field_var)
-                cumSumLayerThickness = transect.computeCumSumLayerThickness(layerThicknessCell, dtype=outType)
+                (sumLayerThickness, cumSumLayerThickness) = \
+                   transect.computeCumSumLayerThickness(layerThicknessCell, dtype=outType)
                                 
                 vtkFile.appendData(cumSumLayerThickness)
+                vtkFile.appendData(sumLayerThickness)
                 
             if any_var_has_time_dim:
                 timeDependentFile.save()
