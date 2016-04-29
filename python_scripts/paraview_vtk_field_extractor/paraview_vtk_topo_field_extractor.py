@@ -153,6 +153,7 @@ def setup_dimension_values_and_sort_vars(time_series_file, mesh_file, variable_l
 
     # make sure the variables are unique
     variables = list(set(variables))
+    variables.sort()
 
     promptDimNames = []
     for var in variables:
@@ -197,7 +198,6 @@ def setup_dimension_values_and_sort_vars(time_series_file, mesh_file, variable_l
     for var in variables:
         captured_input = False
 
-        dim_vals = []
         # first try the mesh file, then the time series
         if (mesh_file is not None) and (var in mesh_file.variables):
             nc_file = mesh_file
@@ -207,19 +207,23 @@ def setup_dimension_values_and_sort_vars(time_series_file, mesh_file, variable_l
 
         # Setting dimension values:
         field_dims = field_var.dimensions
+        skip = False
         indices = []
         for dim in field_dims:
             if dim not in ['Time', 'nCells', 'nEdges', 'nVertices', topo_dim]:
+                if len(extra_dims[dim]) == 0:
+                    skip = True
+                    break
                 indices.append(extra_dims[dim])
-        if len(indices) == 0:
-            dim_vals = None
-        else:
-            dim_vals = np.array(np.meshgrid(indices,indexing='ij'))
-
-        cellVars.append(var)
-
-        all_dim_vals[var] = dim_vals
-        del dim_vals
+        if not skip:
+            if len(indices) == 0:
+                dim_vals = None
+            else:
+                dim_vals = np.array(np.meshgrid(indices,indexing='ij'))
+    
+            cellVars.append(var)
+    
+            all_dim_vals[var] = dim_vals
 
         if captured_input:
             print ""
@@ -520,7 +524,7 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, all_dim_
             pvd_file.write('<DataSet timestep="%d" group="" part="0"\n'%(time_index))
             pvd_file.write('\tfile="%s.vtp"/>\n'%(vtp_file_prefix))
 
-        if time_index == 0:
+        if time_index == 0 or combine_output:
             varIndices = np.arange(nVars)
         else:
             # only the time-dependent variables
@@ -529,9 +533,7 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, all_dim_
 
         iHyperSlabProgress = 0
         for iVar in varIndices:
-            has_time = var_has_time_dim[iVar]
-            if not has_time and time_index > 0:
-                continue
+            use_time_dependent = var_has_time_dim[iVar] or combine_output
 
             var_name = variable_list[iVar]
             if (mesh_file is not None) and (var_name in mesh_file.variables):
@@ -545,10 +547,11 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, all_dim_
 
             (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name)                    
                         
-            if has_time or combine_output:
+            if use_time_dependent:
                 vtkFile = timeDependentFile
             else:
                 vtkFile = timeIndependentFile
+            
             for iHyperSlab in range(len(out_var_names)):
                 
                 try:
