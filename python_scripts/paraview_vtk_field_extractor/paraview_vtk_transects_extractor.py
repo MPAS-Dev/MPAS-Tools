@@ -58,10 +58,16 @@ class Transect(object):
 
         nCells = len(cellIndices)
         self.nCells = nCells
+        
+        self.minLevel = minLevel
+        self.maxLevel = maxLevel
 
-        cellMask = np.zeros((nCells,nLevels), bool)
+        cellMask = np.ones((nCells,nLevels), bool)
         for iLevel in range(nLevels):
-            cellMask[:,iLevel] = np.logical_and(iLevel >= minLevel, iLevel <= maxLevel)
+            if minLevel is not None:
+                cellMask[:,iLevel] = np.logical_and(cellMask[:,iLevel], iLevel >= minLevel)
+            if maxLevel is not None:
+                cellMask[:,iLevel] = np.logical_and(cellMask[:,iLevel], iLevel <= maxLevel)
 
         edgeMask = np.logical_or(cellMask[0:-1,:], cellMask[1:,:])
         
@@ -129,30 +135,45 @@ class Transect(object):
         self.connectivity = np.arange(self.nPoints)
         self.offsets = 4 + 4*np.arange(self.nPolygons)
     
-    def computeCumSumLayerThickness(self, layerThicknessCell, dtype):
+    def computeZInterface(self, layerThicknessCell, zMin, zMax, dtype):
         
         cellMask = self.mask[0::2,:]
         edgeMask = self.mask[1::2,:]
-
-        sumLayerThickness = np.sum(cellMask*layerThicknessCell, axis=1)
-
-        denom = (1.0*cellMask[0:-1,:] + 1.0*cellMask[1:,:])
         
-        layerThicknessEdge = (cellMask[0:-1,:]*layerThicknessCell[0:-1,:]
-                              + cellMask[1:,:]*layerThicknessCell[1:,:])
-
+        if zMin is not None:
+            zInterfaceCell = np.zeros((self.nCells,self.nLevels+1))
+            zInterfaceCell[:,0] = zMin
+            for iLevel in range(self.nLevels):
+                zInterfaceCell[:,iLevel+1] = (zInterfaceCell[:,iLevel] 
+                    + cellMask[:,iLevel]*layerThicknessCell[:,iLevel])
+        else:
+            zInterfaceCell = np.zeros((self.nCells,self.nLevels+1))
+            zInterfaceCell[:,-1] = zMax
+            for iLevel in range(self.nLevels-1,-1,-1):
+                zInterfaceCell[:,iLevel] = (zInterfaceCell[:,iLevel+1]
+                    - cellMask[:,iLevel]*layerThicknessCell[:,iLevel])
+                    
+        validCell = np.zeros(zInterfaceCell.shape,bool)
+        validCell[:,0:-1] = cellMask
+        validCell[:,1:] = np.logical_or(validCell[:,1:],cellMask)
         
-        layerThicknessEdge[edgeMask] /= denom[edgeMask]
-
-        layerThickness = np.zeros(self.mask.shape, dtype=dtype)
-        layerThickness[0::2,:] = layerThicknessCell
-        layerThickness[1::2,:] = layerThicknessEdge
+                   
+        denom = (1.0*validCell[0:-1,:] + 1.0*validCell[1:,:])
         
+        zInterfaceEdge = (validCell[0:-1,:]*zInterfaceCell[0:-1,:]
+                              + validCell[1:,:]*zInterfaceCell[1:,:])
+        
+        validEdge = np.zeros(zInterfaceEdge.shape,bool)
+        validEdge[:,0:-1] = edgeMask
+        validEdge[:,1:] = np.logical_or(validEdge[:,1:],edgeMask)
 
-        cumSumLayerThickness = np.zeros((2*self.nCells-1,self.nLevels+1), dtype=dtype)
-        cumSumLayerThickness[:,1:] = np.cumsum(self.mask*layerThickness, axis=1)
-        return (sumLayerThickness[self.pointCellIndices], 
-                cumSumLayerThickness[self.pointHorizIndices, self.pointVertIndices])
+        zInterfaceEdge[validEdge] /= denom[validEdge]
+
+        zInterface = np.zeros((2*self.nCells-1,self.nLevels+1), dtype=dtype)
+        zInterface[0::2,:] = zInterfaceCell
+        zInterface[1::2,:] = zInterfaceEdge
+        
+        return zInterface[self.pointHorizIndices, self.pointVertIndices]
 
 def setup_time_indices(fn_pattern):#{{{
     # Build file list and time indices
@@ -349,10 +370,7 @@ def build_transects( mesh_file, transects_file, time_series_file,
         outType = 'f8'
 
     nTransects = len(transects_file.dimensions['nTransects'])
-    if transect_dim_name is None:
-        nTransectLevels = 1
-    else:
-        nTransectLevels = len(time_series_file.dimensions[transect_dim_name])
+    nTransectLevels = len(time_series_file.dimensions[transect_dim_name])
 
     if (mesh_file is not None):
         nc_file = mesh_file
@@ -369,11 +387,11 @@ def build_transects( mesh_file, transects_file, time_series_file,
         if min_level_name is not None:
             minLevelCell = time_series_file.variables[min_level_name][cellIndices]-1
         else:
-            minLevelCell = np.zeros(cellIndices.shape, dtype=int)
+            minLevelCell = None
         if max_level_name is not None:
             maxLevelCell = time_series_file.variables[max_level_name][cellIndices]-1
         else:
-            maxLevelCell = nTransectLevels*np.ones(cellIndices.shape, dtype=int)-1
+            maxLevelCell = None
         
         transect = Transect(cellIndices, nc_file, nTransectLevels, minLevelCell, 
                             maxLevelCell, outType)
@@ -386,7 +404,8 @@ def build_transects( mesh_file, transects_file, time_series_file,
 
 def build_transects_time_series( local_time_indices, file_names, mesh_file, extra_dims,
                                  transect_dim_name, transects, variable_names,
-                                 layer_thickness_name, output_32bit, combine_output, 
+                                 layer_thickness_name, z_min_name, z_max_name,
+                                 output_32bit, combine_output, 
                                  append ):#{{{
     def write_pvd_header(prefix):
         pvd_file = open('vtk_files/%s.pvd'%(prefix), 'w')
@@ -413,9 +432,7 @@ def build_transects_time_series( local_time_indices, file_names, mesh_file, extr
         vtkFile.openData("Point", scalars = variable_names[activeVarIndex])
         for iVar in varIndices:
             vtkFile.addHeader(variable_names[iVar], outType, transect.nPoints, 1)
-        if layer_thickness_name is not None:
-            vtkFile.addHeader('cumSumLayerThickness', outType, transect.nPoints, 1)
-            vtkFile.addHeader('sumLayerThickness', outType, transect.nPoints, 1)
+        vtkFile.addHeader('zInterface', outType, transect.nPoints, 1)
         vtkFile.closeData("Point")
 
         vtkFile.closePiece()
@@ -427,7 +444,15 @@ def build_transects_time_series( local_time_indices, file_names, mesh_file, extr
 
         return vtkFile
         
-    def read_transect_field(transect, field_var):
+    def read_transect_field(transect, field_name):
+        if field_name[0] == '-':
+            field_name = field_name[1:]
+            sign = -1
+        else:
+            sign = 1
+            
+        field_var = variables[field_name]
+        field_ndims = len(field_var.dimensions)
         if transect_dim_name in field_var.dimensions:
             field = np.zeros((transect.nCells,transect.nLevels), dtype=outType)
             
@@ -483,7 +508,7 @@ def build_transects_time_series( local_time_indices, file_names, mesh_file, extr
                 field[:]= field_var[dim_vals[0], dim_vals[1], dim_vals[2], dim_vals[3], dim_vals[4]]
 
 
-        return field
+        return sign*field
 
     if len(variable_names) == 0:
         return
@@ -603,7 +628,6 @@ def build_transects_time_series( local_time_indices, file_names, mesh_file, extr
             for iVar in range(nVars):
                 var_name = variable_names[iVar]
                 field_var = variables[var_name]
-                field_ndims = len(field_var.dimensions)
 
                 has_time = 'Time' in field_var.dimensions
                 if not combine_output and not has_time and time_index > 0:
@@ -614,7 +638,7 @@ def build_transects_time_series( local_time_indices, file_names, mesh_file, extr
                 else:
                     vtkFile = timeIndependentFile
                     
-                field = read_transect_field(transect, field_var)
+                field = read_transect_field(transect, var_name)
                 
                 if(len(field.shape) == 2):
                     field = field[transect.pointCellIndices,transect.pointLevelIndices]
@@ -627,23 +651,24 @@ def build_transects_time_series( local_time_indices, file_names, mesh_file, extr
                     field_bar.update((iTransect*nTimes + time_index)*nVars + iVar)
 
                 del field
-                del field_var
 
             # build a cum sum of layer thickness for transect vertical coord
-            if layer_thickness_name is not None:
                 
-                vtkFile = timeDependentFile
+            vtkFile = timeDependentFile
 
-                field_var = variables[layer_thickness_name]
-                
-                field_ndims = len(field_var.dimensions)
-                
-                layerThicknessCell = read_transect_field(transect, field_var)
-                (sumLayerThickness, cumSumLayerThickness) = \
-                   transect.computeCumSumLayerThickness(layerThicknessCell, dtype=outType)
-                                
-                vtkFile.appendData(cumSumLayerThickness)
-                vtkFile.appendData(sumLayerThickness)
+            layerThickness = read_transect_field(transect, layer_thickness_name)
+            zMin = None
+            zMax = None
+            if z_min_name is not None:
+                zMin = read_transect_field(transect, z_min_name)
+            elif z_max_name is not None:
+                zMax = read_transect_field(transect, z_max_name)
+            else:
+                zMax = np.zeros(transect.nCells)
+
+            zInterface = transect.computeZInterface(layerThickness, zMin, zMax, dtype=outType)
+                            
+            vtkFile.appendData(zInterface)
                 
             if any_var_has_time_dim:
                 timeDependentFile.save()
@@ -673,11 +698,13 @@ if __name__ == "__main__":
         print " -- Progress bars are not available--"
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("-f", "--file_pattern", dest="filename_pattern", help="MPAS Filename pattern.", metavar="FILE", required=True)
-    parser.add_argument("-r", "--transects_file", dest="transects_filename", help="MPAS transects filename.", required=True)
-    parser.add_argument("-t", "--transect_dim", dest="transect_dim_name", help="A dimension for transect layers.")
-    parser.add_argument("-n", "--min_level_cell", dest="min_level_cell_name", help="Index array indicating the minimum valid layer in a cell (default is 0 for all cells)")
-    parser.add_argument("-x", "--max_level_cell", dest="max_level_cell_name", help="Index array indicating the maximum valid layer in a cell (default is the transect_dim-1 for all cells)")
-    parser.add_argument("-l", "--layer_thickness", dest="layer_thickness_name", help="Variable for layer thickness, used to compute output variable cumSumLayerThickness")
+    parser.add_argument("--transects_file", dest="transects_filename", help="MPAS transects filename.", required=True)
+    parser.add_argument("--transect_dim", dest="transect_dim_name", help="A dimension for transect layers.", required=True)
+    parser.add_argument("--layer_thickness", dest="layer_thickness_name", help="Variable for layer thickness, used to compute zInterface", required=True)
+    parser.add_argument("--min_level_cell", dest="min_level_cell_name", help="Index array indicating the minimum valid layer in a cell (default is 0 for all cells)")
+    parser.add_argument("--max_level_cell", dest="max_level_cell_name", help="Index array indicating the maximum valid layer in a cell (default is the transect_dim-1 for all cells)")
+    parser.add_argument("--z_min", dest="z_min_name", help="Variable specifying the depth of the lower interface (in index space) of the first valid layer on cells, used to compute zInterface")
+    parser.add_argument("--z_max", dest="z_max_name", help="Variable specifying the depth of the upper interface (in index space) of the last valid layer on cells, used to compute zInterface")
     parser.add_argument("-d", "--dim_list", dest="dimension_list", nargs="+", help="A list of dimensions and associated indices.")
     parser.add_argument("-m", "--mesh_file", dest="mesh_filename", help="MPAS Mesh filename. If not set, it will use the first file in the -f flag as the mesh file.")
     parser.add_argument("-v", "--variable_list", dest="variable_list", help="List of variables to extract ('all' for all variables, 'allOnCells' for all variables on cells, etc.)", metavar="VAR", required=True)
@@ -731,7 +758,8 @@ if __name__ == "__main__":
 
     build_transects_time_series( time_indices, time_file_names, mesh_file,
                                  extra_dims, args.transect_dim_name, transects,
-                                 cellVars, args.layer_thickness_name, use_32bit,
+                                 cellVars, args.layer_thickness_name, 
+                                 args.z_min_name, args.z_max_name, use_32bit,
                                  args.combine_output, args.append )
     if separate_mesh_file:
         mesh_file.close()
