@@ -98,7 +98,7 @@ def setup_time_indices(fn_pattern):#{{{
 def parse_extra_dim(dimName, indexString, time_series_file, mesh_file):#{{{
     if indexString == '':
         return np.zeros(0,int)
-        
+
     if (mesh_file is not None) and (dimName in mesh_file.dimensions):
         nc_file = mesh_file
     else:
@@ -610,7 +610,7 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
             pvd_file.write('<DataSet timestep="%d" group="" part="0"\n'%(time_index))
             pvd_file.write('\tfile="%s.vtp"/>\n'%(vtp_file_prefix))
 
-        if time_index == 0:
+        if time_index == 0 or combine_output:
             varIndices = np.arange(nVars)
         else:
             # only the time-dependent variables
@@ -620,8 +620,6 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
         iHyperSlabProgress = 0
         for iVar in varIndices:
             has_time = var_has_time_dim[iVar]
-            if not has_time and time_index > 0:
-                continue
 
             var_name = variable_list[iVar]
             (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name)
