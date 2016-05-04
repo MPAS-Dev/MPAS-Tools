@@ -51,28 +51,29 @@ except:
     use_progress_bar = False
     
 class Transect(object):
-    def __init__(self, cellIndices, mesh_file, nLevels, minLevel, maxLevel, dtype):
+    def __init__(self, cellIndices, mesh_file, nLevels, minLevelCell, maxLevelCell, dtype):
 
         self.cellIndices = cellIndices
         self.nLevels = nLevels
 
         nCells = len(cellIndices)
         self.nCells = nCells
+        self.nCellsAndEdges = 2*nCells-1
         
-        self.minLevel = minLevel
-        self.maxLevel = maxLevel
+        self.minLevelCell = minLevelCell
+        self.maxLevelCell = maxLevelCell
 
         cellMask = np.ones((nCells,nLevels), bool)
         for iLevel in range(nLevels):
-            if minLevel is not None:
-                cellMask[:,iLevel] = np.logical_and(cellMask[:,iLevel], iLevel >= minLevel)
-            if maxLevel is not None:
-                cellMask[:,iLevel] = np.logical_and(cellMask[:,iLevel], iLevel <= maxLevel)
+            if minLevelCell is not None:
+                cellMask[:,iLevel] = np.logical_and(cellMask[:,iLevel], iLevel >= minLevelCell)
+            if maxLevelCell is not None:
+                cellMask[:,iLevel] = np.logical_and(cellMask[:,iLevel], iLevel <= maxLevelCell)
 
         edgeMask = np.logical_or(cellMask[0:-1,:], cellMask[1:,:])
         
         
-        self.mask = np.zeros((2*self.nCells-1,self.nLevels), dtype=bool)
+        self.mask = np.zeros((self.nCellsAndEdges,self.nLevels), dtype=bool)
         self.mask[0::2,:] = cellMask
         self.mask[1::2,:] = edgeMask
 
@@ -108,7 +109,7 @@ class Transect(object):
         X = []
         Y = []
         Z = []
-        for index in range(2*nCells-2):
+        for index in range(self.nCellsAndEdges-1):
             iCell = transectCellIndices[index]
             for iLevel in range(nLevels):
                 if not (self.mask[index,iLevel] and self.mask[index+1,iLevel]):
@@ -134,45 +135,52 @@ class Transect(object):
         
         self.connectivity = np.arange(self.nPoints)
         self.offsets = 4 + 4*np.arange(self.nPolygons)
-    
-    def computeZInterface(self, layerThicknessCell, zMin, zMax, dtype):
+
+    def computeZInterface(self, layerThicknessCell, zMinCell, zMaxCell, dtype):
         
         cellMask = self.mask[0::2,:]
         edgeMask = self.mask[1::2,:]
         
-        if zMin is not None:
-            zInterfaceCell = np.zeros((self.nCells,self.nLevels+1))
-            zInterfaceCell[:,0] = zMin
-            for iLevel in range(self.nLevels):
-                zInterfaceCell[:,iLevel+1] = (zInterfaceCell[:,iLevel] 
-                    + cellMask[:,iLevel]*layerThicknessCell[:,iLevel])
+        # first average layerThickness to transect points (cells and edges both)
+        layerThicknessEdge = (cellMask[0:-1,:]*layerThicknessCell[0:-1,:]+ cellMask[1:,:]*layerThicknessCell[1:,:])
+        denom = (1.0*cellMask[0:-1,:] + 1.0*cellMask[1:,:])
+        layerThicknessEdge[edgeMask] /= denom[edgeMask]
+
+        layerThickness = np.zeros((self.nCellsAndEdges,self.nLevels), dtype=dtype)
+        layerThickness[0::2,:] = layerThicknessCell
+        layerThickness[1::2,:] = layerThicknessEdge
+
+        zInterface = np.zeros((self.nCellsAndEdges,self.nLevels+1))
+        for iLevel in range(self.nLevels):
+            zInterface[:,iLevel+1] = (zInterface[:,iLevel]
+                + self.mask[:,iLevel]*layerThickness[:,iLevel])
+
+        # work your way from either the min or the max to compute zInterface
+        if zMinCell is not None:
+            minLevelCell = self.minLevelCell.copy()
+            minLevelCell[minLevelCell < 0] = self.nLevels-1
+            zOffsetCell = zMinCell - zInterface[np.arange(0,self.nCellsAndEdges,2),minLevelCell]
+            levelEdge = np.maximum(minLevelCell[0:-1], minLevelCell[1:])
         else:
-            zInterfaceCell = np.zeros((self.nCells,self.nLevels+1))
-            zInterfaceCell[:,-1] = zMax
-            for iLevel in range(self.nLevels-1,-1,-1):
-                zInterfaceCell[:,iLevel] = (zInterfaceCell[:,iLevel+1]
-                    - cellMask[:,iLevel]*layerThicknessCell[:,iLevel])
-                    
-        validCell = np.zeros(zInterfaceCell.shape,bool)
-        validCell[:,0:-1] = cellMask
-        validCell[:,1:] = np.logical_or(validCell[:,1:],cellMask)
-        
-                   
-        denom = (1.0*validCell[0:-1,:] + 1.0*validCell[1:,:])
-        
-        zInterfaceEdge = (validCell[0:-1,:]*zInterfaceCell[0:-1,:]
-                              + validCell[1:,:]*zInterfaceCell[1:,:])
-        
-        validEdge = np.zeros(zInterfaceEdge.shape,bool)
-        validEdge[:,0:-1] = edgeMask
-        validEdge[:,1:] = np.logical_or(validEdge[:,1:],edgeMask)
+            maxLevelCell = self.maxLevelCell.copy()
+            zOffsetCell = zMaxCell - zInterface[np.arange(0,self.nCellsAndEdges,2),maxLevelCell+1]
+            levelEdge = np.minimum(maxLevelCell[0:-1], maxLevelCell[1:])
+            print zMaxCell
+            print zInterface[np.arange(0,self.nCellsAndEdges,2),maxLevelCell+1]
 
-        zInterfaceEdge[validEdge] /= denom[validEdge]
+        for iLevel in range(self.nLevels+1):
+            zInterface[0::2,iLevel] += zOffsetCell
 
-        zInterface = np.zeros((2*self.nCells-1,self.nLevels+1), dtype=dtype)
-        zInterface[0::2,:] = zInterfaceCell
-        zInterface[1::2,:] = zInterfaceEdge
-        
+        zOffsetEdge = (-zInterface[np.arange(1,self.nCellsAndEdges-1,2),levelEdge]
+           + 0.5*(zInterface[np.arange(0,self.nCellsAndEdges-2,2),levelEdge]
+           + zInterface[np.arange(2,self.nCellsAndEdges,2),levelEdge]))
+
+        for iLevel in range(self.nLevels+1):
+            zInterface[1::2,iLevel] += zOffsetEdge
+
+        print zOffsetCell
+        #print zOffsetEdge
+
         return zInterface[self.pointHorizIndices, self.pointVertIndices]
 
 def setup_time_indices(fn_pattern):#{{{
