@@ -225,7 +225,7 @@ def write_defaults_file(registry, defaults_tree, use_defaults):#{{{
 #}}}
 
 def write_build_namelist_section(registry):#{{{
-	bld_nl_sec_filename = "build-namelist-section"
+	bld_nl_sec_filename = "build-namelist-section-new"
 	print "=== Writing section of the 'build-namelist' file that writes a list of namelist options to: " + bld_nl_sec_filename
 	build_nml = open(bld_nl_sec_filename, 'w+')
 
