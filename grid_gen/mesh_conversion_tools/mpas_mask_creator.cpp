@@ -1241,7 +1241,7 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 
 				properties.clear();
 				properties = extractFeatureProperties( feature["properties"] );
-				regionProperties.push_back(properties);
+				pointProperties.push_back(properties);
 
 				pointLocations.push_back(point);
 				pointNames.push_back(featureName);
