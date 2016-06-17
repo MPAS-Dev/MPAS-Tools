@@ -73,7 +73,7 @@ for b in range(int(np.ceil(nBlocks*0.1))):
 if options.cmap == 'jet':
    cmap = plt.get_cmap('jet')
 else:
-   cmap = matplotlib.colors.ListedColormap ( np.random.rand (blocks.max(), 3))
+   cmap = matplotlib.colors.ListedColormap ( np.random.rand (blocks.max()+1, 3))
 
 print '** Beginning to create plot.'
 plottitle = 'block decomposition for grid file ' + options.gridfile + '\nand graph file ' + options.blockfile

@@ -22,6 +22,9 @@ projections['gis-bamber'] = pyproj.Proj('+proj=stere +lat_ts=71.0 +lat_0=90 +lon
 # GIMP projection: This is also polar stereographic but with different standard parallel and using the WGS84 ellipsoid.
 projections['gis-gimp'] = pyproj.Proj('+proj=stere +lat_ts=70.0 +lat_0=90 +lon_0=315.0 +k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84')
 
+# BEDMAP2 projection
+projections['ais-bedmap2'] = pyproj.Proj('+proj=stere +lat_ts=-71.0 +lat_0=-90 +lon_0=0.0 +k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84')  # Note: BEDMAP2 elevations use EIGEN-GL04C geoid
+
 # Standard Lat/Long
 projections['latlon'] = pyproj.Proj(proj='latlong', datum='WGS84')
 # ===================================
@@ -70,13 +73,13 @@ fout.createDimension("grid_rank", 1)
 
 # Variables
 grid_center_lat = fout.createVariable('grid_center_lat', 'f8', ('grid_size',))
-grid_center_lat.units = 'radians'
+grid_center_lat.units = 'degrees'
 grid_center_lon = fout.createVariable('grid_center_lon', 'f8', ('grid_size',))
-grid_center_lon.units = 'radians'
+grid_center_lon.units = 'degrees'
 grid_corner_lat = fout.createVariable('grid_corner_lat', 'f8', ('grid_size', 'grid_corners'))
-grid_corner_lat.units = 'radians'
+grid_corner_lat.units = 'degrees'
 grid_corner_lon = fout.createVariable('grid_corner_lon', 'f8', ('grid_size', 'grid_corners'))
-grid_corner_lon.units = 'radians'
+grid_corner_lon.units = 'degrees'
 grid_imask = fout.createVariable('grid_imask', 'i4', ('grid_size',))
 grid_imask.units = 'unitless'
 grid_dims = fout.createVariable('grid_dims', 'i4', ('grid_rank',))
@@ -94,11 +97,11 @@ print 'Unprojecting.'
 
 x1matrix_flat = x1matrix.flatten(order='C')  # Flatten using C indexing
 y1matrix_flat = y1matrix.flatten(order='C')
-grid_center_lon[:], grid_center_lat[:] = pyproj.transform(projections[options.projection], projections['latlon'], x1matrix_flat, y1matrix_flat, radians=True)
+grid_center_lon[:], grid_center_lat[:] = pyproj.transform(projections[options.projection], projections['latlon'], x1matrix_flat, y1matrix_flat, radians=False)
 
 
 # Now fill in the corners in the right locations
-stag_lon, stag_lat = pyproj.transform(projections[options.projection], projections['latlon'], xcmatrix, ycmatrix, radians=True)
+stag_lon, stag_lat = pyproj.transform(projections[options.projection], projections['latlon'], xcmatrix, ycmatrix, radians=False)
 print 'Filling in corners of each cell.'
 grid_corner_lon_local = np.zeros( (nx * ny, 4) )  # It is WAYYY faster to fill in the array entry-by-entry in memory than to disk.
 grid_corner_lat_local = np.zeros( (nx * ny, 4) )
