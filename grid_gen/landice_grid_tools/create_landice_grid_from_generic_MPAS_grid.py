@@ -74,8 +74,10 @@ print '' # make a space in stdout before further output
 # Note: The UNLIMITED time dimension will return a dimension value of None with Scientific.IO.  This is what is supposed to happen.  See below for how to deal with assigning values to a variable with a unlimited dimension.  Special handling is needed with the netCDF module.
 print "---- Copying dimensions from input file to output file ----"
 for dim in filein.dimensions.keys():
-    if dim == 'nTracers': 
-        pass  # Do nothing - we don't want this dimension 
+    if dim == 'nTracers':
+        pass  # Do nothing - we don't want this dimension
+    elif (dim == 'nVertInterfaces'):
+        pass  # Do nothing - this dimension will be handled below
     else:    # Copy over all other dimensions
       if dim == 'Time':      
          dimvalue = None  # netCDF4 won't properly get this with the command below (you need to use the isunlimited method)
