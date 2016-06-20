@@ -172,6 +172,8 @@ def setup_dimension_values_and_sort_vars(time_series_file, mesh_file, variable_l
                 for dim in ['nCells', 'nEdges', 'nVertices']:
                     if dim in dims:
                         supported = True
+                if(nc_file == mesh_file) and ('Time' in dims):
+                    supported = False
                 if supported:
                     variables.append(str(var))
     else:
@@ -180,13 +182,16 @@ def setup_dimension_values_and_sort_vars(time_series_file, mesh_file, variable_l
     for suffix in ['Cells','Edges','Vertices']:
         if 'allOn%s'%suffix in variables:
             variables.remove('allOn%s'%suffix)
-            files = [time_series_file]
+            nc_file = time_series_file
+            for var in nc_file.variables:
+                dims = nc_file.variables[var].dimensions
+                if 'n%s'%suffix in dims:
+                    variables.append(str(var))
             if mesh_file is not None:
-                files.append(mesh_file)
-            for nc_file in files:
+                nc_file = mesh_file
                 for var in nc_file.variables:
                     dims = nc_file.variables[var].dimensions
-                    if 'n%s'%suffix in dims:
+                    if ('Time' not in dims) and ('n%s'%suffix in dims):
                         variables.append(str(var))
 
     # make sure the variables are unique
@@ -529,12 +534,12 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
     nHyperSlabs = 0
     for iVar in range(nVars):
         var_name = variable_list[iVar]
-        if (mesh_file is not None) and (var_name in mesh_file.variables):
+        if var_name in time_series_file.variables:
+            var_has_time_dim[iVar] = 'Time' in time_series_file.variables[var_name].dimensions
+        else:
             # we can't support time dependence in the mesh file
             assert('Time' not in mesh_file.variables[var_name].dimensions)
             var_has_time_dim[iVar] = False
-        else:
-            var_has_time_dim[iVar] = 'Time' in time_series_file.variables[var_name].dimensions
 
         extra_dim_vals = all_dim_vals[var_name]
         if (extra_dim_vals is None) or (extra_dim_vals.size == 0):
@@ -631,10 +636,10 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, blocking
                 if dim_list is not None:
                     dim_vals = dim_list[:,iHyperSlab]
 
-                if (mesh_file is not None) and (var_name in mesh_file.variables):
-                    nc_file = mesh_file
-                else:
+                if var_name in time_series_file.variables:
                     nc_file = time_series_file
+                else:
+                    nc_file = mesh_file
 
                 field_var = nc_file.variables[var_name]
 
