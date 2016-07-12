@@ -959,30 +959,30 @@ void build_connectivity(){/*{{{*/
 			v2 = v1;
 		}
 
-		distance1 = pow(xcell[c1] - xvertex[v1], 2);
-		distance2 = pow(ycell[c1] - yvertex[v1], 2);
-		distance3 = pow(zcell[c1] - zvertex[v1], 2);
+		distance1 = fabs(xcell[c1] - xvertex[v1]);
+		distance2 = fabs(ycell[c1] - yvertex[v1]);
+		distance3 = fabs(zcell[c1] - zvertex[v1]);
 
 		if(c1 != c2){
-			distance1 = max(distance1, pow(xcell[c2] - xvertex[v1], 2));
-			distance2 = max(distance2, pow(ycell[c2] - yvertex[v1], 2));
-			distance3 = max(distance3, pow(zcell[c2] - zvertex[v1], 2));
+			distance1 = max(distance1, fabs(xcell[c2] - xvertex[v1]));
+			distance2 = max(distance2, fabs(ycell[c2] - yvertex[v1]));
+			distance3 = max(distance3, fabs(zcell[c2] - zvertex[v1]));
 
-			distance1 = max(distance1, pow(xcell[c2] - xvertex[v2], 2));
-			distance2 = max(distance2, pow(ycell[c2] - yvertex[v2], 2));
-			distance3 = max(distance3, pow(zcell[c2] - zvertex[v2], 2));
+			distance1 = max(distance1, fabs(xcell[c2] - xvertex[v2]));
+			distance2 = max(distance2, fabs(ycell[c2] - yvertex[v2]));
+			distance3 = max(distance3, fabs(zcell[c2] - zvertex[v2]));
 
-			distance1 = max(distance1, pow(xcell[c1] - xvertex[v2], 2));
-			distance2 = max(distance2, pow(ycell[c1] - yvertex[v2], 2));
-			distance3 = max(distance3, pow(zcell[c1] - zvertex[v2], 2));
+			distance1 = max(distance1, fabs(xcell[c1] - xvertex[v2]));
+			distance2 = max(distance2, fabs(ycell[c1] - yvertex[v2]));
+			distance3 = max(distance3, fabs(zcell[c1] - zvertex[v2]));
 		} else {
-			distance1 = max(distance1, pow(xvertex[v1] - xvertex[v2], 2));
-			distance2 = max(distance2, pow(yvertex[v1] - yvertex[v2], 2));
-			distance3 = max(distance3, pow(zvertex[v1] - zvertex[v2], 2));
+			distance1 = max(distance1, fabs(xvertex[v1] - xvertex[v2]));
+			distance2 = max(distance2, fabs(yvertex[v1] - yvertex[v2]));
+			distance3 = max(distance3, fabs(zvertex[v1] - zvertex[v2]));
 
-			distance1 = max(distance1, pow(xcell[c1] - xvertex[v2], 2));
-			distance2 = max(distance2, pow(ycell[c1] - yvertex[v2], 2));
-			distance3 = max(distance3, pow(zcell[c1] - zvertex[v2], 2));
+			distance1 = max(distance1, fabs(xcell[c1] - xvertex[v2]));
+			distance2 = max(distance2, fabs(ycell[c1] - yvertex[v2]));
+			distance3 = max(distance3, fabs(zcell[c1] - zvertex[v2]));
 		}
 
 		if(distance1 > xvertex_range/2.0 || distance2 > yvertex_range/2.0 || distance3 > zvertex_range/2.0){
