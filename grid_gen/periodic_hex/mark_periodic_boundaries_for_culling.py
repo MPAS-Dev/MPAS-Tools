@@ -24,8 +24,9 @@ print "== Gathering information.  (Invoke with --help for more details. All argu
 parser = OptionParser()
 parser.description = "This script takes an MPAS grid file and marks the edge rows and columns for culling, e.g., to remove periodicity."
 parser.add_option("-f", "--file", dest="inFile", help="MPAS grid file name used as input.", default="grid.nc", metavar="FILENAME")
-parser.add_option("-x", "--xonly", dest="xonly", help="Only cull periodicity in x direction.", action='store_true', default=False)
-parser.add_option("-y", "--yonly", dest="yonly", help="Only cull periodicity in y direction.", action='store_true', default=False)
+parser.add_option("--keepx", dest="keepx", help="Retain periodicity in x-direction.", action='store_true', default=False)
+parser.add_option("--keepy", dest="keepy", help="Retain periodicity in y-direction.", action='store_true', default=False)
+parser.add_option("--remove_extra_y", dest="extray", help="Remove extra row in y-direction to create an odd number of rows (which is not allowed by periodic_hex.  The extra row is removed from the north side of the mesh.", action='store_true', default=False)
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
         option.help += (" " if option.help else "") + "[default: %default]"
@@ -51,14 +52,21 @@ else:
 cullCell_local = np.zeros( (nCells,) )
 
 # For a periodic hex, the upper and lower rows need to be marked
-if not options.xonly:
-    print 'culling y-periodic cells'
+if not options.keepy:
+    print 'y-periodic cells marked for culling'
     cullCell_local[np.nonzero(yCell == yCell.min())] = 1
     cullCell_local[np.nonzero(yCell == yCell.max())] = 1
 
+if options.extray:
+   if options.keepy:
+      print "--remove_extra_y cannot be used with --keepy.  --remove_extra_y will be ignored."
+   else:
+      print "An extra row along the north will be marked for culling to leave an odd number of row."
+      cullCell_local[np.nonzero(yCell == np.unique(yCell[:])[-2])] = 1  # second to north row
+
 # For a periodidic hex the leftmost and rightmost *TWO* columns need to be marked
-if not options.yonly:
-    print 'culling x-periodic cells'
+if not options.keepx:
+    print 'x-periodic cells marked for culling'
     unique_Xs=np.array(sorted(list(set(xCell[:]))))
     cullCell_local[np.nonzero(xCell == unique_Xs[0])] = 1
     cullCell_local[np.nonzero(xCell == unique_Xs[1])] = 1
@@ -68,4 +76,4 @@ if not options.yonly:
 cullCell[:] = cullCell_local
 
 fin.close()
-
+print "Marking complete.  Don't forget to run MpasCellCuller!"
