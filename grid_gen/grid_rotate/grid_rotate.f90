@@ -421,7 +421,7 @@ contains
       real (kind=RKIND), intent(in) :: x, y, z
       real (kind=RKIND), intent(out) :: lat, lon
    
-      real (kind=RKIND) :: dl, clat
+      real (kind=RKIND) :: dl
       real (kind=RKIND) :: eps
       parameter (eps=1.e-10)
    
@@ -505,9 +505,7 @@ contains
       real (kind=RKIND) :: a, b, c          ! Side lengths of spherical triangle ABC
 
       real (kind=RKIND) :: ABx, ABy, ABz    ! The components of the vector AB
-      real (kind=RKIND) :: mAB              ! The magnitude of AB
       real (kind=RKIND) :: ACx, ACy, ACz    ! The components of the vector AC
-      real (kind=RKIND) :: mAC              ! The magnitude of AC
 
       real (kind=RKIND) :: Dx               ! The i-components of the cross product AB x AC
       real (kind=RKIND) :: Dy               ! The j-components of the cross product AB x AC
