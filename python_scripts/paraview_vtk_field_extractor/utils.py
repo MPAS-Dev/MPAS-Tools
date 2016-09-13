@@ -2,7 +2,7 @@
 """
 Name: utils.py
 Authors: Xylar Asay-Davis
-Date: 06/20/2016
+Date: 09/13/2016
 
 Utility library for various scripts used to extract vtk geometry from NetCDF
 files on MPAS grids.
@@ -108,7 +108,7 @@ def setup_time_indices(fn_pattern):#{{{
 #              excluding n, in the typical python indexing convention)
 def parse_extra_dim(dim_name, index_string, time_series_file, mesh_file):#{{{
     if index_string == '':
-        return numpy.zeros(0,int)
+        return []
 
     if (mesh_file is not None) and (dim_name in mesh_file.dimensions):
         nc_file = mesh_file
@@ -116,10 +116,7 @@ def parse_extra_dim(dim_name, index_string, time_series_file, mesh_file):#{{{
         nc_file = time_series_file
     dim_size = len(nc_file.dimensions[dim_name])
     if ',' in index_string:
-        indices = []
-        for index in index_string.split(','):
-            indices.append(int(index))
-        indices = numpy.array(indices,int)
+        indices = [index for index in index_string.split(',')]
     elif ':' in index_string:
         index_list = index_string.split(':')
         if len(index_list) in [2,3]:
@@ -135,17 +132,37 @@ def parse_extra_dim(dim_name, index_string, time_series_file, mesh_file):#{{{
                 step = 1
             else:
                 step = int(index_list[2])
-            indices = numpy.arange(first,last,step)
+            indices = [str(index) for index in numpy.arange(first,last,step)]
         else:
             print "Improperly formatted extra dimension:", dim_name, index_string
             return None
     else:
-        indices = numpy.array([int(index_string)])
+        indices = [index_string]
 
-    valid = numpy.all(numpy.logical_and(indices >= 0,indices <= dim_size-1))
-    if not valid:
-        print "Index (or indices) out of bounds for extra dimension:", dim_name, index_string
-        return None
+    numerical_indices = []
+    for index in indices:
+        try:
+            val = int(index)
+        except ValueError:
+            continue
+
+        if val < 0 or val >= dim_size:
+            print "Index (or indices) out of bounds for extra dimension:", dim_name, index_string
+            return None
+
+        numerical_indices.append(val)
+
+    # zero-pad integer indices
+    if len(numerical_indices) > 0:
+        max_index = numpy.amax(numerical_indices)
+        pad = int(numpy.log10(max(max_index,1)))+1
+        template = '%%0%dd'%pad
+        for i in range(len(indices)):
+            try:
+                val = int(indices[i])
+            except ValueError:
+                continue
+            indices[i] = template%(val)
 
     return indices
 
@@ -286,16 +303,30 @@ def setup_dimension_values_and_sort_vars(time_series_file, mesh_file, variable_l
             continue
 
         # Setting dimension values:
-        dim_vals = []
         indices = []
         for dim in field_dims:
-            if dim not in basic_dims:
-                indices.append(extra_dims[str(dim)])
+            if dim not in ['Time', 'nCells', 'nEdges', 'nVertices']:
+                indices.append(extra_dims[dim])
         if len(indices) == 0:
             dim_vals = None
+        elif len(indices) == 1:
+            dim_vals = []
+            for index0 in indices[0]:
+               dim_vals.append([index0])
+        elif len(indices) == 2:
+            dim_vals = []
+            for index0 in indices[0]:
+                for index1 in indices[1]:
+                    dim_vals.append([index0,index1])
+        elif len(indices) == 3:
+            dim_vals = []
+            for index0 in indices[0]:
+                for index1 in indices[1]:
+                    for index2 in indices[2]:
+                        dim_vals.append([index0,index1,index2])
         else:
-            # expand full list of indices all extra dimensions
-            dim_vals = numpy.array(numpy.meshgrid(indices,indexing='ij'))
+           print "variable %s has too many extra dimensions and will be skipped."%variable_name
+           continue
 
         if "nCells" in field_dims:
             cellVars.append(variable_name)
@@ -351,24 +382,16 @@ def write_pvd_header(path, prefix):#{{{
     return pvd_file
 #}}}
 
-def get_hyperslab_name_and_dims(var_name, all_dim_vals):#{{{
-    extra_dim_vals = all_dim_vals[var_name]
+def get_hyperslab_name_and_dims(var_name, extra_dim_vals):#{{{
     if(extra_dim_vals is None):
         return ([var_name],None)
-    if(extra_dim_vals.size == 0):
+    if(len(extra_dim_vals) == 0):
         return ([],None)
     out_var_names = []
-    maxval = numpy.amax(extra_dim_vals,axis=1)
-    pad = numpy.ones(maxval.shape,int)
-    mask = maxval > 0
-    pad[mask] = numpy.array(numpy.floor(numpy.log10(maxval[mask])),int)+1
-    for iHyperSlab in range(extra_dim_vals.shape[1]):
-        out_var_name = var_name
-        for iVal in range(extra_dim_vals.shape[0]):
-            val = extra_dim_vals[iVal,iHyperSlab]
-            template = '%%s_%%0%dd'%pad[iVal]
-            out_var_name = template%(out_var_name,val)
-            out_var_names.append(out_var_name)
+    for hyper_slab in extra_dim_vals:
+        pieces = [var_name]
+        pieces.extend(hyper_slab)
+        out_var_names.append('_'.join(pieces))
     return (out_var_names, extra_dim_vals)
 #}}}
 
@@ -392,7 +415,7 @@ def write_vtp_header(path, prefix, active_var_index, var_indices, variable_list,
         vtkFile.openData("Cell", scalars = variable_list[active_var_index])
         for iVar in var_indices:
             var_name = variable_list[iVar]
-            (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name, all_dim_vals)
+            (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name, all_dim_vals[var_name])
             for out_var_name in out_var_names:
                 vtkFile.addHeader(out_var_name, outType, nPolygons, 1)
         vtkFile.closeData("Cell")
@@ -400,7 +423,7 @@ def write_vtp_header(path, prefix, active_var_index, var_indices, variable_list,
         vtkFile.openData("Point", scalars = variable_list[active_var_index])
         for iVar in var_indices:
             var_name = variable_list[iVar]
-            (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name, all_dim_vals)
+            (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name, all_dim_vals[var_name])
             for out_var_name in out_var_names:
                 vtkFile.addHeader(out_var_name, outType, nPoints, 1)
         vtkFile.closeData("Point")
@@ -563,64 +586,100 @@ def get_field_sign(field_name):
 
     return (field_name, sign)
 
-def read_field(field_var, extra_dim_vals, time_index, cell_indices,
-               outType, sign=1, vert_dim_name=None, nLevels=None):#{{{
+def read_field(var_name, mesh_file, time_series_file, extra_dim_vals, time_index,
+               block_indices, outType, sign=1):#{{{
 
-    def read_field_with_dims(field_var, dim_vals, field):#{{{
-        outDims = len(field.shape)
+    def read_field_with_dims(field_var, dim_vals, temp_shape, outType, index_arrays):#{{{
+        temp_field = numpy.zeros(temp_shape, dtype=outType)
         inDims = len(dim_vals)
-        if outDims <= 0 or outDims > 2:
-            print 'reading field into variable with dimension', outDims, 'not supported.'
-            exit(1)
         if inDims <= 0 or inDims > 5:
-            print 'reading field with dimension', inDims, 'not supported.'
-            exit(1)
+            print 'reading field %s with %s dimensions not supported.'%(var_name, inDims)
+            sys.exit(1)
 
+        if inDims == 1:
+            temp_field = numpy.array(field_var[dim_vals[0]], dtype=outType)
+        elif inDims == 2:
+            temp_field = numpy.array(field_var[dim_vals[0], dim_vals[1]],
+                                     dtype=outType)
+        elif inDims == 3:
+            temp_field = numpy.array(field_var[dim_vals[0], dim_vals[1],
+                                               dim_vals[2]],
+                                     dtype=outType)
+        elif inDims == 4:
+            temp_field = numpy.array(field_var[dim_vals[0], dim_vals[1],
+                                               dim_vals[2], dim_vals[3]],
+                                     dtype=outType)
+        elif inDims == 5:
+            temp_field = numpy.array(field_var[dim_vals[0], dim_vals[1],
+                                               dim_vals[2], dim_vals[3],
+                                               dim_vals[4]],
+                                     dtype=outType)
+
+        outDims = len(temp_field.shape)
+
+        if outDims <= 0 or outDims > 4:
+            print 'something went wrong reading field %s, resulting in a temp array with %s dimensions.'%(var_name, outDims)
+            sys.exit(1)
+        block_indices = numpy.arange(temp_field.shape[0])
         if outDims == 1:
-            if inDims == 1:
-                field[:] = field_var[dim_vals[0]]
-            elif inDims == 2:
-                field[:] = field_var[dim_vals[0], dim_vals[1]]
-            elif inDims == 3:
-                field[:] = field_var[dim_vals[0], dim_vals[1], dim_vals[2]]
-            elif inDims == 4:
-                field[:] = field_var[dim_vals[0], dim_vals[1], dim_vals[2], dim_vals[3]]
-            elif inDims == 5:
-                field[:] = field_var[dim_vals[0], dim_vals[1], dim_vals[2], dim_vals[3], dim_vals[4]]
+            field = temp_field
         elif outDims == 2:
-            if inDims == 1:
-                field[:,:] = field_var[dim_vals[0]]
-            elif inDims == 2:
-                field[:,:] = field_var[dim_vals[0], dim_vals[1]]
-            elif inDims == 3:
-                field[:,:] = field_var[dim_vals[0], dim_vals[1], dim_vals[2]]
-            elif inDims == 4:
-                field[:,:] = field_var[dim_vals[0], dim_vals[1], dim_vals[2], dim_vals[3]]
-            elif inDims == 5:
-                field[:,:] = field_var[dim_vals[0], dim_vals[1], dim_vals[2], dim_vals[3], dim_vals[4]]
+            field = temp_field[block_indices,index_arrays[0]]
+        elif outDims == 3:
+            field = temp_field[block_indices,index_arrays[0],index_arrays[1]]
+        elif outDims == 4:
+            field = temp_field[block_indices,index_arrays[0],index_arrays[1],index_arrays[2]]
+
+        return field
+
+
 #}}}
 
+    field_var = get_var(var_name, mesh_file, time_series_file)
+    try:
+        missing_val = field_var.missing_value
+    except:
+        missing_val = -9999999790214767953607394487959552.000000
 
     dim_vals = []
-    extraDimIndex = 0
-    for dim in field_var.dimensions:
+    extra_dim_index = 0
+    shape = field_var.shape
+    temp_shape = ()
+
+    index_arrays = []
+
+    for i in range(field_var.ndim):
+        dim =  field_var.dimensions[i]
         if dim == 'Time':
             dim_vals.append(time_index)
-        elif dim == 'nCells':
-            dim_vals.append(cell_indices)
-        elif dim == vert_dim_name:
-            dim_vals.append(numpy.arange(nLevels))
+        elif dim in ['nCells', 'nEdges', 'nVertices']:
+            dim_vals.append(block_indices)
+            temp_shape = temp_shape + (len(block_indices),)
         else:
-            dim_vals.append(extra_dim_vals[extraDimIndex])
-            extraDimIndex += 1
+            extra_dim_val = extra_dim_vals[extra_dim_index]
+            try:
+                index = int(extra_dim_val)
+                dim_vals.append(index)
+            except ValueError:
+                # we have an index array so we need to read the whole range
+                # first and then sample the result
+                dim_vals.append(numpy.arange(shape[i]))
+                temp_shape = temp_shape + (shape[i],)
 
-    if vert_dim_name in field_var.dimensions:
-        field = numpy.zeros((len(cell_indices),nLevels), dtype=outType)
+                index_array_var = get_var(extra_dim_val, mesh_file, time_series_file)
 
-    else:
-        field = numpy.zeros((len(cell_indices)), dtype=outType)
+                # read the appropriate indices from the index_array_var
+                index_array = numpy.maximum(0,numpy.minimum(shape[i]-1, index_array_var[block_indices]-1))
 
-    read_field_with_dims(field_var, dim_vals, field)
+                index_arrays.append(index_array)
+
+            extra_dim_index += 1
+
+
+    field = read_field_with_dims(field_var, dim_vals, temp_shape, outType,
+                                 index_arrays)
+
+    field[field == missing_val] = numpy.nan
 
     return sign*field
 #}}}

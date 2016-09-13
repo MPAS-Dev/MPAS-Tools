@@ -2,7 +2,7 @@
 """
 Name: paraview_vtk_field_extractor.py
 Authors: Doug Jacobsen, Xylar Asay-Davis
-Date: 06/20/2016
+Date: 09/13/2016
 
 This script is used to extract a field from a time series of NetCDF files as
 VTK files for plotting in paraview.
@@ -26,6 +26,25 @@ the --combine flag.  This allows time-dependent and -independent fields
 to be combined in filters within Paraview at the expense of considerable
 additional storage space.
 
+Indices for extra dimensions can either be supplied at runtime at a prompt
+or through the -d flag.  For each extra dimension, the use can specifiy
+nothing (an empty string, meaning skip any fields with this dimension),
+a single index, or a comma-separated list of indices or a range of indices
+indices (separated by 1 or 2 colons).  For example,
+
+`-d maxEdges= nVertLeves=0:10:2 nParticles=0,2,4,6,8`
+
+will ignore any fields with dimension maxEdges, extract every other layer from
+the first 10 vertical levels (each into its own field) and extract the five
+specified particles.
+
+An index array can also be specified in this way (and these can be mixed with
+integer indices in a comma-separated list but not in a colon-separated range):
+
+`-d nVertLeves=0,maxLevelCell
+
+will extract fields from the first vertical level and the vertical level with
+index given by maxLevelCell.
 
 Requirements:
 This script requires access to the following non standard modules:
@@ -94,10 +113,10 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, out_dir,
             var_has_time_dim[iVar] = False
 
         extra_dim_vals = all_dim_vals[var_name]
-        if (extra_dim_vals is None) or (extra_dim_vals.size == 0):
+        if (extra_dim_vals is None) or (len(extra_dim_vals) == 0):
             nHyperSlabs += 1
         else:
-            nHyperSlabs += extra_dim_vals.shape[1]
+            nHyperSlabs += len(extra_dim_vals)
 
     time_series_file.close()
 
@@ -187,37 +206,29 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, out_dir,
             has_time = var_has_time_dim[iVar]
 
             var_name = variable_list[iVar]
-            (out_var_names, dim_list) = utils.get_hyperslab_name_and_dims(var_name, all_dim_vals)
+            (out_var_names, dim_list) = utils.get_hyperslab_name_and_dims(var_name, all_dim_vals[var_name])
             if has_time or combine_output:
                 vtkFile = timeDependentFile
             else:
                 vtkFile = timeIndependentFile
             for iHyperSlab in range(len(out_var_names)):
                 if dim_list is not None:
-                    dim_vals = dim_list[:,iHyperSlab]
+                    dim_vals = dim_list[iHyperSlab]
                 else:
                     dim_vals = None
 
-                field_var = utils.get_var(var_name, mesh_file, time_series_file)
-
                 field = np.zeros(blockDim,dtype=outType)
 
-                try:
-                    missing_val = field_var.missing_value
-                except:
-                    missing_val = -9999999790214767953607394487959552.000000
 
                 for iBlock in np.arange(0, nBlocks):
                     blockStart = iBlock * blocking
                     blockEnd = min( (iBlock + 1) * blocking, blockDim )
                     cellIndices = np.arange(blockStart,blockEnd)
-                    field_block = utils.read_field(field_var, dim_vals,
+                    field_block = utils.read_field(var_name, mesh_file, time_series_file, dim_vals,
                                      local_time_indices[time_index], cellIndices,
                                      outType)
 
-                    field_block[field_block == missing_val] = np.nan
                     field[blockStart:blockEnd] = field_block
-
 
                 field = field[valid_mask]
 
@@ -228,7 +239,6 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, out_dir,
                     iHyperSlabProgress += 1
 
                 del field
-                del field_var
 
         if any_var_has_time_dim:
             timeDependentFile.save()
