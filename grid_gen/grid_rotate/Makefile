@@ -1,4 +1,4 @@
-FC = gfortran
+FC = $(shell nc-config --fc)
 FFLAGS = -m64 -O2 -ffree-line-length-none -ffree-form -Wall
 FCINCLUDES = $(shell nc-config --fflags)
 FCLIBS = $(shell nc-config --flibs)
