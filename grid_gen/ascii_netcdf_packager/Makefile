@@ -1,7 +1,7 @@
 CXX = g++
-CPPFLAGS = -I${NETCDF}/include
+CPPFLAGS = $(shell nc-config --cflags)
 CXXFLAGS = -O3
-LIBS = -L${NETCDF}/lib -lnetcdf -lnetcdf_c++
+LIBS = $(shell nc-config --libs) -lnetcdf_c++
 EXE = AsciiNetCDFPackager.x
 
 all:

@@ -4,14 +4,14 @@ CC=g++
 CFLAGS= -O3
 EXECUTABLE= PointsToMpas.x
 
-NCINCDIR=${NETCDF}/include
-NCLIBDIR=${NETCDF}/lib
+NCINC=$(shell nc-config --cflags)
+NCLIB=$(shell nc-config --flibs)
 
 all:
-	${CC} points-mpas.cpp ${CFLAGS} -o ${EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf
+	${CC} points-mpas.cpp ${CFLAGS} -o ${EXECUTABLE} ${NCINC} ${NCLIB} -lnetcdf_c++ -lnetcdf
 
 debug:
-	${CC} points-mpas.cpp  -g -o ${EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf
+	${CC} points-mpas.cpp  -g -o ${EXECUTABLE} ${NCINC} ${NCLIB} -lnetcdf_c++ -lnetcdf
 
 clean:
 	rm -f grid.nc

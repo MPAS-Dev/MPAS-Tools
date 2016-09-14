@@ -38,9 +38,9 @@ LDFLAGS = #-g -traceback -check all
 CPP = cpp -P -traditional
 CPPFLAGS = 
 CPPINCLUDES = 
-INCLUDES = -I$(NETCDF)/include
+INCLUDES = $(shell nc-config --cflags)
 
-LIBS =  -L$(NETCDF)/lib
+LIBS =  $(shell nc-config --libs) $(shell nc-config --flibs)
 NCLIB = -lnetcdf
 NCLIBF = -lnetcdff
 ifneq ($(wildcard $(NETCDF)/lib/libnetcdff.*), ) # CHECK FOR NETCDF4
