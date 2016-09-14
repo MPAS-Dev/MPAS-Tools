@@ -3,7 +3,7 @@ module data_types
    integer, parameter :: LESS = -1, EQUAL = 0, GREATER = 1
 
    type geo_point
-      real :: lat, lon
+      real(kind=RKIND) :: lat, lon
    end type geo_point
 
    type send_list_ptr
@@ -29,7 +29,7 @@ module data_types
    type binary_tree
       integer :: node1, node2
       integer :: vertex1, vertex2
-      real :: lat1, lon1, lat2, lon2
+      real(kind=RKIND) :: lat1, lon1, lat2, lon2
       type (binary_tree), pointer :: left, right, parent
    end type binary_tree
 

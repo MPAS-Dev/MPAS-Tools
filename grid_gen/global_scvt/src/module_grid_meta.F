@@ -18,8 +18,8 @@ module grid_meta
       implicit none
    
       integer, intent(in) :: n, nvc
-      real, dimension(n), intent(inout) :: rlat, rlon
-      real, dimension(nvc), intent(inout) :: vclat, vclon
+      real(kind=RKIND), dimension(n), intent(inout) :: rlat, rlon
+      real(kind=RKIND), dimension(nvc), intent(inout) :: vclat, vclon
       type (adjacency_list) :: alist, clist
    
       integer, parameter :: maxEdges = 10
@@ -38,16 +38,16 @@ module grid_meta
       integer, allocatable, dimension(:,:) :: cellsOnEdge, edgesOnCell, verticesOnCell, cellsOnCell, &
                                               verticesOnEdge, edgesOnEdge, edgesOnVertex, cellsOnVertex
       integer, allocatable, dimension(:) :: isObtuse
-      real, allocatable, dimension(:,:) :: weightsOnEdge, kiteAreasOnVertex
+      real(kind=RKIND), allocatable, dimension(:,:) :: weightsOnEdge, kiteAreasOnVertex
       integer :: temp
       logical :: tdrtest = .true.
-      real :: sum_r, area, r, s, de, rtmp
-      real, allocatable, dimension(:) :: latCell, lonCell, latEdge, lonEdge, angleEdge, latVertex, lonVertex, &
+      real(kind=RKIND) :: sum_r, area, r, s, de, rtmp
+      real(kind=RKIND), allocatable, dimension(:) :: latCell, lonCell, latEdge, lonEdge, angleEdge, latVertex, lonVertex, &
                                          lat1Edge, lon1Edge, lat2Edge, lon2Edge, dvEdge, dv1Edge, dv2Edge, dcEdge, &
                                          areaCell, areaTriangle, fEdge, fVertex, h_s, u_sbr
-      real, allocatable, dimension(:,:,:) :: u, v, h, vh, circulation, vorticity, ke
-      real, allocatable, dimension(:,:,:,:) :: tracers
-      real, allocatable, dimension(:) :: xCell, yCell, zCell, xEdge, yEdge, zEdge, xVertex, yVertex, zVertex, meshDensity
+      real(kind=RKIND), allocatable, dimension(:,:,:) :: u, v, h, vh, circulation, vorticity, ke
+      real(kind=RKIND), allocatable, dimension(:,:,:,:) :: tracers
+      real(kind=RKIND), allocatable, dimension(:) :: xCell, yCell, zCell, xEdge, yEdge, zEdge, xVertex, yVertex, zVertex, meshDensity
       type (geo_point) :: vertex1GP, vertex2GP, cell1GP, cell2GP, cell3GP, edgeGP, edgeGP_prev, edgeGP_next, pCell
       type (geo_point) :: center
       type (geo_point), allocatable, dimension(:) :: points
@@ -207,7 +207,7 @@ module grid_meta
          cell1GP % lon = lonCell(cellsOnEdge(1,i))
          cell2GP % lat = latCell(cellsOnEdge(2,i))
          cell2GP % lon = lonCell(cellsOnEdge(2,i))
-         dcEdge(i) = sphere_distance(cell1GP, cell2GP, 1.0)
+         dcEdge(i) = sphere_distance(cell1GP, cell2GP, 1.0_RKIND)
       end do
 
       
@@ -291,10 +291,10 @@ end if
          cell2GP % lon = lonCell(cellsOnEdge(2,j))
          call compute_edge_latlon(cell1GP, cell2GP, vertex1GP, vertex2GP, edgeGP)
 
-         dvEdge(j) = sphere_distance(vertex1GP, vertex2GP, 1.0)
+         dvEdge(j) = sphere_distance(vertex1GP, vertex2GP, 1.0_RKIND)
          rtmp = (vertex2GP % lat - vertex1GP % lat) / dvEdge(j)
-         if (rtmp > 1.0) rtmp = 1.0
-         if (rtmp < -1.0) rtmp = -1.0
+         if (rtmp > 1.0_RKIND) rtmp = 1.0_RKIND
+         if (rtmp < -1.0_RKIND) rtmp = -1.0_RKIND
          rtmp = acos(rtmp)
          angleEdge(j) = meridian_angle(edgeGP, vertex2GP) 
          angleEdge(j) = sign(rtmp, angleEdge(j))
@@ -315,7 +315,7 @@ end if
             temp = verticesOnEdge(1,j)
             verticesOnEdge(1,j) = verticesOnEdge(2,j)
             verticesOnEdge(2,j) = temp
-            u_sbr(j) = -1.0*u_sbr(j)
+            u_sbr(j) = -1.0_RKIND*u_sbr(j)
             angleEdge(j) = angleEdge(j) + pii
             if (angleEdge(j) > pii) angleEdge(j) = angleEdge(j) - 2.0*pii
             if (angleEdge(j) < -pii) angleEdge(j) = angleEdge(j) + 2.0*pii
@@ -457,13 +457,13 @@ stop
             vertex1GP % lon = lonVertex(verticesOnCell(j,i)) 
             vertex2GP % lat = latVertex(verticesOnCell(j+1,i)) 
             vertex2GP % lon = lonVertex(verticesOnCell(j+1,i)) 
-            areaCell(i) = areaCell(i) + triangle_area(cell1GP, vertex1GP, vertex2GP, 1.0)
+            areaCell(i) = areaCell(i) + triangle_area(cell1GP, vertex1GP, vertex2GP, 1.0_RKIND)
          end do
          vertex1GP % lat = latVertex(verticesOnCell(j,i)) 
          vertex1GP % lon = lonVertex(verticesOnCell(j,i)) 
          vertex2GP % lat = latVertex(verticesOnCell(1,i)) 
          vertex2GP % lon = lonVertex(verticesOnCell(1,i)) 
-         areaCell(i) = areaCell(i) + triangle_area(cell1GP, vertex1GP, vertex2GP, 1.0)
+         areaCell(i) = areaCell(i) + triangle_area(cell1GP, vertex1GP, vertex2GP, 1.0_RKIND)
       end do
 
 
@@ -477,7 +477,7 @@ stop
          cell2GP % lon = lonCell(cellsOnVertex(2,i))
          cell3GP % lat = latCell(cellsOnVertex(3,i))
          cell3GP % lon = lonCell(cellsOnVertex(3,i))
-         areaTriangle(i) = triangle_area(cell1GP, cell2GP, cell3GP, 1.0)
+         areaTriangle(i) = triangle_area(cell1GP, cell2GP, cell3GP, 1.0_RKIND)
       end do
 
       !
@@ -497,7 +497,7 @@ stop
       write(6,*) ' number of obtuse triangles ', nObtuse
 
 
-      kiteAreasOnVertex(:,:) = -1.0
+      kiteAreasOnVertex(:,:) = -1.0_RKIND
 
       !
       ! Compute weights used in tangential velocity reconstruction
@@ -544,8 +544,8 @@ stop
             edgeGP_next % lon = lonEdge(next_edge)
 
             if(isObtuse(vtx).eq.0) then
-               area =        abs(triangle_area(cell1GP, vertex1GP, edgeGP_prev, 1.0))
-               area = area + abs(triangle_area(cell1GP, vertex1GP, edgeGP_next, 1.0))
+               area =        abs(triangle_area(cell1GP, vertex1GP, edgeGP_prev, 1.0_RKIND))
+               area = area + abs(triangle_area(cell1GP, vertex1GP, edgeGP_next, 1.0_RKIND))
             else
                if(cellsOnVertex(isObtuse(vtx),vtx).eq.cellsOnEdge(1,j)) then
                  iFlag = 0
@@ -563,10 +563,10 @@ stop
                   enddo
                   edgeGP % lat = latEdge(iEdge)
                   edgeGP % lon = lonEdge(iEdge)
-                  area =        abs(triangle_area(cell1GP, edgeGP, edgeGP_prev, 1.0))
-                  area = area + abs(triangle_area(cell1GP, edgeGP, edgeGP_next, 1.0))
+                  area =        abs(triangle_area(cell1GP, edgeGP, edgeGP_prev, 1.0_RKIND))
+                  area = area + abs(triangle_area(cell1GP, edgeGP, edgeGP_next, 1.0_RKIND))
                else
-                  area = abs(triangle_area(cell1GP, edgeGP_prev, edgeGP_next, 1.0))
+                  area = abs(triangle_area(cell1GP, edgeGP_prev, edgeGP_next, 1.0_RKIND))
                endif
             endif
 
@@ -582,9 +582,9 @@ stop
               r = area / areaCell(cellsOnEdge(1,j))
               sum_r = sum_r + r
               if (cellsOnEdge(1,j) == cellsOnEdge(1,edgesOnEdge(i,j))) then
-                 s = 1.0
+                 s = 1.0_RKIND
               else
-                 s = -1.0
+                 s = -1.0_RKIND
               end if
               weightsOnEdge(i,j) = s*(0.5-sum_r)*dvEdge(edgesOnEdge(i,j))/de
             endif
@@ -621,8 +621,8 @@ stop
             edgeGP_next % lon = lonEdge(next_edge)
 
             if(isObtuse(vtx).eq.0) then
-               area =        abs(triangle_area(cell1GP, vertex1GP, edgeGP_prev, 1.0))
-               area = area + abs(triangle_area(cell1GP, vertex1GP, edgeGP_next, 1.0))
+               area =        abs(triangle_area(cell1GP, vertex1GP, edgeGP_prev, 1.0_RKIND))
+               area = area + abs(triangle_area(cell1GP, vertex1GP, edgeGP_next, 1.0_RKIND))
             else
                if(cellsOnVertex(isObtuse(vtx),vtx).eq.cellsOnEdge(2,j)) then
                  iFlag = 0
@@ -640,10 +640,10 @@ stop
                   enddo
                   edgeGP % lat = latEdge(iEdge)
                   edgeGP % lon = lonEdge(iEdge)
-                  area =        abs(triangle_area(cell1GP, edgeGP, edgeGP_prev, 1.0))
-                  area = area + abs(triangle_area(cell1GP, edgeGP, edgeGP_next, 1.0))
+                  area =        abs(triangle_area(cell1GP, edgeGP, edgeGP_prev, 1.0_RKIND))
+                  area = area + abs(triangle_area(cell1GP, edgeGP, edgeGP_next, 1.0_RKIND))
                else
-                  area = abs(triangle_area(cell1GP, edgeGP_prev, edgeGP_next, 1.0))
+                  area = abs(triangle_area(cell1GP, edgeGP_prev, edgeGP_next, 1.0_RKIND))
                endif
             endif
 
@@ -659,9 +659,9 @@ stop
               r = area / areaCell(cellsOnEdge(2,j))
               sum_r = sum_r + r
               if (cellsOnEdge(2,j) == cellsOnEdge(1,edgesOnEdge(i,j))) then
-                 s = -1.0
+                 s = -1.0_RKIND
               else
-                 s = 1.0
+                 s = 1.0_RKIND
               end if
               weightsOnEdge(i,j) = s*(0.5-sum_r)*dvEdge(edgesOnEdge(i,j))/de
             endif
@@ -712,9 +712,9 @@ stop
             r = area / areaCell(cellsOnEdge(1,j))
             sum_r = sum_r + r
             if (cellsOnEdge(1,j) == cellsOnEdge(1,edgesOnEdge(i,j))) then
-               s = 1.0
+               s = 1.0_RKIND
             else
-               s = -1.0
+               s = -1.0_RKIND
             end if
             weightsOnEdge(i,j) = s*(0.5-sum_r)*dvEdge(edgesOnEdge(i,j))/de
             prev_edge = next_edge
@@ -744,9 +744,9 @@ stop
             r = area / areaCell(cellsOnEdge(2,j))
             sum_r = sum_r + r
             if (cellsOnEdge(2,j) == cellsOnEdge(1,edgesOnEdge(i,j))) then
-               s = -1.0
+               s = -1.0_RKIND
             else
-               s = 1.0
+               s = 1.0_RKIND
             end if
             weightsOnEdge(i,j) = s*(0.5-sum_r)*dvEdge(edgesOnEdge(i,j))/de
             prev_edge = next_edge
@@ -767,8 +767,8 @@ stop
          vertex1GP % lon = lonVertex(verticesOnEdge(1,i))
          vertex2GP % lat = latVertex(verticesOnEdge(2,i))
          vertex2GP % lon = lonVertex(verticesOnEdge(2,i))
-         dv1Edge(i) = sphere_distance(edgeGP, vertex1GP, 1.0) 
-         dv2Edge(i) = sphere_distance(edgeGP, vertex2GP, 1.0) 
+         dv1Edge(i) = sphere_distance(edgeGP, vertex1GP, 1.0_RKIND) 
+         dv2Edge(i) = sphere_distance(edgeGP, vertex2GP, 1.0_RKIND) 
       end do
 
 
@@ -782,17 +782,17 @@ stop
       do i=1,nCells
          cell1GP % lat = latCell(i)
          cell1GP % lon = lonCell(i)
-         call convert_lx(xCell(i), yCell(i), zCell(i), 1.0, cell1GP)
+         call convert_lx(xCell(i), yCell(i), zCell(i), 1.0_RKIND, cell1GP)
       end do
       do i=1,nVertices
          vertex1GP % lat = latVertex(i)
          vertex1GP % lon = lonVertex(i)
-         call convert_lx(xVertex(i), yVertex(i), zVertex(i), 1.0, vertex1GP)
+         call convert_lx(xVertex(i), yVertex(i), zVertex(i), 1.0_RKIND, vertex1GP)
       end do
       do i=1,nEdges
          edgeGP % lat = latEdge(i)
          edgeGP % lon = lonEdge(i)
-         call convert_lx(xEdge(i), yEdge(i), zEdge(i), 1.0, edgeGP)
+         call convert_lx(xEdge(i), yEdge(i), zEdge(i), 1.0_RKIND, edgeGP)
       end do
 
 
@@ -1034,10 +1034,10 @@ stop
    
       integer, intent(in) :: cellID
       integer, intent(in) :: vertex1ID, vertex2ID
-      real, intent(in) :: lat1, lon1, lat2, lon2
+      real(kind=RKIND), intent(in) :: lat1, lon1, lat2, lon2
       type (binary_tree), pointer :: root
    
-      real :: tLat1, tLat2, tLon1, tLon2 
+      real(kind=RKIND) :: tLat1, tLat2, tLon1, tLon2 
       integer :: tID1, tID2
       logical :: found
       type (binary_tree), pointer :: pre_cursor, cursor
@@ -1122,7 +1122,7 @@ stop
    
       implicit none
    
-      real, intent(in) :: lat1, lon1, lat2, lon2
+      real(kind=RKIND), intent(in) :: lat1, lon1, lat2, lon2
    
       point_compare = -1
    
@@ -1147,7 +1147,7 @@ stop
    
       implicit none
    
-      real, intent(in) :: aLat1, aLon1, aLat2, aLon2, bLat1, bLon1, bLat2, bLon2 
+      real(kind=RKIND), intent(in) :: aLat1, aLon1, aLat2, aLon2, bLat1, bLon1, bLat2, bLon2 
    
       edge_compare = -1
    
@@ -1197,18 +1197,18 @@ stop
 
       implicit none
 
-      real, intent(in) :: latCell1, lonCell1, &
+      real(kind=RKIND), intent(in) :: latCell1, lonCell1, &
                           latCell2, lonCell2, &
                           latVertex1, lonVertex1, &
                           latVertex2, lonVertex2
 
-      real :: xCell1, yCell1, zCell1
-      real :: xCell2, yCell2, zCell2
-      real :: xVertex1, yVertex1, zVertex1
-      real :: xVertex2, yVertex2, zVertex2
-      real :: xV1, yV1, zV1
-      real :: xV2, yV2, zV2
-      real :: ci, cj, ck
+      real(kind=RKIND) :: xCell1, yCell1, zCell1
+      real(kind=RKIND) :: xCell2, yCell2, zCell2
+      real(kind=RKIND) :: xVertex1, yVertex1, zVertex1
+      real(kind=RKIND) :: xVertex2, yVertex2, zVertex2
+      real(kind=RKIND) :: xV1, yV1, zV1
+      real(kind=RKIND) :: xV2, yV2, zV2
+      real(kind=RKIND) :: ci, cj, ck
       type (geo_point) :: cell1, cell2, vertex1, vertex2
 
       cell1 % lat = latCell1
@@ -1220,10 +1220,10 @@ stop
       vertex2 % lat = latVertex2
       vertex2 % lon = lonVertex2
       
-      call convert_lx(xCell1, yCell1, zCell1, 1.0, cell1) 
-      call convert_lx(xCell2, yCell2, zCell2, 1.0, cell2) 
-      call convert_lx(xVertex1, yVertex1, zVertex1, 1.0, vertex1) 
-      call convert_lx(xVertex2, yVertex2, zVertex2, 1.0, vertex2) 
+      call convert_lx(xCell1, yCell1, zCell1, 1.0_RKIND, cell1) 
+      call convert_lx(xCell2, yCell2, zCell2, 1.0_RKIND, cell2) 
+      call convert_lx(xVertex1, yVertex1, zVertex1, 1.0_RKIND, vertex1) 
+      call convert_lx(xVertex2, yVertex2, zVertex2, 1.0_RKIND, vertex2) 
 
       xV1 = xCell2 - xCell1
       yV1 = yCell2 - yCell1
@@ -1259,14 +1259,14 @@ stop
 
       type (geo_point), intent(in) :: edge, cell2, vertex2
 
-      real :: xEdge, yEdge, zEdge
-      real :: xCell2, yCell2, zCell2
-      real :: xVertex2, yVertex2, zVertex2
-      real :: angle
+      real(kind=RKIND) :: xEdge, yEdge, zEdge
+      real(kind=RKIND) :: xCell2, yCell2, zCell2
+      real(kind=RKIND) :: xVertex2, yVertex2, zVertex2
+      real(kind=RKIND) :: angle
 
-      call convert_lx(xEdge, yEdge, zEdge, 1.0, edge) 
-      call convert_lx(xCell2, yCell2, zCell2, 1.0, cell2) 
-      call convert_lx(xVertex2, yVertex2, zVertex2, 1.0, vertex2) 
+      call convert_lx(xEdge, yEdge, zEdge, 1.0_RKIND, edge) 
+      call convert_lx(xCell2, yCell2, zCell2, 1.0_RKIND, cell2) 
+      call convert_lx(xVertex2, yVertex2, zVertex2, 1.0_RKIND, vertex2) 
 
       angle = plane_angle(xEdge, yEdge, zEdge, &
                           xCell2, yCell2, zCell2, &
@@ -1305,20 +1305,20 @@ stop
 
       integer :: i, j
       integer :: itemp
-      real :: rtemp
-      real :: nx, ny, nz
-      real :: px, py, pz
-      real :: p0x, p0y, p0z
-      real, dimension(npts) :: angle
+      real(kind=RKIND) :: rtemp
+      real(kind=RKIND) :: nx, ny, nz
+      real(kind=RKIND) :: px, py, pz
+      real(kind=RKIND) :: p0x, p0y, p0z
+      real(kind=RKIND), dimension(npts) :: angle
       type (geo_point) :: ptemp
 
-      call convert_lx(nx, ny, nz, 1.0, center)
-      call convert_lx(p0x, p0y, p0z, 1.0, points(1))
+      call convert_lx(nx, ny, nz, 1.0_RKIND, center)
+      call convert_lx(p0x, p0y, p0z, 1.0_RKIND, points(1))
 
       angle(1) = 0.0
 
       do i=2,npts 
-         call convert_lx(px, py, pz, 1.0, points(i))
+         call convert_lx(px, py, pz, 1.0_RKIND, points(i))
          angle(i) = plane_angle(nx, ny, nz, p0x, p0y, p0z, px, py, pz, nx, ny, nz)
          if (angle(i) < 0.0) angle(i) = angle(i) + 2.0*pii
          if (angle(i) > 2.0*pii) angle(i) = angle(i) - 2.0*pii
@@ -1358,15 +1358,15 @@ stop
 
       integer, intent(in) :: nCells
       integer, intent(in) :: nVertices
-      real (kind=RKIND), dimension(:), intent(in) :: xCell
-      real (kind=RKIND), dimension(:), intent(in) :: yCell
-      real (kind=RKIND), dimension(:), intent(in) :: zCell
-      real (kind=RKIND), dimension(:), intent(in) :: xVertex
-      real (kind=RKIND), dimension(:), intent(in) :: yVertex
-      real (kind=RKIND), dimension(:), intent(in) :: zVertex
+      real(kind=RKIND), dimension(:), intent(in) :: xCell
+      real(kind=RKIND), dimension(:), intent(in) :: yCell
+      real(kind=RKIND), dimension(:), intent(in) :: zCell
+      real(kind=RKIND), dimension(:), intent(in) :: xVertex
+      real(kind=RKIND), dimension(:), intent(in) :: yVertex
+      real(kind=RKIND), dimension(:), intent(in) :: zVertex
       integer, dimension(:), intent(in) :: nEdgesOnCell
       integer, dimension(:,:), intent(in) :: verticesOnCell
-      real (kind=RKIND), dimension(:), intent(in) :: areaCell
+      real(kind=RKIND), dimension(:), intent(in) :: areaCell
 
       character(len=80) :: a, b, c, d, e, f
       integer :: i, j, k, nVerticesTotal, iEdge, iLoop

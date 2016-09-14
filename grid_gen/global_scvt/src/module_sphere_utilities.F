@@ -8,18 +8,18 @@ module sphere_utilities
 ! Given the (latitude, longitude) coordinates of the corners of a triangle, 
 !    plus the radius of the sphere, compute the area of the triangle.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-real function triangle_area(p1, p2, p3, radius)
+real(kind=RKIND) function triangle_area(p1, p2, p3, radius)
 
    use data_types
 
    implicit none
 
    type (geo_point), intent(in) :: p1, p2, p3
-   real, intent(in) :: radius
+   real(kind=RKIND), intent(in) :: radius
 
-   real :: a, b, c, s, e, pii, tanqe
+   real(kind=RKIND) :: a, b, c, s, e, pii, tanqe
 
-   pii = 2.*asin(1.0)
+   pii = 2.*asin(1.0_RKIND)
 
    a = sphere_distance(p1,p2,radius)
    b = sphere_distance(p2,p3,radius)
@@ -51,13 +51,13 @@ integer function obtuse(p1, p2, p3)
 
    type (geo_point), intent(in) :: p1, p2, p3
 
-   real :: x1(3), x2(3), x3(3), dot, r(3), s(3), rmag, smag
+   real(kind=RKIND) :: x1(3), x2(3), x3(3), dot, r(3), s(3), rmag, smag
 
    obtuse = 0
 
-   call convert_lx(x1(1), x1(2), x1(3), 1.0, p1)
-   call convert_lx(x2(1), x2(2), x2(3), 1.0, p2)
-   call convert_lx(x3(1), x3(2), x3(3), 1.0, p3)
+   call convert_lx(x1(1), x1(2), x1(3), 1.0_RKIND, p1)
+   call convert_lx(x2(1), x2(2), x2(3), 1.0_RKIND, p2)
+   call convert_lx(x3(1), x3(2), x3(3), 1.0_RKIND, p3)
 
    ! test angle formed by x3,x1,x2
    r(:) = x3(:) - x1(:)
@@ -99,16 +99,16 @@ end function obtuse
 !    plus the radius of the sphere, compute the great circle distance between
 !    the points.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-real function sphere_distance(p1, p2, radius)
+real(kind=RKIND) function sphere_distance(p1, p2, radius)
 
    use data_types
 
    implicit none
 
    type (geo_point), intent(in) :: p1, p2
-   real, intent(in) :: radius
+   real(kind=RKIND), intent(in) :: radius
 
-   real :: arg1
+   real(kind=RKIND) :: arg1
 
    arg1 = sqrt( sin(0.5*(p2%lat-p1%lat))**2 +  &
                 cos(p1%lat)*cos(p2%lat)*sin(0.5*(p2%lon-p1%lon))**2 )
@@ -124,16 +124,16 @@ end function sphere_distance
 !    plus the radius of the sphere, compute the secant distance between
 !    the points.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-real function plane_distance(p1, p2, radius)
+real(kind=RKIND) function plane_distance(p1, p2, radius)
 
    use data_types
 
    implicit none
 
    type (geo_point), intent(in) :: p1, p2   
-   real, intent(in) :: radius
+   real(kind=RKIND), intent(in) :: radius
 
-   real :: x1, x2, y1, y2, z1, z2
+   real(kind=RKIND) :: x1, x2, y1, y2, z1, z2
 
    z1 = sin(p1%lat)
    z2 = sin(p2%lat)
@@ -154,7 +154,7 @@ end function plane_distance
 !    compute the angle between the points as measured from the origin of the
 !    sphere.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-real function arc_angle(p1, p2)
+real(kind=RKIND) function arc_angle(p1, p2)
 
    use data_types
 
@@ -162,7 +162,7 @@ real function arc_angle(p1, p2)
 
    type (geo_point), intent(in) :: p1, p2
 
-   real :: arg1
+   real(kind=RKIND) :: arg1
 
    arg1 = sqrt( sin(0.5*(p2%lat-p1%lat))**2 +  &
                 cos(p1%lat)*cos(p2%lat)*sin(0.5*(p2%lon-p1%lon))**2 )
@@ -187,15 +187,15 @@ subroutine great_circle_points(p1, p2, pl, n)
    type (geo_point), intent(in) :: p1, p2
    type (geo_point), dimension(n), intent(inout) :: pl
 
-   real :: x1, x2, y1, y2, z1, z2
-   real :: dx, dl
-   real :: x, y, z
+   real(kind=RKIND) :: x1, x2, y1, y2, z1, z2
+   real(kind=RKIND) :: dx, dl
+   real(kind=RKIND) :: x, y, z
    integer :: i
-   real :: dtheta, dinc, dt
+   real(kind=RKIND) :: dtheta, dinc, dt
 
-   real :: pii, rtod
+   real(kind=RKIND) :: pii, rtod
 
-   pii = 2.*asin(1.0)
+   pii = 2.*asin(1.0_RKIND)
    rtod = 180./pii
 
 !      write(6,*) ' in gcp ',rtod*lat1,rtod*lon1,rtod*lat2,rtod*lon2
@@ -213,8 +213,8 @@ subroutine great_circle_points(p1, p2, pl, n)
    dtheta = arc_angle(p1, p2)
    dinc = dtheta/float(n-1)
 
-   call convert_lx(x1,y1,z1,1.,p1)
-   call convert_lx(x2,y2,z2,1.,p2)
+   call convert_lx(x1,y1,z1,1.0_RKIND,p1)
+   call convert_lx(x2,y2,z2,1.0_RKIND,p2)
 
 !  set the end points
 
@@ -230,14 +230,14 @@ subroutine great_circle_points(p1, p2, pl, n)
       dt = float(i-1)*dinc
 
       if (dt <= 0.5*dtheta) then
-         dx = 1.-tan(0.5*dtheta-dt)/tan(0.5*dtheta)
+         dx = 1._RKIND-tan(0.5*dtheta-dt)/tan(0.5*dtheta)
 !         write(6,*) ' case 1 ',dx
          x = x1+0.5*dx*(x2-x1)
          y = y1+0.5*dx*(y2-y1)
          z = z1+0.5*dx*(z2-z1)
       else
          dt = dtheta-dt
-         dx = 1.-tan(0.5*dtheta-dt)/tan(0.5*dtheta)
+         dx = 1._RKIND-tan(0.5*dtheta-dt)/tan(0.5*dtheta)
 !         write(6,*) ' case 2 ',dx
          x = x2+0.5*dx*(x1-x2)
          y = y2+0.5*dx*(y1-y2)
@@ -265,7 +265,7 @@ end subroutine great_circle_points
 !   type (geo_point), intent(in) :: p1, p2, p3
 !   type (geo_point), dimension(6), intent(inout) :: pnew
 !
-!   real :: t_area, area_total, radius
+!   real(kind=RKIND) :: t_area, area_total, radius
 !   type (geo_point), dimension(3) :: pts
 !   type (geo_point) :: c
 !
@@ -349,9 +349,9 @@ end subroutine great_circle_points
 !   type (geo_point), intent(in) :: p0, p1, p2
 !   type (geo_point), intent(out) :: vc
 !
-!   real :: x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc, cabs
-!   real :: a1, a2, a3, b1, b2, b3
-!   real :: dot0
+!   real(kind=RKIND) :: x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc, cabs
+!   real(kind=RKIND) :: a1, a2, a3, b1, b2, b3
+!   real(kind=RKIND) :: dot0
 !
 !   z0 = sin(p0%lat)
 !   z1 = sin(p1%lat)
@@ -441,9 +441,9 @@ subroutine convert_lx(x, y, z, radius, latlon)
 
    implicit none
 
-   real, intent(in) :: radius
+   real(kind=RKIND), intent(in) :: radius
    type (geo_point), intent(in) :: latlon
-   real, intent(out) :: x, y, z
+   real(kind=RKIND), intent(out) :: x, y, z
 
    z = radius * sin(latlon%lat)
    x = radius * cos(latlon%lon) * cos(latlon%lat)
@@ -464,15 +464,15 @@ subroutine convert_xl(x, y, z, latlon)
 
    implicit none
 
-   real, intent(in) :: x, y, z
+   real(kind=RKIND), intent(in) :: x, y, z
    type (geo_point), intent(out) :: latlon
 
-   real :: dl, clat, pii, rtod
-   real :: eps
+   real(kind=RKIND) :: dl, clat, pii, rtod
+   real(kind=RKIND) :: eps
    parameter (eps=1.e-10)
 
-   pii = 2.*asin(1.0)
-   rtod=180./pii
+   pii = 2.*asin(1.0_RKIND)
+   rtod=180.0_RKIND/pii
    dl = sqrt(x*x + y*y + z*z)
 
    latlon%lat = asin(z/dl)
@@ -533,10 +533,10 @@ subroutine gc_intersect(p0, p1, p2, p3, pc)
    type (geo_point), intent(in) :: p0, p1, p2, p3
    type (geo_point), intent(out) :: pc
 
-   real :: x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3
-   real :: n1, n2, n3, m1, m2, m3
-   real :: xc, yc, zc, dot
-   real, parameter :: radius=1.0
+   real(kind=RKIND) :: x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3
+   real(kind=RKIND) :: n1, n2, n3, m1, m2, m3
+   real(kind=RKIND) :: xc, yc, zc, dot
+   real(kind=RKIND), parameter :: radius=1.0_RKIND
 
    call convert_lx(x0,y0,z0,radius,p0)
    call convert_lx(x1,y1,z1,radius,p1)
@@ -573,15 +573,15 @@ end subroutine gc_intersect
 !
 ! Normalize an angle, given in radians, to lie in the interval [0,2*PI].
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-real function pos_ang(angle)
+real(kind=RKIND) function pos_ang(angle)
 
    implicit none
 
-   real, intent(in) :: angle
+   real(kind=RKIND), intent(in) :: angle
 
-   real :: pii
+   real(kind=RKIND) :: pii
 
-   pii = 2.*asin(1.0)
+   pii = 2.*asin(1.0_RKIND)
    pos_ang = angle
 
    if(angle > 2.*pii) then
@@ -603,7 +603,7 @@ end function pos_ang
 ! Convention: zero points north, 90 points west, -90 point east, 
 !   points south 180, -180 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-real function meridian_angle(p1, p2)
+real(kind=RKIND) function meridian_angle(p1, p2)
 
    use data_types
 
@@ -613,21 +613,21 @@ real function meridian_angle(p1, p2)
 
 type (geo_point) :: np
 
-   real :: pii, da, db, dc
+   real(kind=RKIND) :: pii, da, db, dc
    type (geo_point) :: p3
-   real :: cosa
-   real :: eps
+   real(kind=RKIND) :: cosa
+   real(kind=RKIND) :: eps
    parameter (eps = 1.e-04)
-real :: ax, ay, az
-real :: bx, by, bz
-real :: cx, cy, cz
+real(kind=RKIND) :: ax, ay, az
+real(kind=RKIND) :: bx, by, bz
+real(kind=RKIND) :: cx, cy, cz
 
 np = p1
 np%lat = np%lat + 0.05
 
-call convert_lx(ax, ay, az, 1.0, p1)
-call convert_lx(bx, by, bz, 1.0, np)
-call convert_lx(cx, cy, cz, 1.0, p2)
+call convert_lx(ax, ay, az, 1.0_RKIND, p1)
+call convert_lx(bx, by, bz, 1.0_RKIND, np)
+call convert_lx(cx, cy, cz, 1.0_RKIND, p2)
 
 meridian_angle = plane_angle(ax, ay, az, bx, by, bz, cx, cy, cz, ax, ay, az)
 return
@@ -638,7 +638,7 @@ return
 
    else
 
-      pii = 2.*asin(1.0)
+      pii = 2.*asin(1.0_RKIND)
       dc = arc_angle(p1,p2)
 
       p3%lon = p1%lon
@@ -683,13 +683,13 @@ subroutine center_of_mass(p1, p2, p3, pc)
    type (geo_point), intent(in) :: p1, p2, p3
    type (geo_point), intent(out) :: pc
 
-   real :: x1, x2, x3, xc
-   real :: y1, y2, y3, yc
-   real :: z1, z2, z3, zc
+   real(kind=RKIND) :: x1, x2, x3, xc
+   real(kind=RKIND) :: y1, y2, y3, yc
+   real(kind=RKIND) :: z1, z2, z3, zc
 
-   call convert_lx(x1,y1,z1,1.,p1)
-   call convert_lx(x2,y2,z2,1.,p2)
-   call convert_lx(x3,y3,z3,1.,p3)
+   call convert_lx(x1,y1,z1,1.0_RKIND,p1)
+   call convert_lx(x2,y2,z2,1.0_RKIND,p2)
+   call convert_lx(x3,y3,z3,1.0_RKIND,p3)
 
    xc = (x1+x2+x3)/3.
    yc = (y1+y2+y3)/3.
@@ -784,14 +784,14 @@ subroutine point_to_plane(a, b, c, d, Qx, Qy, Qz, xp, yp, zp)
 
    implicit none
 
-   real, intent(in) :: a, b, c, d     ! The coefficients in the equation of the plane
-   real, intent(in) :: Qx, Qy, Qz     ! The coordinates of the point Q to be projected to the plane
-   real, intent(out) :: xp, yp, zp    ! The coordinates of the point projected in the plane
+   real(kind=RKIND), intent(in) :: a, b, c, d     ! The coefficients in the equation of the plane
+   real(kind=RKIND), intent(in) :: Qx, Qy, Qz     ! The coordinates of the point Q to be projected to the plane
+   real(kind=RKIND), intent(out) :: xp, yp, zp    ! The coordinates of the point projected in the plane
 
-   real :: Px, Py, Pz                 ! A point P in the plane  ax + by + cz + d = 0
-   real :: PQx, PQy, PQz              ! Components of the vector from P to Q
-   real :: PQn                        ! The dot product of PQ and the vector normal to the plane
-   real :: m2                         ! The magnitude and squared magnitude of the vector n normal to the plane
+   real(kind=RKIND) :: Px, Py, Pz                 ! A point P in the plane  ax + by + cz + d = 0
+   real(kind=RKIND) :: PQx, PQy, PQz              ! Components of the vector from P to Q
+   real(kind=RKIND) :: PQn                        ! The dot product of PQ and the vector normal to the plane
+   real(kind=RKIND) :: m2                         ! The magnitude and squared magnitude of the vector n normal to the plane
 
    m2 = (a**2.0 + b**2.0 + c**2.0)
 
@@ -830,13 +830,13 @@ subroutine point_to_sphere(a, b, c, d, r, Qx, Qy, Qz, xp, yp, zp)
 
    implicit none
 
-   real, intent(in) :: a, b, c, d     ! The coefficients in the equation of the plane
-   real, intent(in) :: r              ! The radius of the sphere
-   real, intent(in) :: Qx, Qy, Qz     ! The coordinates of the point Q to be projected to the sphere
-   real, intent(out) :: xp, yp, zp    ! The coordinates of the point projected to the sphere
+   real(kind=RKIND), intent(in) :: a, b, c, d     ! The coefficients in the equation of the plane
+   real(kind=RKIND), intent(in) :: r              ! The radius of the sphere
+   real(kind=RKIND), intent(in) :: Qx, Qy, Qz     ! The coordinates of the point Q to be projected to the sphere
+   real(kind=RKIND), intent(out) :: xp, yp, zp    ! The coordinates of the point projected to the sphere
    
-   real :: aa, bb, cc                 ! Coefficients of quadratic equation 
-   real :: disc, t1, t2
+   real(kind=RKIND) :: aa, bb, cc                 ! Coefficients of quadratic equation 
+   real(kind=RKIND) :: disc, t1, t2
 
    ! Solve for the interesection of the line (Qx - at, Qy - bt, Qz - ct) and the
    !   sphere x^2 + y^2 + z^2 - r^2 = 0
@@ -884,11 +884,11 @@ subroutine rotate_about_vector(x, y, z, theta, a, b, c, u, v, w, xp, yp, zp)
 
    implicit none
 
-   real, intent(in) :: x, y, z, theta, a, b, c, u, v, w
-   real, intent(out) :: xp, yp, zp
+   real(kind=RKIND), intent(in) :: x, y, z, theta, a, b, c, u, v, w
+   real(kind=RKIND), intent(out) :: xp, yp, zp
 
-   real :: vw2, uw2, uv2
-   real :: m
+   real(kind=RKIND) :: vw2, uw2, uv2
+   real(kind=RKIND) :: m
 
    vw2 = v**2.0 + w**2.0
    uw2 = u**2.0 + w**2.0
@@ -908,22 +908,22 @@ end subroutine rotate_about_vector
 ! Computes the angle between vectors AB and AC, given points A, B, and C, and 
 !   a vector (u,v,w) normal to the plane.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-real function plane_angle(ax, ay, az, bx, by, bz, cx, cy, cz, u, v, w)
+real(kind=RKIND) function plane_angle(ax, ay, az, bx, by, bz, cx, cy, cz, u, v, w)
 
    implicit none
 
-   real, intent(in) :: ax, ay, az, bx, by, bz, cx, cy, cz, u, v, w
+   real(kind=RKIND), intent(in) :: ax, ay, az, bx, by, bz, cx, cy, cz, u, v, w
 
-   real :: ABx, ABy, ABz    ! The components of the vector AB
-   real :: mAB              ! The magnitude of AB
-   real :: ACx, ACy, ACz    ! The components of the vector AC
-   real :: mAC              ! The magnitude of AC
+   real(kind=RKIND) :: ABx, ABy, ABz    ! The components of the vector AB
+   real(kind=RKIND) :: mAB              ! The magnitude of AB
+   real(kind=RKIND) :: ACx, ACy, ACz    ! The components of the vector AC
+   real(kind=RKIND) :: mAC              ! The magnitude of AC
 
-   real :: Dx               ! The i-components of the cross product AB x AC
-   real :: Dy               ! The j-components of the cross product AB x AC
-   real :: Dz               ! The k-components of the cross product AB x AC
+   real(kind=RKIND) :: Dx               ! The i-components of the cross product AB x AC
+   real(kind=RKIND) :: Dy               ! The j-components of the cross product AB x AC
+   real(kind=RKIND) :: Dz               ! The k-components of the cross product AB x AC
 
-   real :: cos_angle
+   real(kind=RKIND) :: cos_angle
 
    ABx = bx - ax
    ABy = by - ay
@@ -942,10 +942,10 @@ real function plane_angle(ax, ay, az, bx, by, bz, cx, cy, cz, u, v, w)
  
    cos_angle = (ABx*ACx + ABy*ACy + ABz*ACz) / (mAB * mAC)
 
-   if (cos_angle < -1.0) then
-      cos_angle = -1.0
-   else if (cos_angle > 1.0) then
-      cos_angle = 1.0
+   if (cos_angle < -1.0_RKIND) then
+      cos_angle = -1.0_RKIND
+   else if (cos_angle > 1.0_RKIND) then
+      cos_angle = 1.0_RKIND
    end if
 
    if ((Dx*u + Dy*v + Dz*w) >= 0.0) then

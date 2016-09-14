@@ -21,21 +21,21 @@ module scvt
       integer, intent(in) :: n, nvc, fn
       integer, dimension(n), intent(inout) :: lend
       integer, dimension(nvc), intent(inout) :: list, lptr 
-      real, dimension(n), intent(inout) :: rlat, rlon
+      real(kind=RKIND), dimension(n), intent(inout) :: rlat, rlon
 
       integer :: maxitr
 
       integer :: i, j, k, iter
       integer :: ntmax, nrow, nptri
       integer, allocatable, dimension(:) :: listc
-      real :: area, density, tot_mass
-      real :: x, y, z, new_ctr_x, new_ctr_y, new_ctr_z 
-      real, allocatable, dimension(:) :: vclat, vclon
-      real, allocatable, dimension(:) :: rlat_2, rlon_2
+      real(kind=RKIND) :: area, density, tot_mass
+      real(kind=RKIND) :: x, y, z, new_ctr_x, new_ctr_y, new_ctr_z 
+      real(kind=RKIND), allocatable, dimension(:) :: vclat, vclon
+      real(kind=RKIND), allocatable, dimension(:) :: rlat_2, rlon_2
       type (geo_point) :: p1, p2, p3, pc
       type (geo_point) :: p_n1, p_n2
       type (geo_point), dimension(3,64) :: ptri
-      real :: avg_movement, maxmovement, movement
+      real(kind=RKIND) :: avg_movement, maxmovement, movement
       logical converged
 
       maxitr = n_scvt_iterations
@@ -95,14 +95,14 @@ module scvt
    
             call divide_triangle(p1, p2, p3, nptri, ptri)
             do j=1,nptri
-               area = triangle_area(ptri(1,j), ptri(2,j), ptri(3,j), 1.0)
+               area = triangle_area(ptri(1,j), ptri(2,j), ptri(3,j), 1.0_RKIND)
                call center_of_mass(ptri(1,j), ptri(2,j), ptri(3,j), pc)
                if (p1%lon - pc%lon > pii)  pc%lon = pc%lon + 2.0*pii
                if (p1%lon - pc%lon < -pii) pc%lon = pc%lon - 2.0*pii
                density = density_for_point(pc)
                tot_mass = tot_mass + area * density
 
-               call convert_lx(x, y, z, 1.0, pc)
+               call convert_lx(x, y, z, 1.0_RKIND, pc)
                new_ctr_x = new_ctr_x + x*area*density
                new_ctr_y = new_ctr_y + y*area*density
                new_ctr_z = new_ctr_z + z*area*density
@@ -120,14 +120,14 @@ module scvt
    
                call divide_triangle(p1, p2, p3, nptri, ptri)
                do j=1,nptri
-                  area = triangle_area(ptri(1,j), ptri(2,j), ptri(3,j), 1.0)
+                  area = triangle_area(ptri(1,j), ptri(2,j), ptri(3,j), 1.0_RKIND)
                   call center_of_mass(ptri(1,j), ptri(2,j), ptri(3,j), pc)
                   if (p1%lon - pc%lon > pii)  pc%lon = pc%lon + 2.0*pii
                   if (p1%lon - pc%lon < -pii) pc%lon = pc%lon - 2.0*pii
                   density = density_for_point(pc)
                   tot_mass = tot_mass + area * density
 
-                  call convert_lx(x, y, z, 1.0, pc)
+                  call convert_lx(x, y, z, 1.0_RKIND, pc)
                   new_ctr_x = new_ctr_x + x*area*density
                   new_ctr_y = new_ctr_y + y*area*density
                   new_ctr_z = new_ctr_z + z*area*density
@@ -156,8 +156,8 @@ module scvt
               p_n2%lat = rlat_2(i)
               p_n2%lon = rlon_2(i)
   
-              call convert_lx(x,y,z,1.0,p_n1)
-              call convert_lx(new_ctr_x, new_ctr_y, new_ctr_z,1.0,p_n2)
+              call convert_lx(x,y,z,1.0_RKIND,p_n1)
+              call convert_lx(new_ctr_x, new_ctr_y, new_ctr_z,1.0_RKIND,p_n2)
   
               !x y z computation
               movement = sqrt((x - new_ctr_x)**2 + (y - new_ctr_y)**2 + (z - new_ctr_z)**2)
@@ -195,27 +195,27 @@ module scvt
    subroutine random_point(p)
 
       type (geo_point), intent(inout) :: p
-      real :: x, y, z, m
-      real :: pi
+      real(kind=RKIND) :: x, y, z, m
+      real(kind=RKIND) :: pi
 
-      pi = 4.0*atan(1.0)
+      pi = 4.0*atan(1.0_RKIND)
 
       x = 0.0
       y = 0.0
       z = 0.0
       m = 2.0
 
-      do while (m > 1.0 .or. (x == 0.0 .and. y == 0.0 .and. z == 0.0))
+      do while (m > 1.0_RKIND .or. (x == 0.0 .and. y == 0.0 .and. z == 0.0))
          call random_number(x)
          call random_number(y)
          call random_number(z)
-         x = x * 2.0 - 1.0
-         y = y * 2.0 - 1.0
-         z = z * 2.0 - 1.0
+         x = x * 2.0 - 1.0_RKIND
+         y = y * 2.0 - 1.0_RKIND
+         z = z * 2.0 - 1.0_RKIND
          m = x**2 + y**2 + z**2
       end do
 
-      m = 1.0 / sqrt(m)
+      m = 1.0_RKIND / sqrt(m)
       x = x * m
       y = y * m
       z = z * m
@@ -229,27 +229,27 @@ module scvt
    !  FUNCTION DENSITY_FOR_POINT
    !
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   real function density_for_point(p)
+   real(kind=RKIND) function density_for_point(p)
 
       implicit none
 
       type (geo_point), intent(in) :: p
 
       character (len=256) :: fname
-      real :: rx, ry, rz, prx, pry, prz
+      real(kind=RKIND) :: rx, ry, rz, prx, pry, prz
       type (geo_point) :: p_local
-      real :: hgt
-      real :: r, norm, t_cent
-      real :: r1
-      real :: pi
-      real :: width, trans_center, min_val
+      real(kind=RKIND) :: hgt
+      real(kind=RKIND) :: r, norm, t_cent
+      real(kind=RKIND) :: r1
+      real(kind=RKIND) :: pi
+      real(kind=RKIND) :: width, trans_center, min_val
 
-      pi = 4.0*atan(1.0)
+      pi = 4.0*atan(1.0_RKIND)
 
-      !density_for_point = 1.0 + (1.19*cos(p%lat-3.141592654/4.0))**16.0
+      !density_for_point = 1.0_RKIND + (1.19*cos(p%lat-3.141592654/4.0))**16.0
 
       ! Uniform Density Function
-       density_for_point = 1.0
+       density_for_point = 1.0_RKIND
 
       !Target Density Function based on hyperbolic tangent
       !		p_local%lat = latitude (radians) center of high-resolution region
@@ -257,19 +257,19 @@ module scvt
       !         width = width of transition zone 
       !         trans_center = width (radians) of high resolution zone
       !         minval = minimum density value. to have grid spacing vary by a factor of 8
-      !                  set minval = (1.0 / 8.0)**4
+      !                  set minval = (1.0_RKIND / 8.0_RKIND)**4
 
   !   p_local%lat = pii/4.0
   !   p_local%lon = 1.25*pii
-  !   call convert_lx(rx, ry, rz, 1.0, p)
-  !   call convert_lx(prx, pry, prz, 1.0, p_local)
+  !   call convert_lx(rx, ry, rz, 1.0_RKIND, p)
+  !   call convert_lx(prx, pry, prz, 1.0_RKIND, p_local)
   !   r = acos(rx*prx + ry*pry + rz*prz)
 
   !   width = 0.15
   !   trans_center = pi/6.0
-  !   min_val = (1.0/8.0)**4
-  !   norm = 1.0/(1.0-min_val)
-  !   density_for_point = ((tanh((trans_center-r)*(1.0/width))+1.0)/2)/norm + min_val
+  !   min_val = (1.0_RKIND/8.0_RKIND)**4
+  !   norm = 1.0_RKIND/(1.0_RKIND-min_val)
+  !   density_for_point = ((tanh((trans_center-r)*(1.0_RKIND/width))+1.0_RKIND)/2)/norm + min_val
 
    end function density_for_point
 

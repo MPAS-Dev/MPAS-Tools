@@ -5,12 +5,12 @@
 #PROMOTION = -r8
 #LDFLAGS = -m64 -O3 -fast -ipo -openmp
 
-FC = gfortran
-FFLAGS = -ffree-form -O3 -fopenmp -ffree-line-length-none
+FC = $(shell nc-config --fc)
+FFLAGS = -ffree-form -O3 -fopenmp -ffree-line-length-none $(shell nc-config --fflags)
 F77FLAGS = -ffixed-form -O3 -fopenmp -fsecond-underscore
-CPPFLAGS = -DRKIND=8
+CPPFLAGS = -DRKIND=8 -D_RKIND=_8
 PROMOTION = -fdefault-real-8
-LDFLAGS = -O3 -fopenmp
+LDFLAGS = -O3 -fopenmp $(shell nc-config --flibs)
 
 #FC = pgf90
 #FFLAGS = -Mfree -O3 -mp -byteswapio

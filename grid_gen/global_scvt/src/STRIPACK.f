@@ -5,7 +5,7 @@
       SUBROUTINE ADDNOD (NST,K,X,Y,Z, LIST,LPTR,LEND,
      .                   LNEW, IER)
       INTEGER NST, K, LIST(*), LPTR(*), LEND(K), LNEW, IER
-      REAL    X(K), Y(K), Z(K)
+      REAL(KIND=RKIND)    X(K), Y(K), Z(K)
 C
 C***********************************************************
 C
@@ -82,7 +82,7 @@ C***********************************************************
 C
       INTEGER I1, I2, I3, IO1, IO2, IN1, IST, KK, KM1, L,
      .        LP, LPF, LPO1, LPO1S
-      REAL    B1, B2, B3, P(3)
+      REAL(KIND=RKIND)    B1, B2, B3, P(3)
 C
 C Local parameters:
 C
@@ -206,8 +206,8 @@ C
     5 IER = L
       RETURN
       END SUBROUTINE
-      REAL FUNCTION AREAS (V1,V2,V3)
-      REAL V1(3), V2(3), V3(3)
+      REAL(KIND=RKIND) FUNCTION AREAS (V1,V2,V3)
+      REAL(KIND=RKIND) V1(3), V2(3), V3(3)
 C
 C***********************************************************
 C
@@ -554,7 +554,7 @@ C
       END SUBROUTINE
       SUBROUTINE CIRCUM (V1,V2,V3, C,IER)
       INTEGER IER
-      REAL    V1(3), V2(3), V3(3), C(3)
+      REAL(KIND=RKIND)    V1(3), V2(3), V3(3), C(3)
 C
 C***********************************************************
 C
@@ -601,7 +601,7 @@ C
 C***********************************************************
 C
       INTEGER I
-      REAL    CNORM, CU(3), E1(3), E2(3)
+      REAL(KIND=RKIND)    CNORM, CU(3), E1(3), E2(3)
 C
 C Local parameters:
 C
@@ -734,7 +734,7 @@ C
      .                   LTRI, LISTC,NB,XC,YC,ZC,RC,IER)
       INTEGER  N, NCOL, LIST(*), LEND(N), LPTR(*), LNEW,
      .         LTRI(6,NCOL), LISTC(*), NB, IER
-      REAL X(N), Y(N), Z(N), XC(*), YC(*), ZC(*), RC(*)
+      REAL(KIND=RKIND) X(N), Y(N), Z(N), XC(*), YC(*), ZC(*), RC(*)
 C
 C***********************************************************
 C
@@ -882,7 +882,7 @@ C
      .        KT12, KT21, KT22, LP, LPL, LPN, N0, N1, N2,
      .        N3, N4, NM2, NN, NT
       LOGICAL SWP
-      REAL    C(3), T, V1(3), V2(3), V3(3)
+      REAL(KIND=RKIND)    C(3), T, V1(3), V2(3), V3(3)
 C
 C Local parameters:
 C
@@ -1560,7 +1560,7 @@ C
      .                   IWK, IER)
       INTEGER K, N, LIST(*), LPTR(*), LEND(*), LNEW, LWK,
      .        IWK(2,*), IER
-      REAL    X(*), Y(*), Z(*)
+      REAL(KIND=RKIND)    X(*), Y(*), Z(*)
 C
 C***********************************************************
 C
@@ -1668,7 +1668,8 @@ C
      .        LPL2, LPN, LWKL, N1, N2, NFRST, NIT, NL, NN,
      .        NNB, NR
       LOGICAL BDRY
-      REAL    X1, X2, XL, XR, Y1, Y2, YL, YR, Z1, Z2, ZL, ZR
+      REAL(KIND=RKIND)    X1, X2, XL, XR, Y1, Y2, YL, YR,
+     .        Z1, Z2, ZL, ZR
 C
 C Local parameters:
 C
@@ -2001,7 +2002,7 @@ C
      .                 LEND, IER)
       INTEGER IN1, IN2, LWK, IWK(2,*), LIST(*), LPTR(*),
      .        LEND(*), IER
-      REAL    X(*), Y(*), Z(*)
+      REAL(KIND=RKIND)    X(*), Y(*), Z(*)
 C
 C***********************************************************
 C
@@ -2103,8 +2104,8 @@ C
       INTEGER I, IERR, IWC, IWCP1, IWEND, IWF, IWL, LFT, LP,
      .        LP21, LPL, N0, N1, N1FRST, N1LST, N2, NEXT,
      .        NIT, NL, NR
-      REAL    DP12, DP1L, DP1R, DP2L, DP2R, X0, X1, X2, Y0,
-     .        Y1, Y2, Z0, Z1, Z2
+      REAL(KIND=RKIND)    DP12, DP1L, DP1R, DP2L, DP2R,
+     .        X0, X1, X2, Y0, Y1, Y2, Z0, Z1, Z2
 C
 C Local parameters:
 C
@@ -2530,7 +2531,7 @@ C
       SUBROUTINE GETNP (X,Y,Z,LIST,LPTR,LEND,L, NPTS, DF,
      .                  IER)
       INTEGER LIST(*), LPTR(*), LEND(*), L, NPTS(L), IER
-      REAL    X(*), Y(*), Z(*), DF
+      REAL(KIND=RKIND)    X(*), Y(*), Z(*), DF
 C
 C***********************************************************
 C
@@ -2594,7 +2595,7 @@ C
 C***********************************************************
 C
       INTEGER I, LM1, LP, LPL, N1, NB, NI, NP
-      REAL    DNB, DNP, X1, Y1, Z1
+      REAL(KIND=RKIND)    DNB, DNP, X1, Y1, Z1
 C
 C Local parameters:
 C
@@ -2722,7 +2723,7 @@ C
       END SUBROUTINE
       LOGICAL FUNCTION INSIDE (P,LV,XV,YV,ZV,NV,LISTV, IER)
       INTEGER LV, NV, LISTV(NV), IER
-      REAL    P(3), XV(LV), YV(LV), ZV(LV)
+      REAL(KIND=RKIND)    P(3), XV(LV), YV(LV), ZV(LV)
 C
 C***********************************************************
 C
@@ -2818,8 +2819,8 @@ C***********************************************************
 C
       INTEGER I1, I2, IERR, IMX, K, K0, N, NI
       LOGICAL EVEN, LFT1, LFT2, PINR, QINR
-      REAL    B(3), BP, BQ, CN(3), D, EPS, PN(3), Q(3),
-     .        QN(3), QNRM, V1(3), V2(3), VN(3), VNRM
+      REAL(KIND=RKIND)    B(3), BP, BQ, CN(3), D, EPS, PN(3),
+     .       Q(3), QN(3), QNRM, V1(3), V2(3), VN(3), VNRM
 C
 C Local parameters:
 C
@@ -3115,7 +3116,7 @@ C
       END SUBROUTINE
       SUBROUTINE INTRSC (P1,P2,CN, P,IER)
       INTEGER IER
-      REAL    P1(3), P2(3), CN(3), P(3)
+      REAL(KIND=RKIND)    P1(3), P2(3), CN(3), P(3)
 C
 C***********************************************************
 C
@@ -3172,7 +3173,7 @@ C
 C***********************************************************
 C
       INTEGER I
-      REAL    D1, D2, PP(3), PPN, T
+      REAL(KIND=RKIND)    D1, D2, PP(3), PPN, T
 C
 C Local parameters:
 C
@@ -3283,7 +3284,7 @@ C
       RETURN
       END FUNCTION
       LOGICAL FUNCTION LEFT (X1,Y1,Z1,X2,Y2,Z2,X0,Y0,Z0)
-      REAL X1, Y1, Z1, X2, Y2, Z2, X0, Y0, Z0
+      REAL(KIND=RKIND) X1, Y1, Z1, X2, Y2, Z2, X0, Y0, Z0
 C
 C***********************************************************
 C
@@ -3439,7 +3440,7 @@ C
       INTEGER FUNCTION NEARND (P,IST,N,X,Y,Z,LIST,LPTR,
      .                         LEND, AL)
       INTEGER IST, N, LIST(*), LPTR(*), LEND(N)
-      REAL    P(3), X(N), Y(N), Z(N), AL
+      REAL(KIND=RKIND)    P(3), X(N), Y(N), Z(N), AL
 C
 C***********************************************************
 C
@@ -3506,8 +3507,8 @@ C
       PARAMETER (LMAX=25)
       INTEGER   I1, I2, I3, L, LISTP(LMAX), LP, LP1, LP2,
      .          LPL, LPTRP(LMAX), N1, N2, N3, NN, NR, NST
-      REAL      B1, B2, B3, DS1, DSR, DX1, DX2, DX3, DY1,
-     .          DY2, DY3, DZ1, DZ2, DZ3
+      REAL(KIND=RKIND)      B1, B2, B3, DS1, DSR, DX1, DX2,
+     .          DX3, DY1, DY2, DY3, DZ1, DZ2, DZ3
 C
 C Local parameters:
 C
@@ -3679,7 +3680,7 @@ C
      .                  IWK, IER)
       INTEGER NA, LIST(*), LPTR(*), LEND(*), NIT, IWK(2,NA),
      .        IER
-      REAL    X(*), Y(*), Z(*)
+      REAL(KIND=RKIND)    X(*), Y(*), Z(*)
 C
 C***********************************************************
 C
@@ -3871,7 +3872,7 @@ C
       RETURN
       END SUBROUTINE
       SUBROUTINE SCOORD (PX,PY,PZ, PLAT,PLON,PNRM)
-      REAL PX, PY, PZ, PLAT, PLON, PNRM
+      REAL(KIND=RKIND) PX, PY, PZ, PLAT, PLON, PNRM
 C
 C***********************************************************
 C
@@ -3924,8 +3925,8 @@ C
       ENDIF
       RETURN
       END SUBROUTINE
-      REAL FUNCTION STORE (X)
-      REAL X
+      REAL(KIND=RKIND) FUNCTION STORE (X)
+      REAL(KIND=RKIND) X
 C
 C***********************************************************
 C
@@ -3959,7 +3960,7 @@ C Modules required by STORE:  None
 C
 C***********************************************************
 C
-      REAL Y
+      REAL(KIND=RKIND) Y
       COMMON/STCOM/Y
       Y = X
       STORE = Y
@@ -4077,7 +4078,7 @@ C
       END SUBROUTINE
       LOGICAL FUNCTION SWPTST (N1,N2,N3,N4,X,Y,Z)
       INTEGER N1, N2, N3, N4
-      REAL    X(*), Y(*), Z(*)
+      REAL(KIND=RKIND)    X(*), Y(*), Z(*)
 C
 C***********************************************************
 C
@@ -4124,8 +4125,8 @@ C Modules required by SWPTST:  None
 C
 C***********************************************************
 C
-      REAL DX1, DX2, DX3, DY1, DY2, DY3, DZ1, DZ2, DZ3,
-     .     X4, Y4, Z4
+      REAL(KIND=RKIND) DX1, DX2, DX3, DY1, DY2, DY3, DZ1,
+     .     DZ2, DZ3, X4, Y4, Z4
 C
 C Local parameters:
 C
@@ -4158,7 +4159,7 @@ C
       END FUNCTION
       SUBROUTINE TRANS (N,RLAT,RLON, X,Y,Z)
       INTEGER N
-      REAL    RLAT(N), RLON(N), X(N), Y(N), Z(N)
+      REAL(KIND=RKIND)    RLAT(N), RLON(N), X(N), Y(N), Z(N)
 C
 C***********************************************************
 C
@@ -4203,7 +4204,7 @@ C
 C***********************************************************
 C
       INTEGER I, NN
-      REAL    COSPHI, PHI, THETA
+      REAL(KIND=RKIND)    COSPHI, PHI, THETA
 C
 C Local parameters:
 C
@@ -4227,7 +4228,7 @@ C
       SUBROUTINE TRFIND (NST,P,N,X,Y,Z,LIST,LPTR,LEND, B1,
      .                   B2,B3,I1,I2,I3)
       INTEGER NST, N, LIST(*), LPTR(*), LEND(N), I1, I2, I3
-      REAL    P(3), X(N), Y(N), Z(N), B1, B2, B3
+      REAL(KIND=RKIND)    P(3), X(N), Y(N), Z(N), B1, B2, B3
 C
 C***********************************************************
 C
@@ -4296,9 +4297,9 @@ C***********************************************************
 C
       INTEGER IX, IY, IZ, LP, N0, N1, N1S, N2, N2S, N3, N4,
      .        NEXT, NF, NL
-      REAL    DET, EPS, PTN1, PTN2, Q(3), S12, TOL, XP, YP,
-     .        ZP
-      REAL    X0, X1, X2, Y0, Y1, Y2, Z0, Z1, Z2
+      REAL(KIND=RKIND)    DET, EPS, PTN1, PTN2, Q(3), S12, TOL,
+     .        XP, YP, ZP
+      REAL(KIND=RKIND)    X0, X1, X2, Y0, Y1, Y2, Z0, Z1, Z2
 C
       SAVE    IX, IY, IZ
       DATA    IX/1/, IY/2/, IZ/3/
@@ -4915,7 +4916,7 @@ C
       END SUBROUTINE
       SUBROUTINE TRLPRT (N,X,Y,Z,IFLAG,NROW,NT,LTRI,LOUT)
       INTEGER N, IFLAG, NROW, NT, LTRI(NROW,NT), LOUT
-      REAL X(N), Y(N), Z(N)
+      REAL(KIND=RKIND) X(N), Y(N), Z(N)
 C
 C***********************************************************
 C
@@ -5110,7 +5111,7 @@ C
      .                   NEXT,DIST,IER)
       INTEGER N, LIST(*), LPTR(*), LEND(N), LNEW, NEAR(N),
      .        NEXT(N), IER
-      REAL    X(N), Y(N), Z(N), DIST(N)
+      REAL(KIND=RKIND)    X(N), Y(N), Z(N), DIST(N)
 C
 C***********************************************************
 C
@@ -5311,7 +5312,7 @@ C
 C***********************************************************
 C
       INTEGER I, I0, J, K, LP, LPL, NEXTI, NN
-      REAL    D, D1, D2, D3
+      REAL(KIND=RKIND)    D, D1, D2, D3
 C
 C Local parameters:
 C
@@ -5531,7 +5532,7 @@ C
       CHARACTER*(*) TITLE
       INTEGER   LUN, N, LIST(*), LPTR(*), LEND(N), IER
       LOGICAL   NUMBR
-      REAL      PLTSIZ, ELAT, ELON, A, X(N), Y(N), Z(N)
+      REAL(KIND=RKIND)      PLTSIZ, ELAT, ELON, A, X(N), Y(N), Z(N)
 C
 C***********************************************************
 C
@@ -5638,9 +5639,9 @@ C***********************************************************
 C
       INTEGER IPX1, IPX2, IPY1, IPY2, IR, LP, LPL, N0, N1
       LOGICAL ANNOT
-      REAL    CF, CT, EX, EY, EZ, FSIZN, FSIZT, R11, R12,
-     .        R21, R22, R23, SF, T, TX, TY, WR, WRS, X0, X1,
-     .        Y0, Y1, Z0, Z1
+      REAL(KIND=RKIND)    CF, CT, EX, EY, EZ, FSIZN, FSIZT,
+     .        R11, R12, R21, R22, R23, SF, T, TX, TY, WR,
+     .        WRS, X0, X1, Y0, Y1, Z0, Z1
 C
       DATA    ANNOT/.TRUE./,  FSIZN/10.0/,  FSIZT/16.0/
 C
@@ -5958,7 +5959,7 @@ C
       END SUBROUTINE
       SUBROUTINE TRPRNT (N,X,Y,Z,IFLAG,LIST,LPTR,LEND,LOUT)
       INTEGER N, IFLAG, LIST(*), LPTR(*), LEND(N), LOUT
-      REAL    X(N), Y(N), Z(N)
+      REAL(KIND=RKIND)    X(N), Y(N), Z(N)
 C
 C***********************************************************
 C
@@ -6221,8 +6222,8 @@ C
       CHARACTER*(*) TITLE
       INTEGER LUN, N, NT, LISTC(*), LPTR(*), LEND(N), IER
       LOGICAL NUMBR
-      REAL    PLTSIZ, ELAT, ELON, A, X(N), Y(N), Z(N),
-     .        XC(NT), YC(NT), ZC(NT)
+      REAL(KIND=RKIND)    PLTSIZ, ELAT, ELON, A, X(N),
+     .        Y(N), Z(N), XC(NT), YC(NT), ZC(NT)
 C
 C***********************************************************
 C
@@ -6366,9 +6367,9 @@ C
       INTEGER IPX1, IPX2, IPY1, IPY2, IR, KV1, KV2, LP, LPL,
      .        N0
       LOGICAL ANNOT, IN1, IN2
-      REAL    CF, CT, EX, EY, EZ, FSIZN, FSIZT, R11, R12,
-     .        R21, R22, R23, SF, T, TX, TY, WR, WRS, X0, X1,
-     .        X2, Y0, Y1, Y2, Z1, Z2
+      REAL(KIND=RKIND)    CF, CT, EX, EY, EZ, FSIZN, FSIZT,
+     .        R11, R12, R21, R22, R23, SF, T, TX, TY, WR,
+     .        WRS, X0, X1, X2, Y0, Y1, Y2, Z1, Z2
 C
       DATA    ANNOT/.TRUE./,  FSIZN/10.0/,  FSIZT/16.0/
 C

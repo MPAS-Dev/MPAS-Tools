@@ -238,7 +238,7 @@ module grid_gen_utils
           if(itp1 > 6) itp1 = 1
             hex_area = hex_area + triangle_area( centers(i,j),      &
                                                  corners(  it,i,j), &
-                                                 corners(itp1,i,j), 1.)
+                                                 corners(itp1,i,j), 1.0_RKIND)
         enddo
         areas(i,j) = hex_area
       enddo
@@ -269,7 +269,7 @@ module grid_gen_utils
           itp1 = it+1
           if(itp1 > 6) itp1 = 1
           edge_lengths(it,i,j) = sphere_distance( corners(  it,i,j), &
-                                                  corners(itp1,i,j), 1.)
+                                                  corners(itp1,i,j), 1.0_RKIND)
         end do
       end do
       end do
@@ -296,11 +296,11 @@ module grid_gen_utils
       do j=1,n
       do i=1,2*n-1 
         dx(1,i,j) = sphere_distance( centers(i  ,j  ), &
-                                     centers(i-1,j  ), 1. )
+                                     centers(i-1,j  ), 1.0_RKIND )
         dx(2,i,j) = sphere_distance( centers(i  ,j  ), &
-                                     centers(i-1,j-1), 1. )
+                                     centers(i-1,j-1), 1.0_RKIND )
         dx(3,i,j) = sphere_distance( centers(i  ,j  ), &
-                                     centers(i  ,j-1), 1. )
+                                     centers(i  ,j-1), 1.0_RKIND )
       enddo
       enddo
    
