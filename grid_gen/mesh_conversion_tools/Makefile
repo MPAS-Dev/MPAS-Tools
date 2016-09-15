@@ -14,18 +14,18 @@ CONV_EXECUTABLE= MpasMeshConverter.x
 CULL_EXECUTABLE= MpasCellCuller.x
 MASK_EXECUTABLE= MpasMaskCreator.x
 
-NCINCDIR=${NETCDF}/include
-NCLIBDIR=${NETCDF}/lib
+NETCDFLIB = $(shell nc-config --libs) -lnetcdf_c++
+NETCDFINC = $(shell nc-config --cflags)
 
 all:
-	${CC} mpas_mesh_converter.cpp netcdf_utils.cpp ${CFLAGS} -o ${CONV_EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
-	${CC} mpas_cell_culler.cpp netcdf_utils.cpp ${CFLAGS} -o ${CULL_EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
-	${CC} mpas_mask_creator.cpp netcdf_utils.cpp jsoncpp.cpp ${CFLAGS} -o ${MASK_EXECUTABLE} -I. -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
+	${CC} mpas_mask_creator.cpp netcdf_utils.cpp jsoncpp.cpp ${CFLAGS} -o ${MASK_EXECUTABLE} -I. ${NETCDFINC} ${NETCDFLIB} -lstdc++
+	${CC} mpas_mesh_converter.cpp netcdf_utils.cpp ${CFLAGS} -o ${CONV_EXECUTABLE} ${NETCDFINC} ${NETCDFLIB} -lstdc++
+	${CC} mpas_cell_culler.cpp netcdf_utils.cpp ${CFLAGS} -o ${CULL_EXECUTABLE}  ${NETCDFINC} ${NETCDFLIB} -lstdc++
 
 debug:
-	${CC} mpas_mesh_converter.cpp netcdf_utils.cpp ${DFLAGS} -o ${CONV_EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
-	${CC} mpas_cell_culler.cpp netcdf_utils.cpp ${DFLAGS} -o ${CULL_EXECUTABLE} -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
-	${CC} mpas_mask_creator.cpp netcdf_utils.cpp jsoncpp.cpp ${DFLAGS} -o ${MASK_EXECUTABLE} -I. -I${NCINCDIR} -L${NCLIBDIR} -lnetcdf_c++ -lnetcdf -lstdc++
+	${CC} mpas_mesh_converter.cpp netcdf_utils.cpp ${DFLAGS} -o ${CONV_EXECUTABLE} ${NETCDFINC} ${NETCDFLIB} -lstdc++
+	${CC} mpas_cell_culler.cpp netcdf_utils.cpp ${DFLAGS} -o ${CULL_EXECUTABLE} ${NETCDFINC} ${NETCDFLIB} -lstdc++
+	${CC} mpas_mask_creator.cpp netcdf_utils.cpp jsoncpp.cpp ${DFLAGS} -o ${MASK_EXECUTABLE} -I. ${NETCDFINC} ${NETCDFLIB} -lstdc++
 
 clean:
 	rm -f grid.nc
