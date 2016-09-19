@@ -28,12 +28,12 @@ module_voronoi_utils.o: module_grid_constants.o STRIPACK.o
 
 
 .F.o:
-	cpp -C -P -traditional $(CPPFLAGS) $< > $*.f90
+	gcc-4.8 -C -P -traditional-cpp $(CPPFLAGS) $< > $*.f90
 	$(FC) $(FFLAGS) $(PROMOTION) -c $*.f90
 	rm -f $*.f90
 
 .f.o:
-	cpp -C -P -traditional $(CPPFLAGS) $< > $*.for
+	gcc-4.8 -C -P -traditional-cpp $(CPPFLAGS) $< > $*.for
 	$(FC) $(F77FLAGS) $(PROMOTION) -c $*.for
 	rm -f $.*.for
 

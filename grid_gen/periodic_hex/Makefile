@@ -37,16 +37,26 @@ LDFLAGS = -O3 -m64
 CPP = cpp -P -traditional
 CPPFLAGS = 
 CPPINCLUDES = 
-INCLUDES = $(shell nc-config --cflags)
 
-# Specify NetCDF libraries, checking if netcdff is required (it will be present in v4 of netCDF)
-LIBS = $(shell nc-config --flibs)
-NCLIB = -lnetcdf
-NCLIBF = -lnetcdff
-ifneq ($(wildcard $(NETCDF)/lib/libnetcdff.*), ) # CHECK FOR NETCDF4
-        LIBS += $(NCLIBF)
-endif # CHECK FOR NETCDF4
-LIBS += $(NCLIB)
+ifneq ($(NETCDF), )
+ifneq ($(shell which ${NETCDF}/bin/nc-config 2> /dev/null), )
+	LIBS = $(shell ${NETCDF}/bin/nc-config --libs) -lnetcdff
+	INCS = $(shell ${NETCDF}/bin/nc-config --cflags)
+else
+	LIBS= -L${NETCDF}/lib
+	LIBS += -lnetcdf -lnetcdff
+	INCS = -I${NETCDF}/include
+endif
+else ifneq ($(shell which nc-config 2> /dev/null), )
+	LIBS = $(shell nc-config --libs) -lnetcdff
+	INCS = $(shell nc-config --cflags)
+else
+	LIBS= -L${NETCDF}/lib
+	LIBS += -lnetcdf_c++ -lnetcdf -lstdc++ -lnetcdff
+	INCS = -I${NETCDF}/include
+endif
+
+INCLUDES = $(INCS)
 
 
 

@@ -15,7 +15,7 @@ LDFLAGS = -O3 -fopenmp $(shell nc-config --flibs)
 #FC = pgf90
 #FFLAGS = -Mfree -O3 -mp -byteswapio $(shell nc-config --fflags)
 #F77FLAGS = -O3 -byteswapio
-#CPPFLAGS = -DRKIND=8
+#CPPFLAGS = -DRKIND=8 -D_RKIND=_8
 #PROMOTION = -r8
 #LDFLAGS = -O3 -mp -byteswapio $(shell nc-config --flibs)
 
