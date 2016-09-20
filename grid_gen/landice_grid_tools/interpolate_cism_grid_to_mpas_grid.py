@@ -483,7 +483,7 @@ elif filetype=='mpas':
 #----------------------------
 # try each field.  If it exists in the input file, it will be copied.  If not, it will be skipped.
 for MPASfieldName in fieldInfo:
-  #try:
+  try:
     print '\n## %s ##'%MPASfieldName
 
 
@@ -507,8 +507,8 @@ for MPASfieldName in fieldInfo:
 
     MPASfile.sync()  # update the file now in case we get an error later
 
-  #except:
-  #  print '  problem with %s field (e.g. not found in input file), skipping...'%MPASfieldName
+  except:
+    print '  problem with %s field (e.g. not found in input file), skipping...'%MPASfieldName
 
 # Update history attribute of netCDF file
 if hasattr(MPASfile, 'history'):
