@@ -18,8 +18,7 @@ import netCDF4
 from optparse import OptionParser
 import math
 from collections import OrderedDict
-import scipy.interpolate as spint
-import scipy.spatial.qhull as qhull
+import scipy.spatial
 import time
 
 
@@ -119,7 +118,11 @@ def BilinearInterp(Value, gridTypeType):
 #----------------------------
 
 def delaunay_interp_weights(xy, uv, d=2):
-    tri = qhull.Delaunay(xy)
+    '''
+    xy = input x,y coords
+    uv = output (MPSALI) x,y coords
+    '''
+    tri = scipy.spatial.qhull.Delaunay(xy)
     print "    Delaunay triangulation complete."
     simplex = tri.find_simplex(uv)
     print "    find_simplex complete."
@@ -130,21 +133,55 @@ def delaunay_interp_weights(xy, uv, d=2):
     delta = uv - temp[:, d]
     bary = np.einsum('njk,nk->nj', temp[:, :d, :], delta)
     print "    calculating bary complete."
-    return vertices, np.hstack((bary, 1 - bary.sum(axis=1, keepdims=True)))
+    wts = np.hstack((bary, 1 - bary.sum(axis=1, keepdims=True)))
+
+    # Now figure out if there is any extrapolation.
+    # Find indices to points of output file that are outside of convex hull of input points
+    outsideInd = np.nonzero(tri.find_simplex(uv)<0)
+    outsideCoords = uv[outsideInd]
+    #print outsideInd
+    nExtrap = len(outsideInd[0])
+    if nExtrap > 0:
+       print "    Found {} points requiring extrapolation.  Using nearest neighbor extrapolation for those.".format(nExtrap)
+
+    # Now find nearest neighbor for each outside point
+    # Use KDTree of input points
+    tree = scipy.spatial.cKDTree(xy)
+
+    return vertices, wts, outsideInd, tree
 
 #----------------------------
 
 def delaunay_interpolate(values, gridTypeType):
     if gridTypeType == 'x0':
        vtx = vtx0; wts = wts0
+       tree = treex0
+       outsideInd = outsideIndx0
     elif gridTypeType == 'x1':
        vtx = vtx1; wts = wts1
+       outsideInd = outsideIndx1
+       tree = treex1
     elif gridTypeType == 'cell':
        vtx = vtCell; wts = wtsCell
+       outsideInd = outsideIndcell
+       tree = treecell
     else:
         sys.exit('Error: unknown input file grid type specified.')
 
-    return np.einsum('nj,nj->n', np.take(values, vtx), wts)
+    outfield = np.einsum('nj,nj->n', np.take(values, vtx), wts)
+
+    # Now apply nearest neighbor to points outside convex hull
+    # We could have this enabled/disabled with a command line option, but for now it will always be done.
+    # Note: the barycentric interp applied above could be restricted to the points inside the convex hull
+    # instead of being applied to ALL points as is currently implemented.  However it is assumed that
+    # "redoing" the outside points has a small performance cost because there generally should be few such points
+    # and the implementation is much simpler this way.
+    outsideCoord = mpasXY[outsideInd,:]
+    if len(outsideInd) > 0:
+       dist,idx = tree.query(outsideCoord, k=1)  # k is the number of nearest neighbors.  Could crank this up to 2 (and then average them) with some fiddling, but keeping it simple for now.
+       outfield[outsideInd] = values[idx]
+
+    return outfield
 
 #----------------------------
 
@@ -431,7 +468,7 @@ if options.interpType == 'd':
 
       print '\nBuilding interpolation weights: CISM x1/y1 -> MPAS'
       start = time.clock()
-      vtx1, wts1 = delaunay_interp_weights(cismXY1, mpasXY)
+      vtx1, wts1, outsideIndx1, treex1 = delaunay_interp_weights(cismXY1, mpasXY)
       end = time.clock(); print 'done in ', end-start
 
       if 'x0' in inputFile.variables:
@@ -443,14 +480,14 @@ if options.interpType == 'd':
 
          print 'Building interpolation weights: CISM x0/y0 -> MPAS'
          start = time.clock()
-         vtx0, wts0 = delaunay_interp_weights(cismXY0, mpasXY)
+         vtx0, wts0, outsideIndx0, treex0 = delaunay_interp_weights(cismXY0, mpasXY)
          end = time.clock(); print 'done in ', end-start
 
    elif filetype=='mpas':
       inputmpasXY= np.vstack((inputxCell[:], inputyCell[:])).transpose()
       print 'Building interpolation weights: MPAS in -> MPAS out'
       start = time.clock()
-      vtCell, wtsCell = delaunay_interp_weights(inputmpasXY, mpasXY)
+      vtCell, wtsCell, outsideIndcell, treecell = delaunay_interp_weights(inputmpasXY, mpasXY)
       end = time.clock(); print 'done in ', end-start
 
 #----------------------------
@@ -497,7 +534,7 @@ for MPASfieldName in fieldInfo:
     # Don't allow negative thickness.
     if MPASfieldName == 'thickness' and MPASfield.min() < 0.0:
         MPASfield[MPASfield < 0.0] = 0.0
-        print '  removed negative thickness, new min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+        print '  removed negative thickness, new min/max:', MPASfield.min(), MPASfield.max()
 
     # Now insert the MPAS field into the file.
     if 'Time' in MPASfile.variables[MPASfieldName].dimensions:
