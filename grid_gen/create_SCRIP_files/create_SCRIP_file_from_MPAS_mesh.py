@@ -14,6 +14,7 @@ parser = OptionParser()
 parser.description = "This script takes an MPAS grid file and generates a SCRIP grid file."
 parser.add_option("-m", "--mpas", dest="mpasFile", help="MPAS grid file name used as input.", default="grid.nc", metavar="FILENAME")
 parser.add_option("-s", "--scrip", dest="scripFile", help="SCRIP grid file to output.", default="scrip.nc", metavar="FILENAME")
+parser.add_option("-l", "--landice", dest="landiceMasks", help="If flag is on, landice masks will be computed and used.", action="store_true")
 for option in parser.option_list:
 	if option.default != ("NO", "DEFAULT"):
 		option.help += (" " if option.help else "") + "[default: %default]"
@@ -23,6 +24,14 @@ if not options.mpasFile:
 	sys.exit('Error: MPAS input grid file is required.  Specify with -m command line argument.')
 if not options.scripFile:
 	sys.exit('Error: SCRIP output grid file is required.  Specify with -s command line argument.')
+
+if not options.landiceMasks:
+        options.landiceMasks = False
+
+if options.landiceMasks:
+        print " -- Landice Masks are enabled"
+else:
+        print " -- Landice Masks are disabled"
 
 print '' # make a space in stdout before further output
 
@@ -43,6 +52,9 @@ nCells = len(fin.dimensions['nCells'])
 maxVertices = len(fin.dimensions['maxEdges'])
 areaCell = fin.variables['areaCell'][:]
 sphereRadius = float(fin.sphere_radius)
+
+if options.landiceMasks:
+    landIceMask = fin.variables['landIceMask'][:]
 
 # Write to output file
 # Dimensions
@@ -68,7 +80,6 @@ grid_dims = fout.createVariable('grid_dims', 'i4', ('grid_rank',))
 grid_center_lat[:] = latCell[:]
 grid_center_lon[:] = lonCell[:]
 grid_area[:] = areaCell[:]/ ( sphereRadius**2 ) # SCRIP uses square radians
-grid_imask[:] = 1  # For now, assume we don't want to mask anything out - but eventually may want to exclude certain cells from the input mesh during interpolation
 grid_dims[:] = nCells
 
 # grid corners:
@@ -82,6 +93,12 @@ for iCell in range(nCells):
     # repeat the last vertex location for any remaining, unused vertex indices
 		grid_corner_lat_local[iCell, vertexMax:] = latVertex[verticesOnCell[iCell, vertexMax-1] - 1]
 		grid_corner_lon_local[iCell, vertexMax:] = lonVertex[verticesOnCell[iCell, vertexMax-1] - 1]
+
+        if options.landiceMasks:
+                # If landiceMasks are enabled, mask out ocean under landice.
+                grid_imask[iCell] = 1 - landIceMask[0, iCell]
+        else:
+                grid_imask[iCell] = 1 # If landiceMasks are not enabled, don't mask anything out.
 grid_corner_lat[:] = grid_corner_lat_local[:]
 grid_corner_lon[:] = grid_corner_lon_local[:]
 
