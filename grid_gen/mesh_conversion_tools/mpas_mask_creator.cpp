@@ -2090,6 +2090,58 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 
 		delete[] indices;
 
+		// Build and write transect names
+		names = new char[nTransects * StrLen];
+		for (i = 0; i < nTransects; i++){
+			for ( j = 0; j < StrLen; j++){
+				names[i * StrLen + j ] = '\0';
+			}
+		}
+		for (str_itr = transectNames.begin(), i=0; str_itr != transectNames.end(); str_itr++, i++){
+			snprintf(&names[i*StrLen], StrLen, "%s", (*str_itr).c_str());
+		}
+		if (!(tempVar = grid.add_var("transectNames", ncChar, nTransectsDim, StrLenDim))) return NC_ERR; 
+		if (!tempVar->put(names, nTransects, StrLen)) return NC_ERR;
+		delete[] names;
+
+		// Build and write region groups and group names
+		indices = new int[nTransectGroups * maxTransectsInGroup];
+		counts = new int[nTransectGroups];
+		names = new char[nTransectGroups * StrLen];
+
+		for ( i = 0; i < nTransectGroups; i++ ) {
+			for ( j = 0; j < maxTransectsInGroup; j++ ){
+				indices[i * maxTransectsInGroup + j] = 0;
+			}
+		}
+
+		for ( vec_int_itr = transectsInGroup.begin(), i = 0; vec_int_itr != transectsInGroup.end(); vec_int_itr++, i++){
+			counts[i] = (*vec_int_itr).size();
+			for ( int_itr = (*vec_int_itr).begin(), j = 0; int_itr != (*vec_int_itr).end(); int_itr++, j++){
+				indices[i * maxTransectsInGroup + j] = (*int_itr)+1;
+			}
+		}
+
+		for (i = 0; i < nTransectGroups; i++){
+			for ( j = 0; j < StrLen; j++){
+				names[i * StrLen + j ] = '\0';
+			}
+		}
+		for (str_itr = transectGroupNames.begin(), i=0; str_itr != transectGroupNames.end(); str_itr++, i++){
+			snprintf(&names[i*StrLen], StrLen, "%s", (*str_itr).c_str());
+		}
+
+		if (!(tempVar = grid.add_var("nTransectsInGroup", ncInt, nTransectGroupsDim))) return NC_ERR; 
+		if (!tempVar->put(counts, nTransectGroups)) return NC_ERR;
+		if (!(tempVar = grid.add_var("transectsInGroup", ncInt, nTransectGroupsDim, maxTransectsInGroupDim))) return NC_ERR; 
+		if (!tempVar->put(indices, nTransectGroups, maxTransectsInGroup)) return NC_ERR;
+		if (!(tempVar = grid.add_var("transectGroupNames", ncChar, nTransectGroupsDim, StrLenDim))) return NC_ERR; 
+		if (!tempVar->put(names, nTransectGroups, StrLen)) return NC_ERR;
+
+		delete[] indices;
+		delete[] counts;
+		delete[] names;
+		
 		// Write out signed edge transect masks
 		indices = new int[nEdges * nTransects];
 		for ( i = 0; i < nEdges; i++ ){
