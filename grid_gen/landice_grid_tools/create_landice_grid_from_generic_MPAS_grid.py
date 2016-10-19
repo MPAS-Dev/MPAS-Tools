@@ -19,6 +19,8 @@ parser.add_option("--beta", dest="beta", action="store_true", help="Use this fla
 parser.add_option("--diri", dest="dirichlet", action="store_true", help="Use this flag to include the fields 'dirichletVelocityMask', 'uReconstructX', 'uReconstructY' needed for specifying Dirichlet velocity boundary conditions in the resulting file.")
 parser.add_option("--thermal", dest="thermal", action="store_true", help="Use this flag to include the fields 'temperature', 'surfaceAirTemperature', 'basalHeatFlux' needed for specifying thermal initial conditions in the resulting file.")
 parser.add_option("--hydro", dest="hydro", action="store_true", help="Use this flag to include the fields 'waterThickness', 'tillWaterThickness', 'basalMeltInput', 'externalWaterInput', 'frictionAngle', 'waterPressure', 'waterFluxMask' needed for specifying hydro initial conditions in the resulting file.")
+parser.add_option("--velobs", dest="velobs", action="store_true", help="Use this flag to include the fields 'vx', 'vy', and 'verr' (error) needed for specifying when doing optimizations constrained by obs velocities.")
+parser.add_option("--dHdt", dest="dHdt", action="store_true", help="Use this flag to include a dz/dt or dH/dt field when doing optimizations that include an SMB + dH/dt constraint.")
 options, args = parser.parse_args()
 
 if not options.fileinName:
@@ -217,6 +219,20 @@ if options.hydro:
    newvar = fileout.createVariable('waterFluxMask', 'i', ('Time', 'nEdges'))
    newvar[:] = 0.0
    print 'Added optional hydro variables: waterThickness, tillWaterThickness, meltInput, frictionAngle, waterPressure, waterFluxMask'
+
+if options.velobs:
+   newvar = fileout.createVariable('vx', datatype, ('Time', 'nCells'))
+   newvar[:] = 0.0
+   newvar = fileout.createVariable('vy', datatype, ('Time', 'nCells'))
+   newvar[:] = 0.0
+   newvar = fileout.createVariable('verr', datatype, ('Time', 'nCells'))
+   newvar[:] = 0.0
+   print 'Added optional velocity optimization variables: vx, vy, ve'
+
+if options.dHdt:
+   newvar = fileout.createVariable('dHdt', datatype, ('Time', 'nCells'))
+   newvar[:] = 0.0
+   print 'Added optional optimization variable: dHdt'
 
 fileout.sync()
 print "Completed creating land ice variables in new file. Now syncing to file."
