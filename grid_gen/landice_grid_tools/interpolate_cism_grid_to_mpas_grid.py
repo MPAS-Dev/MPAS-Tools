@@ -65,7 +65,11 @@ if not options.thicknessOnly:
   #fieldInfo['temperature'] =   {'CISMname':'temp', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':True}
   fieldInfo['temperature'] =   {'CISMname':'tempstag', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':True}  # pick one or the other
   fieldInfo['beta'] =          {'CISMname':'beta', 'scalefactor':1.0, 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
-  #fieldInfo['observedSpeed'] = {'CISMname':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
+  fieldInfo['observedSpeed'] = {'CISMname':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
+  fieldInfo['vx'] = {'CISMname':'vx', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':1, 'vertDim':False} 
+  fieldInfo['vy'] = {'CISMname':'vy', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':1, 'vertDim':False} 
+  fieldInfo['verr'] = {'CISMname':'verr', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgr1d':1, 'vertDim':False} 
+  fieldInfo['dHdt'] = {'CISMname':'dHdt', 'scalefactor':1.0, 'offset':0.0, 'CISMgr1d':1, 'vertDim':False} 
 #----------------------------
 
 #----------------------------
