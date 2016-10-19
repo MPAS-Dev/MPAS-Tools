@@ -64,6 +64,8 @@ if not options.thicknessOnly:
   fieldInfo['sfcMassBal'] =    {'CISMname':'acab', 'scalefactor':910.0/(3600.0*24.0*365.0), 'offset':0.0, 'CISMgrid':1, 'vertDim':False}  # Assuming default CISM density
   #fieldInfo['temperature'] =   {'CISMname':'temp', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':True}
   fieldInfo['temperature'] =   {'CISMname':'tempstag', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':True}  # pick one or the other
+  fieldInfo['surfaceAirTemperature'] =   {'CISMname':'artm', 'scalefactor':1.0, 'offset':273.15, 'CISMgrid':1, 'vertDim':False}
+  fieldInfo['basalHeatFlux'] =   {'CISMname':'bheatflx', 'scalefactor':1.0, 'offset':0.0, 'CISMgrid':1, 'vertDim':False}
   fieldInfo['beta'] =          {'CISMname':'beta', 'scalefactor':1.0, 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
 #  fieldInfo['observedSpeed'] = {'CISMname':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':0, 'vertDim':False} # needs different mapping file...
   fieldInfo['vx'] = {'CISMname':'vx', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':1, 'vertDim':False} 
