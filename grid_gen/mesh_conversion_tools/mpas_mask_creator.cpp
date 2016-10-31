@@ -1968,8 +1968,8 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			} else if ( get<2>( regionProperties[0][i] ) == text ) {
 				char_vals = new char[nRegions * StrLen];
 
-				for ( j = 0; j < nRegions; j++ ) {
-					char_vals[j * StrLen] = '\0';
+				for ( j = 0; j < nRegions * StrLen; j++ ) {
+					char_vals[j] = '\0';
 				}
 
 				for ( j = 0; j < regionProperties.size(); j++ ) {
