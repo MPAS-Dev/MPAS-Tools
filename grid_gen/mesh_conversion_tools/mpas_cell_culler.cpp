@@ -50,6 +50,7 @@ int mapAndOutputGridCoordinates(const string inputFilename, const string outputF
 int mapAndOutputCellFields(const string inputFilename, const string outputFilename);
 int mapAndOutputEdgeFields(const string inputFilename, const string outputFilename);
 int mapAndOutputVertexFields(const string inputFilename, const string outputFilename);
+int outputCellMap(const string mapFilename);
 /*}}}*/
 
 string gen_random(const int len);
@@ -58,6 +59,7 @@ int main ( int argc, char *argv[] ) {
 	int error;
 	string out_name = "";
 	string in_name = "";
+	string map_name = "";
 	int c;
 
 	cout << endl << endl;
@@ -73,7 +75,7 @@ int main ( int argc, char *argv[] ) {
 	//  If the input file was not specified, get it now.
 	//
 
-	while ( (c = getopt(argc, argv, "i:o:")) != -1)
+	while ( (c = getopt(argc, argv, "i:o:m:")) != -1)
 	{
 		switch (c)
 		{
@@ -82,6 +84,9 @@ int main ( int argc, char *argv[] ) {
 				break;
 			case 'o':
 				out_name = optarg;
+				break;
+			case 'm':
+				map_name = optarg;
 				break;
 			default:
 				printf ("?? getopt returned character code 0%o ??\n", c);
@@ -169,6 +174,15 @@ int main ( int argc, char *argv[] ) {
 	if(error = mapAndOutputVertexFields(in_name, out_name)){
 		cout << "Error - " << error << endl;
 		exit(error);
+	}
+
+	if (map_name != "")
+	{
+		cout << "Output cellMap in cellMap.txt" << endl;
+		if(error = outputCellMap(map_name)){
+			cout << "Error - " << error << endl;
+			exit(error);
+		}
 	}
 
 	return 0;
@@ -1253,7 +1267,26 @@ int mapAndOutputVertexFields( const string inputFilename, const string outputFil
 	return 0;
 }/*}}}*/
 /*}}}*/
+int outputCellMap(const string mapFilename){/*{{{*/
+	/*****************************************************************
+	 *
+	 * This function outputs the cellMap variable used in the culling
+	 * to the cellMap.txt ascii file.
+	 *
+	 * ***************************************************************/
+	int iCell;
+	ofstream outputfile;
 
+	outputfile.open(mapFilename);
+
+	for (iCell=0 ; iCell < nCells ; iCell++) {
+		outputfile << cellMap.at(iCell) << endl;
+	}
+
+	outputfile.close();
+
+	return 0;
+}/*}}}*/
 string gen_random(const int len) {/*{{{*/
 	static const char alphanum[] =
 		"0123456789"
