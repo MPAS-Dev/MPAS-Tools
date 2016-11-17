@@ -8,6 +8,7 @@
 #include <math.h>
 #include <assert.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "netcdf_utils.h"
 
@@ -55,8 +56,9 @@ string gen_random(const int len);
 
 int main ( int argc, char *argv[] ) {
 	int error;
-	string out_name = "culled.nc";
-	string in_name = "grid.nc";
+	string out_name = "";
+	string in_name = "";
+	int c;
 
 	cout << endl << endl;
 	cout << "************************************************************" << endl;
@@ -70,34 +72,44 @@ int main ( int argc, char *argv[] ) {
 	//
 	//  If the input file was not specified, get it now.
 	//
-	if ( argc <= 1 )
+
+	while ( (c = getopt(argc, argv, "i:o:")) != -1)
 	{
-		cout << "\n";
-		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Please enter the NetCDF input filename.\n";
-
-		cin >> in_name;
-
-		cout << "\n";
-		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Please enter the output NetCDF MPAS Mesh filename.\n";
-
-		cin >> out_name;
+		switch (c)
+		{
+			case 'i':
+				in_name = optarg;
+				break;
+			case 'o':
+				out_name = optarg;
+				break;
+			default:
+				printf ("?? getopt returned character code 0%o ??\n", c);
+		}
 	}
-	else if (argc == 2)
+
+	// default for input
+	if (in_name == "")
 	{
-		in_name = argv[1];
+		in_name = "grid.nc";
+
+		cout << "\n";
+		cout << "MPAS_CELL_CULLER:\n";
+		cout << "  Input name not specified. Using default of grid.nc\n";
+	}
+
+	// default for output
+	if (out_name == "")
+	{
+		out_name = "culled.nc";
 
 		cout << "\n";
 		cout << "MPAS_CELL_CULLER:\n";
 		cout << "  Output name not specified. Using default of culled.nc\n";
 	}
-	else if (argc == 3)
-	{
-		in_name = argv[1];
-		out_name = argv[2];
-	}
 
+
+	// check input and output filenames are different
 	if(out_name == in_name){
 		cout << "   ERROR: Input and Output names are the same." << endl;
 		return 1;
@@ -106,6 +118,7 @@ int main ( int argc, char *argv[] ) {
 
 	srand(time(NULL));
 
+	cout << "\n";
 	cout << "Reading input grid." << endl;
 	error = readGridInput(in_name);
 	if(error) return 1;
