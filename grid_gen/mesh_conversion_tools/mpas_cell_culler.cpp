@@ -96,21 +96,21 @@ int main ( int argc, char *argv[] ) {
 	// default for input
 	if (in_name == "")
 	{
-		in_name = "grid.nc";
-
 		cout << "\n";
 		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Input name not specified. Using default of grid.nc\n";
+		cout << "  Please enter the NetCDF input filename.\n";
+
+		cin >> in_name;
 	}
 
 	// default for output
 	if (out_name == "")
 	{
-		out_name = "culled.nc";
-
 		cout << "\n";
 		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Output name not specified. Using default of culled.nc\n";
+		cout << "  Please enter the output NetCDF MPAS Mesh filename.\n";
+
+		cin >> out_name;
 	}
 
 
