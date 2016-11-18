@@ -64,20 +64,19 @@ void print_usage(){/*{{{*/
 	cout << "Usage:" << endl;
 	cout << "\tMpasCellCuller.x [-i input_name] [-o output_name] [[-m/-v/-p] masks_name] [-n index_mapping_output_name] [-h]" << endl;
 	cout << endl;
-	cout << "\t\tinput_name:" << endl;
+	cout << "\t\t-i input_name:" << endl;
 	cout << "\t\t\tThis argument specifies the input MPAS mesh." << endl;
 	cout << "\t\t\tIf not specified it defaults to grid.nc." << endl;
-	cout << "\t\toutput_name:" << endl;
+	cout << "\t\t-o output_name:" << endl;
 	cout << "\t\t\tThis argument specifies the output culled MPAS mesh." << endl;
 	cout << "\t\t\tIf not specified, it defaults to culled_mesh.nc." << endl;
-	cout << "\t\t-m/-v/-p:" << endl;
-	cout << "\t\t\tThis argument controls how a set of masks is used when culling a mesh." << endl;
+	cout << "\t\t-m/-v/-p masks_name:" << endl;
+	cout << "\t\t\tThese arguments control how a set of masks is used when culling a mesh." << endl;
 	cout << "\t\t\tThe -m argument applies a mask to cull based on (i.e. where the mask is 1, the mesh will be culled)." << endl;
 	cout << "\t\t\tThe -v argument applies the inverse mask to cull based on (i.e. where the mask is 0, the mesh will be culled)." << endl;
 	cout << "\t\t\tThe -p argument forces any marked cells to not be culled." << endl;
-	cout << "\t\t\tIf this argument is specified, the masks_name argument is required" << endl;
-	cout << "\t\t\tIf one of the mask options are specified both the input and output filenames must be explicitly specified." << endl;
-	cout << "\t\t-n:" << endl;
+	cout << "\t\t\tIf any of these arguments are specified, the masks_name argument is required" << endl;
+	cout << "\t\t-n index_mapping_output_name:" << endl;
 	cout << "\t\t\tOutput the cellMap variable to a text file called index_mapping_output_name." << endl;
 	cout << "\t\t-h:" << endl;
 	cout << "\t\t\tOutput this usage description and exit." << endl;
@@ -87,8 +86,8 @@ string gen_random(const int len);
 
 int main ( int argc, char *argv[] ) {
 	int error;
-	string out_name = "";
-	string in_name = "";
+	string out_name = "culled_mesh.nc";
+	string in_name = "grid.nc";
 	vector<string> mask_names;
 	vector<int> mask_ops;
 	string map_name = "";
@@ -148,40 +147,6 @@ int main ( int argc, char *argv[] ) {
 			print_usage();
 			exit(1);
 		}
-	}
-
-	// default for input
-	if (in_name == "") {
-		cout << "\n";
-		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Please enter the NetCDF input MPAS Mesh filename [default grid.nc].\n";
-
-		getline(cin, in_name);
-	}
-
-	// default for output
-	if (out_name == "") {
-		cout << "\n";
-		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Please enter the NetCDF output MPAS Mesh filename [default culled.nc].\n";
-
-		getline(cin, out_name);
-	}
-
-	// need explicit input and output names if mask flags specified
-	if (cullMasks and (in_name == "" or out_name == "")) {
-		printf ("ERROR: Need explicit input and output names if mask flags specified.\n", c);
-		print_usage();
-		exit(1);
-	}
-
-	// set default names
-	if (in_name == "") {
-		in_name = "grid.nc";
-	}
-
-	if (out_name == "") {
-		out_name = "culled.nc";
 	}
 
 	if(out_name == in_name){
