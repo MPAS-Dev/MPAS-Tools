@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <time.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "netcdf_utils.h"
 
@@ -55,35 +56,43 @@ int mapAndOutputGridCoordinates(const string inputFilename, const string outputF
 int mapAndOutputCellFields(const string inputFilename, const string outputFilename);
 int mapAndOutputEdgeFields(const string inputFilename, const string outputFilename);
 int mapAndOutputVertexFields(const string inputFilename, const string outputFilename);
+int outputCellMap(const string mapFilename);
 /*}}}*/
 
 void print_usage(){/*{{{*/
 	cout << endl << endl;
 	cout << "Usage:" << endl;
-	cout << "\tMpasCellCuller.x [input_name] [output_name] [[-m/-i/-p] masks_name]" << endl;
+	cout << "\tMpasCellCuller.x [-i input_name] [-o output_name] [[-m/-v/-p] masks_name] [-n index_mapping_output_name] [-h]" << endl;
 	cout << endl;
 	cout << "\t\tinput_name:" << endl;
 	cout << "\t\t\tThis argument specifies the input MPAS mesh." << endl;
+	cout << "\t\t\tIf not specified it defaults to grid.nc." << endl;
 	cout << "\t\toutput_name:" << endl;
 	cout << "\t\t\tThis argument specifies the output culled MPAS mesh." << endl;
-	cout << "\t\t\tIf not specified, it defaults to culled_mesh.nc, but" << endl;
-	cout << "\t\t\tit is required if additional arguments are specified." << endl;
-	cout << "\t\t-m/-i:" << endl;
+	cout << "\t\t\tIf not specified, it defaults to culled_mesh.nc." << endl;
+	cout << "\t\t-m/-v/-p:" << endl;
 	cout << "\t\t\tThis argument controls how a set of masks is used when culling a mesh." << endl;
 	cout << "\t\t\tThe -m argument applies a mask to cull based on (i.e. where the mask is 1, the mesh will be culled)." << endl;
-	cout << "\t\t\tThe -i argument applies the inverse mask to cull based on (i.e. where the mask is 0, the mesh will be culled)." << endl;
+	cout << "\t\t\tThe -v argument applies the inverse mask to cull based on (i.e. where the mask is 0, the mesh will be culled)." << endl;
 	cout << "\t\t\tThe -p argument forces any marked cells to not be culled." << endl;
 	cout << "\t\t\tIf this argument is specified, the masks_name argument is required" << endl;
+	cout << "\t\t\tIf one of the mask options are specified both the input and output filenames must be explicitly specified." << endl;
+	cout << "\t\t-n:" << endl;
+	cout << "\t\t\tOutput the cellMap variable to a text file called index_mapping_output_name." << endl;
+	cout << "\t\t-h:" << endl;
+	cout << "\t\t\tOutput this usage description and exit." << endl;
 }/*}}}*/
 
 string gen_random(const int len);
 
 int main ( int argc, char *argv[] ) {
 	int error;
-	string out_name = "culled_mesh.nc";
-	string in_name = "mesh.nc";
+	string out_name = "";
+	string in_name = "";
 	vector<string> mask_names;
 	vector<int> mask_ops;
+	string map_name = "";
+	int c;
 
 	cout << endl << endl;
 	cout << "************************************************************" << endl;
@@ -97,62 +106,83 @@ int main ( int argc, char *argv[] ) {
 	//
 	//  If the input file was not specified, get it now.
 	//
-	if ( argc <= 1 )
-	{
-		cout << "\n";
-		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Please enter the NetCDF input filename.\n";
 
-		cin >> in_name;
-
-		cout << "\n";
-		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Please enter the output NetCDF MPAS Mesh filename.\n";
-
-		cin >> out_name;
-	}
-	else if (argc == 2)
-	{
-		in_name = argv[1];
-
-		cout << "\n";
-		cout << "MPAS_CELL_CULLER:\n";
-		cout << "  Output name not specified. Using default of culled_mesh.nc\n";
-	}
-	else if (argc == 3)
-	{
-		in_name = argv[1];
-		out_name = argv[2];
-	}
-	else if ( argc >= 4 && argc % 2 == 0 )
-	{
-		cout << "\n";
-		cout << " ERROR: Incorrect number of arguments specified. See usage statement" << endl;
-		print_usage();
-		exit(1);
-	}
-	else
-	{
-		cullMasks = true;
-		in_name = argv[1];
-		out_name = argv[2];
-
-		for ( int i = 3; i < argc; i+=2 ) {
-			if (strcmp(argv[i], "-m") == 0 ) {
-				mask_ops.push_back(merge);
-			} else if ( strcmp(argv[i], "-i") == 0 ){
-				mask_ops.push_back(invert);
-			} else if ( strcmp(argv[i], "-p") == 0 ){
-				mask_ops.push_back(preserve);
-			} else {
-				cout << " ERROR: Invalid option passed on the command line " << argv[i] << ". Exiting..." << endl;
-				exit(1);
-			}
-
-			mask_names.push_back( argv[i+1] );
+	while ( (c = getopt(argc, argv, "i:o:m:v:p:n:h")) != -1) {
+		switch (c) {
+		case 'i':
+			// input grid filename
+			in_name = optarg;
+			break;
+		case 'o':
+			// output grid filename
+			out_name = optarg;
+			break;
+		case 'm':
+			// merge mask
+			cullMasks = true;
+			mask_ops.push_back(merge);
+			mask_names.push_back(optarg);
+			break;
+		case 'v':
+			// invert mask
+			cullMasks = true;
+			mask_ops.push_back(invert);
+			mask_names.push_back(optarg);
+			break;
+		case 'p':
+			// marked cells not culled
+			cullMasks = true;
+			mask_ops.push_back(preserve);
+			mask_names.push_back(optarg);
+			break;
+		case 'n':
+			// index mapping output text filename
+			map_name = optarg;
+			break;
+		case 'h':
+			// print the usage statement
+			print_usage();
+			exit(1);
+		default:
+			printf ("ERROR: Invalid option passed on the command line 0%o. Exiting...\n", c);
+			print_usage();
+			exit(1);
 		}
 	}
 
+	// default for input
+	if (in_name == "") {
+		cout << "\n";
+		cout << "MPAS_CELL_CULLER:\n";
+		cout << "  Please enter the NetCDF input MPAS Mesh filename [default grid.nc].\n";
+
+		getline(cin, in_name);
+	}
+
+	// default for output
+	if (out_name == "") {
+		cout << "\n";
+		cout << "MPAS_CELL_CULLER:\n";
+		cout << "  Please enter the NetCDF output MPAS Mesh filename [default culled.nc].\n";
+
+		getline(cin, out_name);
+	}
+
+	// need explicit input and output names if mask flags specified
+	if (cullMasks and (in_name == "" or out_name == "")) {
+		printf ("ERROR: Need explicit input and output names if mask flags specified.\n", c);
+		print_usage();
+		exit(1);
+	}
+
+	// set default names
+	if (in_name == "") {
+		in_name = "grid.nc";
+	}
+
+	if (out_name == "") {
+		out_name = "culled.nc";
+	}
 
 	if(out_name == in_name){
 		cout << "   ERROR: Input and Output names are the same." << endl;
@@ -219,6 +249,15 @@ int main ( int argc, char *argv[] ) {
 	if(error = mapAndOutputVertexFields(in_name, out_name)){
 		cout << "Error - " << error << endl;
 		exit(error);
+	}
+
+	if (map_name != "")
+	{
+		cout << "Output cellMap" << endl;
+		if(error = outputCellMap(map_name)){
+			cout << "Error - " << error << endl;
+			exit(error);
+		}
 	}
 
 	return 0;
@@ -1417,7 +1456,25 @@ int mapAndOutputVertexFields( const string inputFilename, const string outputFil
 	return 0;
 }/*}}}*/
 /*}}}*/
+int outputCellMap(const string mapFilename){/*{{{*/
+	/*****************************************************************
+	 *
+	 * This function outputs the cellMap variable used in the culling
+	 * to a text file named mapFilename.
+	 *
+	 * ***************************************************************/
+	ofstream outputfile;
 
+	outputfile.open(mapFilename);
+
+	for (int iCell=0 ; iCell < nCells ; iCell++) {
+		outputfile << cellMap.at(iCell) << endl;
+	}
+
+	outputfile.close();
+
+	return 0;
+}/*}}}*/
 string gen_random(const int len) {/*{{{*/
 	static const char alphanum[] =
 		"0123456789"
