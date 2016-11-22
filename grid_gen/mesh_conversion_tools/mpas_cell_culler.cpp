@@ -66,20 +66,20 @@ void print_usage(){/*{{{*/
 	cout << endl;
 	cout << "\t\t-i input_name:" << endl;
 	cout << "\t\t\tThis argument specifies the input MPAS mesh." << endl;
-	cout << "\t\t\tIf not specified it defaults to grid.nc." << endl;
+	cout << "\t\t\tIf not specified it defaults to grid.nc." << endl << endl;
 	cout << "\t\t-o output_name:" << endl;
 	cout << "\t\t\tThis argument specifies the output culled MPAS mesh." << endl;
-	cout << "\t\t\tIf not specified, it defaults to culled_mesh.nc." << endl;
+	cout << "\t\t\tIf not specified, it defaults to culled_mesh.nc." << endl << endl;
 	cout << "\t\t-m/-v/-p masks_name:" << endl;
 	cout << "\t\t\tThese arguments control how a set of masks is used when culling a mesh." << endl;
 	cout << "\t\t\tThe -m argument applies a mask to cull based on (i.e. where the mask is 1, the mesh will be culled)." << endl;
 	cout << "\t\t\tThe -v argument applies the inverse mask to cull based on (i.e. where the mask is 0, the mesh will be culled)." << endl;
 	cout << "\t\t\tThe -p argument forces any marked cells to not be culled." << endl;
-	cout << "\t\t\tIf any of these arguments are specified, the masks_name argument is required" << endl;
+	cout << "\t\t\tIf any of these arguments are specified, the masks_name argument is required" << endl << endl;
 	cout << "\t\t-n index_mapping_output_name:" << endl;
-	cout << "\t\t\tOutput the cellMap variable to a text file called index_mapping_output_name." << endl;
+	cout << "\t\t\tOutput the cellMap variable to a text file called index_mapping_output_name." << endl << endl;
 	cout << "\t\t-h:" << endl;
-	cout << "\t\t\tOutput this usage description and exit." << endl;
+	cout << "\t\t\tOutput this usage description and exit." << endl << endl;
 }/*}}}*/
 
 string gen_random(const int len);
