@@ -274,6 +274,7 @@ if __name__ == "__main__":
     parser.add_argument("-a", "--append", dest="append", help="If set, only vtp files that do not already exist are written out.", action="store_true")
     parser.add_argument("-d", "--dim_list", dest="dimension_list", nargs="+", help="A list of dimensions and associated indices.")
     parser.add_argument("-o", "--out_dir", dest="out_dir", help="the output directory.", default='vtk_files', metavar="DIR")
+    parser.add_argument("-x", "--xtime", dest="xtime", help="the name of the xtime variable", default='xtime', metavar="XTIME")
     args = parser.parse_args()
 
     if not args.output_32bit:
@@ -286,7 +287,8 @@ if __name__ == "__main__":
     else:
         args.blocking = int(args.blocking)
 
-    (time_indices, time_file_names) = utils.setup_time_indices(args.filename_pattern)
+    (time_indices, time_file_names) = utils.setup_time_indices(
+        args.filename_pattern, args.xtime)
 
     separate_mesh_file = True
     if not args.mesh_filename:
