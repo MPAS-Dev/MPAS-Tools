@@ -39,7 +39,7 @@ def get_var(variable_name, mesh_file, time_series_file):
 # This function finds a list of NetCDF files containing time-dependent
 # MPAS data and extracts the time indices in each file.  The routine
 # insures that each time is unique.
-def setup_time_indices(fn_pattern):#{{{
+def setup_time_indices(fn_pattern, xtimeName):#{{{
     # Build file list and time indices
     if ';' in fn_pattern:
         file_list = []
@@ -66,17 +66,20 @@ def setup_time_indices(fn_pattern):#{{{
 
     i_file = 0
     for file_name in file_list:
-        nc_file = NetCDFFile(file_name, 'r')
+        try: 
+            nc_file = NetCDFFile(file_name, 'r')
+        except IOError:
+            print "Warning: could not open {}".format(file_name)
+            continue
 
 
-        try:
-            xtime = nc_file.variables['xtime'][:,:]
-            local_times = []
+        local_times = []
+        if xtimeName in nc_file.variables:
+            xtime = nc_file.variables[xtimeName][:,:]
             for index in range(xtime.shape[0]):
-              local_times.append(''.join(xtime[index,:]))
-
-        except:
-            local_times = ['0']
+                local_times.append(''.join(xtime[index,:]))
+        else:
+            print "Warning: {} not found in {}".format(xtimeName, file_name)
 
         if(len(local_times) == 0):
             local_times = ['0']
