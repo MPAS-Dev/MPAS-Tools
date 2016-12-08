@@ -41,7 +41,7 @@ specified particles.
 An index array can also be specified in this way (and these can be mixed with
 integer indices in a comma-separated list but not in a colon-separated range):
 
-`-d nVertLeves=0,maxLevelCell
+`-d nVertLeves=0,maxLevelCell`
 
 will extract fields from the first vertical level and the vertical level with
 index given by maxLevelCell.
@@ -178,6 +178,8 @@ def build_field_time_series( local_time_indices, file_names, mesh_file, out_dir,
             vtp_file_prefix = "time_series/%s.%d"%(out_prefix, time_index)
             file_name = '%s/%s.vtp'%(out_dir, vtp_file_prefix)
             if append and os.path.exists(file_name):
+                pvd_file.write('<DataSet timestep="%d" group="" part="0"\n'%(time_index))
+                pvd_file.write('\tfile="%s.vtp"/>\n'%(vtp_file_prefix))
                 continue
 
             if combine_output:
