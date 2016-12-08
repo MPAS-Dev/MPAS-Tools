@@ -66,7 +66,10 @@ def setup_time_indices(fn_pattern):#{{{
 
     i_file = 0
     for file_name in file_list:
-        nc_file = NetCDFFile(file_name, 'r')
+        try: 
+            nc_file = NetCDFFile(file_name, 'r')
+        except IOError:
+            continue
 
 
         try:
