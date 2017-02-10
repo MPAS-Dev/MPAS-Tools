@@ -247,7 +247,7 @@ def interpolate_field_with_layers(MPASfieldName):
            InputField = inputFile.variables[InputFieldName][:,:,:]
        inputVerticalDimSize = InputField.shape[0] # vertical index is the first (since we've eliminated time already)
        layerFieldName = inputFile.variables[InputFieldName].dimensions[1] # second dimension is the vertical one - get the name of it
-       input_layers = inputFile.variables[layerFieldname][:]
+       input_layers = inputFile.variables[layerFieldName][:]
     elif filetype=='mpas':
        if 'Time' in inputFile.variables[InputFieldName].dimensions:
            InputField = inputFile.variables[InputFieldName][timelev,:,:]
