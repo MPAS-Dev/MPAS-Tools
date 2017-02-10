@@ -82,19 +82,20 @@ def ESMF_interp(sourceField):
 
 #----------------------------
 
-def BilinearInterp(Value, gridTypeType):
+def BilinearInterp(Value, gridType):
     # Calculate bilinear interpolation of Value field from x, y to new ValueCell field (return value)  at xCell, yCell
     # This assumes that x, y, Value are regular CISM style grids and xCell, yCell, ValueCell are 1-D unstructured MPAS style grids
-  try:
-    if gridTypeType == 0:
+
+    ValueCell = np.zeros(xCell.shape)
+
+    if gridType == 'x0':
         x = x0; y = y0
-    elif gridTypeType == 1:
+    elif gridType == 'x1':
         x = x1; y = y1
     else:
         sys.exit('Error: unknown CISM grid type specified.')
     dx = x[1] - x[0]
     dy = y[1] - y[0]
-    ValueCell = np.zeros(xCell.shape)
     for i in range(len(xCell)):
        # Calculate the CISM grid cell indices (these are the lower index)
        xgrid = math.floor( (xCell[i]-x[0]) / dx )
@@ -112,9 +113,7 @@ def BilinearInterp(Value, gridTypeType):
                  Value[ygrid+1,xgrid] * (x[xgrid+1] - xCell[i]) * (yCell[i] - y[ygrid]) / (dx * dy) + \
                  Value[ygrid,xgrid+1] * (xCell[i] - x[xgrid]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
                  Value[ygrid+1,xgrid+1] * (xCell[i] - x[xgrid]) * (yCell[i] - y[ygrid]) / (dx * dy) 
-  except:
-     'error in BilinearInterp'
-  return ValueCell
+    return ValueCell
 
 #----------------------------
 
@@ -153,16 +152,16 @@ def delaunay_interp_weights(xy, uv, d=2):
 
 #----------------------------
 
-def delaunay_interpolate(values, gridTypeType):
-    if gridTypeType == 'x0':
+def delaunay_interpolate(values, gridType):
+    if gridType == 'x0':
        vtx = vtx0; wts = wts0
        tree = treex0
        outsideInd = outsideIndx0
-    elif gridTypeType == 'x1':
+    elif gridType == 'x1':
        vtx = vtx1; wts = wts1
        outsideInd = outsideIndx1
        tree = treex1
-    elif gridTypeType == 'cell':
+    elif gridType == 'cell':
        vtx = vtCell; wts = wtsCell
        outsideInd = outsideIndcell
        tree = treecell
