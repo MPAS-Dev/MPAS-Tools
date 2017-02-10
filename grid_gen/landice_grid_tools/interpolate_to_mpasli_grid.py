@@ -525,9 +525,15 @@ elif filetype=='mpas':
 #----------------------------
 # try each field.  If it exists in the input file, it will be copied.  If not, it will be skipped.
 for MPASfieldName in fieldInfo:
-  try:
     print '\n## %s ##'%MPASfieldName
 
+    if not MPASfieldName in MPASfile.variables:
+       print "  Warning: Field '{}' is not in the destination file.  Skipping.".format(MPASfieldName)
+       continue  # skip the rest of this iteration of the for loop over variables
+
+    if not fieldInfo[MPASfieldName]['InputName'] in inputFile.variables:
+       print "  Warning: Field '{}' is not in the source file.  Skipping.".format(fieldInfo[MPASfieldName]['InputName'])
+       continue  # skip the rest of this iteration of the for loop over variables
 
     start = time.clock()
     if fieldInfo[MPASfieldName]['vertDim']:
@@ -549,8 +555,6 @@ for MPASfieldName in fieldInfo:
 
     MPASfile.sync()  # update the file now in case we get an error later
 
-  except:
-    print '  problem with %s field (e.g. not found in input file), skipping...'%MPASfieldName
 
 # Update history attribute of netCDF file
 if hasattr(MPASfile, 'history'):
