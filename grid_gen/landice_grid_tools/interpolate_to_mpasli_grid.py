@@ -82,19 +82,20 @@ def ESMF_interp(sourceField):
 
 #----------------------------
 
-def BilinearInterp(Value, gridTypeType):
+def BilinearInterp(Value, gridType):
     # Calculate bilinear interpolation of Value field from x, y to new ValueCell field (return value)  at xCell, yCell
     # This assumes that x, y, Value are regular CISM style grids and xCell, yCell, ValueCell are 1-D unstructured MPAS style grids
-  try:
-    if gridTypeType == 0:
+
+    ValueCell = np.zeros(xCell.shape)
+
+    if gridType == 'x0':
         x = x0; y = y0
-    elif gridTypeType == 1:
+    elif gridType == 'x1':
         x = x1; y = y1
     else:
         sys.exit('Error: unknown CISM grid type specified.')
     dx = x[1] - x[0]
     dy = y[1] - y[0]
-    ValueCell = np.zeros(xCell.shape)
     for i in range(len(xCell)):
        # Calculate the CISM grid cell indices (these are the lower index)
        xgrid = math.floor( (xCell[i]-x[0]) / dx )
@@ -112,9 +113,7 @@ def BilinearInterp(Value, gridTypeType):
                  Value[ygrid+1,xgrid] * (x[xgrid+1] - xCell[i]) * (yCell[i] - y[ygrid]) / (dx * dy) + \
                  Value[ygrid,xgrid+1] * (xCell[i] - x[xgrid]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
                  Value[ygrid+1,xgrid+1] * (xCell[i] - x[xgrid]) * (yCell[i] - y[ygrid]) / (dx * dy) 
-  except:
-     'error in BilinearInterp'
-  return ValueCell
+    return ValueCell
 
 #----------------------------
 
@@ -153,16 +152,16 @@ def delaunay_interp_weights(xy, uv, d=2):
 
 #----------------------------
 
-def delaunay_interpolate(values, gridTypeType):
-    if gridTypeType == 'x0':
+def delaunay_interpolate(values, gridType):
+    if gridType == 'x0':
        vtx = vtx0; wts = wts0
        tree = treex0
        outsideInd = outsideIndx0
-    elif gridTypeType == 'x1':
+    elif gridType == 'x1':
        vtx = vtx1; wts = wts1
        outsideInd = outsideIndx1
        tree = treex1
-    elif gridTypeType == 'cell':
+    elif gridType == 'cell':
        vtx = vtCell; wts = wtsCell
        outsideInd = outsideIndcell
        tree = treecell
@@ -180,7 +179,7 @@ def delaunay_interpolate(values, gridTypeType):
     outsideCoord = mpasXY[outsideInd,:]
     if len(outsideInd) > 0:
        dist,idx = tree.query(outsideCoord, k=1)  # k is the number of nearest neighbors.  Could crank this up to 2 (and then average them) with some fiddling, but keeping it simple for now.
-       outfield[outsideInd] = values[idx]
+       outfield[outsideInd] = values.flatten()[idx]  # 2d cism fields need to be flattened. (Note the indices were flattened during init, so this just matches that operation for the field data itself.)  1d mpas fields do not, but the operation won't do anything because they are already flat.
 
     return outfield
 
@@ -247,7 +246,7 @@ def interpolate_field_with_layers(MPASfieldName):
            InputField = inputFile.variables[InputFieldName][:,:,:]
        inputVerticalDimSize = InputField.shape[0] # vertical index is the first (since we've eliminated time already)
        layerFieldName = inputFile.variables[InputFieldName].dimensions[1] # second dimension is the vertical one - get the name of it
-       input_layers = inputFile.variables[layerFieldname][:]
+       input_layers = inputFile.variables[layerFieldName][:]
     elif filetype=='mpas':
        if 'Time' in inputFile.variables[InputFieldName].dimensions:
            InputField = inputFile.variables[InputFieldName][timelev,:,:]
@@ -470,6 +469,8 @@ if options.interpType == 'd':
       print '\nBuilding interpolation weights: CISM x1/y1 -> MPAS'
       start = time.clock()
       vtx1, wts1, outsideIndx1, treex1 = delaunay_interp_weights(cismXY1, mpasXY)
+      if len(outsideIndx1) > 0:
+         outsideIndx1 = outsideIndx1[0]  # get the list itself
       end = time.clock(); print 'done in ', end-start
 
       if 'x0' in inputFile.variables:
@@ -482,6 +483,8 @@ if options.interpType == 'd':
          print 'Building interpolation weights: CISM x0/y0 -> MPAS'
          start = time.clock()
          vtx0, wts0, outsideIndx0, treex0 = delaunay_interp_weights(cismXY0, mpasXY)
+         if len(outsideIndx0) > 0:
+            outsideIndx0 = outsideIndx0[0]  # get the list itself
          end = time.clock(); print 'done in ', end-start
 
    elif filetype=='mpas':
@@ -525,9 +528,15 @@ elif filetype=='mpas':
 #----------------------------
 # try each field.  If it exists in the input file, it will be copied.  If not, it will be skipped.
 for MPASfieldName in fieldInfo:
-  try:
     print '\n## %s ##'%MPASfieldName
 
+    if not MPASfieldName in MPASfile.variables:
+       print "  Warning: Field '{}' is not in the destination file.  Skipping.".format(MPASfieldName)
+       continue  # skip the rest of this iteration of the for loop over variables
+
+    if not fieldInfo[MPASfieldName]['InputName'] in inputFile.variables:
+       print "  Warning: Field '{}' is not in the source file.  Skipping.".format(fieldInfo[MPASfieldName]['InputName'])
+       continue  # skip the rest of this iteration of the for loop over variables
 
     start = time.clock()
     if fieldInfo[MPASfieldName]['vertDim']:
@@ -549,8 +558,6 @@ for MPASfieldName in fieldInfo:
 
     MPASfile.sync()  # update the file now in case we get an error later
 
-  except:
-    print '  problem with %s field (e.g. not found in input file), skipping...'%MPASfieldName
 
 # Update history attribute of netCDF file
 if hasattr(MPASfile, 'history'):
