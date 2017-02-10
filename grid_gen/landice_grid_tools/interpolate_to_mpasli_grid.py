@@ -180,7 +180,7 @@ def delaunay_interpolate(values, gridTypeType):
     outsideCoord = mpasXY[outsideInd,:]
     if len(outsideInd) > 0:
        dist,idx = tree.query(outsideCoord, k=1)  # k is the number of nearest neighbors.  Could crank this up to 2 (and then average them) with some fiddling, but keeping it simple for now.
-       outfield[outsideInd] = values[idx]
+       outfield[outsideInd] = values.flatten()[idx]  # 2d cism fields need to be flattened. (Note the indices were flattened during init, so this just matches that operation for the field data itself.)  1d mpas fields do not, but the operation won't do anything because they are already flat.
 
     return outfield
 
@@ -470,6 +470,8 @@ if options.interpType == 'd':
       print '\nBuilding interpolation weights: CISM x1/y1 -> MPAS'
       start = time.clock()
       vtx1, wts1, outsideIndx1, treex1 = delaunay_interp_weights(cismXY1, mpasXY)
+      if len(outsideIndx1) > 0:
+         outsideIndx1 = outsideIndx1[0]  # get the list itself
       end = time.clock(); print 'done in ', end-start
 
       if 'x0' in inputFile.variables:
@@ -482,6 +484,8 @@ if options.interpType == 'd':
          print 'Building interpolation weights: CISM x0/y0 -> MPAS'
          start = time.clock()
          vtx0, wts0, outsideIndx0, treex0 = delaunay_interp_weights(cismXY0, mpasXY)
+         if len(outsideIndx0) > 0:
+            outsideIndx0 = outsideIndx0[0]  # get the list itself
          end = time.clock(); print 'done in ', end-start
 
    elif filetype=='mpas':
