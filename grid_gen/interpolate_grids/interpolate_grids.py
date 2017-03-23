@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-    Interpolation of initial conditions from coarse restart onto a finer grid.
+    Interpolation of initial conditions from source grid onto a destination grid.
 
     Currently implementation interpolates
 
@@ -149,11 +149,11 @@ def set_3dcell_data(ncdfdata, datanames, data, ts=0): #{{{
 
     return None #}}}
 
-def grid_interp(cgrid, fgrid, ogrid, interiorscalars=['temperature','salinity']): #{{{
+def grid_interp(sgrid, dgrid, ofile, interiorscalars=['temperature','salinity']): #{{{
     """
-    Perform interpolation from a coarse grid (cgrid) onto a find grid (fgrid),
-    writing to an output file (ogrid). This interpolation interpolates scalars
-    list from cgrid onto fgrid and uses nearest neighbor interpolation.
+    Perform interpolation from a source grid (sgrid) onto a destination grid (pgrid),
+    writing to an output file (ofile). This interpolation interpolates scalars
+    list from the source grid onto the destination grid and uses nearest neighbor interpolation.
 
     Interpolated scalars are specified by interiorscalars and the
     layerThickness is interpolated on the output grid for z-star coordinates.
@@ -163,23 +163,23 @@ def grid_interp(cgrid, fgrid, ogrid, interiorscalars=['temperature','salinity'])
     """
 
     with timeit_context('Make output file'):
-        shutil.copyfile(fgrid, ogrid)
+        shutil.copyfile(dgrid, ofile)
 
     with timeit_context('Open files'):
-        cgriddata = netCDF4.Dataset(cgrid,'r')
-        fgriddata = netCDF4.Dataset(fgrid,'r')
-        ogriddata = netCDF4.Dataset(ogrid,'r+')
+        sgriddata = netCDF4.Dataset(sgrid,'r')
+        dgriddata = netCDF4.Dataset(dgrid,'r')
+        ofiledata = netCDF4.Dataset(ofile,'r+')
 
     with timeit_context('Build vectors of point locations x,y,z and data values'):
-        cpos3d = get_point_vectors3d(cgriddata)
-        cdata3dcell = get_3dcell_data(cgriddata, interiorscalars)
-        fpos3d = get_point_vectors3d(fgriddata)
+        cpos3d = get_point_vectors3d(sgriddata)
+        cdata3dcell = get_3dcell_data(sgriddata, interiorscalars)
+        fpos3d = get_point_vectors3d(dgriddata)
 
-        cpos2d = get_point_vectors2d(cgriddata)
-        cdata2dcell = get_2dcell_data(cgriddata, ['ssh'])
-        fpos2d = get_point_vectors2d(fgriddata)
+        cpos2d = get_point_vectors2d(sgriddata)
+        cdata2dcell = get_2dcell_data(sgriddata, ['ssh'])
+        fpos2d = get_point_vectors2d(dgriddata)
 
-    with timeit_context('Building trees for coarse data'):
+    with timeit_context('Building trees for source data'):
         tree3d = KDTree(cpos3d)
         tree2d = KDTree(cpos2d)
 
@@ -190,35 +190,35 @@ def grid_interp(cgrid, fgrid, ogrid, interiorscalars=['temperature','salinity'])
     fssh = cdata2dcell[:,nearestneighs2d]
 
     with timeit_context('Convert ssh to layerThickness'):
-        rbd = fgriddata.variables['refBottomDepth'][:]
+        rbd = dgriddata.variables['refBottomDepth'][:]
         relthick = np.hstack((rbd[0], np.diff(rbd)))
         layerThickness = relthick[np.newaxis,:] + (relthick/np.sum(relthick))[np.newaxis,:]*fssh.T
 
     with timeit_context('Saving data'):
-        set_3dcell_data(ogriddata, interiorscalars, fdata3dcell)
-        ogriddata.variables['layerThickness'][0,:,:] = layerThickness
+        set_3dcell_data(ofiledata, interiorscalars, fdata3dcell)
+        ofiledata.variables['layerThickness'][0,:,:] = layerThickness
 
     with timeit_context('Close files'):
-        cgriddata.close()
-        fgriddata.close()
-        ogriddata.close()
+        sgriddata.close()
+        dgriddata.close()
+        ofiledata.close()
 
     return None #}}}
 
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-c", "--coarsegrid", dest="cgrid", help="Input: Coarse grid to perform interpolation.")
-    parser.add_argument("-f", "--finegrid", dest="fgrid", help="Input: Fine grid to perform interpolation.")
-    parser.add_argument("-o", "--outputgrid", dest="ogrid", help="Output: Fine grid with interpolation of temperature and layerThickness.")
+    parser.add_argument("-s", "--sourcegrid", dest="sgrid", help="Input: Source grid to perform interpolation.")
+    parser.add_argument("-d", "--destinationgrid", dest="dgrid", help="Input: Destination grid to perform interpolation.")
+    parser.add_argument("-o", "--outputfile", dest="ofile", help="Output: Interpolated temperature, salinity, and layerThickness on destination grid.")
 
     args = parser.parse_args()
 
-    if args.cgrid is None or args.fgrid is None or args.ogrid is None:
+    if args.sgrid is None or args.dgrid is None or args.ofile is None:
         parser.error('Must fully specify all inputs and outputs')
-    if args.cgrid == args.ogrid:
-        parser.error('Output grid cannot be specified as coarse input grid.')
-    if args.fgrid == args.ogrid:
-        parser.error('Output grid cannot be specified as fine input grid.')
+    if args.sgrid == args.ofile:
+        parser.error('Output grid cannot be the same as the as source input grid.')
+    if args.dgrid == args.ofile:
+        parser.error('Output grid cannot be the same as the destination input grid.')
 
-    grid_interp(args.cgrid, args.fgrid, args.ogrid)
+    grid_interp(args.sgrid, args.dgrid, args.ofile)
