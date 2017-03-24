@@ -28,15 +28,8 @@ def timeit_context(name):
     elapsedTime = time.time() - startTime
     print('[{}] finished in {} s'.format(name, int(elapsedTime)))
 
-def print_warning_xy(): #{{{
-    print 'WARNING!!!:  Function currently uses xCell and yCell for '\
-          'nearest neighbor interpolation.  latCell and lonCell may '\
-          'better options.  This implementation is not strictly general '\
-          'but may work in practice for a fully unstructured grid.'
-    return #}}}
-
 # general interpolation functions
-def get_point_vectors3d(ncdfdata): #{{{
+def get_point_vectors3d(ncdfdata, cartesian): #{{{
     """
     inputs:
         ncdfdata is an opened netCDF4.Dataset
@@ -47,9 +40,13 @@ def get_point_vectors3d(ncdfdata): #{{{
     npoints = np.sum(maxLevelCell)
 
     # point data
-    print_warning_xy()
-    lonCell = ncdfdata.variables['xCell'][:]
-    latCell = ncdfdata.variables['yCell'][:]
+    if cartesian:
+       lonCell = ncdfdata.variables['xCell'][:]
+       latCell = ncdfdata.variables['yCell'][:]
+    else:
+       lonCell = ncdfdata.variables['lonCell'][:]
+       latCell = ncdfdata.variables['latCell'][:]
+
     # note this is a coarse proxy for the cell center, but it should work for
     # this application
     vertLevel = ncdfdata.variables['refBottomDepth'][:]
@@ -69,7 +66,7 @@ def get_point_vectors3d(ncdfdata): #{{{
 
     return np.vstack((x,y,z)).T #}}}
 
-def get_point_vectors2d(ncdfdata): #{{{
+def get_point_vectors2d(ncdfdata,cartesian): #{{{
     """
     inputs:
         ncdfdata is an opened netCDF4.Dataset
@@ -77,9 +74,13 @@ def get_point_vectors2d(ncdfdata): #{{{
         position
     """
     # point data
-    print_warning_xy()
-    x = ncdfdata.variables['xCell'][:]
-    y = ncdfdata.variables['yCell'][:]
+    if cartesian:
+       x = ncdfdata.variables['xCell'][:]
+       y = ncdfdata.variables['yCell'][:]
+    else:
+       x = ncdfdata.variables['lonCell'][:]
+       y = ncdfdata.variables['latCell'][:]
+
 
     return np.vstack((x,y)).T #}}}
 
@@ -149,7 +150,7 @@ def set_3dcell_data(ncdfdata, datanames, data, ts=0): #{{{
 
     return None #}}}
 
-def grid_interp(sgrid, dgrid, ofile, interiorscalars=['temperature','salinity']): #{{{
+def grid_interp(sgrid, dgrid, ofile, cartesian, interiorscalars=['temperature','salinity']): #{{{
     """
     Perform interpolation from a source grid (sgrid) onto a destination grid (pgrid),
     writing to an output file (ofile). This interpolation interpolates scalars
@@ -171,13 +172,13 @@ def grid_interp(sgrid, dgrid, ofile, interiorscalars=['temperature','salinity'])
         ofiledata = netCDF4.Dataset(ofile,'r+')
 
     with timeit_context('Build vectors of point locations x,y,z and data values'):
-        cpos3d = get_point_vectors3d(sgriddata)
+        cpos3d = get_point_vectors3d(sgriddata,cartesian)
         cdata3dcell = get_3dcell_data(sgriddata, interiorscalars)
-        fpos3d = get_point_vectors3d(dgriddata)
+        fpos3d = get_point_vectors3d(dgriddata,cartesian)
 
-        cpos2d = get_point_vectors2d(sgriddata)
+        cpos2d = get_point_vectors2d(sgriddata,cartesian)
         cdata2dcell = get_2dcell_data(sgriddata, ['ssh'])
-        fpos2d = get_point_vectors2d(dgriddata)
+        fpos2d = get_point_vectors2d(dgriddata,cartesian)
 
     with timeit_context('Building trees for source data'):
         tree3d = KDTree(cpos3d)
@@ -211,6 +212,7 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--sourcegrid", dest="sgrid", help="Input: Source grid to perform interpolation.")
     parser.add_argument("-d", "--destinationgrid", dest="dgrid", help="Input: Destination grid to perform interpolation.")
     parser.add_argument("-o", "--outputfile", dest="ofile", help="Output: Interpolated temperature, salinity, and layerThickness on destination grid.")
+    parser.add_argument("-c", "--cartesian", dest="cartesian", help="If set, use xCell and yCell to interpolate.  If not, use latCell and lonCell.", action="store_true")
 
     args = parser.parse_args()
 
@@ -221,4 +223,4 @@ if __name__ == "__main__":
     if args.dgrid == args.ofile:
         parser.error('Output grid cannot be the same as the destination input grid.')
 
-    grid_interp(args.sgrid, args.dgrid, args.ofile)
+    grid_interp(args.sgrid, args.dgrid, args.ofile, args.cartesian)
