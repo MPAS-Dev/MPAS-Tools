@@ -298,9 +298,24 @@ def interpolate_field_with_layers(MPASfieldName):
     print "  Input layer field {} has layers: {}".format(inputFile.variables[InputFieldName].dimensions[1], input_layers)
     print "  MPAS layer centers are: {}".format(mpasLayerCenters)
     if input_layers.min() > mpasLayerCenters.min():
-       print "WARNING: input_layers.min() > mpasLayerCenters.min()   Values at the first level of input_layers will be used for all MPAS layers in this region!"
+        # This fix ensures that interpolation is done when input_layers.min is very slightly greater than mpasLayerCenters.min
+        if input_layers.min() - 1.0e-6 < mpasLayerCenters.min():
+            print 'input_layers.min =', '{0:.16f}'.format(input_layers.min())
+            print 'mpasLayerCenters.min =', '{0:.16f}'.format(mpasLayerCenters.min())
+            input_layers[0] = input_layers[0] - 1.0e-6
+            print 'New input_layers.min =', '{0:.16f}'.format(input_layers.min())
+        else:
+            print "WARNING: input_layers.min() > mpasLayerCenters.min()   Values at the first level of input_layers will be used for all MPAS layers in this region!"
     if input_layers.max() < mpasLayerCenters.max():
-       print "WARNING: input_layers.max() < mpasLayerCenters.max()   Values at the last level of input_layers will be used for all MPAS layers in this region!"
+        # This fix ensures that interpolation is done when input_layers.max is very slightly smaller than mpasLayerCenters.max
+        if input_layers.max() + 1.0e-6 > mpasLayerCenters.min():
+            print 'input_layers.max =', '{0:.16f}'.format(input_layers.max())
+            print 'mpasLayerCenters.max =', '{0:.16f}'.format(mpasLayerCenters.max())
+            input_layers[inputVerticalDimSize-1] = input_layers[inputVerticalDimSize-1] + 1.0e-6
+            print 'New input_layers.max =', '{0:.16f}'.format(input_layers.max())
+            print 'input_layers = {}'.format(input_layers)
+        else:
+            print "WARNING: input_layers.max() < mpasLayerCenters.max()   Values at the last level of input_layers will be used for all MPAS layers in this region!"
     MPASfield = vertical_interp_MPAS_grid(mpas_grid_input_layers, input_layers)
     print '  MPAS %s on MPAS vertical layers, min/max of all layers:'%MPASfieldName, MPASfield.min(), MPASfield.max()
 
