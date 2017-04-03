@@ -978,7 +978,7 @@ int resetFeatureInfo(){/*{{{*/
 	return 0;
 }/*}}}*/
 int getFeatureInfo(const string featureFilename){/*{{{*/
-	ifstream json_file(featureFilename);	
+	ifstream json_file(featureFilename.c_str());	
 	Json::Value root;
 	string groupName, tempGroupName;
 	vector<int> pointIndices;
@@ -1304,7 +1304,7 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 	return 0;
 }/*}}}*/
 int getSeedInfo(const string seedFilename){/*{{{*/
-	ifstream json_file(seedFilename);	
+	ifstream json_file(seedFilename.c_str());	
 	Json::Value root;
 
 	json_file >> root;
