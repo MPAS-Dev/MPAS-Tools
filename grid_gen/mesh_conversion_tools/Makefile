@@ -15,8 +15,8 @@ DFLAGS= -g -std=c++0x -D_DEBUG -fopenmp -lstdc++
 
 # intel
 # CC=icpc
-# CFLAGS= -O3 -std=c++0x -openmp -lstdc++
-# DFLAGS= -g -std=c++0x -D_DEBUG -openmp -lstdc++
+# CFLAGS= -O3 -std=c++0x -qopenmp -lstdc++
+# DFLAGS= -g -std=c++0x -D_DEBUG -qopenmp -lstdc++
 
 CONV_EXECUTABLE= MpasMeshConverter.x
 CULL_EXECUTABLE= MpasCellCuller.x
