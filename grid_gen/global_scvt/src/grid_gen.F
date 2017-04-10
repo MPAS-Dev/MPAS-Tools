@@ -11,20 +11,20 @@ program grid_gen
 
    implicit none
 
-   real :: dlat, dlon
-   real :: dl
-   real :: d1, d2, d3, d4
+   real(kind=RKIND) :: dlat, dlon
+   real(kind=RKIND) :: dl
+   real(kind=RKIND) :: d1, d2, d3, d4
    integer :: p1, p2, p3
    integer :: if
    character (len=80) :: frame_name
 
-   real :: pi
-   real :: area_per_sample, nhexs, sum_nhexs, hex_area
+   real(kind=RKIND) :: pi
+   real(kind=RKIND) :: area_per_sample, nhexs, sum_nhexs, hex_area
    type (geo_point) :: p
 
    integer :: i, j, k, nb, ier
 
-   real, allocatable, dimension(:)       :: rlat, rlon, vclat, vclon, x, y, z, xc, yc, zc
+   real(kind=RKIND), allocatable, dimension(:)       :: rlat, rlon, vclat, vclon, x, y, z, xc, yc, zc
    integer, allocatable, dimension(:)    :: list, lptr, listc, lend
    integer, allocatable, dimension(:,:)  :: ltri
 
@@ -34,24 +34,24 @@ program grid_gen
 
    type (adjacency_list) :: alist, clist
 
-   real :: lat1, lon1, lat2, lon2, lat3, lon3, latc, lonc
+   real(kind=RKIND) :: lat1, lon1, lat2, lon2, lat3, lon3, latc, lonc
 
 
    call read_namelist()
 
 
-   pi = 4.0*atan(1.0)
+   pi = 4.0_RKIND*atan(1.0_RKIND)
 
-   area_per_sample = 4.0 * pi * 6370000**2.0 / 6000000.0
-   sum_nhexs = 0.0
+   area_per_sample = 4.0_RKIND * pi * 6370000**2.0_RKIND / 6000000.0_RKIND
+   sum_nhexs = 0.0_RKIND
    write(0,'(a,f10.1)') 'Computing an estimate for the required number of cells to reach dx=', min_dx
    do if = 1,5
-      nhexs = 0.0
+      nhexs = 0.0_RKIND
       do i=1,6000000
          call random_point(p)
          d1 = density_for_point(p)
          dl = min_dx / (d1 ** 0.25)
-         hex_area = sqrt(3.0) / 2.0 * dl**2.0
+         hex_area = sqrt(3.0_RKIND) / 2.0_RKIND * dl**2.0_RKIND
          nhexs = nhexs + area_per_sample / hex_area
       end do
 !      write(0,'(a,i2,a,i)') 'Estimate ',if,' for required # hexs:', nint(nhexs)
@@ -59,7 +59,7 @@ program grid_gen
       write(0,'(a,i3,a)',advance='no') ' ...',if*20,'%'
    end do
    write(0,*) ' '
-   write(0,*) 'Estimated # hexs:', nint(sum_nhexs/5.0)
+   write(0,*) 'Estimated # hexs:', nint(sum_nhexs/5.0_RKIND)
    write(0,*) ' '
 
 
@@ -117,7 +117,7 @@ program grid_gen
    call TRANS (nvc, vclat, vclon, xc, yc, zc)
    write(frame_name,'(a)') 'scvt_initial.ps'
    open(32,file=trim(frame_name),form='formatted',status='unknown')
-   call vrplot(32, 8.0, 0.0, 0.0, 90.0 ,N, X,Y,Z, 2*n-4,LISTC,LPTR,LEND,XC,YC,ZC,'(spherical centroidal voronoi tessellation)',.false.,IER)
+   call vrplot(32, 8.0_RKIND, 0.0_RKIND, 0.0_RKIND, 90.0_RKIND ,N, X,Y,Z, 2*n-4,LISTC,LPTR,LEND,XC,YC,ZC,'(spherical centroidal voronoi tessellation)',.false.,IER)
    close(32)
 
    call scvt_solve(n, lend, rlat, rlon, nvc, list, lptr, if)
@@ -127,7 +127,7 @@ program grid_gen
    call TRANS (nvc, vclat, vclon, xc, yc, zc)
    write(frame_name,'(a)') 'scvt_final.ps'
    open(32,file=trim(frame_name),form='formatted',status='unknown')
-   call vrplot(32, 8.0, 0.0, 0.0, 90.0 ,N, X,Y,Z, 2*n-4,LISTC,LPTR,LEND,XC,YC,ZC,'(spherical centroidal voronoi tessellation)',.false.,IER)
+   call vrplot(32, 8.0_RKIND, 0.0_RKIND, 0.0_RKIND, 90.0_RKIND ,N, X,Y,Z, 2*n-4,LISTC,LPTR,LEND,XC,YC,ZC,'(spherical centroidal voronoi tessellation)',.false.,IER)
    close(32)
 
 

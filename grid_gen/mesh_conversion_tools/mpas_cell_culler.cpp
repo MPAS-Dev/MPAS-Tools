@@ -139,11 +139,11 @@ int main ( int argc, char *argv[] ) {
 
 		for ( int i = 3; i < argc; i+=2 ) {
 			if (strcmp(argv[i], "-m") == 0 ) {
-				mask_ops.push_back(merge);
+				mask_ops.push_back(static_cast<int>(merge));
 			} else if ( strcmp(argv[i], "-i") == 0 ){
-				mask_ops.push_back(invert);
+				mask_ops.push_back(static_cast<int>(invert));
 			} else if ( strcmp(argv[i], "-p") == 0 ){
-				mask_ops.push_back(preserve);
+				mask_ops.push_back(static_cast<int>(preserve));
 			} else {
 				cout << " ERROR: Invalid option passed on the command line " << argv[i] << ". Exiting..." << endl;
 				exit(1);

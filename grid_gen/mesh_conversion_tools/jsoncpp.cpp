@@ -2088,7 +2088,7 @@ public:
   {}
   bool parse(
       char const* beginDoc, char const* endDoc,
-      Value* root, std::string* errs) override {
+      Value* root, std::string* errs) {
     bool ok = reader_.parse(beginDoc, endDoc, *root, collectComments_);
     if (errs) {
       *errs = reader_.getFormattedErrorMessages();
@@ -2652,7 +2652,7 @@ Value::CZString::CZString(const CZString& other)
 #if JSON_HAS_RVALUE_REFERENCES
 Value::CZString::CZString(CZString&& other)
   : cstr_(other.cstr_), index_(other.index_) {
-  other.cstr_ = nullptr;
+  other.cstr_ = NULL;
 }
 #endif
 
@@ -4806,7 +4806,7 @@ struct BuiltStyledStreamWriter : public StreamWriter
       std::string const& endingLineFeedSymbol,
       bool useSpecialFloats,
       unsigned int precision);
-  int write(Value const& root, std::ostream* sout) override;
+  int write(Value const& root, std::ostream* sout) ;
 private:
   void writeValue(Value const& value);
   void writeArrayValue(Value const& value);

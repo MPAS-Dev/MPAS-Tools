@@ -17,13 +17,13 @@ module voronoi_utils
       integer, intent(in) :: n, nrow, ntmx
       integer, intent(inout) :: nt
       integer, dimension(nrow, ntmx), intent(in) :: ltri
-      real, dimension(n), intent(in) :: rlat, rlon
+      real(kind=RKIND), dimension(n), intent(in) :: rlat, rlon
 
       integer :: ierr, lnew, nscr
       integer, dimension(n) :: near, next
       integer, dimension(n) :: lend
       integer, dimension(6*n+12) :: list, lptr
-      real, dimension(n) :: x, y, z, dist
+      real(kind=RKIND), dimension(n) :: x, y, z, dist
 
       nscr = 6*n+12
 
@@ -57,15 +57,15 @@ module voronoi_utils
 
       integer, intent(in) :: n, nrow, ntmx, nvc
       integer, dimension(nvc), intent(inout) :: list, lptr, listc
-      real, dimension(nvc), intent(inout) :: vclat, vclon
+      real(kind=RKIND), dimension(nvc), intent(inout) :: vclat, vclon
       integer, dimension(n), intent(inout) :: lend
-      real, dimension(n), intent(in) :: rlat, rlon
+      real(kind=RKIND), dimension(n), intent(in) :: rlat, rlon
 
       integer :: ierr, lnew, nb
       integer, dimension(n) :: near, next
       integer, dimension(nrow, ntmx) :: ltri
-      real, dimension(n) :: x, y, z, dist
-      real, dimension(nvc) :: xc, yc, zc, rc
+      real(kind=RKIND), dimension(n) :: x, y, z, dist
+      real(kind=RKIND), dimension(nvc) :: xc, yc, zc, rc
 
       if (nvc < 6*n-12) then
          write(0,*) 'Error: Argument nvc to COMPUTE_VC must be at least 6*n+12'
@@ -98,8 +98,8 @@ module voronoi_utils
       implicit none
 
       integer, intent(in) :: n
-      real, dimension(n), intent(in) :: x, y, z
-      real, dimension(n), intent(out) :: lat, lon
+      real(kind=RKIND), dimension(n), intent(in) :: x, y, z
+      real(kind=RKIND), dimension(n), intent(out) :: lat, lon
 
       integer :: i
 
