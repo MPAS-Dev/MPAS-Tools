@@ -128,7 +128,7 @@ int main ( int argc, char *argv[] ) {
 		in_name = argv[1];
 		out_name = argv[2];
 	}
-	else if (argc >= 5)
+	else if (argc >= 7)
 	{
 		cout << "\n";
 		cout << " ERROR: Incorrect number of arguments specified. See usage statement" << endl;
