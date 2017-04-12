@@ -8,7 +8,21 @@
 # export NETCDF=$NETCDF_DIR
 # make
 
-# gfortran
+#### edison instructions ####
+# In this file:
+# comment gnu, uncomment intel flags
+# change to:
+#   CC=CC
+# may need to unload parallel NetCDF and HDF5 libraries
+# to avoid g++ conflicts:
+#   module unload python
+# then:
+#   module load cray-netcdf
+#   module load netcdf-cxx
+#   export NETCDF=/usr/common/graphics/netcdf-cxx/4.2
+#   make
+
+# gnu
 CC=g++
 CFLAGS= -O3 -std=c++0x -fopenmp -lstdc++
 DFLAGS= -g -std=c++0x -D_DEBUG -fopenmp -lstdc++
