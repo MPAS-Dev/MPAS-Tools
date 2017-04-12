@@ -21,7 +21,7 @@ Purpose:
 	at:
 	https://github.com/MPAS-Dev/geometric_features
 	Masks have a value of 0 or 1, and are integers.
-	
+
 Requirements:
 	mpas_mesh_converter.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
 	It also requires the tr1 headers for c++, specifically unordered_set.
@@ -34,9 +34,9 @@ Requirements:
 	It has been tested using g++ version 4.8.1
 
 Usage of mpas_mesh_converter.cpp:
-	./MpasMeshConverter.x [input_name] [output_name]
+	./MpasMeshConverter.x [-i input_name] [-o output_name] [-h]
 
-	input_name:
+	-i input_name:
 		The input_name should be the name of a NetCDF file containing the following information.
 			Dimensions:
 				nCells - The number of cells described in the file.
@@ -58,61 +58,88 @@ Usage of mpas_mesh_converter.cpp:
 				history -- (Optional) Should be defined to a string describing how the input file was generated.
 				mesh_id -- (Optional) Should be a 40 character string (Alpha-Numeric) that can be used to identify the mesh.
 						   If ommitted, a random string will be placed in the output file.
-	output_name:
+	-o output_name:
 		The output_name should be the name of the NetCDF file that will be generated. It will be a valid MPAS mesh.
 		No initial conditions are placed in this file. If input_name is specified, output_name defaults to mesh.nc.
 
+	-h:
+		This flag prints the program usage statement.
+
 
 Usage of mpas_cell_culler.cpp:
-	./MpasCellCuller.x [input_name] [output_name] [[-m/-i] mask_file]
+	./MpasCellCuller.x [-i input_name] [-o output_name] [[-m/-v/-p] masks_name] [-n index_mapping_output_name] [-h]
 
-	input_name:
+	-i input_name:
 		The input name should be the name of a NetCDF file that is a fully valid MPAS file.
 		It is required to have all of the fields an output file from MpasMeshConverter.x contains.
 		There is one additional field:
 		cullCell -- (Optional) Should be dimensioned nCells. Should contain a 1 for all cells that should be removed
 					and a 0 for all cells that should be kept.
 
-	output_name:
+	-o output_name:
 		The output_name should be the name of the NetCDF file that will be generated. It will be the same as the input file,
 		with cells, edges, and vertices removed where appropriate. Also, the cullCell field will be removed.
 		If input_name is specified, outputname defaults to culled_mesh.nc.
-	
-	-m/-i:
+
+	-m/-v/-p mask_name:
 		These flags allow the addition of a masks file to be used to define
 		cells that should be culled.
 		If the -m flag is used, the masks file is used to cull the mesh.
 		Meaning, where any mask in the masks file is 1, the mesh will be
 		culled.
-		If the -i flag is used, the inverse of the masks file is used to cull
+		If the -v flag is used, the inverse of the masks file is used to cull
 		the mesh. Meaning where all masks in the masks file are 0, the mesh
 		will be culled.
-	
-	mask_file:
-		The mask_file argument should be the name of a NetCDF file containing
+		If the -p flag is used, any marked cells will not be culled.
+
+		The mask_name argument should be the name of a NetCDF file containing
 		the regionCellMasks field, which defines masks for culling cells.
 
-Usage of mpas_mask_creator.cpp:
-	./MpasMaskCreator.x [input_mesh] [output_masks] [feature_group1] [feature_group2] ... [feature_groupN]
+	-n index_mapping_output_name:
+		This flag allows the cellMap variable, which stores a mapping from the unculled to culled cell IDs,
+		to be written out to a text file called index_mapping_output_name.
 
-	input_name:
+	-h:
+		This flag prints the program usage statement.
+
+Usage of mpas_mask_creator.cpp:
+	./MpasMaskCreator.x [-i input_mesh] [-o output_masks] [ [-f/-s] file.geojson ] [-p] [-h]
+
+	-i input_name:
 		The input name should be the path to a NetCDF file that is a fully valid MPAS file.
 
-	output_masks:
+	-o output_masks:
 		The output masks should be the path to a NetCDF file that will be
 		generated. It will contain all of the mask information after applying
 		the region specifications to the input name mesh file.
-	
-	feature_groupN:
-		After the output masks argument, the mask creator can take an arbitrary
-		number of feature files. The mask creator assumes each file is a group
-		of features (regions, transects, point data, etc.). Each file must be
-		formatted as geojson, and the name of each group should be contained
-		within the file.
 
-		The mask creator assumes the latitude and longitude contained within
-		each geojson file are given in degrees, and that the latitude ranges
-		from -90 to 90, while the longitude ranges from -180 to 180.
+	-s file.geojson:
+		This argument pair defines a set of points (from the geojson point definition)
+		that will be used as seed points in a flood fill algorithim.
+		This is useful when trying to remove isolated cells from a mesh.
+
+	-f file.geojson:
+		This argument pair defines a set of geojson features (regions, transects, or points)
+		that will be converted into masks / lists.
+
+	-p:
+		This argument causes the longitude range to be 0-360 degrees with the prime meridian at 0 degrees.
+		If this flag is not set, the longitude range is -180-180 with 0 degrees being the prime meridian.
+		Whether this flag is passed in or not, any longitudes written are in the 0-360 range.
+
+	-h:
+		This flag prints the program usage statement.
+
+	The mask creator can take an arbitrary number of feature files with the
+	-f/-s option. The mask creator assumes each file is a group
+	of features (regions, transects, point data, etc.). Each file must be
+	formatted as geojson, and the name of each group should be contained
+	within the file.
+
+	The mask creator assumes the latitude and longitude contained within
+	each geojson file are given in degrees, and that the latitude ranges
+	from -90 to 90, while the longitude ranges from -180 to 180.
+
 
 Notes for mpas_mesh_converter.cpp:
 	- The output mesh should have an attribute "mesh_spec" which defined which
@@ -121,7 +148,7 @@ Notes for mpas_mesh_converter.cpp:
 		given a negative area.
 	- Negative area cells can be removed at a later state to remove non-complete
 		cells.
-	
+
 
 Notes for mpas_cell_culler.cpp:
 	- Cells that contain negative area will be removed in addition to all cells that have

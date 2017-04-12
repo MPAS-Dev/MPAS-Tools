@@ -15,6 +15,7 @@
 #include <tuple>
 #include <sstream>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include "netcdf_utils.h"
 #include "pnt.h"
@@ -140,16 +141,26 @@ int outputMaskFields( const string outputFilename);
 void print_usage() {/*{{{*/
 	cout << endl << endl;
 	cout << " USAGE:" << endl;
-	cout << "\tMpasMaskCreator.x in_file out_file [ [-f/-s] file.geojson ] [--positive_lon]" << endl;
-	cout << "\t\tin_file: This argument defines the input file that masks will be created for." << endl;
-	cout << "\t\tout_file: This argument defines the file that masks will be written to." << endl;
-	cout << "\t\t-s file.geojson: This argument pair defines a set of points (from the geojson point definition)" << endl;
-	cout << "\t\t\tthat will be used as seed points in a flood fill algorithim. This is useful when trying to remove isolated cells from a mesh." << endl;
-	cout << "\t\t-f file.geojson: This argument pair defines a set of geojson features (regions, transects, or points)" << endl;
-	cout << "\t\t\tthat will be converted into masks / lists." << endl;
-	cout << "\t\t--positive_lon: This argument causes the logitude range to be 0-360 degrees with the prime meridian at 0 degrees." << endl;
-	cout << "\t\t\tIf this flag is not set, the logitude range is -180-180 with 0 degrees being the prime meridian." << endl;
-	cout << "\t\t\tWhether this flag is passed in or not, any longitudes written are in the 0-360 range." << endl;
+	cout << "\tMpasMaskCreator.x [-i in_file] [-o out_file] [ [-f/-s] file.geojson ] [-p] [-h]" << endl << endl;
+	cout << "\t\t-i in_file:" << endl;
+	cout << "\t\t\tThis argument defines the input file that masks will be created for." << endl;
+	cout << "\t\t\tIf not specified it defaults to masks.nc." << endl << endl;
+	cout << "\t\t-o out_file:" << endl;
+	cout << "\t\t\tThis argument defines the file that masks will be written to." << endl;
+	cout << "\t\t\tIf not specified it defaults to grid.nc." << endl << endl;
+	cout << "\t\t-s file.geojson:" << endl;
+	cout << "\t\t\tThis argument pair defines a set of points (from the geojson point definition)" << endl;
+	cout << "\t\t\tthat will be used as seed points in a flood fill algorithim." << endl;
+	cout << "\t\t\tThis is useful when trying to remove isolated cells from a mesh." << endl << endl;
+	cout << "\t\t-f file.geojson:" << endl;
+	cout << "\t\t\tThis argument pair defines a set of geojson features (regions, transects, or points)" << endl;
+	cout << "\t\t\tthat will be converted into masks / lists." << endl << endl;
+	cout << "\t\t-p:" << endl;
+	cout << "\t\t\tThis argument causes the longitude range to be 0-360 degrees with the prime meridian at 0 degrees." << endl;
+	cout << "\t\t\tIf this flag is not set, the longitude range is -180-180 with 0 degrees being the prime meridian." << endl;
+	cout << "\t\t\tWhether this flag is passed in or not, any longitudes written are in the 0-360 range." << endl << endl;
+	cout << "\t\t-h:" << endl;
+	cout << "\t\t\tOutput this usage description and exit." << endl << endl;
 }/*}}}*/
 
 string gen_random(const int len);
@@ -160,6 +171,7 @@ int main ( int argc, char *argv[] ) {
 	vector<string> seed_files;
 	string out_name = "masks.nc";
 	string in_name = "grid.nc";
+	int c;
 
 	cout << endl << endl;
 	cout << "************************************************************" << endl;
@@ -171,36 +183,32 @@ int main ( int argc, char *argv[] ) {
 	cout << "************************************************************" << endl;
 	cout << endl << endl;
 
-	if ( argc < 5 ) {
-		cout << " ERROR: Incorrect usage. See usage statement." << endl;	
-		print_usage();
-		exit(1);
-	} else {
-		string str_flag;
-		string str_file;
-		in_name = argv[1];
-		out_name = argv[2];
-
-		int i = 3;
-		while ( i < argc ) {
-			str_flag = argv[i];
-
-			if ( str_flag == "-s" ) {
-				str_file = argv[i+1];
-				seed_files.push_back(str_file);
-				i += 2;
-			} else if ( str_flag == "-f" ) {
-				str_file = argv[i+1];
-				mask_files.push_back(str_file);
-				i += 2;
-			} else if ( str_flag == "--positive_lon" ) {
-				lonRangePositive = true;
-				i++;
-			} else {
-				cout << " ERROR: Invalid flag " << str_flag << " passed in. See usage statement." << endl;
-				print_usage();
-				exit(1);
-			}
+	while ( (c = getopt(argc, argv, "i:o:f:s:ph")) != -1) {
+		switch (c) {
+		case 'i':
+			// input grid filename
+			in_name = optarg;
+			break;
+		case 'o':
+			// output grid filename
+			out_name = optarg;
+			break;
+		case 'f':
+			mask_files.push_back(optarg);
+			break;
+		case 's':
+			seed_files.push_back(optarg);
+			break;
+		case 'p':
+			lonRangePositive = true;
+		case 'h':
+			// print the usage statement
+			print_usage();
+			exit(1);
+		default:
+			printf ("ERROR: Invalid option passed on the command line 0%o. Exiting...\n", c);
+			print_usage();
+			exit(1);
 		}
 	}
 
