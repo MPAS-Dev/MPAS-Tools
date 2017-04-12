@@ -77,7 +77,8 @@ void print_usage(){/*{{{*/
 	cout << "\t\t\tThe -p argument forces any marked cells to not be culled." << endl;
 	cout << "\t\t\tIf this argument is specified, the masks_name argument is required" << endl;
 	cout << "\t\t-c:" << endl;
-	cout << "\t\t\tOutput the mapping from old to new mesh (cellMap) in cellMap.txt:" << endl;
+	cout << "\t\t\tOutput the mapping from old to new mesh (cellMap) in cellMapForward.txt, " << endl;
+	cout << "\t\t\tand output the reverse mapping from new to old mesh in cellMapBackward.txt." << endl;
 }/*}}}*/
 
 string gen_random(const int len);
@@ -249,17 +250,48 @@ int main ( int argc, char *argv[] ) {
 int outputCellMap(){/*{{{*/
 
 	int iCell;
-	ofstream outputfile;
+	ofstream outputfileForward, outputfileBackward;
 
-	outputfile.open("cellMap.txt");
+	// forwards mapping
+	outputfileForward.open("cellMapForward.txt");
 
 	for (iCell=0 ; iCell < nCells ; iCell++) {
 
-		outputfile << cellMap.at(iCell) << endl;
+		outputfileForward << cellMap.at(iCell) << endl;
 
 	}
 
-	outputfile.close();
+	outputfileForward.close();
+
+	// backwards mapping
+	int nCellsNew = 0;
+	vector<int> cellMapBackward;
+
+	cellMapBackward.clear();
+	cellMapBackward.resize(nCells);
+
+	for (iCell=0 ; iCell < nCells ; iCell++) {
+
+		if (cellMap.at(iCell) >= 0) {
+
+			cellMapBackward.at(cellMap.at(iCell)) = iCell;
+			nCellsNew++;
+
+		}
+
+	}
+
+	outputfileBackward.open("cellMapBackward.txt");
+
+	for (iCell=0 ; iCell < nCellsNew ; iCell++) {
+
+		outputfileBackward << cellMapBackward.at(iCell) << endl;
+
+	}
+
+	outputfileBackward.close();
+
+	cellMapBackward.clear();
 
 	return 0;
 }/*}}}*/
