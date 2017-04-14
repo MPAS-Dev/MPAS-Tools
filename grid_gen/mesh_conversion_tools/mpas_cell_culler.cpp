@@ -70,15 +70,23 @@ void print_usage(){/*{{{*/
 	cout << "\t\t\tThis argument specifies the output culled MPAS mesh." << endl;
 	cout << "\t\t\tIf not specified, it defaults to culled_mesh.nc, but" << endl;
 	cout << "\t\t\tit is required if additional arguments are specified." << endl;
-	cout << "\t\t-m/-i:" << endl;
-	cout << "\t\t\tThis argument controls how a set of masks is used when culling a mesh." << endl;
-	cout << "\t\t\tThe -m argument applies a mask to cull based on (i.e. where the mask is 1, the mesh will be culled)." << endl;
-	cout << "\t\t\tThe -i argument applies the inverse mask to cull based on (i.e. where the mask is 0, the mesh will be culled)." << endl;
-	cout << "\t\t\tThe -p argument forces any marked cells to not be culled." << endl;
-	cout << "\t\t\tIf this argument is specified, the masks_name argument is required" << endl;
+	cout << "\t\t-m/-i/-p:" << endl;
+	cout << "\t\t\tThese arguments control how a set of masks is used when" << endl;
+        cout << "\t\t\tculling a mesh." << endl;
+	cout << "\t\t\tThe -m argument applies a mask to cull based on (i.e." << endl;
+        cout << "\t\t\twhere the mask is 1, the mesh will be culled)." << endl;
+	cout << "\t\t\tThe -i argument applies the inverse mask to cull based" << endl;
+        cout << "\t\t\ton (i.e. where the mask is 0, the mesh will be" << endl;
+        cout << "\t\t\tculled)." << endl;
+	cout << "\t\t\tThe -p argument forces any marked cells to not be" << endl;
+        cout << "\t\t\tculled." << endl;
+	cout << "\t\t\tIf this argument is specified, the masks_name argument" << endl;
+        cout << "\t\t\tis required" << endl;
 	cout << "\t\t-c:" << endl;
-	cout << "\t\t\tOutput the mapping from old to new mesh (cellMap) in cellMapForward.txt, " << endl;
-	cout << "\t\t\tand output the reverse mapping from new to old mesh in cellMapBackward.txt." << endl;
+	cout << "\t\t\tOutput the mapping from old to new mesh (cellMap) in" << endl;
+        cout << "\t\t\t\tcellMapForward.txt, " << endl;
+	cout << "\t\t\tand output the reverse mapping from new to old mesh in" << endl;
+        cout << "\t\t\t\tcellMapBackward.txt." << endl;
 }/*}}}*/
 
 string gen_random(const int len);
@@ -129,7 +137,7 @@ int main ( int argc, char *argv[] ) {
 		in_name = argv[1];
 		out_name = argv[2];
 	}
-	else if (argc >= 7)
+	else if (argc >= 10)
 	{
 		cout << "\n";
 		cout << " ERROR: Incorrect number of arguments specified. See usage statement" << endl;
@@ -159,6 +167,7 @@ int main ( int argc, char *argv[] ) {
 				outputMap = true;
 			} else {
 				cout << " ERROR: Invalid option passed on the command line " << argv[i] << ". Exiting..." << endl;
+				print_usage();
 				exit(1);
 			}
 
