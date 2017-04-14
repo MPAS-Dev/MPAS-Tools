@@ -26,6 +26,7 @@ string in_history = "";
 string in_file_id = "";
 string in_parent_id = "";
 double in_mesh_spec = 1.0;
+bool outputMap = false;
 
 // Connectivity and location information {{{
 
@@ -55,12 +56,13 @@ int mapAndOutputGridCoordinates(const string inputFilename, const string outputF
 int mapAndOutputCellFields(const string inputFilename, const string outputFilename);
 int mapAndOutputEdgeFields(const string inputFilename, const string outputFilename);
 int mapAndOutputVertexFields(const string inputFilename, const string outputFilename);
+int outputCellMap();
 /*}}}*/
 
 void print_usage(){/*{{{*/
 	cout << endl << endl;
 	cout << "Usage:" << endl;
-	cout << "\tMpasCellCuller.x [input_name] [output_name] [[-m/-i/-p] masks_name]" << endl;
+	cout << "\tMpasCellCuller.x [input_name] [output_name] [[-m/-i/-p] masks_name] [-c]" << endl;
 	cout << endl;
 	cout << "\t\tinput_name:" << endl;
 	cout << "\t\t\tThis argument specifies the input MPAS mesh." << endl;
@@ -68,12 +70,23 @@ void print_usage(){/*{{{*/
 	cout << "\t\t\tThis argument specifies the output culled MPAS mesh." << endl;
 	cout << "\t\t\tIf not specified, it defaults to culled_mesh.nc, but" << endl;
 	cout << "\t\t\tit is required if additional arguments are specified." << endl;
-	cout << "\t\t-m/-i:" << endl;
-	cout << "\t\t\tThis argument controls how a set of masks is used when culling a mesh." << endl;
-	cout << "\t\t\tThe -m argument applies a mask to cull based on (i.e. where the mask is 1, the mesh will be culled)." << endl;
-	cout << "\t\t\tThe -i argument applies the inverse mask to cull based on (i.e. where the mask is 0, the mesh will be culled)." << endl;
-	cout << "\t\t\tThe -p argument forces any marked cells to not be culled." << endl;
-	cout << "\t\t\tIf this argument is specified, the masks_name argument is required" << endl;
+	cout << "\t\t-m/-i/-p:" << endl;
+	cout << "\t\t\tThese arguments control how a set of masks is used when" << endl;
+        cout << "\t\t\tculling a mesh." << endl;
+	cout << "\t\t\tThe -m argument applies a mask to cull based on (i.e." << endl;
+        cout << "\t\t\twhere the mask is 1, the mesh will be culled)." << endl;
+	cout << "\t\t\tThe -i argument applies the inverse mask to cull based" << endl;
+        cout << "\t\t\ton (i.e. where the mask is 0, the mesh will be" << endl;
+        cout << "\t\t\tculled)." << endl;
+	cout << "\t\t\tThe -p argument forces any marked cells to not be" << endl;
+        cout << "\t\t\tculled." << endl;
+	cout << "\t\t\tIf this argument is specified, the masks_name argument" << endl;
+        cout << "\t\t\tis required" << endl;
+	cout << "\t\t-c:" << endl;
+	cout << "\t\t\tOutput the mapping from old to new mesh (cellMap) in" << endl;
+        cout << "\t\t\t\tcellMapForward.txt, " << endl;
+	cout << "\t\t\tand output the reverse mapping from new to old mesh in" << endl;
+        cout << "\t\t\t\tcellMapBackward.txt." << endl;
 }/*}}}*/
 
 string gen_random(const int len);
@@ -124,7 +137,7 @@ int main ( int argc, char *argv[] ) {
 		in_name = argv[1];
 		out_name = argv[2];
 	}
-	else if ( argc >= 4 && argc % 2 == 0 )
+	else if (argc >= 10)
 	{
 		cout << "\n";
 		cout << " ERROR: Incorrect number of arguments specified. See usage statement" << endl;
@@ -133,23 +146,34 @@ int main ( int argc, char *argv[] ) {
 	}
 	else
 	{
+
 		cullMasks = true;
 		in_name = argv[1];
 		out_name = argv[2];
+		bool foundOperation;
 
 		for ( int i = 3; i < argc; i+=2 ) {
+			foundOperation = false;
 			if (strcmp(argv[i], "-m") == 0 ) {
 				mask_ops.push_back(static_cast<int>(merge));
+				foundOperation = true;
 			} else if ( strcmp(argv[i], "-i") == 0 ){
 				mask_ops.push_back(static_cast<int>(invert));
+				foundOperation = true;
 			} else if ( strcmp(argv[i], "-p") == 0 ){
 				mask_ops.push_back(static_cast<int>(preserve));
+				foundOperation = true;
+			} else if ( strcmp(argv[i], "-c") == 0 ){
+				outputMap = true;
 			} else {
 				cout << " ERROR: Invalid option passed on the command line " << argv[i] << ". Exiting..." << endl;
+				print_usage();
 				exit(1);
 			}
 
-			mask_names.push_back( argv[i+1] );
+			if (foundOperation) {
+				mask_names.push_back( argv[i+1] );
+			}
 		}
 	}
 
@@ -221,8 +245,65 @@ int main ( int argc, char *argv[] ) {
 		exit(error);
 	}
 
+	cout << "Outputting cell map" << endl;
+	if (outputMap) {
+		if(error = outputCellMap()){
+			cout << "Error - " << error << endl;
+			exit(error);
+		}
+	}
+
 	return 0;
 }
+
+int outputCellMap(){/*{{{*/
+
+	int iCell;
+	ofstream outputfileForward, outputfileBackward;
+
+	// forwards mapping
+	outputfileForward.open("cellMapForward.txt");
+
+	for (iCell=0 ; iCell < nCells ; iCell++) {
+
+		outputfileForward << cellMap.at(iCell) << endl;
+
+	}
+
+	outputfileForward.close();
+
+	// backwards mapping
+	int nCellsNew = 0;
+	vector<int> cellMapBackward;
+
+	cellMapBackward.clear();
+	cellMapBackward.resize(nCells);
+
+	for (iCell=0 ; iCell < nCells ; iCell++) {
+
+		if (cellMap.at(iCell) >= 0) {
+
+			cellMapBackward.at(cellMap.at(iCell)) = iCell;
+			nCellsNew++;
+
+		}
+
+	}
+
+	outputfileBackward.open("cellMapBackward.txt");
+
+	for (iCell=0 ; iCell < nCellsNew ; iCell++) {
+
+		outputfileBackward << cellMapBackward.at(iCell) << endl;
+
+	}
+
+	outputfileBackward.close();
+
+	cellMapBackward.clear();
+
+	return 0;
+}/*}}}*/
 
 /* Input/Marking Functions {{{ */
 int readGridInput(const string inputFilename){/*{{{*/

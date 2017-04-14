@@ -64,7 +64,7 @@ Usage of mpas_mesh_converter.cpp:
 
 
 Usage of mpas_cell_culler.cpp:
-	./MpasCellCuller.x [input_name] [output_name] [[-m/-i] mask_file]
+	./MpasCellCuller.x [input_name] [output_name] [[-m/-i] mask_file] [-c]
 
 	input_name:
 		The input name should be the name of a NetCDF file that is a fully valid MPAS file.
@@ -91,6 +91,10 @@ Usage of mpas_cell_culler.cpp:
 	mask_file:
 		The mask_file argument should be the name of a NetCDF file containing
 		the regionCellMasks field, which defines masks for culling cells.
+
+	-c:
+		Output the mapping from old to new mesh (cellMap) in cellMapForward.txt,
+		and output the reverse mapping from new to old mesh in cellMapBackward.txt.
 
 Usage of mpas_mask_creator.cpp:
 	./MpasMaskCreator.x [input_mesh] [output_masks] [feature_group1] [feature_group2] ... [feature_groupN]
