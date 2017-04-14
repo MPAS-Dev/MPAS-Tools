@@ -36,7 +36,7 @@ def cull_mesh(meshToolsDir, filenameIn, filenameOut, cullCell):
     
     add_cell_cull_array(filenameIn, cullCell)
 
-    os.system("%sMpasCellCuller.x %s %s -c" %(meshToolsDir,filenameIn,filenameOut))
+    os.system("%s/MpasCellCuller.x %s %s -c" %(meshToolsDir,filenameIn,filenameOut))
 
 #-------------------------------------------------------------------
 
