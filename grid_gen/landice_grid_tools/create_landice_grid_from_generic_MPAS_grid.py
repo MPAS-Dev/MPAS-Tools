@@ -230,7 +230,7 @@ if options.velobs:
    print 'Added optional velocity optimization variables: vx, vy, ve'
 
 if options.dHdt:
-   newvar = fileout.createVariable('dHdt', datatype, ('Time', 'nCells'))
+   newvar = fileout.createVariable('observedThicknessTendency', datatype, ('Time', 'nCells'))
    newvar[:] = 0.0
    print 'Added optional optimization variable: dHdt'
 
