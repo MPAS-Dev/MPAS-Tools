@@ -525,10 +525,10 @@ if filetype=='cism':
      fieldInfo['beta'] =          {'InputName':'beta', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x0', 'vertDim':False} # needs different mapping file...
      #fieldInfo['observedSpeed'] = {'InputName':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x0', 'vertDim':False} # needs different mapping file...
      # fields for observed surface speed and associated error, observed thickness change
-     fieldInfo['vx'] = {'CISMname':'vx', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':1, 'vertDim':False}
-     fieldInfo['vy'] = {'CISMname':'vy', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':1, 'vertDim':False}
-     fieldInfo['verr'] = {'CISMname':'verr', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'CISMgrid':1, 'vertDim':False}
-     fieldInfo['observedThicknessTendency'] = {'CISMname':'dHdt', 'scalefactor':1.0, 'offset':0.0, 'CISMgrid':1, 'vertDim':False}
+     fieldInfo['vx'] = {'InputName':'vx', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['vy'] = {'InputName':'vy', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['verr'] = {'InputName':'verr', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['observedThicknessTendency'] = {'InputName':'dHdt', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
 
 elif filetype=='mpas':
 
