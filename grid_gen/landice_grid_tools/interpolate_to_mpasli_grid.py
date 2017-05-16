@@ -528,19 +528,22 @@ if filetype=='cism':
      fieldInfo['vx'] = {'InputName':'vx', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['vy'] = {'InputName':'vy', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['verr'] = {'InputName':'verr', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
-     fieldInfo['observedThicknessTendency'] = {'InputName':'dHdt', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['observedThicknessTendency'] = {'InputName':'dHdt', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
 
 elif filetype=='mpas':
 
    fieldInfo['thickness'] =     {'InputName':'thickness',  'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
    if not options.thicknessOnly:
      fieldInfo['bedTopography'] = {'InputName':'bedTopography', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['surfaceAirTemperature'] =    {'InputName':'surfaceAirTemperature', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['basalHeatFlux'] =    {'InputName':'basalHeatFlux', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['sfcMassBal'] =    {'InputName':'sfcMassBal', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['temperature'] =   {'InputName':'temperature', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':True}
-     fieldInfo['beta'] =          {'InputName':'beta', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['beta'] = {'InputName':'beta', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+
 #----------------------------
 
-
+ 
 #----------------------------
 # try each field.  If it exists in the input file, it will be copied.  If not, it will be skipped.
 for MPASfieldName in fieldInfo:
