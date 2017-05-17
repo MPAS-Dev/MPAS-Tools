@@ -143,8 +143,19 @@ int main(int argc, char ** argv)
 			}
 		}
 		delete [] vcs;
+                if (iter % 20 == 0) {
+                   // Write restart file every 20 iterations (could become a runtime configurable setting)
+	           cout << "Writing restart.txt..." << endl;
+                   restart = fopen("restart.txt","w");
+                   for(i=0; i<pset.size(); i++) {
+		      fprintf(restart, "%lf %lf\n", pset[i]->getX(), pset[i]->getY());
+	             }
+                   fclose(restart);
+                }
+
 	}
 
+        // Write restart again at the end
 	cout << "Writing restart.txt..." << endl;
 	
 	restart = fopen("restart.txt","w");
