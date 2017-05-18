@@ -488,7 +488,7 @@ if options.interpType == 'd':
          outsideIndx1 = outsideIndx1[0]  # get the list itself
       end = time.clock(); print 'done in ', end-start
 
-      if 'x0' in inputFile.variables:
+      if 'x0' in inputFile.variables and not options.thicknessOnly:
          # Need to setup separate weights for this grid
          [Yi,Xi] = np.meshgrid(x0[:], y0[:])
          cismXY0 = np.zeros([Xi.shape[0]*Xi.shape[1],2])
