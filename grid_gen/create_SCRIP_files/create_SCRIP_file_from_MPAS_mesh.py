@@ -113,12 +113,6 @@ grid_corner_lon[:] = grid_corner_lon_local[:]
 #plt.plot(grid_corner_lon[i, 5], grid_corner_lat[i, 5], 'rx')
 #plt.show()
 
-# Update history attribute of netCDF file
-if hasattr(fin, 'history'):
-   newhist = '\n'.join([getattr(fin, 'history'), ' '.join(sys.argv[:]) ] )
-else:
-   newhist = sys.argv[:]
-setattr(fout, 'history', newhist )
 
 print "Input latCell min/max values (radians):", latCell[:].min(), latCell[:].max()
 print "Input lonCell min/max values (radians):", lonCell[:].min(), lonCell[:].max()

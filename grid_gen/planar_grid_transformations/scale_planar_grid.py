@@ -2,6 +2,7 @@
 import numpy, math
 from netCDF4 import Dataset as NetCDFFile
 from optparse import OptionParser
+from datetime import datetime
 
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename", help="Path to grid file", metavar="FILE")
@@ -35,5 +36,14 @@ grid.variables['dvEdge'][:] = grid.variables['dvEdge'][:] * scale
 grid.variables['areaCell'][:] = grid.variables['areaCell'][:] * scale**2
 grid.variables['areaTriangle'][:] = grid.variables['areaTriangle'][:] * scale**2
 grid.variables['kiteAreasOnVertex'][:] = grid.variables['kiteAreasOnVertex'][:] * scale**2
+
+# Update history attribute of netCDF file
+thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
+if hasattr(grid, 'history'):
+   newhist = '\n'.join([thiscommand, getattr(grid, 'history')])
+else:
+   newhist = thiscommand
+setattr(grid, 'history', newhist )
+
 
 grid.close()

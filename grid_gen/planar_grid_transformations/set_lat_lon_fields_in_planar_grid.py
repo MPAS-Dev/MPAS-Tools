@@ -7,8 +7,8 @@ import sys
 import netCDF4
 import pyproj
 #import numpy as np
-
 from optparse import OptionParser
+from datetime import datetime
 
 
 # ======== DEFINE PROJECTIONS =============
@@ -87,11 +87,13 @@ print "Calculated latCell min/max values (radians):", latCell[:].min(), latCell[
 print "Calculated lonCell min/max values (radians):", lonCell[:].min(), lonCell[:].max()
 
 # Update history attribute of netCDF file
+thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
 if hasattr(f, 'history'):
-   newhist = '\n'.join([getattr(f, 'history'), ' '.join(sys.argv[:]) ] )
+   newhist = '\n'.join([thiscommand, getattr(f, 'history')])
 else:
-   newhist = sys.argv[:]
+   newhist = thiscommand
 setattr(f, 'history', newhist )
+
 
 f.close()
 
