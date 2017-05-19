@@ -6,6 +6,7 @@
 import sys, numpy
 from netCDF4 import Dataset
 from optparse import OptionParser
+from datetime import datetime
 
 
 sphere_radius = 6.37122e6 # earth radius, if needed
@@ -126,7 +127,12 @@ print 'Finished creating dimensions in output file.\n' # include an extra blank 
 # Copy over all of the required grid variables to the new file
 # ============================================
 print "Beginning to copy mesh variables to output file."
-vars2copy = ('latCell', 'lonCell', 'xCell', 'yCell', 'zCell', 'indexToCellID', 'latEdge', 'lonEdge', 'xEdge', 'yEdge', 'zEdge', 'indexToEdgeID', 'latVertex', 'lonVertex', 'xVertex', 'yVertex', 'zVertex', 'indexToVertexID', 'cellsOnEdge', 'nEdgesOnCell', 'nEdgesOnEdge', 'edgesOnCell', 'edgesOnEdge', 'weightsOnEdge', 'dvEdge', 'dcEdge', 'angleEdge', 'areaCell', 'areaTriangle', 'cellsOnCell', 'verticesOnCell', 'verticesOnEdge', 'edgesOnVertex', 'cellsOnVertex', 'kiteAreasOnVertex')
+vars2copy = ['latCell', 'lonCell', 'xCell', 'yCell', 'zCell', 'indexToCellID', 'latEdge', 'lonEdge', 'xEdge', 'yEdge', 'zEdge', 'indexToEdgeID', 'latVertex', 'lonVertex', 'xVertex', 'yVertex', 'zVertex', 'indexToVertexID', 'cellsOnEdge', 'nEdgesOnCell', 'nEdgesOnEdge', 'edgesOnCell', 'edgesOnEdge', 'weightsOnEdge', 'dvEdge', 'dcEdge', 'angleEdge', 'areaCell', 'areaTriangle', 'cellsOnCell', 'verticesOnCell', 'verticesOnEdge', 'edgesOnVertex', 'cellsOnVertex', 'kiteAreasOnVertex']
+# Add these optional fields if they exist in the input file
+for optionalVar in ['meshDensity', 'gridSpacing', 'cellQuality', 'triangleQuality', 'triangleAngleQuality', 'obtuseTriangle']:
+   if optionalVar in filein.variables:
+      vars2copy.append(optionalVar)
+
 for varname in vars2copy:
    print "-",
 print "|"
@@ -234,8 +240,17 @@ if options.dHdt:
    newvar[:] = 0.0
    print 'Added optional optimization variable: dHdt'
 
-fileout.sync()
+
+# Update history attribute of netCDF file
+thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
+if hasattr(fileout, 'history'):
+   newhist = '\n'.join([thiscommand, getattr(fileout, 'history')])
+else:
+   newhist = thiscommand
+setattr(fileout, 'history', newhist )
+
 print "Completed creating land ice variables in new file. Now syncing to file."
+fileout.sync()
 
 filein.close()
 fileout.close()

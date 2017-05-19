@@ -6,6 +6,7 @@ import sys
 import numpy as np
 from optparse import OptionParser
 from netCDF4 import Dataset as NetCDFFile
+from datetime import datetime
 
 
 print "** Gathering information."
@@ -60,7 +61,7 @@ if maskmethod == 1:
 elif maskmethod == 2:
   print "Method: remove cells beyond a certain number of cells from existing ice"
 
-  buffersize=25  # number of cells to expand
+  buffersize=20  # number of cells to expand
 
   keepCellMask = np.copy(cullCell[:])
   keepCellMask[:] = 0
@@ -77,7 +78,7 @@ elif maskmethod == 2:
     for iCell in range(len(keepCellMask)):
       if keepCellMask[iCell] == 0:  # don't bother to check cells we are already keeping
         for neighbor in cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1:  # the -1 converts from the fortran indexing in the variable to python indexing
-          if keepCellMask[neighbor] == 1:  # if any neighbors are already being kept on the old mask then keep this cell too.  This will get a lot of the ice cells, but they have already been assigned so they don't matter.  What we care about is getting cells that are not ice that have one or more ice neighbors.
+          if neighbor >= 0 and keepCellMask[neighbor] == 1:  # if any neighbors are already being kept on the old mask then keep this cell too.  This will get a lot of the ice cells, but they have already been assigned so they don't matter.  What we care about is getting cells that are not ice that have one or more ice neighbors.
              keepCellMaskNew[iCell] = 1
     keepCellMask = np.copy(keepCellMaskNew)  # after we've looped over all cells assign the new mask to the variable we need (either for another loop around the domain or to write out)
     print '  Num of cells to keep:', sum(keepCellMask)
@@ -127,11 +128,13 @@ if 'cullCell' not in f.variables:
 f.variables['cullCell'][:] = cullCell
 
 # Update history attribute of netCDF file
+thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
 if hasattr(f, 'history'):
-   newhist = '\n'.join([getattr(f, 'history'), ' '.join(sys.argv[:]) ] )
+   newhist = '\n'.join([thiscommand, getattr(f, 'history')])
 else:
-   newhist = sys.argv[:]
+   newhist = thiscommand
 setattr(f, 'history', newhist )
+
 
 
 # --- make a plot only if requested ---
