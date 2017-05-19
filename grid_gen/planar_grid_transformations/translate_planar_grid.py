@@ -7,6 +7,7 @@ import sys
 import netCDF4
 #import numpy as np
 from optparse import OptionParser
+from datetime import datetime
 
 
 print "== Gathering information.  (Invoke with --help for more details. All arguments are optional)"
@@ -103,11 +104,13 @@ xEdge[:] += xOffset
 yEdge[:] += yOffset
 
 # Update history attribute of netCDF file
+thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
 if hasattr(f, 'history'):
-   newhist = '\n'.join([getattr(f, 'history'), ' '.join(sys.argv[:]) ] )
+   newhist = '\n'.join([thiscommand, getattr(f, 'history')])
 else:
-   newhist = sys.argv[:]
+   newhist = thiscommand
 setattr(f, 'history', newhist )
+
 
 f.close()
 
