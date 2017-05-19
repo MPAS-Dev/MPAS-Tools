@@ -20,6 +20,7 @@ import math
 from collections import OrderedDict
 import scipy.spatial
 import time
+from datetime import datetime
 
 
 print "== Gathering information.  (Invoke with --help for more details. All arguments are optional)\n"
@@ -579,10 +580,11 @@ for MPASfieldName in fieldInfo:
 
 
 # Update history attribute of netCDF file
+thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
 if hasattr(MPASfile, 'history'):
-   newhist = '\n'.join([getattr(MPASfile, 'history'), ' '.join(sys.argv[:]) ] )
+   newhist = '\n'.join([thiscommand, getattr(MPASfile, 'history')])
 else:
-   newhist = sys.argv[:]
+   newhist = thiscommand
 setattr(MPASfile, 'history', newhist )
 
 inputFile.close()

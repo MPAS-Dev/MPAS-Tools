@@ -6,6 +6,7 @@
 import sys, numpy
 from netCDF4 import Dataset
 from optparse import OptionParser
+from datetime import datetime
 
 
 sphere_radius = 6.37122e6 # earth radius, if needed
@@ -239,8 +240,17 @@ if options.dHdt:
    newvar[:] = 0.0
    print 'Added optional optimization variable: dHdt'
 
-fileout.sync()
+
+# Update history attribute of netCDF file
+thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
+if hasattr(fileout, 'history'):
+   newhist = '\n'.join([thiscommand, getattr(fileout, 'history')])
+else:
+   newhist = thiscommand
+setattr(fileout, 'history', newhist )
+
 print "Completed creating land ice variables in new file. Now syncing to file."
+fileout.sync()
 
 filein.close()
 fileout.close()
