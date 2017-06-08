@@ -2,13 +2,13 @@
 
 # tool for creating better than naive grid partitions for MPAS-Seaice
 
-# requires python/anaconda-2.7
-# The MPAS-Tools mesh_conversion_tools installed
+# requires python/anaconda-2.7 and that the MPAS-Tools mesh_conversion_tools are installed
 
 from netCDF4 import Dataset
-import os, math, string
+import os, math, string, sys
 import numpy as np
 import argparse
+import subprocess
 
 #-------------------------------------------------------------------
 
@@ -32,8 +32,6 @@ def add_cell_cull_array(filename, cullCell):
 
 def cull_mesh(meshToolsDir, filenameIn, filenameOut, cullCell):
 
-    #meshToolsDir = "/Users/akt/Work/MPAS-CICE/MPAS-Tools/grid_gen/mesh_conversion_tools_v2/"
-    
     add_cell_cull_array(filenameIn, cullCell)
 
     os.system("%s/MpasCellCuller.x %s %s -c" %(meshToolsDir,filenameIn,filenameOut))
@@ -49,7 +47,7 @@ def load_partition(graphFilename):
     partition = []
     for line in lines:
         partition.append(string.atoi(line))
-        
+
     return partition
 
 #-------------------------------------------------------------------
@@ -73,7 +71,7 @@ def get_cell_ids(culledFilename, originalFilename):
 
         if (iCellOriginal % 1000 == 0):
             print iCellOriginal, " of ", nCellsOriginal
-        
+
         cellMap = string.atoi(cellMapLine)
 
         if (cellMap != -1):
@@ -112,7 +110,7 @@ def get_cell_ids_orig(culledFilename, originalFilename):
 
                 cellid[iCellCulled] = iCellOriginal
                 break
-        
+
     return cellid
 
 #-------------------------------------------------------------------
@@ -120,31 +118,33 @@ def get_cell_ids_orig(culledFilename, originalFilename):
 # parsing
 parser = argparse.ArgumentParser(description='Create sea ice grid partition')
 
-parser.add_argument('-m', dest="meshFilename",        required=True,  help='MPAS mesh file')
-parser.add_argument('-c', dest="mpasCullerLocation",  required=True,  help='location of cell culler')
-parser.add_argument('-n', dest="nProcs",              required=True,  help='number of processors', type=int)
+parser.add_argument('-m', '--mesh',      dest="meshFilename",       required=True,  help='MPAS mesh file')
+parser.add_argument('-n', '--nprocs',    dest="nProcs",             required=True,  help='number of processors', type=int)
+parser.add_argument('-c', '--culler',    dest="mpasCullerLocation", required=False, help='location of cell culler')
+parser.add_argument('-o', '--outprefix', dest="outputPrefix",       required=False, help='output graph file prefic', default="graph.info")
+parser.add_argument('-p', '--plotting',  dest="plotting",           required=False, help='create diagnostic plotting file of partitions', action='store_true')
+parser.add_argument('-g', '--metis',     dest="metis",              required=False, help='name of metis utility', default="gpmetis")
 
 args = parser.parse_args()
 
+# required arguments
 meshFilename = args.meshFilename
-meshToolsDir = args.mpasCullerLocation
 nProcsArray = [args.nProcs]
 
-#./grid_partition.py -m seaice_QU_120km.nc -c /Users/akt/Work/MPAS-CICE/MPAS-Tools/grid_gen/mesh_conversion_tools_v2/ -n 32
-#./grid_partition.py -m seaice_QU_120km.nc -c /Users/akt/Work/MPAS-CICE/MPAS-Tools_dev/feature_branches/mapping_output/MPAS-Tools/grid_gen/mesh_conversion_tools/ -n 32
+# optional arguments
+if (args.mpasCullerLocation == None):
+    meshToolsDir = os.path.dirname(os.path.realpath(__file__)) + "/../mesh_conversion_tools/"
+else:
+    meshToolsDir = args.mpasCullerLocation
+decompName = args.outputPrefix
+plotting = args.plotting
+metis = args.metis
 
-# input name
-#meshFilename = "/Users/akt/Work/MPAS-CICE/Standalone_sim_configs/domains/domain_RRS.18-6km/seaice.RRS18to6v3.170111.nc"
-#meshFilename = "/Users/akt/Work/MPAS-CICE/Standalone_sim_configs/domains/domain_RRS.30-10km/seaice.RSS.30-10km.161221.nc"
-#meshFilename = "seaice_QU_120km.nc"
+#./gen_seaice_mesh_partition.py -m /Users/akt/Work/MPAS-CICE/Standalone_sim_configs/domains/domain_QU120km/seaice_QU_120km.nc -c /Users/akt/Work/MPAS-CICE/MPAS-Tools_dev/feature_branches/grid_partition_improvements/MPAS-Tools/grid_gen/mesh_conversion_tools/ -n 32
 
-#nProcsArray = [32]
-#nProcsArray = [36000]
-
-plotting  = True
+#./gen_seaice_mesh_partition.py --mesh /Users/akt/Work/MPAS-CICE/Standalone_sim_configs/domains/domain_QU120km/seaice_QU_120km.nc --culler /Users/akt/Work/MPAS-CICE/MPAS-Tools_dev/feature_branches/grid_partition_improvements/MPAS-Tools/grid_gen/mesh_conversion_tools/ --nprocs 32 --plotting --outprefix wibble2
 
 cullEquatorialRegion = False
-decompName = "lblat"
 
 if (cullEquatorialRegion):
     minLatitudeLimits = [-100.0, -35.0,  35.0]
@@ -171,18 +171,18 @@ for nProcs in nProcsArray:
         nBlocks = nRegions * nProcs
     else:
         nBlocks = nProcs
-    
+
     combinedGraph = np.zeros(nCells)
 
     for iRegion in range(0,nRegions):
-    
+
         # tmp file basename
         tmp = "%s_%2.2i_tmp" %(meshFilename,iRegion)
 
         # create precull file
         tmpFilenamesPrecull = tmp+"_precull.nc"
         os.system("cp %s %s" %(meshFilename,tmpFilenamesPrecull))
-    
+
         # make cullCell variable
         cullCell = np.ones(nCells)
 
@@ -197,13 +197,22 @@ for nProcs in nProcsArray:
 
         # preserve the initial graph file
         os.system("mv culled_graph.info culled_graph_%i_tmp.info" %(iRegion))
-    
+
         # partition the culled grid
-        os.system("gpmetis culled_graph_%i_tmp.info %i" %(iRegion,nProcs))
+        try:
+            graphFilename = "culled_graph_%i_tmp.info" %(iRegion)
+            subprocess.call([metis, graphFilename, str(nProcs)])
+        except OSError as e:
+            if e.errno == os.errno.ENOENT:
+                print "metis program %s not found" %(metis)
+                sys.exit()
+            else:
+                print "metis error"
+                raise
 
         # get the cell IDs for this partition
         cellid = get_cell_ids(tmpFilenamesPostcull, meshFilename)
-    
+
         # load this partition
         graph = load_partition("culled_graph_%i_tmp.info.part.%i" %(iRegion,nProcs))
 
@@ -213,22 +222,22 @@ for nProcs in nProcsArray:
                 combinedGraph[cellid[iCellPartition]] = graph[iCellPartition] + nProcs * iRegion
             else:
                 combinedGraph[cellid[iCellPartition]] = graph[iCellPartition]
-            
+
     # output the cell partition file
-    cellPartitionFile = open("graph.info.%s_%i.part.%i" %(decompName,nRegions,nBlocks), "w")
+    cellPartitionFile = open("%s.part.%i" %(decompName,nBlocks), "w")
     for iCell in range(0,nCells):
         cellPartitionFile.write("%i\n" %(combinedGraph[iCell]))
     cellPartitionFile.close()
 
     # output block partition file
     if (cullEquatorialRegion):
-        blockPartitionFile = open("block.info.%s_%i.part.%i" %(decompName,nRegions,nProcs), "w")
+        blockPartitionFile = open("%s.part.%i" %(decompName,nProcs), "w")
         for iRegion in range(0,nRegions):
             for iProc in range(0,nProcs):
                 blockPartitionFile.write("%i\n" %(iProc))
         blockPartitionFile.close()
 
-    
+
     # diagnostics
     if (plotting):
         plottingFile = Dataset("plotting.nc","a")
