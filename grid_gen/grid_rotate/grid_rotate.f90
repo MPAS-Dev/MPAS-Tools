@@ -96,13 +96,17 @@ contains
          return
       end if
 
+      ! Copy original file to output file
       copyCmd = "cp " // trim(filename) // " " // trim(newFilename)
+      call system(copyCmd)
 
+      ! Make sure the output file is writeable
+      copyCmd = "chmod u+w " // trim(newFilename)
       call system(copyCmd)
 
       ierr = nf_open(newFilename, NF_WRITE, ncid)
       if(ierr /= 0) then
-         write(0,*) "Error: could not find file: ", filename
+         write(0,*) "Error: could not open file " // trim(filename) // " for writing"
          return
       end if
 
