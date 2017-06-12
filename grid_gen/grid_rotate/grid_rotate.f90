@@ -3,7 +3,9 @@
 !
 ! Rotate a mesh on a unit sphere from a reference latitude,longitude point 
 ! to a destination latitude,longitude point and optionally rotate the grid 
-! counter-cloclwise around the destination point 
+! counter-clockwise around the destination point. This code must operate on
+! double precision meshes for several reasons, most notably because the
+! calculation of angleEdges fails in single precision.
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 program grid_rotate
 
@@ -32,13 +34,13 @@ contains
 
       implicit none
 
-      integer :: ncid, dimid, varid, ierr
+      integer :: ncid, dimid, varid, ierr, vartype
 
       real(kind=RKIND) :: original_latitude_degrees
       real(kind=RKIND) :: original_longitude_degrees
       real(kind=RKIND) :: new_latitude_degrees
       real(kind=RKIND) :: new_longitude_degrees
-      real(kind=RKIND) :: birdseye_rotation_counter_clockwise_degrees   
+      real(kind=RKIND) :: birdseye_rotation_counter_clockwise_degrees
 
       integer :: nCells, nVertices, nEdges
       integer :: i
@@ -66,7 +68,7 @@ contains
 
 
       integer, dimension(:,:), allocatable :: verticesOnEdge
-      integer, dimension(2) :: onEdgeStart                   
+      integer, dimension(2) :: onEdgeStart
       integer, dimension(2) :: onEdgeCount
 
       real (kind=RKIND) :: original_latitude_radians, original_longitude_radians, new_latitude_radians, new_longitude_radians
@@ -140,6 +142,13 @@ contains
       onEdgeCount(2) = nEdges
 
       ierr = nf_inq_varid(ncid, "xCell", varid)
+      ! Make sure the grid file is in double precision
+      ierr = nf_inq_vartype(ncid, varid, vartype)
+      if (.not. vartype == NF_DOUBLE) then
+         ierr = nf_close(ncid)
+         write(0,*) "Error: mesh file must be in double precision for this code to work"
+         stop
+      end if
       ierr = nf_get_vara_double(ncid, varid, 1, nCells, xCell)
 
       ierr = nf_inq_varid(ncid, "yCell", varid)
@@ -361,12 +370,13 @@ contains
    end subroutine executeRotation
 
 
-   real function degreesToRadians(degAngle)
+   function degreesToRadians(degAngle)
 
       implicit none
 
+      real(kind=RKIND) :: degreesToRadians
       real(kind=RKIND) :: degAngle
-      degreesToRadians = degAngle * 2 * pii / 360 
+      degreesToRadians = degAngle * 2.0_RKIND * pii / 360.0_RKIND
    end function degreesToRadians
 
 
@@ -496,10 +506,11 @@ contains
    ! Computes the angle between arcs AB and AC, given points A, B, and C
    ! Equation numbers w.r.t. http://mathworld.wolfram.com/SphericalTrigonometry.html
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   real function sphere_angle(ax, ay, az, bx, by, bz, cx, cy, cz)
+   function sphere_angle(ax, ay, az, bx, by, bz, cx, cy, cz)
 
       implicit none
 
+      real (kind=RKIND) :: sphere_angle
       real (kind=RKIND), intent(in) :: ax, ay, az, bx, by, bz, cx, cy, cz
 
       real (kind=RKIND) :: a, b, c          ! Side lengths of spherical triangle ABC
