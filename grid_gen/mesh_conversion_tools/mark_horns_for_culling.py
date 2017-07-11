@@ -5,6 +5,8 @@ and marks them for culling.  In some cores/configurations, these weakly-connecte
 cells can be dynamically inactive, and, therefore, undesirable to keep in a mesh.
 
 The method used will work on both planar and spherical meshes.
+It adds the new masked cell to an existing 'cullCell' field if it exists,
+otherwise it creates a new field.
 '''
 
 import sys
@@ -31,7 +33,12 @@ inputFile = netCDF4.Dataset(options.inputFile, 'r+')
 nCells = len(inputFile.dimensions['nCells'])
 cellsOnCell = inputFile.variables['cellsOnCell'][:]
 
-cullCell = np.zeros( (nCells,) )  # local variable
+# Add the horn cells to existing mask if it exists
+if 'cullCell' in inputFile.variables:
+   cullCell = inputFile.variables['cullCell'][:]
+else: # otherwise make a new mask initialized empty
+   cullCell = np.zeros( (nCells,) )  # local variable
+
 nHorns = 0
 for i in range(nCells):
    if (cellsOnCell[i,:] > 0).sum() <= 2:  # NOTE: Can change this threshold, if needed for a particular use case.
