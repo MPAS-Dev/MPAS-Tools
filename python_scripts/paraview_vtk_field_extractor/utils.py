@@ -2,7 +2,6 @@
 """
 Name: utils.py
 Authors: Xylar Asay-Davis
-Date: 09/13/2016
 
 Utility library for various scripts used to extract vtk geometry from NetCDF
 files on MPAS grids.
@@ -66,7 +65,7 @@ def setup_time_indices(fn_pattern, xtimeName):#{{{
 
     i_file = 0
     for file_name in file_list:
-        try: 
+        try:
             nc_file = NetCDFFile(file_name, 'r')
         except IOError:
             print "Warning: could not open {}".format(file_name)
@@ -442,142 +441,118 @@ def write_vtp_header(path, prefix, active_var_index, var_indices, variable_list,
 #}}}
 
 
-def build_cell_lists( nc_file, blocking ):#{{{
+def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
+
+    print "Build geometry for fields on cells..."
+
+    vertices = _build_location_list_xyz(nc_file, 'Vertex', output_32bit,
+                                        lonlat)
+
+    if lonlat:
+        lonCell = numpy.rad2deg(nc_file.variables['lonCell'][:])
+
     nCells = len(nc_file.dimensions['nCells'])
 
-    nEdgesOnCell_var = nc_file.variables['nEdgesOnCell']
-    verticesOnCell_var = nc_file.variables['verticesOnCell']
+    nEdgesOnCell = nc_file.variables['nEdgesOnCell'][:]
+    verticesOnCell = nc_file.variables['verticesOnCell'][:, :] - 1
 
-    offsets = numpy.cumsum(nEdgesOnCell_var[:], dtype=int)
-    connectivity = numpy.zeros(offsets[-1], dtype=int)
-    valid_mask = numpy.ones(nCells,bool)
+    validVertices = numpy.zeros(verticesOnCell.shape, bool)
+    for vIndex in range(validVertices.shape[1]):
+        validVertices[:, vIndex] = vIndex < nEdgesOnCell
 
-    # Build cells
-    nBlocks = 1 + nCells / blocking
-    if use_progress_bar:
-        widgets = ['Build cell connectivity: ', Percentage(), ' ', Bar(), ' ', ETA()]
-        cell_bar = ProgressBar(widgets=widgets, maxval=nBlocks).start()
-    else:
-        print "Build cell connectivity..."
+    if lonlat:
+        vertices, verticesOnCell = _fix_lon_lat_vertices(vertices,
+                                                         verticesOnCell,
+                                                         validVertices,
+                                                         lonCell)
 
-    outIndex = 0
-    for iBlock in range(nBlocks):
-        blockStart = iBlock * blocking
-        blockEnd = min( (iBlock + 1) * blocking, nCells )
-        blockCount = blockEnd - blockStart
+    connectivity = verticesOnCell[validVertices]
+    offsets = numpy.cumsum(nEdgesOnCell, dtype=int)
+    valid_mask = numpy.ones(nCells, bool)
 
-        nEdgesOnCell = nEdgesOnCell_var[blockStart:blockEnd]
-        verticesOnCell = verticesOnCell_var[blockStart:blockEnd,:] - 1
+    return (vertices, connectivity, offsets, valid_mask)  # }}}
 
-        for idx in range(blockCount):
-            cellCount = nEdgesOnCell[idx]
-            connectivity[outIndex:outIndex+cellCount] = verticesOnCell[idx,0:cellCount]
-            outIndex += cellCount
 
-        del nEdgesOnCell
-        del verticesOnCell
-        if use_progress_bar:
-            cell_bar.update(iBlock)
+def build_vertex_geom_lists(nc_file, output_32bit, lonlat):  # {{{
+    print "Build geometry for fields on vertices...."
 
-    if use_progress_bar:
-        cell_bar.finish()
+    vertices = _build_location_list_xyz(nc_file, 'Cell', output_32bit, lonlat)
 
-    return (connectivity, offsets, valid_mask)
+    if lonlat:
+        lonVertex = numpy.rad2deg(nc_file.variables['lonVertex'][:])
 
-#}}}
-
-def build_dual_cell_lists( nc_file, blocking ):#{{{
-    print "Build dual connectivity...."
     vertexDegree = len(nc_file.dimensions['vertexDegree'])
 
-    cellsOnVertex = nc_file.variables['cellsOnVertex'][:,:]-1
+    cellsOnVertex = nc_file.variables['cellsOnVertex'][:, :] - 1
 
     valid_mask = numpy.all(cellsOnVertex >= 0, axis=1)
-    connectivity = cellsOnVertex[valid_mask,:].ravel()
-    validCount = numpy.count_nonzero(valid_mask)
-    offsets = vertexDegree*numpy.arange(1,validCount+1)
 
-    return (connectivity, offsets, valid_mask)
+    cellsOnVertex = cellsOnVertex[valid_mask, :]
 
-#}}}
+    if lonlat:
+        # all remaining entries in cellsOnVertex are valid
+        validVertices = numpy.ones(cellsOnVertex.shape, bool)
+        vertices, cellsOnVertex = _fix_lon_lat_vertices(vertices,
+                                                        cellsOnVertex,
+                                                        validVertices,
+                                                        lonVertex[valid_mask])
 
-def build_edge_cell_lists( nc_file, blocking ):#{{{
-    nCells = len(nc_file.dimensions['nCells'])
+    connectivity = cellsOnVertex.ravel()
+    validCount = cellsOnVertex.shape[0]
+    offsets = vertexDegree*numpy.arange(1, validCount+1)
+
+    return (vertices, connectivity, offsets, valid_mask)  # }}}
+
+
+def build_edge_geom_lists(nc_file, output_32bit, lonlat):  # {{{
+    (xCell, yCell, zCell) = \
+        _build_location_list_xyz(nc_file, 'Cell', output_32bit, lonlat)
+    (xVertex, yVertex, zVertex) = \
+        _build_location_list_xyz(nc_file, 'Vertex', output_32bit, lonlat)
+
+    vertices = (numpy.append(xCell, xVertex),
+                numpy.append(yCell, yVertex),
+                numpy.append(zCell, zVertex))
+
+    if lonlat:
+        lonEdge = numpy.rad2deg(nc_file.variables['lonEdge'][:])
+
     nEdges = len(nc_file.dimensions['nEdges'])
+    nCells = len(nc_file.dimensions['nCells'])
 
-    cellsOnEdge_var = nc_file.variables['cellsOnEdge']
-    verticesOnEdge_var = nc_file.variables['verticesOnEdge']
+    cellsOnEdge = nc_file.variables['cellsOnEdge'][:] - 1
+    verticesOnEdge = nc_file.variables['verticesOnEdge'][:] - 1
 
-    valid_mask = numpy.zeros(nEdges,bool)
+    vertsOnCell = -1*numpy.ones((nEdges, 4), int)
+    vertsOnCell[:, 0] = cellsOnEdge[:, 0]
+    vertsOnCell[:, 1] = verticesOnEdge[:, 0]
+    vertsOnCell[:, 2] = cellsOnEdge[:, 1]
+    vertsOnCell[:, 3] = verticesOnEdge[:, 1]
 
-    connectivity = []
-    offsets = []
+    validVerts = vertsOnCell >= 0
 
-    # Build cells
-    nBlocks = 1 + nEdges / blocking
-    if use_progress_bar:
-        widgets = ['Build edge connectivity: ', Percentage(), ' ', Bar(), ' ', ETA()]
-        edge_bar = ProgressBar(widgets=widgets, maxval=nBlocks).start()
-    else:
-        print "Build edge connectivity...."
+    vertsOnCell[:, 1] += nCells
+    vertsOnCell[:, 3] += nCells
 
-    offset = 0
-    for iBlock in numpy.arange(0, nBlocks):
-        blockStart = iBlock * blocking
-        blockEnd = min( (iBlock + 1) * blocking, nEdges )
-        blockCount = blockEnd - blockStart
+    validCount = numpy.sum(numpy.array(validVerts, int), axis=1)
 
-        verticesOnEdge = verticesOnEdge_var[blockStart:blockEnd,:] - 1
-        cellsOnEdge = cellsOnEdge_var[blockStart:blockEnd,:] - 1
+    # exclude any isolated points or lines -- we need only triangles or quads
+    valid_mask = validCount >= 3
 
-        vertices = numpy.zeros((blockCount,4))
-        vertices[:,0] = cellsOnEdge[:,0]
-        vertices[:,1] = verticesOnEdge[:,0]
-        vertices[:,2] = cellsOnEdge[:,1]
-        vertices[:,3] = verticesOnEdge[:,1]
-        valid = vertices >= 0
-        vertices[:,1] += nCells
-        vertices[:,3] += nCells
-        validCount = numpy.sum(numpy.array(valid,int),axis=1)
+    vertsOnCell = vertsOnCell[valid_mask, :]
+    validVerts = validVerts[valid_mask, :]
 
-        for idx in range(blockCount):
-            if(validCount[idx] < 3):
-                continue
-            valid_mask[blockStart + idx] = True
-            verts = vertices[idx,valid[idx]]
-            connectivity.extend(list(verts))
-            offset += validCount[idx]
-            offsets.append(offset)
+    if lonlat:
+        vertices, cellsOnVertex = _fix_lon_lat_vertices(vertices,
+                                                        vertsOnCell,
+                                                        validVerts,
+                                                        lonEdge[valid_mask])
 
-        del cellsOnEdge
-        del verticesOnEdge
-        del vertices, valid, validCount
+    connectivity = vertsOnCell[validVerts]
+    validCount = numpy.sum(numpy.array(validVerts, int), axis=1)
+    offsets = numpy.cumsum(validCount, dtype=int)
 
-        if use_progress_bar:
-            edge_bar.update(iBlock)
-
-    if use_progress_bar:
-        edge_bar.finish()
-
-    connectivity = numpy.array(connectivity, dtype=int)
-    offsets = numpy.array(offsets, dtype=int)
-
-    return (connectivity, offsets, valid_mask)
-
-#}}}
-
-def build_location_list_xyz( nc_file, xName, yName, zName, output_32bit ):#{{{
-
-    X = nc_file.variables[xName][:]
-    Y = nc_file.variables[yName][:]
-    Z = nc_file.variables[zName][:]
-    if output_32bit:
-        X = numpy.array(X,'f4')
-        Y = numpy.array(Y,'f4')
-        Z = numpy.array(Z,'f4')
-    return (X,Y,Z)
-
-#}}}
+    return (vertices, connectivity, offsets, valid_mask)  # }}}
 
 
 def get_field_sign(field_name):
@@ -782,5 +757,67 @@ def compute_zInterface(minLevelCell, maxLevelCell, layerThicknessCell,
 
 #}}}
 
+
+def _build_location_list_xyz(nc_file, suffix, output_32bit, lonlat):  # {{{
+
+    if lonlat:
+        X = numpy.rad2deg(nc_file.variables['lon{}'.format(suffix)][:])
+        Y = numpy.rad2deg(nc_file.variables['lat{}'.format(suffix)][:])
+        Z = numpy.zeros(X.shape)
+    else:
+        X = nc_file.variables['x{}'.format(suffix)][:]
+        Y = nc_file.variables['y{}'.format(suffix)][:]
+        Z = nc_file.variables['z{}'.format(suffix)][:]
+    if output_32bit:
+        X = numpy.array(X, 'f4')
+        Y = numpy.array(Y, 'f4')
+        Z = numpy.array(Z, 'f4')
+    return (X, Y, Z)
+
+# }}}
+
+
+def _fix_lon_lat_vertices(vertices, verticesOnCell, validVertices,
+                          lonCell):  # {{{
+
+    nCells = verticesOnCell.shape[0]
+    nVertices = len(vertices[0])
+
+    xVertex = vertices[0]
+    xVertex = vertices[0]
+    xDiff = xVertex[verticesOnCell] - lonCell.reshape(nCells, 1)
+
+    # which cells have vertices that are out of range?
+    outOfRange = numpy.logical_and(validVertices,
+                                   numpy.logical_or(xDiff >= 180.,
+                                                    xDiff < -180.))
+
+    cellsOutOfRange = numpy.any(outOfRange, axis=1)
+
+    valid = validVertices[cellsOutOfRange, :]
+
+    verticesToChange = numpy.zeros(verticesOnCell.shape, bool)
+    verticesToChange[cellsOutOfRange, :] = valid
+
+    xDiff = xDiff[cellsOutOfRange, :][valid]
+    voc = verticesOnCell[cellsOutOfRange, :][valid]
+    nVerticesToAdd = numpy.count_nonzero(valid)
+    verticesToAdd = numpy.arange(nVerticesToAdd) + nVertices
+    xv = xVertex[voc]
+    verticesOnCell[verticesToChange] = verticesToAdd
+
+    # where the lon. difference between the cell center and the vertex
+    # is out of range (presumably because of the periodic boundary),
+    # move it to be within 180 degrees.
+    mask = xDiff >= 180.
+    xv[mask] -= 360.
+    mask = xDiff < -180.
+    xv[mask] += 360.
+
+    vertices = (numpy.append(xVertex, xv),
+                numpy.append(vertices[1], vertices[1][voc]),
+                numpy.append(vertices[2], vertices[2][voc]))
+
+    return vertices, verticesOnCell  # }}}
 
 # vim: set expandtab:
