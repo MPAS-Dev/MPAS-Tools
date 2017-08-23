@@ -2,7 +2,6 @@
 """
 Name: paraview_vtk_field_extractor.py
 Authors: Doug Jacobsen, Xylar Asay-Davis
-Date: 09/13/2016
 
 This script is used to extract a field from a time series of NetCDF files as
 VTK files for plotting in paraview.
@@ -48,7 +47,7 @@ index given by maxLevelCell.
 
 Requirements:
 This script requires access to the following non standard modules:
-pyevtk
+pyevtk (available from opengeostat channel)
 netCDF4
 numpy
 
@@ -266,17 +265,43 @@ if __name__ == "__main__":
         print " -- Using progress bars --"
     else:
         print " -- Progress bars are not available--"
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-f", "--file_pattern", dest="filename_pattern", help="MPAS Filename pattern.", metavar="FILE", required=True)
-    parser.add_argument("-m", "--mesh_file", dest="mesh_filename", help="MPAS Mesh filename. If not set, it will use the first file in the -f flag as the mesh file.")
-    parser.add_argument("-b", "--blocking", dest="blocking", help="Size of blocks when reading MPAS file", metavar="BLK")
-    parser.add_argument("-v", "--variable_list", dest="variable_list", help="List of variables to extract ('all' for all variables, 'allOnCells' for all variables on cells, etc.)", metavar="VAR", required=True)
-    parser.add_argument("-3", "--32bit", dest="output_32bit", help="If set, the vtk files will be written using 32bit floats.", action="store_true")
-    parser.add_argument("-c", "--combine", dest="combine_output", help="If set, time-independent fields are written to each file along with time-dependent fields.", action="store_true")
-    parser.add_argument("-a", "--append", dest="append", help="If set, only vtp files that do not already exist are written out.", action="store_true")
-    parser.add_argument("-d", "--dim_list", dest="dimension_list", nargs="+", help="A list of dimensions and associated indices.")
-    parser.add_argument("-o", "--out_dir", dest="out_dir", help="the output directory.", default='vtk_files', metavar="DIR")
-    parser.add_argument("-x", "--xtime", dest="xtime", help="the name of the xtime variable", default='xtime', metavar="XTIME")
+    parser = \
+        argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-f", "--file_pattern", dest="filename_pattern",
+                        help="MPAS Filename pattern.", metavar="FILE",
+                        required=True)
+    parser.add_argument("-m", "--mesh_file", dest="mesh_filename",
+                        help="MPAS Mesh filename. If not set, it will use the "
+                             "first file in the -f flag as the mesh file.")
+    parser.add_argument("-b", "--blocking", dest="blocking",
+                        help="Size of blocks when reading MPAS file",
+                        metavar="BLK")
+    parser.add_argument("-v", "--variable_list", dest="variable_list",
+                        help="List of variables to extract ('all' for all "
+                             "variables, 'allOnCells' for all variables on "
+                             "cells, etc.)", metavar="VAR", required=True)
+    parser.add_argument("-3", "--32bit", dest="output_32bit",
+                        help="If set, the vtk files will be written using "
+                             "32bit floats.", action="store_true")
+    parser.add_argument("-c", "--combine", dest="combine_output",
+                        help="If set, time-independent fields are written to "
+                             "each file along with time-dependent fields.",
+                        action="store_true")
+    parser.add_argument("-a", "--append", dest="append",
+                        help="If set, only vtp files that do not already "
+                             "exist are written out.", action="store_true")
+    parser.add_argument("-d", "--dim_list", dest="dimension_list", nargs="+",
+                        help="A list of dimensions and associated indices.")
+    parser.add_argument("-o", "--out_dir", dest="out_dir",
+                        help="the output directory.", default='vtk_files',
+                        metavar="DIR")
+    parser.add_argument("-x", "--xtime", dest="xtime",
+                        help="the name of the xtime variable", default='xtime',
+                        metavar="XTIME")
+    parser.add_argument("-l", "--lonlat", dest="lonlat",
+                        help="If set, the resulting points are in lon-lat "
+                             "space, not Cartesian.", action="store_true")
     args = parser.parse_args()
 
     if not args.output_32bit:
@@ -318,80 +343,66 @@ if __name__ == "__main__":
 
         mesh_file = NetCDFFile(args.mesh_filename, 'r')
 
-        # Build vertex list
-        vertices = utils.build_location_list_xyz( mesh_file, 'xVertex', 'yVertex', 'zVertex', use_32bit )
-
-        # Build cell list
-        (connectivity, offsets, valid_mask) = utils.build_cell_lists( mesh_file, args.blocking )
+        # Build cell geometry
+        (vertices, connectivity, offsets, valid_mask) = \
+            utils.build_cell_geom_lists(mesh_file, use_32bit, args.lonlat)
 
         if not separate_mesh_file:
             mesh_file.close()
             mesh_file = None
 
-        build_field_time_series( time_indices, time_file_names, mesh_file, args.out_dir, args.blocking,
-                                 all_dim_vals, 'nCells', cellVars, vertices, connectivity, offsets,
-                                 valid_mask, use_32bit, args.combine_output, args.append )
+        build_field_time_series(time_indices, time_file_names, mesh_file,
+                                args.out_dir, args.blocking, all_dim_vals,
+                                'nCells', cellVars, vertices, connectivity,
+                                offsets, valid_mask, use_32bit,
+                                args.combine_output, args.append)
         if separate_mesh_file:
             mesh_file.close()
 
         print ""
-        del vertices
-        del connectivity
-        del offsets
-        del valid_mask
 
     if len(vertexVars) > 0:
         print " -- Extracting vertex fields --"
 
         mesh_file = NetCDFFile(args.mesh_filename, 'r')
 
-        # Build vertex list
-        vertices = utils.build_location_list_xyz( mesh_file, 'xCell', 'yCell', 'zCell', use_32bit )
-
-        # Build cell list
-        (connectivity, offsets, valid_mask) = utils.build_dual_cell_lists( mesh_file, args.blocking )
+        # Build vertex geometry
+        (vertices, connectivity, offsets, valid_mask) = \
+            utils.build_vertex_geom_lists(mesh_file, use_32bit, args.lonlat)
 
         if not separate_mesh_file:
             mesh_file.close()
             mesh_file = None
 
-        build_field_time_series( time_indices, time_file_names, mesh_file, args.out_dir, args.blocking,
-                                 all_dim_vals, 'nVertices', vertexVars, vertices, connectivity, offsets,
-                                 valid_mask, use_32bit, args.combine_output, args.append )
+        build_field_time_series(time_indices, time_file_names, mesh_file,
+                                args.out_dir, args.blocking, all_dim_vals,
+                                'nVertices', vertexVars, vertices,
+                                connectivity, offsets, valid_mask, use_32bit,
+                                args.combine_output, args.append)
 
         if separate_mesh_file:
             mesh_file.close()
 
         print ""
-        del vertices
-        del connectivity
-        del offsets
-        del valid_mask
 
     if len(edgeVars) > 0:
         print " -- Extracting edge fields --"
 
         mesh_file = NetCDFFile(args.mesh_filename, 'r')
 
-        # Build vertex list
-        verticesC = utils.build_location_list_xyz( mesh_file, 'xCell', 'yCell', 'zCell', use_32bit )
-        verticesV = utils.build_location_list_xyz( mesh_file, 'xVertex', 'yVertex', 'zVertex', use_32bit )
-        # compine the two into a single tuple
-        vertices = (np.append(verticesC[0],verticesV[0]),
-                    np.append(verticesC[1],verticesV[1]),
-                    np.append(verticesC[2],verticesV[2]))
-        del verticesC, verticesV
-
         # Build cell list
-        (connectivity, offsets, valid_mask) = utils.build_edge_cell_lists( mesh_file, args.blocking )
+        (vertices, connectivity, offsets, valid_mask) = \
+            utils.build_edge_geom_lists(mesh_file, use_32bit, args.lonlat)
 
         if not separate_mesh_file:
             mesh_file.close()
             mesh_file = None
 
-        build_field_time_series( time_indices, time_file_names, mesh_file, args.out_dir, args.blocking,
-                                 all_dim_vals, 'nEdges', edgeVars, vertices, connectivity, offsets,
-                                 valid_mask, use_32bit, args.combine_output, args.append )
+        build_field_time_series(time_indices, time_file_names, mesh_file,
+                                args.out_dir, args.blocking, all_dim_vals,
+                                'nEdges', edgeVars, vertices, connectivity,
+                                offsets, valid_mask, use_32bit,
+                                args.combine_output, args.append)
 
         if separate_mesh_file:
             mesh_file.close()
