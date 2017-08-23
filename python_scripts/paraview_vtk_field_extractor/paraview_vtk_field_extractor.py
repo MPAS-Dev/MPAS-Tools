@@ -302,6 +302,9 @@ if __name__ == "__main__":
     parser.add_argument("-l", "--lonlat", dest="lonlat",
                         help="If set, the resulting points are in lon-lat "
                              "space, not Cartesian.", action="store_true")
+    parser.add_argument("-t", "--time", dest="time",
+                        help="Indices for the time dimension", metavar="TIME",
+                             required=False)
     args = parser.parse_args()
 
     if not args.output_32bit:
@@ -316,6 +319,10 @@ if __name__ == "__main__":
 
     (time_indices, time_file_names) = utils.setup_time_indices(
         args.filename_pattern, args.xtime)
+
+    if args.time:
+        time_indices, time_file_names = \
+            utils.parse_time_indices(args.time, time_indices, time_file_names)
 
     separate_mesh_file = True
     if not args.mesh_filename:

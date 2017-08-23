@@ -109,6 +109,40 @@ def setup_time_indices(fn_pattern, xtimeName):#{{{
 #   m:n     -- all indices from m to n are to be extracted (including m but
 #              excluding n, in the typical python indexing convention)
 def parse_extra_dim(dim_name, index_string, time_series_file, mesh_file):#{{{
+    """
+    Parses the indices to be extracted along a given dimension.
+    The index_string can be fomatted as follows:
+      <blank> -- no indices are to be extracted
+      n       -- the index n is to be extracted
+      m,n,p   -- the list of indices is to be extracted
+      m:n     -- all indices from m to n are to be extracted (including m but
+                 excluding n, in the typical python indexing convention)
+      m:n:s   -- all indices from m to n are to be extracted (including m but
+                 excluding n, in the typical python indexing convention) with
+                 stride s between indices
+
+    Parameters
+    ----------
+    dim_name : str
+        The name of the dimension to be indexed
+
+    index_string : str
+        An index string indicating with indices are to be extracted
+
+    time_series_file : str
+        The name of a time series file that can be used to determine the size
+        of the dimension if ``mesh_file=None``.
+
+    mesh_file : str
+        The name of a mesh file that can be used to determine the size
+        of the dimension, or ``None`` if the time series file should be used
+
+    Returns
+    -------
+    indices : list of str
+        Indices into the given dimension formatted as zero-padded strings
+        (if indices are numerical, as opposed to the name of an index variable)
+    """
     if index_string == '':
         return []
 
@@ -116,43 +150,10 @@ def parse_extra_dim(dim_name, index_string, time_series_file, mesh_file):#{{{
         nc_file = mesh_file
     else:
         nc_file = time_series_file
+
     dim_size = len(nc_file.dimensions[dim_name])
-    if ',' in index_string:
-        indices = [index for index in index_string.split(',')]
-    elif ':' in index_string:
-        index_list = index_string.split(':')
-        if len(index_list) in [2,3]:
-            if index_list[0] == '':
-                first = 0
-            else:
-                first = int(index_list[0])
-            if index_list[1] == '':
-                last = dim_size
-            else:
-                last = int(index_list[1])
-            if (len(index_list) == 2) or (index_list[2] == ''):
-                step = 1
-            else:
-                step = int(index_list[2])
-            indices = [str(index) for index in numpy.arange(first,last,step)]
-        else:
-            print "Improperly formatted extra dimension:", dim_name, index_string
-            return None
-    else:
-        indices = [index_string]
 
-    numerical_indices = []
-    for index in indices:
-        try:
-            val = int(index)
-        except ValueError:
-            continue
-
-        if val < 0 or val >= dim_size:
-            print "Index (or indices) out of bounds for extra dimension:", dim_name, index_string
-            return None
-
-        numerical_indices.append(val)
+    indices, numerical_indices = parse_index_string(index_string, dim_size)
 
     # zero-pad integer indices
     if len(numerical_indices) > 0:
@@ -169,6 +170,116 @@ def parse_extra_dim(dim_name, index_string, time_series_file, mesh_file):#{{{
     return indices
 
 #}}}
+
+
+def parse_time_indices(index_string, time_indices, time_file_names):  # {{{
+    """
+    Parses the indices to be extracted along the Time dimension.
+    The index_string can be fomatted as follows:
+      <blank> -- no indices are to be extracted
+      n       -- the index n is to be extracted
+      m,n,p   -- the list of indices is to be extracted
+      m:n     -- all indices from m to n are to be extracted (including m but
+                 excluding n, in the typical python indexing convention)
+      m:n:s   -- all indices from m to n are to be extracted (including m but
+                 excluding n, in the typical python indexing convention) with
+                 stride s between indices
+
+    Parameters
+    ----------
+    index_string : str
+        An index string indicating with indices are to be extracted
+
+    time_indices : list of int
+        The local time indices in each input NetCDF file
+
+    time_file_names : list of str
+        The name of the file associated with each time index
+
+    Returns
+    -------
+    time_indices : list of int
+        The local time indices in each input NetCDF file after reindexing
+
+    time_file_names : list of str
+        The name of the file associated with each time index after reindexing
+
+    """
+    dim_size = len(time_indices)
+    indices, numerical_indices = parse_index_string(index_string, dim_size)
+
+    time_indices = [time_indices[index] for index in numerical_indices]
+    time_file_names = [time_file_names[index] for index in numerical_indices]
+    return time_indices, time_file_names  # }}}
+
+
+def parse_index_string(index_string, dim_size):  # {{{
+    """
+    Parses an index string into a list of indices.
+    The index_string can be fomatted as follows:
+      <blank> -- no indices are to be extracted
+      n       -- the index n is to be extracted
+      m,n,p   -- the list of indices is to be extracted
+      m:n     -- all indices from m to n are to be extracted (including m but
+                 excluding n, in the typical python indexing convention)
+      m:n:s   -- all indices from m to n are to be extracted (including m but
+                 excluding n, in the typical python indexing convention) with
+                 stride s between indices
+
+    Parameters
+    ----------
+    index_string : str
+        An index string indicating with indices are to be extracted
+
+    dim_size : int
+        The size of the dimension
+
+    Returns
+    -------
+    indices : list of int
+        The indices corresponding to the given index string.
+    """
+    if index_string == '':
+        return [], []
+
+    if ',' in index_string:
+        indices = [index for index in index_string.split(',')]
+    elif ':' in index_string:
+        index_list = index_string.split(':')
+        if len(index_list) not in [2, 3]:
+            raise ValueError("Improperly formatted index string: "
+                             "{}".format(index_string))
+        if index_list[0] == '':
+            first = 0
+        else:
+            first = int(index_list[0])
+        if index_list[1] == '':
+            last = dim_size
+        else:
+            last = int(index_list[1])
+        if (len(index_list) == 2) or (index_list[2] == ''):
+            step = 1
+        else:
+            step = int(index_list[2])
+        indices = [str(index) for index in numpy.arange(first, last, step)]
+    else:
+        indices = [index_string]
+
+    numerical_indices = []
+    for index in indices:
+        try:
+            val = int(index)
+        except ValueError:
+            continue
+
+        if val < 0 or val >= dim_size:
+            raise ValueError("Index (or indices) out of bounds 0 <= "
+                             "index < {}: {}".format(dim_size, index_string))
+
+        numerical_indices.append(val)
+
+    return indices, numerical_indices  # }}}
+
 
 # Parses a list of dimensions and corresponding indices separated by equals signs.
 # Optionally, a max_index_count (typically 1) can be provided, indicating that
