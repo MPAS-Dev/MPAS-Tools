@@ -58,6 +58,9 @@ import os
 import numpy as np
 
 from netCDF4 import Dataset as NetCDFFile
+from netCDF4 import date2num
+from datetime import datetime
+
 import argparse
 
 try:
@@ -189,15 +192,20 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
                 raise ValueError("xtime variable name {} not found in "
                                  "{}".format(xtimeName, time_series_file))
             var = time_series_file.variables[xtimeName]
-            xtime = ''.join(var[local_time_indices[time_index], :])
+            xtime = ''.join(var[local_time_indices[time_index], :]).strip()
+            date = datetime(int(xtime[0:4]), int(xtime[5:7]), int(xtime[8:10]),
+                            int(xtime[11:13]), int(xtime[14:16]),
+                            int(xtime[17:19]))
+            years = date2num(date, units='days since 0000-01-01',
+                             calendar='noleap')/365.
 
             # write the header for the vtp file
             vtp_file_prefix = "time_series/{}.{:d}".format(out_prefix,
                                                            time_index)
             file_name = '{}/{}.vtp'.format(out_dir, vtp_file_prefix)
             if append and os.path.exists(file_name):
-                pvd_file.write('<DataSet timestep="{:d}" group="" '
-                               'part="0"\n'.format(time_index))
+                pvd_file.write('<DataSet timestep="{:.16f}" group="" '
+                               'part="0"\n'.format(years))
                 pvd_file.write('\tfile="{}.vtp"/>\n'.format(vtp_file_prefix))
                 continue
 
@@ -222,8 +230,8 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
                                                        xtime=xtime)
 
             # add time step to pdv file
-            pvd_file.write('<DataSet timestep="{:d}" group="" '
-                           'part="0"\n'.format(time_index))
+            pvd_file.write('<DataSet timestep="{:.16f}" group="" '
+                           'part="0"\n'.format(years))
             pvd_file.write('\tfile="{}.vtp"/>\n'.format(vtp_file_prefix))
 
         if time_index == 0 or combine_output:

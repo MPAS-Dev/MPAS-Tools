@@ -489,14 +489,15 @@ def summarize_extraction(mesh_file, time_indices, cellVars, vertexVars, edgeVars
     print ""
 #}}}
 
-def write_pvd_header(path, prefix):#{{{
-    pvd_file = open('%s/%s.pvd'%(path, prefix), 'w')
+
+def write_pvd_header(path, prefix):  # {{{
+    pvd_file = open('{}/{}.pvd'.format(path, prefix), 'w')
     pvd_file.write('<?xml version="1.0"?>\n')
     pvd_file.write('<VTKFile type="Collection" version="0.1"\n')
     pvd_file.write('\tbyte_order="LittleEndian"\n')
     pvd_file.write('\tcompressor="vtkZLibDataCompressor">\n')
-    return pvd_file
-#}}}
+    return pvd_file  # }}}
+
 
 def get_hyperslab_name_and_dims(var_name, extra_dim_vals):#{{{
     if(extra_dim_vals is None):
