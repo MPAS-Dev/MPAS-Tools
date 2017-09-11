@@ -1642,6 +1642,17 @@ int buildAllFeatureGroups(){/*{{{*/
 	regionGroupNames.push_back("all");
 	maxRegionsInGroup = max(maxRegionsInGroup, (int)groupIndices.size());
 
+	// 'all' transect group
+	groupIndices.clear();
+
+	for ( str_itr = transectNames.begin(), featureIdx = 0; str_itr != transectNames.end(); str_itr++, featureIdx++){
+		groupIndices.push_back(featureIdx);
+	}
+
+	transectsInGroup.push_back(groupIndices);
+	transectGroupNames.push_back("all");
+	maxTransectsInGroup = max(maxTransectsInGroup, (int)groupIndices.size());
+
 	// 'all' point group
 	groupIndices.clear();
 	
