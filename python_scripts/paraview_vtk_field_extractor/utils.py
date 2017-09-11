@@ -35,10 +35,13 @@ def get_var(variable_name, mesh_file, time_series_file):
     else:
         return time_series_file.variables[variable_name]
 
-# This function finds a list of NetCDF files containing time-dependent
-# MPAS data and extracts the time indices in each file.  The routine
-# insures that each time is unique.
-def setup_time_indices(fn_pattern, xtimeName):#{{{
+
+def setup_time_indices(fn_pattern, xtimeName):  # {{{
+    """
+    This function finds a list of NetCDF files containing time-dependent
+    MPAS data and extracts the time indices in each file.  The routine
+    insures that each time is unique.
+    """
     # Build file list and time indices
     if ';' in fn_pattern:
         file_list = []
@@ -58,7 +61,8 @@ def setup_time_indices(fn_pattern, xtimeName):#{{{
         sys.exit(0)
 
     if use_progress_bar:
-        widgets = ['Build time indices: ', Percentage(), ' ', Bar(), ' ', ETA()]
+        widgets = ['Build time indices: ', Percentage(), ' ', Bar(), ' ',
+                   ETA()]
         time_bar = ProgressBar(widgets=widgets, maxval=len(file_list)).start()
     else:
         print "Build time indices..."
@@ -71,14 +75,13 @@ def setup_time_indices(fn_pattern, xtimeName):#{{{
             print "Warning: could not open {}".format(file_name)
             continue
 
-
+        if xtimeName not in nc_file.variables:
+            raise ValueError("xtime variable name {} not found in {}".format(
+                    xtimeName, file_name))
         local_times = []
-        if xtimeName in nc_file.variables:
-            xtime = nc_file.variables[xtimeName][:,:]
-            for index in range(xtime.shape[0]):
-                local_times.append(''.join(xtime[index,:]))
-        else:
-            print "Warning: {} not found in {}".format(xtimeName, file_name)
+        xtime = nc_file.variables[xtimeName][:, :]
+        for index in range(xtime.shape[0]):
+            local_times.append(''.join(xtime[index, :]))
 
         if(len(local_times) == 0):
             local_times = ['0']
@@ -98,8 +101,8 @@ def setup_time_indices(fn_pattern, xtimeName):#{{{
     if use_progress_bar:
         time_bar.finish()
 
-    return (local_indices, file_names)
-#}}}
+    return (local_indices, file_names)  # }}}
+
 
 # Parses the indices to be extracted along a given dimension.
 # The index_string can be fomatted as follows:
@@ -486,14 +489,15 @@ def summarize_extraction(mesh_file, time_indices, cellVars, vertexVars, edgeVars
     print ""
 #}}}
 
-def write_pvd_header(path, prefix):#{{{
-    pvd_file = open('%s/%s.pvd'%(path, prefix), 'w')
+
+def write_pvd_header(path, prefix):  # {{{
+    pvd_file = open('{}/{}.pvd'.format(path, prefix), 'w')
     pvd_file.write('<?xml version="1.0"?>\n')
     pvd_file.write('<VTKFile type="Collection" version="0.1"\n')
     pvd_file.write('\tbyte_order="LittleEndian"\n')
     pvd_file.write('\tcompressor="vtkZLibDataCompressor">\n')
-    return pvd_file
-#}}}
+    return pvd_file  # }}}
+
 
 def get_hyperslab_name_and_dims(var_name, extra_dim_vals):#{{{
     if(extra_dim_vals is None):
@@ -508,12 +512,22 @@ def get_hyperslab_name_and_dims(var_name, extra_dim_vals):#{{{
     return (out_var_names, extra_dim_vals)
 #}}}
 
-def write_vtp_header(path, prefix, active_var_index, var_indices, variable_list, all_dim_vals,
-                     vertices, connectivity, offsets, nPoints, nPolygons, outType,
-                     cellData=True, pointData=False):#{{{
-    vtkFile = VtkFile("%s/%s"%(path,prefix), VtkPolyData)
+
+def write_vtp_header(path, prefix, active_var_index, var_indices,
+                     variable_list, all_dim_vals, vertices, connectivity,
+                     offsets, nPoints, nPolygons, outType, cellData=True,
+                     pointData=False, xtime=None):  # {{{
+    vtkFile = VtkFile("{}/{}".format(path, prefix), VtkPolyData)
+
+    if xtime is not None:
+        vtkFile.openElement("metadata")
+        vtkFile.openElement("xtime")
+        vtkFile.xml.addText(xtime)
+        vtkFile.closeElement("xtime")
+        vtkFile.closeElement("metadata")
+
     vtkFile.openElement(vtkFile.ftype.name)
-    vtkFile.openPiece(npoints=nPoints,npolys=nPolygons)
+    vtkFile.openPiece(npoints=nPoints, npolys=nPolygons)
 
     vtkFile.openElement("Points")
     vtkFile.addData("points", vertices)
@@ -525,18 +539,20 @@ def write_vtp_header(path, prefix, active_var_index, var_indices, variable_list,
     vtkFile.closeElement("Polys")
 
     if(cellData):
-        vtkFile.openData("Cell", scalars = variable_list[active_var_index])
+        vtkFile.openData("Cell", scalars=variable_list[active_var_index])
         for iVar in var_indices:
             var_name = variable_list[iVar]
-            (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name, all_dim_vals[var_name])
+            (out_var_names, dim_list) = \
+                get_hyperslab_name_and_dims(var_name, all_dim_vals[var_name])
             for out_var_name in out_var_names:
                 vtkFile.addHeader(out_var_name, outType, nPolygons, 1)
         vtkFile.closeData("Cell")
     if(pointData):
-        vtkFile.openData("Point", scalars = variable_list[active_var_index])
+        vtkFile.openData("Point", scalars=variable_list[active_var_index])
         for iVar in var_indices:
             var_name = variable_list[iVar]
-            (out_var_names, dim_list) = get_hyperslab_name_and_dims(var_name, all_dim_vals[var_name])
+            (out_var_names, dim_list) = \
+                get_hyperslab_name_and_dims(var_name, all_dim_vals[var_name])
             for out_var_name in out_var_names:
                 vtkFile.addHeader(out_var_name, outType, nPoints, 1)
         vtkFile.closeData("Point")
@@ -548,8 +564,7 @@ def write_vtp_header(path, prefix, active_var_index, var_indices, variable_list,
     vtkFile.appendData(connectivity)
     vtkFile.appendData(offsets)
 
-    return vtkFile
-#}}}
+    return vtkFile  # }}}
 
 
 def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
