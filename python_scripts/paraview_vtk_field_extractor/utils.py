@@ -75,16 +75,20 @@ def setup_time_indices(fn_pattern, xtimeName):  # {{{
             print "Warning: could not open {}".format(file_name)
             continue
 
-        if xtimeName not in nc_file.variables:
-            raise ValueError("xtime variable name {} not found in {}".format(
-                    xtimeName, file_name))
-        local_times = []
-        xtime = nc_file.variables[xtimeName][:, :]
-        for index in range(xtime.shape[0]):
-            local_times.append(''.join(xtime[index, :]))
-
-        if(len(local_times) == 0):
+        if 'Time' not in nc_file.dimensions:
             local_times = ['0']
+        else:
+            if xtimeName not in nc_file.variables:
+                raise ValueError("xtime variable name {} not found in "
+                                 "{}".format(xtimeName, file_name))
+            local_times = []
+            xtime = nc_file.variables[xtimeName][:, :]
+            for index in range(xtime.shape[0]):
+                local_times.append(''.join(xtime[index, :]))
+
+            if(len(local_times) == 0):
+                local_times = ['0']
+
         nTime = len(local_times)
 
         for time_idx in range(nTime):
