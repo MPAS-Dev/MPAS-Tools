@@ -1,0 +1,5 @@
+These scripts produce partitions that improve the load balancing of the MPAS-Seaice model above that achieved with standard partitions from metis.
+
+Partitions are generated with the gen_seaice_mesh_partition.py using an input mesh file and a regions files that defines a number of regions that will be individually partitioned.
+
+Currently only one method exists for generating the partition region file: gen_seaice_regions_latitude_bands.py. This generates regions based on latitude bands. The default bands run from -90.0:-60.0, -60.0,60.0 and 60.0,90.0. The default can be overwritten with the -l command.

@@ -118,17 +118,20 @@ def get_cell_ids_orig(culledFilename, originalFilename):
 # parsing
 parser = argparse.ArgumentParser(description='Create sea ice grid partition')
 
-parser.add_argument('-m', '--mesh',      dest="meshFilename",       required=True,  help='MPAS mesh file')
-parser.add_argument('-n', '--nprocs',    dest="nProcs",             required=True,  help='number of processors', type=int)
-parser.add_argument('-c', '--culler',    dest="mpasCullerLocation", required=False, help='location of cell culler')
-parser.add_argument('-o', '--outprefix', dest="outputPrefix",       required=False, help='output graph file prefic', default="graph.info")
-parser.add_argument('-p', '--plotting',  dest="plotting",           required=False, help='create diagnostic plotting file of partitions', action='store_true')
-parser.add_argument('-g', '--metis',     dest="metis",              required=False, help='name of metis utility', default="gpmetis")
+parser.add_argument('-m', '--mesh',        dest="meshFilename",         required=True,  help='MPAS mesh file')
+parser.add_argument('-r', '--regions',     dest="regionFilename",       required=True,  help='region file')
+parser.add_argument('-n', '--nprocs',      dest="nProcs",               required=True,  help='number of processors', type=int)
+parser.add_argument('-c', '--culler',      dest="mpasCullerLocation",   required=False, help='location of cell culler')
+parser.add_argument('-o', '--outprefix',   dest="outputPrefix",         required=False, help='output graph file prefic', default="graph.info")
+parser.add_argument('-p', '--plotting',    dest="plotting",             required=False, help='create diagnostic plotting file of partitions', action='store_true')
+parser.add_argument('-g', '--metis',       dest="metis",                required=False, help='name of metis utility', default="gpmetis")
+parser.add_argument('-e', '--equatorcull', dest="cullEquatorialRegion", required=False, help='create diagnostic plotting file of partitions', action='store_true')
 
 args = parser.parse_args()
 
 # required arguments
 meshFilename = args.meshFilename
+regionFilename = args.regionFilename
 nProcsArray = [args.nProcs]
 
 # optional arguments
@@ -138,26 +141,24 @@ else:
     meshToolsDir = args.mpasCullerLocation
 decompName = args.outputPrefix
 plotting = args.plotting
+cullEquatorialRegion = args.cullEquatorialRegion
 metis = args.metis
 
-#./gen_seaice_mesh_partition.py -m /Users/akt/Work/MPAS-CICE/Standalone_sim_configs/domains/domain_QU120km/seaice_QU_120km.nc -c /Users/akt/Work/MPAS-CICE/MPAS-Tools_dev/feature_branches/grid_partition_improvements/MPAS-Tools/grid_gen/mesh_conversion_tools/ -n 32
+#./gen_seaice_mesh_partition.py -m /Users/l235697/Work/MPAS-CICE/Standalone_sim_configs/domains/domain_QU120km/seaice_QU_120km.nc -r /Users/l235697/Work/MPAS-CICE/Performance/sea_ice_coverage_partition/regions.nc -c /Users/l235697/Work/MPAS-CICE/MPAS-Tools/grid_gen/mesh_conversion_tools/ -n 32
 
-#./gen_seaice_mesh_partition.py --mesh /Users/akt/Work/MPAS-CICE/Standalone_sim_configs/domains/domain_QU120km/seaice_QU_120km.nc --culler /Users/akt/Work/MPAS-CICE/MPAS-Tools_dev/feature_branches/grid_partition_improvements/MPAS-Tools/grid_gen/mesh_conversion_tools/ --nprocs 32 --plotting --outprefix wibble2
+#./gen_seaice_mesh_partition.py --mesh /Users/l235697/Work/MPAS-CICE/Standalone_sim_configs/domains/domain_QU120km/seaice_QU_120km.nc --regions region.nc --culler /Users/l235697/Work/MPAS-Tools/Feature_branches/generalize_partition_script/MPAS-Tools/grid_gen/mesh_conversion_tools --nprocs 32 --plotting --outprefix wibble2
 
-cullEquatorialRegion = False
+plotFilename = "partition_diag.nc"
 
-if (cullEquatorialRegion):
-    minLatitudeLimits = [-100.0, -35.0,  35.0]
-    maxLatitudeLimits = [ -35.0,  35.0, 100.0]
-else:
-    minLatitudeLimits = [-100.0, -60.0,  60.0]
-    maxLatitudeLimits = [ -60.0,  60.0, 100.0]
-
-nRegions = len(minLatitudeLimits)
+# get regions
+regionFile = Dataset(regionFilename,"r")
+nRegions = regionFile.nRegions
+region = regionFile.variables["region"][:]
+regionFile.close()
 
 # diagnostics
 if (plotting):
-    os.system("cp %s plotting.nc" %(meshFilename))
+    os.system("cp %s %s" %(meshFilename,plotFilename))
 
 # load mesh file
 mesh = Dataset(meshFilename,"r")
@@ -187,9 +188,13 @@ for nProcs in nProcsArray:
         cullCell = np.ones(nCells)
 
         for iCell in range(0,nCells):
-            if (latCell[iCell] >= degree_to_radian(minLatitudeLimits[iRegion]) and \
-                latCell[iCell] <  degree_to_radian(maxLatitudeLimits[iRegion])):
+            if (region[iCell] == iRegion):
                 cullCell[iCell] = 0
+
+        #for iCell in range(0,nCells):
+        #    if (latCell[iCell] >= degree_to_radian(minLatitudeLimits[iRegion]) and \
+        #        latCell[iCell] <  degree_to_radian(maxLatitudeLimits[iRegion])):
+        #        cullCell[iCell] = 0
 
         # cull the mesh
         tmpFilenamesPostcull = tmp+"_postcull.nc"
@@ -240,7 +245,7 @@ for nProcs in nProcsArray:
 
     # diagnostics
     if (plotting):
-        plottingFile = Dataset("plotting.nc","a")
+        plottingFile = Dataset(plotFilename,"a")
         partitionVariable = plottingFile.createVariable("partition_%i" %(nProcs),"i4",("nCells"))
         partitionVariable[:] = combinedGraph
         plottingFile.close()
