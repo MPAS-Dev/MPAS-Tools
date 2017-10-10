@@ -172,7 +172,7 @@ int main ( int argc, char *argv[] ) {
 	cout << endl << endl;
 
 	if ( argc < 5 ) {
-		cout << " ERROR: Incorrect usage. See usage statement." << endl;	
+		cout << " ERROR: Incorrect usage. See usage statement." << endl;
 		print_usage();
 		exit(1);
 	} else {
@@ -404,7 +404,7 @@ int main ( int argc, char *argv[] ) {
 
 /* Utility functions {{{*/
 int featureIndex( const string featureName, const vector<string> featureNames ) {/*{{{*/
-	vector<string>::const_iterator name_itr;	
+	vector<string>::const_iterator name_itr;
 	int idx;
 	bool found;
 
@@ -520,7 +520,7 @@ vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const 
 
 								// Re-sort, until we find a neighboring index that has a smaller dist
 								for ( int k = j + 1; k < toCheck.size() && !sorted; k++ ) {
-									if ( toCheck[sortIdx].second < toCheck[k].second ) { 
+									if ( toCheck[sortIdx].second < toCheck[k].second ) {
 										//cout << " Swapping1: " << toCheck[sortIdx].first << " with " << toCheck[k].first << endl;
 										swpIdx = toCheck[sortIdx].first;
 										swpDist = toCheck[sortIdx].second;
@@ -575,7 +575,7 @@ vector<int> walkGraph( const vector< vector< pair<int, double> > > graph, const 
 			}
 		}
 
-		if ( currNode == end ) { 
+		if ( currNode == end ) {
 			toCheck.clear();
 		}
 		numChecked++;
@@ -978,7 +978,7 @@ int resetFeatureInfo(){/*{{{*/
 	return 0;
 }/*}}}*/
 int getFeatureInfo(const string featureFilename){/*{{{*/
-	ifstream json_file(featureFilename.c_str());	
+	ifstream json_file(featureFilename.c_str());
 	Json::Value root;
 	string groupName, tempGroupName;
 	vector<int> pointIndices;
@@ -1101,7 +1101,7 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 				if ( addRegToGroup ) {
 					regionIndices.push_back(regionIdx);
 				}
-			
+
 				// * Add group name to list of groups for regions, and prevent it from being added with subsequent regions
 				if ( addGroupToRegList ) {
 					addGroupToRegList = false;
@@ -1304,7 +1304,7 @@ int getFeatureInfo(const string featureFilename){/*{{{*/
 	return 0;
 }/*}}}*/
 int getSeedInfo(const string seedFilename){/*{{{*/
-	ifstream json_file(seedFilename.c_str());	
+	ifstream json_file(seedFilename.c_str());
 	Json::Value root;
 
 	json_file >> root;
@@ -1410,7 +1410,7 @@ vector< vector<int> > buildLinePaths( const vector< vector< vector<int> > > clos
 	return pathIndices;
 }/*}}}*/
 vector< vector<int> > buildEdgePathSigns( const string inputFilename, const vector< vector<int> > edgePaths ){/*{{{*/
-	int currEdge, nextEdge;	
+	int currEdge, nextEdge;
 	int sharedVert, edgeSign;
 
 	vector< vector<int> >::const_iterator paths_itr;
@@ -1655,7 +1655,7 @@ int buildAllFeatureGroups(){/*{{{*/
 
 	// 'all' point group
 	groupIndices.clear();
-	
+
 	for ( str_itr = pointNames.begin(), featureIdx = 0; str_itr != pointNames.end(); str_itr++, featureIdx++){
 		groupIndices.push_back(featureIdx);
 	}
@@ -1678,16 +1678,16 @@ int outputMaskDimensions( const string outputFilename ){/*{{{*/
 	 * **********************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the mpas file
 	NcFile grid(outputFilename.c_str(), NcFile::Replace, NULL, 0, NcFile::Offset64Bits);
 
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	
+
 	// define dimensions
 	NcDim *tempDim;
 
@@ -1727,10 +1727,10 @@ int outputMaskDimensions( const string outputFilename ){/*{{{*/
 		if (!(tempDim = grid.add_dim("maxPointsInGroup", maxPointsInGroup))) return NC_ERR;
 	}
 
-	if (!(tempDim = grid.add_dim("StrLen", 64))) return NC_ERR;
+	if (!(tempDim = grid.add_dim("StrLen", 1024))) return NC_ERR;
 
 	grid.close();
-	
+
 	// file closed when file obj goes out of scope
 	return 0;
 }/*}}}*/
@@ -1744,10 +1744,10 @@ int outputMaskAttributes( const string outputFilename, const string inputFilenam
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
 	char mesh_spec_str[1024];
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the mpas file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
 
@@ -1787,7 +1787,7 @@ int outputMaskAttributes( const string outputFilename, const string inputFilenam
 	if (!(id = grid.add_att(   "file_id", id_str.c_str() ))) return NC_ERR;
 
 	grid.close();
-	
+
 	// file closed when file obj goes out of scope
 	return 0;
 }/*}}}*/
@@ -1802,16 +1802,16 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 	 * **********************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the mpas file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	
+
 	// fetch dimensions
 	NcDim *nCellsDim = grid.get_dim( "nCells" );
 	NcDim *nVerticesDim = grid.get_dim( "nVertices" );
@@ -1834,7 +1834,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 	int i, j, idx;
 
 	if ( seedPoints.size() > 0 ) {
-		if (!(tempVar = grid.add_var("cellSeedMask", ncInt, nCellsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("cellSeedMask", ncInt, nCellsDim))) return NC_ERR;
 		if (!tempVar->put(&cellSeedMask[0], nCells)) return NC_ERR;
 	}
 
@@ -1856,9 +1856,9 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			}
 		}
 
-		if (!(tempVar = grid.add_var("regionCellMasks", ncInt, nCellsDim, nRegionsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("regionCellMasks", ncInt, nCellsDim, nRegionsDim))) return NC_ERR;
 		if (!tempVar->put(cellMasks, nCells, nRegions)) return NC_ERR;
-		if (!(tempVar = grid.add_var("nCellsInRegion", ncInt, nRegionsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("nCellsInRegion", ncInt, nRegionsDim))) return NC_ERR;
 		if (!tempVar->put(counts, nRegions)) return NC_ERR;
 		delete[] cellMasks;
 
@@ -1869,9 +1869,9 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 				counts[i] += vertexMasks[j * nRegions + i];
 			}
 		}
-		if (!(tempVar = grid.add_var("regionVertexMasks", ncInt, nVerticesDim, nRegionsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("regionVertexMasks", ncInt, nVerticesDim, nRegionsDim))) return NC_ERR;
 		if (!tempVar->put(vertexMasks, nVertices, nRegions)) return NC_ERR;
-		if (!(tempVar = grid.add_var("nVerticesInRegion", ncInt, nRegionsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("nVerticesInRegion", ncInt, nRegionsDim))) return NC_ERR;
 		if (!tempVar->put(counts, nRegions)) return NC_ERR;
 		delete[] counts;
 		delete[] vertexMasks;
@@ -1886,7 +1886,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		for (str_itr = regionNames.begin(), i=0; str_itr != regionNames.end(); str_itr++, i++){
 			snprintf(&names[i*StrLen], StrLen, "%s", (*str_itr).c_str());
 		}
-		if (!(tempVar = grid.add_var("regionNames", ncChar, nRegionsDim, StrLenDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("regionNames", ncChar, nRegionsDim, StrLenDim))) return NC_ERR;
 		if (!tempVar->put(names, nRegions, StrLen)) return NC_ERR;
 		delete[] names;
 
@@ -1917,11 +1917,11 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			snprintf(&names[i*StrLen], StrLen, "%s", (*str_itr).c_str());
 		}
 
-		if (!(tempVar = grid.add_var("nRegionsInGroup", ncInt, nRegionGroupsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("nRegionsInGroup", ncInt, nRegionGroupsDim))) return NC_ERR;
 		if (!tempVar->put(counts, nRegionGroups)) return NC_ERR;
-		if (!(tempVar = grid.add_var("regionsInGroup", ncInt, nRegionGroupsDim, maxRegionsInGroupDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("regionsInGroup", ncInt, nRegionGroupsDim, maxRegionsInGroupDim))) return NC_ERR;
 		if (!tempVar->put(indices, nRegionGroups, maxRegionsInGroup)) return NC_ERR;
-		if (!(tempVar = grid.add_var("regionGroupNames", ncChar, nRegionGroupsDim, StrLenDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("regionGroupNames", ncChar, nRegionGroupsDim, StrLenDim))) return NC_ERR;
 		if (!tempVar->put(names, nRegionGroups, StrLen)) return NC_ERR;
 
 		delete[] indices;
@@ -2111,7 +2111,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		for (str_itr = transectNames.begin(), i=0; str_itr != transectNames.end(); str_itr++, i++){
 			snprintf(&names[i*StrLen], StrLen, "%s", (*str_itr).c_str());
 		}
-		if (!(tempVar = grid.add_var("transectNames", ncChar, nTransectsDim, StrLenDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("transectNames", ncChar, nTransectsDim, StrLenDim))) return NC_ERR;
 		if (!tempVar->put(names, nTransects, StrLen)) return NC_ERR;
 		delete[] names;
 
@@ -2142,17 +2142,17 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			snprintf(&names[i*StrLen], StrLen, "%s", (*str_itr).c_str());
 		}
 
-		if (!(tempVar = grid.add_var("nTransectsInGroup", ncInt, nTransectGroupsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("nTransectsInGroup", ncInt, nTransectGroupsDim))) return NC_ERR;
 		if (!tempVar->put(counts, nTransectGroups)) return NC_ERR;
-		if (!(tempVar = grid.add_var("transectsInGroup", ncInt, nTransectGroupsDim, maxTransectsInGroupDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("transectsInGroup", ncInt, nTransectGroupsDim, maxTransectsInGroupDim))) return NC_ERR;
 		if (!tempVar->put(indices, nTransectGroups, maxTransectsInGroup)) return NC_ERR;
-		if (!(tempVar = grid.add_var("transectGroupNames", ncChar, nTransectGroupsDim, StrLenDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("transectGroupNames", ncChar, nTransectGroupsDim, StrLenDim))) return NC_ERR;
 		if (!tempVar->put(names, nTransectGroups, StrLen)) return NC_ERR;
 
 		delete[] indices;
 		delete[] counts;
 		delete[] names;
-		
+
 		// Write out signed edge transect masks
 		indices = new int[nEdges * nTransects];
 		for ( i = 0; i < nEdges; i++ ){
@@ -2169,7 +2169,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		}
 
 		for ( i = 0; i < edgePaths.size(); i++ ) {
-			if ( edgePaths[i].size() != edgePathSigns[i].size() ) { 
+			if ( edgePaths[i].size() != edgePathSigns[i].size() ) {
 				cout << "ERROR: Number of edges are not equal in path " << i << endl;
 				cout << "       " << edgePaths[i].size() << " != " << edgePathSigns[i].size() << endl;
 				cout << "Exiting..." << endl;
@@ -2253,8 +2253,8 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			} else if ( get<2>( transectProperties[0][i] ) == text ) {
 				char_vals = new char[nTransects * StrLen];
 
-				for ( j = 0; j < nTransects; j++ ) {
-					char_vals[j * StrLen] = '\0';
+				for ( j = 0; j < nTransects * StrLen; j++ ) {
+					char_vals[j] = '\0';
 				}
 
 				for ( j = 0; j < transectProperties.size(); j++ ) {
@@ -2315,7 +2315,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 		for (str_itr = pointNames.begin(), i=0; str_itr != pointNames.end(); str_itr++, i++){
 			snprintf(&names[i*StrLen], StrLen, "%s", (*str_itr).c_str());
 		}
-		if (!(tempVar = grid.add_var("pointNames", ncChar, nPointsDim, StrLenDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("pointNames", ncChar, nPointsDim, StrLenDim))) return NC_ERR;
 		if (!tempVar->put(names, nPoints, StrLen)) return NC_ERR;
 		delete[] names;
 
@@ -2346,11 +2346,11 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			snprintf(&names[i*StrLen], StrLen, "%s", (*str_itr).c_str());
 		}
 
-		if (!(tempVar = grid.add_var("nPointsInGroup", ncInt, nPointGroupsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("nPointsInGroup", ncInt, nPointGroupsDim))) return NC_ERR;
 		if (!tempVar->put(counts, nPointGroups)) return NC_ERR;
-		if (!(tempVar = grid.add_var("pointsInGroup", ncInt, nPointGroupsDim, maxPointsInGroupDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("pointsInGroup", ncInt, nPointGroupsDim, maxPointsInGroupDim))) return NC_ERR;
 		if (!tempVar->put(indices, nPointGroups, maxPointsInGroup)) return NC_ERR;
-		if (!(tempVar = grid.add_var("pointGroupNames", ncChar, nPointGroupsDim, StrLenDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("pointGroupNames", ncChar, nPointGroupsDim, StrLenDim))) return NC_ERR;
 		if (!tempVar->put(names, nPointGroups, StrLen)) return NC_ERR;
 
 		delete[] indices;
@@ -2374,15 +2374,15 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			if ( !lonRangePositive ) (*pnt_itr).setPositiveLonRange(lonRangePositive);
 		}
 
-		if (!(tempVar = grid.add_var("xPoint", ncDouble, nPointsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("xPoint", ncDouble, nPointsDim))) return NC_ERR;
 		if (!tempVar->put(x, nPoints)) return NC_ERR;
-		if (!(tempVar = grid.add_var("yPoint", ncDouble, nPointsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("yPoint", ncDouble, nPointsDim))) return NC_ERR;
 		if (!tempVar->put(y, nPoints)) return NC_ERR;
-		if (!(tempVar = grid.add_var("zPoint", ncDouble, nPointsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("zPoint", ncDouble, nPointsDim))) return NC_ERR;
 		if (!tempVar->put(z, nPoints)) return NC_ERR;
-		if (!(tempVar = grid.add_var("latPoint", ncDouble, nPointsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("latPoint", ncDouble, nPointsDim))) return NC_ERR;
 		if (!tempVar->put(lat, nPoints)) return NC_ERR;
-		if (!(tempVar = grid.add_var("lonPoint", ncDouble, nPointsDim))) return NC_ERR; 
+		if (!(tempVar = grid.add_var("lonPoint", ncDouble, nPointsDim))) return NC_ERR;
 		if (!tempVar->put(lon, nPoints)) return NC_ERR;
 		delete[] x;
 		delete[] y;
@@ -2441,8 +2441,8 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			} else if ( get<2>( pointProperties[0][i] ) == text ) {
 				char_vals = new char[nPoints * StrLen];
 
-				for ( j = 0; j < nPoints; j++ ) {
-					char_vals[j * StrLen] = '\0';
+				for ( j = 0; j < nPoints * StrLen; j++ ) {
+					char_vals[j] = '\0';
 				}
 
 				for ( j = 0; j < pointProperties.size(); j++ ) {
@@ -2462,7 +2462,7 @@ int outputMaskFields( const string outputFilename) {/*{{{*/
 			}
 		}
 	}
-	
+
 	grid.close();
 
 	return 0;
