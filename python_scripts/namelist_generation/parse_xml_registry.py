@@ -1,4 +1,47 @@
 #!/usr/bin/env python
+
+"""
+A script for generating LaTex files from MPAS registry files.
+
+Typical usage is as follows::
+
+    # set the core, one of ocean, landice, cice, etc.
+    exoprt CORE=<core>
+    # Set your repo directories:
+    export MPAS_REPO=~/repos/MPAS
+    export MPAS_TOOLS_REPO=~/repos/MPAS-Tools
+    export MPAS_DOCUMENTS_REPO=~/repos/MPAS-Documents
+    cd $MPAS_REPO
+    # Compile MPAS so you have a src/core_ocean/Registry_processed.xml file.
+    # Change the compiler as needed.
+    make CORE=$CORE gfortran
+    cd $MPAS_DOCUMENTS_REPO/users_guide/$CORE
+    $MPAS_TOOLS_REPO/python_scripts/namelist_generation/parse_xml_registry.py \
+      -f $MPAS_REPO/src/core_${CORE}/Registry_processed.xml \
+      -d section_descriptions -p section_descriptions
+    cd ..
+    make clean CORE=$CORE
+    make CORE=$CORE
+
+The -f flag points to the processed registry file (typically with a full path).
+
+The -d flag points to the local or full path to .tex files that more fully
+describe namelists in the registry.  The path must contain a file
+<namelist_record_name>.tex in order for the additional latex to be included.
+
+The -p flag gives the *relative* path from
+``$MPAS_DOCUMENTS_REPO/users_guide/$CORE`` to the same LaTex files pointed to
+by the -d flag.  This is used internally in the auto-generated LaTex as the
+local path to these files.  Under typical usage, the -d and -p flags will point
+to the same relative path since it is simplest to run this script in the
+``$MPAS_DOCUMENTS_REPO/users_guide/$CORE`` directory.
+
+Authors:
+========
+Doug Jacobsen, Xylar Asay-Davis
+"""
+
+
 import os
 from optparse import OptionParser
 import xml.etree.ElementTree as ET
