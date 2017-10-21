@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 import os
 from optparse import OptionParser
 import xml.etree.ElementTree as ET
@@ -53,14 +53,10 @@ if not options.registry_path:
     parser.error("Registry file is required")
 
 if not options.latex_dir:
-    print 'Directory with group latex files is missing. Skipping addition of' \
-          ' latex files.'
-    extra_latex = False
-else:
-    if not options.latex_path:
-        parser.error('Need latex path with latex directory.')
-    extra_latex = True
-
+    parser.error('Directory with group latex files is missing. Skipping '
+                 'addition of latex files.')
+if not options.latex_path:
+    parser.error('Need latex path with latex directory.')
 
 latex_missing_string = '{\\bf \color{red} MISSING}'
 dimension_table_header = '{\\bf Name} & {\\bf Units} & {\\bf Description}'
@@ -367,7 +363,10 @@ for var_struct in registry.iter("var_struct"):
         if node.tag == 'var_array':
             for var in node.iter("var"):
                 var_name = var.attrib['name']
-                var_description = var.attrib['description']
+                try:
+                    var_description = var.attrib['description']
+                except KeyError:
+                    var_description == latex_missing_string.replace('_', '\_')
 
                 if var_description == "":
                     var_description = latex_missing_string.replace('_', '\_')
@@ -415,7 +414,10 @@ for var_struct in registry.iter("var_struct"):
         elif node.tag == 'var':
             var = node
             var_name = var.attrib['name']
-            var_description = var.attrib['description']
+            try:
+                var_description = var.attrib['description']
+            except KeyError:
+                var_description == latex_missing_string.replace('_', '\_')
 
             if var_description == "":
                 var_description = latex_missing_string.replace('_', '\_')
@@ -473,7 +475,11 @@ latex.write('Embedded links point to information in chapter '
             '\\ref{chap:variable_tables}\n')
 for var_struct in registry.iter("var_struct"):
     struct_name = var_struct.attrib['name']
-    struct_time_levs = var_struct.attrib['time_levs']
+    try:
+        struct_time_levs = var_struct.attrib['time_levs']
+    except KeyError:
+        # this won't be used
+        struct_time_levs = "0"
     latex.write('\section[%s]{\hyperref[sec:var_tab_%s]{%s}}\n' % (
             struct_name.replace('_', '\_'), struct_name,
             struct_name.replace('_', '\_')))
@@ -607,7 +613,7 @@ for var_struct in registry.iter("var_struct"):
                 var_dims = var.attrib['dimensions']
 
                 try:
-                    var_persistence = var_arr.attrib['persistence']
+                    var_persistence = var.attrib['persistence']
                 except KeyError:
                     var_persistence = 'persistent'
 
@@ -703,7 +709,3 @@ for var_struct in registry.iter("var_struct"):
                 latex.write('\end{center}\n')
 
 latex.close()
-
-
-
-
