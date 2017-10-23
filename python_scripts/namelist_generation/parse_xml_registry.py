@@ -219,6 +219,7 @@ for nml_rec in registry.iter("nml_record"):
     if os.path.exists('%s/%s.tex' % (options.latex_dir, rec_name)):
         latex.write('\input{%s/%s.tex}\n' % (options.latex_path, rec_name))
     else:
+        print 'Warning, namelist description latex file not found: %s/%s.tex' % (options.latex_dir, rec_name)
         latex.write('')
 
     latex.write('\\vspace{0.5in}\n')
@@ -390,6 +391,7 @@ for var_struct in registry.iter("var_struct"):
         latex.write('\input{%s/%s_struct.tex}\n' % (options.latex_path,
                                                     struct_name))
     else:
+        print 'Warning, variable section description latex file not found: %s/%s_struct.tex' % (options.latex_dir, struct_name)
         latex.write('')
 
     latex.write('\\vspace{0.5in}\n')
