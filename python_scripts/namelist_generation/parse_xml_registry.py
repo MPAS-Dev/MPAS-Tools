@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 """
-A script for generating LaTex files from MPAS registry files.
+This script parses a MPAS Registry.xml file to generates documentation for a
+users or developers guide.
 
 Typical usage is as follows::
 
@@ -25,16 +26,40 @@ Typical usage is as follows::
 
 The -f flag points to the processed registry file (typically with a full path).
 
-The -d flag points to the local or full path to .tex files that more fully
-describe namelists in the registry.  The path must contain a file
-<namelist_record_name>.tex in order for the additional latex to be included.
+The -d flag points to the local or full path to .tex files that containing
+section descriptions for providing additional information in the output latex
+documentation.
 
-The -p flag gives the *relative* path from
-``$MPAS_DOCUMENTS_REPO/users_guide/$CORE`` to the same LaTex files pointed to
-by the -d flag.  This is used internally in the auto-generated LaTex as the
-local path to these files.  Under typical usage, the -d and -p flags will point
-to the same relative path since it is simplest to run this script in the
-``$MPAS_DOCUMENTS_REPO/users_guide/$CORE`` directory.
+Section descriptions are required to be named whatever the section is. For
+example, in a namelist, there might be a namelist record named
+"&time_management". The script searches the directory listed with the -d
+flag for a latex file named time_management.tex, and adds an input line to
+the output latex documentation to include this file.
+
+The -p flag specifies the relative path inside the latex documentation where
+the file should be input from. As an example, one might
+run it as follows to generate the ocean core's documentation::
+
+    ./parse_xml_registry.xml -f mpas_root/src/core_ocean/Registry.xml \
+        -d mpas_doc_root/users_guide/ocean/section_descriptions \
+        -p ocean/section_descriptions
+
+On output, several files are created which are listed below.
+    namelist.input.generated - A default namelist.input file for the core that
+                               owns the Registry.xml file.
+    dimensions.tex - A tabulated description of the dimensions for the core.
+    namelist_table_documentation.tex - A tabulated description of the namelist
+                                       options for the core.
+    namelist_section_documentation.tex - A more detailed section format
+                                         description of the namelist options
+                                         for the core.
+    variable_table_documentation.tex - A tabulated description of the variables
+                                       in the core.
+    variable_section_documentation.tex - A more detailed section formate
+                                         description of the variable in the
+                                         core.
+    define_version.tex - A simple file which can be included to define \version
+                         inside the users guide.
 
 Authors:
 ========
@@ -735,6 +760,7 @@ for var_struct in registry.iter("var_struct"):
                 latex.write('        \hline \n')
                 latex.write('        Type: & %s \\\\\n' % var_type)
                 latex.write('        \hline \n')
+                print var_name, var_units
                 latex.write('        Units: & %s \\\\\n' % var_units)
                 latex.write('        \hline \n')
                 latex.write('        Dimension: & %s \\\\\n' % var_dims)
