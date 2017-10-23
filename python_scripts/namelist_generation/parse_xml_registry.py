@@ -18,7 +18,7 @@ Typical usage is as follows::
     cd $MPAS_DOCUMENTS_REPO/users_guide/$CORE
     $MPAS_TOOLS_REPO/python_scripts/namelist_generation/parse_xml_registry.py \
       -f $MPAS_REPO/src/core_${CORE}/Registry_processed.xml \
-      -d section_descriptions -p section_descriptions
+      -d section_descriptions -p ${CORE}/section_descriptions
     cd ..
     make clean CORE=$CORE
     make CORE=$CORE
