@@ -244,7 +244,8 @@ for nml_rec in registry.iter("nml_record"):
     if os.path.exists('%s/%s.tex' % (options.latex_dir, rec_name)):
         latex.write('\input{%s/%s.tex}\n' % (options.latex_path, rec_name))
     else:
-        print 'Warning, namelist description latex file not found: %s/%s.tex' % (options.latex_dir, rec_name)
+        print 'Warning, namelist description latex file not found: %s/%s.tex' \
+            % (options.latex_dir, rec_name)
         latex.write('')
 
     latex.write('\\vspace{0.5in}\n')
@@ -416,7 +417,8 @@ for var_struct in registry.iter("var_struct"):
         latex.write('\input{%s/%s_struct.tex}\n' % (options.latex_path,
                                                     struct_name))
     else:
-        print 'Warning, variable section description latex file not found: %s/%s_struct.tex' % (options.latex_dir, struct_name)
+        print 'Warning, variable section description latex file not found: ' \
+            '%s/%s_struct.tex' % (options.latex_dir, struct_name)
         latex.write('')
 
     latex.write('\\vspace{0.5in}\n')
@@ -599,13 +601,13 @@ for var_struct in registry.iter("var_struct"):
 
                 if int(struct_time_levs) > 1:
                     var_index = "domain %% blocklist %% %s %% index_%s" % (
-                            struct_name, var_name_in_code.replace('_', '\_'))
+                            struct_name, var_name_in_code)
                     var_path = "domain %% blocklist %% %s %% time_levs(:) " \
                                "%% %s %% %s" % (struct_name, struct_name,
                                                 var_arr_name)
                 else:
                     var_index = "domain %% blocklist %% %s %% index_%s" % (
-                            struct_name, var_name_in_code.replace('_', '\_'))
+                            struct_name, var_name_in_code)
                     var_path = "domain %% blocklist %% %s %% %s" % (
                             struct_name, var_arr_name)
 
@@ -760,7 +762,6 @@ for var_struct in registry.iter("var_struct"):
                 latex.write('        \hline \n')
                 latex.write('        Type: & %s \\\\\n' % var_type)
                 latex.write('        \hline \n')
-                print var_name, var_units
                 latex.write('        Units: & %s \\\\\n' % var_units)
                 latex.write('        \hline \n')
                 latex.write('        Dimension: & %s \\\\\n' % var_dims)
