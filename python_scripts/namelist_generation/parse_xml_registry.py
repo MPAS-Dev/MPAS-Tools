@@ -489,7 +489,7 @@ for var_struct in registry.iter("var_struct"):
             try:
                 var_description = var.attrib['description']
             except KeyError:
-                var_description == latex_missing_string.replace('_', '\_')
+                var_description = latex_missing_string.replace('_', '\_')
 
             if var_description == "":
                 var_description = latex_missing_string.replace('_', '\_')
