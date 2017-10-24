@@ -217,7 +217,7 @@ for dims in registry.iter("dims"):
 
         latex.write('    %s & %s & %s \\\\ \n' % (
                 dim_name.replace('_', '\_'), dim_units.replace('_', '\_'),
-                dim_description.replace('_', '\_')))
+                dim_description))
         latex.write('    \hline\n')
 
 latex.write('\end{longtable}\n')
