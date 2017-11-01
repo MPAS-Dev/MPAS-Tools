@@ -350,9 +350,8 @@ for nml_rec in registry.iter("nml_record"):
 
         try:
             opt_icepack_name = nml_opt.attrib["icepack_name"]
-            opt_icepack_name_present = True
-        except:
-            opt_icepack_name_present = False
+        except KeyError:
+            opt_icepack_name = None
 
         if opt_possible_values == "":
             opt_possible_values = latex_missing_string
@@ -398,7 +397,7 @@ for nml_rec in registry.iter("nml_record"):
         latex.write('    \hline\n')
         latex.write('    Possible Values: & %s \\\\\n' %
                     opt_possible_values.replace('_', '\_'))
-        if (opt_icepack_name_present):
+        if (opt_icepack_name is not None):
             latex.write('    \hline\n')
             latex.write('    Icepack name: & \\verb+%s+ \\\\\n' %
                     opt_icepack_name)
