@@ -348,6 +348,12 @@ for nml_rec in registry.iter("nml_record"):
         except KeyError:
             opt_description = latex_missing_string
 
+        try:
+            opt_icepack_name = nml_opt.attrib["icepack_name"]
+            opt_icepack_name_present = True
+        except:
+            opt_icepack_name_present = False
+
         if opt_possible_values == "":
             opt_possible_values = latex_missing_string
 
@@ -392,6 +398,10 @@ for nml_rec in registry.iter("nml_record"):
         latex.write('    \hline\n')
         latex.write('    Possible Values: & %s \\\\\n' %
                     opt_possible_values.replace('_', '\_'))
+        if (opt_icepack_name_present):
+            latex.write('    \hline\n')
+            latex.write('    Icepack name: & \\verb+%s+ \\\\\n' %
+                    opt_icepack_name)
         latex.write('    \hline\n')
         latex.write('    \caption{%s: %s}\n' % (opt_name.replace('_', '\_'),
                     opt_description))
