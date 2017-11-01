@@ -1,11 +1,11 @@
 Authors: Doug Jacobsen, Xylar Asay-Davis
 Date: 04/19/13
-Last Modified: 10/23/17
+Last Modified: 10/26/17
 
 This script parses a MPAS Registry.xml file to generates documentation for a
 users or developers guide.
 
-Typical usage is as follows::
+Typical usage is as follows:
 
     # set the core, one of ocean, landice, cice, etc.
     exoprt CORE=<core>
@@ -18,9 +18,12 @@ Typical usage is as follows::
     # Change the compiler as needed.
     make CORE=$CORE gfortran
     cd $MPAS_DOCUMENTS_REPO/users_guide/$CORE
+    # clean up blank lines at the top of the XML file
+    sed '/./,$!d' $MPAS_REPO/src/core_${CORE}/Registry_processed.xml > \
+      Registry_cleaned.xml
     $MPAS_TOOLS_REPO/python_scripts/namelist_generation/parse_xml_registry.py \
-      -f $MPAS_REPO/src/core_${CORE}/Registry_processed.xml \
-      -d section_descriptions -p ${CORE}/section_descriptions
+      -f Registry_cleaned.xml -d section_descriptions \
+      -p ${CORE}/section_descriptions
     cd ..
     make clean CORE=$CORE
     make CORE=$CORE

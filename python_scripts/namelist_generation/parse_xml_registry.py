@@ -17,9 +17,12 @@ Typical usage is as follows::
     # Change the compiler as needed.
     make CORE=$CORE gfortran
     cd $MPAS_DOCUMENTS_REPO/users_guide/$CORE
+    # clean up blank lines at the top of the XML file
+    sed '/./,$!d' $MPAS_REPO/src/core_${CORE}/Registry_processed.xml > \
+      Registry_cleaned.xml
     $MPAS_TOOLS_REPO/python_scripts/namelist_generation/parse_xml_registry.py \
-      -f $MPAS_REPO/src/core_${CORE}/Registry_processed.xml \
-      -d section_descriptions -p ${CORE}/section_descriptions
+      -f Registry_cleaned.xml -d section_descriptions \
+      -p ${CORE}/section_descriptions
     cd ..
     make clean CORE=$CORE
     make CORE=$CORE
