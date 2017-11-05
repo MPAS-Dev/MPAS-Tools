@@ -7,7 +7,7 @@ users or developers guide.
 Typical usage is as follows::
 
     # set the core, one of ocean, landice, cice, etc.
-    exoprt CORE=<core>
+    export CORE=<core>
     # Set your repo directories:
     export MPAS_REPO=~/repos/MPAS
     export MPAS_TOOLS_REPO=~/repos/MPAS-Tools
@@ -161,7 +161,8 @@ def get_attrib(element, attributeName, missingValue=None):
 def get_units(element):
     units = get_attrib(element, 'units')
     if units != latex_missing_string:
-        units = "${}$".format(units.replace(' ', '$ $'))
+        # units with the siunitx package
+        units = "\si{{{}}}".format(units.replace(' ', '.'))
     units = escape_underscore(units)
     return units
 

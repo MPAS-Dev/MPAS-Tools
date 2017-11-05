@@ -8,7 +8,7 @@ users or developers guide.
 Typical usage is as follows:
 
     # set the core, one of ocean, landice, cice, etc.
-    exoprt CORE=<core>
+    export CORE=<core>
     # Set your repo directories:
     export MPAS_REPO=~/repos/MPAS
     export MPAS_TOOLS_REPO=~/repos/MPAS-Tools
