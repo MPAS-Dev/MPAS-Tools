@@ -107,13 +107,14 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
     nHyperSlabs = 0
     for iVar in range(nVars):
         var_name = variable_list[iVar]
-        if var_name in time_series_file.variables:
-            var_has_time_dim[iVar] = \
-                'Time' in time_series_file.variables[var_name].dimensions
-        else:
-            # we can't support time dependence in the mesh file
-            assert('Time' not in mesh_file.variables[var_name].dimensions)
-            var_has_time_dim[iVar] = False
+        if xtimeName is not None:
+            if var_name in time_series_file.variables:
+                var_has_time_dim[iVar] = \
+                    'Time' in time_series_file.variables[var_name].dimensions
+            else:
+                # we can't support time dependence in the mesh file
+                assert('Time' not in mesh_file.variables[var_name].dimensions)
+                var_has_time_dim[iVar] = False
 
         extra_dim_vals = all_dim_vals[var_name]
         if (extra_dim_vals is None) or (len(extra_dim_vals) == 0):
@@ -188,16 +189,20 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
             prev_file = file_names[time_index]
 
         if any_var_has_time_dim:
-            if xtimeName not in time_series_file.variables:
-                raise ValueError("xtime variable name {} not found in "
-                                 "{}".format(xtimeName, time_series_file))
-            var = time_series_file.variables[xtimeName]
-            xtime = ''.join(var[local_time_indices[time_index], :]).strip()
-            date = datetime(int(xtime[0:4]), int(xtime[5:7]), int(xtime[8:10]),
-                            int(xtime[11:13]), int(xtime[14:16]),
-                            int(xtime[17:19]))
-            years = date2num(date, units='days since 0000-01-01',
-                             calendar='noleap')/365.
+            if xtimeName is None:
+                xtime = None
+                years = float(time_index)
+            else:
+                if xtimeName not in time_series_file.variables:
+                    raise ValueError("xtime variable name {} not found in "
+                                     "{}".format(xtimeName, time_series_file))
+                var = time_series_file.variables[xtimeName]
+                xtime = ''.join(var[local_time_indices[time_index], :]).strip()
+                date = datetime(int(xtime[0:4]), int(xtime[5:7]),
+                                int(xtime[8:10]), int(xtime[11:13]),
+                                int(xtime[14:16]), int(xtime[17:19]))
+                years = date2num(date, units='days since 0000-01-01',
+                                 calendar='noleap')/365.
 
             # write the header for the vtp file
             vtp_file_prefix = "time_series/{}.{:d}".format(out_prefix,
@@ -346,7 +351,11 @@ if __name__ == "__main__":
                              "space, not Cartesian.", action="store_true")
     parser.add_argument("-t", "--time", dest="time",
                         help="Indices for the time dimension", metavar="TIME",
-                             required=False)
+                        required=False)
+    parser.add_argument("--ignore_time", dest="ignore_time",
+                        action="store_true",
+                        help="ignore the Time dimension if it exists",
+                        required=False)
     args = parser.parse_args()
 
     if not args.output_32bit:
@@ -358,6 +367,9 @@ if __name__ == "__main__":
         args.blocking = int(10000)
     else:
         args.blocking = int(args.blocking)
+
+    if args.ignore_time:
+        args.xtime = None
 
     (time_indices, time_file_names) = utils.setup_time_indices(
         args.filename_pattern, args.xtime)
