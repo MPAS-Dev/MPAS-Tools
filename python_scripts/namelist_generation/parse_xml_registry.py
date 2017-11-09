@@ -74,38 +74,64 @@ import os
 from optparse import OptionParser
 import xml.etree.ElementTree as ET
 from collections import OrderedDict
+from PIL import ImageFont
+import pkg_resources
 
 
-def break_string(string, max_length=33.5):  # {{{
-    idx = -1
+def break_string(string, maxLength=150., font='cmunrm.otf', fontSize=10):
+    # {{{
 
-    size = 0
+    # Note: max_length is in points, so 144. corresponds to 2 inches, the
+    # column width for namelist and variable names in tables in the user guide
 
-    big_size = 1.8
-    small_size = 1.2
-    really_small_size = 0.2
+    # font defaults to LaTex font (Computer Modern), and user guide font size
+    # in tables
 
-    big_count = 0
-    small_count = 0
-    really_small_count = 0
+    # if an absolute path to the font was not supplied, look relative to this
+    # script
+    if not os.path.isabs(font):
+        font = pkg_resources.resource_filename(__name__, font)
 
-    for c in string:
-        idx = idx + 1
-        if c.isupper():
-            big_count = big_count + 1
-            size = size + big_size
-        else:
-            if c == "l" or c == "i":
-                really_small_count = really_small_count + 1
-                size = size + really_small_size
-            else:
-                small_count = small_count + 1
-                size = size + small_size
+    font = ImageFont.truetype(font, fontSize)
+    size = font.getsize(string)
+    if size[0] <= maxLength:
+        # no need to split
+        return None
 
-        if size >= max_length:
-            return idx
+    bestBreakPoints = []
 
-    return None
+    # first alpha-numeric character after a non-alpha-numeric character
+    for index in range(1, len(string)):
+        if not string[index-1].isalnum() and string[index].isalnum():
+            bestBreakPoints.append(index)
+
+    # find uppercase following lowercase or number
+    for index in range(1, len(string)):
+        if string[index-1].isalnum() and string[index-1].islower() \
+                and string[index].isalpha() and string[index].isupper():
+            bestBreakPoints.append(index)
+
+    bestBreakPoints.append(len(string))
+
+    bestBreakPoints = sorted(bestBreakPoints)
+
+    for index in range(1, len(bestBreakPoints)):
+        breakPoint = bestBreakPoints[index]
+        size = font.getsize(string[:breakPoint])
+        if size[0] > maxLength:
+            breakPoint = bestBreakPoints[index-1]
+            return breakPoint
+
+    # there is no good break point so we have to find an arbitrary one
+    print "Warning: no good breakpoint found for {}".format(string)
+    for breakPoint in range(1, len(string)+1):
+        breakPoint = bestBreakPoints[index]
+        size = font.getsize(string[:breakPoint])
+        if size[0] > maxLength:
+            breakPoint = breakPoint-1
+            return breakPoint
+
+    raise ValueError("Could not find a breakpoint for {}".format(string))
     # }}}
 
 
@@ -173,14 +199,23 @@ def get_description(element):
     return description
 
 
-def get_linked_name(name, link, maxLength=33.5):
-    idx = break_string(name, maxLength)
-    if idx is not None:
-        name = '{}\\-{}'.format(escape_underscore(name[0:idx]),
-                                escape_underscore(name[idx:]))
-    else:
-        name = escape_underscore(name)
-    return '\hyperref[subsec:%s]{%s}' % (link, name)
+def get_linked_name(name, link):
+    indices = []
+    index = 0
+    while True:
+        newIndex = break_string(name[index:])
+        if newIndex is None:
+            break
+        index += newIndex
+        indices.append(index)
+
+    indices.append(len(name))
+    newName = escape_underscore(name[0:indices[0]])
+    for start, end in zip(indices[0:-1], indices[1:]):
+        namePiece = escape_underscore(name[start:end])
+        newName = '{}\\-{}'.format(newName, namePiece)
+
+    return '\hyperref[subsec:%s]{%s}' % (link, newName)
 
 
 def write_var_struct_to_table(latex, var_struct, struct_name):
