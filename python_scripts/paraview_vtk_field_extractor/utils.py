@@ -75,7 +75,7 @@ def setup_time_indices(fn_pattern, xtimeName):  # {{{
             print "Warning: could not open {}".format(file_name)
             continue
 
-        if 'Time' not in nc_file.dimensions:
+        if 'Time' not in nc_file.dimensions or xtimeName is None:
             local_times = ['0']
         else:
             if xtimeName not in nc_file.variables:
