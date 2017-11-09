@@ -73,21 +73,10 @@ Doug Jacobsen, Xylar Asay-Davis
 import os
 from optparse import OptionParser
 import xml.etree.ElementTree as ET
-
-parser = OptionParser()
-parser.add_option("-f", "--file", dest="registry_path",
-                  help="Path to Registry file", metavar="FILE")
-parser.add_option("-d", "--tex_dir", dest="latex_dir",
-                  help="Path to directory with latex addition files.",
-                  metavar="DIR")
-parser.add_option("-p", "--tex_path", dest="latex_path",
-                  help="Path to latex input files that will be written to "
-                       "generated latex.", metavar="PATH")
-
-options, args = parser.parse_args()
+from collections import OrderedDict
 
 
-def break_string(string):  # {{{
+def break_string(string, max_length=33.5):  # {{{
     idx = -1
 
     size = 0
@@ -113,12 +102,434 @@ def break_string(string):  # {{{
                 small_count = small_count + 1
                 size = size + small_size
 
-        if size >= 33.5:
+        if size >= max_length:
             return idx
 
-    return -1
+    return None
     # }}}
 
+
+def write_namelist_input_generated():
+    # Write default namelist
+    namelist = open('namelist.input.generated', 'w')
+    for nml_rec in registry.iter("nml_record"):
+        namelist.write('&%s\n' % nml_rec.attrib['name'])
+        for nml_opt in nml_rec.iter("nml_option"):
+            if nml_opt.attrib['type'] == "character":
+                namelist.write('\t%s = "%s"\n' % (
+                        nml_opt.attrib['name'],
+                        nml_opt.attrib['default_value']))
+            else:
+                namelist.write('\t%s = %s\n' % (
+                        nml_opt.attrib['name'],
+                        nml_opt.attrib['default_value']))
+
+        namelist.write('/\n')
+
+
+def escape_underscore(string):
+    has_math_mode = (string.find('$') != -1)
+    if has_math_mode:
+        dim_desc_split = string.split("$")
+        replace = True
+        string = ""
+        for part in dim_desc_split:
+            if replace:
+                part = part.replace('_', '\_')
+                string = "{}{}".format(string, part)
+                replace = False
+            else:
+                string = "{}${}$".format(string, part)
+                replace = True
+    else:
+        string = string.replace('_', '\_')
+    return string
+
+
+def get_attrib(element, attributeName, missingValue=None):
+    if missingValue is None:
+        missingValue = latex_missing_string
+    try:
+        attrib = element.attrib[attributeName]
+    except KeyError:
+        attrib = missingValue
+    if attrib == "":
+        attrib = missingValue
+    return attrib
+
+
+def get_units(element):
+    units = get_attrib(element, 'units')
+    if units != latex_missing_string:
+        units = "${}$".format(units.replace(' ', '$ $'))
+    units = escape_underscore(units)
+    return units
+
+
+def get_description(element):
+    description = get_attrib(element, 'description')
+    description = escape_underscore(description)
+    return description
+
+
+def get_linked_name(name, link, maxLength=33.5):
+    idx = break_string(name, maxLength)
+    if idx is not None:
+        name = '{}\\-{}'.format(escape_underscore(name[0:idx]),
+                                escape_underscore(name[idx:]))
+    else:
+        name = escape_underscore(name)
+    return '\hyperref[subsec:%s]{%s}' % (link, name)
+
+
+def write_var_struct_to_table(latex, var_struct, struct_name):
+    for node in var_struct:
+        if node.tag == 'var_struct':
+            write_var_struct_to_table(latex, node, struct_name)
+        elif node.tag == 'var_array':
+            write_var_array_to_table(latex, node, struct_name)
+        elif node.tag == 'var':
+            write_var_to_table(latex, node, struct_name)
+
+
+def write_var_array_to_table(latex, var_array, struct_name):
+    for var in var_array.iter("var"):
+        write_var_to_table(latex, var, struct_name)
+
+
+def write_var_to_table(latex, var, struct_name):
+    var_name = var.attrib['name']
+    var_description = get_description(var)
+
+    link = 'var_sec_{}_{}'.format(struct_name, var_name)
+    linkedName = get_linked_name(var_name, link)
+
+    latex.write('    {} & {} \\\\\n'.format(linkedName,
+                                            var_description))
+    latex.write('    \hline\n')
+
+
+def get_var_structs():
+    # use a dictionary to create lists of all top-level var_structs with the
+    # same name (e.g. state, tracers, mesh)
+    var_structs = OrderedDict()
+    for var_struct in registry:
+        if var_struct.tag != "var_struct":
+            continue
+        struct_name = var_struct.attrib['name']
+        if struct_name in var_structs.keys():
+            var_structs[struct_name].append(var_struct)
+        else:
+            var_structs[struct_name] = [var_struct]
+    return var_structs
+
+
+def write_var_struct_section(latex, var_struct, struct_name, has_time):
+    for node in var_struct:
+        if node.tag == 'var_struct':
+            write_var_struct_section(latex, node, struct_name, has_time)
+        elif node.tag == 'var_array':
+            write_var_array_section(latex, node, struct_name, has_time)
+        elif node.tag == 'var':
+            write_var_section(latex, node, struct_name, has_time)
+
+
+def write_var_array_section(latex, var_array, struct_name, has_time):
+    for var in var_array.iter("var"):
+        write_var_section(latex, var, struct_name, has_time, var_array)
+
+
+def write_var_section(latex, var, struct_name, has_time, var_array=None):
+    var_name = var.attrib['name']
+    var_name_escaped = escape_underscore(var_name)
+    if var_array is None:
+        var_type = var.attrib['type']
+        dimensions = var.attrib['dimensions']
+    else:
+        var_arr_name = escape_underscore(var_array.attrib['name'])
+        var_type = var_array.attrib['type']
+        dimensions = var_array.attrib['dimensions']
+
+    persistence = get_attrib(var, "persistence", missingValue='persistent')
+    name_in_code = get_attrib(var, "name_in_code", missingValue=var_name)
+    units = get_units(var)
+    description = get_description(var)
+
+    if has_time:
+        var_path = "domain % blocklist % {} % time_levs(:) % {} % {}".format(
+                struct_name, struct_name, var_name)
+    else:
+        var_path = "domain % blocklist % {} % {}".format(struct_name, var_name)
+
+    var_path = escape_underscore(var_path).replace('%', '\%')
+
+    latex.write('\subsection[%s]{\hyperref[sec:var_tab_%s]{%s}}\n' % (
+            var_name_escaped, struct_name, var_name_escaped))
+    latex.write('\label{subsec:var_sec_%s_%s}\n' % (struct_name, var_name))
+    # Tabular Format:
+    latex.write('\\begin{center}\n')
+    latex.write('\\begin{longtable}{| p{2.0in} | p{4.0in} |}\n')
+    latex.write('        \hline \n')
+    latex.write('        Type: & %s \\\\\n' % var_type)
+    latex.write('        \hline \n')
+    latex.write('        Units: & %s \\\\\n' % units)
+    latex.write('        \hline \n')
+    latex.write('        Dimension: & %s \\\\\n' % dimensions)
+    latex.write('        \hline \n')
+    latex.write('        Persistence: & %s \\\\\n' % (persistence))
+    latex.write('        \hline \n')
+
+    if var_array is not None:
+        array_group = escape_underscore(var.attrib['array_group'])
+        index = "domain % blocklist % {} % index_{}".format(struct_name,
+                                                            name_in_code)
+        index = escape_underscore(index).replace('%', '\%')
+
+        latex.write('         Index in %s Array: & %s \\\\\n' % (var_arr_name,
+                                                                 index))
+        latex.write('         \hline \n')
+
+    latex.write('         Location in code: & %s \\\\\n' % (var_path))
+    latex.write('         \hline \n')
+
+    if var_array is not None:
+        latex.write('         Array Group: & %s \\\\\n' % (array_group))
+        latex.write('         \hline \n')
+
+    latex.write('    \caption{%s: %s}\n' % (var_name_escaped, description))
+    latex.write('\end{longtable}\n')
+    latex.write('\end{center}\n')
+
+
+def write_dimension_table_documentation():
+    # Write dimension table documentation latex file.
+    latex = open('dimension_table_documentation.tex', 'w')
+    latex.write('\chapter{Dimensions}\n')
+    latex.write('\label{chap:dimensions}\n')
+    latex.write('{\small\n')
+    latex.write('\\begin{center}\n')
+    latex.write('\\begin{longtable}{| p{1.0in} || p{1.0in} | p{4.0in} |}\n')
+    latex.write('    \hline \n')
+    latex.write('    {} \\endfirsthead\n'.format(dimension_table_header))
+    latex.write('    \hline \n')
+    latex.write('    {} (Continued) \\endhead\n'.format(
+            dimension_table_header))
+    latex.write('    \hline \n')
+    latex.write('    \hline \n')
+    for dims in registry.iter("dims"):
+        for dim in dims.iter("dim"):
+            name = dim.attrib['name']
+            name = escape_underscore(name)
+            units = get_units(dim)
+            description = get_description(dim)
+
+            latex.write('    {} & {} & {} \\\\ \n'.format(
+                    name, units, description))
+            latex.write('    \hline\n')
+
+    latex.write('\end{longtable}\n')
+    latex.write('\end{center}\n')
+    latex.write('}\n')
+    latex.close()
+
+
+def write_namelist_table_documentation():
+    # Write namelist table documentation latex file.
+    latex = open('namelist_table_documentation.tex', 'w')
+    latex.write('\chapter[Namelist options]{\hyperref[chap:namelist_sections]'
+                '{Namelist options}}\n')
+    latex.write('\label{chap:namelist_tables}\n')
+    latex.write('Embedded links point to more detailed namelist information '
+                'in the appendix.\n')
+    for nml_rec in registry.iter("nml_record"):
+        rec_name = nml_rec.attrib['name']
+        rec_name_escaped = escape_underscore(rec_name)
+        latex.write('\section[%s]{\hyperref[sec:nm_sec_%s]{%s}}\n' % (
+                rec_name_escaped, rec_name, rec_name_escaped))
+        latex.write('\label{sec:nm_tab_%s}\n' % (rec_name))
+
+        # Add input line if file exists.
+        if os.path.exists('%s/%s.tex' % (options.latex_dir, rec_name)):
+            latex.write('\input{%s/%s.tex}\n' % (options.latex_path, rec_name))
+        else:
+            print 'Warning, namelist description latex file not found: ' \
+                  '%s/%s.tex' % (options.latex_dir, rec_name)
+            latex.write('')
+
+        latex.write('\\vspace{0.5in}\n')
+        latex.write('{\small\n')
+        latex.write('\\begin{center}\n')
+        latex.write('\\begin{longtable}{| p{2.0in} || p{4.0in} |}\n')
+        latex.write('    \hline\n')
+        latex.write('    %s \\endfirsthead\n' % namelist_table_header)
+        latex.write('    \hline \n')
+        latex.write('    %s (Continued) \\endhead\n' % namelist_table_header)
+        latex.write('    \hline\n')
+        latex.write('    \hline\n')
+
+        for nml_opt in nml_rec.iter("nml_option"):
+            name = nml_opt.attrib['name']
+
+            description = get_description(nml_opt)
+
+            link = 'nm_sec_{}'.format(name)
+            linkedName = get_linked_name(name, link)
+
+            latex.write('    {} & {} \\\\\n'.format(linkedName, description))
+            latex.write('    \hline\n')
+
+        latex.write('\end{longtable}\n')
+        latex.write('\end{center}\n')
+        latex.write('}\n')
+    latex.close()
+
+
+def write_namelist_section_documentation():
+    # Write namelist section documentation latex file.
+    latex = open('namelist_section_documentation.tex', 'w')
+    latex.write('\chapter[Namelist options]{\hyperref[chap:namelist_tables]'
+                '{Namelist options}}\n')
+    latex.write('\label{chap:namelist_sections}\n')
+    latex.write('Embedded links point to information in chapter '
+                '\\ref{chap:namelist_tables}\n')
+    for nml_rec in registry.iter("nml_record"):
+        rec_name = nml_rec.attrib["name"]
+        rec_name_escaped = escape_underscore(rec_name)
+
+        latex.write('\section[%s]{\hyperref[sec:nm_tab_%s]{%s}}\n' % (
+                rec_name_escaped, rec_name, rec_name_escaped))
+        latex.write('\label{sec:nm_sec_%s}\n' % rec_name)
+
+        for nml_opt in nml_rec.iter("nml_option"):
+            name = nml_opt.attrib["name"]
+            name_escaped = escape_underscore(name)
+            opt_type = escape_underscore(nml_opt.attrib["type"])
+            default_value = escape_underscore(get_attrib(nml_opt,
+                                                         "default_value"))
+            possible_values = escape_underscore(get_attrib(nml_opt,
+                                                           "possible_values"))
+            units = get_units(nml_opt)
+            description = get_description(nml_opt)
+
+            try:
+                opt_icepack_name = nml_opt.attrib["icepack_name"]
+            except KeyError:
+                opt_icepack_name = None
+
+            latex.write('\subsection[%s]{\hyperref[sec:nm_tab_%s]{%s}}\n' % (
+                    name_escaped, rec_name, name_escaped))
+            latex.write('\label{subsec:nm_sec_%s}\n' % name)
+            latex.write('\\begin{center}\n')
+            latex.write('\\begin{longtable}{| p{2.0in} || p{4.0in} |}\n')
+            latex.write('    \hline\n')
+            latex.write('    Type: & %s \\\\\n' % opt_type)
+            latex.write('    \hline\n')
+            latex.write('    Units: & %s \\\\\n' % units)
+            latex.write('    \hline\n')
+            latex.write('    Default Value: & %s \\\\\n' % default_value)
+            latex.write('    \hline\n')
+            latex.write('    Possible Values: & %s \\\\\n' % possible_values)
+            latex.write('    \hline\n')
+            if (opt_icepack_name is not None):
+                latex.write('    \hline\n')
+                latex.write('    Icepack name: & \\verb+%s+ \\\\\n' %
+                            opt_icepack_name)
+            latex.write('    \caption{%s: %s}\n' % (name_escaped, description))
+            latex.write('\end{longtable}\n')
+            latex.write('\end{center}\n')
+    latex.close()
+
+
+def write_variable_table_documentation():
+
+    # Write variable table documentation latex file
+    latex = open('variable_table_documentation.tex', 'w')
+    latex.write('\chapter[Variable definitions]'
+                '{\hyperref[chap:variable_sections]'
+                '{Variable definitions}}\n')
+    latex.write('\label{chap:variable_tables}\n')
+    latex.write('Embedded links point to more detailed variable information '
+                'in the appendix.\n')
+
+    var_structs = get_var_structs()
+
+    for struct_name, var_struct_list in var_structs.items():
+        struct_name_escaped = escape_underscore(struct_name)
+        latex.write('\section[%s]{\hyperref[sec:var_sec_%s]{%s}}\n' % (
+                struct_name_escaped, struct_name, struct_name_escaped))
+        latex.write('\label{sec:var_tab_%s}\n' % struct_name)
+
+        if os.path.exists('%s/%s_struct.tex' % (options.latex_dir,
+                                                struct_name)):
+            latex.write('\input{%s/%s_struct.tex}\n' % (options.latex_path,
+                                                        struct_name))
+        else:
+            print 'Warning, variable section description latex file not ' \
+                'found:  %s/%s_struct.tex' % (options.latex_dir, struct_name)
+            latex.write('')
+
+        latex.write('\\vspace{0.5in}\n')
+        latex.write('{\small\n')
+        latex.write('\\begin{center}\n')
+        latex.write('\\begin{longtable}{| p{2.0in} | p{4.0in} |}\n')
+        latex.write('    \hline\n')
+        latex.write('    %s \\endfirsthead\n' % variable_table_header)
+        latex.write('    \hline \n')
+        latex.write('    %s (Continued) \\endhead\n' % variable_table_header)
+        latex.write('    \hline\n')
+
+        for var_struct in var_struct_list:
+            write_var_struct_to_table(latex, var_struct, struct_name)
+
+        latex.write('\end{longtable}\n')
+        latex.write('\end{center}\n')
+        latex.write('}\n')
+    latex.close()
+
+
+def write_variable_section_documentation():
+
+    # Write variable section documentation latex file
+    latex = open('variable_section_documentation.tex', 'w')
+    latex.write('\chapter[Variable definitions]'
+                '{\hyperref[chap:variable_tables]'
+                '{Variable definitions}}\n')
+    latex.write('\label{chap:variable_sections}\n')
+    latex.write('Embedded links point to information in chapter '
+                '\\ref{chap:variable_tables}\n')
+
+    var_structs = get_var_structs()
+
+    for struct_name, var_struct_list in var_structs.items():
+        struct_name_escaped = escape_underscore(struct_name)
+
+        latex.write('\section[%s]{\hyperref[sec:var_tab_%s]{%s}}\n' % (
+                struct_name_escaped, struct_name, struct_name_escaped))
+        latex.write('\label{sec:var_sec_%s}\n' % struct_name)
+
+        for var_struct in var_struct_list:
+            try:
+                struct_time_levs = var_struct.attrib['time_levs']
+                has_time = int(struct_time_levs) > 1
+            except KeyError:
+                has_time = False
+
+            write_var_struct_section(latex, var_struct, struct_name, has_time)
+
+    latex.close()
+
+
+parser = OptionParser()
+parser.add_option("-f", "--file", dest="registry_path",
+                  help="Path to Registry file", metavar="FILE")
+parser.add_option("-d", "--tex_dir", dest="latex_dir",
+                  help="Path to directory with latex addition files.",
+                  metavar="DIR")
+parser.add_option("-p", "--tex_path", dest="latex_path",
+                  help="Path to latex input files that will be written to "
+                       "generated latex.", metavar="PATH")
+
+options, args = parser.parse_args()
 
 if not options.registry_path:
     parser.error("Registry file is required")
@@ -140,22 +551,10 @@ registry_tree = ET.parse(registry_path)
 
 registry = registry_tree.getroot()
 
-# Write default namelist
-namelist = open('namelist.input.generated', 'w+')
-for nml_rec in registry.iter("nml_record"):
-    namelist.write('&%s\n' % nml_rec.attrib['name'])
-    for nml_opt in nml_rec.iter("nml_option"):
-        if nml_opt.attrib['type'] == "character":
-            namelist.write('\t%s = "%s"\n' % (nml_opt.attrib['name'],
-                                              nml_opt.attrib['default_value']))
-        else:
-            namelist.write('\t%s = %s\n' % (nml_opt.attrib['name'],
-                                            nml_opt.attrib['default_value']))
-
-    namelist.write('/\n')
+write_namelist_input_generated()
 
 # Write file that defines version string for model.
-latex = open('define_version.tex', 'w+')
+latex = open('define_version.tex', 'w')
 try:
     version_string = registry.attrib['version']
 except KeyError:
@@ -163,633 +562,12 @@ except KeyError:
 latex.write('\\newcommand{\\version}{%s}\n' % version_string)
 latex.close()
 
-# Write dimension table documentation latex file.
-latex = open('dimension_table_documentation.tex', 'w+')
-latex.write('\chapter{Dimensions}\n')
-latex.write('\label{chap:dimensions}\n')
-latex.write('{\small\n')
-latex.write('\\begin{center}\n')
-latex.write('\\begin{longtable}{| p{1.0in} || p{1.0in} | p{4.0in} |}\n')
-latex.write('    \hline \n')
-latex.write('    %s \\endfirsthead\n' % dimension_table_header)
-latex.write('    \hline \n')
-latex.write('    %s (Continued) \\endhead\n' % dimension_table_header)
-latex.write('    \hline \n')
-latex.write('    \hline \n')
-for dims in registry.iter("dims"):
-    for dim in dims.iter("dim"):
-        dim_name = dim.attrib['name']
-        try:
-            dim_description = dim.attrib['description']
-        except KeyError:
-            dim_description = latex_missing_string
+write_dimension_table_documentation()
 
-        try:
-            dim_units = dim.attrib['units']
-            if dim_units == "":
-                dim_units = latex_missing_string
-            else:
-                dim_units = "$%s$" % dim_units.replace(' ', '$ $')
-        except KeyError:
-            dim_units = latex_missing_string
+write_namelist_table_documentation()
 
-        if dim_description == "":
-            dim_description = latex_missing_string
-        else:
-            equations = dim_description.find('$')
-            if equations != -1:
-                dim_desc_split = dim_description.split("$")
+write_namelist_section_documentation()
 
-                if dim_description.replace('_', '')[0] == "$":
-                    replace = False
-                    dim_description = "$"
-                else:
-                    replace = True
-                    dim_description = ""
+write_variable_table_documentation()
 
-                for part in dim_desc_split:
-                    if replace:
-                        dim_description = "%s %s" % (dim_description,
-                                                     part.replace('_', '\_'))
-                        replace = False
-                    else:
-                        dim_description = "%s $%s$" % (dim_description, part)
-                        replace = True
-            else:
-                dim_description = "%s" % dim_description.replace('_', '\_')
-
-        latex.write('    %s & %s & %s \\\\ \n' % (
-                dim_name.replace('_', '\_'), dim_units.replace('_', '\_'),
-                dim_description))
-        latex.write('    \hline\n')
-
-latex.write('\end{longtable}\n')
-latex.write('\end{center}\n')
-latex.write('}\n')
-latex.close()
-
-
-# Write namelist table documentation latex file.
-latex = open('namelist_table_documentation.tex', 'w+')
-latex.write('\chapter[Namelist options]{\hyperref[chap:namelist_sections]'
-            '{Namelist options}}\n')
-latex.write('\label{chap:namelist_tables}\n')
-latex.write('Embedded links point to more detailed namelist information in '
-            'the appendix.\n')
-for nml_rec in registry.iter("nml_record"):
-    rec_name = nml_rec.attrib['name']
-    latex.write('\section[%s]{\hyperref[sec:nm_sec_%s]{%s}}\n' % (
-            rec_name.replace('_', '\_'), rec_name,
-            rec_name.replace('_', '\_')))
-    latex.write('\label{sec:nm_tab_%s}\n' % (rec_name))
-
-    # Add input line if file exists.
-    if os.path.exists('%s/%s.tex' % (options.latex_dir, rec_name)):
-        latex.write('\input{%s/%s.tex}\n' % (options.latex_path, rec_name))
-    else:
-        print 'Warning, namelist description latex file not found: %s/%s.tex' \
-            % (options.latex_dir, rec_name)
-        latex.write('')
-
-    latex.write('\\vspace{0.5in}\n')
-    latex.write('{\small\n')
-    latex.write('\\begin{center}\n')
-    latex.write('\\begin{longtable}{| p{2.0in} || p{4.0in} |}\n')
-    latex.write('    \hline\n')
-    latex.write('    %s \\endfirsthead\n' % namelist_table_header)
-    latex.write('    \hline \n')
-    latex.write('    %s (Continued) \\endhead\n' % namelist_table_header)
-    latex.write('    \hline\n')
-    latex.write('    \hline\n')
-
-    for nml_opt in nml_rec.iter("nml_option"):
-        opt_name = nml_opt.attrib['name']
-
-        try:
-            opt_description = nml_opt.attrib['description']
-        except KeyError:
-            opt_description = latex_missing_string
-
-        if opt_description == "":
-            opt_description = latex_missing_string
-        else:
-            equations = opt_description.find('$')
-            if equations != -1:
-                opt_desc_split = opt_description.split("$")
-
-                if opt_description.replace(' ', '')[0] == "$":
-                    replace = False
-                    opt_description = "$"
-                else:
-                    replace = True
-                    opt_description = ""
-
-                for part in opt_desc_split:
-                    if replace:
-                        opt_description = "%s %s" % (
-                                opt_description, part.replace('_', '\_'))
-                        replace = False
-                    else:
-                        opt_description = "%s $%s$" % (opt_description, part)
-                        replace = True
-            else:
-                opt_description = "%s" % opt_description.replace('_', '\_')
-
-        idx = break_string(opt_name)
-        if idx >= 29:
-            latex.write('    \hyperref[subsec:nm_sec_%s]{%s-}'
-                        '\hyperref[subsec:nm_sec_%s]{%s}& %s \\\\\n' % (
-                                opt_name, opt_name[0:idx].replace('_', '\_'),
-                                opt_name, opt_name[idx:].replace('_', '\_'),
-                                opt_description))
-        else:
-            latex.write('    \hyperref[subsec:nm_sec_%s]{%s} & %s \\\\\n' % (
-                    opt_name, opt_name.replace('_', '\_'), opt_description))
-        latex.write('    \hline\n')
-
-    latex.write('\end{longtable}\n')
-    latex.write('\end{center}\n')
-    latex.write('}\n')
-latex.close()
-
-# Write namelist section documentation latex file.
-latex = open('namelist_section_documentation.tex', 'w+')
-latex.write('\chapter[Namelist options]{\hyperref[chap:namelist_tables]'
-            '{Namelist options}}\n')
-latex.write('\label{chap:namelist_sections}\n')
-latex.write('Embedded links point to information in chapter '
-            '\\ref{chap:namelist_tables}\n')
-for nml_rec in registry.iter("nml_record"):
-    rec_name = nml_rec.attrib["name"]
-
-    latex.write('\section[%s]{\hyperref[sec:nm_tab_%s]{%s}}\n' % (
-            rec_name.replace('_', '\_'), rec_name,
-            rec_name.replace('_', '\_')))
-    latex.write('\label{sec:nm_sec_%s}\n' % rec_name)
-
-    for nml_opt in nml_rec.iter("nml_option"):
-        opt_name = nml_opt.attrib["name"]
-        opt_type = nml_opt.attrib["type"]
-        opt_value = nml_opt.attrib["default_value"]
-
-        try:
-            opt_possible_values = nml_opt.attrib["possible_values"]
-        except KeyError:
-            opt_possible_values = latex_missing_string
-
-        try:
-            opt_units = nml_opt.attrib["units"]
-            if opt_units == "":
-                opt_units = latex_missing_string
-            else:
-                opt_units = "$%s$" % opt_units.replace(' ', '$ $')
-        except KeyError:
-            opt_units = latex_missing_string
-
-        try:
-            opt_description = nml_opt.attrib["description"]
-        except KeyError:
-            opt_description = latex_missing_string
-
-        try:
-            opt_icepack_name = nml_opt.attrib["icepack_name"]
-        except KeyError:
-            opt_icepack_name = None
-
-        if opt_possible_values == "":
-            opt_possible_values = latex_missing_string
-
-        if opt_description == "":
-            opt_description = latex_missing_string.replace('_', '\_')
-        else:
-            equations = opt_description.find('$')
-            if equations != -1:
-                opt_desc_split = opt_description.split("$")
-
-                if opt_description.replace('_', '')[0] == "$":
-                    replace = False
-                    opt_description = "$"
-                else:
-                    replace = True
-                    opt_description = ""
-
-                for part in opt_desc_split:
-                    if replace:
-                        opt_description = "%s %s" % (opt_description,
-                                                     part.replace('_', '\_'))
-                        replace = False
-                    else:
-                        opt_description = "%s $%s$" % (opt_description, part)
-                        replace = True
-            else:
-                opt_description = "%s" % opt_description.replace('_', '\_')
-
-        latex.write('\subsection[%s]{\hyperref[sec:nm_tab_%s]{%s}}\n' % (
-                opt_name.replace('_', '\_'), rec_name,
-                opt_name.replace('_', '\_')))
-        latex.write('\label{subsec:nm_sec_%s}\n' % opt_name)
-        latex.write('\\begin{center}\n')
-        latex.write('\\begin{longtable}{| p{2.0in} || p{4.0in} |}\n')
-        latex.write('    \hline\n')
-        latex.write('    Type: & %s \\\\\n' % opt_type.replace('_', '\_'))
-        latex.write('    \hline\n')
-        latex.write('    Units: & %s \\\\\n' % opt_units.replace('_', '\_'))
-        latex.write('    \hline\n')
-        latex.write('    Default Value: & %s \\\\\n' %
-                    opt_value.replace('_', '\_'))
-        latex.write('    \hline\n')
-        latex.write('    Possible Values: & %s \\\\\n' %
-                    opt_possible_values.replace('_', '\_'))
-        if (opt_icepack_name is not None):
-            latex.write('    \hline\n')
-            latex.write('    Icepack name: & \\verb+%s+ \\\\\n' %
-                    opt_icepack_name)
-        latex.write('    \hline\n')
-        latex.write('    \caption{%s: %s}\n' % (opt_name.replace('_', '\_'),
-                    opt_description))
-        latex.write('\end{longtable}\n')
-        latex.write('\end{center}\n')
-latex.close()
-
-# Write variable table documentation latex file
-latex = open('variable_table_documentation.tex', 'w+')
-latex.write('\chapter[Variable definitions]{\hyperref[chap:variable_sections]'
-            '{Variable definitions}}\n')
-latex.write('\label{chap:variable_tables}\n')
-latex.write('Embedded links point to more detailed variable information in '
-            'the appendix.\n')
-for var_struct in registry.iter("var_struct"):
-    struct_name = var_struct.attrib['name']
-    latex.write('\section[%s]{\hyperref[sec:var_sec_%s]{%s}}\n' % (
-            struct_name.replace('_', '\_'), struct_name,
-            struct_name.replace('_', '\_')))
-    latex.write('\label{sec:var_tab_%s}\n' % struct_name)
-
-    if os.path.exists('%s/%s_struct.tex' % (options.latex_dir, struct_name)):
-        latex.write('\input{%s/%s_struct.tex}\n' % (options.latex_path,
-                                                    struct_name))
-    else:
-        print 'Warning, variable section description latex file not found: ' \
-            '%s/%s_struct.tex' % (options.latex_dir, struct_name)
-        latex.write('')
-
-    latex.write('\\vspace{0.5in}\n')
-    latex.write('{\small\n')
-    latex.write('\\begin{center}\n')
-    latex.write('\\begin{longtable}{| p{2.0in} | p{4.0in} |}\n')
-    latex.write('    \hline\n')
-    latex.write('    %s \\endfirsthead\n' % variable_table_header)
-    latex.write('    \hline \n')
-    latex.write('    %s (Continued) \\endhead\n' % variable_table_header)
-    latex.write('    \hline\n')
-
-    for node in var_struct.getchildren():
-        if node.tag == 'var_array':
-            for var in node.iter("var"):
-                var_name = var.attrib['name']
-                try:
-                    var_description = var.attrib['description']
-                except KeyError:
-                    var_description == latex_missing_string.replace('_', '\_')
-
-                if var_description == "":
-                    var_description = latex_missing_string.replace('_', '\_')
-                else:
-                    equations = var_description.find('$')
-                    if equations != -1:
-                        var_desc_split = var_description.split("$")
-
-                        if var_description.replace('_', '')[0] == "$":
-                            replace = False
-                            var_description = "$"
-                        else:
-                            replace = True
-                            var_description = ""
-
-                        for part in var_desc_split:
-                            if replace:
-                                var_description = "%s %s" % (
-                                        var_description,
-                                        part.replace('_', '\_'))
-                                replace = False
-                            else:
-                                var_description = "%s $%s$" % (var_description,
-                                                               part)
-                                replace = True
-                    else:
-                        var_description = "%s" % (
-                            var_description.replace('_', '\_'))
-
-                idx = break_string(var_name)
-                if idx > -1:
-                    latex.write('    \hyperref[subsec:var_sec_%s_%s]{%s-}'
-                                '\hyperref[subsec:var_sec_%s_%s]{%s}  & %s '
-                                '\\\\\n' % (struct_name, var_name,
-                                            var_name[0:idx].replace('_', '\_'),
-                                            struct_name, var_name,
-                                            var_name[idx:].replace('_', '\_'),
-                                            var_description))
-                else:
-                    latex.write('    \hyperref[subsec:var_sec_%s_%s]{%s} & '
-                                '%s \\\\\n' % (struct_name, var_name,
-                                               var_name.replace('_', '\_'),
-                                               var_description))
-                latex.write('    \hline\n')
-        elif node.tag == 'var':
-            var = node
-            var_name = var.attrib['name']
-            try:
-                var_description = var.attrib['description']
-            except KeyError:
-                var_description = latex_missing_string.replace('_', '\_')
-
-            if var_description == "":
-                var_description = latex_missing_string.replace('_', '\_')
-            else:
-                equations = var_description.find('$')
-                if equations != -1:
-                    var_desc_split = var_description.split("$")
-
-                    if var_description.replace('_', '')[0] == "$":
-                        replace = False
-                        var_description = "$"
-                    else:
-                        replace = True
-                        var_description = ""
-
-                    for part in var_desc_split:
-                        if replace:
-                            var_description = "%s %s" % (
-                                    var_description, part.replace('_', '\_'))
-                            replace = False
-                        else:
-                            var_description = "%s $%s$" % (var_description,
-                                                           part)
-                            replace = True
-                else:
-                    var_description = "%s" % var_description.replace('_', '\_')
-
-            idx = break_string(var_name)
-            if idx > -1:
-                latex.write('    \hyperref[subsec:var_sec_%s_%s]{%s-}'
-                            '\hyperref[subsec:var_sec_%s_%s]{%s  }& %s '
-                            '\\\\\n' % (struct_name, var_name,
-                                        var_name[0:idx].replace('_', '\_'),
-                                        struct_name, var_name,
-                                        var_name[idx:].replace('_', '\_'),
-                                        var_description))
-            else:
-                latex.write('    \hyperref[subsec:var_sec_%s_%s]{%s} & %s '
-                            '\\\\\n' % (struct_name, var_name,
-                                        var_name.replace('_', '\_'),
-                                        var_description))
-            latex.write('    \hline\n')
-
-    latex.write('\end{longtable}\n')
-    latex.write('\end{center}\n')
-    latex.write('}\n')
-latex.close()
-
-# Write variable section documentation latex file
-latex = open('variable_section_documentation.tex', 'w+')
-latex.write('\chapter[Variable definitions]{\hyperref[chap:variable_tables]'
-            '{Variable definitions}}\n')
-latex.write('\label{chap:variable_sections}\n')
-latex.write('Embedded links point to information in chapter '
-            '\\ref{chap:variable_tables}\n')
-for var_struct in registry.iter("var_struct"):
-    struct_name = var_struct.attrib['name']
-    try:
-        struct_time_levs = var_struct.attrib['time_levs']
-    except KeyError:
-        # this won't be used
-        struct_time_levs = "0"
-    latex.write('\section[%s]{\hyperref[sec:var_tab_%s]{%s}}\n' % (
-            struct_name.replace('_', '\_'), struct_name,
-            struct_name.replace('_', '\_')))
-    latex.write('\label{sec:var_sec_%s}\n' % struct_name)
-
-    for node in var_struct.getchildren():
-        if node.tag == 'var_array':
-            var_arr = node
-            for var in var_arr.iter("var"):
-                var_arr_name = var_arr.attrib['name']
-                var_arr_type = var_arr.attrib['type']
-                var_arr_dims = var_arr.attrib['dimensions']
-
-                var_name = var.attrib['name']
-                var_arr_group = var.attrib['array_group']
-
-                try:
-                    var_persistence = var_arr.attrib['persistence']
-                except KeyError:
-                    var_persistence = 'persistent'
-
-                try:
-                    var_name_in_code = var.attrib['name_in_code']
-                except KeyError:
-                    var_name_in_code = var_name
-
-                try:
-                    var_units = var.attrib['units']
-                    if var_units == "":
-                        var_units = latex_missing_string
-                    else:
-                        var_units = "$%s$" % var_units.replace(' ', '$ $')
-                except KeyError:
-                    var_units = latex_missing_string
-
-                try:
-                    var_description = var.attrib['description']
-                except KeyError:
-                    var_description = latex_missing_string.replace('_', '\_')
-
-                try:
-                    var_streams = var.attrib['streams'].replace(
-                            's', 'Sfc ').replace('i', 'Input ').replace(
-                            'r', 'Restart ').replace('o', 'Output ')
-                except KeyError:
-                    var_streams = "None"
-
-                if int(struct_time_levs) > 1:
-                    var_index = "domain %% blocklist %% %s %% index_%s" % (
-                            struct_name, var_name_in_code)
-                    var_path = "domain %% blocklist %% %s %% time_levs(:) " \
-                               "%% %s %% %s" % (struct_name, struct_name,
-                                                var_arr_name)
-                else:
-                    var_index = "domain %% blocklist %% %s %% index_%s" % (
-                            struct_name, var_name_in_code)
-                    var_path = "domain %% blocklist %% %s %% %s" % (
-                            struct_name, var_arr_name)
-
-                if var_description == "":
-                    var_description = latex_missing_string.replace('_', '\_')
-                else:
-                    equations = var_description.find('$')
-                    if equations != -1:
-                        var_desc_split = var_description.split("$")
-
-                        if var_description.replace('_', '')[0] == "$":
-                            replace = False
-                            var_description = "$"
-                        else:
-                            replace = True
-                            var_description = ""
-
-                        for part in var_desc_split:
-                            if replace:
-                                var_description = "%s %s" % (
-                                        var_description,
-                                        part.replace('_', '\_'))
-                                replace = False
-                            else:
-                                var_description = "%s $%s$" % (var_description,
-                                                               part)
-                                replace = True
-                    else:
-                        var_description = "%s" % (
-                                var_description.replace('_', '\_'))
-
-                latex.write('\subsection[%s]{\hyperref[sec:var_tab_%s]{%s}}'
-                            '\n' % (var_name.replace('_', '\_'), struct_name,
-                                    var_name.replace('_', '\_')))
-                latex.write('\label{subsec:var_sec_%s_%s}\n' % (struct_name,
-                                                                var_name))
-                # Tabular Format:
-                latex.write('\\begin{center}\n')
-                latex.write('\\begin{longtable}{| p{2.0in} | p{4.0in} |}\n')
-                latex.write('        \hline \n')
-                latex.write('        Type: & %s \\\\\n' % var_arr_type)
-                latex.write('        \hline \n')
-                latex.write('        Units: & %s \\\\\n' % var_units)
-                latex.write('        \hline \n')
-                latex.write('        Dimension: & %s \\\\\n' % var_arr_dims)
-                latex.write('        \hline \n')
-                latex.write('        Persistence: & %s \\\\\n' % (
-                        var_persistence))
-                latex.write('        \hline \n')
-                latex.write('         Default Streams: & %s \\\\\n' % (
-                        var_streams))
-                latex.write('        \hline \n')
-                latex.write('         Index in %s Array: & %s \\\\\n' % (
-                        var_arr_name.replace('_', '\_'),
-                        var_index.replace('_', '\_').replace('%', '\%')))
-                latex.write('         \hline \n')
-                latex.write('         Location in code: & %s \\\\\n' % (
-                        var_path.replace('_', '\_').replace('%', '\%')))
-                latex.write('         \hline \n')
-                latex.write('         Array Group: & %s \\\\\n' % (
-                        var_arr_group.replace('_', '\_')))
-                latex.write('         \hline \n')
-                latex.write('    \caption{%s: %s}\n' % (
-                        var_name.replace('_', '\_'), var_description))
-                latex.write('\end{longtable}\n')
-                latex.write('\end{center}\n')
-        elif node.tag == 'var':
-            var = node
-            try:
-                # Skip super array variables. They have different tables.
-                var_arr_group = var.attrib['array_group']
-            except KeyError:
-                var_name = var.attrib['name']
-                var_type = var.attrib['type']
-                var_dims = var.attrib['dimensions']
-
-                try:
-                    var_persistence = var.attrib['persistence']
-                except KeyError:
-                    var_persistence = 'persistent'
-
-                try:
-                    var_name_in_code = var.attrib['name_in_code']
-                except KeyError:
-                    var_name_in_code = var_name
-
-                try:
-                    var_units = var.attrib['units']
-                    if var_units == "":
-                        var_units = latex_missing_string
-                    else:
-                        var_units = "$%s$" % var_units.replace(' ', '$ $')
-                except KeyError:
-                    var_units = latex_missing_string
-
-                try:
-                    var_description = var.attrib['description']
-                except KeyError:
-                    var_description = latex_missing_string.replace('_', '\_')
-
-                try:
-                    var_streams = var.attrib['streams'].replace(
-                            's', 'Sfc ').replace('i', 'Input ').replace(
-                                    'r', 'Restart ').replace('o', 'Output ')
-                except KeyError:
-                    var_streams = "None"
-
-                if int(struct_time_levs) > 1:
-                    var_path = "domain %% blocklist %% %s %% time_levs(:) " \
-                               "%% %s %% %s" % (struct_name, struct_name,
-                                                var_name_in_code)
-                else:
-                    var_path = "domain %% blocklist %% %s %% %s" % (
-                            struct_name, var_name_in_code)
-
-                if var_description == "":
-                    var_description = latex_missing_string.replace('_', '\_')
-                else:
-                    equations = var_description.find('$')
-                    if equations != -1:
-                        var_desc_split = var_description.split("$")
-
-                        if var_description.replace('_', '')[0] == "$":
-                            replace = False
-                            var_description = "$"
-                        else:
-                            replace = True
-                            var_description = ""
-
-                        for part in var_desc_split:
-                            if replace:
-                                var_description = "%s %s" % (
-                                        var_description,
-                                        part.replace('_', '\_'))
-                                replace = False
-                            else:
-                                var_description = "%s $%s$" % (var_description,
-                                                               part)
-                                replace = True
-                    else:
-                        var_description = "%s" % (
-                                var_description.replace('_', '\_'))
-
-                latex.write('\subsection[%s]{\hyperref[sec:var_tab_%s]{%s}}'
-                            '\n' % (var_name.replace('_', '\_'), struct_name,
-                                    var_name.replace('_', '\_')))
-                latex.write('\label{subsec:var_sec_%s_%s}\n' % (
-                        struct_name, var_name))
-                # Tabular Format:
-                latex.write('\\begin{center}\n')
-                latex.write('\\begin{longtable}{| p{2.0in} | p{4.0in} |}\n')
-                latex.write('        \hline \n')
-                latex.write('        Type: & %s \\\\\n' % var_type)
-                latex.write('        \hline \n')
-                latex.write('        Units: & %s \\\\\n' % var_units)
-                latex.write('        \hline \n')
-                latex.write('        Dimension: & %s \\\\\n' % var_dims)
-                latex.write('        \hline \n')
-                latex.write('        Persistence: & %s \\\\\n' % (
-                        var_persistence))
-                latex.write('        \hline \n')
-                latex.write('         Default Streams: & %s \\\\\n' % (
-                        var_streams))
-                latex.write('        \hline \n')
-                latex.write('         Location in code: & %s \\\\\n' % (
-                        var_path.replace('_', '\_').replace('%', '\%')))
-                latex.write('         \hline \n')
-                latex.write('    \caption{%s: %s}\n' % (
-                        var_name.replace('_', '\_'), var_description))
-                latex.write('\end{longtable}\n')
-                latex.write('\end{center}\n')
-
-latex.close()
+write_variable_section_documentation()
