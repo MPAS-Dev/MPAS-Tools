@@ -354,7 +354,9 @@ if __name__ == "__main__":
                         required=False)
     parser.add_argument("--ignore_time", dest="ignore_time",
                         action="store_true",
-                        help="ignore the Time dimension if it exists",
+                        help="ignore the Time dimension if it exists "
+                             "for files with a Time dimension but no xtime"
+                             "variable (e.g. mesh file)"
                         required=False)
     args = parser.parse_args()
 
