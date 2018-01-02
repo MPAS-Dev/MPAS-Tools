@@ -356,7 +356,7 @@ if __name__ == "__main__":
                         action="store_true",
                         help="ignore the Time dimension if it exists "
                              "for files with a Time dimension but no xtime"
-                             "variable (e.g. mesh file)"
+                             "variable (e.g. mesh file)",
                         required=False)
     args = parser.parse_args()
 
