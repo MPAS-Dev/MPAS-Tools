@@ -1,7 +1,7 @@
 function mpas_uniform
 %MPAS-UNIFORM setup the "uniform" grid for MPAS.
 
-jigsaw_path_locations
+jigsaw_path_locations;
 
 %-----------------------------------------------------------
 %   Phillip Wolfram (pwolfram@lanl.gov)
@@ -9,7 +9,7 @@ jigsaw_path_locations
 %   Darren Engwirda (de2363@columbia.edu)
 %   01/19/2018
 %-----------------------------------------------------------
-%
+
 
 %------------------------------------ setup files for JIGSAW
     name = mfilename('fullpath');

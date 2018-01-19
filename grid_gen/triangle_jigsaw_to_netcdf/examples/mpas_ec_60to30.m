@@ -1,7 +1,7 @@
 function mpas_ec_60to30
 %MPAS-EC-SPACING setup the "eddy-closure" grid for MPAS.
 
-jigsaw_path_locations
+jigsaw_path_locations;
 
 %-----------------------------------------------------------
 %   Phillip Wolfram (pwolfram@lanl.gov)
