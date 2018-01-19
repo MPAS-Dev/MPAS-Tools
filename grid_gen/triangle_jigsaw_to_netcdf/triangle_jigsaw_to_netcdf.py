@@ -76,7 +76,7 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--output", dest="output", help="output file name.", metavar="FILE")
     parser.add_argument("-s", "--spherical", dest="spherical", action="store_true", default=False, help="Determines if the input/output should be spherical or not.")
 
-    options, args = parser.parse_args()
+    options = parser.parse_args()
 
     if not options.msh:
         if not options.node:
