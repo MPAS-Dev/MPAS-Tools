@@ -26,3 +26,7 @@ echo 'Removing grid.nc and renaming mesh.nc to '$NAME'.nc ...'
 rm grid.nc
 mv mesh.nc $NAME.nc
 echo 'done'
+
+echo 'Injecting bathymetry ...'
+./inject_bathymetry.py $NAME.nc
+echo 'done'
