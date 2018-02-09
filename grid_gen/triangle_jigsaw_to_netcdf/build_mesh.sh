@@ -6,6 +6,7 @@ MATLAB=/Applications/MATLAB_R2015b.app/bin/matlab
 # must have full, absolute path below
 JIGSAW2NETCDF=/Users/pwolfram/Documents/GridGen/MultiscaleMeshGen/MPAS-Tools/grid_gen/triangle_jigsaw_to_netcdf/
 MESHCONVERTER=${JIGSAW2NETCDF}/../mesh_conversion_tools/MpasMeshConverter.x
+CELLCULLER=${JIGSAW2NETCDF}/../mesh_conversion_tools/MpasCellCuller.x
 NAME=${1%.*}
 
 echo 'Starting workflow to build grid from '$NAME.m':'
@@ -28,6 +29,15 @@ rm grid.nc
 mv mesh.nc $NAME.nc
 echo 'done'
 
-#echo 'Injecting bathymetry ...'
-#$JIGSAW2NETCDF/inject_bathymetry.py $NAME.nc
-#echo 'done'
+echo 'Injecting bathymetry ...'
+$JIGSAW2NETCDF/inject_bathymetry.py $NAME.nc
+echo 'done'
+
+echo 'Culling cells...'
+$CELLCULLER $NAME.nc
+mv culled_mesh.nc $NAME.nc
+echo 'done'
+
+echo 'Injecting bathymetry ...'
+$JIGSAW2NETCDF/inject_bathymetry.py $NAME.nc
+echo 'done'

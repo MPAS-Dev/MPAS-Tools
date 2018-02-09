@@ -22,9 +22,11 @@ if __name__ == "__main__":
 
     ds = nc4.Dataset(sys.argv[1],'r+')
     ds.createVariable('bathymetry','f8',('nCells'))
+    ds.createVariable('cullCell','i',('nCells'))
     bathy = interpolate.LinearNDInterpolator(np.vstack((X.ravel(), Y.ravel())).T, zlev.ravel())
     ds.variables['bathymetry'][:] = bathy(np.vstack((np.mod(ds.variables['lonCell'][:] + np.pi, 2*np.pi)-np.pi,
                                           ds.variables['latCell'][:])).T)
+    ds.variables['cullCell'][:] = ds.variables['bathymetry'][:] > 20.0
 
     ds.close()
 
