@@ -14,6 +14,7 @@ from exodus import exodus
 import numpy as np
 from netCDF4 import Dataset
 from optparse import OptionParser
+import scipy.spatial as spt
 
 parser = OptionParser(epilog='read the basal friction data in the exo file and put them back to MPAS mesh')
 parser.add_option("-e", "--exo", dest="exo_file", help="the exo input file")
@@ -31,6 +32,8 @@ dataset = Dataset(options.nc_file, 'r+', format="NETCDF4")
 # read the cell ID numbers in the input MPAS file
 x = dataset.variables['xCell'][:]
 y = dataset.variables['yCell'][:]
+xy = np.array([x,y])
+tree = spt.cKDTree(xy.T)
 
 #usefullCellID = np.loadtxt(options.id_file)
 # read the targeted global id numbers from the ascii input file
@@ -96,7 +99,7 @@ if (options.conversion_method == 'coord'):
         #index_array[i] = index
         #thickness_array[i] = thickness_exo_layer[i] 
 
-        #dataset.variables['thickness'][0,index] = thickness_exo_layer[i]
+        #dataset.variables['beta'][0,index] = thickness_exo_layer[i]
         dataset.variables['beta'][0,index] = np.exp(beta_exo_layer[i])
         # The beta unit of the mpas mesh is kPa yr/m ?
 elif (options.conversion_method == 'id'):
@@ -104,10 +107,72 @@ elif (options.conversion_method == 'id'):
     usefullCellID = np.loadtxt(options.id_file,dtype='i')
     usefullCellID_array = usefullCellID[1::]
     # The first number in the file is the total number. skip it
+    #dataset.variables['beta'][0,usefullCellID_array-1] = np.exp(beta_exo_layer)
     dataset.variables['beta'][0,usefullCellID_array-1] = np.exp(beta_exo_layer)
+    # We need convert fortran indice to python indice
 
 else:
     print "wrong conversion method! Use id or coord only!"
+
+
+nCells = len(dataset.dimensions['nCells'])
+cullCell = np.zeros((nCells, ), dtype=np.int8)  # Initialize to cull no cells
+thickness = dataset.variables['thickness'][0,:]
+#cellsOnCell = dataset.variables['cellsOnCell'][:]
+#nEdgesOnCell = dataset.variables['nEdgesOnCell'][:]
+
+keepCellMask = np.copy(cullCell[:])
+keepCellMask[:] = 0
+keepCellMask[thickness > 0.0] = 1
+
+
+keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
+
+#for iCell in range(len(nEdgesOnCell)):
+#    if keepCellMask[iCell] == 0:
+#        for neighbor in cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1:  # the -1 converts from the fortran indexing in the variable to python indexing
+#            if neighbor >= 0 and keepCellMask[neighbor] == 1:  # if any neighbors are already being kept on the old mask then keep this cell too.  This will get a lot of the ice cells, but they have already been assigned so they don't matter.  What we care about is getting cells that are not ice that have one or more ice neighbors.
+#                keepCellMaskNew[iCell] = 1
+#
+#
+#dataset.variables['beta'][0,:]=keepCellMaskNew
+
+
+#cellsOnCell_new = np.copy(cellsOnCell)
+
+# recursive extrapolation steps:
+# 0) build DK tree using cell x y coordinates
+# 1) find cell A with mask = 0 (ice_thickness = 0)
+# 2) find six adjacent cells around A
+# 3) find how many surrounding cells have nonzero mask, and their indices
+# 4) use beta for nonzero mask surrounding cells to extrapolate the beta for cell A
+# 5) change the mask for A from 0 to 1
+# 6) Update mask
+# 7) go to step 1)
+
+while np.count_nonzero(keepCellMask) != nCells:
+
+
+    for iCell in range(nCells):
+        if keepCellMask[iCell] == 0:
+            x_tmp = x[iCell]
+            y_tmp = y[iCell]
+            dist, idx = tree.query([x_tmp,y_tmp],k=6)
+            mask_for_idx = keepCellMask[idx]
+            mask_nonzero_idx, = np.nonzero(mask_for_idx)
+
+            nonzero_id = idx[mask_nonzero_idx]
+            nonzero_num = np.count_nonzero(mask_for_idx)
+
+            if nonzero_num > 0:
+                dataset.variables['beta'][0,iCell] = sum(dataset.variables['beta'][0,nonzero_id])/nonzero_num
+                keepCellMaskNew[iCell] = 1;
+
+    keepCellMask = np.copy(keepCellMaskNew)
+    print "%d cells left for extrapolation!" % (nCells-np.count_nonzero(keepCellMask))
+
+
+
 
 dataset.close()
     
