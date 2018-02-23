@@ -59,9 +59,13 @@ def readmsh(fname):
                 continue
             if '=' in line:
                 datavals, dataset = store_datavals(datavals, dataset)
-                vals = line.split('=')
-                value = vals[1] if ';' in vals[1] else int(vals[1])
-                datavals[vals[0]] = value
+                if 'COORD' in line:
+                    name = 'COORD' + line.split('=')[1][0]
+                    datavals[name] = line.split(';')[-1]
+                else:
+                    vals = line.split('=')
+                    value = vals[1] if ';' in vals[1] else int(vals[1])
+                    datavals[vals[0]] = value
                 line = f.readline()
                 continue
 
@@ -77,25 +81,8 @@ def readmsh(fname):
 
     return dataset
 
-def cleanup_spherical_grid(msh):
-
-    npoints = msh['POINT'].shape[0]
-    nonusedpoint = np.setdiff1d(np.arange(npoints),
-                                msh['TRIA3'][:,:3].ravel())
-    offset = np.zeros((npoints,), dtype='i')
-    offset[nonusedpoint] = 1
-    offset = - np.cumsum(offset)
-
-    # reassign connectivity
-    msh['TRIA3'][:,:3] += offset[msh['TRIA3'][:,:3]]
-
-    # remove faulty points
-    usedpoint = np.setdiff1d(np.arange(npoints), nonusedpoint)
-    msh['POINT'] = msh['POINT'][usedpoint,:]
-
 
 if __name__ == "__main__":
     import sys
     msh = readmsh(sys.argv[1])
-    #cleanup_spherical_grid(msh)
     import pdb; pdb.set_trace()
