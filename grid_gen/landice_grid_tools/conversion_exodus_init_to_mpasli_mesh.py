@@ -118,8 +118,8 @@ else:
 nCells = len(dataset.dimensions['nCells'])
 cullCell = np.zeros((nCells, ), dtype=np.int8)  # Initialize to cull no cells
 thickness = dataset.variables['thickness'][0,:]
-#cellsOnCell = dataset.variables['cellsOnCell'][:]
-#nEdgesOnCell = dataset.variables['nEdgesOnCell'][:]
+cellsOnCell = dataset.variables['cellsOnCell'][:]
+nEdgesOnCell = dataset.variables['nEdgesOnCell'][:]
 
 keepCellMask = np.copy(cullCell[:])
 keepCellMask[:] = 0
@@ -141,7 +141,6 @@ keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edite
 #cellsOnCell_new = np.copy(cellsOnCell)
 
 # recursive extrapolation steps:
-# 0) build DK tree using cell x y coordinates
 # 1) find cell A with mask = 0 (ice_thickness = 0)
 # 2) find six adjacent cells around A
 # 3) find how many surrounding cells have nonzero mask, and their indices
@@ -153,24 +152,47 @@ keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edite
 while np.count_nonzero(keepCellMask) != nCells:
 
 
-    for iCell in range(nCells):
-        if keepCellMask[iCell] == 0:
-            x_tmp = x[iCell]
-            y_tmp = y[iCell]
-            dist, idx = tree.query([x_tmp,y_tmp],k=6)
-            mask_for_idx = keepCellMask[idx]
-            mask_nonzero_idx, = np.nonzero(mask_for_idx)
+    if 0:
+        for iCell in range(nCells):
+            if keepCellMask[iCell] == 0:
+                x_tmp = x[iCell]
+                y_tmp = y[iCell]
+                neareastPointNum = nEdgesOnCell[iCell]+1
+                dist, idx = tree.query([x_tmp,y_tmp],k=neareastPointNum) # KD tree take account of [x_tmp,y_tmp] itself
+                mask_for_idx = keepCellMask[idx]
+                mask_nonzero_idx, = np.nonzero(mask_for_idx)
 
-            nonzero_id = idx[mask_nonzero_idx]
-            nonzero_num = np.count_nonzero(mask_for_idx)
+                nonzero_id = idx[mask_nonzero_idx]
+                nonzero_num = np.count_nonzero(mask_for_idx)
 
-            if nonzero_num > 0:
-                dataset.variables['beta'][0,iCell] = sum(dataset.variables['beta'][0,nonzero_id])/nonzero_num
-                keepCellMaskNew[iCell] = 1;
+                if nonzero_num > 0:
+                    dataset.variables['beta'][0,iCell] = sum(dataset.variables['beta'][0,nonzero_id])/nonzero_num
+                    keepCellMaskNew[iCell] = 1;
 
-    keepCellMask = np.copy(keepCellMaskNew)
-    print "%d cells left for extrapolation!" % (nCells-np.count_nonzero(keepCellMask))
+        keepCellMask = np.copy(keepCellMaskNew)
+        print "%d cells left for extrapolation!" % (nCells-np.count_nonzero(keepCellMask))
 
+    else:
+        for iCell in range(nCells):
+            if keepCellMask[iCell] == 0:
+                neighborCellId = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
+                nonzero_idx, = np.nonzero(neighborCellId+1)
+                cell_nonzero_id = neighborCellId[nonzero_idx] # neighbor cell id
+
+                mask_for_idx = keepCellMask[cell_nonzero_id] # active cell mask
+                mask_nonzero_idx, = np.nonzero(mask_for_idx)
+
+                nonzero_id = cell_nonzero_id[mask_nonzero_idx] # id for nonzero beta cells
+                nonzero_num = np.count_nonzero(mask_for_idx)
+
+                if len(nonzero_id) == nonzero_num:
+
+                    if nonzero_num > 0:
+                        dataset.variables['beta'][0,iCell] = sum(dataset.variables['beta'][0,nonzero_id])/nonzero_num
+                        keepCellMaskNew[iCell] = 1;
+
+        keepCellMask = np.copy(keepCellMaskNew)
+        print "%d cells left for extrapolation!" % (nCells-np.count_nonzero(keepCellMask))
 
 
 
