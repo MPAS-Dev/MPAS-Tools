@@ -81,15 +81,15 @@ if (options.conversion_method == 'coord'):
         # perhaps there is a better criteria for identifying coords?
         index_intersect = list(set(index_x) & set(index_y))
         index = index_intersect[0]
-        dataset.variables[options.var_name][0,index] = np.exp(data_exo_layer[i])
-        # The beta unit of the mpas mesh is kPa yr/m, not SI
+        dataset.variables[options.var_name][0,index] = np.exp(data_exo_layer[i]) * 1000.0
+        # The beta unit of the mpas mesh is Pa yr/m, not SI
 
 elif (options.conversion_method == 'id'):
-    print "use global id method. A global id file have to supplied by prescribing the id_file"
+    print "use global id method. Need a global id file"
     usefullCellID = np.loadtxt(options.id_file,dtype='i')
     usefullCellID_array = usefullCellID[1::]
     # The first number in the file is the total number. skip it
-    dataset.variables[options.var_name][0,usefullCellID_array-1] = np.exp(data_exo_layer)
+    dataset.variables[options.var_name][0,usefullCellID_array-1] = np.exp(data_exo_layer) * 1000.0
     # We need convert fortran indice to python indice
 
 else:
