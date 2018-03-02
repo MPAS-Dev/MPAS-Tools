@@ -5,25 +5,29 @@ Created on Tue Feb 13 23:50:20 2018
 @author: Tong Zhang
 """
 
-import sys
-sys.path.append('/home/tzhang/Apps/seacas/lib')
-from exodus import exodus
 import numpy as np
 from netCDF4 import Dataset
 from optparse import OptionParser
 import scipy.spatial as spt
 
-parser = OptionParser(description='Read the basal friction data in the exo file and put them back to MPAS mesh. Change the SEACAS library dir to your own path!')
+parser = OptionParser(description='Read the basal friction data in the exo file and put them back to MPAS mesh. WARNING: Change the SEACAS library dir to your own path!')
 parser.add_option("-e", "--exo", dest="exo_file", help="the exo input file")
 parser.add_option("-a", "--ascii", dest="id_file", help="the ascii global id input file")
 parser.add_option("-m", "--method", dest="conversion_method", help="two options: id or coord. The id method is recommended. The coord method may fail at points where x or y = 0 while x_exodus or y_exodus is not")
-parser.add_option("-o", "--out", dest="nc_file", help="the mpas output file")
+parser.add_option("-k", "--mask", dest="mask_scheme", help="two options: all or grd. The all method is to mask cells with ice thickness > 0 as 1. The grd method masks grounded cells as 1.")
+parser.add_option("-o", "--out", dest="nc_file", help="the mpas input/output file")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable you want to convert from an exodus file")
-parser.add_option("-x", "--extra", dest="extrapolation", help="set 1 if you want do extrapolation for surrounding buffer region, 0 for turning it down. The current extrapolation method is a simple average of active ice cell values. A distance inversed method is still needed for variable resolution meshes.")
+parser.add_option("-x", "--extra", action="store_true", dest="extrapolation", default=True, help="The default is to do extrapolation for surrounding buffer region. The current extrapolation method is an inverse distance weighting method (IDW).")
+parser.add_option("-n", "--noextra", action="store_false", dest="extrapolation", help="use this option if you do not want to do extrapolation.")
 options, args = parser.parse_args()
 
-mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness", "enhance:enhancement"}
+import sys
+sys.path.append('/home/tzhang/Apps/seacas/lib')
+from exodus import exodus
+mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness", "enhance":"enhancement"}
 # A mapping between mpas and exodus file. Add one if you need to manipulate a different variable!
+ice_density = 910.0
+ocean_density = 1028.0
 
 exo_var_name = mpas_exodus_var_dic[options.var_name]
 
@@ -52,7 +56,6 @@ if ordering == 1.0:
     print "column wise pattern"
     layer_num = int(stride)
     data_exo_layer = data_exo[::layer_num]
-    #thickness_exo_layer = thickness_exo[::layer_num]
     x_exo_layer = x_exo[::layer_num]
     y_exo_layer = y_exo[::layer_num]
 elif ordering == 0.0:
@@ -97,7 +100,7 @@ elif (options.conversion_method == 'id'):
 
     if options.var_name == "beta":
         dataset.variables[options.var_name][0,usefullCellID_array-1] = np.exp(data_exo_layer) * 1000.0
-    elif options.var_name == "enhance"
+    elif options.var_name == "enhance":
         for l in range(layer_num):
             dataset.variables[options.var_name][0,usefullCellID_array-1,l] = data_exo_layer
     else:
@@ -105,8 +108,9 @@ elif (options.conversion_method == 'id'):
         # We need convert fortran indice to python indice
 
 else:
-    sys.exit("wrong conversion method! Use id or coord only!")
+    sys.exit("wrong conversion method! Set option m as id or coord!")
 
+print "Successfull in converting data from Exodus to MPAS!"
 
 nCells = len(dataset.dimensions['nCells'])
 thickness = dataset.variables['thickness'][0,:]
@@ -114,14 +118,15 @@ bedrock = dataset.variables['bedTopography'][0,:]
 cellsOnCell = dataset.variables['cellsOnCell'][:]
 nEdgesOnCell = dataset.variables['nEdgesOnCell'][:]
 
-ice_density = 910.0
-ocean_density = 1028.0
-
 keepCellMask = np.zeros((nCells,), dtype=np.int8)
 keepCellMask[:] = 0
-keepCellMask[thickness*ice_density/ocean_density + bedrock > 0.0] = 1
+if options.mask_scheme == 'grd':
+    keepCellMask[thickness*ice_density/ocean_density + bedrock > 0.0] = 1
 # find the mask for grounded ice region
-#keepCellMask[thickness > 0.0] = 1
+elif options.mask_scheme == 'all':
+    keepCellMask[thickness > 0.0] = 1
+else:
+    sys.exit("wrong masking scheme! Set option k as all or grd!")
 
 keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
 
@@ -134,8 +139,8 @@ keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edite
 # 6) Update mask
 # 7) go to step 1)
 
-if options.extrapolation == "1":
-
+if options.extrapolation:
+    print "Start extrapolation!"
     while np.count_nonzero(keepCellMask) != nCells:
 
         # The following section use KD Tree to find the surrounding nearest cells. Thus it only works for uniform meshes. But it's still useful for testing
@@ -173,17 +178,26 @@ if options.extrapolation == "1":
                     nonzero_id = cell_nonzero_id[mask_nonzero_idx] # id for nonzero beta cells
                     nonzero_num = np.count_nonzero(mask_for_idx)
 
-                    if len(nonzero_id) == nonzero_num:
 
-                        if nonzero_num > 0:
-                            dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
-                            keepCellMaskNew[iCell] = 1;
+                    assert len(nonzero_id) == nonzero_num
+
+                    if nonzero_num > 0:
+                        x_i = x[iCell]
+                        y_i = y[iCell]
+                        x_adj = x[nonzero_id]
+                        y_adj = y[nonzero_id]
+                        ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
+                        assert np.count_nonzero(ds)==len(ds)
+                        var_adj = dataset.variables[options.var_name][0,nonzero_id]
+                        var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+                        #dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num #simple averaging scheme
+                        dataset.variables[options.var_name][0,iCell] = var_interp
+                        keepCellMaskNew[iCell] = 1;
 
             keepCellMask = np.copy(keepCellMaskNew)
-            print "%d cells left for extrapolation!" % (nCells-np.count_nonzero(keepCellMask))
+            print "%5d cells left for extrapolation!" % (nCells-np.count_nonzero(keepCellMask))
+else:
+    print "Extrapolation disabled!"
 
 
 dataset.close()
-    
-print "Successfull in converting data from Exodus to MPAS!"
-    
