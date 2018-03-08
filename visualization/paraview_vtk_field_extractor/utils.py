@@ -928,7 +928,6 @@ def _fix_lon_lat_vertices(vertices, verticesOnCell, validVertices,
     nVertices = len(vertices[0])
 
     xVertex = vertices[0]
-    xVertex = vertices[0]
     xDiff = xVertex[verticesOnCell] - lonCell.reshape(nCells, 1)
 
     # which cells have vertices that are out of range?
