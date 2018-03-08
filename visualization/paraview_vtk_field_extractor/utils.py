@@ -34,20 +34,20 @@ def open_netcdf(file_name):
     return nc_file
 
 
-def is_valid_mesh_var(mesh_file, variable_name):
+def is_valid_mesh_var(mesh_file, variable_name): # {{{
     if mesh_file is None:
         return False
 
     if variable_name not in mesh_file.variables:
         return False
 
-    return 'Time' not in mesh_file.variables[variable_name].dimensions
+    return 'Time' not in mesh_file.variables[variable_name].dimensions # }}}
 
-def get_var(variable_name, mesh_file, time_series_file):
+def get_var(variable_name, mesh_file, time_series_file): # {{{
     if is_valid_mesh_var(mesh_file, variable_name):
         return mesh_file.variables[variable_name]
     else:
-        return time_series_file.variables[variable_name]
+        return time_series_file.variables[variable_name] # }}}
 
 
 def setup_time_indices(fn_pattern, xtimeName):  # {{{
