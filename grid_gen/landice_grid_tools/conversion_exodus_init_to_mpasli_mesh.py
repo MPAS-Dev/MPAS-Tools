@@ -17,14 +17,16 @@ parser.add_option("-m", "--method", dest="conversion_method", help="two options:
 parser.add_option("-k", "--mask", dest="mask_scheme", help="two options: all or grd. The all method is to mask cells with ice thickness > 0 as 1. The grd method masks grounded cells as 1.")
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas input/output file")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable you want to convert from an exodus file")
-parser.add_option("-x", "--extra", action="store_true", dest="extrapolation", default=True, help="The default is to do extrapolation for surrounding buffer region. The current extrapolation method is an inverse distance weighting method (IDW).")
-parser.add_option("-n", "--noextra", action="store_false", dest="extrapolation", help="use this option if you do not want to do extrapolation.")
+parser.add_option("-x", "--extra", dest="extrapolation", help="The default is to do extrapolation for surrounding buffer region. The current extrapolation method is an inverse distance weighting method (IDW).")
+parser.add_option("-i", "--iter", dest="extra_iter_num", help="Maximum number for the recursive extrapolation. A larger number means a more uniform extrapolation field and more running time")
+#parser.add_option("-x", "--extra", action="store_true", dest="extrapolation", default=True, help="The default is to do extrapolation for surrounding buffer region. The current extrapolation method is an inverse distance weighting method (IDW).")
+#parser.add_option("-n", "--noextra", action="store_false", dest="extrapolation", help="use this option if you do not want to do extrapolation.")
 options, args = parser.parse_args()
 
 import sys
 sys.path.append('/home/tzhang/Apps/seacas/lib')
 from exodus import exodus
-mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness", "enhance":"enhancement"}
+mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness", "enhance":"enhancement", "basalHeatFlux":"stiffening_factor"}
 # A mapping between mpas and exodus file. Add one if you need to manipulate a different variable!
 ice_density = 910.0
 ocean_density = 1028.0
@@ -71,7 +73,7 @@ else:
 
 node_num_layer = len(x_exo_layer)
 
-#dataset.variables[options.var_name][0,:] = 1.0e-10
+#dataset.variables[options.var_name][0,:] = 1.0e-0
 # set beta value to some uniform value before we put new data in it
 
 if (options.conversion_method == 'coord'):
@@ -104,7 +106,7 @@ elif (options.conversion_method == 'id'):
         for l in range(layer_num):
             dataset.variables[options.var_name][0,usefullCellID_array-1,l] = data_exo_layer
     else:
-        dataset.variables[options.var_name][0,usefullCellID_array-1] = (data_exo_layer)
+        dataset.variables[options.var_name][0,usefullCellID_array-1] = np.exp(data_exo_layer)
         # We need convert fortran indice to python indice
 
 else:
@@ -139,65 +141,73 @@ keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edite
 # 6) Update mask
 # 7) go to step 1)
 
-if options.extrapolation:
-    print "Start extrapolation!"
-    while np.count_nonzero(keepCellMask) != nCells:
+print "Start extrapolation!"
+iter_num = 0
+while iter_num < int(options.extra_iter_num): #or np.count_nonzero(keepCellMask) != nCells:
 
-        # The following section use KD Tree to find the surrounding nearest cells. Thus it only works for uniform meshes. But it's still useful for testing
-        # Normally, always use the method in the else section. If you do want to use this method, change "if 0" below to "if 1"
-        if 0:
-            for iCell in range(nCells):
-                if keepCellMask[iCell] == 0:
-                    x_tmp = x[iCell]
-                    y_tmp = y[iCell]
-                    neareastPointNum = nEdgesOnCell[iCell]+1
-                    dist, idx = tree.query([x_tmp,y_tmp],k=neareastPointNum) # KD tree take account of [x_tmp,y_tmp] itself
-                    mask_for_idx = keepCellMask[idx]
-                    mask_nonzero_idx, = np.nonzero(mask_for_idx)
+    iter_num = iter_num + 1
 
-                    nonzero_id = idx[mask_nonzero_idx]
-                    nonzero_num = np.count_nonzero(mask_for_idx)
+    # The following section use KD Tree to find the surrounding nearest cells. Thus it only works for uniform meshes. But it's still useful for testing
+    # Normally, always use the method in the else section. If you do want to use this method, change "if 0" below to "if 1"
+    if 0:
+        for iCell in range(nCells):
+            if keepCellMask[iCell] == 0:
+                x_tmp = x[iCell]
+                y_tmp = y[iCell]
+                neareastPointNum = nEdgesOnCell[iCell]+1
+                dist, idx = tree.query([x_tmp,y_tmp],k=neareastPointNum) # KD tree take account of [x_tmp,y_tmp] itself
+                mask_for_idx = keepCellMask[idx]
+                mask_nonzero_idx, = np.nonzero(mask_for_idx)
 
-                    if nonzero_num > 0:
-                        dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
-                        keepCellMaskNew[iCell] = 1;
+                nonzero_id = idx[mask_nonzero_idx]
+                nonzero_num = np.count_nonzero(mask_for_idx)
 
-            keepCellMask = np.copy(keepCellMaskNew)
-            print "%d cells left for extrapolation!" % (nCells-np.count_nonzero(keepCellMask))
+                if nonzero_num > 0:
+                    dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
+                    keepCellMaskNew[iCell] = 1
 
-        else:
-            for iCell in range(nCells):
-                if keepCellMask[iCell] == 0:
-                    neighborCellId = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
-                    nonzero_idx, = np.nonzero(neighborCellId+1)
-                    cell_nonzero_id = neighborCellId[nonzero_idx] # neighbor cell id
-
-                    mask_for_idx = keepCellMask[cell_nonzero_id] # active cell mask
-                    mask_nonzero_idx, = np.nonzero(mask_for_idx)
-
-                    nonzero_id = cell_nonzero_id[mask_nonzero_idx] # id for nonzero beta cells
-                    nonzero_num = np.count_nonzero(mask_for_idx)
+            #keepCellMask = np.copy(keepCellMaskNew)
+        print ("{0} extrapolation in total {1} iters".format(iter_num,  options.extra_iter_num))
 
 
-                    assert len(nonzero_id) == nonzero_num
+    else:
+        for iCell in range(nCells):
+            if keepCellMask[iCell] == 0:
+                neighborCellId = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
+                nonzero_idx, = np.nonzero(neighborCellId+1)
+                cell_nonzero_id = neighborCellId[nonzero_idx] # neighbor cell id
 
-                    if nonzero_num > 0:
-                        x_i = x[iCell]
-                        y_i = y[iCell]
-                        x_adj = x[nonzero_id]
-                        y_adj = y[nonzero_id]
-                        ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
-                        assert np.count_nonzero(ds)==len(ds)
-                        var_adj = dataset.variables[options.var_name][0,nonzero_id]
-                        var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
-                        #dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num #simple averaging scheme
+                mask_for_idx = keepCellMask[cell_nonzero_id] # active cell mask
+                mask_nonzero_idx, = np.nonzero(mask_for_idx)
+
+                nonzero_id = cell_nonzero_id[mask_nonzero_idx] # id for nonzero beta cells
+                nonzero_num = np.count_nonzero(mask_for_idx)
+
+
+                assert len(nonzero_id) == nonzero_num
+
+                if nonzero_num > 0:
+                    x_i = x[iCell]
+                    y_i = y[iCell]
+                    x_adj = x[nonzero_id]
+                    y_adj = y[nonzero_id]
+                    ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
+                    assert np.count_nonzero(ds)==len(ds)
+                    var_adj = dataset.variables[options.var_name][0,nonzero_id]
+                    var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+                    var_adj_min = min(var_adj)
+                    if options.extrapolation == 'idw':
                         dataset.variables[options.var_name][0,iCell] = var_interp
-                        keepCellMaskNew[iCell] = 1;
+                    elif options.extrapolation == 'min':
+                        dataset.variables[options.var_name][0,iCell] = var_adj_min
+                    else:
+                        sys.exit("wrong extrapolation scheme! Set option x as idw or min!")
 
-            keepCellMask = np.copy(keepCellMaskNew)
-            print "%5d cells left for extrapolation!" % (nCells-np.count_nonzero(keepCellMask))
-else:
-    print "Extrapolation disabled!"
+
+                    keepCellMaskNew[iCell] = 1
+
+            #keepCellMask = np.copy(keepCellMaskNew)
+        print ("{0} extrapolation in total {1} iters".format(iter_num,  options.extra_iter_num))
 
 
 dataset.close()
