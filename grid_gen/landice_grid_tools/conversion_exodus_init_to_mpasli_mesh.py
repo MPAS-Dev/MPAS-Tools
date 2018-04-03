@@ -120,7 +120,7 @@ cellsOnCell = dataset.variables['cellsOnCell'][:]
 nEdgesOnCell = dataset.variables['nEdgesOnCell'][:]
 
 keepCellMask = np.zeros((nCells,), dtype=np.int8)
-keepCellMask[:] = 0
+
 if options.mask_scheme == 'grd':
     keepCellMask[thickness*ice_density/ocean_density + bedrock > 0.0] = 1
 # find the mask for grounded ice region
