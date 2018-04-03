@@ -12,7 +12,9 @@ from datetime import datetime
 print "** Gathering information."
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="file", help="grid file to modify; default: landice_grid.nc", metavar="FILE")
-parser.add_option("-m", "--method", dest="method", help="method to use for marking cells to cull.  See code for available options, most of which will need tweaking for particular applications", metavar="METHOD")
+parser.add_option("-m", "--method", dest="method", help="method to use for marking cells to cull.  Supported methods: 'noIce', 'numCells', 'distance', 'radius', 'edgeFraction'", metavar="METHOD")
+parser.add_option("-n", "--numCells", dest="numCells", default=5, help="number of cells to keep beyond ice extent", metavar="NUM")
+parser.add_option("-d", "--distance", dest="distance", default=50, help="distance (km) beyond ice extent to keep", metavar="DIST")
 parser.add_option("-p", "--plot", dest="makePlot", help="Include to have the script generate a plot of the resulting mask, default=false", default=False, action="store_true")
 options, args = parser.parse_args()
 
@@ -23,7 +25,7 @@ if not options.file:
 if not options.method:
         sys.exit("ERROR: No method selected for choosing cells to mark for culling")
 else:
-        maskmethod = int(options.method)
+        maskmethod = options.method
 
 try:
   f = NetCDFFile(options.file,'r+')
@@ -41,9 +43,11 @@ nCells = len(f.dimensions['nCells'])
 cullCell = np.zeros((nCells, ), dtype=np.int8)  # Initialize to cull no cells
 
 
+thicknessMissing = True
 try:
   thickness = f.variables['thickness'][0,:]
   print 'Using thickness field at time 0'
+  thicknessMissing = False
 except:
   print "The field 'thickness' is not available.  Some culling methods will not work."
 
@@ -51,17 +55,24 @@ except:
 # =====  Various methods for defining the mask ====
 
 # =========
-# 1. only keep cells with ice
-if maskmethod == 1:
+#  only keep cells with ice
+if maskmethod == 'noIce':
   print "Method: remove cells without ice"
+  if thicknessMissing:
+     sys.exit("Unable to perform 'numCells' method because thickness field was missing.")
+
   cullCell[thickness == 0.0] = 1
 
 # =========
-# 2. add a buffer of X cells around the ice 
-elif maskmethod == 2:
+#  add a buffer of X cells around the ice
+elif maskmethod == 'numCells':
   print "Method: remove cells beyond a certain number of cells from existing ice"
 
-  buffersize=20  # number of cells to expand
+  if thicknessMissing:
+     sys.exit("Unable to perform 'numCells' method because thickness field was missing.")
+
+  buffersize=int(options.numCells)  # number of cells to expand
+  print "Using a buffer of {} cells".format(buffersize)
 
   keepCellMask = np.copy(cullCell[:])
   keepCellMask[:] = 0
@@ -75,28 +86,74 @@ elif maskmethod == 2:
   for i in range(buffersize):
     print 'Starting buffer loop ', i+1
     keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
-    for iCell in range(len(keepCellMask)):
-      if keepCellMask[iCell] == 0:  # don't bother to check cells we are already keeping
-        for neighbor in cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1:  # the -1 converts from the fortran indexing in the variable to python indexing
-          if neighbor >= 0 and keepCellMask[neighbor] == 1:  # if any neighbors are already being kept on the old mask then keep this cell too.  This will get a lot of the ice cells, but they have already been assigned so they don't matter.  What we care about is getting cells that are not ice that have one or more ice neighbors.
-             keepCellMaskNew[iCell] = 1
+    ind = np.nonzero(keepCellMask == 0)[0]
+    for i in range(len(ind)):
+       iCell = ind[i]
+       keepCellMaskNew[iCell] = keepCellMask[cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1].max() # if any neighbor has a value of 1, then 1 will get assigned to iCell.
     keepCellMask = np.copy(keepCellMaskNew)  # after we've looped over all cells assign the new mask to the variable we need (either for another loop around the domain or to write out)
     print '  Num of cells to keep:', sum(keepCellMask)
 
   # Now convert the keepCellMask to the cullMask
   cullCell[:] = np.absolute(keepCellMask[:]-1)  # Flip the mask for which ones to cull
-  del keepCellMask, keepCellMaskNew
 
 # =========
-# 3. cut out beyond some radius (good for the dome)
-elif maskmethod == 3:
+#  remove cells beyond a certain distance of ice extent
+elif maskmethod == 'distance':
+
+  print "Method: remove cells beyond a certain distance from existing ice"
+
+  if thicknessMissing:
+     sys.exit("Unable to perform 'numCells' method because thickness field was missing.")
+
+  dist=float(options.distance)
+  print "Using a buffer distance of {} km".format(dist)
+  dist = dist * 1000.0 # convert to m
+
+  keepCellMask = np.copy(cullCell[:])
+  keepCellMask[:] = 0
+  cellsOnCell = f.variables['cellsOnCell'][:]
+  nEdgesOnCell = f.variables['nEdgesOnCell'][:]
+  xCell = f.variables['xCell'][:]
+  yCell = f.variables['yCell'][:]
+
+  # mark the cells with ice first
+  keepCellMask[thickness > 0.0] = 1
+  print 'Num of cells with ice:', sum(keepCellMask)
+
+  # find list of margin cells
+  iceCells = np.nonzero(keepCellMask == 1)[0]
+  marginMask = np.zeros((nCells, ), dtype=np.int8)
+  for i in range(len(iceCells)):
+     iCell = iceCells[i]
+     for neighbor in cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1:  # the -1 converts from the fortran indexing in the variable to python indexing
+         if thickness[neighbor] == 0.0:
+            marginMask[iCell] = 1
+            continue  # stop searching neighbors
+
+  # loop over margin cells
+  marginCells = np.nonzero(marginMask == 1)[0]
+  for i in range(len(marginCells)):
+      iCell = marginCells[i]
+      # for each margin cell, find all cells within specified distance
+      ind = np.nonzero(((xCell-xCell[iCell])**2 + (yCell-yCell[iCell])**2)**0.5 < dist)[0]
+      keepCellMask[ind] = 1
+
+  print '  Num of cells to keep:', sum(keepCellMask)
+
+  # Now convert the keepCellMask to the cullMask
+  cullCell[:] = np.absolute(keepCellMask[:]-1)  # Flip the mask for which ones to cull
+
+
+# =========
+#  cut out beyond some radius (good for the dome)
+elif maskmethod == 'radius':
   print "Method: remove cells beyond a radius"
-  ind = np.nonzero( (xCell[:]**2 + yCell[:]**2)**0.5 > 28000.0 )
+  ind = np.nonzero( (xCell[:]**2 + yCell[:]**2)**0.5 > 26000.0 )
   cullCell[ind] = 1
 
 # =========
-# 4. cut off some fraction of the height/width on all 4 sides - useful for cleaning up a mesh from periodic_general
-elif maskmethod == 4:
+#  cut off some fraction of the height/width on all 4 sides - useful for cleaning up a mesh from periodic_general
+elif maskmethod == 'edgeFraction':
   print "Method: remove a fraction from all 4 edges"
   frac=0.025
 
