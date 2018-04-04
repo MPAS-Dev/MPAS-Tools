@@ -130,10 +130,10 @@ else:
     sys.exit("wrong masking scheme! Set option k as all or grd!")
 
 keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
-searchCells = np.where(keepCellMaskNew==0)[0]
+#searchCells = np.where(keepCellMaskNew==0)[0]
 
 # recursive extrapolation steps:
-# 1) find cell A with mask = 0 (ice_thickness = 0)
+# 1) find cell A with mask = 0 
 # 2) find six adjacent cells around A
 # 3) find how many surrounding cells have nonzero mask, and their indices
 # 4) use beta for nonzero mask surrounding cells to extrapolate the beta for cell A
@@ -142,10 +142,10 @@ searchCells = np.where(keepCellMaskNew==0)[0]
 # 7) go to step 1)
 
 print "Start extrapolation!"
-iter_num = 0
-while iter_num < int(options.extra_iter_num): #or np.count_nonzero(keepCellMask) != nCells:
 
-    iter_num = iter_num + 1
+while np.count_nonzero(keepCellMask) != nCells:
+    
+    searchCells = np.where(keepCellMask==0)[0]
 
     if useKDTree:
         for iCell in searchCells:
@@ -163,7 +163,7 @@ while iter_num < int(options.extra_iter_num): #or np.count_nonzero(keepCellMask)
                 dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
                 keepCellMask[iCell] = 1
 
-        print ("{0} extrapolation in total {1} iters".format(iter_num,  options.extra_iter_num))
+        print ("{0} cells left for extrapolation in total {1} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
 
 
     else:
@@ -201,7 +201,69 @@ while iter_num < int(options.extra_iter_num): #or np.count_nonzero(keepCellMask)
                 keepCellMask[iCell] = 1
 
 
+        print ("{0} cells left for extrapolation in total {1} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+
+
+print "Start smoothing for extrapolated field!"
+
+iter_num = 0
+while iter_num < int(options.extra_iter_num):
+
+    searchCells = np.where(keepCellMaskNew==0)[0]
+
+    if useKDTree:
+        for iCell in searchCells:
+            x_tmp = x[iCell]
+            y_tmp = y[iCell]
+            neareastPointNum = nEdgesOnCell[iCell]+1
+            dist, idx = tree.query([x_tmp,y_tmp],k=neareastPointNum) # KD tree take account of [x_tmp,y_tmp] itself
+            mask_for_idx = keepCellMask[idx]
+            mask_nonzero_idx, = np.nonzero(mask_for_idx)
+
+            nonzero_id = idx[mask_nonzero_idx]
+            nonzero_num = np.count_nonzero(mask_for_idx)
+
+            assert nonzero_num > 0
+
+            dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
+
+        print ("{0} smoothing in total {1} iters".format(iter_num,  options.extra_iter_num))
+
+
+    else:
+        for iCell in searchCells:
+            neighborCellId = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
+            nonzero_idx, = np.nonzero(neighborCellId+1)
+            cell_nonzero_id = neighborCellId[nonzero_idx] # neighbor cell id
+
+            mask_for_idx = keepCellMask[cell_nonzero_id] # active cell mask
+            mask_nonzero_idx, = np.nonzero(mask_for_idx)
+
+            nonzero_id = cell_nonzero_id[mask_nonzero_idx] # id for nonzero beta cells
+            nonzero_num = np.count_nonzero(mask_for_idx)
+
+            assert len(nonzero_id) == nonzero_num
+            assert nonzero_num > 0
+
+            x_i = x[iCell]
+            y_i = y[iCell]
+            x_adj = x[nonzero_id]
+            y_adj = y[nonzero_id]
+            ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
+            assert np.count_nonzero(ds)==len(ds)
+            var_adj = dataset.variables[options.var_name][0,nonzero_id]
+            if options.extrapolation == 'idw':
+                var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+                dataset.variables[options.var_name][0,iCell] = var_interp
+            elif options.extrapolation == 'min':
+                var_adj_min = min(var_adj)
+                dataset.variables[options.var_name][0,iCell] = var_adj_min
+            else:
+                sys.exit("wrong extrapolation scheme! Set option x as idw or min!")
+
         print ("{0} extrapolation in total {1} iters".format(iter_num,  options.extra_iter_num))
+
+    iter_num = iter_num + 1
 
 
 dataset.close()
