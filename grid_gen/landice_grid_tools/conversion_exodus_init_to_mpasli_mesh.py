@@ -2,7 +2,7 @@
 """
 Created on Tue Feb 13 23:50:20 2018
 
-@author: Tong Zhang
+@author: Tong Zhang, Matt Hoffman
 """
 
 import numpy as np
@@ -18,7 +18,7 @@ parser.add_option("-k", "--mask", dest="mask_scheme", help="two options: all or 
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas input/output file")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable you want to convert from an exodus file")
 parser.add_option("-x", "--extra", dest="extrapolation", default="min", help="Two options: idw and min. idw is the Inverse Distance Weighting method, and min is the method that uses the minimum value of the surrounding cells. The default is to do extrapolation for surrounding buffer region.")
-parser.add_option("-i", "--iter", dest="extra_iter_num", default="20", help="Maximum number for the recursive extrapolation. A larger number means a more uniform extrapolation field and more running time. The default numer is 20")
+parser.add_option("-i", "--iter", dest="extra_iter_num", default="3", help="Maximum number for the recursive extrapolation. A larger number means a more uniform extrapolation field and more running time. The default numer is 3")
 #parser.add_option("-x", "--extra", action="store_true", dest="extrapolation", default=True, help="The default is to do extrapolation for surrounding buffer region. The current extrapolation method is an inverse distance weighting method (IDW).")
 #parser.add_option("-n", "--noextra", action="store_false", dest="extrapolation", help="use this option if you do not want to do extrapolation.")
 options, args = parser.parse_args()
@@ -130,6 +130,7 @@ else:
     sys.exit("wrong masking scheme! Set option k as all or grd!")
 
 keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
+keepCellMaskOld = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
 #searchCells = np.where(keepCellMaskNew==0)[0]
 
 # recursive extrapolation steps:
@@ -141,10 +142,11 @@ keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edite
 # 6) Update mask
 # 7) go to step 1)
 
-print "Start extrapolation!"
+print "\nStart extrapolation!"
 
 while np.count_nonzero(keepCellMask) != nCells:
     
+    keepCellMask = np.copy(keepCellMaskNew)
     searchCells = np.where(keepCellMask==0)[0]
 
     if useKDTree:
@@ -169,13 +171,11 @@ while np.count_nonzero(keepCellMask) != nCells:
     else:
         for iCell in searchCells:
             neighborCellId = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
-            nonzero_idx, = np.nonzero(neighborCellId+1)
-            cell_nonzero_id = neighborCellId[nonzero_idx] # neighbor cell id
 
-            mask_for_idx = keepCellMask[cell_nonzero_id] # active cell mask
+            mask_for_idx = keepCellMask[neighborCellId] # active cell mask
             mask_nonzero_idx, = np.nonzero(mask_for_idx)
 
-            nonzero_id = cell_nonzero_id[mask_nonzero_idx] # id for nonzero beta cells
+            nonzero_id = neighborCellId[mask_nonzero_idx] # id for nonzero beta cells
             nonzero_num = np.count_nonzero(mask_for_idx)
 
 
@@ -198,18 +198,18 @@ while np.count_nonzero(keepCellMask) != nCells:
                 else:
                     sys.exit("wrong extrapolation scheme! Set option x as idw or min!")
 
-                keepCellMask[iCell] = 1
+                keepCellMaskNew[iCell] = 1
 
 
         print ("{0} cells left for extrapolation in total {1} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
 
 
-print "Start smoothing for extrapolated field!"
+print "\nStart smoothing for extrapolated field!"
 
 iter_num = 0
 while iter_num < int(options.extra_iter_num):
 
-    searchCells = np.where(keepCellMaskNew==0)[0]
+    searchCells = np.where(keepCellMaskOld==0)[0]
 
     if useKDTree:
         for iCell in searchCells:
@@ -265,5 +265,9 @@ while iter_num < int(options.extra_iter_num):
 
     iter_num = iter_num + 1
 
+if iter_num == 0:
+    print "No smoothing! Iter number is 0!"
+
+print "Extrapolation finished!"
 
 dataset.close()
