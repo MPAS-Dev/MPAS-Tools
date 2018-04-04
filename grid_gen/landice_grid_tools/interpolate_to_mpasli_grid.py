@@ -99,17 +99,17 @@ def BilinearInterp(Value, gridType):
     dy = y[1] - y[0]
     for i in range(len(xCell)):
        # Calculate the CISM grid cell indices (these are the lower index)
-       xgrid = math.floor( (xCell[i]-x[0]) / dx )
+       xgrid = int(math.floor( (xCell[i]-x[0]) / dx ))
        if xgrid >= len(x) - 1:
           xgrid = len(x) - 2
        elif xgrid < 0:
           xgrid = 0
-       ygrid = math.floor( (yCell[i]-y[0]) / dy )
+       ygrid = int(math.floor( (yCell[i]-y[0]) / dy ))
        if ygrid >= len(y) - 1:
           ygrid = len(y) - 2
        elif ygrid < 0:
           ygrid = 0
-       #print xgrid, ygrid
+       #print xgrid, ygrid, i
        ValueCell[i] = Value[ygrid,xgrid] * (x[xgrid+1] - xCell[i]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
                  Value[ygrid+1,xgrid] * (x[xgrid+1] - xCell[i]) * (yCell[i] - y[ygrid]) / (dx * dy) + \
                  Value[ygrid,xgrid+1] * (xCell[i] - x[xgrid]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
@@ -123,7 +123,12 @@ def delaunay_interp_weights(xy, uv, d=2):
     xy = input x,y coords
     uv = output (MPSALI) x,y coords
     '''
-    tri = scipy.spatial.qhull.Delaunay(xy)
+
+    #print "scipy version=", scipy.version.full_version
+    if xy.shape[0] > 2**24-1:
+       print "WARNING: The source file contains more than 2^24-1 (16,777,215) points due to a limitation in older versions of Qhull (see: https://mail.scipy.org/pipermail/scipy-user/2015-June/036598.html).  Delaunay creation may fail if Qhull being linked by scipy.spatial is older than v2015.0.1 2015/8/31."
+
+    tri = scipy.spatial.Delaunay(xy)
     print "    Delaunay triangulation complete."
     simplex = tri.find_simplex(uv)
     print "    find_simplex complete."
@@ -526,9 +531,9 @@ if filetype=='cism':
      fieldInfo['beta'] =          {'InputName':'beta', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x0', 'vertDim':False} # needs different mapping file...
      #fieldInfo['observedSpeed'] = {'InputName':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x0', 'vertDim':False} # needs different mapping file...
      # fields for observed surface speed and associated error, observed thickness change
-     fieldInfo['vx'] = {'InputName':'vx', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
-     fieldInfo['vy'] = {'InputName':'vy', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
-     fieldInfo['verr'] = {'InputName':'verr', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['observedSurfaceVelocityX'] = {'InputName':'vx', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['observedSurfaceVelocityY'] = {'InputName':'vy', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['observedSurfaceVelocityUncertainty'] = {'InputName':'verr', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['observedThicknessTendency'] = {'InputName':'dHdt', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
 
 elif filetype=='mpas':
