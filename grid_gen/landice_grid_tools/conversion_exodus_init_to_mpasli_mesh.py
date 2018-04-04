@@ -17,7 +17,7 @@ parser.add_option("-m", "--method", dest="conversion_method", default="id", help
 parser.add_option("-k", "--mask", dest="mask_scheme", help="two options: all or grd. The all method is to mask cells with ice thickness > 0 as 1. The grd method masks grounded cells as 1.")
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas input/output file")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable you want to convert from an exodus file")
-parser.add_option("-x", "--extra", dest="extrapolation", default="idw", help="Two options: idw and min. idw is the Inverse Distance Weighting method, and min is the method that uses the minimum value of the surrounding cells. The default is to do extrapolation for surrounding buffer region.")
+parser.add_option("-x", "--extra", dest="extrapolation", default="min", help="Two options: idw and min. idw is the Inverse Distance Weighting method, and min is the method that uses the minimum value of the surrounding cells. The default is to do extrapolation for surrounding buffer region.")
 parser.add_option("-i", "--iter", dest="extra_iter_num", default="20", help="Maximum number for the recursive extrapolation. A larger number means a more uniform extrapolation field and more running time. The default numer is 20")
 #parser.add_option("-x", "--extra", action="store_true", dest="extrapolation", default=True, help="The default is to do extrapolation for surrounding buffer region. The current extrapolation method is an inverse distance weighting method (IDW).")
 #parser.add_option("-n", "--noextra", action="store_false", dest="extrapolation", help="use this option if you do not want to do extrapolation.")
