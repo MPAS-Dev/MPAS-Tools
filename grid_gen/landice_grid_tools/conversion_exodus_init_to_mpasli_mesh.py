@@ -18,15 +18,13 @@ parser.add_option("-k", "--mask", dest="mask_scheme", help="two options: all or 
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas input/output file")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable you want to convert from an exodus file")
 parser.add_option("-x", "--extra", dest="extrapolation", default="min", help="Two options: idw and min. idw is the Inverse Distance Weighting method, and min is the method that uses the minimum value of the surrounding cells. The default is to do extrapolation for surrounding buffer region.")
-parser.add_option("-i", "--iter", dest="extra_iter_num", default="3", help="Maximum number for the recursive extrapolation. A larger number means a more uniform extrapolation field and more running time. The default numer is 3")
-#parser.add_option("-x", "--extra", action="store_true", dest="extrapolation", default=True, help="The default is to do extrapolation for surrounding buffer region. The current extrapolation method is an inverse distance weighting method (IDW).")
-#parser.add_option("-n", "--noextra", action="store_false", dest="extrapolation", help="use this option if you do not want to do extrapolation.")
+parser.add_option("-i", "--iter", dest="smooth_iter_num", default="3", help="Maximum number for the recursive smoothing. A larger number means a more uniform smoothing field and more running time.")
 options, args = parser.parse_args()
 
 import sys
 sys.path.append('/home/tzhang/Apps/seacas/lib')
 from exodus import exodus
-mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness"}
+mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness", "stiffnessFactor":"stiffening_factor"}
 # A mapping between mpas and exodus file. Add one if you need to manipulate a different variable!
 ice_density = 910.0
 ocean_density = 1028.0
@@ -129,18 +127,16 @@ elif options.mask_scheme == 'all':
 else:
     sys.exit("wrong masking scheme! Set option k as all or grd!")
 
-keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
+keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that will be used later
 keepCellMaskOld = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
-#searchCells = np.where(keepCellMaskNew==0)[0]
 
 # recursive extrapolation steps:
 # 1) find cell A with mask = 0 
-# 2) find six adjacent cells around A
-# 3) find how many surrounding cells have nonzero mask, and their indices
-# 4) use beta for nonzero mask surrounding cells to extrapolate the beta for cell A
-# 5) change the mask for A from 0 to 1
-# 6) Update mask
-# 7) go to step 1)
+# 2) find how many surrounding cells have nonzero mask, and their indices (this will give us the cells from upstream)
+# 3) use the values for nonzero mask upstream cells to extrapolate the value for cell A
+# 4) change the mask for A from 0 to 1
+# 5) Update mask
+# 6) go to step 1)
 
 print "\nStart extrapolation!"
 
@@ -252,7 +248,7 @@ while iter_num < int(options.extra_iter_num):
             ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
             assert np.count_nonzero(ds)==len(ds)
             var_adj = dataset.variables[options.var_name][0,nonzero_id]
-            if options.extrapolation == 'idw':
+            if 1:#options.extrapolation == 'idw':
                 var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
                 dataset.variables[options.var_name][0,iCell] = var_interp
             elif options.extrapolation == 'min':
@@ -261,7 +257,7 @@ while iter_num < int(options.extra_iter_num):
             else:
                 sys.exit("wrong extrapolation scheme! Set option x as idw or min!")
 
-        print ("{0} extrapolation in total {1} iters".format(iter_num,  options.extra_iter_num))
+        print ("{0} smoothing in total {1} iters".format(iter_num,  options.extra_iter_num))
 
     iter_num = iter_num + 1
 
