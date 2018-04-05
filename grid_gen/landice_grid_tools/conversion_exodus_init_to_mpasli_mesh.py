@@ -17,8 +17,11 @@ parser.add_option("-m", "--method", dest="conversion_method", default="id", help
 parser.add_option("-k", "--mask", dest="mask_scheme", help="two options: all or grd. The all method is to mask cells with ice thickness > 0 as 1. The grd method masks grounded cells as 1.")
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas input/output file")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable you want to convert from an exodus file")
-parser.add_option("-x", "--extra", dest="extrapolation", default="min", help="Two options: idw and min. idw is the Inverse Distance Weighting method, and min is the method that uses the minimum value of the surrounding cells. The default is to do extrapolation for surrounding buffer region.")
+parser.add_option("-x", "--extra", dest="extrapolation", default="min", help="Two options: idw and min. idw is the Inverse Distance Weighting method, and min is the method that uses the minimum value of the surrounding cells.")
 parser.add_option("-i", "--iter", dest="smooth_iter_num", default="3", help="Maximum number for the recursive smoothing. A larger number means a more uniform smoothing field and more running time.")
+for option in parser.option_list:
+    if option.default != ("NO", "DEFAULT"):
+        option.help += (" " if option.help else "") + "[default: %default]"
 options, args = parser.parse_args()
 
 import sys
@@ -161,7 +164,7 @@ while np.count_nonzero(keepCellMask) != nCells:
                 dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
                 keepCellMask[iCell] = 1
 
-        print ("{0} cells left for extrapolation in total {1} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+        print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
 
 
     else:
@@ -197,13 +200,13 @@ while np.count_nonzero(keepCellMask) != nCells:
                 keepCellMaskNew[iCell] = 1
 
 
-        print ("{0} cells left for extrapolation in total {1} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+        print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
 
 
-print "\nStart smoothing for extrapolated field!"
+print "\nStart idw smoothing for extrapolated field!"
 
 iter_num = 0
-while iter_num < int(options.extra_iter_num):
+while iter_num < int(options.smooth_iter_num):
 
     searchCells = np.where(keepCellMaskOld==0)[0]
 
@@ -223,7 +226,7 @@ while iter_num < int(options.extra_iter_num):
 
             dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
 
-        print ("{0} smoothing in total {1} iters".format(iter_num,  options.extra_iter_num))
+        print ("{0:3d} smoothing in total {1:3s} iters".format(iter_num,  options.smooth_iter_num))
 
 
     else:
@@ -248,22 +251,16 @@ while iter_num < int(options.extra_iter_num):
             ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
             assert np.count_nonzero(ds)==len(ds)
             var_adj = dataset.variables[options.var_name][0,nonzero_id]
-            if 1:#options.extrapolation == 'idw':
-                var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
-                dataset.variables[options.var_name][0,iCell] = var_interp
-            elif options.extrapolation == 'min':
-                var_adj_min = min(var_adj)
-                dataset.variables[options.var_name][0,iCell] = var_adj_min
-            else:
-                sys.exit("wrong extrapolation scheme! Set option x as idw or min!")
+            var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+            dataset.variables[options.var_name][0,iCell] = var_interp
 
-        print ("{0} smoothing in total {1} iters".format(iter_num,  options.extra_iter_num))
+        print ("{0:3d} smoothing in total {1:3s} iters".format(iter_num,  options.smooth_iter_num))
 
     iter_num = iter_num + 1
 
 if iter_num == 0:
-    print "No smoothing! Iter number is 0!"
+    print "\nNo smoothing! Iter number is 0!"
 
-print "Extrapolation finished!"
+print "\nExtrapolation and smoothing finished!"
 
 dataset.close()
