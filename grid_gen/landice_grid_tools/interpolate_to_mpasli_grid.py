@@ -528,6 +528,8 @@ if filetype=='cism':
      fieldInfo['floatingBasalMassBal'] =    {'InputName':'bmb', 'scalefactor':910.0/(3600.0*24.0*365.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming default CISM density
      #fieldInfo['temperature'] =   {'InputName':'temp', 'scalefactor':1.0, 'offset':273.15, 'gridType':'x1', 'vertDim':True}
      fieldInfo['temperature'] =   {'InputName':'tempstag', 'scalefactor':1.0, 'offset':273.15, 'gridType':'x1', 'vertDim':True}  # pick one or the other
+     fieldInfo['basalHeatFlux'] = {'InputName':'bheatflx', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['surfaceAirTemperature'] = {'InputName':'artm', 'scalefactor':1.0, 'offset':273.15, 'gridType':'x1', 'vertDim':False}
      fieldInfo['beta'] =          {'InputName':'beta', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x0', 'vertDim':False} # needs different mapping file...
      #fieldInfo['observedSpeed'] = {'InputName':'balvel', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x0', 'vertDim':False} # needs different mapping file...
      # fields for observed surface speed and associated error, observed thickness change
@@ -535,17 +537,27 @@ if filetype=='cism':
      fieldInfo['observedSurfaceVelocityY'] = {'InputName':'vy', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['observedSurfaceVelocityUncertainty'] = {'InputName':'verr', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['observedThicknessTendency'] = {'InputName':'dHdt', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['observedThicknessTendencyUncertainty'] = {'InputName':'dHdtErr', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['thicknessUncertainty'] = {'InputName':'thkerr', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
 
 elif filetype=='mpas':
 
    fieldInfo['thickness'] =     {'InputName':'thickness',  'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
    if not options.thicknessOnly:
      fieldInfo['bedTopography'] = {'InputName':'bedTopography', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
-     fieldInfo['surfaceAirTemperature'] =    {'InputName':'surfaceAirTemperature', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
-     fieldInfo['basalHeatFlux'] =    {'InputName':'basalHeatFlux', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['sfcMassBal'] =    {'InputName':'sfcMassBal', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['floatingBasalMassBal'] =    {'InputName':'floatingBasalMassBal', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['temperature'] =   {'InputName':'temperature', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':True}
+     fieldInfo['basalHeatFlux'] =    {'InputName':'basalHeatFlux', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['surfaceAirTemperature'] =    {'InputName':'surfaceAirTemperature', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['beta'] = {'InputName':'beta', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     # obs fields
+     fieldInfo['observedSurfaceVelocityX'] = {'InputName':'observedSurfaceVelocityX', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['observedSurfaceVelocityY'] = {'InputName':'observedSurfaceVelocityY', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['observedSurfaceVelocityUncertainty'] = {'InputName':'observedSurfaceVelocityUncertainty', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['observedThicknessTendency'] = {'InputName':'observedThicknessTendency', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['observedThicknessTendencyUncertainty'] = {'InputName':'observedThicknessTendencyUncertainty', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['thicknessUncertainty'] = {'InputName':'thicknessUncertainty', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
 
 #----------------------------
 

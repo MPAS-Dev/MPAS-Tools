@@ -20,8 +20,7 @@ parser.add_option("--beta", dest="beta", action="store_true", help="Use this fla
 parser.add_option("--diri", dest="dirichlet", action="store_true", help="Use this flag to include the fields 'dirichletVelocityMask', 'uReconstructX', 'uReconstructY' needed for specifying Dirichlet velocity boundary conditions in the resulting file.")
 parser.add_option("--thermal", dest="thermal", action="store_true", help="Use this flag to include the fields 'temperature', 'surfaceAirTemperature', 'basalHeatFlux' needed for specifying thermal initial conditions in the resulting file.")
 parser.add_option("--hydro", dest="hydro", action="store_true", help="Use this flag to include the fields 'waterThickness', 'tillWaterThickness', 'basalMeltInput', 'externalWaterInput', 'frictionAngle', 'waterPressure', 'waterFluxMask' needed for specifying hydro initial conditions in the resulting file.")
-parser.add_option("--velobs", dest="velobs", action="store_true", help="Use this flag to include the fields observedSurfaceVelocityX, observedSurfaceVelocityY, observedSurfaceVelocityUncertainty needed doing optimizations constrained by obs velocities.")
-parser.add_option("--dHdt", dest="dHdt", action="store_true", help="Use this flag to include a dz/dt or dH/dt field when doing optimizations that include an SMB + dH/dt constraint.")
+parser.add_option("--obs", dest="obs", action="store_true", help="Use this flag to include the observational fields observedSurfaceVelocityX, observedSurfaceVelocityY, observedSurfaceVelocityUncertainty, observedThicknessTendency, observedThicknessTendencyUncertainty, thicknessUncertainty needed doing optimizations constrained by obs velocities.")
 options, args = parser.parse_args()
 
 if not options.fileinName:
@@ -113,13 +112,6 @@ if 'nVertLevels' not in fileout.dimensions:
 fileout.createDimension('nVertInterfaces', len(fileout.dimensions['nVertLevels']) + 1)  # nVertInterfaces = nVertLevels + 1
 print 'Added new dimension nVertInterfaces to output file with value of ' + str(len(fileout.dimensions['nVertInterfaces'])) + '.'
 
-# Create the dimensions needed for time-dependent forcings
-# Note: These have been disabled in the fresh implementation of the landice core.  MH 9/19/13
-#fileout.createDimension('nBetaTimeSlices', 1)
-#fileout.createDimension('nSfcMassBalTimeSlices', 1)
-#fileout.createDimension('nSfcAirTempTimeSlices', 1)
-#fileout.createDimension('nBasalHeatFluxTimeSlices', 1)
-#fileout.createDimension('nMarineBasalMassBalTimeSlices', 1)
 fileout.sync()
 print 'Finished creating dimensions in output file.\n' # include an extra blank line here
 
@@ -226,20 +218,20 @@ if options.hydro:
    newvar[:] = 0.0
    print 'Added optional hydro variables: waterThickness, tillWaterThickness, meltInput, frictionAngle, waterPressure, waterFluxMask'
 
-if options.velobs:
+if options.obs:
    newvar = fileout.createVariable('observedSurfaceVelocityX', datatype, ('Time', 'nCells'))
    newvar[:] = 0.0
    newvar = fileout.createVariable('observedSurfaceVelocityY', datatype, ('Time', 'nCells'))
    newvar[:] = 0.0
    newvar = fileout.createVariable('observedSurfaceVelocityUncertainty', datatype, ('Time', 'nCells'))
    newvar[:] = 0.0
-   print 'Added optional velocity optimization variables: observedSurfaceVelocityX, observedSurfaceVelocityY, observedSurfaceVelocityUncertainty'
-
-if options.dHdt:
    newvar = fileout.createVariable('observedThicknessTendency', datatype, ('Time', 'nCells'))
    newvar[:] = 0.0
-   print 'Added optional optimization variable: dHdt'
-
+   newvar = fileout.createVariable('observedThicknessTendencyUncertainty', datatype, ('Time', 'nCells'))
+   newvar[:] = 0.0
+   newvar = fileout.createVariable('thicknessUncertainty', datatype, ('Time', 'nCells'))
+   newvar[:] = 0.0
+   print 'Added optional velocity optimization variables: observedSurfaceVelocityX, observedSurfaceVelocityY, observedSurfaceVelocityUncertainty, observedThicknessTendency, observedThicknessTendencyUncertainty, thicknessUncertainty'
 
 # Update history attribute of netCDF file
 thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
