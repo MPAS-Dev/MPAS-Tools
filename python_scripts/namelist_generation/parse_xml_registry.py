@@ -467,9 +467,9 @@ def write_namelist_section_documentation():
             latex.write('    Possible Values: & %s \\\\\n' % possible_values)
             latex.write('    \hline\n')
             if (opt_icepack_name is not None):
-                latex.write('    \hline\n')
                 latex.write('    Icepack name: & \\verb+%s+ \\\\\n' %
                             opt_icepack_name)
+                latex.write('    \hline\n')
             latex.write('    \caption{%s: %s}\n' % (name_escaped, description))
             latex.write('\end{longtable}\n')
             latex.write('\end{center}\n')
