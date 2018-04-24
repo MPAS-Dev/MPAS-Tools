@@ -7,7 +7,10 @@ Utility library for various scripts used to extract vtk geometry from NetCDF
 files on MPAS grids.
 """
 
-from pyevtk.vtk import VtkFile, VtkPolyData
+try:
+    from evtk.vtk import VtkFile, VtkPolyData
+except ImportError:
+    from pyevtk.vtk import VtkFile, VtkPolyData
 
 import sys, glob
 import numpy
