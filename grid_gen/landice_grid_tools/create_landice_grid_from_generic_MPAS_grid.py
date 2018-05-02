@@ -16,6 +16,7 @@ parser = OptionParser()
 parser.add_option("-i", "--in", dest="fileinName", help="input filename.  Defaults to 'grid.nc'", metavar="FILENAME")
 parser.add_option("-o", "--out", dest="fileoutName", help="output filename.  Defaults to 'landice_grid.nc'", metavar="FILENAME")
 parser.add_option("-l", "--level", dest="levels", help="Number of vertical levels to use in the output file.  Defaults to the number in the input file", metavar="FILENAME")
+parser.add_option("-v", "--vert", dest="vertMethod", help="Method of vertical layer spacing: uniform, glimmer.  Glimmer spacing follows Eq. 35 of Rutt, I. C., M. Hagdorn, N. R. J. Hulton, and A. J. Payne (2009), The Glimmer community ice sheet model, J. Geophys. Res., 114, F02004, doi:10.1029/2008JF001015", default='uniform', metavar="FILENAME")
 parser.add_option("--beta", dest="beta", action="store_true", help="Use this flag to include the field 'beta' in the resulting file.")
 parser.add_option("--diri", dest="dirichlet", action="store_true", help="Use this flag to include the fields 'dirichletVelocityMask', 'uReconstructX', 'uReconstructY' needed for specifying Dirichlet velocity boundary conditions in the resulting file.")
 parser.add_option("--thermal", dest="thermal", action="store_true", help="Use this flag to include the fields 'temperature', 'surfaceAirTemperature', 'basalHeatFlux' needed for specifying thermal initial conditions in the resulting file.")
@@ -154,15 +155,29 @@ nVertLevels = len(fileout.dimensions['nVertLevels'])
 datatype = filein.variables['xCell'].dtype  # Get the datatype for double precision float
 datatypeInt = filein.variables['indexToCellID'].dtype  # Get the datatype for integers
 #  Note: it may be necessary to make sure the Time dimension has size 1, rather than the 0 it defaults to.  For now, letting it be 0 which seems to be fine.
-layerThicknessFractions = fileout.createVariable('layerThicknessFractions', datatype, ('nVertLevels', ))
-layerThicknessFractions[:] = numpy.zeros(layerThicknessFractions.shape)
-# Assign default values to layerThicknessFractions.  By default they will be uniform fractions.  Users can modify them in a subsequent step, but doing this here ensures the most likely values are already assigned. (Useful for e.g. setting up Greenland where the state variables are copied over but the grid variables are not modified.)
 
-# uniform layer fractions (default)
-layerThicknessFractions[:] = 1.0 / nVertLevels
+# layerThicknessFractions
+layerThicknessFractions = fileout.createVariable('layerThicknessFractions', datatype, ('nVertLevels', ))
+layerThicknessFractionsData = numpy.zeros(layerThicknessFractions.shape)
+# Assign default values to layerThicknessFractions.  By default they will be uniform fractions.  Users can modify them in a subsequent step, but doing this here ensures the most likely values are already assigned. (Useful for e.g. setting up Greenland where the state variables are copied over but the grid variables are not modified.)
+if options.vertMethod == 'uniform':
+   layerThicknessFractionsData[:] = 1.0 / nVertLevels
+elif options.vertMethod == 'glimmer':
+   nInterfaces = nVertLevels + 1
+   layerInterfaces = numpy.zeros((nInterfaces,))
+   for k in range(nInterfaces):
+      layerInterfaces[k] = 4.0/3.0 * (1.0 - ((k+1.0-1.0)/(nInterfaces-1.0) + 1.0)**-2)
+   for k in range(nVertLevels):
+      layerThicknessFractionsData[k] = layerInterfaces[k+1] - layerInterfaces[k]
+   print "Setting layerThicknessFractions to:", layerThicknessFractionData
+else:
+   sys.exit('Unknown method for vertical spacing method (--vert): '+options.vertMethod)
 
 # explictly specify layer fractions
-#layerThicknessFractions[:] = [0.1663,0.1516,0.1368,0.1221,0.1074,0.0926,0.0779,0.0632,0.0484,0.0337]
+#layerThicknessFractionsData[:] = [0.1663,0.1516,0.1368,0.1221,0.1074,0.0926,0.0779,0.0632,0.0484,0.0337]
+
+layerThicknessFractions[:] = layerThicknessFractionsData[:]
+
 
 # With Scientific.IO.netCDF, entries are appended along the unlimited dimension one at a time by assigning to a slice.
 # Therefore we need to assign to time level 0, and what we need to assign is a zeros array that is the shape of the new variable, exluding the time dimension!
