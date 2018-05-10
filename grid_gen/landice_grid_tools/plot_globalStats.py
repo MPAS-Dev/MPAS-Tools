@@ -10,6 +10,7 @@ from netCDF4 import Dataset
 from optparse import OptionParser
 import matplotlib.pyplot as plt
 
+rhoi = 910.0
 
 
 print "** Gathering information.  (Invoke with --help for more details. All arguments are optional)"
@@ -18,39 +19,51 @@ parser.add_option("-1", dest="file1inName", help="input filename", default="glob
 parser.add_option("-2", dest="file2inName", help="input filename", metavar="FILENAME")
 parser.add_option("-3", dest="file3inName", help="input filename", metavar="FILENAME")
 parser.add_option("-4", dest="file4inName", help="input filename", metavar="FILENAME")
+parser.add_option("-u", dest="units", help="units for mass/volume: m3, kg, Gt", default="m3", metavar="FILENAME")
 options, args = parser.parse_args()
 
+print "Using ice density of {} kg/m3 if required for unit conversions".format(rhoi)
 
 # create axes to plot into
-fig = plt.figure(1, facecolor='w')
+fig = plt.figure(1, figsize=(9, 11), facecolor='w')
 
 nrow=4
 ncol=2
 
 #xtickSpacing = 20.0
 
+if options.units == "m3":
+   massUnit = "m$^3$"
+elif options.units == "kg":
+   massUnit = "kg"
+elif options.units == "Gt":
+   massUnit = "Gt"
+else:
+   sys.exit("Unknown mass/volume units")
+print "Using volume/mass units of: ", massUnit
+
 axVol = fig.add_subplot(nrow, ncol, 1)
 plt.xlabel('Year')
-plt.ylabel('volume (m$^3$)')
+plt.ylabel('volume ({})'.format(massUnit))
 #plt.xticks(np.arange(22)*xtickSpacing)
 plt.grid()
 axX = axVol
 
 axVAF = fig.add_subplot(nrow, ncol, 2, sharex=axX)
 plt.xlabel('Year')
-plt.ylabel('VAF (m^3)')
+plt.ylabel('VAF ({})'.format(massUnit))
 #plt.xticks(np.arange(22)*xtickSpacing)
 plt.grid()
 
 axVolGround = fig.add_subplot(nrow, ncol, 3, sharex=axX)
 plt.xlabel('Year')
-plt.ylabel('grounded volume (m$^3$)')
+plt.ylabel('grounded volume ({})'.format(massUnit))
 #plt.xticks(np.arange(22)*xtickSpacing)
 plt.grid()
 
 axVolFloat = fig.add_subplot(nrow, ncol, 4, sharex=axX)
 plt.xlabel('Year')
-plt.ylabel('floating volume (m$^3$)')
+plt.ylabel('floating volume ({})'.format(massUnit))
 #plt.xticks(np.arange(22)*xtickSpacing)
 plt.grid()
 
@@ -89,15 +102,39 @@ def plotStat(fname):
     yr = f.variables['daysSinceStart'][:]/365.0
 
     vol = f.variables['totalIceVolume'][:]
+    if options.units == "m3":
+       pass
+    elif options.units == "kg":
+       vol = vol * rhoi
+    elif options.units == "Gt":
+       vol = vol * rhoi / 1.0e12
     axVol.plot(yr, vol, label=name)
 
     VAF = f.variables['volumeAboveFloatation'][:]
+    if options.units == "m3":
+       pass
+    elif options.units == "kg":
+       VAF = VAF * rhoi
+    elif options.units == "Gt":
+       VAF = VAF * rhoi / 1.0e12
     axVAF.plot(yr, VAF, label=name)
 
     volGround = f.variables['groundedIceVolume'][:]
+    if options.units == "m3":
+       pass
+    elif options.units == "kg":
+       volGround = volGround * rhoi
+    elif options.units == "Gt":
+       volGround = volGround * rhoi / 1.0e12
     axVolGround.plot(yr, volGround, label=name)
 
     volFloat = f.variables['floatingIceVolume'][:]
+    if options.units == "m3":
+       pass
+    elif options.units == "kg":
+       volFloat = volFloat * rhoi
+    elif options.units == "Gt":
+       volFloat = volFloat * rhoi / 1.0e12
     axVolFloat.plot(yr, volFloat, label=name)
 
     areaGrd = f.variables['groundedIceArea'][:]
@@ -131,6 +168,7 @@ if(options.file4inName):
 axCalvFlux.legend(loc='best', prop={'size': 6})
 
 print "Generating plot."
+fig.tight_layout()
 plt.show()
 
 
