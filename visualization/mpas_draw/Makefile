@@ -15,7 +15,7 @@ else
 endif
 
 ifeq ($(PLATFORM),_LINUX)
-	CXXLIBS = -I$(NETCDF)/include -L$(NETCDF)/lib -lGL -lglut -lnetcdf_c++ -lnetcdf -lGLU -lstdc++
+	CXXLIBS = -I$(NETCDF)/include -L$(NETCDF)/lib -lGL -lglut -lnetcdf_c++ -lnetcdf -lGLU -lstdc++ -I/usr/common/graphics/netcdf-cxx/4.2/include -L/global/homes/h/hoffman2/software/glut-3.6/lib/glut -I/global/homes/h/hoffman2/software/glut-3.6/include/GL -L/usr/common/graphics/netcdf-cxx/4.2/lib
 endif
 
 ifeq ($(PLATFORM),_MACOS)
