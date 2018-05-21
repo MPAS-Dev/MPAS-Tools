@@ -1009,69 +1009,68 @@ def _fix_lon_lat_vertices(vertices, verticesOnCell, validVertices,
 
     return vertices, verticesOnCell  # }}}
 
+
 def _fix_periodic_vertices(vertices, verticesOnCell, validVertices,
-                          xCell, yCell, xperiod, yperiod):  # {{{
+                           xCell, yCell, xperiod, yperiod):  # {{{
+
+    vertices, verticesOnCell = _fix_periodic_vertices_1D(
+            vertices, verticesOnCell, validVertices, xCell, xperiod, dim=0)
+    vertices, verticesOnCell = _fix_periodic_vertices_1D(
+            vertices, verticesOnCell, validVertices, yCell, yperiod, dim=1)
+
+    return vertices, verticesOnCell  # }}}
+
+
+def _fix_periodic_vertices_1D(vertices, verticesOnCell, validVertices,
+                              coordCell, coordPeriod, dim):  # {{{
 
     nCells = verticesOnCell.shape[0]
     nVertices = len(vertices[0])
 
-    xVertex = vertices[0]
-    yVertex = vertices[1]
+    coordVertex = vertices[dim]
 
-    xDiff = xVertex[verticesOnCell] - xCell.reshape(nCells, 1)
-    yDiff = yVertex[verticesOnCell] - yCell.reshape(nCells, 1)
+    coordDiff = coordVertex[verticesOnCell] - coordCell.reshape(nCells, 1)
 
     # which cells have vertices that are out of range?
-    xoutOfRange = numpy.logical_and(validVertices,
-                                   numpy.logical_or(xDiff >  xperiod / 2.0,
-                                                    xDiff < -xperiod / 2.0))
-    youtOfRange = numpy.logical_and(validVertices,
-                                   numpy.logical_or(yDiff >  yperiod / 2.0,
-                                                    yDiff < -yperiod / 2.0))
+    coordOutOfRange = numpy.logical_and(
+            validVertices,
+            numpy.logical_or(coordDiff > coordPeriod / 2.0,
+                             coordDiff < -coordPeriod / 2.0))
 
-    xcellsOutOfRange = numpy.any(xoutOfRange, axis=1)
-    ycellsOutOfRange = numpy.any(youtOfRange, axis=1)
+    coordCellsOutOfRange = numpy.any(coordOutOfRange, axis=1)
 
-    xvalid = validVertices[xcellsOutOfRange, :]
-    yvalid = validVertices[ycellsOutOfRange, :]
+    coordValid = validVertices[coordCellsOutOfRange, :]
 
-    xverticesToChange = numpy.zeros(verticesOnCell.shape, bool)
-    xverticesToChange[xcellsOutOfRange, :] = xvalid
+    coordVerticesToChange = numpy.zeros(verticesOnCell.shape, bool)
+    coordVerticesToChange[coordCellsOutOfRange, :] = coordValid
 
-    yverticesToChange = numpy.zeros(verticesOnCell.shape, bool)
-    yverticesToChange[ycellsOutOfRange, :] = yvalid
+    coordDiff = coordDiff[coordCellsOutOfRange, :][coordValid]
+    coordVOC = verticesOnCell[coordCellsOutOfRange, :][coordValid]
 
-    xDiff = xDiff[xcellsOutOfRange, :][xvalid]
-    yDiff = yDiff[ycellsOutOfRange, :][yvalid]
-    xvoc = verticesOnCell[xcellsOutOfRange, :][xvalid]
-    yvoc = verticesOnCell[ycellsOutOfRange, :][yvalid]
+    coordNVerticesToAdd = numpy.count_nonzero(coordValid)
 
-    xnVerticesToAdd = numpy.count_nonzero(xvalid)
-    ynVerticesToAdd = numpy.count_nonzero(yvalid)
+    print coordNVerticesToAdd
 
-    xverticesToAdd = numpy.arange(xnVerticesToAdd) + nVertices
-    xv = xVertex[xvoc]
-    verticesOnCell[xverticesToChange] = xverticesToAdd
+    coordVerticesToAdd = numpy.arange(coordNVerticesToAdd) + nVertices
+    coordV = coordVertex[coordVOC]
+    verticesOnCell[coordVerticesToChange] = coordVerticesToAdd
 
-    yverticesToAdd = numpy.arange(ynVerticesToAdd) + \
-                      (nVertices + xnVerticesToAdd)
-    yv = yVertex[yvoc]
-    verticesOnCell[yverticesToChange] = yverticesToAdd
+    # need to shift points outside periodic domain (assumes that mesh is only
+    # within one period) can use mod if this is not the case in general
+    coordMask = coordDiff > coordPeriod / 2.0
+    coordV[coordMask] -= coordPeriod
+    coordMask = coordDiff < -coordPeriod / 2.0
+    coordV[coordMask] += coordPeriod
 
-    # need to shift points outside periodic domain (assumes that mesh is only within one period)
-    # can use mod if this is not the case in general
-    xmask = xDiff > xperiod / 2.0
-    xv[xmask] -= xperiod
-    xmask = xDiff < -xperiod /2.0
-    xv[xmask] += xperiod
-    ymask = yDiff > yperiod / 2.0
-    yv[ymask] -= yperiod
-    ymask = yDiff < -yperiod / 2.0
-    yv[ymask] += yperiod
+    outVertices = []
+    for outDim in range(3):
+        if outDim == dim:
+            outVertices.append(numpy.append(vertices[outDim], coordV))
+        else:
+            outVertices.append(numpy.append(vertices[outDim],
+                                            vertices[outDim][coordVOC]))
 
-    vertices = (numpy.append(numpy.append(vertices[0], xv), vertices[0][yvoc]),
-                numpy.append(numpy.append(vertices[1], vertices[1][xvoc]), yv),
-                numpy.append(numpy.append(vertices[2], vertices[2][xvoc]), vertices[2][yvoc]))
+    return tuple(outVertices), verticesOnCell  # }}}
 
-    return vertices, verticesOnCell  # }}}
+
 # vim: set expandtab:
