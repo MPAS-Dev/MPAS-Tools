@@ -20,6 +20,17 @@ try:
 except:
     use_progress_bar = False
 
+
+def open_netcdf(file_name):
+    nc_file = NetCDFFile(file_name, 'r')
+    # turn off auto mask (if applicable)
+    try:
+        nc_file.set_auto_mask(False)
+    except AttributeError:
+        pass
+    return nc_file
+
+
 def is_valid_mesh_var(mesh_file, variable_name):
     if mesh_file is None:
         return False
@@ -70,7 +81,7 @@ def setup_time_indices(fn_pattern, xtimeName):  # {{{
     i_file = 0
     for file_name in file_list:
         try:
-            nc_file = NetCDFFile(file_name, 'r')
+            nc_file = open_netcdf(file_name)
         except IOError:
             print "Warning: could not open {}".format(file_name)
             continue
