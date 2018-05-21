@@ -17,7 +17,7 @@ using namespace std;
 #ifdef _MACOS
 	#include <GLUT/glut.h>
 #elif _LINUX
-	#include <glut.h>
+	#include <GL/glut.h>
 #endif
 
 int main ( int argc, char *argv[] );
