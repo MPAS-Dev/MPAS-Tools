@@ -29,9 +29,9 @@ dyr = np.zeros(yr.shape)
 dyr[1:] = yr[1:]-yr[:-1]
 
 # ---- Figure: mass change rate ---
-fig = plt.figure(1, figsize=(6, 5), facecolor='w')
+fig = plt.figure(1, figsize=(6, 10), facecolor='w')
 
-ax = fig.add_subplot(1, 1, 1)
+ax = fig.add_subplot(2, 1, 1)
 plt.xlabel('Year')
 plt.ylabel('Grounded mass change (Gt/yr)')
 plt.grid()
@@ -61,25 +61,27 @@ ax.plot(yr, SMBg+BMBg-GLflux, "--", label="SMB+BMB+GLf")
 ax.plot(yr, SMBg+BMBg-GLflux-GLMigrationflux, "--", label="SMB+BMB+GLf+GLMf")
 
 plt.legend(loc='best', prop={'size': 6})
+plt.tight_layout()
 
 # --- Figure: cumulative mass change ---
-fig2 = plt.figure(2, figsize=(6,5), facecolor='w')
-ax = fig.add_subplot(1, 1, 1)
+#fig2 = plt.figure(2, figsize=(6,5), facecolor='w')
+ax = fig.add_subplot(2, 1, 2)
 plt.xlabel('Year')
 plt.ylabel('Cumulative grounded mass change (Gt)')
 plt.grid()
 
 plt.plot(yr, volGround - volGround[0], 'k', linewidth=3, label='grounded mass')
-plt.plot(yr, SMBg.cumsum(), label="grounded SMB")
-plt.plot(yr, BMBg.cumsum(), label="grounded BMB")
-plt.plot(yr, GLflux.cumsum(), label="GL flux")
-plt.plot(yr, GLMigrationflux.cumsum(), label="GL Migration flux")
+plt.plot(yr, (SMBg*dyr).cumsum(), label="grounded SMB")
+plt.plot(yr, (BMBg*dyr).cumsum(), label="grounded BMB")
+plt.plot(yr, -1.0*(GLflux*dyr).cumsum(), label="GL flux")
+plt.plot(yr, -1.0*(GLMigrationflux*dyr).cumsum(), label="GL Migration flux")
 plt.plot(yr, ( (SMBg+BMBg) * dyr).cumsum(), "--", label='SMB+BMB')
 plt.plot(yr, ( (SMBg+BMBg-GLflux) * dyr).cumsum(), "--", label='SMB+BMB+GLflux')
 plt.plot(yr, ( (SMBg+BMBg-GLflux-GLMigrationflux) * dyr).cumsum(), "--", label='SMB+BMB+GLf+GLMf')
 #plt.plot(yr, dareag.cumsum(), 'k', label="mass change due to change in grounded area")
 
 plt.legend(loc='best', prop={'size': 6})
+plt.tight_layout()
 
 print "Plotting complete."
 
