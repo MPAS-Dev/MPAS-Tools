@@ -160,10 +160,10 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
         pvd_file.write('<Collection>\n')
 
     if not combine_output and not np.all(var_has_time_dim):
-        out_prefix = "staticFieldsOn{}".format(suffix)
+        static_prefix = "staticFieldsOn{}".format(suffix)
         varIndices = np.arange(nVars)[np.logical_not(var_has_time_dim)]
         timeIndependentFile = utils.write_vtp_header(out_dir,
-                                                     out_prefix,
+                                                     static_prefix,
                                                      varIndices[0],
                                                      varIndices,
                                                      variable_list,
