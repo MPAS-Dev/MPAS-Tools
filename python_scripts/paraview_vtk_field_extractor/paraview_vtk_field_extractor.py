@@ -57,7 +57,6 @@ progressbar
 import os
 import numpy as np
 
-from netCDF4 import Dataset as NetCDFFile
 from netCDF4 import date2num
 from datetime import datetime
 
@@ -87,7 +86,7 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
         outType = 'float64'
 
     # Get dimension info to allocate the size of Colors
-    time_series_file = NetCDFFile(file_names[0], 'r')
+    time_series_file = utils.open_netcdf(file_names[0])
 
     if mesh_file is not None:
         # blockDim may not exist in time series file
@@ -185,7 +184,7 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
         if prev_file != file_names[time_index]:
             if prev_file != "":
                 time_series_file.close()
-            time_series_file = NetCDFFile(file_names[time_index], 'r')
+            time_series_file = utils.open_netcdf(file_names[time_index])
             prev_file = file_names[time_index]
 
         if any_var_has_time_dim:
@@ -386,9 +385,9 @@ if __name__ == "__main__":
         separate_mesh_file = False
 
     # Setting dimension values:
-    time_series_file = NetCDFFile(time_file_names[0], 'r')
+    time_series_file = utils.open_netcdf(time_file_names[0])
     if separate_mesh_file:
-        mesh_file = NetCDFFile(args.mesh_filename, 'r')
+        mesh_file = utils.open_netcdf(args.mesh_filename)
     else:
         mesh_file = None
     extra_dims = utils.parse_extra_dims(args.dimension_list, time_series_file,
@@ -408,7 +407,7 @@ if __name__ == "__main__":
     if len(cellVars) > 0:
         print " -- Extracting cell fields --"
 
-        mesh_file = NetCDFFile(args.mesh_filename, 'r')
+        mesh_file = utils.open_netcdf(args.mesh_filename)
 
         # Build cell geometry
         (vertices, connectivity, offsets, valid_mask) = \
@@ -431,7 +430,7 @@ if __name__ == "__main__":
     if len(vertexVars) > 0:
         print " -- Extracting vertex fields --"
 
-        mesh_file = NetCDFFile(args.mesh_filename, 'r')
+        mesh_file = utils.open_netcdf(args.mesh_filename)
 
         # Build vertex geometry
         (vertices, connectivity, offsets, valid_mask) = \
@@ -455,7 +454,7 @@ if __name__ == "__main__":
     if len(edgeVars) > 0:
         print " -- Extracting edge fields --"
 
-        mesh_file = NetCDFFile(args.mesh_filename, 'r')
+        mesh_file = utils.open_netcdf(args.mesh_filename)
 
         # Build cell list
         (vertices, connectivity, offsets, valid_mask) = \
