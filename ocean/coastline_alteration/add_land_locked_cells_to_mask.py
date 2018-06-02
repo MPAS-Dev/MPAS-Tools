@@ -7,16 +7,26 @@ Find ocean cells that are land-locked, and alter the cell
 mask so that they are counted as land cells.
 """
 import os
+import shutil
 from netCDF4 import Dataset
 import numpy as np
 import argparse
 
+def removeFile(fileName):
+    try:
+        os.remove(fileName)
+    except OSError:
+        pass
+
 parser = \
     argparse.ArgumentParser(description=__doc__,
                             formatter_class=argparse.RawTextHelpFormatter)
-parser.add_argument("-f", "--mask_file", dest="mask_filename",
+parser.add_argument("-f", "--input_mask_file", dest="input_mask_filename",
                     help="Mask file that includes cell and edge masks.",
-                    metavar="MASKFILE", required=True)
+                    metavar="INPUTMASKFILE", required=True)
+parser.add_argument("-o", "--output_mask_file", dest="output_mask_filename",
+                    help="Mask file that includes cell and edge masks.",
+                    metavar="OUTPUTMASKFILE", required=True)
 parser.add_argument("-m", "--mesh_file", dest="mesh_filename",
                     help="MPAS Mesh filename.", metavar="MESHFILE",
                     required=True)
@@ -40,22 +50,23 @@ latCell = meshFile.variables["latCell"][:]
 lonCell = meshFile.variables["lonCell"][:]
 meshFile.close()
 
-# Obtain transect mask variables
-maskFile = Dataset(args.mask_filename, "a")
+removeFile(args.output_mask_filename)
+shutil.copyfile(args.input_mask_filename,args.output_mask_filename)
 
-nRegions = len(maskFile.dimensions["nRegions"])
-regionCellMasks = maskFile.variables["regionCellMasks"][:, :]
+# Obtain original cell mask from input file
+inputMaskFile = Dataset(args.input_mask_filename, "r")
+nRegions = len(inputMaskFile.dimensions["nRegions"])
+regionCellMasks = inputMaskFile.variables["regionCellMasks"][:, :]
+# set landMask = flattened regionCellMasks
+landMask = np.amax(regionCellMasks, axis=1)
+inputMaskFile.close()
 
-landMask = np.zeros(nCells, dtype="i")
-try:
-    landMaskDiagnostic = maskFile.createVariable("landMaskDiagnostic", "i", dimensions=("nCells"))
-except:
-    landMaskDiagnostic = maskFile.variables["landMaskDiagnostic"][:]
+# Open output file
+outputMaskFile = Dataset(args.output_mask_filename, "a")
+landMaskDiagnostic = outputMaskFile.createVariable("landMaskDiagnostic", "i", dimensions=("nCells"))
 
 print "Running add_land_locked_cells_to_mask.py.  Total number of cells: ", nCells
 
-# set landMask = flattened regionCellMasks
-landMask = np.amax(regionCellMasks, axis=1)
 # use np.array, as simple = makes a pointer
 landMaskNew = np.array(landMask)
 activeEdgeSum = np.zeros(maxEdges, dtype="i")
@@ -84,7 +95,7 @@ for iCell in range(nCells):
             activeEdgeSum[iP1] += 1
 
     if np.amax(activeEdgeSum[0:nEdgesOnCell[iCell]]) == 1:
-        maskFile['regionCellMasks'][iCell, 1] = 1
+        outputMaskFile['regionCellMasks'][iCell, 1] = 1
         landLockedCounter += 1
         landMaskNew[iCell] = 1
         landMaskDiagnostic[iCell] = 2
@@ -113,7 +124,7 @@ for iSweep in range(args.nSweeps):
                        + landMask[cellsOnCell[iCell, iM1]-1]) == 2:
                     landLockedCounter += 1
                     landMaskNew[iCell] = 1
-                    maskFile['regionCellMasks'][iCell, 1] = 1
+                    outputMaskFile['regionCellMasks'][iCell, 1] = 1
                     landMaskDiagnostic[iCell] = 3
                     # once we remove this cell, we can quit checking over edges
                     break
@@ -198,7 +209,7 @@ for iSweep in range(args.nSweeps):
                             or landMask[cellsOnCell[iCell, iM1]-1] == 0):
                         landLockedCounter += 1
                         landMaskNew[iCell] = 0
-                        maskFile['regionCellMasks'][iCell, 1] = 0
+                        outputMaskFile['regionCellMasks'][iCell, 1] = 0
                         landMaskDiagnostic[iCell] = 4
                         oceanMask[iCell] = 1
                         # once we remove this cell, we can quit checking over edges
@@ -209,4 +220,4 @@ for iSweep in range(args.nSweeps):
     if landLockedCounter == 0:
         break
 
-maskFile.close()
+outputMaskFile.close()
