@@ -1,3 +1,0 @@
-# Ignore LaTeX files and generated namelist
-namelist.input.generated
-*.tex

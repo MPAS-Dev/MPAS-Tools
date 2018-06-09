@@ -1,5 +1,0 @@
-&periodic_grid
-   nx = 500,
-   ny = 500,
-   dc = 10000.,
-/
