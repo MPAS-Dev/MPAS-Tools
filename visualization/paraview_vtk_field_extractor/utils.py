@@ -34,20 +34,20 @@ def open_netcdf(file_name):
     return nc_file
 
 
-def is_valid_mesh_var(mesh_file, variable_name):
+def is_valid_mesh_var(mesh_file, variable_name): # {{{
     if mesh_file is None:
         return False
 
     if variable_name not in mesh_file.variables:
         return False
 
-    return 'Time' not in mesh_file.variables[variable_name].dimensions
+    return 'Time' not in mesh_file.variables[variable_name].dimensions # }}}
 
-def get_var(variable_name, mesh_file, time_series_file):
+def get_var(variable_name, mesh_file, time_series_file): # {{{
     if is_valid_mesh_var(mesh_file, variable_name):
         return mesh_file.variables[variable_name]
     else:
-        return time_series_file.variables[variable_name]
+        return time_series_file.variables[variable_name] # }}}
 
 
 def setup_time_indices(fn_pattern, xtimeName):  # {{{
@@ -594,6 +594,7 @@ def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
 
     if lonlat:
         lonCell = numpy.rad2deg(nc_file.variables['lonCell'][:])
+        latCell = numpy.rad2deg(nc_file.variables['latCell'][:])
 
     nCells = len(nc_file.dimensions['nCells'])
 
@@ -610,6 +611,20 @@ def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                          validVertices,
                                                          lonCell)
 
+    if nc_file.is_periodic == 'YES':
+        if lonlat:
+            xcoord = lonCell
+            ycoord = latCell
+        else:
+            xcoord = nc_file.variables['xCell'][:]
+            ycoord = nc_file.variables['yCell'][:]
+        vertices, verticesOnCell = _fix_periodic_vertices(vertices,
+                                                          verticesOnCell,
+                                                          validVertices,
+                                                          xcoord, ycoord,
+                                                          nc_file.x_period,
+                                                          nc_file.y_period)
+
     connectivity = verticesOnCell[validVertices]
     offsets = numpy.cumsum(nEdgesOnCell, dtype=int)
     valid_mask = numpy.ones(nCells, bool)
@@ -624,6 +639,7 @@ def build_vertex_geom_lists(nc_file, output_32bit, lonlat):  # {{{
 
     if lonlat:
         lonVertex = numpy.rad2deg(nc_file.variables['lonVertex'][:])
+        latVertex = numpy.rad2deg(nc_file.variables['latVertex'][:])
 
     vertexDegree = len(nc_file.dimensions['vertexDegree'])
 
@@ -640,6 +656,22 @@ def build_vertex_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                         cellsOnVertex,
                                                         validVertices,
                                                         lonVertex[valid_mask])
+
+    if nc_file.is_periodic == 'YES':
+        # all remaining entries in cellsOnVertex are valid
+        validVertices = numpy.ones(cellsOnVertex.shape, bool)
+        if lonlat:
+            xcoord = lonVertex[valid_mask]
+            ycoord = latVertex[valid_mask]
+        else:
+            xcoord = nc_file.variables['xVertex'][valid_mask]
+            ycoord = nc_file.variables['yVertex'][valid_mask]
+        vertices, cellsOnVertex = _fix_periodic_vertices(vertices,
+                                                         cellsOnVertex,
+                                                         validVertices,
+                                                         xcoord, ycoord,
+                                                         nc_file.x_period,
+                                                         nc_file.y_period)
 
     connectivity = cellsOnVertex.ravel()
     validCount = cellsOnVertex.shape[0]
@@ -691,6 +723,20 @@ def build_edge_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                         vertsOnCell,
                                                         validVerts,
                                                         lonEdge[valid_mask])
+    if nc_file.is_periodic == 'YES':
+        if lonlat:
+            xcoord = lonEdge[valid_mask]
+            ycoord = latEdge[valid_mask]
+        else:
+            xcoord = nc_file.variables['xEdge'][valid_mask]
+            ycoord = nc_file.variables['yEdge'][valid_mask]
+
+        vertices, cellsOnVertex = _fix_periodic_vertices(vertices,
+                                                         vertsOnCell,
+                                                         validVerts,
+                                                         xcoord, ycoord,
+                                                         nc_file.x_period,
+                                                         nc_file.y_period)
 
     connectivity = vertsOnCell[validVerts]
     validCount = numpy.sum(numpy.array(validVerts, int), axis=1)
@@ -928,7 +974,6 @@ def _fix_lon_lat_vertices(vertices, verticesOnCell, validVertices,
     nVertices = len(vertices[0])
 
     xVertex = vertices[0]
-    xVertex = vertices[0]
     xDiff = xVertex[verticesOnCell] - lonCell.reshape(nCells, 1)
 
     # which cells have vertices that are out of range?
@@ -963,5 +1008,69 @@ def _fix_lon_lat_vertices(vertices, verticesOnCell, validVertices,
                 numpy.append(vertices[2], vertices[2][voc]))
 
     return vertices, verticesOnCell  # }}}
+
+
+def _fix_periodic_vertices(vertices, verticesOnCell, validVertices,
+                           xCell, yCell, xperiod, yperiod):  # {{{
+
+    vertices, verticesOnCell = _fix_periodic_vertices_1D(
+            vertices, verticesOnCell, validVertices, xCell, xperiod, dim=0)
+    vertices, verticesOnCell = _fix_periodic_vertices_1D(
+            vertices, verticesOnCell, validVertices, yCell, yperiod, dim=1)
+
+    return vertices, verticesOnCell  # }}}
+
+
+def _fix_periodic_vertices_1D(vertices, verticesOnCell, validVertices,
+                              coordCell, coordPeriod, dim):  # {{{
+
+    nCells = verticesOnCell.shape[0]
+    nVertices = len(vertices[0])
+
+    coordVertex = vertices[dim]
+
+    coordDiff = coordVertex[verticesOnCell] - coordCell.reshape(nCells, 1)
+
+    # which cells have vertices that are out of range?
+    coordOutOfRange = numpy.logical_and(
+            validVertices,
+            numpy.logical_or(coordDiff > coordPeriod / 2.0,
+                             coordDiff < -coordPeriod / 2.0))
+
+    coordCellsOutOfRange = numpy.any(coordOutOfRange, axis=1)
+
+    coordValid = validVertices[coordCellsOutOfRange, :]
+
+    coordVerticesToChange = numpy.zeros(verticesOnCell.shape, bool)
+    coordVerticesToChange[coordCellsOutOfRange, :] = coordValid
+
+    coordDiff = coordDiff[coordCellsOutOfRange, :][coordValid]
+    coordVOC = verticesOnCell[coordCellsOutOfRange, :][coordValid]
+
+    coordNVerticesToAdd = numpy.count_nonzero(coordValid)
+
+    print coordNVerticesToAdd
+
+    coordVerticesToAdd = numpy.arange(coordNVerticesToAdd) + nVertices
+    coordV = coordVertex[coordVOC]
+    verticesOnCell[coordVerticesToChange] = coordVerticesToAdd
+
+    # need to shift points outside periodic domain (assumes that mesh is only
+    # within one period) can use mod if this is not the case in general
+    coordMask = coordDiff > coordPeriod / 2.0
+    coordV[coordMask] -= coordPeriod
+    coordMask = coordDiff < -coordPeriod / 2.0
+    coordV[coordMask] += coordPeriod
+
+    outVertices = []
+    for outDim in range(3):
+        if outDim == dim:
+            outVertices.append(numpy.append(vertices[outDim], coordV))
+        else:
+            outVertices.append(numpy.append(vertices[outDim],
+                                            vertices[outDim][coordVOC]))
+
+    return tuple(outVertices), verticesOnCell  # }}}
+
 
 # vim: set expandtab:
