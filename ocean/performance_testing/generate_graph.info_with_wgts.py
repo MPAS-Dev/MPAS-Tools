@@ -72,6 +72,8 @@ counter = -1
 for line in fr:
     if counter == -1:
         temp = line.split("\n", 1)[0]
+        # 010 indicates that the graph.info file is formatted to include the
+        # cell weights
         fw.write("%s 010 \n" % temp)
     else:
         temp = line.split("\n", 1)[0]

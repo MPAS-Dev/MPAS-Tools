@@ -5,6 +5,20 @@
  Author: Divya Jaganathan
  Date: 6 July, 2018
 
+This script is automatically called by call_to_performance_testing.py to run a batch job to get performance plots and data
+
+This script can also be used for an interactive job submission using the following command format:
+
+command format (to run an interactive job) : python performance_testing.py <Maximum Tasks> <Minimum Tasks> <cpu-type> <cores_per_node>
+
+Access files required to run this script:
+ 1. namelist.ocean
+ 2. graph.info
+ 3. metis file (rename gpmetis to metis or vice-versa in this script when creating a soft link)
+ 4. ocean_model (executable file)
+
+NOTE: When running a large number of tasks (>10k), check the name of log.ocean.0000.out file generated - no. of zeros in the file name changes
+
 """
 
 
@@ -20,10 +34,14 @@ import matplotlib.pyplot as plt
 import os
 import shlex
 
+# Setting OMP variables for NO multithreading
+
 os.environ['OMP_NUM_THREADS'] = '1'
 os.environ['OMP_PLACES'] = 'threads'
 
 timenow = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+
+# To obtain the run duration used in calculating SYPD
 
 time_fr = open("namelist.ocean", 'r')
 
@@ -43,15 +61,21 @@ for line in time_fr:
 
 time_fr.close()
 
+# To store the details on number of cells (~ resolution)
+
 cells_fr = open("graph.info", 'r')
 cells = str(cells_fr.readline().split(" ")[0])
+cells_fr.close()
 
 nprocs_max = int(sys.argv[1])
 nprocs_min = int(sys.argv[2])
 cpu_type = sys.argv[3]
 cores_per_node = float(sys.argv[4])
 
+# plane_size is used to define the plane_distribution flag in srun
 plane_size = str(int(cores_per_node))
+
+# Performance data evaluation begins here -
 
 niter = int(np.log2(nprocs_max)) - int(np.log2(nprocs_min)) + 1
 nsamples_per_procnum = 5
@@ -141,4 +165,4 @@ subprocess.check_call(['mv', writefilename, 'data_figures'])
 fr.close()
 fw.close()
 
-# End Version
+# End

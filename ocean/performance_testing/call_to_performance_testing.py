@@ -5,7 +5,9 @@ Name: call_to_performance_testing.py
 Author: Divya Jaganathan
 Date: July 6, 2018
 
-command format: python call_to_performance_testing.py -c <machine> -M <Maximum Tasks> -m <Minimum Tasks (Optional,default=2)> -p <plot_only=true/false>
+Submits request for a batch job to carry out successive performance runs starting from maximum number of tasks
+
+command format: python call_to_performance_testing.py -c <machine> -M <Maximum Tasks> -m <Minimum Tasks (Optional,default=2)> -r <job-name to denote the resolution>
 
 """
 import subprocess
@@ -51,6 +53,10 @@ res = args.resolution
 job_id = res + "_perf_" + str(max_tasks)
 output_name = "slurm_" + job_id + ".out"
 
+# NODES_REQUIRED to request for resources is calculated assuming no hyperthreads.
+# Changes to this can be implemented by changing cores_per_node specific
+# to the machine
+
 if cpu_type == 'gr':
     cores_per_node = 36.0
     NODES_REQUIRED = int(np.ceil(max_tasks / cores_per_node))
@@ -76,7 +82,7 @@ elif cpu_type == 'ed':
     runcommand = "sbatch -N %d -n %d --qos=debug -J %s -o %s 'performance_testing.py' %d %d %s %d" % (
         NODES_REQUIRED, max_tasks, job_id, output_name, max_tasks, min_tasks, cpu_type, cores_per_node)
 else:
-    print "Invalid Machine or have not mentioned haswell or knl on Cori"
+    print "Invalid machine or have not mentioned haswell or knl on Cori"
 
 
 s_args = shlex.split(runcommand)
