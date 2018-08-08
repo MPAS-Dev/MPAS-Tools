@@ -96,9 +96,13 @@ def setup_time_indices(fn_pattern, xtimeName):  # {{{
                 raise ValueError("xtime variable name {} not found in "
                                  "{}".format(xtimeName, file_name))
             local_times = []
-            xtime = nc_file.variables[xtimeName][:, :]
-            for index in range(xtime.shape[0]):
-                local_times.append(''.join(xtime[index, :]))
+            xtime = nc_file.variables[xtimeName]
+            if len(xtime.shape) == 2:
+                xtime = xtime[:, :]
+                for index in range(xtime.shape[0]):
+                    local_times.append(''.join(xtime[index, :]))
+            else:
+                local_times = xtime[:]
 
             if(len(local_times) == 0):
                 local_times = ['0']

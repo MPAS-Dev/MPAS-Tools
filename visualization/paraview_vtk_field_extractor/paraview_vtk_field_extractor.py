@@ -196,12 +196,17 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
                     raise ValueError("xtime variable name {} not found in "
                                      "{}".format(xtimeName, time_series_file))
                 var = time_series_file.variables[xtimeName]
-                xtime = ''.join(var[local_time_indices[time_index], :]).strip()
-                date = datetime(int(xtime[0:4]), int(xtime[5:7]),
-                                int(xtime[8:10]), int(xtime[11:13]),
-                                int(xtime[14:16]), int(xtime[17:19]))
-                years = date2num(date, units='days since 0000-01-01',
-                                 calendar='noleap')/365.
+                if len(var.shape) == 2:
+                    xtime = ''.join(var[local_time_indices[time_index], :]).strip()
+                    date = datetime(int(xtime[0:4]), int(xtime[5:7]),
+                                    int(xtime[8:10]), int(xtime[11:13]),
+                                    int(xtime[14:16]), int(xtime[17:19]))
+                    years = date2num(date, units='days since 0000-01-01',
+                                     calendar='noleap')/365.
+                else:
+                    xtime = var[local_time_indices[time_index]]
+                    years = xtime/365.
+                    xtime = str(xtime)
 
             # write the header for the vtp file
             vtp_file_prefix = "time_series/{}.{:d}".format(out_prefix,
