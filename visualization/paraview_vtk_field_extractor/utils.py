@@ -615,7 +615,7 @@ def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                          validVertices,
                                                          lonCell)
 
-    if nc_file.is_periodic == 'YES':
+    if nc_file.on_a_sphere == 'NO' and nc_file.is_periodic == 'YES':
         if lonlat:
             xcoord = lonCell
             ycoord = latCell
@@ -661,7 +661,7 @@ def build_vertex_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                         validVertices,
                                                         lonVertex[valid_mask])
 
-    if nc_file.is_periodic == 'YES':
+    if nc_file.on_a_sphere == 'NO' and nc_file.is_periodic == 'YES':
         # all remaining entries in cellsOnVertex are valid
         validVertices = numpy.ones(cellsOnVertex.shape, bool)
         if lonlat:
@@ -727,7 +727,7 @@ def build_edge_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                         vertsOnCell,
                                                         validVerts,
                                                         lonEdge[valid_mask])
-    if nc_file.is_periodic == 'YES':
+    if nc_file.on_a_sphere == 'NO' and nc_file.is_periodic == 'YES':
         if lonlat:
             xcoord = lonEdge[valid_mask]
             ycoord = latEdge[valid_mask]
