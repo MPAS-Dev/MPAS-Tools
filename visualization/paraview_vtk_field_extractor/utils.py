@@ -96,9 +96,13 @@ def setup_time_indices(fn_pattern, xtimeName):  # {{{
                 raise ValueError("xtime variable name {} not found in "
                                  "{}".format(xtimeName, file_name))
             local_times = []
-            xtime = nc_file.variables[xtimeName][:, :]
-            for index in range(xtime.shape[0]):
-                local_times.append(''.join(xtime[index, :]))
+            xtime = nc_file.variables[xtimeName]
+            if len(xtime.shape) == 2:
+                xtime = xtime[:, :]
+                for index in range(xtime.shape[0]):
+                    local_times.append(''.join(xtime[index, :]))
+            else:
+                local_times = xtime[:]
 
             if(len(local_times) == 0):
                 local_times = ['0']
@@ -611,7 +615,7 @@ def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                          validVertices,
                                                          lonCell)
 
-    if nc_file.is_periodic == 'YES':
+    if nc_file.on_a_sphere == 'NO' and nc_file.is_periodic == 'YES':
         if lonlat:
             xcoord = lonCell
             ycoord = latCell
@@ -657,7 +661,7 @@ def build_vertex_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                         validVertices,
                                                         lonVertex[valid_mask])
 
-    if nc_file.is_periodic == 'YES':
+    if nc_file.on_a_sphere == 'NO' and nc_file.is_periodic == 'YES':
         # all remaining entries in cellsOnVertex are valid
         validVertices = numpy.ones(cellsOnVertex.shape, bool)
         if lonlat:
@@ -723,7 +727,7 @@ def build_edge_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                         vertsOnCell,
                                                         validVerts,
                                                         lonEdge[valid_mask])
-    if nc_file.is_periodic == 'YES':
+    if nc_file.on_a_sphere == 'NO' and nc_file.is_periodic == 'YES':
         if lonlat:
             xcoord = lonEdge[valid_mask]
             ycoord = latEdge[valid_mask]
