@@ -92,69 +92,69 @@ fw.write(
     (timenow, cpu_type, cells, timeparts, simulated_time_in_sec))
 
 
-while x>=0:
+while x >= 0:
 
-	graph_call = "python generate_graph.info_with_wgts.py -d init.nc -g graph.info -x %s" % x
-	g_args=shlex.split(graph_call)
-	print "running", ''.join(g_args)
-	subprocess.check_call(g_args)
+    graph_call = "python generate_graph.info_with_wgts.py -d init.nc -g graph.info -x %s" % x
+    g_args = shlex.split(graph_call)
+    print "running", ''.join(g_args)
+    subprocess.check_call(g_args)
 
-	foldername_wgt = "weight"+str(x)
-	subprocess.check_call(['mkdir', foldername_wgt])
-	graph_filename = "graph.info_with_wgts_"+str(x)
-	i = nprocs_max
-	j = niter
+    foldername_wgt = "weight" + str(x)
+    subprocess.check_call(['mkdir', foldername_wgt])
+    graph_filename = "graph.info_with_wgts_" + str(x)
+    i = nprocs_max
+    j = niter
 
-	while i >= nprocs_min:
+    while i >= nprocs_min:
 
-    	 local_N = int(np.ceil(i / cores_per_node))
-    	 sample = nsamples_per_procnum
-    	 foldername = foldername_wgt+ "/perf_p" + str(i) + "_gr_openmpi"
-    	 subprocess.check_call(['mkdir', '-p', foldername])
-    	 fw.write('%s \t' % i)
-    	 sum = 0
-	 subprocess.check_call(['./metis', graph_filename, str(i)])
-         print "metis" + str(i) + "completed"
-         graph_part_name = graph_filename + ".part."+str(i)
-         to_name="graph.info.part."+str(i)
-         subprocess.check_call(['mv',graph_part_name, to_name])
+        local_N = int(np.ceil(i / cores_per_node))
+        sample = nsamples_per_procnum
+        foldername = foldername_wgt + "/perf_p" + str(i) + "_gr_openmpi"
+        subprocess.check_call(['mkdir', '-p', foldername])
+        fw.write('%s \t' % i)
+        sum = 0
+        subprocess.check_call(['./metis', graph_filename, str(i)])
+        print "metis" + str(i) + "completed"
+        graph_part_name = graph_filename + ".part." + str(i)
+        to_name = "graph.info.part." + str(i)
+        subprocess.check_call(['mv', graph_part_name, to_name])
 
-    	 while sample >= 1:
-        	args = ['srun',
-                	'-N',
-                	str(local_N),
-                	'-n',
-                	str(i),
-                	'--cpu_bind=verbose,core',
-                	'--distribution=plane=%s' % plane_size,
-                	'./ocean_model']
-        	print "running", ''.join(args)
-        	subprocess.check_call(args)
+        while sample >= 1:
+            args = ['srun',
+                    '-N',
+                    str(local_N),
+                    '-n',
+                    str(i),
+                    '--cpu_bind=verbose,core',
+                    '--distribution=plane=%s' % plane_size,
+                    './ocean_model']
+            print "running", ''.join(args)
+            subprocess.check_call(args)
 
-        	# Search for time integration and write to a file
-        	fr = open("log.ocean.0000.out", 'r')
-        	for line in fr:
-            	 m = re.search("2  time integration", line)
-            	 if m:
+            # Search for time integration and write to a file
+            fr = open("log.ocean.0000.out", 'r')
+            for line in fr:
+                m = re.search("2  time integration", line)
+                if m:
                     numbers = line.split("integration", 1)[1]
                     first_number = numbers.split()[0]
                     fw.write('%s \t' % first_number)
                     sum = sum + float(first_number)
 
-        	fname = "log_p" + str(i) + "_s" + str(sample)
-        	filepath = foldername + "/" + fname
-        	sample = sample - 1
-        	subprocess.check_call(['mv', 'log.ocean.0000.out', filepath])
+            fname = "log_p" + str(i) + "_s" + str(sample)
+            filepath = foldername + "/" + fname
+            sample = sample - 1
+            subprocess.check_call(['mv', 'log.ocean.0000.out', filepath])
 
-    	 average = sum / nsamples_per_procnum
-    	 time[0][j - 1] = average
-    	 procs[0][j - 1] = i
-    	 SYPD[0][j - 1] = simulated_time_in_sec / (365 * average)
-    	 fw.write('%s \t %s\n' % (str(average), str(SYPD[0][j - 1])))
-    	 i = i / 2
-    	 j = j - 1
-	 subprocess.check_call(['mv',to_name,foldername])
-	x=x-0.5
+        average = sum / nsamples_per_procnum
+        time[0][j - 1] = average
+        procs[0][j - 1] = i
+        SYPD[0][j - 1] = simulated_time_in_sec / (365 * average)
+        fw.write('%s \t %s\n' % (str(average), str(SYPD[0][j - 1])))
+        i = i / 2
+        j = j - 1
+        subprocess.check_call(['mv', to_name, foldername])
+    x = x - 0.5
 
 # plotting ..
 
