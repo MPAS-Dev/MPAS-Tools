@@ -604,6 +604,9 @@ def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
 
     nEdgesOnCell = nc_file.variables['nEdgesOnCell'][:]
     verticesOnCell = nc_file.variables['verticesOnCell'][:, :] - 1
+    # MPAS-O sets non-masked values to total number of vertices instead of 0
+    # (as produced in mesh workflow)
+    verticesOnCell[numpy.where(verticesOnCell == len(vertices[0]))] = 0
 
     validVertices = numpy.zeros(verticesOnCell.shape, bool)
     for vIndex in range(validVertices.shape[1]):
