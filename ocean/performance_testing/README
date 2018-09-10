@@ -1,0 +1,23 @@
+This automated performance testing suite was created by Divya Jaganathan for
+the Parallel Computing Summer Research Institute, 2018, with guidance from Mark
+Petersen, LANL.
+
+To run a performance test, start in any MPAS-Ocean run directory and add links to:
+- ocean_model
+- metis
+- from this directory:
+    submit_performance_test_to_queue.py
+    performance_test.py
+    plot_from_files.py
+
+There are three ways to run this testing suite:
+
+1. From a front end node, this command will submit a single job to the queue, of the size required.
+./submit_performance_test_to_queue.py -M 128 -m 16 -r EC60to30
+
+2. From a compute node, run this directly
+./performance_test.py <Maximum Tasks> <Minimum Tasks> <machine_long_name> <cores_per_node> <resolution_name>
+
+3. The above steps creates plots with just those tests. After running several jobs, 
+   the data can be combined into a single plot with plot_from_files.py.  This file is case specific, and
+   requires the user to alter lines by hand.
