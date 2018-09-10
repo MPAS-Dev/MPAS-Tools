@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Name: call_to_performance_testing.py
+Name: submit_performance_test_to_queue.py
 Author: Divya Jaganathan
 Date: July 6, 2018
 
@@ -9,7 +9,7 @@ Submits request for a batch job to carry out successive performance runs startin
 number of tasks.  Load modules before calling this script.
 
 command format:
-./call_to_performance_testing.py -M <Maximum Tasks> -m <Minimum Tasks> -n <machine_name> -r <resolution_name>
+./submit_performance_test_to_queue.py -M <Maximum Tasks> -m <Minimum Tasks> -n <machine_name> -r <resolution_name>
 
 Examples:
 
@@ -18,20 +18,20 @@ https://zenodo.org/record/1252437#.W5FIppNKjUI
 add a link to
 - metis
 - ocean_model executable
-- call_to_performance_testing.py (here)
-- performance_testing.py (here)
+- submit_performance_test_to_queue.py (here)
+- performance_test.py (here)
 
 On any machine log-in node, all you need is:
-   ./call_to_performance_testing.py
+   ./submit_performance_test_to_queue.py
 This will submit a single job to the queue, and produce the default test of
 64 through 2 by powers of 2, and auto-detect your machine.  Load modules before
 calling this script, and submission will keep the same modules.
 
 Or, one can specify everything with flags.  This tests 128 to 16 cores by powers of two.
-   ./call_to_performance_testing.py -M 128 -m 16 -r EC60to30
+   ./submit_performance_test_to_queue.py -M 128 -m 16 -r EC60to30
 
 On cori, you have to specify cori-knl or cori-haswell, as follows:
-   ./call_to_performance_testing.py -M 128 -m 16 -r EC60to30 -n cori-knl
+   ./submit_performance_test_to_queue.py -M 128 -m 16 -r EC60to30 -n cori-knl
 
 After the job completes, you will find data and auto-generated plots in these directories:
   data_performance
@@ -93,7 +93,7 @@ if machine_name == 'gr':
         qos = "interactive"
     else:
         qos = "standard"
-    runcommand = "sbatch -N %d -n %d --qos=%s -J %s -o %s 'performance_testing.py' %d %d %s %d %s" % (
+    runcommand = "sbatch -N %d -n %d --qos=%s -J %s -o %s 'performance_test.py' %d %d %s %d %s" % (
         NODES_REQUIRED, max_tasks, qos, job_id, output_name, max_tasks, min_tasks, machine_long_name, cores_per_node, resolution_name)
 elif machine_name == 'wf':
     machine_long_name = 'wolf'
@@ -103,7 +103,7 @@ elif machine_name == 'wf':
         qos = "interactive"
     else:
         qos = "standard"
-    runcommand = "sbatch -N %d -n %d --qos=%s -J %s -o %s 'performance_testing.py' %d %d %s %d %s" % (
+    runcommand = "sbatch -N %d -n %d --qos=%s -J %s -o %s 'performance_test.py' %d %d %s %d %s" % (
         NODES_REQUIRED, max_tasks, qos, job_id, output_name, max_tasks, min_tasks, machine_long_name, cores_per_node, resolution_name)
 elif machine_name == 'ba':
     machine_long_name = 'badger'
@@ -113,31 +113,31 @@ elif machine_name == 'ba':
         qos = "interactive"
     else:
         qos = "standard"
-    runcommand = "sbatch -N %d -n %d --qos=%s -J %s -o %s 'performance_testing.py' %d %d %s %d %s" % (
+    runcommand = "sbatch -N %d -n %d --qos=%s -J %s -o %s 'performance_test.py' %d %d %s %d %s" % (
         NODES_REQUIRED, max_tasks, qos, job_id, output_name, max_tasks, min_tasks, machine_long_name, cores_per_node, resolution_name)
 elif machine_name == 'cori-haswell':
     machine_long_name = 'cori-haswell'
     cores_per_node = 32.0
     NODES_REQUIRED = int(np.ceil(max_tasks / cores_per_node))
-    runcommand = "sbatch -N %d -n %d -C haswell --qos=regular -J %s -o %s 'performance_testing.py' %d %d %s %d %s" % (
+    runcommand = "sbatch -N %d -n %d -C haswell --qos=regular -J %s -o %s 'performance_test.py' %d %d %s %d %s" % (
         NODES_REQUIRED, max_tasks, job_id, output_name, max_tasks, min_tasks, machine_long_name, cores_per_node, resolution_name)
 elif machine_name == 'cori-knl':
     machine_long_name = 'cori-knl'
     cores_per_node = 68.0
     NODES_REQUIRED = int(np.ceil(max_tasks / cores_per_node))
-    runcommand = "sbatch -N %d -n %d -C knl --qos=regular -J %s -o %s 'performance_testing.py' %d %d %s %d %s" % (
+    runcommand = "sbatch -N %d -n %d -C knl --qos=regular -J %s -o %s 'performance_test.py' %d %d %s %d %s" % (
         NODES_REQUIRED, max_tasks, job_id, output_name, max_tasks, min_tasks, machine_long_name, cores_per_node, resolution_name)
 elif machine_name == 'ed':
     machine_long_name = 'edison'
     cores_per_node = 24.0
     NODES_REQUIRED = int(np.ceil(max_tasks / cores_per_node))
-    runcommand = "sbatch -N %d -n %d --qos=debug -J %s -o %s 'performance_testing.py' %d %d %s %d %s" % (
+    runcommand = "sbatch -N %d -n %d --qos=debug -J %s -o %s 'performance_test.py' %d %d %s %d %s" % (
         NODES_REQUIRED, max_tasks, job_id, output_name, max_tasks, min_tasks, machine_long_name, cores_per_node, resolution_name)
 elif machine_name[0:5] == 'theta':
     machine_long_name = 'theta'
     cores_per_node = 64.0
     NODES_REQUIRED = int(np.ceil(max_tasks / cores_per_node))
-    runcommand = "qsub -n %d --jobname=%s -O %s 'performance_testing.py' %d %d %s %d %s" % (
+    runcommand = "qsub -n %d --jobname=%s -O %s 'performance_test.py' %d %d %s %d %s" % (
         NODES_REQUIRED, job_id, output_name, max_tasks, min_tasks, machine_long_name, cores_per_node, resolution_name)
 else:
     print "Invalid machine or have not mentioned haswell or knl on Cori"

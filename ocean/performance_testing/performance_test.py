@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
 """
- Name: performance_testing.py
+ Name: performance_test.py
  Author: Divya Jaganathan
  Date: 6 July, 2018
 
-This script is automatically called by call_to_performance_testing.py to run a batch job to get performance plots and data
+This script is automatically called by submit_performance_test_to_queue.py to run a batch job to get performance plots and data
 
 This script can also be used for an interactive job submission using the following command format:
 
 command format (to run an interactive job) :
-./performance_testing.py <Maximum Tasks> <Minimum Tasks> <machine_long_name> <cores_per_node> <resolution_name>
+./performance_test.py <Maximum Tasks> <Minimum Tasks> <machine_long_name> <cores_per_node> <resolution_name>
 
 Access files required to run this script:
  1. namelist.ocean
