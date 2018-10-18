@@ -83,6 +83,7 @@ contains
       real (kind=RKIND) :: cx, cy, cz
 
       character(220) :: copyCmd
+      integer :: copyStat
 
       call read_namelist(original_latitude_degrees, original_longitude_degrees, new_latitude_degrees, new_longitude_degrees, birdseye_rotation_counter_clockwise_degrees)
 
@@ -98,7 +99,10 @@ contains
 
       ! Copy original file to output file
       copyCmd = "cp " // trim(filename) // " " // trim(newFilename)
-      call system(copyCmd)
+      copyStat = system(copyCmd)
+      if(copyStat /= 0) then
+         return                 ! If `cp` fails, let it report its error and exit
+      end if
 
       ! Make sure the output file is writeable
       copyCmd = "chmod u+w " // trim(newFilename)
