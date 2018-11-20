@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Add a 1D coordinate "refZMid" to an MPAS-Ocean output file that defines the
+Add a 1D coordinate "depth" to an MPAS-Ocean output file that defines the
 positive-up vertical location of each layer.
 """
 # Authors
@@ -52,9 +52,9 @@ def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals):
     ds.to_netcdf(fileName, encoding=encodingDict)
 
 
-def compute_ref_zmid(refBottomDepth):
+def compute_depth(refBottomDepth):
     """
-    Computes refZMid given refBottomDepth
+    Computes depth given refBottomDepth
 
     Parameters
     ----------
@@ -64,7 +64,7 @@ def compute_ref_zmid(refBottomDepth):
 
     Returns
     -------
-    refZMid : ``xarray.DataArray``
+    depth : ``xarray.DataArray``
         the vertical coordinate defining the middle of each layer
     """
     # Authors
@@ -73,12 +73,12 @@ def compute_ref_zmid(refBottomDepth):
 
     refBottomDepth = refBottomDepth.values
 
-    refZMid = numpy.zeros(refBottomDepth.shape)
+    depth = numpy.zeros(refBottomDepth.shape)
 
-    refZMid[0] = 0.5*refBottomDepth[0]
-    refZMid[1:] = 0.5*(refBottomDepth[1:] + refBottomDepth[0:-1])
+    depth[0] = 0.5*refBottomDepth[0]
+    depth[1:] = 0.5*(refBottomDepth[1:] + refBottomDepth[0:-1])
 
-    return refZMid
+    return depth
 
 
 def main():
@@ -89,12 +89,12 @@ def main():
                         help="A MPAS-Ocean file with refBottomDepth")
     parser.add_argument("-i", "--inFileName", dest="inFileName", type=str,
                         required=True,
-                        help="An input MPAS-Ocean file that refZMid should be"
+                        help="An input MPAS-Ocean file that depth should be"
                              "added to, used for coords if another file is"
                              "not provided via -c.")
     parser.add_argument("-o", "--outFileName", dest="outFileName", type=str,
                         required=True,
-                        help="An output MPAS-Ocean file with refZMid added")
+                        help="An output MPAS-Ocean file with depth added")
     args = parser.parse_args()
 
     if args.coordFileName:
@@ -106,16 +106,16 @@ def main():
 
     ds = xarray.open_dataset(args.inFileName)
 
-    ds.coords['refZMid'] = ('nVertLevels',
-             compute_ref_zmid(dsCoord.refBottomDepth))
-    ds.refZMid.attrs['unit'] = 'meters'
-    ds.refZMid.attrs['long_name'] = 'reference depth of the center of each ' \
-                                    'vertical level'
+    ds.coords['depth'] = ('nVertLevels',
+                          compute_depth(dsCoord.refBottomDepth))
+    ds.depth.attrs['unit'] = 'meters'
+    ds.depth.attrs['long_name'] = 'reference depth of the center of each ' \
+                                  'vertical level'
 
     for varName in ds.data_vars:
         var = ds[varName]
         if 'nVertLevels' in var.dims:
-            var = var.assign_coords(refZMid=ds.refZMid)
+            var = var.assign_coords(depth=ds.depth)
             ds[varName] = var
 
     if 'history' in ds.attrs:
