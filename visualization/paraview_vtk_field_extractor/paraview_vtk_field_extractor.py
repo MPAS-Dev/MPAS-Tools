@@ -54,6 +54,9 @@ numpy
 Optional modules:
 progressbar
 """
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 import os
 import numpy as np
 
@@ -95,7 +98,7 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
         blockDim = len(time_series_file.dimensions[blockDimName])
 
     # Pre-compute the number of blocks
-    nBlocks = 1 + blockDim / blocking
+    nBlocks = 1 + blockDim // blocking
 
     nPolygons = len(offsets)
     nPoints = len(vertices[0])
@@ -147,7 +150,7 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
         field_bar = ProgressBar(widgets=widgets,
                                 maxval=nTimes*nHyperSlabs).start()
     else:
-        print "Writing time series...."
+        print("Writing time series....")
 
     suffix = blockDimName[1:]
     if any_var_has_time_dim:
@@ -197,7 +200,8 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
                                      "{}".format(xtimeName, time_series_file))
                 var = time_series_file.variables[xtimeName]
                 if len(var.shape) == 2:
-                    xtime = ''.join(var[local_time_indices[time_index], :]).strip()
+                    xtime = \
+                        ''.join(var[local_time_indices[time_index], :]).strip()
                     date = datetime(int(xtime[0:4]), int(xtime[5:7]),
                                     int(xtime[8:10]), int(xtime[11:13]),
                                     int(xtime[14:16]), int(xtime[17:19]))
@@ -313,9 +317,9 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
 
 if __name__ == "__main__":
     if use_progress_bar:
-        print " -- Using progress bars --"
+        print(" -- Using progress bars --")
     else:
-        print " -- Progress bars are not available--"
+        print(" -- Progress bars are not available--")
     parser = \
         argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawTextHelpFormatter)
@@ -410,7 +414,7 @@ if __name__ == "__main__":
 
     # Handle cell variables
     if len(cellVars) > 0:
-        print " -- Extracting cell fields --"
+        print(" -- Extracting cell fields --")
 
         mesh_file = utils.open_netcdf(args.mesh_filename)
 
@@ -430,10 +434,10 @@ if __name__ == "__main__":
         if separate_mesh_file:
             mesh_file.close()
 
-        print ""
+        print("")
 
     if len(vertexVars) > 0:
-        print " -- Extracting vertex fields --"
+        print(" -- Extracting vertex fields --")
 
         mesh_file = utils.open_netcdf(args.mesh_filename)
 
@@ -454,10 +458,10 @@ if __name__ == "__main__":
         if separate_mesh_file:
             mesh_file.close()
 
-        print ""
+        print("")
 
     if len(edgeVars) > 0:
-        print " -- Extracting edge fields --"
+        print(" -- Extracting edge fields --")
 
         mesh_file = utils.open_netcdf(args.mesh_filename)
 
