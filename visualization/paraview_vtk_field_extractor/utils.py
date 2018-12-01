@@ -107,7 +107,7 @@ def setup_time_indices(fn_pattern, xtimeName):  # {{{
             if len(xtime.shape) == 2:
                 xtime = xtime[:, :]
                 for index in range(xtime.shape[0]):
-                    local_times.append(''.join(xtime[index, :]))
+                    local_times.append(xtime[index, :].tostring())
             else:
                 local_times = xtime[:]
 
@@ -308,34 +308,50 @@ def parse_index_string(index_string, dim_size):  # {{{
 
 
 def parse_extra_dims(dimension_list, time_series_file, mesh_file,
-                     max_index_count=None):  # {{{
+                     topo_dim=None, topo_cell_index_name=None,
+                     max_index_count=None):
+    # {{{
     '''
     Parses a list of dimensions and corresponding indices separated by equals
     signs. Optionally, a max_index_count (typically 1) can be provided,
     indicating that indices beyond max_index_count-1 will be ignored in each
     dimension. Optionally, topo_dim contains the name of a dimension associated
     with the surface or bottom topography (e.g. nVertLevels for MPAS-Ocean)
-    If too_dim is provided, topo_cell_indices_name can optionally be either
-    a constant value for the index vertical index to the topography or
-    the name of a field with dimension nCells that contains the vertical index
-    of the topography.
+    If topo_dim is provided, topo_cell_index_name can optionally be either
+    a constant value for the vertical index to the topography or the name of a
+    field with dimension nCells that contains the vertical index of the
+    topography.
     '''
 
-    if not dimension_list:
-        return {}
-
     extra_dims = {}
-    for dim_item in dimension_list:
-        (dimName, index_string) = dim_item.split('=')
-        indices = parse_extra_dim(dimName, index_string, time_series_file,
-                                  mesh_file)
-        if indices is not None:
-            if max_index_count is None or len(indices) <= max_index_count:
-                extra_dims[dimName] = indices
-            else:
-                extra_dims[dimName] = indices[0:max_index_count]
+    topo_cell_indices = None
 
-    return extra_dims
+    if dimension_list is not None:
+        for dim_item in dimension_list:
+            (dimName, index_string) = dim_item.split('=')
+            indices = parse_extra_dim(dimName, index_string, time_series_file,
+                                      mesh_file)
+            if indices is not None:
+                if max_index_count is None or len(indices) <= max_index_count:
+                    extra_dims[dimName] = indices
+                else:
+                    extra_dims[dimName] = indices[0:max_index_count]
+
+    if topo_dim is not None:
+        if topo_cell_index_name is not None:
+            if (mesh_file is not None) and \
+                    (topo_cell_index_name in mesh_file.variables):
+                topo_cell_indices = \
+                    mesh_file.variables[topo_cell_index_name][:]-1
+            else:
+                topo_cell_indices = \
+                    time_series_file.variables[topo_cell_index_name][:]-1
+        else:
+            index = len(mesh_file.dimensions[topo_dim])-1
+            nCells = len(mesh_file.dimensions['nCells'])
+            topo_cell_indices = index*numpy.ones(nCells, int)
+
+    return extra_dims, topo_cell_indices
 # }}}
 
 
@@ -459,7 +475,7 @@ def setup_dimension_values_and_sort_vars(
         # Setting dimension values:
         indices = []
         for dim in field_dims:
-            if dim not in ['Time', 'nCells', 'nEdges', 'nVertices']:
+            if dim not in basic_dims:
                 indices.append(extra_dims[dim])
         if len(indices) == 0:
             dim_vals = None
@@ -609,6 +625,128 @@ def write_vtp_header(path, prefix, active_var_index, var_indices,
     vtkFile.appendData(offsets)
 
     return vtkFile  # }}}
+
+
+def build_topo_point_and_polygon_lists(nc_file, output_32bit, lonlat):  # {{{
+
+    vertices, _, _, _ = build_cell_geom_lists(nc_file, output_32bit, lonlat)
+
+    xVertex, yVertex, zVertex = vertices
+
+    nCells = len(nc_file.dimensions['nCells'])
+    nEdges = len(nc_file.dimensions['nEdges'])
+
+    nEdgesOnCell = nc_file.variables['nEdgesOnCell'][:]
+    verticesOnCell = nc_file.variables['verticesOnCell'][:, :]-1
+    verticesOnEdge = nc_file.variables['verticesOnEdge'][:, :]-1
+    edgesOnCell = nc_file.variables['edgesOnCell'][:, :]-1
+    cellsOnEdge = nc_file.variables['cellsOnEdge'][:, :]-1
+
+    # 4 points for each edge face
+    nPoints = 4*nEdges
+    # 1 polygon for each edge and cell
+    nPolygons = nEdges + nCells
+
+    if output_32bit:
+        dtype = 'f4'
+    else:
+        dtype = 'f8'
+
+    X = numpy.zeros(nPoints, dtype)
+    Y = numpy.zeros(nPoints, dtype)
+    Z = numpy.zeros(nPoints, dtype)
+
+    # a polygon with nEdgesOnCell vertices per cell plus a polygon with 4
+    # vertices per edge
+    totalEdgesOnCells = numpy.sum(nEdgesOnCell)
+    connectivity = numpy.zeros(4*nEdges + totalEdgesOnCells, dtype=int)
+    offsets = numpy.zeros(nPolygons, dtype=int)
+
+    outIndex = 0
+
+    print("Build edge connectivity...")
+
+    # the points on each edge face are simply the points in order
+    connectivity[0:4*nEdges] = numpy.arange(4*nEdges)
+    # the offset to the next polygon in the connectivity array is 4 more points
+    offsets[0:nEdges] = 4*numpy.arange(1, nEdges+1)
+
+    # The points on an edge are vertex 0, 1, 1, 0 on that edge, making a
+    # vertical rectangle if the points are offset
+    iEdges, voe = numpy.meshgrid(numpy.arange(nEdges), [0, 1, 1, 0],
+                                 indexing='ij')
+    iVerts = verticesOnEdge[iEdges, voe].ravel()
+    X = xVertex[iVerts]
+    Y = yVertex[iVerts]
+    Z = zVertex[iVerts]
+
+    # we want to know the cells corresponding to each point.  The first two
+    # points correspond to the first cell, the second two to the second cell
+    # (if any).
+    iEdges, coe = numpy.meshgrid(numpy.arange(nEdges), [0, 0, 1, 1],
+                                 indexing='ij')
+    iCells = cellsOnEdge[iEdges, coe]
+
+    # If there *is* a second cell on the edge, it's an interior edge.  If not,
+    # it's a boundary edge
+    boundary_mask = iCells == -1
+    assert(numpy.all(coe[boundary_mask] == 1))
+
+    # For boundary edges, we'll point to the only adjacent cell for both the
+    # first and second cell on the edge (but boundary_mask) will keep track of
+    # which is which for later.
+    coe[boundary_mask] = 0
+    cell_to_point_map = cellsOnEdge[iEdges, coe].ravel()
+
+    # Build cells
+    if use_progress_bar:
+        widgets = ['Build cell connectivity: ', Percentage(), ' ', Bar(), ' ',
+                   ETA()]
+        bar = ProgressBar(widgets=widgets, maxval=nCells).start()
+    else:
+        print("Build cell connectivity...")
+
+    outIndex = 4*nEdges
+
+    for iCell in range(nCells):
+        neoc = nEdgesOnCell[iCell]
+        eocs = edgesOnCell[iCell, 0:neoc]
+        vocs = verticesOnCell[iCell, 0:neoc]
+        for index in range(neoc):
+            iVert = vocs[index]
+            iEdge = eocs[index]
+            # which vertex on the edge corresponds to iVert?
+            coes = cellsOnEdge[iEdge, :]
+            voes = verticesOnEdge[iEdge, :]
+
+            if coes[0] == iCell:
+                if voes[0] == iVert:
+                    voe = 0
+                else:
+                    voe = 1
+            else:
+                if voes[0] == iVert:
+                    voe = 3
+                else:
+                    voe = 2
+
+            connectivity[outIndex + index] = 4*iEdge + voe
+
+        outIndex += neoc
+        offsets[nEdges + iCell] = outIndex
+
+        if use_progress_bar:
+            bar.update(iCell)
+
+    if use_progress_bar:
+        bar.finish()
+
+    valid_mask = numpy.ones(nCells, bool)
+
+    return (X, Y, Z), connectivity, offsets, valid_mask, \
+        cell_to_point_map, boundary_mask.ravel()
+
+# }}}
 
 
 def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
@@ -786,7 +924,8 @@ def get_field_sign(field_name):
 
 
 def read_field(var_name, mesh_file, time_series_file, extra_dim_vals,
-               time_index, block_indices, outType, sign=1):  # {{{
+               time_index, block_indices, outType, sign=1,
+               topo_dim=None, topo_cell_indices=None, nTopoLevels=None):  # {{{
 
     def read_field_with_dims(field_var, dim_vals, temp_shape, outType,
                              index_arrays):  # {{{
@@ -815,6 +954,15 @@ def read_field(var_name, mesh_file, time_series_file, extra_dim_vals,
                                                dim_vals[2], dim_vals[3],
                                                dim_vals[4]],
                                      dtype=outType)
+
+        if topo_dim is not None and topo_dim in field_var.dimensions:
+            if len(temp_field.shape) != 2:
+                raise ValueError('Field with dimensions {} not supported in '
+                                 'topogrpahy extraction mode.'.format(
+                                         field_var.dimensions))
+            # sample the depth-dependent field at the index of the topography
+            temp_field = temp_field[numpy.arange(temp_field.shape[0]),
+                                    topo_cell_indices]
 
         outDims = len(temp_field.shape)
 
@@ -855,6 +1003,8 @@ def read_field(var_name, mesh_file, time_series_file, extra_dim_vals,
         elif dim in ['nCells', 'nEdges', 'nVertices']:
             dim_vals.append(block_indices)
             temp_shape = temp_shape + (len(block_indices),)
+        elif topo_dim is not None and dim == topo_dim:
+            dim_vals.append(numpy.arange(nTopoLevels))
         else:
             extra_dim_val = extra_dim_vals[extra_dim_index]
             try:
