@@ -53,6 +53,10 @@ maxVertices = len(fin.dimensions['maxEdges'])
 areaCell = fin.variables['areaCell'][:]
 sphereRadius = float(fin.sphere_radius)
 
+if sphereRadius <= 0:
+    print " -- field 'sphereRadius' = 0 (using planar mesh?); setting = 1 "
+    sphereRadius = 1.0
+
 if options.landiceMasks:
     landIceMask = fin.variables['landIceMask'][:]
 
