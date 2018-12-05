@@ -633,74 +633,48 @@ def write_vtp_header(path, prefix, active_var_index, var_indices,
 
 def build_topo_point_and_polygon_lists(nc_file, output_32bit, lonlat):  # {{{
 
-    vertices, _, _, _ = build_cell_geom_lists(nc_file, output_32bit, lonlat)
+    if output_32bit:
+        dtype = 'f4'
+    else:
+        dtype = 'f8'
 
-    xVertex, yVertex, zVertex = vertices
+    xVertex, yVertex, zVertex = \
+        _build_location_list_xyz(nc_file, 'Vertex', output_32bit, lonlat)
 
     nCells = len(nc_file.dimensions['nCells'])
     nEdges = len(nc_file.dimensions['nEdges'])
+    maxEdges = len(nc_file.dimensions['maxEdges'])
 
     nEdgesOnCell = nc_file.variables['nEdgesOnCell'][:]
     verticesOnCell = nc_file.variables['verticesOnCell'][:, :]-1
-    verticesOnEdge = nc_file.variables['verticesOnEdge'][:, :]-1
     edgesOnCell = nc_file.variables['edgesOnCell'][:, :]-1
-    cellsOnEdge = nc_file.variables['cellsOnEdge'][:, :]-1
+    verticesOnEdge = nc_file.variables['verticesOnEdge'][:] - 1
+    cellsOnEdge = nc_file.variables['cellsOnEdge'][:] - 1
 
     # 4 points for each edge face
     nPoints = 4*nEdges
     # 1 polygon for each edge and cell
     nPolygons = nEdges + nCells
 
-    if output_32bit:
-        dtype = 'f4'
-    else:
-        dtype = 'f8'
-
     X = numpy.zeros(nPoints, dtype)
     Y = numpy.zeros(nPoints, dtype)
     Z = numpy.zeros(nPoints, dtype)
 
-    # a polygon with nEdgesOnCell vertices per cell plus a polygon with 4
-    # vertices per edge
-    totalEdgesOnCells = numpy.sum(nEdgesOnCell)
-    connectivity = numpy.zeros(4*nEdges + totalEdgesOnCells, dtype=int)
-    offsets = numpy.zeros(nPolygons, dtype=int)
-
     outIndex = 0
-
-    print("Build edge connectivity...")
-
-    # the points on each edge face are simply the points in order
-    connectivity[0:4*nEdges] = numpy.arange(4*nEdges)
-    # the offset to the next polygon in the connectivity array is 4 more points
-    offsets[0:nEdges] = 4*numpy.arange(1, nEdges+1)
 
     # The points on an edge are vertex 0, 1, 1, 0 on that edge, making a
     # vertical rectangle if the points are offset
     iEdges, voe = numpy.meshgrid(numpy.arange(nEdges), [0, 1, 1, 0],
                                  indexing='ij')
     iVerts = verticesOnEdge[iEdges, voe].ravel()
-    X = xVertex[iVerts]
-    Y = yVertex[iVerts]
-    Z = zVertex[iVerts]
+    X[:] = xVertex[iVerts]
+    Y[:] = yVertex[iVerts]
+    Z[:] = zVertex[iVerts]
+    vertices = (X, Y, Z)
 
-    # we want to know the cells corresponding to each point.  The first two
-    # points correspond to the first cell, the second two to the second cell
-    # (if any).
-    iEdges, coe = numpy.meshgrid(numpy.arange(nEdges), [0, 0, 1, 1],
-                                 indexing='ij')
-    iCells = cellsOnEdge[iEdges, coe]
-
-    # If there *is* a second cell on the edge, it's an interior edge.  If not,
-    # it's a boundary edge
-    boundary_mask = iCells == -1
-    assert(numpy.all(coe[boundary_mask] == 1))
-
-    # For boundary edges, we'll point to the only adjacent cell for both the
-    # first and second cell on the edge (but boundary_mask) will keep track of
-    # which is which for later.
-    coe[boundary_mask] = 0
-    cell_to_point_map = cellsOnEdge[iEdges, coe].ravel()
+    verticesOnPolygon = -1*numpy.ones((nPolygons, maxEdges), int)
+    verticesOnPolygon[0:nEdges, 0:4] = \
+        numpy.arange(4*nEdges).reshape(nEdges, 4)
 
     # Build cells
     if use_progress_bar:
@@ -710,7 +684,7 @@ def build_topo_point_and_polygon_lists(nc_file, output_32bit, lonlat):  # {{{
     else:
         print("Build cell connectivity...")
 
-    outIndex = 4*nEdges
+    outIndex = nEdges
 
     for iCell in range(nCells):
         neoc = nEdgesOnCell[iCell]
@@ -734,10 +708,9 @@ def build_topo_point_and_polygon_lists(nc_file, output_32bit, lonlat):  # {{{
                 else:
                     voe = 2
 
-            connectivity[outIndex + index] = 4*iEdge + voe
+            verticesOnPolygon[nEdges+iCell, index] = 4*iEdge + voe
 
         outIndex += neoc
-        offsets[nEdges + iCell] = outIndex
 
         if use_progress_bar:
             bar.update(iCell)
@@ -745,12 +718,80 @@ def build_topo_point_and_polygon_lists(nc_file, output_32bit, lonlat):  # {{{
     if use_progress_bar:
         bar.finish()
 
+    validVerts = verticesOnPolygon >= 0
+
+    if lonlat:
+        lonEdge = numpy.rad2deg(nc_file.variables['lonEdge'][:])
+        latEdge = numpy.rad2deg(nc_file.variables['latEdge'][:])
+        lonCell = numpy.rad2deg(nc_file.variables['lonCell'][:])
+        latCell = numpy.rad2deg(nc_file.variables['latCell'][:])
+        lonPolygon = numpy.append(lonEdge, lonCell)
+        latPolygon = numpy.append(latEdge, latCell)
+
+        vertices, verticesOnPolygon = _fix_lon_lat_vertices(vertices,
+                                                            verticesOnPolygon,
+                                                            validVerts,
+                                                            lonPolygon)
+
+    if nc_file.on_a_sphere == 'NO' and nc_file.is_periodic == 'YES':
+        if lonlat:
+            xcoord = lonPolygon
+            ycoord = latPolygon
+        else:
+            xEdge = numpy.rad2deg(nc_file.variables['xEdge'][:])
+            yEdge = numpy.rad2deg(nc_file.variables['yEdge'][:])
+            xCell = numpy.rad2deg(nc_file.variables['xCell'][:])
+            yCell = numpy.rad2deg(nc_file.variables['yCell'][:])
+            xcoord = numpy.append(xEdge, xCell)
+            ycoord = numpy.append(yEdge, yCell)
+
+        vertices, verticesOnPolygon = _fix_periodic_vertices(vertices,
+                                                             verticesOnPolygon,
+                                                             validVerts,
+                                                             xcoord, ycoord,
+                                                             nc_file.x_period,
+                                                             nc_file.y_period)
+
+    nPoints = len(vertices[0])
+
+    # we want to know the cells corresponding to each point.  The first two
+    # points correspond to the first cell, the second two to the second cell
+    # (if any).
+    cell_to_point_map = -1*numpy.ones((nPoints), int)
+    boundary_mask = numpy.zeros((nPoints), bool)
+
+    # first cell on edge always exists
+    coe = cellsOnEdge[:, 0].copy()
+    for index in range(2):
+        voe = verticesOnPolygon[0:nEdges, index]
+        cell_to_point_map[voe] = coe
+        boundary_mask[voe] = False
+
+    # second cell on edge may not exist
+    coe = cellsOnEdge[:, 1].copy()
+    mask = coe == -1
+    # use the first cell if the second doesn't exist
+    coe[mask] = cellsOnEdge[:, 0][mask]
+    for index in range(2, 4):
+        voe = verticesOnPolygon[0:nEdges, index]
+        cell_to_point_map[voe] = coe
+        boundary_mask[voe] = mask
+
+    # for good measure, make sure vertices on cell are also accounted for
+    for index in range(maxEdges):
+        iCells = numpy.arange(nCells)
+        voc = verticesOnPolygon[nEdges:nEdges+nCells, index]
+        mask = index < nEdgesOnCell
+        cell_to_point_map[voc[mask]] = iCells[mask]
+        boundary_mask[voc[mask]] = False
+
+    connectivity = verticesOnPolygon[validVerts]
+    validCount = numpy.sum(numpy.array(validVerts, int), axis=1)
+    offsets = numpy.cumsum(validCount, dtype=int)
     valid_mask = numpy.ones(nCells, bool)
 
-    return (X, Y, Z), connectivity, offsets, valid_mask, \
-        cell_to_point_map, boundary_mask.ravel()
-
-# }}}
+    return vertices, connectivity, offsets, valid_mask, \
+        cell_to_point_map, boundary_mask.ravel()  # }}}
 
 
 def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
@@ -891,10 +932,10 @@ def build_edge_geom_lists(nc_file, output_32bit, lonlat):  # {{{
     validVerts = validVerts[valid_mask, :]
 
     if lonlat:
-        vertices, cellsOnVertex = _fix_lon_lat_vertices(vertices,
-                                                        vertsOnCell,
-                                                        validVerts,
-                                                        lonEdge[valid_mask])
+        vertices, vertsOnCell = _fix_lon_lat_vertices(vertices,
+                                                      vertsOnCell,
+                                                      validVerts,
+                                                      lonEdge[valid_mask])
     if nc_file.on_a_sphere == 'NO' and nc_file.is_periodic == 'YES':
         if lonlat:
             xcoord = lonEdge[valid_mask]
@@ -903,12 +944,12 @@ def build_edge_geom_lists(nc_file, output_32bit, lonlat):  # {{{
             xcoord = nc_file.variables['xEdge'][valid_mask]
             ycoord = nc_file.variables['yEdge'][valid_mask]
 
-        vertices, cellsOnVertex = _fix_periodic_vertices(vertices,
-                                                         vertsOnCell,
-                                                         validVerts,
-                                                         xcoord, ycoord,
-                                                         nc_file.x_period,
-                                                         nc_file.y_period)
+        vertices, vertsOnCell = _fix_periodic_vertices(vertices,
+                                                       vertsOnCell,
+                                                       validVerts,
+                                                       xcoord, ycoord,
+                                                       nc_file.x_period,
+                                                       nc_file.y_period)
 
     connectivity = vertsOnCell[validVerts]
     validCount = numpy.sum(numpy.array(validVerts, int), axis=1)

@@ -63,12 +63,12 @@ and which parts of cell and edge polygons are interior (boundaryMask == 0).
 Together, this can be used to plot topography by using a calculator filter like
 the following:
 
-    coords*(1.0 - 100.0*(1 - boundaryMask)*bottomDepth/mag(coords))
+    coords*(1.0 + 100.0/mag(coords)*((1 - boundaryMask)*(-bottomDepth) + 10.0*boundaryMask))
 
 If this is entered into a Calculator Filter in ParaView with the "coordinate
 result" box checked, the result will to display the MPAS-Ocean topography,
-exaggerated by a factor of 100, with a value of zero along boundary points of
-edge polygons (a "water-tight" surface).
+exaggerated by a factor of 100, with a value equivalent to 10 m along boundary
+points of edge polygons (a "water-tight" surface).
 
 Requirements:
 This script requires access to the following non standard modules:
