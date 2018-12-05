@@ -580,42 +580,46 @@ def write_vtp_header(path, prefix, active_var_index, var_indices,
     vtkFile = VtkFile("{}/{}".format(path, prefix), VtkPolyData)
 
     if xtime is not None:
-        vtkFile.openElement("metadata")
-        vtkFile.openElement("xtime")
-        vtkFile.xml.addText(xtime)
-        vtkFile.closeElement("xtime")
-        vtkFile.closeElement("metadata")
+        vtkFile.openElement(str("metadata"))
+        vtkFile.openElement(str("xtime"))
+        vtkFile.xml.addText(str(xtime))
+        vtkFile.closeElement(str("xtime"))
+        vtkFile.closeElement(str("metadata"))
 
     vtkFile.openElement(vtkFile.ftype.name)
     vtkFile.openPiece(npoints=nPoints, npolys=nPolygons)
 
-    vtkFile.openElement("Points")
-    vtkFile.addData("points", vertices)
-    vtkFile.closeElement("Points")
+    vtkFile.openElement(str("Points"))
+    vtkFile.addData(str("points"), vertices)
+    vtkFile.closeElement(str("Points"))
 
-    vtkFile.openElement("Polys")
-    vtkFile.addData("connectivity", connectivity)
-    vtkFile.addData("offsets", offsets)
-    vtkFile.closeElement("Polys")
+    vtkFile.openElement(str("Polys"))
+    vtkFile.addData(str("connectivity"), connectivity)
+    vtkFile.addData(str("offsets"), offsets)
+    vtkFile.closeElement(str("Polys"))
 
     if(cellData):
-        vtkFile.openData("Cell", scalars=variable_list[active_var_index])
+        vtkFile.openData(str("Cell"),
+                         scalars=[str(var) for var in
+                                  variable_list[active_var_index]])
         for iVar in var_indices:
             var_name = variable_list[iVar]
             (out_var_names, dim_list) = \
                 get_hyperslab_name_and_dims(var_name, all_dim_vals[var_name])
             for out_var_name in out_var_names:
-                vtkFile.addHeader(out_var_name, outType, nPolygons, 1)
-        vtkFile.closeData("Cell")
+                vtkFile.addHeader(str(out_var_name), outType, nPolygons, 1)
+        vtkFile.closeData(str("Cell"))
     if(pointData):
-        vtkFile.openData("Point", scalars=variable_list[active_var_index])
+        vtkFile.openData(str("Point"),
+                         scalars=[str(var) for var in
+                                  variable_list[active_var_index]])
         for iVar in var_indices:
             var_name = variable_list[iVar]
             (out_var_names, dim_list) = \
                 get_hyperslab_name_and_dims(var_name, all_dim_vals[var_name])
             for out_var_name in out_var_names:
-                vtkFile.addHeader(out_var_name, outType, nPoints, 1)
-        vtkFile.closeData("Point")
+                vtkFile.addHeader(str(out_var_name), outType, nPoints, 1)
+        vtkFile.closeData(str("Point"))
 
     vtkFile.closePiece()
     vtkFile.closeElement(vtkFile.ftype.name)
