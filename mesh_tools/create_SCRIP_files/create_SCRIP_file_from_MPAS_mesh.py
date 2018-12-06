@@ -52,6 +52,14 @@ nCells = len(fin.dimensions['nCells'])
 maxVertices = len(fin.dimensions['maxEdges'])
 areaCell = fin.variables['areaCell'][:]
 sphereRadius = float(fin.sphere_radius)
+on_a_sphere = str(fin.on_a_sphere)
+
+
+if sphereRadius <= 0:
+    print " -- WARNING: conservative remapping is NOT possible when 'sphereRadius' <= 0 because 'grid_area' field will be infinite (from division by 0)"
+
+if on_a_sphere == "NO":
+    print " -- WARNING: 'on_a_sphere' attribute is 'NO', which means that there may be some disagreement regarding area between the planar (source) and spherical (target) mesh"
 
 if options.landiceMasks:
     landIceMask = fin.variables['landIceMask'][:]
