@@ -1285,8 +1285,6 @@ def _fix_periodic_vertices_1D(vertices, verticesOnCell, validVertices,
 
     coordNVerticesToAdd = numpy.count_nonzero(coordValid)
 
-    print(coordNVerticesToAdd)
-
     coordVerticesToAdd = numpy.arange(coordNVerticesToAdd) + nVertices
     coordV = coordVertex[coordVOC]
     verticesOnCell[coordVerticesToChange] = coordVerticesToAdd
