@@ -103,10 +103,12 @@ def main():
         coordFileName = args.inputFileName
 
     dsCoord = xarray.open_dataset(coordFileName)
+    dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
 
     ds = xarray.open_dataset(args.inFileName)
+    ds = ds.rename({'nVertLevels': 'depth'})
 
-    ds.coords['depth'] = ('nVertLevels',
+    ds.coords['depth'] = ('depth',
                           compute_depth(dsCoord.refBottomDepth))
     ds.depth.attrs['unit'] = 'meters'
     ds.depth.attrs['long_name'] = 'reference depth of the center of each ' \
@@ -114,7 +116,7 @@ def main():
 
     for varName in ds.data_vars:
         var = ds[varName]
-        if 'nVertLevels' in var.dims:
+        if 'depth' in var.dims:
             var = var.assign_coords(depth=ds.depth)
             ds[varName] = var
 

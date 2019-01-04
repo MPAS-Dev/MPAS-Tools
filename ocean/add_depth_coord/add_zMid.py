@@ -78,16 +78,16 @@ def compute_zmid(bottomDepth, maxLevelCell, layerThickness):
     # -------
     # Xylar Asay-Davis
 
-    nVertLevels = layerThickness.sizes['nVertLevels']
+    nDepth = layerThickness.sizes['depth']
 
     vertIndex = \
-        xarray.DataArray.from_dict({'dims': ('nVertLevels',),
-                                    'data': numpy.arange(nVertLevels)})
+        xarray.DataArray.from_dict({'dims': ('depth',),
+                                    'data': numpy.arange(nDepth)})
 
     layerThickness = layerThickness.where(vertIndex < maxLevelCell)
 
-    thicknessSum = layerThickness.sum(dim='nVertLevels')
-    thicknessCumSum = layerThickness.cumsum(dim='nVertLevels')
+    thicknessSum = layerThickness.sum(dim='depth')
+    thicknessCumSum = layerThickness.cumsum(dim='depth')
     zSurface = -bottomDepth+thicknessSum
 
     zLayerBot = zSurface - thicknessCumSum
@@ -95,6 +95,7 @@ def compute_zmid(bottomDepth, maxLevelCell, layerThickness):
     zMid = zLayerBot + 0.5*layerThickness
 
     zMid = zMid.where(vertIndex < maxLevelCell)
+    zMid = zMid.transpose('Time', 'nCells', 'depth')
 
     return zMid
 
@@ -122,8 +123,10 @@ def main():
         coordFileName = args.inputFileName
 
     dsCoord = xarray.open_dataset(coordFileName)
+    dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
 
     ds = xarray.open_dataset(args.inFileName)
+    ds = ds.rename({'nVertLevels': 'depth'})
 
     ds.coords['zMid'] = compute_zmid(dsCoord.bottomDepth, dsCoord.maxLevelCell,
                                      dsCoord.layerThickness)
@@ -131,7 +134,7 @@ def main():
 
     for varName in ds.data_vars:
         var = ds[varName]
-        if 'nCells' in var.dims and 'nVertLevels' in var.dims:
+        if 'nCells' in var.dims and 'depth' in var.dims:
             var = var.assign_coords(zMid=ds.zMid)
             ds[varName] = var
 
