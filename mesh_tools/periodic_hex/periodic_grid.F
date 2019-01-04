@@ -22,6 +22,7 @@ program hexagonal_periodic_grid
    real (kind=8), allocatable, dimension(:) :: latCell, lonCell, xCell, yCell, zCell
    real (kind=8), allocatable, dimension(:) :: latEdge, lonEdge, xEdge, yEdge, zEdge
    real (kind=8), allocatable, dimension(:) :: latVertex, lonVertex, xVertex, yVertex, zVertex
+   real (kind=8), allocatable, dimension(:) :: meshDensity
    real (kind=8), allocatable, dimension(:,:) :: weightsOnEdge, kiteAreasOnVertex
    real (kind=8), allocatable, dimension(:) :: fEdge, fVertex, h_s
    real (kind=8), allocatable, dimension(:,:,:) :: u, v, h, vh, circulation, vorticity, ke
@@ -81,6 +82,7 @@ program hexagonal_periodic_grid
    allocate(xVertex(nVertices))
    allocate(yVertex(nVertices))
    allocate(zVertex(nVertices))
+   allocate(meshDensity(nCells))
 
    allocate(fEdge(nEdges))
    allocate(fVertex(nVertices))
@@ -271,6 +273,7 @@ program hexagonal_periodic_grid
       end do
    end do
 
+   meshDensity(:) = 1.0
 
    !
    ! fill in initial conditions below
@@ -329,6 +332,7 @@ program hexagonal_periodic_grid
                              edgesOnVertex, &
                              cellsOnVertex, &
                              kiteAreasOnVertex, &
+                             meshDensity, &
                              fEdge, &
                              fVertex, &
                              h_s, &
