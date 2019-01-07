@@ -46,6 +46,7 @@ module write_netcdf
    integer :: wrVarIDedgesOnVertex
    integer :: wrVarIDcellsOnVertex
    integer :: wrVarIDkiteAreasOnVertex
+   integer :: wrVarIDmeshDensity
    integer :: wrVarIDfEdge
    integer :: wrVarIDfVertex
    integer :: wrVarIDh_s
@@ -227,6 +228,8 @@ module write_netcdf
       dimlist( 1) = wrDimIDvertexDegree
       dimlist( 2) = wrDimIDnVertices
       nferr = nf_def_var(wr_ncid, 'kiteAreasOnVertex', NF_DOUBLE,  2, dimlist, wrVarIDkiteAreasOnVertex)
+      dimlist( 1) = wrDimIDnCells
+      nferr = nf_def_var(wr_ncid, 'meshDensity', NF_DOUBLE,  1, dimlist, wrVarIDmeshDensity)
       dimlist( 1) = wrDimIDnEdges
       nferr = nf_def_var(wr_ncid, 'fEdge', NF_DOUBLE,  1, dimlist, wrVarIDfEdge)
       dimlist( 1) = wrDimIDnVertices
@@ -312,6 +315,7 @@ module write_netcdf
                                   edgesOnVertex, &
                                   cellsOnVertex, &
                                   kiteAreasOnVertex, &
+                                  meshDensity, &
                                   fEdge, &
                                   fVertex, &
                                   h_s, &
@@ -366,6 +370,7 @@ module write_netcdf
       integer, dimension(:,:), intent(in) :: edgesOnVertex
       integer, dimension(:,:), intent(in) :: cellsOnVertex
       real (kind=8), dimension(:,:), intent(in) :: kiteAreasOnVertex
+      real (kind=8), dimension(:), intent(in) :: meshDensity
       real (kind=8), dimension(:), intent(in) :: fEdge
       real (kind=8), dimension(:), intent(in) :: fVertex
       real (kind=8), dimension(:), intent(in) :: h_s
@@ -548,6 +553,10 @@ module write_netcdf
       count2( 1) = 3
       count2( 2) = wrLocalnVertices
       nferr = nf_put_vara_double(wr_ncid, wrVarIDkiteAreasOnVertex, start2, count2, kiteAreasOnVertex)
+
+      start1(1) = 1
+      count1( 1) = wrLocalnCells
+      nferr = nf_put_vara_double(wr_ncid, wrVarIDmeshDensity, start1, count1, meshDensity)
  
       start1(1) = 1
       count1( 1) = wrLocalnEdges
