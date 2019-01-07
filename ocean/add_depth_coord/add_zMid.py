@@ -130,7 +130,9 @@ def main():
 
     ds.coords['zMid'] = compute_zmid(dsCoord.bottomDepth, dsCoord.maxLevelCell,
                                      dsCoord.layerThickness)
-    ds.zMid.attrs['unit'] = 'm'
+    ds.zMid.attrs['units'] = 'meters'
+    ds.zMid.attrs['positive'] = 'up'
+    ds.zMid.attrs['standard_name'] = 'depth'
 
     for varName in ds.data_vars:
         var = ds[varName]

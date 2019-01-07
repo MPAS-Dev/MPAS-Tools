@@ -110,7 +110,10 @@ def main():
 
     ds.coords['depth'] = ('depth',
                           compute_depth(dsCoord.refBottomDepth))
-    ds.depth.attrs['unit'] = 'meters'
+    ds.depth.attrs['units'] = 'meters'
+    ds.depth.attrs['positive'] = 'down'
+    ds.depth.attrs['standard_name'] = 'depth'
+
     ds.depth.attrs['long_name'] = 'reference depth of the center of each ' \
                                   'vertical level'
 

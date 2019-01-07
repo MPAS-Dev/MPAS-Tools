@@ -142,7 +142,9 @@ def main():
 
     dsOut = xarray.Dataset()
     dsOut[outVarName] = zMid
-    dsOut[outVarName].attrs['unit'] = 'm'
+    dsOut[outVarName].attrs['units'] = 'meters'
+    dsOut[outVarName].attrs['positive'] = 'up'
+    dsOut[outVarName].attrs['standard_name'] = 'depth'
 
     dsOut.attrs['history'] = ' '.join(sys.argv)
 
