@@ -122,22 +122,24 @@ def main():
     else:
         coordFileName = args.inputFileName
 
-    dsCoord = xarray.open_dataset(coordFileName)
-    dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
-
     ds = xarray.open_dataset(args.inFileName)
-    ds = ds.rename({'nVertLevels': 'depth'})
+    if 'nVertLevels' in ds.dims:
+        ds = ds.rename({'nVertLevels': 'depth'})
 
-    ds.coords['zMid'] = compute_zmid(dsCoord.bottomDepth, dsCoord.maxLevelCell,
-                                     dsCoord.layerThickness)
-    ds.zMid.attrs['units'] = 'meters'
-    ds.zMid.attrs['positive'] = 'up'
+        dsCoord = xarray.open_dataset(coordFileName)
+        dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
 
-    for varName in ds.data_vars:
-        var = ds[varName]
-        if 'nCells' in var.dims and 'depth' in var.dims:
-            var = var.assign_coords(zMid=ds.zMid)
-            ds[varName] = var
+        ds.coords['zMid'] = compute_zmid(dsCoord.bottomDepth,
+                                         dsCoord.maxLevelCell,
+                                         dsCoord.layerThickness)
+        ds.zMid.attrs['units'] = 'meters'
+        ds.zMid.attrs['positive'] = 'up'
+
+        for varName in ds.data_vars:
+            var = ds[varName]
+            if 'nCells' in var.dims and 'depth' in var.dims:
+                var = var.assign_coords(zMid=ds.zMid)
+                ds[varName] = var
 
     if 'history' in ds.attrs:
         ds.attrs['history'] = '{}\n{}'.format(' '.join(sys.argv),

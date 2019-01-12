@@ -102,26 +102,27 @@ def main():
     else:
         coordFileName = args.inputFileName
 
-    dsCoord = xarray.open_dataset(coordFileName)
-    dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
-
     ds = xarray.open_dataset(args.inFileName)
-    ds = ds.rename({'nVertLevels': 'depth'})
+    if 'nVertLevels' in ds.dims:
+        ds = ds.rename({'nVertLevels': 'depth'})
 
-    ds.coords['depth'] = ('depth',
-                          compute_depth(dsCoord.refBottomDepth))
-    ds.depth.attrs['units'] = 'meters'
-    ds.depth.attrs['positive'] = 'down'
-    ds.depth.attrs['standard_name'] = 'depth'
+        dsCoord = xarray.open_dataset(coordFileName)
+        dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
 
-    ds.depth.attrs['long_name'] = 'reference depth of the center of each ' \
-                                  'vertical level'
+        ds.coords['depth'] = ('depth',
+                              compute_depth(dsCoord.refBottomDepth))
+        ds.depth.attrs['units'] = 'meters'
+        ds.depth.attrs['positive'] = 'down'
+        ds.depth.attrs['standard_name'] = 'depth'
 
-    for varName in ds.data_vars:
-        var = ds[varName]
-        if 'depth' in var.dims:
-            var = var.assign_coords(depth=ds.depth)
-            ds[varName] = var
+        ds.depth.attrs['long_name'] = 'reference depth of the center of ' \
+                                      'each vertical level'
+
+        for varName in ds.data_vars:
+            var = ds[varName]
+            if 'depth' in var.dims:
+                var = var.assign_coords(depth=ds.depth)
+                ds[varName] = var
 
     if 'history' in ds.attrs:
         ds.attrs['history'] = '{}\n{}'.format(' '.join(sys.argv),
