@@ -16,11 +16,14 @@ import numpy
 import netCDF4
 import argparse
 import sys
+from datetime import datetime
 
 
-def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals):
+def write_netcdf(ds, fileName):
     '''
-    Write an xarray data set to a NetCDF file using finite fill values
+    Write an xarray data set to a NetCDF file making use of the _FillValue
+    attributes of each variable.  This function should be used for data sets
+    opened with mask_and_scale=False.
 
     Parameters
     ----------
@@ -29,11 +32,6 @@ def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals):
 
     fileName : str
         The fileName to write the data set to
-
-    fillValues : dict
-        A dictionary of fill values for each supported data type.  By default,
-        this is the dictionary used by the netCDF4 package.  Key entries should
-        be of the form 'f8' (for float64), 'i4' (for int32), etc.
     '''
     # Authors
     # -------
@@ -42,12 +40,12 @@ def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals):
     encodingDict = {}
     variableNames = list(ds.data_vars.keys()) + list(ds.coords.keys())
     for variableName in variableNames:
-        dtype = ds[variableName].dtype
-        for fillType in fillValues:
-            if dtype == numpy.dtype(fillType):
-                encodingDict[variableName] = \
-                    {'_FillValue': fillValues[fillType]}
-                break
+        if '_FillValue' in ds[variableName].attrs:
+            encodingDict[variableName] = \
+                {'_FillValue': ds[variableName].attrs['_FillValue']}
+            del ds[variableName].attrs['_FillValue']
+        else:
+            encodingDict[variableName] = {'_FillValue': None}
 
     ds.to_netcdf(fileName, encoding=encodingDict)
 
@@ -122,18 +120,22 @@ def main():
     else:
         coordFileName = args.inputFileName
 
-    ds = xarray.open_dataset(args.inFileName)
+    ds = xarray.open_dataset(args.inFileName, mask_and_scale=False)
     if 'nVertLevels' in ds.dims:
         ds = ds.rename({'nVertLevels': 'depth'})
 
+        # dsCoord doesn't have masking disabled because we want it for zMid
         dsCoord = xarray.open_dataset(coordFileName)
         dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
 
         ds.coords['zMid'] = compute_zmid(dsCoord.bottomDepth,
                                          dsCoord.maxLevelCell,
                                          dsCoord.layerThickness)
+        fillValue = netCDF4.default_fillvals['f8']
+        ds.coords['zMid'] = ds.zMid.where(ds.zMid.notnull(), other=fillValue)
         ds.zMid.attrs['units'] = 'meters'
         ds.zMid.attrs['positive'] = 'up'
+        ds.zMid.attrs['_FillValue'] = fillValue
 
         for varName in ds.data_vars:
             var = ds[varName]
@@ -141,11 +143,15 @@ def main():
                 var = var.assign_coords(zMid=ds.zMid)
                 ds[varName] = var
 
+    time = datetime.now().strftime('%c')
+
+    history = '{}: {}'.format(time, ' '.join(sys.argv))
+
     if 'history' in ds.attrs:
-        ds.attrs['history'] = '{}\n{}'.format(' '.join(sys.argv),
+        ds.attrs['history'] = '{}\n{}'.format(history,
                                               ds.attrs['history'])
     else:
-        ds.attrs['history'] = ' '.join(sys.argv)
+        ds.attrs['history'] = history
 
     write_netcdf(ds, args.outFileName)
 
