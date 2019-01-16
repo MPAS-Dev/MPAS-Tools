@@ -89,6 +89,7 @@ def setup_time_indices(fn_pattern, xtimeName):  # {{{
         print("Build time indices...")
 
     i_file = 0
+    allTIndex = 0
     for file_name in file_list:
         try:
             nc_file = open_netcdf(file_name)
@@ -99,20 +100,26 @@ def setup_time_indices(fn_pattern, xtimeName):  # {{{
         if 'Time' not in nc_file.dimensions or xtimeName is None:
             local_times = ['0']
         else:
-            if xtimeName not in nc_file.variables:
-                raise ValueError("xtime variable name {} not found in "
-                                 "{}".format(xtimeName, file_name))
             local_times = []
-            xtime = nc_file.variables[xtimeName]
-            if len(xtime.shape) == 2:
-                xtime = xtime[:, :]
-                for index in range(xtime.shape[0]):
-                    local_times.append(xtime[index, :].tostring())
+            if xtimeName == 'none':
+                # no xtime variable so just use integers converted to strings
+                for index in range(len(nc_file.dimensions['Time'])):
+                    local_times.append(allTIndex)
+                    allTIndex += 1
             else:
-                local_times = xtime[:]
+                if xtimeName not in nc_file.variables:
+                    raise ValueError("xtime variable name {} not found in "
+                                     "{}".format(xtimeName, file_name))
+                xtime = nc_file.variables[xtimeName]
+                if len(xtime.shape) == 2:
+                    xtime = xtime[:, :]
+                    for index in range(xtime.shape[0]):
+                        local_times.append(xtime[index, :].tostring())
+                else:
+                    local_times = xtime[:]
 
-            if(len(local_times) == 0):
-                local_times = ['0']
+                if(len(local_times) == 0):
+                    local_times = ['0']
 
         nTime = len(local_times)
 

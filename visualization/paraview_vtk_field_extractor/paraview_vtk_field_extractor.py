@@ -243,22 +243,26 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
                 xtime = None
                 years = float(time_index)
             else:
-                if xtimeName not in time_series_file.variables:
-                    raise ValueError("xtime variable name {} not found in "
-                                     "{}".format(xtimeName, time_series_file))
-                var = time_series_file.variables[xtimeName]
-                if len(var.shape) == 2:
-                    xtime = var[local_time_indices[time_index],
-                                :].tostring().decode('utf-8').strip()
-                    date = datetime(int(xtime[0:4]), int(xtime[5:7]),
-                                    int(xtime[8:10]), int(xtime[11:13]),
-                                    int(xtime[14:16]), int(xtime[17:19]))
-                    years = date2num(date, units='days since 0000-01-01',
-                                     calendar='noleap')/365.
+                if xtimeName == 'none':
+                    xtime = '{}'.format(time_index)
+                    years = float(time_index)
                 else:
-                    xtime = var[local_time_indices[time_index]]
-                    years = xtime/365.
-                    xtime = str(xtime)
+                    if xtimeName not in time_series_file.variables:
+                        raise ValueError("xtime variable name {} not found in "
+                                         "{}".format(xtimeName, time_series_file))
+                    var = time_series_file.variables[xtimeName]
+                    if len(var.shape) == 2:
+                        xtime = var[local_time_indices[time_index],
+                                    :].tostring().decode('utf-8').strip()
+                        date = datetime(int(xtime[0:4]), int(xtime[5:7]),
+                                        int(xtime[8:10]), int(xtime[11:13]),
+                                        int(xtime[14:16]), int(xtime[17:19]))
+                        years = date2num(date, units='days since 0000-01-01',
+                                         calendar='noleap')/365.
+                    else:
+                        xtime = var[local_time_indices[time_index]]
+                        years = xtime/365.
+                        xtime = str(xtime)
 
             # write the header for the vtp file
             vtp_file_prefix = "time_series/{}.{:d}".format(out_prefix,
@@ -412,21 +416,21 @@ if __name__ == "__main__":
     parser.add_argument("-o", "--out_dir", dest="out_dir",
                         help="the output directory.", default='vtk_files',
                         metavar="DIR")
-    parser.add_argument("-x", "--xtime", dest="xtime",
-                        help="the name of the xtime variable", default='xtime',
-                        metavar="XTIME")
+    parser.add_argument("-x", "--xtime", dest="xtime", default='xtime',
+                        metavar="XTIME",
+                        help="the name of the xtime variable or 'none' to "
+                             "extract Time dim without xtime")
     parser.add_argument("-l", "--lonlat", dest="lonlat",
                         help="If set, the resulting points are in lon-lat "
                              "space, not Cartesian.", action="store_true")
     parser.add_argument("-t", "--time", dest="time",
                         help="Indices for the time dimension", metavar="TIME",
                         required=False)
-    parser.add_argument("--ignore_time", dest="ignore_time",
+    parser.add_argument("--ignore_time", dest="ignore_time", required=False,
                         action="store_true",
                         help="ignore the Time dimension if it exists "
                              "for files with a Time dimension but no xtime"
-                             "variable (e.g. mesh file)",
-                        required=False)
+                             "variable (e.g. mesh file)")
     parser.add_argument("--topo_dim", dest="topo_dim", required=False,
                         help="Dimension and range for topography dimension")
     parser.add_argument("--topo_cell_index", dest="topo_cell_index",
