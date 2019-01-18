@@ -51,7 +51,7 @@ def write_netcdf(ds, fileName):
 
 def compute_depth(refBottomDepth):
     """
-    Computes depth given refBottomDepth
+    Computes depth and depth bounds given refBottomDepth
 
     Parameters
     ----------
@@ -63,6 +63,8 @@ def compute_depth(refBottomDepth):
     -------
     depth : ``xarray.DataArray``
         the vertical coordinate defining the middle of each layer
+    depth_bnds : ``xarray.DataArray``
+        the vertical coordinate defining the top and bottom of each layer
     """
     # Authors
     # -------
@@ -70,12 +72,14 @@ def compute_depth(refBottomDepth):
 
     refBottomDepth = refBottomDepth.values
 
-    depth = numpy.zeros(refBottomDepth.shape)
+    depth_bnds = numpy.zeros((len(refBottomDepth), 2))
 
-    depth[0] = 0.5*refBottomDepth[0]
-    depth[1:] = 0.5*(refBottomDepth[1:] + refBottomDepth[0:-1])
+    depth_bnds[0, 0] = 0.
+    depth_bnds[1:, 0] = refBottomDepth[0:-1]
+    depth_bnds[:, 1] = refBottomDepth
+    depth = 0.5*(depth_bnds[:, 0] + depth_bnds[:, 1])
 
-    return depth
+    return depth, depth_bnds
 
 
 def main():
@@ -106,14 +110,19 @@ def main():
         dsCoord = xarray.open_dataset(coordFileName, mask_and_scale=False)
         dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
 
-        ds.coords['depth'] = ('depth',
-                              compute_depth(dsCoord.refBottomDepth))
-        ds.depth.attrs['units'] = 'meters'
-        ds.depth.attrs['positive'] = 'down'
-        ds.depth.attrs['standard_name'] = 'depth'
-
+        depth, depth_bnds = compute_depth(dsCoord.refBottomDepth)
+        ds.coords['depth'] = ('depth', depth)
         ds.depth.attrs['long_name'] = 'reference depth of the center of ' \
                                       'each vertical level'
+        ds.depth.attrs['standard_name'] = 'depth'
+        ds.depth.attrs['units'] = 'meters'
+        ds.depth.attrs['positive'] = 'down'
+        ds.depth.attrs['valid_min'] = depth_bnds[0, 0]
+        ds.depth.attrs['valid_max'] = depth_bnds[-1, 1]
+        ds.depth.attrs['bounds'] = 'depth_bnds'
+
+        ds.coords['depth_bnds'] = (('depth', 'nbnd'), depth_bnds)
+        ds.depth.attrs['long_name'] = 'Gridcell depth interfaces'
 
         for varName in ds.data_vars:
             var = ds[varName]
