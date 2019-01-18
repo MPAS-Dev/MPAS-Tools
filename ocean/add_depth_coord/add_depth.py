@@ -116,13 +116,14 @@ def main():
                                       'each vertical level'
         ds.depth.attrs['standard_name'] = 'depth'
         ds.depth.attrs['units'] = 'meters'
+        ds.depth.attrs['axis'] = 'Z'
         ds.depth.attrs['positive'] = 'down'
         ds.depth.attrs['valid_min'] = depth_bnds[0, 0]
         ds.depth.attrs['valid_max'] = depth_bnds[-1, 1]
         ds.depth.attrs['bounds'] = 'depth_bnds'
 
         ds.coords['depth_bnds'] = (('depth', 'nbnd'), depth_bnds)
-        ds.depth.attrs['long_name'] = 'Gridcell depth interfaces'
+        ds.depth_bnds.attrs['long_name'] = 'Gridcell depth interfaces'
 
         for varName in ds.data_vars:
             var = ds[varName]
