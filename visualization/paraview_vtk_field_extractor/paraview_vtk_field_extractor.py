@@ -136,7 +136,7 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
         cellData = True
 
     # Pre-compute the number of blocks
-    nBlocks = 1 + blockDim // blocking
+    nBlocks = int(np.ceil(blockDim / blocking))
 
     nPolygons = len(offsets)
     nPoints = len(vertices[0])
