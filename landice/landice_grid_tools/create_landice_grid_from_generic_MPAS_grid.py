@@ -169,7 +169,7 @@ elif options.vertMethod == 'glimmer':
       layerInterfaces[k] = 4.0/3.0 * (1.0 - ((k+1.0-1.0)/(nInterfaces-1.0) + 1.0)**-2)
    for k in range(nVertLevels):
       layerThicknessFractionsData[k] = layerInterfaces[k+1] - layerInterfaces[k]
-   print "Setting layerThicknessFractions to:", layerThicknessFractionData
+   print "Setting layerThicknessFractions to:", layerThicknessFractionsData
 else:
    sys.exit('Unknown method for vertical spacing method (--vert): '+options.vertMethod)
 
