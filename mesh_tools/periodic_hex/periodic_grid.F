@@ -16,7 +16,7 @@ program hexagonal_periodic_grid
    integer, allocatable, dimension(:) :: nEdgesOnCell, nEdgesOnEdge
    integer, allocatable, dimension(:,:) :: cellsOnCell, edgesOnCell, verticesOnCell
    integer, allocatable, dimension(:,:) :: cellsOnEdge, edgesOnEdge, verticesOnEdge
-   integer, allocatable, dimension(:,:) :: edgesOnVertex, cellsOnVertex, uBC
+   integer, allocatable, dimension(:,:) :: edgesOnVertex, cellsOnVertex
    real (kind=8), allocatable, dimension(:) :: areaTriangle, areaCell, angleEdge
    real (kind=8), allocatable, dimension(:) :: dcEdge, dvEdge
    real (kind=8), allocatable, dimension(:) :: latCell, lonCell, xCell, yCell, zCell
@@ -24,15 +24,11 @@ program hexagonal_periodic_grid
    real (kind=8), allocatable, dimension(:) :: latVertex, lonVertex, xVertex, yVertex, zVertex
    real (kind=8), allocatable, dimension(:) :: meshDensity
    real (kind=8), allocatable, dimension(:,:) :: weightsOnEdge, kiteAreasOnVertex
-   real (kind=8), allocatable, dimension(:) :: fEdge, fVertex, h_s
-   real (kind=8), allocatable, dimension(:,:,:) :: u, v, h, vh, circulation, vorticity, ke
-   real (kind=8), allocatable, dimension(:,:,:,:) :: tracers
 
    integer :: i, j, np, iCell
    integer :: nCells, nEdges, nVertices
    integer :: iRow, iCol, ii, jj
    integer :: nprocx, nprocy
-   real (kind=8) :: r
    character (len=32) :: decomp_fname
 
    call cell_indexing_read_nl()
@@ -84,19 +80,6 @@ program hexagonal_periodic_grid
    allocate(zVertex(nVertices))
    allocate(meshDensity(nCells))
 
-   allocate(fEdge(nEdges))
-   allocate(fVertex(nVertices))
-   allocate(h_s(nCells))
-   allocate(uBC(nVertLevels, nEdges))
-
-   allocate(u(nVertLevels,nEdges,1))
-   allocate(v(nVertLevels,nEdges,1))
-   allocate(vh(nVertLevels,nEdges,1))
-   allocate(h(nVertLevels,nCells,1))
-   allocate(circulation(nVertLevels,nVertices,1))
-   allocate(vorticity(nVertLevels,nVertices,1))
-   allocate(ke(nVertLevels,nCells,1))
-   allocate(tracers(nTracers,nVertLevels,nCells,1))
 
    do iRow = 1, ny
    do iCol = 1, nx
@@ -276,43 +259,11 @@ program hexagonal_periodic_grid
    meshDensity(:) = 1.0
 
    !
-   ! fill in initial conditions below
-   ! NOTE: these initial conditions will likely be removed
-   !   from the grid.nc files at some point (soon).
-   ! Initialize fields in grid
-   !
-
-   fEdge(:) = 1.0e-4
-   fVertex(:) = 1.0e-4
-
-   h_s(:) = 0.0
-   u(:,:,:) = 0.0
-   v(:,:,:) = 0.0
-   vh(:,:,:) = 0.0
-   circulation(:,:,:) = 0.0
-   vorticity(:,:,:) = 0.0
-   ke(:,:,:) = 0.0
-   tracers(:,:,:,:) = 0.0
-   h(:,:,:) = 1.0
-
-   do i=1,nCells
-      r = sqrt((xCell(i) - (nx/2)*(10.0*dc))**2.0 + (yCell(i) - (ny/2)*(10.0*dc))**2.0)
-      if (r < 10.0*10.0*dc) then
-         tracers(1,1,i,1) = (20.0 / 2.0) * (1.0 + cos(pi*r/(10.0*10.0*dc))) + 0.0
-         h(1,i,1) = 1.0 + 0.1*cos(pi*r/(20.0*10.0*dc))
-      else
-         tracers(1,1,i,1) = 0.0
-         h(1,i,1) = 1.0
-      end if
-   end do
-
-   !
    ! Write grid to grid.nc file
    !
-   call write_netcdf_init( nCells, nEdges, nVertices, maxEdges, nVertLevels, nTracers, vertexDegree, dc, nx, ny )
+   call write_netcdf_init( nCells, nEdges, nVertices, maxEdges, vertexDegree, dc, nx, ny )
  
-   call write_netcdf_fields( 1, &
-                             latCell, lonCell, xCell, yCell, zCell, indexToCellID, &
+   call write_netcdf_fields( latCell, lonCell, xCell, yCell, zCell, indexToCellID, &
                              latEdge, lonEdge, xEdge, yEdge, zEdge, indexToEdgeID, &
                              latVertex, lonVertex, xVertex, yVertex, zVertex, indexToVertexID, &
                              cellsOnEdge, &
@@ -332,19 +283,7 @@ program hexagonal_periodic_grid
                              edgesOnVertex, &
                              cellsOnVertex, &
                              kiteAreasOnVertex, &
-                             meshDensity, &
-                             fEdge, &
-                             fVertex, &
-                             h_s, &
-                             uBC, &
-                             u, &
-                             v, &
-                             h, &
-                             vh, &
-                             circulation, &
-                             vorticity, &
-                             ke, &
-                             tracers &
+                             meshDensity &
                             )
 
    call write_netcdf_finalize()
@@ -382,21 +321,6 @@ program hexagonal_periodic_grid
    end do
 
 end program hexagonal_periodic_grid
-
-
-subroutine enforce_uBC(u, uBC, xCell, yCell, zCell, nCells, nEdges, nVertLevels, dc)
-! this suboutine provides a hook into uBC. the uBC field is read into the ocean
-! model and used to enforce boundary conditions on the velocity field.
-! uBC is written to the grid.nc file, even if the forward model does not use it.
-
-real (kind=8), intent(in) :: dc
-real (kind=8), intent(inout), dimension(nVertLevels, nEdges, 1) :: u
-real (kind=8), intent(in), dimension(nCells) :: xCell, yCell, zCell
-integer, intent(inout), dimension(nVertLevels, nEdges) :: uBC
-
-uBC = -10
-
-end subroutine enforce_uBC
 
 
 subroutine decompose_nproc(nproc, nprocx, nprocy)

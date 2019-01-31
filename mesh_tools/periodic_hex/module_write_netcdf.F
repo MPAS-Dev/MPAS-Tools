@@ -9,8 +9,6 @@ module write_netcdf
    integer :: wrDimIDmaxEdges2
    integer :: wrDimIDTWO
    integer :: wrDimIDvertexDegree
-   integer :: wrDimIDnVertLevels
-   integer :: wrDimIDnTracers
    integer :: wrVarIDlatCell
    integer :: wrVarIDlonCell
    integer :: wrVarIDxCell
@@ -47,25 +45,11 @@ module write_netcdf
    integer :: wrVarIDcellsOnVertex
    integer :: wrVarIDkiteAreasOnVertex
    integer :: wrVarIDmeshDensity
-   integer :: wrVarIDfEdge
-   integer :: wrVarIDfVertex
-   integer :: wrVarIDh_s
-   integer :: wrVarIDu
-   integer :: wrVarIDuBC
-   integer :: wrVarIDv
-   integer :: wrVarIDh
-   integer :: wrVarIDvh
-   integer :: wrVarIDcirculation
-   integer :: wrVarIDvorticity
-   integer :: wrVarIDke
-   integer :: wrVarIDtracers
  
    integer :: wrLocalnCells
    integer :: wrLocalnEdges
    integer :: wrLocalnVertices
    integer :: wrLocalmaxEdges
-   integer :: wrLocalnVertLevels
-   integer :: wrLocalnTracers
  
    contains
  
@@ -74,8 +58,6 @@ module write_netcdf
                                nEdges, &
                                nVertices, &
                                maxEdges, &
-                               nVertLevels, &
-                               nTracers, &
                                vertexDegree, &
                                dc, &
                                nx, &
@@ -90,8 +72,6 @@ module write_netcdf
       integer, intent(in) :: nEdges
       integer, intent(in) :: nVertices
       integer, intent(in) :: maxEdges
-      integer, intent(in) :: nVertLevels
-      integer, intent(in) :: nTracers
       integer, intent(in) :: vertexDegree
       real (kind=8), intent(in) :: dc
       integer, intent(in) :: nx
@@ -109,8 +89,6 @@ module write_netcdf
       wrLocalnEdges = nEdges
       wrLocalnVertices = nVertices
       wrLocalmaxEdges = maxEdges
-      wrLocalnVertLevels = nVertLevels
-      wrLocalnTracers = nTracers
 
       on_a_sphere = 'NO'
       is_periodic = 'YES'
@@ -130,8 +108,6 @@ module write_netcdf
       nferr = nf_def_dim(wr_ncid, 'maxEdges2', 2*maxEdges, wrDimIDmaxEdges2)
       nferr = nf_def_dim(wr_ncid, 'TWO', 2, wrDimIDTWO)
       nferr = nf_def_dim(wr_ncid, 'vertexDegree', vertexDegree, wrDimIDvertexDegree)
-      nferr = nf_def_dim(wr_ncid, 'nVertLevels', nVertLevels, wrDimIDnVertLevels)
-      nferr = nf_def_dim(wr_ncid, 'nTracers', nTracers, wrDimIDnTracers)
       nferr = nf_def_dim(wr_ncid, 'Time', NF_UNLIMITED, wrDimIDTime)
 
 
@@ -230,48 +206,6 @@ module write_netcdf
       nferr = nf_def_var(wr_ncid, 'kiteAreasOnVertex', NF_DOUBLE,  2, dimlist, wrVarIDkiteAreasOnVertex)
       dimlist( 1) = wrDimIDnCells
       nferr = nf_def_var(wr_ncid, 'meshDensity', NF_DOUBLE,  1, dimlist, wrVarIDmeshDensity)
-      dimlist( 1) = wrDimIDnEdges
-      nferr = nf_def_var(wr_ncid, 'fEdge', NF_DOUBLE,  1, dimlist, wrVarIDfEdge)
-      dimlist( 1) = wrDimIDnVertices
-      nferr = nf_def_var(wr_ncid, 'fVertex', NF_DOUBLE,  1, dimlist, wrVarIDfVertex)
-      dimlist( 1) = wrDimIDnCells
-      nferr = nf_def_var(wr_ncid, 'h_s', NF_DOUBLE,  1, dimlist, wrVarIDh_s)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnEdges
-      dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'u', NF_DOUBLE,  3, dimlist, wrVarIDu)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnEdges
-      nferr = nf_def_var(wr_ncid, 'uBC', NF_INT,  2, dimlist, wrVarIDuBC)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnEdges
-      dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'v', NF_DOUBLE,  3, dimlist, wrVarIDv)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnCells
-      dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'h', NF_DOUBLE,  3, dimlist, wrVarIDh)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnEdges
-      dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'vh', NF_DOUBLE,  3, dimlist, wrVarIDvh)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnVertices
-      dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'circulation', NF_DOUBLE,  3, dimlist, wrVarIDcirculation)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnVertices
-      dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'vorticity', NF_DOUBLE,  3, dimlist, wrVarIDvorticity)
-      dimlist( 1) = wrDimIDnVertLevels
-      dimlist( 2) = wrDimIDnCells
-      dimlist( 3) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'ke', NF_DOUBLE,  3, dimlist, wrVarIDke)
-      dimlist( 1) = wrDimIDnTracers
-      dimlist( 2) = wrDimIDnVertLevels
-      dimlist( 3) = wrDimIDnCells
-      dimlist( 4) = wrDimIDTime
-      nferr = nf_def_var(wr_ncid, 'tracers', NF_DOUBLE,  4, dimlist, wrVarIDtracers)
  
       nferr = nf_enddef(wr_ncid)
  
@@ -279,7 +213,6 @@ module write_netcdf
  
  
    subroutine write_netcdf_fields( &
-                                  time, &
                                   latCell, &
                                   lonCell, &
                                   xCell, &
@@ -315,26 +248,13 @@ module write_netcdf
                                   edgesOnVertex, &
                                   cellsOnVertex, &
                                   kiteAreasOnVertex, &
-                                  meshDensity, &
-                                  fEdge, &
-                                  fVertex, &
-                                  h_s, &
-                                  uBC, &
-                                  u, &
-                                  v, &
-                                  h, &
-                                  vh, &
-                                  circulation, &
-                                  vorticity, &
-                                  ke, &
-                                  tracers &
+                                  meshDensity &
                                  )
  
       implicit none
  
       include 'netcdf.inc'
  
-      integer, intent(in) :: time
       real (kind=8), dimension(:), intent(in) :: latCell
       real (kind=8), dimension(:), intent(in) :: lonCell
       real (kind=8), dimension(:), intent(in) :: xCell
@@ -371,38 +291,15 @@ module write_netcdf
       integer, dimension(:,:), intent(in) :: cellsOnVertex
       real (kind=8), dimension(:,:), intent(in) :: kiteAreasOnVertex
       real (kind=8), dimension(:), intent(in) :: meshDensity
-      real (kind=8), dimension(:), intent(in) :: fEdge
-      real (kind=8), dimension(:), intent(in) :: fVertex
-      real (kind=8), dimension(:), intent(in) :: h_s
-      integer, dimension(:,:), intent(in) :: uBC
-      real (kind=8), dimension(:,:,:), intent(in) :: u
-      real (kind=8), dimension(:,:,:), intent(in) :: v
-      real (kind=8), dimension(:,:,:), intent(in) :: h
-      real (kind=8), dimension(:,:,:), intent(in) :: vh
-      real (kind=8), dimension(:,:,:), intent(in) :: circulation
-      real (kind=8), dimension(:,:,:), intent(in) :: vorticity
-      real (kind=8), dimension(:,:,:), intent(in) :: ke
-      real (kind=8), dimension(:,:,:,:), intent(in) :: tracers
  
       integer :: nferr
       integer, dimension(1) :: start1, count1
       integer, dimension(2) :: start2, count2
-      integer, dimension(3) :: start3, count3
-      integer, dimension(4) :: start4, count4
  
       start1(1) = 1
  
       start2(1) = 1
       start2(2) = 1
- 
-      start3(1) = 1
-      start3(2) = 1
-      start3(3) = 1
- 
-      start4(1) = 1
-      start4(2) = 1
-      start4(3) = 1
-      start4(4) = 1
  
       start1(1) = 1
       count1( 1) = wrLocalnCells
@@ -557,73 +454,6 @@ module write_netcdf
       start1(1) = 1
       count1( 1) = wrLocalnCells
       nferr = nf_put_vara_double(wr_ncid, wrVarIDmeshDensity, start1, count1, meshDensity)
- 
-      start1(1) = 1
-      count1( 1) = wrLocalnEdges
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDfEdge, start1, count1, fEdge)
- 
-      start1(1) = 1
-      count1( 1) = wrLocalnVertices
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDfVertex, start1, count1, fVertex)
- 
-      start1(1) = 1
-      count1( 1) = wrLocalnCells
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDh_s, start1, count1, h_s)
-
-      start2(2) = 1
-      count2( 1) = wrLocalnVertLevels
-      count2( 2) = wrLocalnEdges
-      nferr = nf_put_vara_int(wr_ncid, wrVarIDuBC, start2, count2, u)
- 
-      start3(3) = time
-      count3( 1) = wrLocalnVertLevels
-      count3( 2) = wrLocalnEdges
-      count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDu, start3, count3, u)
- 
-      start3(3) = time
-      count3( 1) = wrLocalnVertLevels
-      count3( 2) = wrLocalnEdges
-      count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDv, start3, count3, v)
- 
-      start3(3) = time
-      count3( 1) = wrLocalnVertLevels
-      count3( 2) = wrLocalnCells
-      count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDh, start3, count3, h)
- 
-      start3(3) = time
-      count3( 1) = wrLocalnVertLevels
-      count3( 2) = wrLocalnEdges
-      count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDvh, start3, count3, vh)
- 
-      start3(3) = time
-      count3( 1) = wrLocalnVertLevels
-      count3( 2) = wrLocalnVertices
-      count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDcirculation, start3, count3, circulation)
- 
-      start3(3) = time
-      count3( 1) = wrLocalnVertLevels
-      count3( 2) = wrLocalnVertices
-      count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDvorticity, start3, count3, vorticity)
- 
-      start3(3) = time
-      count3( 1) = wrLocalnVertLevels
-      count3( 2) = wrLocalnCells
-      count3( 3) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDke, start3, count3, ke)
- 
-      start4(4) = time
-      count4( 1) = wrLocalnTracers
-      count4( 2) = wrLocalnVertLevels
-      count4( 3) = wrLocalnCells
-      count4( 4) = 1
-      nferr = nf_put_vara_double(wr_ncid, wrVarIDtracers, start4, count4, tracers)
- 
  
    end subroutine write_netcdf_fields
  
