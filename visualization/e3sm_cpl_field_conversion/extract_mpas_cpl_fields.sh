@@ -4,33 +4,24 @@ usage()
 {
 cat<<EOF
 usage: $0 options
-
 This script:
-
 1) extracts MPAS[LI,O,CICE]-generated/directed input/output coupler fields from coupler history files.
 2) converts the dimension naming to MPAS standards.
 3) appends all these fields, along with relevant mesh descriptor fields, to component-segregated output file(s) MPAS[LI,O,CICE]_CPL_fields.nc.
-
 mpas*_CPL_fields.nc can then be read by, e.g., ParaView.
-
 The user chooses which MPAS component fields (i.e. from MPASLI, MPASO, or MPASCICE) to extract by specifing one or more of the g,o,i flags (see below).  For example, if only -g is specified, the routine will *only* try to extract MPASLI-generated/directed input/output coupler fields.
-
 -h show this message and exit
 -c coupler file containing MPAS-based coupler fields (mandatory)
 -g file containing MPAS-LI mesh descriptor information (optional)
 -o file containing MPAS-O mesh descriptor information (optional)
 -i file containing MPAS-CICE mesh descriptor information (optional)
-
-Jeremy Fyke (fyke@lanl.gov).
+Original author: Jeremy Fyke (fyke@lanl.gov)
+Maintained: Matt Hoffman (mhoffman@lanl.gov)
 EOF
 }
 
-CPLFile=
-MpasliGridFile=
 MpasliOutFile=MPASLI_CPL_fields.nc
-MpasOGridFile=
 MpasOOutFile=MPASO_CPL_fields.nc
-MpasCICEGridFile=
 MpasCICEOutFile=MPASCICE_CPL_fields.nc
 
 while getopts "hc:g:o:i" OPTION
@@ -113,22 +104,25 @@ if [ "$MpasOGridFile" ]; then
       echo ''
       echo Merging MPAS-O-based coupler fields with MPAS-O grid information from $MpasOGridFile.
 
+      # Note: the . preceding dimensions in ncrename below suppresses an error if that dimension is not present
+      # (which can be the case for certain compsets)
+
       #Extract o2x coupler history fields to temporary file.
       ncks -O -v o2x_+ $CPLFile o2xfile1.nc
-      ncrename -O -d o2x_nx,nCells o2xfile1.nc o2xfile1.nc
+      ncrename -O -d .x2oacc_ox_ny,nCells o2xfile1.nc o2xfile1.nc
       ncrename -O -d time,Time o2xfile1.nc o2xfile1.nc
       ncwa -O -a o2x_ny o2xfile1.nc o2xfile1.nc
 
       #Extract o2xa coupler history fields to temporary file.
       ncks -O -v o2xa_+ $CPLFile o2xfile2.nc
-      ncrename -O -d o2xa_nx,nCells o2xfile2.nc o2xfile2.nc
+      ncrename -O -d .o2xa_nx,nCells o2xfile2.nc o2xfile2.nc
       ncrename -O -d time,Time o2xfile2.nc o2xfile2.nc
       ncwa -O -a o2xa_ny o2xfile2.nc o2xfile2.nc
 
       #Extract x2oacc coupler history fields to temporary file.
       ncks -O -v x2oacc+ $CPLFile x2ofile.nc
       ncks -O -x -v x2oacc_ox_cnt x2ofile.nc x2ofile.nc #Prune counter variable
-      ncrename -O -d x2oacc_nx,nCells x2ofile.nc x2ofile.nc
+      ncrename -O -d .x2oacc_ox_nx,nCells x2ofile.nc x2ofile.nc
       ncrename -O -d time,Time x2ofile.nc x2ofile.nc
       ncwa -O -a x2oacc_ny x2ofile.nc x2ofile.nc
 
