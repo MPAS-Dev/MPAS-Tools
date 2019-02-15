@@ -7,7 +7,7 @@ package:
 
 source:
   git_url: https://github.com/MPAS-Dev/MPAS-Tools.git
-  git_rev: 3501e5b8a060314cf2fd1e5493b3b98843e7fdc5
+  git_rev: ef6345a552a543a239f900be23b121a4a84a056c
 
 build:
   number: 0
