@@ -7,14 +7,13 @@ package:
 
 source:
   git_url: https://github.com/MPAS-Dev/MPAS-Tools.git
-  git_rev: eb772e863dd65dbff1a5cad948211dabd240285d
+  git_rev: 3501e5b8a060314cf2fd1e5493b3b98843e7fdc5
 
 build:
   number: 0
 
 requirements:
   build:
-    - {{ compiler('c') }}
     - {{ compiler('cxx') }}
   host:
     - netcdf4 =1.4.2
@@ -27,7 +26,9 @@ requirements:
 
 test:
   commands:
-    - cd mesh_tools/mesh_conversion_tools/test
+    - wget https://github.com/MPAS-Dev/MPAS-Tools/raw/master/mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
+    - wget https://github.com/MPAS-Dev/MPAS-Tools/raw/master/mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
+    - wget https://github.com/MPAS-Dev/MPAS-Tools/raw/master/mesh_tools/mesh_conversion_tools/test/land_mask_final.nc
     - MpasMeshConverter.x mesh.QU.1920km.151026.nc mesh.nc
     - MpasCellCuller.x mesh.nc culled_mesh.nc -m land_mask_final.nc
     - MpasMaskCreator.x mesh.nc arctic_mask.nc -f Arctic_Ocean.geojson
@@ -61,4 +62,6 @@ about:
   dev_url: 'https://github.com/MPAS-Dev/MPAS-Tools/tree/master/mesh_tools/mesh_conversion_tools'
 
 extra:
-  recipe-maintainers: 'xylar'
+  recipe-maintainers:
+    - xylar
+    - jhkennedy
