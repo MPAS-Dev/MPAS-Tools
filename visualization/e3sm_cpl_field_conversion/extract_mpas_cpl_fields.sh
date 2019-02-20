@@ -109,7 +109,7 @@ if [ "$MpasOGridFile" ]; then
 
       #Extract o2x coupler history fields to temporary file.
       ncks -O -v o2x_+ $CPLFile o2xfile1.nc
-      ncrename -O -d .x2oacc_ox_ny,nCells o2xfile1.nc o2xfile1.nc
+      ncrename -O -d .o2x_nx,nCells o2xfile1.nc o2xfile1.nc
       ncrename -O -d time,Time o2xfile1.nc o2xfile1.nc
       ncwa -O -a o2x_ny o2xfile1.nc o2xfile1.nc
 
