@@ -5,7 +5,7 @@ set -e
 
 cd mesh_tools/mesh_conversion_tools
 
-export CC=${GXX}
+export CXX=${GXX}
 export CFLAGS="-O3 -std=c++0x -fopenmp -lstdc++"
 
 make
