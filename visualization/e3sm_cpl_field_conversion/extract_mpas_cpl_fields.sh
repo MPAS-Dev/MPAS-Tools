@@ -122,7 +122,7 @@ if [ "$MpasOGridFile" ]; then
       #Extract x2oacc coupler history fields to temporary file.
       ncks -O -v x2oacc+ $CPLFile x2ofile.nc
       ncks -O -x -v x2oacc_ox_cnt x2ofile.nc x2ofile.nc #Prune counter variable
-      ncrename -O -d .x2oacc_ox_nx,nCells x2ofile.nc x2ofile.nc
+      ncrename -O -d .x2oacc_nx,nCells x2ofile.nc x2ofile.nc
       ncrename -O -d time,Time x2ofile.nc x2ofile.nc
       ncwa -O -a x2oacc_ny x2ofile.nc x2ofile.nc
 
