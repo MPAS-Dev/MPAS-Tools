@@ -9,9 +9,9 @@ import argparse
 import netCDF4
 
 
-def make_periodic_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
-                                  nonperiodic_y, outFileName=None,
-                                  compareWithFileName=None):
+def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
+                         nonperiodic_y, outFileName=None,
+                         compareWithFileName=None):
     '''
     Builds an MPAS periodic, planar hexagonal mesh with the requested
     dimensions, optionally saving it to a file, and returs it as an
@@ -442,9 +442,9 @@ def main():
                         help='Cells in y direction')
     parser.add_argument('--dc', dest='dc', type=float, required=True,
                         help='Distance between cell centers in meters')
-    parser.add_argument('-npx', '--nonperiodic_x', action="store_true",
+    parser.add_argument('--npx', '--nonperiodic_x', action="store_true",
                         help='non-periodic in x direction')
-    parser.add_argument('-npy', '--nonperiodic_y', action="store_true",
+    parser.add_argument('--npy', '--nonperiodic_y', action="store_true",
                         help='non-periodic in y direction')
     parser.add_argument('-o', '--outFileName', dest='outFileName', type=str,
                         required=False, default='grid.nc',
@@ -452,12 +452,13 @@ def main():
 
     args = parser.parse_args()
 
-    make_periodic_planar_hex_mesh(args.nx, args.ny, args.dc, args.nonperiodic_x,
-                                  args.nonperiodic_y, args.outFileName)
+    make_planar_hex_mesh(args.nx, args.ny, args.dc,
+                         args.nonperiodic_x, args.nonperiodic_y,
+                         args.outFileName)
 
     # used this instead to  make sure results are exactly identical to
     # periodic_hex
-    # make_periodic_planar_hex_mesh(
+    # make_planar_hex_mesh(
     #        args.nx, args.ny, args.dc, args.outFileName,
     #        compareWithFileName='../periodic_hex/grid.nc')
 

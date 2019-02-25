@@ -6,8 +6,8 @@ package:
   version: '{{ version }}'
 
 source:
-  git_url: https://github.com/MPAS-Dev/MPAS-Tools.git
-  git_rev: 65ec4939c7419ff868ded1d1d0785ec6c7ec3e80
+  git_url: https://github.com/xylar/MPAS-Tools.git
+  git_rev: 847dc921f0bcb57f3bd49a4a4c4646df2f3afd65
 
 build:
   number: 0
