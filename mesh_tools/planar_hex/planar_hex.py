@@ -38,6 +38,10 @@ def parse_args(mesh):
     ny = args.ny
     dc = args.dc
 
+    if ny % 2 != 0:
+        raise ValueError('ny must be divisible by 2 for the grid\'s '
+                         'periodicity to work properly.')
+
     # non-periodic meshes aren't yet supported
 #    if args.periodicX:
 #        mesh.attrs['periodic_x'] = 'YES'
