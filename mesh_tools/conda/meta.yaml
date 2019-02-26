@@ -6,8 +6,7 @@ package:
   version: '{{ version }}'
 
 source:
-  git_url: https://github.com/xylar/MPAS-Tools.git
-  git_rev: 4ea5d781e415c15a220ff43f0d064521ba18506a
+  path: ../..
 
 build:
   number: 0
@@ -19,14 +18,16 @@ requirements:
     - {{ compiler('cxx') }}
   host:
     - python
-    - netcdf4
     - hdf5
     - libnetcdf
+    - setuptools
   run:
+    - python
     - netcdf4
     - hdf5
     - libnetcdf
     - numpy
+    - scipy
     - xarray
 
 test:
@@ -38,6 +39,11 @@ test:
     - MpasMeshConverter.x mesh.QU.1920km.151026.nc mesh.nc
     - MpasCellCuller.x mesh.nc culled_mesh.nc -m land_mask_final.nc
     - MpasMaskCreator.x mesh.nc arctic_mask.nc -f Arctic_Ocean.geojson
+    - mark_horns_for_culling.py --help
+    - create_landice_grid_from_generic_MPAS_grid.py --help
+    - define_cullMask.py --help
+    - interpolate_to_mpasli_grid.py --help
+    - mark_domain_boundaries_dirichlet.py --help
 
 about:
   home: https://github.com/MPAS-Dev/MPAS-Tools/

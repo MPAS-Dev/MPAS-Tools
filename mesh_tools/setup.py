@@ -27,7 +27,13 @@ setup(name='mpas_mesh_tools',
           'Topic :: Scientific/Engineering',
       ],
       packages=find_packages(),
+#      package_dir={'mpas_mesh_tools': 'mesh_tools/mpas_mesh_tools'},
       package_data={},
+      scripts=['mesh_conversion_tools/mark_horns_for_culling.py',
+               'landice/create_landice_grid_from_generic_MPAS_grid.py',
+               'landice/define_cullMask.py',
+               'landice/interpolate_to_mpasli_grid.py',
+               'landice/mark_domain_boundaries_dirichlet.py'],
       install_requires=['numpy', 'xarray', 'netCDF4'],
       entry_points={'console_scripts':
                     ['planar_hex = mpas_mesh_tools.planar_hex:main']})
