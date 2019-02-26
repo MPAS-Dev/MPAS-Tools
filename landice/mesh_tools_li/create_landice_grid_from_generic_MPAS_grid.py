@@ -3,6 +3,9 @@
 # I've only tested it with a periodic_hex grid, but it should work with any MPAS grid.
 # Currently variable attributes are not copied (and periodic_hex does not assign any, so this is ok).  If variable attributes are added to periodic_hex, this script should be modified to copy them (looping over dir(var), skipping over variable function names "assignValue", "getValue", "typecode").
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 import sys, numpy
 from netCDF4 import Dataset
 from optparse import OptionParser
@@ -11,7 +14,7 @@ from datetime import datetime
 
 sphere_radius = 6.37122e6 # earth radius, if needed
 
-print "** Gathering information.  (Invoke with --help for more details. All arguments are optional)"
+print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser()
 parser.add_option("-i", "--in", dest="fileinName", help="input filename.  Defaults to 'grid.nc'", metavar="FILENAME")
 parser.add_option("-o", "--out", dest="fileoutName", help="output filename.  Defaults to 'landice_grid.nc'", metavar="FILENAME")
@@ -26,14 +29,14 @@ parser.add_option("--obs", dest="obs", action="store_true", help="Use this flag 
 options, args = parser.parse_args()
 
 if not options.fileinName:
-    print "No input filename specified, so using 'grid.nc'."
+    print("No input filename specified, so using 'grid.nc'.")
     options.fileinName = 'grid.nc'
 else:
-    print "Input file is:", options.fileinName
+    print("Input file is: {}".format(options.fileinName))
 if not options.fileoutName:
-    print "No output filename specified, so using 'landice_grid.nc'."
+    print("No output filename specified, so using 'landice_grid.nc'.")
     options.fileoutName = 'landice_grid.nc'
-print '' # make a space in stdout before further output
+print('') # make a space in stdout before further output
 
 # Get the input file
 filein = Dataset(options.fileinName,'r')
@@ -47,12 +50,12 @@ fileout = Dataset(options.fileoutName,"w",format=filein.file_format)
 # ============================================
 # Do this first as doing it last is slow for big files since adding
 # attributes forces the contents to get reorganized.
-print "---- Copying global attributes from input file to output file ----"
+print("---- Copying global attributes from input file to output file ----")
 for name in filein.ncattrs():
   # sphere radius needs to be set to that of the earth if on a sphere
   if name == 'sphere_radius' and getattr(filein, 'on_a_sphere') == "YES             ":
     setattr(fileout, 'sphere_radius', sphere_radius)
-    print 'Set global attribute   sphere_radius = ', str(sphere_radius)
+    print('Set global attribute   sphere_radius = {}'.format(sphere_radius))
   elif name =='history':
     # Update history attribute of netCDF file
     newhist = '\n'.join([getattr(filein, 'history'), ' '.join(sys.argv[:]) ] )
@@ -60,14 +63,14 @@ for name in filein.ncattrs():
   else:
     # Otherwise simply copy the attr
     setattr(fileout, name, getattr(filein, name) )
-    print 'Copied global attribute  ', name, '=', getattr(filein, name)
+    print('Copied global attribute  {} = {}'.format(name, getattr(filein, name)))
 
 # Update history attribute of netCDF file if we didn't above
 if not hasattr(fileout, 'history'):
    setattr(fileout, 'history', sys.argv[:] )
 
 fileout.sync()
-print '' # make a space in stdout before further output
+print('') # make a space in stdout before further output
 
 
 # ============================================
@@ -78,7 +81,7 @@ print '' # make a space in stdout before further output
 #       It may be better to list them explicitly as I do for the grid variables,
 #       but this way ensures they all get included and is easier.
 # Note: The UNLIMITED time dimension will return a dimension value of None with Scientific.IO.  This is what is supposed to happen.  See below for how to deal with assigning values to a variable with a unlimited dimension.  Special handling is needed with the netCDF module.
-print "---- Copying dimensions from input file to output file ----"
+print("---- Copying dimensions from input file to output file ----")
 for dim in filein.dimensions.keys():
     if dim == 'nTracers':
         pass  # Do nothing - we don't want this dimension
@@ -91,12 +94,12 @@ for dim in filein.dimensions.keys():
         if options.levels is None:
           # If nVertLevels is in the input file, and a value for it was not
           # specified on the command line, then use the value from the file (do nothing here)
-          print "Using nVertLevels from the intput file:", len(filein.dimensions[dim])
+          print("Using nVertLevels from the intput file: {}".format(len(filein.dimensions[dim])))
           dimvalue = len(filein.dimensions[dim])
         else:
           # if nVertLevels is in the input file, but a value WAS specified
           # on the command line, then use the command line value
-          print "Using nVertLevels specified on the command line:", int(options.levels)
+          print("Using nVertLevels specified on the command line: {}".format(int(options.levels)))
           dimvalue = int(options.levels)
       else:
          dimvalue = len(filein.dimensions[dim])
@@ -105,22 +108,22 @@ for dim in filein.dimensions.keys():
 # it has not been added to the output file yet.  Treat those here.
 if 'nVertLevels' not in fileout.dimensions:
    if options.levels is None:
-       print "nVertLevels not in input file and not specified.  Using default value of 10."
+       print("nVertLevels not in input file and not specified.  Using default value of 10.")
        fileout.createDimension('nVertLevels', 10)
    else:
-       print "Using nVertLevels specified on the command line:", int(options.levels)
+       print("Using nVertLevels specified on the command line: {}".format(int(options.levels)))
        fileout.createDimension('nVertLevels', int(options.levels))
 # Also create the nVertInterfaces dimension, even if none of the variables require it.
 fileout.createDimension('nVertInterfaces', len(fileout.dimensions['nVertLevels']) + 1)  # nVertInterfaces = nVertLevels + 1
-print 'Added new dimension nVertInterfaces to output file with value of ' + str(len(fileout.dimensions['nVertInterfaces'])) + '.'
+print('Added new dimension nVertInterfaces to output file with value of {}.'.format(len(fileout.dimensions['nVertInterfaces'])))
 
 fileout.sync()
-print 'Finished creating dimensions in output file.\n' # include an extra blank line here
+print('Finished creating dimensions in output file.\n') # include an extra blank line here
 
 # ============================================
 # Copy over all of the required grid variables to the new file
 # ============================================
-print "Beginning to copy mesh variables to output file."
+print("Beginning to copy mesh variables to output file.")
 vars2copy = ['latCell', 'lonCell', 'xCell', 'yCell', 'zCell', 'indexToCellID', 'latEdge', 'lonEdge', 'xEdge', 'yEdge', 'zEdge', 'indexToEdgeID', 'latVertex', 'lonVertex', 'xVertex', 'yVertex', 'zVertex', 'indexToVertexID', 'cellsOnEdge', 'nEdgesOnCell', 'nEdgesOnEdge', 'edgesOnCell', 'edgesOnEdge', 'weightsOnEdge', 'dvEdge', 'dcEdge', 'angleEdge', 'areaCell', 'areaTriangle', 'cellsOnCell', 'verticesOnCell', 'verticesOnEdge', 'edgesOnVertex', 'cellsOnVertex', 'kiteAreasOnVertex']
 # Add these optional fields if they exist in the input file
 for optionalVar in ['meshDensity', 'gridSpacing', 'cellQuality', 'triangleQuality', 'triangleAngleQuality', 'obtuseTriangle']:
@@ -128,8 +131,8 @@ for optionalVar in ['meshDensity', 'gridSpacing', 'cellQuality', 'triangleQualit
       vars2copy.append(optionalVar)
 
 for varname in vars2copy:
-   print "-",
-print "|"
+   print("-"),
+print("|")
 for varname in vars2copy:
    thevar = filein.variables[varname]
    datatype = thevar.dtype
@@ -146,8 +149,8 @@ for varname in vars2copy:
    del newVar, thevar
    sys.stdout.write("* "); sys.stdout.flush()
 fileout.sync()
-print "|"
-print "Finished copying mesh variables to output file.\n"
+print("|")
+print("Finished copying mesh variables to output file.\n")
 
 # ============================================
 # Create the land ice variables (all the shallow water vars in the input file can be ignored)
@@ -170,7 +173,7 @@ elif options.vertMethod == 'glimmer':
       layerInterfaces[k] = 4.0/3.0 * (1.0 - ((k+1.0-1.0)/(nInterfaces-1.0) + 1.0)**-2)
    for k in range(nVertLevels):
       layerThicknessFractionsData[k] = layerInterfaces[k+1] - layerInterfaces[k]
-   print "Setting layerThicknessFractions to:", layerThicknessFractionsData
+   print("Setting layerThicknessFractions to: {}".format(layerThicknessFractionsData))
 else:
    sys.exit('Unknown method for vertical spacing method (--vert): '+options.vertMethod)
 
@@ -192,17 +195,17 @@ newvar = fileout.createVariable('sfcMassBal', datatype, ('Time', 'nCells'))
 newvar[:] = numpy.zeros(newvar.shape)
 newvar = fileout.createVariable('floatingBasalMassBal', datatype, ('Time', 'nCells'))
 newvar[:] = numpy.zeros(newvar.shape)
-print 'Added default variables: thickness, temperature, bedTopography, sfcMassBal, floatingBasalMassBal'
+print('Added default variables: thickness, temperature, bedTopography, sfcMassBal, floatingBasalMassBal')
 
 if options.beta:
    newvar = fileout.createVariable('beta', datatype, ('Time', 'nCells'))
    newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
-   print 'Added optional variable: beta'
+   print('Added optional variable: beta')
 
 if options.effecpress:
    newvar = fileout.createVariable('effectivePressure', datatype, ('Time', 'nCells'))
    newvar[:] = 1.0e8  # Give a default effective pressure that won't have much sliding.
-   print 'Added optional variable: effectivePressure'
+   print('Added optional variable: effectivePressure')
 
 if options.dirichlet:
    newvar = fileout.createVariable('dirichletVelocityMask', datatypeInt, ('Time', 'nCells', 'nVertInterfaces'))
@@ -211,7 +214,7 @@ if options.dirichlet:
    newvar[:] = 0.0
    newvar = fileout.createVariable('uReconstructY', datatype, ('Time', 'nCells', 'nVertInterfaces',))
    newvar[:] = 0.0
-   print 'Added optional dirichlet variables: dirichletVelocityMask, uReconstructX, uReconstructY'
+   print('Added optional dirichlet variables: dirichletVelocityMask, uReconstructX, uReconstructY')
 
 if options.thermal:
    newvar = fileout.createVariable('temperature', datatype, ('Time', 'nCells', 'nVertLevels'))
@@ -220,7 +223,7 @@ if options.thermal:
    newvar[:] = 273.15 # Give default value for temperate ice
    newvar = fileout.createVariable('basalHeatFlux', datatype, ('Time', 'nCells'))
    newvar[:] = 0.0 # Default to none (W/m2)
-   print 'Added optional thermal variables: temperature, surfaceAirTemperature, basalHeatFlux'
+   print('Added optional thermal variables: temperature, surfaceAirTemperature, basalHeatFlux')
 
 if options.hydro:
    newvar = fileout.createVariable('waterThickness', datatype, ('Time', 'nCells'))
@@ -237,7 +240,7 @@ if options.hydro:
    newvar[:] = 0.0
    newvar = fileout.createVariable('waterFluxMask', 'i', ('Time', 'nEdges'))
    newvar[:] = 0.0
-   print 'Added optional hydro variables: waterThickness, tillWaterThickness, meltInput, frictionAngle, waterPressure, waterFluxMask'
+   print('Added optional hydro variables: waterThickness, tillWaterThickness, meltInput, frictionAngle, waterPressure, waterFluxMask')
 
 if options.obs:
    newvar = fileout.createVariable('observedSurfaceVelocityX', datatype, ('Time', 'nCells'))
@@ -252,7 +255,7 @@ if options.obs:
    newvar[:] = 0.0
    newvar = fileout.createVariable('thicknessUncertainty', datatype, ('Time', 'nCells'))
    newvar[:] = 0.0
-   print 'Added optional velocity optimization variables: observedSurfaceVelocityX, observedSurfaceVelocityY, observedSurfaceVelocityUncertainty, observedThicknessTendency, observedThicknessTendencyUncertainty, thicknessUncertainty'
+   print('Added optional velocity optimization variables: observedSurfaceVelocityX, observedSurfaceVelocityY, observedSurfaceVelocityUncertainty, observedThicknessTendency, observedThicknessTendencyUncertainty, thicknessUncertainty')
 
 # Update history attribute of netCDF file
 thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
@@ -262,10 +265,10 @@ else:
    newhist = thiscommand
 setattr(fileout, 'history', newhist )
 
-print "Completed creating land ice variables in new file. Now syncing to file."
+print("Completed creating land ice variables in new file. Now syncing to file.")
 fileout.sync()
 
 filein.close()
 fileout.close()
 
-print '\n** Successfully created ' + options.fileoutName + '.**'
+print('\n** Successfully created {}.**'.format(options.fileoutName))

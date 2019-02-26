@@ -12,6 +12,9 @@ For CISM input files, three interpolation methods are supported:
 For MPAS input files only barycentric interpolation is supported.
 '''
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 import sys
 import numpy as np
 import netCDF4
@@ -23,7 +26,7 @@ import time
 from datetime import datetime
 
 
-print "== Gathering information.  (Invoke with --help for more details. All arguments are optional)\n"
+print("== Gathering information.  (Invoke with --help for more details. All arguments are optional)\n")
 parser = OptionParser()
 parser.description = __doc__
 parser.add_option("-s", "--source", dest="inputFile", help="name of source (input) file.  Can be either CISM format or MPASLI format.", default="cism.nc", metavar="FILENAME")
@@ -36,14 +39,14 @@ for option in parser.option_list:
         option.help += (" " if option.help else "") + "[default: %default]"
 options, args = parser.parse_args()
 
-print "  Source file:  " + options.inputFile
-print "  Destination MPASLI file to be modified:  " + options.mpasFile
+print("  Source file:  {}".format(options.inputFile))
+print("  Destination MPASLI file to be modified:  {}".format(options.mpasFile))
 
-print "  Interpolation method to be used:  " + options.interpType
-print "    (b=bilinear, d=barycentric, e=esmf)"
+print("  Interpolation method to be used:  {}".format(options.interpType))
+print("    (b=bilinear, d=barycentric, e=esmf)")
 
 if options.weightFile and options.interpType == 'e':
-    print "  Interpolation will be performed using ESMF-weights method, where possible, using weights file:  " + options.weightFile
+    print("  Interpolation will be performed using ESMF-weights method, where possible, using weights file:  {}".format(options.weightFile))
     #----------------------------
     # Get weights from file
     wfile = netCDF4.Dataset(options.weightFile, 'r')
@@ -53,7 +56,7 @@ if options.weightFile and options.interpType == 'e':
     wfile.close()
     #----------------------------
 
-print '' # make a space in stdout before further output
+print('') # make a space in stdout before further output
 
 
 #----------------------------
@@ -109,11 +112,11 @@ def BilinearInterp(Value, gridType):
           ygrid = len(y) - 2
        elif ygrid < 0:
           ygrid = 0
-       #print xgrid, ygrid, i
+       #print(xgrid, ygrid, i)
        ValueCell[i] = Value[ygrid,xgrid] * (x[xgrid+1] - xCell[i]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
                  Value[ygrid+1,xgrid] * (x[xgrid+1] - xCell[i]) * (yCell[i] - y[ygrid]) / (dx * dy) + \
                  Value[ygrid,xgrid+1] * (xCell[i] - x[xgrid]) * (y[ygrid+1] - yCell[i]) / (dx * dy) + \
-                 Value[ygrid+1,xgrid+1] * (xCell[i] - x[xgrid]) * (yCell[i] - y[ygrid]) / (dx * dy) 
+                 Value[ygrid+1,xgrid+1] * (xCell[i] - x[xgrid]) * (yCell[i] - y[ygrid]) / (dx * dy)
     return ValueCell
 
 #----------------------------
@@ -124,31 +127,31 @@ def delaunay_interp_weights(xy, uv, d=2):
     uv = output (MPSALI) x,y coords
     '''
 
-    #print "scipy version=", scipy.version.full_version
+    #print("scipy version=", scipy.version.full_version)
     if xy.shape[0] > 2**24-1:
-       print "WARNING: The source file contains more than 2^24-1 (16,777,215) points due to a limitation in older versions of Qhull (see: https://mail.scipy.org/pipermail/scipy-user/2015-June/036598.html).  Delaunay creation may fail if Qhull being linked by scipy.spatial is older than v2015.0.1 2015/8/31."
+       print("WARNING: The source file contains more than 2^24-1 (16,777,215) points due to a limitation in older versions of Qhull (see: https://mail.scipy.org/pipermail/scipy-user/2015-June/036598.html).  Delaunay creation may fail if Qhull being linked by scipy.spatial is older than v2015.0.1 2015/8/31.")
 
     tri = scipy.spatial.Delaunay(xy)
-    print "    Delaunay triangulation complete."
+    print("    Delaunay triangulation complete.")
     simplex = tri.find_simplex(uv)
-    print "    find_simplex complete."
+    print("    find_simplex complete.")
     vertices = np.take(tri.simplices, simplex, axis=0)
-    print "    identified vertices."
+    print("    identified vertices.")
     temp = np.take(tri.transform, simplex, axis=0)
-    print "    np.take complete."
+    print("    np.take complete.")
     delta = uv - temp[:, d]
     bary = np.einsum('njk,nk->nj', temp[:, :d, :], delta)
-    print "    calculating bary complete."
+    print("    calculating bary complete.")
     wts = np.hstack((bary, 1 - bary.sum(axis=1, keepdims=True)))
 
     # Now figure out if there is any extrapolation.
     # Find indices to points of output file that are outside of convex hull of input points
     outsideInd = np.nonzero(tri.find_simplex(uv)<0)
     outsideCoords = uv[outsideInd]
-    #print outsideInd
+    #print(outsideInd)
     nExtrap = len(outsideInd[0])
     if nExtrap > 0:
-       print "    Found {} points requiring extrapolation.  Using nearest neighbor extrapolation for those.".format(nExtrap)
+       print("    Found {} points requiring extrapolation.  Using nearest neighbor extrapolation for those.".format(nExtrap))
 
     # Now find nearest neighbor for each outside point
     # Use KDTree of input points
@@ -208,29 +211,29 @@ def interpolate_field(MPASfieldName):
        else:
            InputField = inputFile.variables[InputFieldName][:]
 
-    print '  Input field  %s min/max:'%InputFieldName, InputField.min(), InputField.max()
+    print('  Input field  {} min/max: {} {}'.format(InputFieldName, InputField.min(), InputField.max()))
 
     # Call the appropriate routine for actually doing the interpolation
     if options.interpType == 'b':
-        print "  ...Interpolating to %s using built-in bilinear method..." % MPASfieldName
+        print("  ...Interpolating to {} using built-in bilinear method...".format(MPASfieldName))
         MPASfield = BilinearInterp(InputField, fieldInfo[MPASfieldName]['gridType'])
     elif options.interpType == 'd':
-        print "  ...Interpolating to %s using barycentric method..." % MPASfieldName
+        print("  ...Interpolating to {} using barycentric method...".format(MPASfieldName))
         MPASfield = delaunay_interpolate(InputField, fieldInfo[MPASfieldName]['gridType'])
     elif options.interpType == 'e':
-        print "  ...Interpolating to %s using ESMF-weights method..." % MPASfieldName
+        print("  ...Interpolating to {} using ESMF-weights method...".format(MPASfieldName))
         MPASfield = ESMF_interp(InputField)
     else:
         sys.exit('ERROR: Unknown interpolation method specified')
 
-    print '  interpolated MPAS %s min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+    print('  interpolated MPAS {} min/max: {} {}'.format(MPASfieldName, MPASfield.min(), MPASfield.max()))
 
     if fieldInfo[MPASfieldName]['scalefactor'] != 1.0:
         MPASfield *= fieldInfo[MPASfieldName]['scalefactor']
-        print '  scaled MPAS %s min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+        print('  scaled MPAS {} min/max: {} {}'.format(MPASfieldName, MPASfield.min(), MPASfield.max()))
     if fieldInfo[MPASfieldName]['offset'] != 0.0:
         MPASfield += fieldInfo[MPASfieldName]['offset']
-        print '  offset MPAS %s min/max:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+        print('  offset MPAS {} min/max: {} {}'.format(MPASfieldName, MPASfield.min(), MPASfield.max()))
 
 
     return MPASfield
@@ -272,58 +275,58 @@ def interpolate_field_with_layers(MPASfieldName):
 
     for z in range(inputVerticalDimSize):
         if filetype=='cism':
-           print '  Input layer %s, layer %s min/max:'%(z,InputFieldName), InputField[z,:,:].min(), InputField[z,:,:].max()
+           print('  Input layer {}, layer {} min/max: {} {}'.format(z, InputFieldName, InputField[z,:,:].min(), InputField[z,:,:].max()))
         elif filetype=='mpas':
-           print '  Input layer %s, layer %s min/max:'%(z,InputFieldName), InputField[:,z].min(), InputField[z,:].max()
+           print('  Input layer {}, layer {} min/max: {} {}'.format(z, InputFieldName, InputField[:,z].min(), InputField[z,:].max()))
         # Call the appropriate routine for actually doing the interpolation
         if options.interpType == 'b':
-            print "  ...Layer %s, Interpolating this layer to MPAS grid using built-in bilinear method..." % (z)
+            print("  ...Layer {}, Interpolating this layer to MPAS grid using built-in bilinear method...".format(z))
             mpas_grid_input_layers[z,:] = BilinearInterp(InputField[z,:,:], fieldInfo[MPASfieldName]['gridType'])
         elif options.interpType == 'd':
-            print "  ...Layer %s, Interpolating this layer to MPAS grid using built-in barycentric method..." % (z)
+            print("  ...Layer {}, Interpolating this layer to MPAS grid using built-in barycentric method...".format(z))
             if filetype=='cism':
                mpas_grid_input_layers[z,:] = delaunay_interpolate(InputField[z,:,:], fieldInfo[MPASfieldName]['gridType'])
             elif filetype=='mpas':
                mpas_grid_input_layers[z,:] = delaunay_interpolate(InputField[:,z], fieldInfo[MPASfieldName]['gridType'])
         elif options.interpType == 'e':
-            print "  ...Layer %s, Interpolating this layer to MPAS grid using ESMF-weights method..." % (z)
+            print("  ...Layer{}, Interpolating this layer to MPAS grid using ESMF-weights method...".format(z))
             mpas_grid_input_layers[z,:] = ESMF_interp(InputField[z,:,:])
         else:
             sys.exit('ERROR: Unknown interpolation method specified')
-        print '  interpolated MPAS %s, layer %s min/max:'%(MPASfieldName, z), mpas_grid_input_layers[z,:].min(), mpas_grid_input_layers[z,:].max()
+        print('  interpolated MPAS {}, layer {} min/max {} {}: '.format(MPASfieldName, z, mpas_grid_input_layers[z,:].min(), mpas_grid_input_layers[z,:].max()))
 
     if fieldInfo[MPASfieldName]['scalefactor'] != 1.0:
         mpas_grid_input_layers *= fieldInfo[MPASfieldName]['scalefactor']
-        print '  scaled MPAS %s on CISM vertical layers, min/max:'%MPASfieldName, mpas_grid_input_layers.min(), mpas_grid_input_layers.max()
+        print('  scaled MPAS {} on CISM vertical layers, min/max: {} {}'.format(MPASfieldName, mpas_grid_input_layers.min(), mpas_grid_input_layers.max()))
     if fieldInfo[MPASfieldName]['offset'] != 0.0:
         mpas_grid_input_layers += fieldInfo[MPASfieldName]['offset']
-        print '  offset MPAS %s on CISM vertical layers, min/max:'%MPASfieldName, mpas_grid_input_layers.min(), mpas_grid_input_layers.max()
+        print('  offset MPAS {} on CISM vertical layers, min/max: {} {}'.format(MPASfieldName, mpas_grid_input_layers.min(), mpas_grid_input_layers.max()))
 
     # ------------
     # Now interpolate vertically
-    print "  Input layer field {} has layers: {}".format(inputFile.variables[InputFieldName].dimensions[1], input_layers)
-    print "  MPAS layer centers are: {}".format(mpasLayerCenters)
+    print("  Input layer field {} has layers: {}".format(inputFile.variables[InputFieldName].dimensions[1], input_layers))
+    print("  MPAS layer centers are: {}".format(mpasLayerCenters))
     if input_layers.min() > mpasLayerCenters.min():
         # This fix ensures that interpolation is done when input_layers.min is very slightly greater than mpasLayerCenters.min
         if input_layers.min() - 1.0e-6 < mpasLayerCenters.min():
-            print 'input_layers.min =', '{0:.16f}'.format(input_layers.min())
-            print 'mpasLayerCenters.min =', '{0:.16f}'.format(mpasLayerCenters.min())
+            print('input_layers.min = {0:.16f}'.format(input_layers.min()))
+            print('mpasLayerCenters.min = {0:.16f}'.format(mpasLayerCenters.min()))
             input_layers[0] = input_layers[0] - 1.0e-6
-            print 'New input_layers.min =', '{0:.16f}'.format(input_layers.min())
+            print('New input_layers.min = {0:.16f}'.format(input_layers.min()))
         else:
-            print "WARNING: input_layers.min() > mpasLayerCenters.min()   Values at the first level of input_layers will be used for all MPAS layers in this region!"
+            print("WARNING: input_layers.min() > mpasLayerCenters.min()   Values at the first level of input_layers will be used for all MPAS layers in this region!")
     if input_layers.max() < mpasLayerCenters.max():
         # This fix ensures that interpolation is done when input_layers.max is very slightly smaller than mpasLayerCenters.max
         if input_layers.max() + 1.0e-6 > mpasLayerCenters.min():
-            print 'input_layers.max =', '{0:.16f}'.format(input_layers.max())
-            print 'mpasLayerCenters.max =', '{0:.16f}'.format(mpasLayerCenters.max())
+            print('input_layers.max = {0:.16f}'.format(input_layers.max()))
+            print('mpasLayerCenters.max = {0:.16f}'.format(mpasLayerCenters.max()))
             input_layers[inputVerticalDimSize-1] = input_layers[inputVerticalDimSize-1] + 1.0e-6
-            print 'New input_layers.max =', '{0:.16f}'.format(input_layers.max())
-            print 'input_layers = {}'.format(input_layers)
+            print('New input_layers.max = {0:.16f}'.format(input_layers.max()))
+            print('input_layers = {}'.format(input_layers))
         else:
-            print "WARNING: input_layers.max() < mpasLayerCenters.max()   Values at the last level of input_layers will be used for all MPAS layers in this region!"
+            print("WARNING: input_layers.max() < mpasLayerCenters.max()   Values at the last level of input_layers will be used for all MPAS layers in this region!")
     MPASfield = vertical_interp_MPAS_grid(mpas_grid_input_layers, input_layers)
-    print '  MPAS %s on MPAS vertical layers, min/max of all layers:'%MPASfieldName, MPASfield.min(), MPASfield.max()
+    print('  MPAS {} on MPAS vertical layers, min/max of all layers:'.format(MPASfieldName, MPASfield.min(), MPASfield.max()))
 
     del mpas_grid_input_layers
 
@@ -345,8 +348,8 @@ def vertical_interp_MPAS_grid(mpas_grid_input_layers, input_layers):
 
 
 
-print "=================="
-print 'Gathering coordinate information from input and output files.'
+print("==================")
+print('Gathering coordinate information from input and output files.')
 
 
 # Open the output file, get needed dimensions & variables
@@ -355,7 +358,7 @@ try:
     try:
       nVertLevels = len(MPASfile.dimensions['nVertLevels'])
     except:
-      print 'Output file is missing the dimension nVertLevels.  Might not be a problem.'
+      print('Output file is missing the dimension nVertLevels.  Might not be a problem.')
 
     try:
       # 1d vertical fields
@@ -365,20 +368,20 @@ try:
       mpasLayerCenters[0] = 0.5 * layerThicknessFractions[0]
       for k in range(nVertLevels)[1:]:  # skip the first level
           mpasLayerCenters[k] = mpasLayerCenters[k-1] + 0.5 * layerThicknessFractions[k-1] + 0.5 * layerThicknessFractions[k]
-      print "  Using MPAS layer centers at sigma levels: {}".format(mpasLayerCenters)
+      print("  Using MPAS layer centers at sigma levels: {}".format(mpasLayerCenters))
     except:
-      print 'Output file is missing the variable layerThicknessFractions.  Might not be a problem.'
+      print('Output file is missing the variable layerThicknessFractions.  Might not be a problem.')
 
     # '2d' spatial fields on cell centers
     xCell = MPASfile.variables['xCell'][:]
-    #print 'xCell min/max:', xCell.min(), xCell.max()
+    #print('xCell min/max:', xCell.min(), xCell.max()
     yCell = MPASfile.variables['yCell'][:]
-    #print 'yCell min/max:', yCell.min(), yCell.max()
+    #print('yCell min/max:', yCell.min(), yCell.max()
     nCells = len(MPASfile.dimensions['nCells'])
 
 except:
     sys.exit('Error: The output grid file specified is either missing or lacking needed dimensions/variables.')
-print "==================\n"
+print("==================\n")
 
 
 
@@ -398,48 +401,48 @@ if filetype=='cism':
     try:
       level = len(inputFile.dimensions['level'])
     except:
-      print '  Input file is missing the dimension level.  Might not be a problem.'
+      print('  Input file is missing the dimension level.  Might not be a problem.')
 
     try:
       stagwbndlevel = len(inputFile.dimensions['stagwbndlevel'])
     except:
-      print '  Input file is missing the dimension stagwbndlevel.  Might not be a problem.'
+      print('  Input file is missing the dimension stagwbndlevel.  Might not be a problem.')
 
     # Get CISM location variables if they exist
     try:
       x1 = inputFile.variables['x1'][:]
       dx1 = x1[1] - x1[0]
-      #print 'x1 min/max/dx:', x1.min(), x1.max(), dx1
+      #print('x1 min/max/dx:', x1.min(), x1.max(), dx1
       y1 = inputFile.variables['y1'][:]
       dy1 = y1[1] - y1[0]
-      #print 'y1 min/max/dx:', y1.min(), y1.max(), dy1
+      #print('y1 min/max/dx:', y1.min(), y1.max(), dy1
 
       ##x1 = x1 - (x1.max()-x1.min())/2.0  # This was for some shifted CISM grid but should not be used in general.
       ##y1 = y1 - (y1.max()-y1.min())/2.0
     except:
-      print '  Input file is missing x1 and/or y1.  Might not be a problem.'
+      print('  Input file is missing x1 and/or y1.  Might not be a problem.')
 
     try:
       x0 = inputFile.variables['x0'][:]
-      #print 'x0 min/max:', x0.min(), x0.max()
+      #print('x0 min/max:', x0.min(), x0.max()
       y0 = inputFile.variables['y0'][:]
-      #print 'y0 min/max:', y0.min(), y0.max()
+      #print('y0 min/max:', y0.min(), y0.max()
 
       ##x0 = x0 - (x0.max()-x0.min())/2.0
       ##y0 = y0 - (y0.max()-y0.min())/2.0
 
     except:
-      print '  Input file is missing x0 and/or y0.  Might not be a problem.'
+      print('  Input file is missing x0 and/or y0.  Might not be a problem.')
 
     # Check the overlap of the grids
-    print '=================='
-    print 'CISM Input File extents:'
-    print '  x1 min, max:    ', x1.min(), x1.max()
-    print '  y1 min, max:    ', y1.min(), y1.max()
-    print 'MPAS File extents:'
-    print '  xCell min, max: ', xCell.min(), xCell.max()
-    print '  yCell min, max: ', yCell.min(), yCell.max()
-    print '=================='
+    print('==================')
+    print('CISM Input File extents:')
+    print('  x1 min, max:    {} {}'.format(x1.min(), x1.max()))
+    print('  y1 min, max:    {} {}'.format(y1.min(), y1.max()))
+    print('MPAS File extents:')
+    print('  xCell min, max: {} {}'.format(xCell.min(), xCell.max()))
+    print('  yCell min, max: {} {}'.format(yCell.min(), yCell.max()))
+    print('==================')
 
 
 elif filetype == 'mpas':
@@ -447,12 +450,12 @@ elif filetype == 'mpas':
     try:
       nVertLevels = len(inputFile.dimensions['nVertLevels'])
     except:
-      print '  Input file is missing the dimension nVertLevels.  Might not be a problem.'
+      print('  Input file is missing the dimension nVertLevels.  Might not be a problem.')
 
     #try:
     #  nVertInterfaces = len(inputFile.dimensions['nVertInterfaces'])
     #except:
-    #  print '  Input file is missing the dimension nVertInterfaces.  Might not be a problem.'
+    #  print('  Input file is missing the dimension nVertInterfaces.  Might not be a problem.'
 
     # Get MPAS location variables if they exist
     try:
@@ -463,14 +466,14 @@ elif filetype == 'mpas':
 
 
     # Check the overlap of the grids
-    print '=================='
-    print 'Input MPAS File extents:'
-    print '  xCell min, max:    ', inputxCell.min(), inputxCell.max()
-    print '  yCell min, max:    ', inputyCell.min(), inputyCell.max()
-    print 'Output MPAS File extents:'
-    print '  xCell min, max: ', xCell.min(), xCell.max()
-    print '  yCell min, max: ', yCell.min(), yCell.max()
-    print '=================='
+    print('==================')
+    print('Input MPAS File extents:')
+    print('  xCell min, max:    {} {}'.format(inputxCell.min(), inputxCell.max()))
+    print('  yCell min, max:    {} {}'.format(inputyCell.min(), inputyCell.max()))
+    print('Output MPAS File extents:')
+    print('  xCell min, max: {} {}'.format(xCell.min(), xCell.max()))
+    print('  yCell min, max: {} {}'.format(yCell.min(), yCell.max()))
+    print('==================')
 
 
 if filetype=='mpas' and not options.interpType == 'd':
@@ -487,12 +490,12 @@ if options.interpType == 'd':
       cismXY1[:,0] = Yi.flatten()
       cismXY1[:,1] = Xi.flatten()
 
-      print '\nBuilding interpolation weights: CISM x1/y1 -> MPAS'
+      print('\nBuilding interpolation weights: CISM x1/y1 -> MPAS')
       start = time.clock()
       vtx1, wts1, outsideIndx1, treex1 = delaunay_interp_weights(cismXY1, mpasXY)
       if len(outsideIndx1) > 0:
          outsideIndx1 = outsideIndx1[0]  # get the list itself
-      end = time.clock(); print 'done in ', end-start
+      end = time.clock(); print('done in {}'.format(end-start))
 
       if 'x0' in inputFile.variables and not options.thicknessOnly:
          # Need to setup separate weights for this grid
@@ -501,19 +504,19 @@ if options.interpType == 'd':
          cismXY0[:,0] = Yi.flatten()
          cismXY0[:,1] = Xi.flatten()
 
-         print 'Building interpolation weights: CISM x0/y0 -> MPAS'
+         print('Building interpolation weights: CISM x0/y0 -> MPAS')
          start = time.clock()
          vtx0, wts0, outsideIndx0, treex0 = delaunay_interp_weights(cismXY0, mpasXY)
          if len(outsideIndx0) > 0:
             outsideIndx0 = outsideIndx0[0]  # get the list itself
-         end = time.clock(); print 'done in ', end-start
+         end = time.clock(); print('done in {}'.format(end-start))
 
    elif filetype=='mpas':
       inputmpasXY= np.vstack((inputxCell[:], inputyCell[:])).transpose()
-      print 'Building interpolation weights: MPAS in -> MPAS out'
+      print('Building interpolation weights: MPAS in -> MPAS out')
       start = time.clock()
       vtCell, wtsCell, outsideIndcell, treecell = delaunay_interp_weights(inputmpasXY, mpasXY)
-      end = time.clock(); print 'done in ', end-start
+      end = time.clock(); print('done in {}'.format(end-start))
 
 #----------------------------
 # Map Input-Output field names - add new fields here as needed
@@ -561,18 +564,18 @@ elif filetype=='mpas':
 
 #----------------------------
 
- 
+
 #----------------------------
 # try each field.  If it exists in the input file, it will be copied.  If not, it will be skipped.
 for MPASfieldName in fieldInfo:
-    print '\n## %s ##'%MPASfieldName
+    print('\n## {} ##'.format(MPASfieldName))
 
     if not MPASfieldName in MPASfile.variables:
-       print "  Warning: Field '{}' is not in the destination file.  Skipping.".format(MPASfieldName)
+       print("  Warning: Field '{}' is not in the destination file.  Skipping.".format(MPASfieldName))
        continue  # skip the rest of this iteration of the for loop over variables
 
     if not fieldInfo[MPASfieldName]['InputName'] in inputFile.variables:
-       print "  Warning: Field '{}' is not in the source file.  Skipping.".format(fieldInfo[MPASfieldName]['InputName'])
+       print("  Warning: Field '{}' is not in the source file.  Skipping.".format(fieldInfo[MPASfieldName]['InputName']))
        continue  # skip the rest of this iteration of the for loop over variables
 
     start = time.clock()
@@ -580,12 +583,12 @@ for MPASfieldName in fieldInfo:
       MPASfield = interpolate_field_with_layers(MPASfieldName)
     else:
       MPASfield = interpolate_field(MPASfieldName)
-    end = time.clock(); print '  interpolation done in ', end-start
+    end = time.clock(); print('  interpolation done in {}'.format(end-start))
 
     # Don't allow negative thickness.
     if MPASfieldName == 'thickness' and MPASfield.min() < 0.0:
         MPASfield[MPASfield < 0.0] = 0.0
-        print '  removed negative thickness, new min/max:', MPASfield.min(), MPASfield.max()
+        print('  removed negative thickness, new min/max: {} {}'.format(MPASfield.min(), MPASfield.max()))
 
     # Now insert the MPAS field into the file.
     if 'Time' in MPASfile.variables[MPASfieldName].dimensions:
@@ -607,4 +610,4 @@ setattr(MPASfile, 'history', newhist )
 inputFile.close()
 MPASfile.close()
 
-print '\nInterpolation completed.'
+print('\nInterpolation completed.')
