@@ -376,7 +376,7 @@ def make_diff(mesh, refMeshFileName, diffFileName):
     write_netcdf(diff, diffFileName)
 
 
-if __name__ == '__main__':
+def main():
 
     mesh = xarray.Dataset()
     outFileName = parse_args(mesh)
@@ -396,3 +396,7 @@ if __name__ == '__main__':
 
     # used to make sure results are exactly identical to periodic_hex
     # make_diff(mesh, '../periodic_hex/grid.nc', 'diff.nc')
+
+
+if __name__ == '__main__':
+    main()
