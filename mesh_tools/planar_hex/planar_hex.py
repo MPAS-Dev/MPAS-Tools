@@ -9,52 +9,70 @@ import argparse
 import netCDF4
 
 
-def parse_args(mesh):
+def make_periodic_planar_hex_mesh(nx, ny, dc, outFileName=None,
+                                  compareWithFileName=None):
     '''
-    Parse the command-line arguments and put them into the mesh as dimensions
-    or attributes.
+    Builds an MPAS periodic, planar hexagonal mesh with the requested
+    dimensions, optionally saving it to a file, and returs it as an
+    ``xarray.Dataset``.
+
+    Parameters
+    ----------
+    nx : int
+        The number of cells in the x direction
+
+    ny : even int
+        The number of cells in the y direction (must be an even number for
+        periodicity to work out)
+
+    dc : float
+        The distance in meters between adjacent cell centers.
+
+    outFileName : str, optional
+        The name of a file to save the mesh to.  The mesh is not saved to a
+        file if no file name is supplied.
+
+    compareWithFileName : str, optional
+        The name of a grid file to compare with to see if they are identical,
+        used for testing purposes
+
+    Returns
+    -------
+    mesh : ``xarray.Dataset``
+        The mesh data set, available for further maniuplation such as culling
+        cells or removing periodicity.
     '''
 
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('--nx', dest='nx', type=int, required=True,
-                        help='Cells in x direction')
-    parser.add_argument('--ny', dest='ny', type=int, required=True,
-                        help='Cells in y direction')
-    parser.add_argument('--dc', dest='dc', type=float, required=True,
-                        help='Distance between cell centers in meters')
-    parser.add_argument('-o', '--outFileName', dest='outFileName', type=str,
-                        required=False, default='grid.nc',
-                        help='The name of the output file')
+    mesh = initial_setup(nx, ny, dc)
+    compute_indices_on_cell(mesh)
+    compute_indices_on_edge(mesh)
+    compute_indices_on_vertex(mesh)
+    compute_weights_on_edge(mesh)
+    compute_coordinates(mesh)
+    add_one_to_indices(mesh)
 
-#    parser.add_argument('--periodicX', dest='periodicX', action='store_true',
-#                        help='Make the mesh periodic in x')
-#    parser.add_argument('--periodicY', dest='periodicY', action='store_true',
-#                        help='Make the mesh periodic in y')
+    # drop some arrays that aren't stantard for MPAS but were used to compute
+    # the hex mesh
+    mesh = mesh.drop(['cellIdx', 'cellRow', 'cellCol'])
+    mesh.attrs.pop('dc')
 
-    args = parser.parse_args()
+    if outFileName is not None:
+        write_netcdf(mesh, outFileName)
 
-    nx = args.nx
-    ny = args.ny
-    dc = args.dc
+    if compareWithFileName is not None:
+        # used to make sure results are exactly identical to periodic_hex
+        make_diff(mesh, compareWithFileName, 'diff.nc')
 
+    return mesh
+
+
+def initial_setup(nx, ny, dc):
+    '''Setup the dimensions and add placeholders for some index variables'''
     if ny % 2 != 0:
         raise ValueError('ny must be divisible by 2 for the grid\'s '
                          'periodicity to work properly.')
 
-    # non-periodic meshes aren't yet supported
-#    if args.periodicX:
-#        mesh.attrs['periodic_x'] = 'YES'
-#    else:
-#        mesh.attrs['periodic_x'] = 'NO'
-#    if args.periodicY:
-#        mesh.attrs['periodic_y'] = 'YES'
-#    else:
-#        mesh.attrs['periodic_y'] = 'NO'
-#    if args.periodicX or args.periodicY:
-#        mesh.attrs['is_periodic'] = 'YES'
-#    else:
-#        mesh.attrs['is_periodic'] = 'NO'
+    mesh = xarray.Dataset()
 
     mesh.attrs['is_periodic'] = 'YES'
     mesh.attrs['x_period'] = nx*dc
@@ -109,7 +127,7 @@ def parse_args(mesh):
     mesh['edgesOnVertex'] = (('nVertices', 'vertexDegree'),
                              numpy.zeros((nVertices, vertexDegree), 'i4'))
 
-    return args.outFileName
+    return mesh
 
 
 def compute_indices_on_cell(mesh):
@@ -378,24 +396,32 @@ def make_diff(mesh, refMeshFileName, diffFileName):
 
 def main():
 
-    mesh = xarray.Dataset()
-    outFileName = parse_args(mesh)
-    compute_indices_on_cell(mesh)
-    compute_indices_on_edge(mesh)
-    compute_indices_on_vertex(mesh)
-    compute_weights_on_edge(mesh)
-    compute_coordinates(mesh)
-    add_one_to_indices(mesh)
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('--nx', dest='nx', type=int, required=True,
+                        help='Cells in x direction')
+    parser.add_argument('--ny', dest='ny', type=int, required=True,
+                        help='Cells in y direction')
+    parser.add_argument('--dc', dest='dc', type=float, required=True,
+                        help='Distance between cell centers in meters')
+    parser.add_argument('-o', '--outFileName', dest='outFileName', type=str,
+                        required=False, default='grid.nc',
+                        help='The name of the output file')
 
-    # drop some arrays that aren't stantard for MPAS but were used to compute
-    # the hex mesh
-    mesh = mesh.drop(['cellIdx', 'cellRow', 'cellCol'])
-    mesh.attrs.pop('dc')
+    # parser.add_argument('--periodicX', dest='periodicX', action='store_true',
+    #                     help='Make the mesh periodic in x')
+    # parser.add_argument('--periodicY', dest='periodicY', action='store_true',
+    #                     help='Make the mesh periodic in y')
 
-    write_netcdf(mesh, outFileName)
+    args = parser.parse_args()
 
-    # used to make sure results are exactly identical to periodic_hex
-    # make_diff(mesh, '../periodic_hex/grid.nc', 'diff.nc')
+    make_periodic_planar_hex_mesh(args.nx, args.ny, args.dc, args.outFileName)
+
+    # used this instead to  make sure results are exactly identical to
+    # periodic_hex
+    # make_periodic_planar_hex_mesh(
+    #        args.nx, args.ny, args.dc, args.outFileName,
+    #        compareWithFileName='../periodic_hex/grid.nc')
 
 
 if __name__ == '__main__':
