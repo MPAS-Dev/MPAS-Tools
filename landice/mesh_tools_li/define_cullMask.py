@@ -22,7 +22,7 @@ parser.add_option("-p", "--plot", dest="makePlot", help="Include to have the scr
 options, args = parser.parse_args()
 
 if not options.file:
-	print("No grid filename provided. Using landice_grid.nc.")
+        print("No grid filename provided. Using landice_grid.nc.")
         options.file = "landice_grid.nc"
 
 if not options.method:
