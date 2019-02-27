@@ -3,6 +3,8 @@
 set -x
 set -e
 
+cp -r landice/mesh_tools_li mesh_tools/landice
+
 cd mesh_tools
 
 ${PYTHON} -m pip install . --no-deps -vv

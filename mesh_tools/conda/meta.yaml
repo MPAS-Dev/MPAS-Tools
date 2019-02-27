@@ -9,7 +9,7 @@ source:
   path: ../..
 
 build:
-  number: 0
+  number: 1
   entry_points:
     - planar_hex = mpas_mesh_tools.planar_hex:main
 
