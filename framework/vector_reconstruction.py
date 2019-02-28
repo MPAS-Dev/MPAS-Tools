@@ -11,7 +11,7 @@ in a forward run:
 <stream name="vector_reconstruction"
         clobber_mode="truncate"
         type="output"
-        output_interval="0000-00-00_00:00:01"
+        output_interval="initial_only"
         filename_template="vector_reconstruction.nc">
 
     <var name="coeffs_reconstruct"/>
