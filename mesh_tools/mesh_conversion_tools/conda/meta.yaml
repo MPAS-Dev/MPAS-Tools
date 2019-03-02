@@ -1,0 +1,67 @@
+{% set name = "mpas_mesh_conversion_tools" %}
+{% set version = "0.0.1" %}
+
+package:
+  name: '{{ name|lower }}'
+  version: '{{ version }}'
+
+source:
+  git_url: https://github.com/MPAS-Dev/MPAS-Tools.git
+  git_rev: 65ec4939c7419ff868ded1d1d0785ec6c7ec3e80
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - {{ compiler('cxx') }}
+  host:
+    - netcdf4 =1.4.2
+    - hdf5 =1.10.3
+    - libnetcdf =4.6.1
+  run:
+    - netcdf4 =1.4.2
+    - hdf5 =1.10.3
+    - libnetcdf =4.6.1
+
+test:
+  commands:
+    - wget https://github.com/MPAS-Dev/MPAS-Tools/raw/master/mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
+    - wget https://github.com/MPAS-Dev/MPAS-Tools/raw/master/mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
+    - wget https://github.com/MPAS-Dev/MPAS-Tools/raw/master/mesh_tools/mesh_conversion_tools/test/land_mask_final.nc
+    - MpasMeshConverter.x mesh.QU.1920km.151026.nc mesh.nc
+    - MpasCellCuller.x mesh.nc culled_mesh.nc -m land_mask_final.nc
+    - MpasMaskCreator.x mesh.nc arctic_mask.nc -f Arctic_Ocean.geojson
+
+about:
+  home: https://github.com/MPAS-Dev/MPAS-Tools/tree/master/mesh_tools/mesh_conversion_tools
+  license: BSD-3-Clause
+  license_family: BSD
+  license_file: ''
+  summary: Mesh conversion tools for Model for Prediction Across Scales (MPAS)
+  description: |
+    MpasMeshConverter.x is a piece of software designed create an MPAS mesh.
+    As input, this software takes the locations of MPAS cell centers, and cell
+    vertices, along with the connectivity array cellsOnVertex. If provided, it
+    will also migrate data from the meshDensity field, if it is not present it
+    will write 1.0 for every cell.
+
+    MpasCellCuller.x  is a piece of software designed remove
+    cells/edge/vertices from an MPAS mesh.  As input, this software takes a
+    valid MPAS mesh with one additional field "cullCell". This new field should
+    be nCells integers. A 1 means the cell should be kept, and a 0 means the
+    cell should be removed.
+
+    MpasMaskCreator.x is a piece of software designed to create cell masks
+    from region definitions. Region definitions are defined in geojson files,
+    and can be created using the tools contained within the repository located
+    at:
+      https://github.com/MPAS-Dev/geometric_features
+    Masks have a value of 0 or 1, and are integers.
+  doc_url: 'https://github.com/MPAS-Dev/MPAS-Tools/blob/master/mesh_tools/mesh_conversion_tools/README'
+  dev_url: 'https://github.com/MPAS-Dev/MPAS-Tools/tree/master/mesh_tools/mesh_conversion_tools'
+
+extra:
+  recipe-maintainers:
+    - xylar
+    - jhkennedy
