@@ -6,7 +6,8 @@ from __future__ import absolute_import, division, print_function, \
 import numpy
 import xarray
 import argparse
-import netCDF4
+
+from mpas_mesh_tools.io import write_netcdf
 
 
 def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
@@ -403,20 +404,6 @@ def add_one_to_indices(mesh):
         mesh[var] = mesh[var] + 1
 
 
-def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals):
-    encodingDict = {}
-    variableNames = list(ds.data_vars.keys()) + list(ds.coords.keys())
-    for variableName in variableNames:
-        dtype = ds[variableName].dtype
-        for fillType in fillValues:
-            if dtype == numpy.dtype(fillType):
-                encodingDict[variableName] = \
-                    {'_FillValue': fillValues[fillType]}
-                break
-
-    ds.to_netcdf(fileName, encoding=encodingDict)
-
-
 def make_diff(mesh, refMeshFileName, diffFileName):
 
     refMesh = xarray.open_dataset(refMeshFileName)
@@ -466,12 +453,6 @@ def main():
     make_planar_hex_mesh(args.nx, args.ny, args.dc,
                          args.nonperiodic_x, args.nonperiodic_y,
                          args.outFileName)
-
-    # used this instead to  make sure results are exactly identical to
-    # periodic_hex
-    # make_planar_hex_mesh(
-    #        args.nx, args.ny, args.dc, args.outFileName,
-    #        compareWithFileName='../periodic_hex/grid.nc')
 
 
 if __name__ == '__main__':

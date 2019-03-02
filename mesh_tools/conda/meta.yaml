@@ -9,9 +9,10 @@ source:
   path: ../..
 
 build:
-  number: 1
+  number: 3
   entry_points:
     - planar_hex = mpas_mesh_tools.planar_hex:main
+    - translate_planar_grid = mpas_mesh_tools.translate:main
 
 requirements:
   build:
@@ -32,7 +33,11 @@ requirements:
 
 test:
   commands:
-    - planar_hex --nx=10 --ny=20 --dc=1000. --outFileName='periodic_mesh_10x10_1km.nc'
+    - planar_hex --nx=10 --ny=20 --dc=1000. --outFileName='periodic_mesh_10x20_1km.nc'
+    - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -x 1000. -y 2000.
+    - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -c
+    - planar_hex --nx=20 --ny=40 --dc=1000. --outFileName='periodic_mesh_20x40_1km.nc'
+    - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -d 'periodic_mesh_20x40_1km.nc'
     - wget https://github.com/xylar/MPAS-Tools/raw/mesh_tools_conda_package/mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
     - wget https://github.com/xylar/MPAS-Tools/raw/mesh_tools_conda_package/mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
     - wget https://github.com/xylar/MPAS-Tools/raw/mesh_tools_conda_package/mesh_tools/mesh_conversion_tools/test/land_mask_final.nc
