@@ -32,18 +32,19 @@ requirements:
     - xarray
 
 test:
+  source_files:
+    - mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
+    - mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
+    - mesh_tools/mesh_conversion_tools/test/land_mask_final.nc
   commands:
     - planar_hex --nx=10 --ny=20 --dc=1000. --outFileName='periodic_mesh_10x20_1km.nc'
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -x 1000. -y 2000.
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -c
     - planar_hex --nx=20 --ny=40 --dc=1000. --outFileName='periodic_mesh_20x40_1km.nc'
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -d 'periodic_mesh_20x40_1km.nc'
-    - wget https://github.com/xylar/MPAS-Tools/raw/mesh_tools_conda_package/mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
-    - wget https://github.com/xylar/MPAS-Tools/raw/mesh_tools_conda_package/mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
-    - wget https://github.com/xylar/MPAS-Tools/raw/mesh_tools_conda_package/mesh_tools/mesh_conversion_tools/test/land_mask_final.nc
-    - MpasMeshConverter.x mesh.QU.1920km.151026.nc mesh.nc
-    - MpasCellCuller.x mesh.nc culled_mesh.nc -m land_mask_final.nc
-    - MpasMaskCreator.x mesh.nc arctic_mask.nc -f Arctic_Ocean.geojson
+    - MpasMeshConverter.x mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc mesh.nc
+    - MpasCellCuller.x mesh.nc culled_mesh.nc -m mesh_tools/mesh_conversion_tools/test/land_mask_final.nc
+    - MpasMaskCreator.x mesh.nc arctic_mask.nc -f mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
     - mark_horns_for_culling.py --help
     - create_landice_grid_from_generic_MPAS_grid.py --help
     - define_cullMask.py --help
