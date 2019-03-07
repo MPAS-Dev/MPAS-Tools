@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 """
 Name: add_land_locked_cells_to_mask.py
-Author: Mark Petersen, Adrian Turner
+Author: Mark Petersen, Adrian Turner, Xylar Asay-Davis
 
 Find ocean cells that are land-locked, and alter the cell
 mask so that they are counted as land cells.
 """
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 import os
 import shutil
 from netCDF4 import Dataset
@@ -65,7 +68,8 @@ inputMaskFile.close()
 outputMaskFile = Dataset(args.output_mask_filename, "a")
 landMaskDiagnostic = outputMaskFile.createVariable("landMaskDiagnostic", "i", dimensions=("nCells"))
 
-print "Running add_land_locked_cells_to_mask.py.  Total number of cells: ", nCells
+print("Running add_land_locked_cells_to_mask.py.  Total number of cells: "
+      "{}".format(nCells))
 
 # use np.array, as simple = makes a pointer
 landMaskNew = np.array(landMask)
@@ -75,7 +79,8 @@ activeEdgeSum = np.zeros(maxEdges, dtype="i")
 removableCellIndex = np.zeros(nCells, dtype="i")
 nRemovableCells = 0
 
-print "Step 1: Searching for land-locked cells.  Remove cells that only have isolated active edges."
+print("Step 1: Searching for land-locked cells.  Remove cells that only have "
+      "isolated active edges.")
 landLockedCounter = 0
 for iCell in range(nCells):
     landMaskDiagnostic[iCell] = landMask[iCell]
@@ -101,9 +106,10 @@ for iCell in range(nCells):
         landMaskDiagnostic[iCell] = 2
 
 landMask[:] = landMaskNew[:]
-print "  Number of landLocked cells: ", landLockedCounter
+print("  Number of landLocked cells: {}".format(landLockedCounter))
 
-print "Step 2: Searching for land-locked cells. Remove cells that have any isolated active edges."
+print("Step 2: Searching for land-locked cells. Remove cells that have any "
+      "isolated active edges.")
 for iSweep in range(args.nSweeps):
     landLockedCounter = 0
     for iRemovableCell in range(0, nRemovableCells):
@@ -130,11 +136,12 @@ for iSweep in range(args.nSweeps):
                     break
 
     landMask[:] = landMaskNew[:]
-    print "  Sweep: ", iSweep+1, "Number of landLocked cells removed: ", landLockedCounter
+    print("  Sweep: {} Number of landLocked cells removed: {}".format(
+        iSweep+1, landLockedCounter))
     if landLockedCounter == 0:
         break
 
-print "Step 3: Perform flood fill, starting from open ocean."
+print("Step 3: Perform flood fill, starting from open ocean.")
 floodFill = np.zeros(nCells, dtype="i")
 floodableCellIndex = np.zeros(nCells, dtype="i")
 nFloodableCells = 0
@@ -160,7 +167,7 @@ for iRemovableCell in range(0, nRemovableCells):
         else:
             floodableCellIndex[nFloodableCells] = iCell
             nFloodableCells += 1
-print "  Initial number of flood cells: ", nFloodableCells
+print("  Initial number of flood cells: {}".format(nFloodableCells))
 
 # sweep over neighbors of known open ocean points
 for iSweep in range(0, nCells):
@@ -178,7 +185,8 @@ for iSweep in range(0, nCells):
                     newFloodCellsThisSweep += 1
                     break
 
-    print "  Sweep ", iSweep, " new flood cells this sweep: ", newFloodCellsThisSweep
+    print("  Sweep {} new flood cells this sweep: {}".format(
+        iSweep, newFloodCellsThisSweep))
 
     if (newFloodCellsThisSweep == 0):
         break
@@ -188,7 +196,8 @@ for iCell in range(0, nCells):
     if (floodFill[iCell] == 1):
         oceanMask[iCell] = 1
 
-print "Step 4: Searching for land-locked cells, step 3: revert cells with connected active edges"
+print("Step 4: Searching for land-locked cells, step 3: revert cells with "
+      "connected active edges")
 for iSweep in range(args.nSweeps):
     landLockedCounter = 0
     for iRemovableCell in range(0, nRemovableCells):
@@ -216,7 +225,8 @@ for iSweep in range(args.nSweeps):
                         break
 
     landMask[:] = landMaskNew[:]
-    print "  Sweep: ", iSweep+1, "Number of land-locked cells returned: ", landLockedCounter
+    print("  Sweep: {} Number of land-locked cells returned: {}".format(
+        iSweep+1, landLockedCounter))
     if landLockedCounter == 0:
         break
 
