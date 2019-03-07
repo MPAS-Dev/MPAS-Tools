@@ -10,6 +10,7 @@ of each transect edge mask as a water cell.
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
+
 import numpy as np
 from netCDF4 import Dataset
 import argparse
@@ -29,7 +30,7 @@ parser.add_argument("-l", "--latitude_threshold", dest="latitude_threshold",
                     required=False, type=float, default=43.0)
 args = parser.parse_args()
 
-latitude_threshold_radians = args.latitude_threshold*3.1415/180.
+latitude_threshold_radians = args.latitude_threshold * 3.1415 / 180.
 
 # Obtain mesh variables
 meshFile = Dataset(args.mesh_filename, "r")
@@ -49,7 +50,9 @@ for iEdge in range(nEdges):
     if abs(latEdge[iEdge]) > latitude_threshold_radians:
         for iTransect in range(nTransects):
             if transectEdgeMasks[iEdge, iTransect] == 1:
-                maskFile['transectCellMasks'][cellsOnEdge[iEdge, 0]-1, iTransect] = 1
-                maskFile['transectCellMasks'][cellsOnEdge[iEdge, 1]-1, iTransect] = 1
+                maskFile['transectCellMasks'][cellsOnEdge[iEdge, 0] -
+                                              1, iTransect] = 1
+                maskFile['transectCellMasks'][cellsOnEdge[iEdge, 1] -
+                                              1, iTransect] = 1
 
 maskFile.close()
