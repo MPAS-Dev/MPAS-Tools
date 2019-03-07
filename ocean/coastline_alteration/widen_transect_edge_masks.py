@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 """
 Name: widen_transect_edge_masks.py
-Author: Mark Petersen
+Author: Mark Petersen, Xylar Asay-Davis
 
 Alter transects to be at least two cells wide.  This is used for critical
 passages, to avoid sea ice blockage.  Specifically, mark cells on both sides
 of each transect edge mask as a water cell.
 """
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 import numpy as np
 from netCDF4 import Dataset
 import argparse
