@@ -50,6 +50,9 @@ test:
     - define_cullMask.py --help
     - interpolate_to_mpasli_grid.py --help
     - mark_domain_boundaries_dirichlet.py --help
+    - add_land_locked_cells_to_mask.py --help
+    - widen_transect_edge_masks.py --help
+    - add_critical_land_blockages_to_mask.py --help
 
 about:
   home: https://github.com/MPAS-Dev/MPAS-Tools/

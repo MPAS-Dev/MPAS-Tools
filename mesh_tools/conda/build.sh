@@ -5,6 +5,9 @@ set -e
 
 cp -r landice/mesh_tools_li mesh_tools/landice
 
+mkdir -p mesh_tools/ocean/
+cp -r ocean/coastline_alteration mesh_tools/ocean/coastline_alteration
+
 cd mesh_tools
 
 ${PYTHON} -m pip install . --no-deps -vv
