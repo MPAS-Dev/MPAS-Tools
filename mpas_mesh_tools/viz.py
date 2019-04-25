@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Name: utils.py
+Name: viz.py
 Authors: Xylar Asay-Davis
 
 Utility library for various scripts used to extract vtk geometry from NetCDF

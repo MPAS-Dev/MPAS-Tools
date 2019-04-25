@@ -99,7 +99,7 @@ try:
 except ImportError:
     use_progress_bar = False
 
-import utils
+from mpas_mesh_tools import viz
 
 
 def build_field_time_series(local_time_indices, file_names, mesh_file,
@@ -118,7 +118,7 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
         outType = 'float64'
 
     # Get dimension info to allocate the size of Colors
-    time_series_file = utils.open_netcdf(file_names[0])
+    time_series_file = viz.open_netcdf(file_names[0])
 
     if mesh_file is not None:
         # blockDim may not exist in time series file
@@ -207,27 +207,27 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
         else:
             out_prefix = "timeDependentFieldsOn{}".format(suffix)
         # start the pvd file
-        pvd_file = utils.write_pvd_header(out_dir, out_prefix)
+        pvd_file = viz.write_pvd_header(out_dir, out_prefix)
         pvd_file.write('<Collection>\n')
 
     if not combine_output and not np.all(var_has_time_dim):
         static_prefix = "staticFieldsOn{}".format(suffix)
         varIndices = np.arange(nVars)[np.logical_not(var_has_time_dim)]
-        timeIndependentFile = utils.write_vtp_header(out_dir,
-                                                     static_prefix,
-                                                     varIndices[0],
-                                                     varIndices,
-                                                     variable_list,
-                                                     all_dim_vals,
-                                                     vertices,
-                                                     connectivity,
-                                                     offsets,
-                                                     nPoints,
-                                                     nPolygons,
-                                                     outType,
-                                                     cellData=cellData,
-                                                     pointData=pointData,
-                                                     xtime=None)
+        timeIndependentFile = viz.write_vtp_header(out_dir,
+                                                   static_prefix,
+                                                   varIndices[0],
+                                                   varIndices,
+                                                   variable_list,
+                                                   all_dim_vals,
+                                                   vertices,
+                                                   connectivity,
+                                                   offsets,
+                                                   nPoints,
+                                                   nPolygons,
+                                                   outType,
+                                                   cellData=cellData,
+                                                   pointData=pointData,
+                                                   xtime=None)
 
     prev_file = ""
     for time_index in range(nTimes):
@@ -235,7 +235,7 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
         if prev_file != file_names[time_index]:
             if prev_file != "":
                 time_series_file.close()
-            time_series_file = utils.open_netcdf(file_names[time_index])
+            time_series_file = viz.open_netcdf(file_names[time_index])
             prev_file = file_names[time_index]
 
         if any_var_has_time_dim:
@@ -278,21 +278,21 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
                 varIndices = np.arange(nVars)
             else:
                 varIndices = np.arange(nVars)[var_has_time_dim]
-            timeDependentFile = utils.write_vtp_header(out_dir,
-                                                       vtp_file_prefix,
-                                                       varIndices[0],
-                                                       varIndices,
-                                                       variable_list,
-                                                       all_dim_vals,
-                                                       vertices,
-                                                       connectivity,
-                                                       offsets,
-                                                       nPoints,
-                                                       nPolygons,
-                                                       outType,
-                                                       cellData=cellData,
-                                                       pointData=pointData,
-                                                       xtime=xtime)
+            timeDependentFile = viz.write_vtp_header(out_dir,
+                                                     vtp_file_prefix,
+                                                     varIndices[0],
+                                                     varIndices,
+                                                     variable_list,
+                                                     all_dim_vals,
+                                                     vertices,
+                                                     connectivity,
+                                                     offsets,
+                                                     nPoints,
+                                                     nPolygons,
+                                                     outType,
+                                                     cellData=cellData,
+                                                     pointData=pointData,
+                                                     xtime=xtime)
 
             # add time step to pdv file
             pvd_file.write('<DataSet timestep="{:.16f}" group="" '
@@ -311,8 +311,8 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
 
             var_name = variable_list[iVar]
             (out_var_names, dim_list) = \
-                utils.get_hyperslab_name_and_dims(var_name,
-                                                  all_dim_vals[var_name])
+                viz.get_hyperslab_name_and_dims(var_name,
+                                                all_dim_vals[var_name])
             if has_time or combine_output:
                 vtkFile = timeDependentFile
             else:
@@ -337,7 +337,7 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
                         else:
                             block_topo_cell_indices = \
                                 topo_cell_indices[block_indices]
-                        field_block = utils.read_field(
+                        field_block = viz.read_field(
                             var_name, mesh_file, time_series_file,
                             dim_vals, local_time_indices[time_index],
                             block_indices, outType,  topo_dim=topo_dim,
@@ -452,12 +452,12 @@ if __name__ == "__main__":
     if args.ignore_time:
         args.xtime = None
 
-    (time_indices, time_file_names) = utils.setup_time_indices(
+    (time_indices, time_file_names) = viz.setup_time_indices(
         args.filename_pattern, args.xtime)
 
     if args.time:
         time_indices, time_file_names = \
-            utils.parse_time_indices(args.time, time_indices, time_file_names)
+            viz.parse_time_indices(args.time, time_indices, time_file_names)
 
     separate_mesh_file = True
     if not args.mesh_filename:
@@ -465,15 +465,15 @@ if __name__ == "__main__":
         separate_mesh_file = False
 
     # Setting dimension values:
-    time_series_file = utils.open_netcdf(time_file_names[0])
+    time_series_file = viz.open_netcdf(time_file_names[0])
     if separate_mesh_file:
-        mesh_file = utils.open_netcdf(args.mesh_filename)
+        mesh_file = viz.open_netcdf(args.mesh_filename)
     else:
         mesh_file = None
     extra_dims, topo_cell_indices = \
-        utils.parse_extra_dims(args.dimension_list, time_series_file,
-                               mesh_file, topo_dim=args.topo_dim,
-                               topo_cell_index_name=args.topo_cell_index)
+        viz.parse_extra_dims(args.dimension_list, time_series_file,
+                             mesh_file, topo_dim=args.topo_dim,
+                             topo_cell_index_name=args.topo_cell_index)
     basic_dims = ['nCells', 'nEdges', 'nVertices', 'Time']
     include_dims = ['nCells', 'nEdges', 'nVertices']
     if args.topo_dim is not None:
@@ -481,31 +481,31 @@ if __name__ == "__main__":
         include_dims = ['nCells']
 
     (all_dim_vals, cellVars, vertexVars, edgeVars) = \
-        utils.setup_dimension_values_and_sort_vars(
+        viz.setup_dimension_values_and_sort_vars(
                 time_series_file, mesh_file,  args.variable_list, extra_dims,
                 basic_dims=basic_dims)
     time_series_file.close()
     if(mesh_file is not None):
         mesh_file.close()
 
-    utils.summarize_extraction(args.mesh_filename, time_indices, cellVars,
-                               vertexVars, edgeVars)
+    viz.summarize_extraction(args.mesh_filename, time_indices, cellVars,
+                             vertexVars, edgeVars)
 
     # Handle cell variables
     if len(cellVars) > 0:
         print(" -- Extracting cell fields --")
 
-        mesh_file = utils.open_netcdf(args.mesh_filename)
+        mesh_file = viz.open_netcdf(args.mesh_filename)
 
         # Build cell geometry
         if args.topo_dim is None:
             (vertices, connectivity, offsets, valid_mask) = \
-                utils.build_cell_geom_lists(mesh_file, use_32bit, args.lonlat)
+                viz.build_cell_geom_lists(mesh_file, use_32bit, args.lonlat)
             cell_to_point_map = None
             boundary_mask = None
         else:
             (vertices, connectivity, offsets, valid_mask, cell_to_point_map,
-             boundary_mask) = utils.build_topo_point_and_polygon_lists(
+             boundary_mask) = viz.build_topo_point_and_polygon_lists(
                      mesh_file, use_32bit, args.lonlat)
 
         if not separate_mesh_file:
@@ -529,11 +529,11 @@ if __name__ == "__main__":
     if len(vertexVars) > 0:
         print(" -- Extracting vertex fields --")
 
-        mesh_file = utils.open_netcdf(args.mesh_filename)
+        mesh_file = viz.open_netcdf(args.mesh_filename)
 
         # Build vertex geometry
         (vertices, connectivity, offsets, valid_mask) = \
-            utils.build_vertex_geom_lists(mesh_file, use_32bit, args.lonlat)
+            viz.build_vertex_geom_lists(mesh_file, use_32bit, args.lonlat)
 
         if not separate_mesh_file:
             mesh_file.close()
@@ -553,11 +553,11 @@ if __name__ == "__main__":
     if len(edgeVars) > 0:
         print(" -- Extracting edge fields --")
 
-        mesh_file = utils.open_netcdf(args.mesh_filename)
+        mesh_file = viz.open_netcdf(args.mesh_filename)
 
         # Build cell list
         (vertices, connectivity, offsets, valid_mask) = \
-            utils.build_edge_geom_lists(mesh_file, use_32bit, args.lonlat)
+            viz.build_edge_geom_lists(mesh_file, use_32bit, args.lonlat)
 
         if not separate_mesh_file:
             mesh_file.close()
