@@ -6,10 +6,10 @@ package:
   version: '{{ version }}'
 
 source:
-  path: ../..
+  path: ..
 
 build:
-  number: 3
+  number: 0
   entry_points:
     - planar_hex = mpas_mesh_tools.planar_hex:main
     - translate_planar_grid = mpas_mesh_tools.translate:main
@@ -39,7 +39,7 @@ test:
     - mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
     - mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
     - mesh_tools/mesh_conversion_tools/test/land_mask_final.nc
-    - mesh_tools/mpas_mesh_tools/tests/*
+    - mpas_mesh_tools/tests/*
   commands:
     - planar_hex --nx=10 --ny=20 --dc=1000. --outFileName='periodic_mesh_10x20_1km.nc'
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -x 1000. -y 2000.
@@ -49,7 +49,7 @@ test:
     - MpasMeshConverter.x mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc mesh.nc
     - MpasCellCuller.x mesh.nc culled_mesh.nc -m mesh_tools/mesh_conversion_tools/test/land_mask_final.nc
     - MpasMaskCreator.x mesh.nc arctic_mask.nc -f mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
-    - python -m pytest mesh_tools/mpas_mesh_tools/tests
+    - python -m pytest mpas_mesh_tools/tests
     - mark_horns_for_culling.py --help
     - create_landice_grid_from_generic_MPAS_grid.py --help
     - define_cullMask.py --help
