@@ -99,7 +99,7 @@ try:
 except ImportError:
     use_progress_bar = False
 
-from mpas_mesh_tools import viz
+from mpas_tools import viz
 
 
 def build_field_time_series(local_time_indices, file_names, mesh_file,

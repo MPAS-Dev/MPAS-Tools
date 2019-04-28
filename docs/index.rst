@@ -1,5 +1,5 @@
-mpas_mesh_tools
-==================
+mpas_tools
+==========
 
 This repository houses geometric features relevant for climate science.
 

@@ -7,7 +7,7 @@ from optparse import OptionParser
 
 import xarray
 
-from mpas_mesh_tools.io import write_netcdf
+from mpas_tools.io import write_netcdf
 
 
 def translate(mesh, xOffset=0., yOffset=0.):

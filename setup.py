@@ -4,12 +4,12 @@ from setuptools import setup, find_packages
 
 version = '0.0.1'
 
-setup(name='mpas_mesh_tools',
+setup(name='mpas_tools',
       version=version,
       description='A set of tools for creating and manipulating meshes for the'
                   ' climate components based on the Model for Prediction '
                   'Across Scales (MPAS) framework',
-      url='https://github.com/MPAS-Dev/MPAS-Tools/tree/master/mesh_tools',
+      url='https://github.com/MPAS-Dev/MPAS-Tools',
       author='MPAS-Analysis Developers',
       author_email='mpas-developers@googlegroups.com',
       license='BSD',
@@ -40,5 +40,5 @@ setup(name='mpas_mesh_tools',
                'visualization/paraview_vtk_field_extractor/paraview_vtk_field_extractor.py'],
       install_requires=['numpy', 'xarray', 'netCDF4', 'pyevtk'],
       entry_points={'console_scripts':
-                    ['planar_hex = mpas_mesh_tools.planar_hex:main',
-                     'translate_planar_grid = mpas_mesh_tools.translate:main']})
+                    ['planar_hex = mpas_tools.planar_hex:main',
+                     'translate_planar_grid = mpas_tools.translate:main']})

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# mpas_mesh_tools documentation build configuration file, created by
+# mpas_tools documentation build configuration file, created by
 # sphinx-quickstart on Sat Mar 25 14:39:11 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -13,7 +13,7 @@
 # serve to show the default.
 
 import os
-import mpas_mesh_tools
+import mpas_tools
 
 # -- General configuration ------------------------------------------------
 
@@ -49,7 +49,7 @@ source_suffix = ['.rst']
 master_doc = 'index'
 
 # General information about the project.
-project = u'mpas_mesh_tools'
+project = u'mpas_tools'
 copyright = u'This software is open source software available under the BSD-3' \
             u'license. Copyright (c) 2019 Triad National Security, LLC. ' \
             u'All rights reserved. Copyright (c) 2018 Lawrence Livermore ' \
@@ -117,7 +117,7 @@ html_static_path = ['_static']
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'mpas_mesh_tools_doc'
+htmlhelp_basename = 'mpas_tools_doc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -144,7 +144,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'mpas_mesh_tools.tex', u'mpas_mesh_tools Documentation',
+    (master_doc, 'mpas_tools.tex', u'mpas_tools Documentation',
      author, 'manual'),
 ]
 
@@ -154,7 +154,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'mpas_mesh_tools', u'mpas_mesh_tools Documentation',
+    (master_doc, 'mpas_tools', u'mpas_tools Documentation',
      [author], 1)
 ]
 
@@ -165,8 +165,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'mpas_mesh_tools', u'mpas_mesh_tools Documentation',
-     author, 'mpas_mesh_tools', 'One line description of project.',
+    (master_doc, 'mpas_tools', u'mpas_tools Documentation',
+     author, 'mpas_tools', 'One line description of project.',
      'Miscellaneous'),
 ]
 

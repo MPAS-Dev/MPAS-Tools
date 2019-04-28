@@ -7,7 +7,7 @@ import numpy
 import xarray
 import argparse
 
-from mpas_mesh_tools.io import write_netcdf
+from mpas_tools.io import write_netcdf
 
 
 def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,

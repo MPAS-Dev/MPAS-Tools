@@ -7,7 +7,7 @@ import subprocess
 import tempfile
 import shutil
 
-from mpas_mesh_tools.io import write_netcdf
+from mpas_tools.io import write_netcdf
 
 
 def convert(dsIn):

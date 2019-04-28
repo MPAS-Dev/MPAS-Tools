@@ -9,21 +9,21 @@ the documentation.
 Python package
 ==============
 
-.. currentmodule:: mpas_mesh_tools.planar_hex
+.. currentmodule:: mpas_tools.planar_hex
 
 .. autosummary::
    :toctree: generated/
 
    make_periodic_planar_hex_mesh
 
-.. currentmodule:: mpas_mesh_tools.translate
+.. currentmodule:: mpas_tools.translate
 
 .. autosummary::
    :toctree: generated/
 
    translate
 
-.. currentmodule:: mpas_mesh_tools.io
+.. currentmodule:: mpas_tools.io
 
 .. autosummary::
    :toctree: generated/

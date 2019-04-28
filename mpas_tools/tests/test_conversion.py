@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from mpas_mesh_tools.conversion import convert, cull, mask
-from mpas_mesh_tools.io import write_netcdf
+from mpas_tools.conversion import convert, cull, mask
+from mpas_tools.io import write_netcdf
 from geometric_features import read_feature_collection
 import xarray
 
