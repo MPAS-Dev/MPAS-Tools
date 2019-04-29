@@ -7,7 +7,8 @@ from datetime import datetime
 import sys
 
 
-def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals):
+def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals,
+                 format='NETCDF3_64BIT'):
     '''Write an xarray Dataset with NetCDF4 fill values where needed'''
     encodingDict = {}
     variableNames = list(ds.data_vars.keys()) + list(ds.coords.keys())
@@ -25,7 +26,7 @@ def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals):
 
     update_history(ds)
 
-    ds.to_netcdf(fileName, encoding=encodingDict)
+    ds.to_netcdf(fileName, encoding=encodingDict, format=format)
 
 
 def update_history(ds):

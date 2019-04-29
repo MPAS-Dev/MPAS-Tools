@@ -12,7 +12,8 @@ from mpas_tools.io import write_netcdf
 
 def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
                          nonperiodic_y, outFileName=None,
-                         compareWithFileName=None):
+                         compareWithFileName=None,
+                         format='NETCDF3_64BIT'):
     '''
     Builds an MPAS periodic, planar hexagonal mesh with the requested
     dimensions, optionally saving it to a file, and returs it as an
@@ -41,6 +42,9 @@ def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
         The name of a grid file to compare with to see if they are identical,
         used for testing purposes
 
+    format : {'NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', 'NETCDF3_CLASSIC'}, optional
+        The NetCDF format to use for output
+
     Returns
     -------
     mesh : ``xarray.Dataset``
@@ -66,7 +70,7 @@ def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
     mesh.attrs.pop('dc')
 
     if outFileName is not None:
-        write_netcdf(mesh, outFileName)
+        write_netcdf(mesh, outFileName, format=format)
 
     if compareWithFileName is not None:
         # used to make sure results are exactly identical to periodic_hex
