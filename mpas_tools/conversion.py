@@ -4,13 +4,13 @@ from __future__ import absolute_import, division, print_function, \
 import os
 import xarray
 import subprocess
-import tempfile
+from backports.tempfile import TemporaryDirectory
 import shutil
 
 from mpas_tools.io import write_netcdf
 
 
-def convert(dsIn):
+def convert(dsIn, graphInfoFileName=None):
     '''
     Use ``MpasMeshConverter.x`` to convert an input mesh to a valid MPAS
     mesh that is fully compliant with the MPAS mesh specification.
@@ -21,34 +21,46 @@ def convert(dsIn):
     dsIn : ``xarray.Dataset``
         A data set to convert
 
+    graphInfoFileName : str, optional
+        A file path (relative or absolute) where the graph file (typically
+        ``graph.info`` should be written out.  By default, ``graph.info`` is
+        not saved.
+
     Returns
     -------
     dsOut : ``xarray.Dataset``
         The MPAS mesh
     '''
 
-    tempFiles = []
-    inFileName = _get_temp_path(tempFiles)
-    write_netcdf(dsIn, inFileName)
+    with TemporaryDirectory() as tempdir:
+        inFileName = '{}/mesh_in.nc'.format(tempdir)
+        write_netcdf(dsIn, inFileName)
 
-    outFileName = _get_temp_path(tempFiles)
+        outFileName = '{}/mesh_out.nc'.format(tempdir)
 
-    # go into the directory of the output file so the graph.info file ends
-    # up in the same place
-    owd = os.getcwd()
-    os.chdir(os.path.dirname(outFileName))
-    subprocess.check_call(['MpasMeshConverter.x', inFileName, outFileName])
-    os.chdir(owd)
+        if graphInfoFileName is not None:
+            graphInfoFileName = os.path.abspath(graphInfoFileName)
 
-    dsOut = xarray.open_dataset(outFileName)
-    dsOut.load()
-    _remove_temp_files(tempFiles)
+        # go into the directory of the output file so the graph.info file ends
+        # up in the same place
+        owd = os.getcwd()
+        outDir = os.path.dirname(outFileName)
+        os.chdir(outDir)
+        subprocess.check_call(['MpasMeshConverter.x', inFileName, outFileName])
+        os.chdir(owd)
+
+        dsOut = xarray.open_dataset(outFileName)
+        dsOut.load()
+
+        if graphInfoFileName is not None:
+            shutil.copyfile('{}/graph.info'.format(outDir),
+                            graphInfoFileName)
 
     return dsOut
 
 
 def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
-         graphInfoPath=None):
+         graphInfoFileName=None):
     '''
     Use ``MpasCellCuller.x`` to cull cells from a mesh based on the
     ``cullCell`` field in the input file or DataSet and/or the provided masks.
@@ -72,9 +84,10 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
         A data set with region masks that are 1 where cells should *not* be
         culled
 
-    graphInfoPath : str, optional
-        A path where the file ``graph.info`` should be written out.  By
-        default, ``graph.info`` is written to a temp directory that is deleted.
+    graphInfoFileName : str, optional
+        A file path (relative or absolute) where the graph file (typically
+        ``culled_graph.info`` should be written out.  By default,
+        ``culled_graph.info`` is not saved.
 
     Returns
     -------
@@ -83,47 +96,46 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
 
     '''
 
-    tempFiles = []
-    inFileName = _get_temp_path(tempFiles)
-    write_netcdf(dsIn, inFileName)
-    outFileName = _get_temp_path(tempFiles)
+    with TemporaryDirectory() as tempdir:
+        inFileName = '{}/ds_in.nc'.format(tempdir)
+        write_netcdf(dsIn, inFileName)
+        outFileName = '{}/ds_out.nc'.format(tempdir)
 
-    args = ['MpasCellCuller.x', inFileName, outFileName]
+        args = ['MpasCellCuller.x', inFileName, outFileName]
 
-    if dsMask is not None:
-        fileName = _get_temp_path(tempFiles)
-        write_netcdf(dsMask, fileName)
-        args.extend(['-m', fileName])
+        if dsMask is not None:
+            fileName = '{}/mask.nc'.format(tempdir)
+            write_netcdf(dsMask, fileName)
+            args.extend(['-m', fileName])
 
-    if dsInverse is not None:
-        fileName = _get_temp_path(tempFiles)
-        write_netcdf(dsInverse, fileName)
-        args.extend(['-i', fileName])
+        if dsInverse is not None:
+            fileName = '{}/inverse.nc'.format(tempdir)
+            write_netcdf(dsInverse, fileName)
+            args.extend(['-i', fileName])
 
-    if dsPreserve is not None:
-        fileName = _get_temp_path(tempFiles)
-        write_netcdf(dsPreserve, fileName)
-        args.extend(['-p', fileName])
+        if dsPreserve is not None:
+            fileName = '{}/preserve.nc'.format(tempdir)
+            write_netcdf(dsPreserve, fileName)
+            args.extend(['-p', fileName])
 
-    # go into the directory of the output file so the graph.info file ends
-    # up in the same place
+        # go into the directory of the output file so the graph.info file ends
+        # up in the same place
 
-    if graphInfoPath is not None:
-        graphInfoPath = os.path.abspath(graphInfoPath)
+        if graphInfoFileName is not None:
+            graphInfoFileName = os.path.abspath(graphInfoFileName)
 
-    owd = os.getcwd()
-    outDir = os.path.dirname(outFileName)
-    os.chdir(outDir)
-    subprocess.check_call(args)
-    os.chdir(owd)
+        owd = os.getcwd()
+        outDir = os.path.dirname(outFileName)
+        os.chdir(outDir)
+        subprocess.check_call(args)
+        os.chdir(owd)
 
-    dsOut = xarray.open_dataset(outFileName)
-    dsOut.load()
+        dsOut = xarray.open_dataset(outFileName)
+        dsOut.load()
 
-    if graphInfoPath is not None:
-        shutil.copyfile('{}/graph.info'.format(outDir),
-                        '{}/graph.info'.format(graphInfoPath))
-    _remove_temp_files(tempFiles)
+        if graphInfoFileName is not None:
+            shutil.copyfile('{}/culled_graph.info'.format(outDir),
+                            graphInfoFileName)
 
     return dsOut
 
@@ -152,49 +164,29 @@ def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False):
 
     '''
 
-    tempFiles = []
-    inFileName = _get_temp_path(tempFiles)
-    write_netcdf(dsMesh, inFileName)
-    outFileName = _get_temp_path(tempFiles)
+    with TemporaryDirectory() as tempdir:
+        inFileName = '{}/mesh_in.nc'.format(tempdir)
+        write_netcdf(dsMesh, inFileName)
+        outFileName = '{}/mesh_out.nc'.format(tempdir)
 
-    args = ['MpasMaskCreator.x', inFileName, outFileName]
+        args = ['MpasMaskCreator.x', inFileName, outFileName]
 
-    if fcMask is not None:
-        fileName = _get_temp_path(tempFiles, ext='geojson')
-        fcMask.to_geojson(fileName)
-        args.extend(['-f', fileName])
+        if fcMask is not None:
+            fileName = '{}/mask.geojson'.format(tempdir)
+            fcMask.to_geojson(fileName)
+            args.extend(['-f', fileName])
 
-    if fcSeed is not None:
-        fileName = _get_temp_path(tempFiles, ext='geojson')
-        fcSeed.to_geojson(fileName)
-        args.extend(['-s', fileName])
+        if fcSeed is not None:
+            fileName = '{}/seed.geojson'.format(tempdir)
+            fcSeed.to_geojson(fileName)
+            args.extend(['-s', fileName])
 
-    if positiveLon:
-        args.append('--positive_lon')
+        if positiveLon:
+            args.append('--positive_lon')
 
-    # go into the directory of the output file so the graph.info file ends
-    # up in the same place
-    owd = os.getcwd()
-    os.chdir(os.path.dirname(outFileName))
-    subprocess.check_call(args)
-    os.chdir(owd)
+        subprocess.check_call(args)
 
-    dsOut = xarray.open_dataset(outFileName)
-    dsOut.load()
-    _remove_temp_files(tempFiles)
+        dsOut = xarray.open_dataset(outFileName)
+        dsOut.load()
 
     return dsOut
-
-
-def _get_temp_path(tempFiles, ext='nc'):
-    '''Returns the name of a temporary NetCDF file'''
-    fileName = '{}/{}.{}'.format(tempfile._get_default_tempdir(),
-                                 next(tempfile._get_candidate_names()),
-                                 ext)
-    tempFiles.append(fileName)
-    return fileName
-
-
-def _remove_temp_files(tempFiles):
-    for tempFileName in tempFiles:
-        os.remove(tempFileName)

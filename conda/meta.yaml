@@ -33,6 +33,7 @@ requirements:
     - geometric_features
     - pyevtk
     - future
+    - backports.tempfile
 
 test:
   requires:
