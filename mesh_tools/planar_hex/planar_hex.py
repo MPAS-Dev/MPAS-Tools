@@ -9,7 +9,7 @@ import argparse
 import netCDF4
 
 
-def make_periodic_planar_hex_mesh(nx, ny, dc, np, outFileName=None,
+def make_periodic_planar_hex_mesh(nx, ny, dc,nonperiodicx,nonperiodicy, outFileName=None,
                                   compareWithFileName=None):
     '''
     Builds an MPAS periodic, planar hexagonal mesh with the requested
@@ -27,9 +27,8 @@ def make_periodic_planar_hex_mesh(nx, ny, dc, np, outFileName=None,
 
     dc : float
         The distance in meters between adjacent cell centers.
-
-    np : str
-        Direction of non peridicity, input 'x' or 'y' or 'xy' or 'none'	
+    nonperiodicx: true/false: non-periodic in x direction
+    nonperiodicy: true/false: non-periodic in y direction
 
     outFileName : str, optional
         The name of a file to save the mesh to.  The mesh is not saved to a
@@ -46,14 +45,12 @@ def make_periodic_planar_hex_mesh(nx, ny, dc, np, outFileName=None,
         cells or removing periodicity.
     '''
 
-    mesh = initial_setup(nx, ny, dc, np)
+    mesh = initial_setup(nx, ny, dc, nonperiodicx, nonperiodicy)
     compute_indices_on_cell(mesh)
-    if np=='x':   
+    if nonperiodicx:   
        mark_cull_cell_nonperiodic_x(mesh)
-    elif np=='y': 
+    if nonperiodicy: 
        mark_cull_cell_nonperiodic_y(mesh)
-    elif np=='xy':
-       mark_cull_cell_nonperiodic_xy(mesh)
     compute_indices_on_edge(mesh)
     compute_indices_on_vertex(mesh)
     compute_weights_on_edge(mesh)
@@ -75,7 +72,7 @@ def make_periodic_planar_hex_mesh(nx, ny, dc, np, outFileName=None,
     return mesh
 
 #ag: np is added
-def initial_setup(nx, ny, dc, np):
+def initial_setup(nx, ny, dc, nonperiodicx, nonperiodicy):
     '''Setup the dimensions and add placeholders for some index variables'''
     if ny % 2 != 0:
         raise ValueError('ny must be divisible by 2 for the grid\'s '
@@ -93,15 +90,12 @@ def initial_setup(nx, ny, dc, np):
     mesh.attrs['sphere_radius'] = 1.
     
     #ag:for non periodic, extra cells added in required direction that is going to be removed for culledcells
-    if np=='x':
+    if nonperiodicx:
        nx=nx+2
-    elif np=='y':
+    if nonperiodicy:
        ny=ny+2
-    elif np=='xy':
-       nx=nx+2
-       ny=ny+2      	    
-
-    nCells = nx * ny
+    
+    nCells=nx*ny
     nEdges = 3 * nCells
     nVertices = 2 * nCells
     vertexDegree = 3
@@ -177,22 +171,6 @@ def mark_cull_cell_nonperiodic_x(mesh):
     cullCell[::nx] = 1
     cullCell[nx-1:nCells+1:nx] = 1
 
-
-def mark_cull_cell_nonperiodic_xy(mesh):
-    
-    cullCell = mesh.cullCell
-    cellIdx = mesh.cellIdx
-    cellRow = mesh.cellRow
-    cellCol = mesh.cellCol
-    
-    nCells = mesh.sizes['nCells']
-    nx = mesh.sizes['nx']
-    ny = mesh.sizes['ny']
-    #print(nx, ny, nCells)
-    cullCell[0:nx] = 1
-    cullCell[nCells-nx:nCells+1] = 1
-    cullCell[::nx] = 1
-    cullCell[nx-1:nCells+1:nx] = 1
 
 def compute_indices_on_cell(mesh):
 
@@ -468,9 +446,11 @@ def main():
                         help='Cells in y direction')
     parser.add_argument('--dc', dest='dc', type=float, required=True,
                         help='Distance between cell centers in meters')
-    #ag: to include non periodicity
-    parser.add_argument('--np', dest='np', type=str, required=True,
-                       help='non peridic in  x or y or both xy or none direction')
+    #ag: for non-periodic boundary
+    parser.add_argument('-npx', '--nonperiodicx',action="store_true",
+                        help='non-periodic in  x direction')
+    parser.add_argument('-npy','--nonperiodicy', action="store_true", 
+			help='non-periodic in  y direction')
     parser.add_argument('-o', '--outFileName', dest='outFileName', type=str,
                         required=False, default='grid.nc',
                         help='The name of the output file')
@@ -482,7 +462,8 @@ def main():
 
     args = parser.parse_args()
 
-    make_periodic_planar_hex_mesh(args.nx, args.ny, args.dc, args.np, args.outFileName)
+    make_periodic_planar_hex_mesh(args.nx, args.ny, args.dc, args.nonperiodicx, args.nonperiodicy, args.outFileName)
+    
     
     # used this instead to  make sure results are exactly identical to
     # periodic_hex
@@ -493,3 +474,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+    
