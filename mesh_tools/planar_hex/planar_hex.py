@@ -9,7 +9,7 @@ import argparse
 import netCDF4
 
 
-def make_periodic_planar_hex_mesh(nx, ny, dc,nonperiodicx,nonperiodicy, outFileName=None,
+def make_periodic_planar_hex_mesh(nx, ny, dc,nonperiodic_x,nonperiodic_y, outFileName=None,
                                   compareWithFileName=None):
     '''
     Builds an MPAS periodic, planar hexagonal mesh with the requested
@@ -27,8 +27,8 @@ def make_periodic_planar_hex_mesh(nx, ny, dc,nonperiodicx,nonperiodicy, outFileN
 
     dc : float
         The distance in meters between adjacent cell centers.
-    nonperiodicx: true/false: non-periodic in x direction
-    nonperiodicy: true/false: non-periodic in y direction
+    nonperiodic_x: true/false: non-periodic in x direction
+    nonperiodic_y: true/false: non-periodic in y direction
 
     outFileName : str, optional
         The name of a file to save the mesh to.  The mesh is not saved to a
@@ -45,11 +45,11 @@ def make_periodic_planar_hex_mesh(nx, ny, dc,nonperiodicx,nonperiodicy, outFileN
         cells or removing periodicity.
     '''
 
-    mesh = initial_setup(nx, ny, dc, nonperiodicx, nonperiodicy)
+    mesh = initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y)
     compute_indices_on_cell(mesh)
-    if nonperiodicx:   
+    if nonperiodic_x:
        mark_cull_cell_nonperiodic_x(mesh)
-    if nonperiodicy: 
+    if nonperiodic_y:
        mark_cull_cell_nonperiodic_y(mesh)
     compute_indices_on_edge(mesh)
     compute_indices_on_vertex(mesh)
@@ -72,7 +72,7 @@ def make_periodic_planar_hex_mesh(nx, ny, dc,nonperiodicx,nonperiodicy, outFileN
     return mesh
 
 #ag: np is added
-def initial_setup(nx, ny, dc, nonperiodicx, nonperiodicy):
+def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
     '''Setup the dimensions and add placeholders for some index variables'''
     if ny % 2 != 0:
         raise ValueError('ny must be divisible by 2 for the grid\'s '
@@ -88,13 +88,13 @@ def initial_setup(nx, ny, dc, nonperiodicx, nonperiodicy):
 
     mesh.attrs['on_a_sphere'] = 'NO'
     mesh.attrs['sphere_radius'] = 1.
-    
+
     #ag:for non periodic, extra cells added in required direction that is going to be removed for culledcells
-    if nonperiodicx:
+    if nonperiodic_x:
        nx=nx+2
-    if nonperiodicy:
+    if nonperiodic_y:
        ny=ny+2
-    
+
     nCells=nx*ny
     nEdges = 3 * nCells
     nVertices = 2 * nCells
@@ -447,14 +447,14 @@ def main():
     parser.add_argument('--dc', dest='dc', type=float, required=True,
                         help='Distance between cell centers in meters')
     #ag: for non-periodic boundary
-    parser.add_argument('-npx', '--nonperiodicx',action="store_true",
+    parser.add_argument('-npx', '--nonperiodic_x',action="store_true",
                         help='non-periodic in  x direction')
-    parser.add_argument('-npy','--nonperiodicy', action="store_true", 
+    parser.add_argument('-npy','--nonperiodic_y', action="store_true",
 			help='non-periodic in  y direction')
     parser.add_argument('-o', '--outFileName', dest='outFileName', type=str,
                         required=False, default='grid.nc',
                         help='The name of the output file')
-       	             	    
+       	             	
     # parser.add_argument('--periodicX', dest='periodicX', action='store_true',
     #                     help='Make the mesh periodic in x')
     # parser.add_argument('--periodicY', dest='periodicY', action='store_true',
@@ -462,9 +462,9 @@ def main():
 
     args = parser.parse_args()
 
-    make_periodic_planar_hex_mesh(args.nx, args.ny, args.dc, args.nonperiodicx, args.nonperiodicy, args.outFileName)
-    
-    
+    make_periodic_planar_hex_mesh(args.nx, args.ny, args.dc, args.nonperiodic_x, args.nonperiodic_y, args.outFileName)
+
+
     # used this instead to  make sure results are exactly identical to
     # periodic_hex
     # make_periodic_planar_hex_mesh(
@@ -474,4 +474,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
+
