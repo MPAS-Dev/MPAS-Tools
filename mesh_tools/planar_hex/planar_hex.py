@@ -9,7 +9,8 @@ import argparse
 import netCDF4
 
 
-def make_periodic_planar_hex_mesh(nx, ny, dc,nonperiodic_x,nonperiodic_y, outFileName=None,
+def make_periodic_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
+                                  nonperiodic_y, outFileName=None,
                                   compareWithFileName=None):
     '''
     Builds an MPAS periodic, planar hexagonal mesh with the requested
@@ -27,8 +28,9 @@ def make_periodic_planar_hex_mesh(nx, ny, dc,nonperiodic_x,nonperiodic_y, outFil
 
     dc : float
         The distance in meters between adjacent cell centers.
-    nonperiodic_x: true/false: non-periodic in x direction
-    nonperiodic_y: true/false: non-periodic in y direction
+
+    nonperiodic_x : true/false: non-periodic in x direction
+    nonperiodic_y : true/false: non-periodic in y direction
 
     outFileName : str, optional
         The name of a file to save the mesh to.  The mesh is not saved to a
@@ -48,9 +50,9 @@ def make_periodic_planar_hex_mesh(nx, ny, dc,nonperiodic_x,nonperiodic_y, outFil
     mesh = initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y)
     compute_indices_on_cell(mesh)
     if nonperiodic_x:
-       mark_cull_cell_nonperiodic_x(mesh)
+        mark_cull_cell_nonperiodic_x(mesh)
     if nonperiodic_y:
-       mark_cull_cell_nonperiodic_y(mesh)
+        mark_cull_cell_nonperiodic_y(mesh)
     compute_indices_on_edge(mesh)
     compute_indices_on_vertex(mesh)
     compute_weights_on_edge(mesh)
@@ -71,7 +73,7 @@ def make_periodic_planar_hex_mesh(nx, ny, dc,nonperiodic_x,nonperiodic_y, outFil
 
     return mesh
 
-#ag: np is added
+
 def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
     '''Setup the dimensions and add placeholders for some index variables'''
     if ny % 2 != 0:
@@ -81,21 +83,20 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
     mesh = xarray.Dataset()
 
     mesh.attrs['is_periodic'] = 'YES'
-    mesh.attrs['x_period'] = nx*dc
-    mesh.attrs['y_period'] = ny*dc*numpy.sqrt(3.)/2.
+    mesh.attrs['x_period'] = nx * dc
+    mesh.attrs['y_period'] = ny * dc * numpy.sqrt(3.) / 2.
 
     mesh.attrs['dc'] = dc
 
     mesh.attrs['on_a_sphere'] = 'NO'
     mesh.attrs['sphere_radius'] = 1.
 
-    #ag:for non periodic, extra cells added in required direction that is going to be removed for culledcells
     if nonperiodic_x:
-       nx=nx+2
+        nx = nx + 2
     if nonperiodic_y:
-       ny=ny+2
+        ny = ny + 2
 
-    nCells=nx*ny
+    nCells = nx * ny
     nEdges = 3 * nCells
     nVertices = 2 * nCells
     vertexDegree = 3
@@ -120,7 +121,7 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
 
     mesh['cullCell'] = (('nCells'), numpy.zeros(nCells, 'i4'))
 
-    mesh['nEdgesOnCell'] = (('nCells',), 6*numpy.ones((nCells,), 'i4'))
+    mesh['nEdgesOnCell'] = (('nCells',), 6 * numpy.ones((nCells,), 'i4'))
     mesh['cellsOnCell'] = (('nCells', 'maxEdges'),
                            numpy.zeros((nCells, maxEdges), 'i4'))
     mesh['edgesOnCell'] = (('nCells', 'maxEdges'),
@@ -128,11 +129,11 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
     mesh['verticesOnCell'] = (('nCells', 'maxEdges'),
                               numpy.zeros((nCells, maxEdges), 'i4'))
 
-    mesh['nEdgesOnEdge'] = (('nEdges',), 10*numpy.ones((nEdges,), 'i4'))
+    mesh['nEdgesOnEdge'] = (('nEdges',), 10 * numpy.ones((nEdges,), 'i4'))
     mesh['cellsOnEdge'] = (('nEdges', 'TWO'),
                            numpy.zeros((nEdges, 2), 'i4'))
     mesh['edgesOnEdge'] = (('nEdges', 'maxEdges2'),
-                           -1*numpy.ones((nEdges, 2*maxEdges), 'i4'))
+                           -1 * numpy.ones((nEdges, 2 * maxEdges), 'i4'))
     mesh['verticesOnEdge'] = (('nEdges', 'TWO'),
                               numpy.zeros((nEdges, 2), 'i4'))
 
@@ -147,29 +148,19 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
 def mark_cull_cell_nonperiodic_y(mesh):
 
     cullCell = mesh.cullCell
-
-    cellIdx = mesh.cellIdx
-    cellRow = mesh.cellRow
-    cellCol = mesh.cellCol
     nCells = mesh.sizes['nCells']
     nx = mesh.sizes['nx']
-    ny = mesh.sizes['ny']
-    #print(nx,ny,nCells)
     cullCell[0:nx] = 1
-    cullCell[nCells-nx:nCells+1] = 1
+    cullCell[nCells - nx:nCells + 1] = 1
+
 
 def mark_cull_cell_nonperiodic_x(mesh):
 
     cullCell = mesh.cullCell
-    cellIdx = mesh.cellIdx
-    cellRow = mesh.cellRow
-    cellCol = mesh.cellCol
     nCells = mesh.sizes['nCells']
     nx = mesh.sizes['nx']
-    ny = mesh.sizes['ny']
-    #print(nx,ny,nCells)
     cullCell[::nx] = 1
-    cullCell[nx-1:nCells+1:nx] = 1
+    cullCell[nx - 1:nCells + 1:nx] = 1
 
 
 def compute_indices_on_cell(mesh):
@@ -199,20 +190,20 @@ def compute_indices_on_cell(mesh):
     cellsOnCell[:, 5] = cellIdx[py, mx].where(mask, cellIdx[py, cellCol])
 
     edgesOnCell = mesh.edgesOnCell
-    edgesOnCell[:, 0] = 3*indexToCellID
-    edgesOnCell[:, 1] = 3*indexToCellID + 1
-    edgesOnCell[:, 2] = 3*indexToCellID + 2
-    edgesOnCell[:, 3] = 3*cellsOnCell[:, 3]
-    edgesOnCell[:, 4] = 3*cellsOnCell[:, 4] + 1
-    edgesOnCell[:, 5] = 3*cellsOnCell[:, 5] + 2
+    edgesOnCell[:, 0] = 3 * indexToCellID
+    edgesOnCell[:, 1] = 3 * indexToCellID + 1
+    edgesOnCell[:, 2] = 3 * indexToCellID + 2
+    edgesOnCell[:, 3] = 3 * cellsOnCell[:, 3]
+    edgesOnCell[:, 4] = 3 * cellsOnCell[:, 4] + 1
+    edgesOnCell[:, 5] = 3 * cellsOnCell[:, 5] + 2
 
     verticesOnCell = mesh.verticesOnCell
-    verticesOnCell[:, 0] = 2*indexToCellID
-    verticesOnCell[:, 1] = 2*indexToCellID + 1
-    verticesOnCell[:, 2] = 2*cellsOnCell[:, 2]
-    verticesOnCell[:, 3] = 2*cellsOnCell[:, 3] + 1
-    verticesOnCell[:, 4] = 2*cellsOnCell[:, 3]
-    verticesOnCell[:, 5] = 2*cellsOnCell[:, 4] + 1
+    verticesOnCell[:, 0] = 2 * indexToCellID
+    verticesOnCell[:, 1] = 2 * indexToCellID + 1
+    verticesOnCell[:, 2] = 2 * cellsOnCell[:, 2]
+    verticesOnCell[:, 3] = 2 * cellsOnCell[:, 3] + 1
+    verticesOnCell[:, 4] = 2 * cellsOnCell[:, 3]
+    verticesOnCell[:, 5] = 2 * cellsOnCell[:, 4] + 1
 
 
 def compute_indices_on_edge(mesh):
@@ -303,16 +294,16 @@ def compute_weights_on_edge(mesh):
                              numpy.zeros((nEdges, maxEdges2), 'f8'))
     weightsOnEdge = mesh.weightsOnEdge
 
-    weights = (1./numpy.sqrt(3.))*numpy.array(
-        [[1./3., 1./6., 0., 1./6., 1./3.],
-         [1./3., -1./6., 0., 1./6., -1./3.],
-         [-1./3., -1./6., 0., -1./6., -1./3.]])
+    weights = (1. / numpy.sqrt(3.)) * numpy.array(
+        [[1. / 3., 1. / 6., 0., 1. / 6., 1. / 3.],
+         [1. / 3., -1. / 6., 0., 1. / 6., -1. / 3.],
+         [-1. / 3., -1. / 6., 0., -1. / 6., -1. / 3.]])
     for i in range(3):
         for j in range(5):
-            weightsOnEdge[edgesOnCell[:, i+3], j] = weights[i, j]
+            weightsOnEdge[edgesOnCell[:, i + 3], j] = weights[i, j]
     for i in range(3):
         for j in range(5):
-            weightsOnEdge[edgesOnCell[:, i], j+5] = weights[i, j]
+            weightsOnEdge[edgesOnCell[:, i], j + 5] = weights[i, j]
 
 
 def compute_coordinates(mesh):
@@ -339,49 +330,54 @@ def compute_coordinates(mesh):
     cellCol = mesh.cellCol
     mask = numpy.mod(cellRow, 2) == 0
 
-    mesh['xCell'] = (dc*(cellCol + 0.5)).where(mask, dc*(cellCol + 1))
-    mesh['yCell'] = dc*(cellRow + 1)*numpy.sqrt(3.)/2.
+    mesh['xCell'] = (dc * (cellCol + 0.5)).where(mask, dc * (cellCol + 1))
+    mesh['yCell'] = dc * (cellRow + 1) * numpy.sqrt(3.) / 2.
     mesh['zCell'] = (('nCells'), numpy.zeros((nCells,), 'f8'))
 
     mesh['xEdge'] = (('nEdges'), numpy.zeros((nEdges,), 'f8'))
     mesh['yEdge'] = (('nEdges'), numpy.zeros((nEdges,), 'f8'))
     mesh['zEdge'] = (('nEdges'), numpy.zeros((nEdges,), 'f8'))
 
-    mesh.xEdge[edgesOnCell[:, 0]] = mesh.xCell - 0.5*dc
+    mesh.xEdge[edgesOnCell[:, 0]] = mesh.xCell - 0.5 * dc
     mesh.yEdge[edgesOnCell[:, 0]] = mesh.yCell
 
-    mesh.xEdge[edgesOnCell[:, 1]] = mesh.xCell - 0.5*dc*numpy.cos(numpy.pi/3.)
-    mesh.yEdge[edgesOnCell[:, 1]] = mesh.yCell - 0.5*dc*numpy.sin(numpy.pi/3.)
+    mesh.xEdge[edgesOnCell[:, 1]] = mesh.xCell - \
+        0.5 * dc * numpy.cos(numpy.pi / 3.)
+    mesh.yEdge[edgesOnCell[:, 1]] = mesh.yCell - \
+        0.5 * dc * numpy.sin(numpy.pi / 3.)
 
-    mesh.xEdge[edgesOnCell[:, 2]] = mesh.xCell + 0.5*dc*numpy.cos(numpy.pi/3.)
-    mesh.yEdge[edgesOnCell[:, 2]] = mesh.yCell - 0.5*dc*numpy.sin(numpy.pi/3.)
+    mesh.xEdge[edgesOnCell[:, 2]] = mesh.xCell + \
+        0.5 * dc * numpy.cos(numpy.pi / 3.)
+    mesh.yEdge[edgesOnCell[:, 2]] = mesh.yCell - \
+        0.5 * dc * numpy.sin(numpy.pi / 3.)
 
     mesh['xVertex'] = (('nVertices'), numpy.zeros((nVertices,), 'f8'))
     mesh['yVertex'] = (('nVertices'), numpy.zeros((nVertices,), 'f8'))
     mesh['zVertex'] = (('nVertices'), numpy.zeros((nVertices,), 'f8'))
 
-    mesh.xVertex[verticesOnCell[:, 0]] = mesh.xCell - 0.5*dc
-    mesh.yVertex[verticesOnCell[:, 0]] = mesh.yCell + dc*numpy.sqrt(3.)/6.
+    mesh.xVertex[verticesOnCell[:, 0]] = mesh.xCell - 0.5 * dc
+    mesh.yVertex[verticesOnCell[:, 0]] = mesh.yCell + dc * numpy.sqrt(3.) / 6.
 
-    mesh.xVertex[verticesOnCell[:, 1]] = mesh.xCell - 0.5*dc
-    mesh.yVertex[verticesOnCell[:, 1]] = mesh.yCell - dc*numpy.sqrt(3.)/6.
+    mesh.xVertex[verticesOnCell[:, 1]] = mesh.xCell - 0.5 * dc
+    mesh.yVertex[verticesOnCell[:, 1]] = mesh.yCell - dc * numpy.sqrt(3.) / 6.
 
     mesh['angleEdge'] = (('nEdges'), numpy.zeros((nEdges,), 'f8'))
-    mesh.angleEdge[edgesOnCell[:, 1]] = numpy.pi/3.
-    mesh.angleEdge[edgesOnCell[:, 2]] = 2.*numpy.pi/3.
+    mesh.angleEdge[edgesOnCell[:, 1]] = numpy.pi / 3.
+    mesh.angleEdge[edgesOnCell[:, 2]] = 2. * numpy.pi / 3.
 
-    mesh['dcEdge'] = (('nEdges'), dc*numpy.ones((nEdges,), 'f8'))
-    mesh['dvEdge'] = mesh.dcEdge*numpy.sqrt(3.)/3.
+    mesh['dcEdge'] = (('nEdges'), dc * numpy.ones((nEdges,), 'f8'))
+    mesh['dvEdge'] = mesh.dcEdge * numpy.sqrt(3.) / 3.
 
     mesh['areaCell'] = \
-        (('nCells'), dc**2*numpy.sqrt(3.)/2.*numpy.ones((nCells,), 'f8'))
+        (('nCells'), dc**2 * numpy.sqrt(3.) / 2. * numpy.ones((nCells,), 'f8'))
 
     mesh['areaTriangle'] = \
-        (('nVertices'), dc**2*numpy.sqrt(3.)/4.*numpy.ones((nVertices,), 'f8'))
+        (('nVertices'), dc**2 * numpy.sqrt(3.) /
+         4. * numpy.ones((nVertices,), 'f8'))
 
     mesh['kiteAreasOnVertex'] = \
         (('nVertices', 'vertexDegree'),
-         dc**2*numpy.sqrt(3.)/12.*numpy.ones((nVertices, vertexDegree), 'f8'))
+         dc**2 * numpy.sqrt(3.) / 12. * numpy.ones((nVertices, vertexDegree), 'f8'))
 
     mesh['meshDensity'] = (('nCells',), numpy.ones((nCells,), 'f8'))
 
@@ -446,24 +442,18 @@ def main():
                         help='Cells in y direction')
     parser.add_argument('--dc', dest='dc', type=float, required=True,
                         help='Distance between cell centers in meters')
-    #ag: for non-periodic boundary
-    parser.add_argument('-npx', '--nonperiodic_x',action="store_true",
-                        help='non-periodic in  x direction')
-    parser.add_argument('-npy','--nonperiodic_y', action="store_true",
-			help='non-periodic in  y direction')
+    parser.add_argument('-npx', '--nonperiodic_x', action="store_true",
+                        help='non-periodic in x direction')
+    parser.add_argument('-npy', '--nonperiodic_y', action="store_true",
+                        help='non-periodic in y direction')
     parser.add_argument('-o', '--outFileName', dest='outFileName', type=str,
                         required=False, default='grid.nc',
                         help='The name of the output file')
-       	             	
-    # parser.add_argument('--periodicX', dest='periodicX', action='store_true',
-    #                     help='Make the mesh periodic in x')
-    # parser.add_argument('--periodicY', dest='periodicY', action='store_true',
-    #                     help='Make the mesh periodic in y')
 
     args = parser.parse_args()
 
-    make_periodic_planar_hex_mesh(args.nx, args.ny, args.dc, args.nonperiodic_x, args.nonperiodic_y, args.outFileName)
-
+    make_periodic_planar_hex_mesh(args.nx, args.ny, args.dc, args.nonperiodic_x,
+                                  args.nonperiodic_y, args.outFileName)
 
     # used this instead to  make sure results are exactly identical to
     # periodic_hex
@@ -474,4 +464,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
