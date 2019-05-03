@@ -3,7 +3,9 @@
 set -x
 set -e
 
+cp -r ocean landice visualization mesh_tools conda_package
 
+cd conda_package
 ${PYTHON} -m pip install . --no-deps -vv
 
 cd mesh_tools/mesh_conversion_tools

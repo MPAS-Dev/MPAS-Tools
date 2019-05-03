@@ -6,8 +6,8 @@ This page provides an auto-generated summary of the MPAS mesh-tools API. For
 more details and examples, refer to the relevant chapters in the main part of
 the documentation.
 
-Python package
-==============
+MPAS mesh tools
+===============
 
 .. currentmodule:: mpas_tools.planar_hex
 
@@ -23,10 +23,33 @@ Python package
 
    translate
 
+
+.. currentmodule:: mpas_tools.conversion
+
+.. autosummary::
+   :toctree: generated/
+
+   convert
+   cull
+   mask
+
+
 .. currentmodule:: mpas_tools.io
 
 .. autosummary::
    :toctree: generated/
 
    write_netcdf
+
+
+Ocean Tools
+===========
+
+.. currentmodule:: mpas_tools.ocean.coastline_alteration
+
+.. autosummary::
+   :toctree: generated/
+
+   add_critical_land_blockages
+   widen_transect_edge_masks
 

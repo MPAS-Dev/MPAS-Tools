@@ -56,7 +56,7 @@ copyright = u'This software is open source software available under the BSD-3' \
             u'National Security, LLC. All rights reserved. Copyright (c) ' \
             u'2018 UT-Battelle, LLC. All rights reserved.'
 author = u'Xylar Asay-Davis, Doug Jacobsen, Michael Duda, Mark Petersen, ' \
-         u'Adridan Turner'
+         u'Matt Hoffman, Adridan Turner, Philip Wolfram'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
