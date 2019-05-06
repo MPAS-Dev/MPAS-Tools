@@ -444,9 +444,11 @@ def main():
                         help='Cells in y direction')
     parser.add_argument('--dc', dest='dc', type=float, required=True,
                         help='Distance between cell centers in meters')
-    parser.add_argument('--npx', '--nonperiodic_x', action="store_true",
+    parser.add_argument('--npx', '--nonperiodic_x', dest='nonperiodic_x',
+                        action="store_true",
                         help='non-periodic in x direction')
-    parser.add_argument('--npy', '--nonperiodic_y', action="store_true",
+    parser.add_argument('--npy', '--nonperiodic_y', dest='nonperiodic_y',
+                        action="store_true",
                         help='non-periodic in y direction')
     parser.add_argument('-o', '--outFileName', dest='outFileName', type=str,
                         required=False, default='grid.nc',
