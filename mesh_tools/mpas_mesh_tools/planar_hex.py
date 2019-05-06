@@ -29,8 +29,8 @@ def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
     dc : float
         The distance in meters between adjacent cell centers.
 
-    nonperiodic_x : true/false: non-periodic in x direction
-    nonperiodic_y : true/false: non-periodic in y direction
+    nonperiodic_x, nonperiodic_y : bool
+        is the mesh non-periodic in x and y directions?
 
     outFileName : str, optional
         The name of a file to save the mesh to.  The mesh is not saved to a
@@ -82,14 +82,24 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
 
     mesh = xarray.Dataset()
 
-    mesh.attrs['is_periodic'] = 'YES'
-    mesh.attrs['x_period'] = nx * dc
-    mesh.attrs['y_period'] = ny * dc * numpy.sqrt(3.) / 2.
+    if nonperiodic_x and nonperiodic_y:
+        mesh.attrs['is_periodic'] = 'NO'
+    else:
+        mesh.attrs['is_periodic'] = 'YES'
+
+    if nonperiodic_x:
+        mesh.attrs['x_period'] = 0.
+    else:
+        mesh.attrs['x_period'] = nx * dc
+    if nonperiodic_y:
+        mesh.attrs['y_period'] = 0.
+    else:
+        mesh.attrs['y_period'] = ny * dc * numpy.sqrt(3.) / 2.
 
     mesh.attrs['dc'] = dc
 
     mesh.attrs['on_a_sphere'] = 'NO'
-    mesh.attrs['sphere_radius'] = 1.
+    mesh.attrs['sphere_radius'] = 0.
 
     if nonperiodic_x:
         nx = nx + 2
@@ -377,7 +387,8 @@ def compute_coordinates(mesh):
 
     mesh['kiteAreasOnVertex'] = \
         (('nVertices', 'vertexDegree'),
-         dc**2 * numpy.sqrt(3.) / 12. * numpy.ones((nVertices, vertexDegree), 'f8'))
+         dc**2 * numpy.sqrt(3.) / 12. * numpy.ones((nVertices, vertexDegree),
+         'f8'))
 
     mesh['meshDensity'] = (('nCells',), numpy.ones((nCells,), 'f8'))
 
