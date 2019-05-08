@@ -70,19 +70,21 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
 
     Parameters
     ----------
-    dsIn : ``xarray.Dataset``, optional
+    dsIn : ``xarray.Dataset``
         A data set to cull, possibly with a ``cullCell`` field set to one where
         cells should be removed
 
-    dsMask : ``xarray.Dataset``, optional
-        A data set with region masks that are 1 where cells should be culled
+    dsMask : ``xarray.Dataset`` or list, optional
+        A data set (or data sets) with region masks that are 1 where cells
+        should be culled
 
-    dsInverse : ``xarray.Dataset``, optional
-        A data set with region masks that are 0 where cells should be culled
+    dsInverse : ``xarray.Dataset`` or list, optional
+        A data set (or data sets) with region masks that are 0 where cells
+        should be culled
 
-    dsPreserve : ``xarray.Dataset``, optional
-        A data set with region masks that are 1 where cells should *not* be
-        culled
+    dsPreserve : ``xarray.Dataset`` or list, optional
+        A data set (or data sets) with region masks that are 1 where cells
+        should *not* be culled
 
     graphInfoFileName : str, optional
         A file path (relative or absolute) where the graph file (typically
@@ -104,19 +106,28 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
         args = ['MpasCellCuller.x', inFileName, outFileName]
 
         if dsMask is not None:
-            fileName = '{}/mask.nc'.format(tempdir)
-            write_netcdf(dsMask, fileName)
-            args.extend(['-m', fileName])
+            if not isinstance(dsMask, list):
+                dsMask = [dsMask]
+            for index, ds in enumerate(dsMask):
+                fileName = '{}/mask{}.nc'.format(tempdir, index)
+                write_netcdf(ds, fileName)
+                args.extend(['-m', fileName])
 
         if dsInverse is not None:
-            fileName = '{}/inverse.nc'.format(tempdir)
-            write_netcdf(dsInverse, fileName)
-            args.extend(['-i', fileName])
+            if not isinstance(dsInverse, list):
+                dsInverse = [dsInverse]
+            for index, ds in enumerate(dsInverse):
+                fileName = '{}/inverse{}.nc'.format(tempdir, index)
+                write_netcdf(ds, fileName)
+                args.extend(['-i', fileName])
 
         if dsPreserve is not None:
-            fileName = '{}/preserve.nc'.format(tempdir)
-            write_netcdf(dsPreserve, fileName)
-            args.extend(['-p', fileName])
+            if not isinstance(dsPreserve, list):
+                dsPreserve = [dsPreserve]
+            for index, ds in enumerate(dsPreserve):
+                fileName = '{}/preserve{}.nc'.format(tempdir, index)
+                write_netcdf(ds, fileName)
+                args.extend(['-p', fileName])
 
         # go into the directory of the output file so the graph.info file ends
         # up in the same place
