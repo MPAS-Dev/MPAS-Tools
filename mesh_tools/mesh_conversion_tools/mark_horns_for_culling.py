@@ -9,6 +9,9 @@ It adds the new masked cell to an existing 'cullCell' field if it exists,
 otherwise it creates a new field.
 '''
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 import sys
 import numpy as np
 import netCDF4
@@ -16,7 +19,7 @@ from optparse import OptionParser
 from datetime import datetime
 
 
-print "== Gathering information.  (Invoke with --help for more details. All arguments are optional)\n"
+print("== Gathering information.  (Invoke with --help for more details. All arguments are optional)\n")
 parser = OptionParser()
 parser.description = __doc__
 parser.add_option("-f", "--file", dest="inputFile", help="Name of file to be processed.", default="grid.nc", metavar="FILENAME")
@@ -25,7 +28,7 @@ for option in parser.option_list:
         option.help += (" " if option.help else "") + "[default: %default]"
 options, args = parser.parse_args()
 
-print "  File to be modified:  " + options.inputFile
+print("  File to be modified:  " + options.inputFile)
 
 
 # Open file and get needed fields.
@@ -63,5 +66,5 @@ setattr(inputFile, 'history', newhist )
 
 inputFile.close()
 
-print '\n{} "horn" locations have been marked in the field cullCell.'.format(nHorns)
-print "Remember to use MpasCellCuller.x to actually remove them!"
+print('\n{} "horn" locations have been marked in the field cullCell.'.format(nHorns))
+print("Remember to use MpasCellCuller.x to actually remove them!")

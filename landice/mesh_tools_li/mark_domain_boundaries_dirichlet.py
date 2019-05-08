@@ -3,13 +3,16 @@
 This script marks all of the boundary cells in a domain as Dirichlet velocity boundaries.
 '''
 
+from __future__ import absolute_import, division, print_function, \
+    unicode_literals
+
 import netCDF4
 import numpy as np
 from optparse import OptionParser
 from datetime import datetime
 import sys
 
-print "== Gathering information.  (Invoke with --help for more details. All arguments are optional)\n"
+print("== Gathering information.  (Invoke with --help for more details. All arguments are optional)\n")
 parser = OptionParser()
 parser.description = __doc__
 parser.add_option("-f", "--file", dest="inputFile", help="name of file to be modified.", default="landice_grid.nc", metavar="FILENAME")
@@ -20,8 +23,8 @@ for option in parser.option_list:
 options, args = parser.parse_args()
 
 
-print "  Input file: " + options.inputFile
-print "  Time level: {}".format(options.time)
+print("  Input file: {}".format(options.inputFile))
+print("  Time level: {}".format(options.time))
 
 f=netCDF4.Dataset(options.inputFile, 'r+')
 nCells = len(f.dimensions['nCells'])
@@ -47,4 +50,4 @@ setattr(f, 'history', newhist )
 
 f.close()
 
-print '\nMarking boundary cells completed.'
+print('\nMarking boundary cells completed.')
