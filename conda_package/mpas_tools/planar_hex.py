@@ -6,12 +6,14 @@ from __future__ import absolute_import, division, print_function, \
 import numpy
 import xarray
 import argparse
-import netCDF4
+
+from mpas_tools.io import write_netcdf
 
 
-def make_periodic_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
-                                  nonperiodic_y, outFileName=None,
-                                  compareWithFileName=None):
+def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
+                         nonperiodic_y, outFileName=None,
+                         compareWithFileName=None,
+                         format='NETCDF3_64BIT'):
     '''
     Builds an MPAS periodic, planar hexagonal mesh with the requested
     dimensions, optionally saving it to a file, and returs it as an
@@ -29,8 +31,8 @@ def make_periodic_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
     dc : float
         The distance in meters between adjacent cell centers.
 
-    nonperiodic_x : true/false: non-periodic in x direction
-    nonperiodic_y : true/false: non-periodic in y direction
+    nonperiodic_x, nonperiodic_y : bool
+        is the mesh non-periodic in x and y directions?
 
     outFileName : str, optional
         The name of a file to save the mesh to.  The mesh is not saved to a
@@ -39,6 +41,9 @@ def make_periodic_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
     compareWithFileName : str, optional
         The name of a grid file to compare with to see if they are identical,
         used for testing purposes
+
+    format : {'NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', 'NETCDF3_CLASSIC'}, optional
+        The NetCDF format to use for output
 
     Returns
     -------
@@ -65,7 +70,7 @@ def make_periodic_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
     mesh.attrs.pop('dc')
 
     if outFileName is not None:
-        write_netcdf(mesh, outFileName)
+        write_netcdf(mesh, outFileName, format=format)
 
     if compareWithFileName is not None:
         # used to make sure results are exactly identical to periodic_hex
@@ -82,14 +87,24 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
 
     mesh = xarray.Dataset()
 
-    mesh.attrs['is_periodic'] = 'YES'
-    mesh.attrs['x_period'] = nx * dc
-    mesh.attrs['y_period'] = ny * dc * numpy.sqrt(3.) / 2.
+    if nonperiodic_x and nonperiodic_y:
+        mesh.attrs['is_periodic'] = 'NO'
+    else:
+        mesh.attrs['is_periodic'] = 'YES'
+
+    if nonperiodic_x:
+        mesh.attrs['x_period'] = 0.
+    else:
+        mesh.attrs['x_period'] = nx * dc
+    if nonperiodic_y:
+        mesh.attrs['y_period'] = 0.
+    else:
+        mesh.attrs['y_period'] = ny * dc * numpy.sqrt(3.) / 2.
 
     mesh.attrs['dc'] = dc
 
     mesh.attrs['on_a_sphere'] = 'NO'
-    mesh.attrs['sphere_radius'] = 1.
+    mesh.attrs['sphere_radius'] = 0.
 
     if nonperiodic_x:
         nx = nx + 2
@@ -377,7 +392,8 @@ def compute_coordinates(mesh):
 
     mesh['kiteAreasOnVertex'] = \
         (('nVertices', 'vertexDegree'),
-         dc**2 * numpy.sqrt(3.) / 12. * numpy.ones((nVertices, vertexDegree), 'f8'))
+         dc**2 * numpy.sqrt(3.) / 12. * numpy.ones((nVertices, vertexDegree),
+         'f8'))
 
     mesh['meshDensity'] = (('nCells',), numpy.ones((nCells,), 'f8'))
 
@@ -390,20 +406,6 @@ def add_one_to_indices(mesh):
                  'cellsOnVertex', 'edgesOnVertex']
     for var in indexVars:
         mesh[var] = mesh[var] + 1
-
-
-def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals):
-    encodingDict = {}
-    variableNames = list(ds.data_vars.keys()) + list(ds.coords.keys())
-    for variableName in variableNames:
-        dtype = ds[variableName].dtype
-        for fillType in fillValues:
-            if dtype == numpy.dtype(fillType):
-                encodingDict[variableName] = \
-                    {'_FillValue': fillValues[fillType]}
-                break
-
-    ds.to_netcdf(fileName, encoding=encodingDict)
 
 
 def make_diff(mesh, refMeshFileName, diffFileName):
@@ -442,9 +444,11 @@ def main():
                         help='Cells in y direction')
     parser.add_argument('--dc', dest='dc', type=float, required=True,
                         help='Distance between cell centers in meters')
-    parser.add_argument('-npx', '--nonperiodic_x', action="store_true",
+    parser.add_argument('--npx', '--nonperiodic_x', dest='nonperiodic_x',
+                        action="store_true",
                         help='non-periodic in x direction')
-    parser.add_argument('-npy', '--nonperiodic_y', action="store_true",
+    parser.add_argument('--npy', '--nonperiodic_y', dest='nonperiodic_y',
+                        action="store_true",
                         help='non-periodic in y direction')
     parser.add_argument('-o', '--outFileName', dest='outFileName', type=str,
                         required=False, default='grid.nc',
@@ -452,14 +456,9 @@ def main():
 
     args = parser.parse_args()
 
-    make_periodic_planar_hex_mesh(args.nx, args.ny, args.dc, args.nonperiodic_x,
-                                  args.nonperiodic_y, args.outFileName)
-
-    # used this instead to  make sure results are exactly identical to
-    # periodic_hex
-    # make_periodic_planar_hex_mesh(
-    #        args.nx, args.ny, args.dc, args.outFileName,
-    #        compareWithFileName='../periodic_hex/grid.nc')
+    make_planar_hex_mesh(args.nx, args.ny, args.dc,
+                         args.nonperiodic_x, args.nonperiodic_y,
+                         args.outFileName)
 
 
 if __name__ == '__main__':
