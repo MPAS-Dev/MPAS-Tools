@@ -2,6 +2,8 @@
 
 from mpas_tools.conversion import convert, cull, mask
 from mpas_tools.io import write_netcdf
+import matplotlib
+matplotlib.use('Agg')
 from geometric_features import read_feature_collection
 import xarray
 
