@@ -1,6 +1,8 @@
 cmake_minimum_required (VERSION 3.0.2)
 project (mesh_conversion_tools)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+
 include_directories (netcdf-cxx-4.2 .)
 
 set(SOURCES netcdf_utils.cpp netcdf-cxx-4.2/ncvalues.cpp netcdf-cxx-4.2/netcdf.cpp)
