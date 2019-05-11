@@ -1,5 +1,5 @@
 {% set name = "mpas_tools" %}
-{% set version = "0.0.1" %}
+{% set version = "0.0.2" %}
 
 package:
   name: '{{ name|lower }}'
@@ -17,6 +17,7 @@ build:
 requirements:
   build:
     - {{ compiler('cxx') }}
+    - cmake
   host:
     - python
     - hdf5
