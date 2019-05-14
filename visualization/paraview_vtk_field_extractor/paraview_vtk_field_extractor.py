@@ -164,8 +164,6 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
         else:
             nHyperSlabs += len(extra_dim_vals)
 
-    time_series_file.close()
-
     any_var_has_time_dim = np.any(var_has_time_dim)
 
     if topo_dim is not None:
@@ -175,6 +173,8 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
             nTopoLevels = len(time_series_file.dimensions[topo_dim])
     else:
         nTopoLevels = None
+
+    time_series_file.close()
 
     try:
         os.makedirs(out_dir)
