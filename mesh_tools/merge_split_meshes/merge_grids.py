@@ -4,14 +4,10 @@ Tool to merge 2 MPAS non-contiguous meshes together into a single file
 '''
 
 import sys
-import numpy as np
 import netCDF4
 import argparse
-import math
-from collections import OrderedDict
-import scipy.spatial
-import time
 from datetime import datetime
+import json
 
 
 #print "== Gathering information.  (Invoke with --help for more details. All arguments are optional)\n"
@@ -26,6 +22,10 @@ parser.add_argument("-o", dest="outFile", help="name of output file", default="m
 options = parser.parse_args()
 
 
+if options.file1 == None:
+    sys.exit("Missing argument for name of file 1.  Please add with -1 argument.")
+if options.file2 == None:
+    sys.exit("Missing argument for name of file 2.  Please add with -2 argument.")
 
 f1 = netCDF4.Dataset(options.file1)
 nCells1 = len(f1.dimensions['nCells'])
@@ -39,12 +39,14 @@ nEdges2 = len(f2.dimensions['nEdges'])
 nVertices2 = len(f2.dimensions['nVertices'])
 Time2= len(f2.dimensions['Time'])
 
-if Time1 != Time2:
-  sys.exit("ERROR: The two files have different lengths of the Time dimension.")
 if len(f1.dimensions['vertexDegree']) != len(f2.dimensions['vertexDegree']):
-  sys.exit("ERROR: The two files have different lengths of the vertexDegree dimension.")
-if len(f1.dimensions['nVertLevels']) != len(f2.dimensions['nVertLevels']):
-  sys.exit("ERROR: The two files have different lengths of the nVertLevels dimension.")
+   sys.exit("ERROR: The two files have different lengths of the vertexDegree dimension.")
+# Check some other possible dimensions:
+optionalDims = ('Time', 'nVertLevels', 'nVertInterfaces')
+for dim in optionalDims:
+   if dim in f1.dimensions and dim in f2.dimensions:
+      if len(f1.dimensions[dim]) != len(f2.dimensions[dim]):
+         sys.exit("ERROR: The two files have different lengths of the {} dimension.".format(dim))
 
 
 # Create new file
@@ -62,10 +64,13 @@ if 'StrLen' in f1.dimensions:
 maxEdges = max(len(f1.dimensions['maxEdges']), len(f2.dimensions['maxEdges']))
 fout.createDimension('maxEdges', maxEdges)
 fout.createDimension('maxEdges2', maxEdges*2)
-fout.createDimension('nVertLevels', len(f1.dimensions['nVertLevels']))
-fout.createDimension('nVertInterfaces', len(f1.dimensions['nVertInterfaces']))
 
-fout.createDimension('Time', size=None) # make unlimited dimension
+for dim in optionalDims:
+   if dim in f1.dimensions and dim in f2.dimensions:
+       if dim == 'Time':
+          fout.createDimension('Time', size=None) # make unlimited dimension
+       else:
+          fout.createDimension(dim, len(f1.dimensions[dim]))
 
 
 # compare list of variables
@@ -176,10 +181,23 @@ for varname in vars1:
           newVar[nVertices1:,:] = part2
 
 
-# add some needed attributes
-fout.on_a_sphere = "NO"
-fout.sphere_radius = 0.0
-fout.is_periodic = "NO"
+# add some standard attributes
+attrToCopy = ("on_a_sphere", "sphere_radius", "is_periodic")
+for attr in attrToCopy:
+   if attr in f1.ncattrs() and attr in f2.ncattrs():
+      if f1.getncattr(attr) == f2.getncattr(attr):
+         fout.setncattr(attr, f1.getncattr(attr))
+      else:
+         print("Warning: Value for '{0}' global attribute differs between input files. '{0}' being skipped.".format(attr))
+   else:
+      print("Warning: '{0}' global attribute not present in both input files. '{0}' being skipped.".format(attr))
+# Add merge info to allow exact splitting later
+fout.merge_point = json.dumps({'nCells': nCells1,
+                               'nEdges': nEdges1,
+                               'nVertices': nVertices1,
+                               'maxEdges1': len(f1.dimensions['maxEdges']),
+                               'maxEdges2': len(f2.dimensions['maxEdges'])
+                               })
 # Update history attribute of netCDF file
 thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
 setattr(fout, 'history', thiscommand )
@@ -187,5 +205,5 @@ fout.close()
 f1.close()
 f2.close()
 
-print('\nMerge completed.')
+print('\nMerge completed to file {}.'.format(options.outFile))
 
