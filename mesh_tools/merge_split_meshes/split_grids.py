@@ -14,12 +14,11 @@ from netCDF4 import Dataset
 
 
 def parse_args(args=None):
-
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawTextHelpFormatter)
 
-    parser.add_argument('infile',
-                        help='Mesh file to split', metavar='MESHFILE')
+    parser.add_argument('infile', metavar='MESHFILE',
+                        help='Mesh file to split')
 
     parser.add_argument('-1', '--outfile1', default='mesh1.nc', metavar='FILENAME',
                         help='File name for first mesh output \n(default: %(default)s)')
@@ -28,19 +27,31 @@ def parse_args(args=None):
                         help='File name for second mesh output \n(default: %(default)s)')
 
     parser.add_argument('--nCells', type=int,
-                        help='The number of cells in the first mesh')
+                        help='The number of cells in the first mesh \n'
+                             '(default: the value specified in MESHFILE global '
+                             'attribute merge_point)')
 
     parser.add_argument('--nEdges', type=int,
-                        help='The number of edges in the first mesh')
+                        help='The number of edges in the first mesh \n'
+                             '(default: the value specified in MESHFILE global '
+                             'attribute merge_point)')
 
     parser.add_argument('--nVertices', type=int,
-                        help='The number of vertices in the first mesh')
+                        help='The number of vertices in the first mesh \n'
+                             '(default: the value specified in MESHFILE global '
+                             'attribute merge_point)')
+
+    parser.add_argument('--maxEdges', type=int, nargs=2, metavar=('MAXEDGES1', 'MAXEDGES2'),
+                        help='The number of maxEdges in each mesh \n'
+                             '(default: the value specified in MESHFILE global '
+                             'attribute merge_point\n      OR: will use MESHFILE '
+                             'maxEdges dimension and assume same for both)')
 
     return parser.parse_intermixed_args(args)
 
 
 def split_grids(infile=None, outfile1=None, outfile2=None,
-                nCells=None, nEdges=None, nVertices=None, runner=None):
+                nCells=None, nEdges=None, nVertices=None, maxEdges=None, runner=None):
     now = datetime.now().strftime("%a %b %d %H:%M:%S %Y")
     if not runner:
         runner = '{}.split_grids(infile={}, outfile1={}, outfile2={}, nCells={},' \
@@ -59,10 +70,10 @@ def split_grids(infile=None, outfile1=None, outfile2=None,
         #       need to do some complicated error handling.
         merge_point_in_file = 'merge_point' in nc_in.ncattrs()
         if not merge_point_in_file and any(merge_point_args_missing):
-            raise SystemExit('ERROR: Previous merge point under specified!\n'
+            raise ValueError('ERROR: Previous merge point under specified!\n'
                              '    nCells, nEdges, and nVertices options must all '
-                             'be given, or merge_point global attribute must exist'
-                             ' in {}'.format(infile))
+                             'be given, or merge_point global attribute must exist '
+                             'in {}'.format(infile))
         elif merge_point_in_file and not any(merge_point_args_missing):
             print('Warning: command line arguments are overriding previous merge '
                   'point as specified in {} merge_point global'
@@ -75,17 +86,20 @@ def split_grids(infile=None, outfile1=None, outfile2=None,
             try:
                 mp = json.loads(nc_in.merge_point)
             except json.decoder.JSONDecodeError:
-                raise SystemExit('ERROR: {} merge_point global attribute is not valid JSON.\n'
+                raise ValueError('ERROR: {} merge_point global attribute is not valid JSON.\n'
                                  '    merge_point: {}'.format(infile, nc_in.merge_point))
 
-            if {'nCells', 'nEdges', 'nVertices'} <= set(mp):
+            mp_keyset = set(mp)
+            if {'nCells', 'nEdges', 'nVertices'} <= mp_keyset:
                 nCells = mp['nCells']
                 nEdges = mp['nEdges']
                 nVertices = mp['nVertices']
             else:
-                raise SystemExit('ERROR: merge_point global attribute of {} must '
+                raise ValueError('ERROR: merge_point global attribute of {} must '
                                  'contain nCells, nEdges, and nVertices.\n'
                                  '    merge_point: {}'.format(infile, mp))
+            if {'maxEdges1', 'maxEdges2'} <= mp_keyset:
+                maxEdges = [mp['maxEdges1'], mp['maxEdges2']]
 
         print('Creating the mesh files:\n    {}\n    {}'.format(
                 outfile1, outfile2))
@@ -109,11 +123,15 @@ def split_grids(infile=None, outfile1=None, outfile2=None,
                 mesh1.createDimension('StrLen', nc_in.dimensions['StrLen'].size)
                 mesh2.createDimension('StrLen', nc_in.dimensions['StrLen'].size)
 
-            # FIXME: Technically could be different in each mesh.
-            mesh1.createDimension('maxEdges', nc_in.dimensions['maxEdges'].size)
-            mesh2.createDimension('maxEdges', nc_in.dimensions['maxEdges'].size)
-            mesh1.createDimension('maxEdges2', nc_in.dimensions['maxEdges2'].size)
-            mesh2.createDimension('maxEdges2', nc_in.dimensions['maxEdges2'].size)
+            if maxEdges is None:
+                maxEdges = [nc_in.dimensions['maxEdges'].size,
+                            nc_in.dimensions['maxEdges'].size]
+
+            mesh1.createDimension('maxEdges', maxEdges[0])
+            mesh1.createDimension('maxEdges2', maxEdges[0] * 2)
+
+            mesh2.createDimension('maxEdges', maxEdges[1])
+            mesh2.createDimension('maxEdges2', maxEdges[1] * 2)
 
             mesh1.createDimension('nVertLevels', nc_in.dimensions['nVertLevels'].size)
             mesh1.createDimension('nVertInterfaces', nc_in.dimensions['nVertInterfaces'].size)
@@ -131,7 +149,8 @@ def split_grids(infile=None, outfile1=None, outfile2=None,
                 var1 = mesh1.createVariable(var, var_in.dtype, var_in.dimensions)
                 var2 = mesh2.createVariable(var, var_in.dtype, var_in.dimensions)
 
-                slice1, slice2 = var_slice(var_in.dimensions, nc_in, nCells, nEdges, nVertices)
+                slice1, slice2 = var_slice(var_in.dimensions, nc_in,
+                                           nCells, nEdges, nVertices, maxEdges)
 
                 var1[:] = nc_in.variables[var][slice1]
                 var2[:] = nc_in.variables[var][slice2]
@@ -172,10 +191,10 @@ def split_grids(infile=None, outfile1=None, outfile2=None,
                 mesh1.history = maybe_encode(run_command)
                 mesh2.history = maybe_encode(run_command)
 
-    print('Split complete!')
+    print('Split complete! Mesh files:\n    {}\n    {}'.format(outfile1, outfile2))
 
 
-def var_slice(dimensions, nc_in, nCells, nEdges, nVertices):
+def var_slice(dimensions, nc_in, nCells, nEdges, nVertices, maxEdges):
     slice1 = ()
     slice2 = ()
     for dim in dimensions:
@@ -188,6 +207,12 @@ def var_slice(dimensions, nc_in, nCells, nEdges, nVertices):
         elif dim == 'nVertices':
             slice1 += (slice(0, nVertices),)
             slice2 += (slice(nVertices, nc_in.dimensions['nVertices'].size),)
+        elif dim == 'maxEdges':
+            slice1 += (slice(0, maxEdges[0]),)
+            slice2 += (slice(0, maxEdges[1]),)
+        elif dim == 'maxEdges2':
+            slice1 += (slice(0, maxEdges[0]*2),)
+            slice2 += (slice(0, maxEdges[1]*2),)
         else:
             slice1 += (slice(None),)
             slice2 += (slice(None),)
