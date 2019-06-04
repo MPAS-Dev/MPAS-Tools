@@ -26,7 +26,7 @@ def parse_args(args=None):
     parser.add_argument('-o', dest='outfile', default='merged_mesh.nc', metavar='FILENAME',
                         help='The merged mesh file')
 
-    return parser.parse_intermixed_args(args)
+    return parser.parse_args(args)
 
 
 def merge_grids(infile1=None, infile2=None, outfile=None, runner=None):

@@ -52,7 +52,7 @@ def parse_args(args=None):
                              'attribute merge_point\n      OR: will use MESHFILE '
                              'maxEdges dimension and assume same for both)')
 
-    return parser.parse_intermixed_args(args)
+    return parser.parse_args(args)
 
 
 def split_grids(infile=None, outfile1=None, outfile2=None,
@@ -90,7 +90,7 @@ def split_grids(infile=None, outfile1=None, outfile2=None,
                       'attribute'.format(infile))
             try:
                 mp = json.loads(nc_in.merge_point)
-            except json.decoder.JSONDecodeError:
+            except ValueError:
                 raise ValueError('ERROR: {} merge_point global attribute is not valid JSON.\n'
                                  '    merge_point: {}'.format(infile, nc_in.merge_point))
 
