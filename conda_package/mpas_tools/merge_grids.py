@@ -30,6 +30,23 @@ def parse_args(args=None):
 
 
 def merge_grids(infile1=None, infile2=None, outfile=None, runner=None):
+    """
+    Merges two MPAS non-contiguous meshes together into a single file
+
+    Parameters
+    ----------
+    infile1 : str
+        The file name for the first mesh to merge
+
+    infile2 : str
+        The file name for the second mesh to merge
+
+    outfile : str
+        The file name for the first mesh to merge
+
+    runner : str, optional
+        The command to write into the global history attribute of the outfile
+    """
     now = datetime.now().strftime("%a %b %d %H:%M:%S %Y")
     if not runner:
         runner = '{}.merge_grids(infile1={}, infile2={}, outfile={})'.format(

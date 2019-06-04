@@ -1,1 +1,1 @@
-../../conda_package/mpas_tools/mesh/merge.py
+../../conda_package/mpas_tools/merge_grids.py

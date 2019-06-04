@@ -1,1 +1,1 @@
-../../conda_package/mpas_tools/mesh/split.py
+../../conda_package/mpas_tools/split_grids.py

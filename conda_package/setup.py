@@ -42,5 +42,5 @@ setup(name='mpas_tools',
       entry_points={'console_scripts':
                     ['planar_hex = mpas_tools.planar_hex:main',
                      'translate_planar_grid = mpas_tools.translate:main',
-                     'merge_grids = mpas_tools.mesh.merge:main',
-                     'split_grids = mpas_tools.mesh.split:main']})
+                     'merge_grids = mpas_tools.merge_grids:main',
+                     'split_grids = mpas_tools.split_grids:main']})

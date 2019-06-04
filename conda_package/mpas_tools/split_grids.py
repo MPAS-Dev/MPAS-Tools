@@ -57,6 +57,50 @@ def parse_args(args=None):
 
 def split_grids(infile=None, outfile1=None, outfile2=None,
                 nCells=None, nEdges=None, nVertices=None, maxEdges=None, runner=None):
+    """
+    Split two previously merged MPAS non-contiguous meshes together into
+    separate files. Typical usage is:
+
+    .. code:: python
+
+        split_grids(infile='infile.nc', outfile1='outfile1.nc', outfile2='outfile2.nc')
+
+    The optional arguments for ``nCells``, ``nEdges``, ``nVertices``, and ``maxEdges``
+    should generally not be required as this information sould have been saved in
+    ``infiles``'s global attribute ``merge_point`` when created by
+    :func:`mpas_tools.merge_grids.merge_grids`.
+
+    Parameters
+    ----------
+    infile : str
+        The file name for the mesh to split
+
+    outfile1 : str
+        The file name for the first split mesh
+
+    outfile2 : str
+        The file name for the second split mesh
+
+    nCells : int, optional
+        The number of cells in the first mesh (default: the value specified in
+        infile global attribute merge_point)
+
+    nEdges : int, optional
+        The number of edges in the first mesh (default: the value specified in
+        infile global attribute merge_point
+
+    nVertices : int, optional
+        The number of vertices in the first mesh (default: the value specified in
+        infile global attribute merge_point
+
+    maxEdges : list[int, int], optional
+        A list of the number of max edges (int) in each mesh (default: the value
+        specified in infile global attribute merge_point OR will use infile
+        maxEdges dimension and assume same for both)
+
+    runner : str, optional
+        The command to write into the global history attribute of the outfile
+    """
     now = datetime.now().strftime("%a %b %d %H:%M:%S %Y")
     if not runner:
         runner = '{}.split_grids(infile={}, outfile1={}, outfile2={}, nCells={},' \
