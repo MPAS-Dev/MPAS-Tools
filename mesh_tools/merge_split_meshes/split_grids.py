@@ -164,8 +164,8 @@ def split_grids(infile=None, outfile1=None, outfile2=None,
                 if var == 'indexToCellID':
                     var2[:] -= nCells
                 elif var == 'indexToEdgeID':
-                    var2[:] -= nVertices
-                elif var == 'indexToEdgeID':
+                    var2[:] -= nEdges
+                elif var == 'indexToVertexID':
                     var2[:] -= nVertices
                 elif var in ['cellsOnCell', 'cellsOnEdge', 'cellsOnVertex']:
                     tmp = var2[...]
