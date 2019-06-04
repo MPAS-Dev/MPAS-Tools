@@ -41,4 +41,6 @@ setup(name='mpas_tools',
       install_requires=['numpy', 'xarray', 'netCDF4', 'pyevtk'],
       entry_points={'console_scripts':
                     ['planar_hex = mpas_tools.planar_hex:main',
-                     'translate_planar_grid = mpas_tools.translate:main']})
+                     'translate_planar_grid = mpas_tools.translate:main',
+                     'merge_grids = mpas_tools.mesh.merge:main',
+                     'split_grids = mpas_tools.mesh.split:main']})
