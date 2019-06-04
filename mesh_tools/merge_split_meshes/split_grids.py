@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 """
-Tool to split 2 previously merged MPAS non-contiguous meshes into separate files
+Tool to split 2 previously merged MPAS non-contiguous meshes into separate files.
+Typical usage is:
+    split_grids.py -1 outfile1.nc -2 outfile2.nc infile
+The optional arguments for nCells, nEdges, nVertices, and maxEdges should
+generally not be required as this information is saved in the combined mesh file
+as global attributes by the merge_grids.py script.
 """
 
 import os
