@@ -213,7 +213,11 @@ def maybe_encode(string, encoding='ascii'):
         return string
 
 
-if __name__ == '__main__':
+def main():
     arguments = parse_args()
     arguments.runner = ' '.join(sys.argv[:])
     merge_grids(**vars(arguments))
+
+
+if __name__ == '__main__':
+    main()

@@ -180,14 +180,15 @@ def split_grids(infile=None, outfile1=None, outfile2=None,
                     tmp[tmp > 0] -= nVertices
                     var2[:] = tmp
 
-            attrToCopy = ("on_a_sphere", "sphere_radius", "is_periodic")
-            for attr in attrToCopy:
-               if attr in nc_in.ncattrs():
-                  mesh1.setncattr(attr, nc_in.getncattr(attr))
-                  mesh2.setncattr(attr, nc_in.getncattr(attr))
-               else:
-                  print("Warning: '{0}' global attribute not present in input "
-                      "file. '{0}' will not be added to the two output files.".format(attr))
+            attr_to_copy = ("on_a_sphere", "sphere_radius", "is_periodic")
+            for attr in attr_to_copy:
+                if attr in nc_in.ncattrs():
+                    mesh1.setncattr(attr, nc_in.getncattr(attr))
+                    mesh2.setncattr(attr, nc_in.getncattr(attr))
+                else:
+                    print("Warning: '{0}' global attribute not present in input "
+                          "file. '{0}' will not be added to the two output "
+                          "files.".format(attr))
 
             run_command = '{}: {} \n'.format(now, runner)
             if 'history' in nc_in.ncattrs():
@@ -235,7 +236,11 @@ def maybe_encode(string, encoding='ascii'):
         return string
 
 
-if __name__ == '__main__':
+def main():
     arguments = parse_args()
     arguments.runner = ' '.join(sys.argv[:])
     split_grids(**vars(arguments))
+
+
+if __name__ == '__main__':
+    main()
