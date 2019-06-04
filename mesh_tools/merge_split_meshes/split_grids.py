@@ -180,13 +180,14 @@ def split_grids(infile=None, outfile1=None, outfile2=None,
                     tmp[tmp > 0] -= nVertices
                     var2[:] = tmp
 
-            mesh1.on_a_sphere = nc_in.on_a_sphere
-            mesh1.sphere_radius = nc_in.sphere_radius
-            mesh1.is_periodic = nc_in.is_periodic
-
-            mesh2.on_a_sphere = nc_in.on_a_sphere
-            mesh2.sphere_radius = nc_in.sphere_radius
-            mesh2.is_periodic = nc_in.is_periodic
+            attrToCopy = ("on_a_sphere", "sphere_radius", "is_periodic")
+            for attr in attrToCopy:
+               if attr in nc_in.ncattrs():
+                  mesh1.setncattr(attr, nc_in.getncattr(attr))
+                  mesh2.setncattr(attr, nc_in.getncattr(attr))
+               else:
+                  print("Warning: '{0}' global attribute not present in input "
+                      "file. '{0}' will not be added to the two output files.".format(attr))
 
             run_command = '{}: {} \n'.format(now, runner)
             if 'history' in nc_in.ncattrs():
