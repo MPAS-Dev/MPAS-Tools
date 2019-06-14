@@ -1,5 +1,10 @@
 #!/usr/bin/env python
-import numpy, math
+"""
+This script scales the grid of an existing MPAS mesh by a scalar amount.
+"""
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import sys
 from netCDF4 import Dataset as NetCDFFile
 from optparse import OptionParser
 from datetime import datetime
@@ -12,7 +17,7 @@ options, args = parser.parse_args()
 if not options.filename:
 	parser.error("A grid file is required.")
 
-print "Applying scale factor of: ", options.scale
+print("Applying scale factor of: ", options.scale)
 
 scale = float(options.scale)
 
@@ -45,5 +50,6 @@ else:
    newhist = thiscommand
 setattr(grid, 'history', newhist )
 
-
 grid.close()
+
+print("Scale operation is complete.")

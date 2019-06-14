@@ -15,6 +15,9 @@ Example usage is
 Phillip J. Wolfram
 12/22/2015
 """
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import matplotlib.pyplot as plt
 import numpy as np
 import numexpr as ne
@@ -64,7 +67,7 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
     vertices = np.unique(vertices).tolist()
 
     for i in 1+np.arange(ntimes):
-        print 'Processing layer %d of %d...'%(i,ntimes)
+        print('Processing layer %d of %d...'%(i,ntimes))
         for acell in cells[:]:
             for cellneighs in ds.variables['cellsOnCell'][acell]-1:
                 cells.append(cellneighs)
@@ -99,7 +102,7 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
             plt.axis('equal')
             plt.show()
 
-    print 'done!'
+    print('done!')
 
     # compute vertex locations from circumcenters to ensure grid is Voronoi
     interior = np.prod(ds.variables['cellsOnVertex'][:],axis=1) > 0
@@ -109,7 +112,7 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
         verticesOnCell[ic,nedge:] = np.nan
 
     for nl in np.arange(nllyod):
-        print 'On iteration %d of %d'%(nl+1, nllyod)
+        print('On iteration %d of %d'%(nl+1, nllyod))
         if nl > 0:
             # update xc generators to be centroid of cells
             xc = np.nanmean(x[verticesOnCell], axis=1)
@@ -140,7 +143,7 @@ def multires_scaled_hex(infname, outfname, xc=25000/2.0, yc=50000/2.0, radius=50
 
     ds.close()
 
-    print 'finished grid'
+    print('finished grid')
 
 
 if __name__ == "__main__":
