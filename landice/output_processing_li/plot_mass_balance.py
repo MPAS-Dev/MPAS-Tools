@@ -4,7 +4,8 @@ Script to plot mass balance time-series from landice globalStats files.
 Currently only assesses grounded ice sheet mass balance.
 '''
 
-import sys
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import numpy as np
 from netCDF4 import Dataset
 from optparse import OptionParser
@@ -13,16 +14,16 @@ import matplotlib.pyplot as plt
 rhoi = 910.0
 
 
-print "** Gathering information.  (Invoke with --help for more details. All arguments are optional)"
+print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser(description=__doc__)
 parser.add_option("-f", dest="fileName", help="input filename", default="globalStats.nc", metavar="FILENAME")
 options, args = parser.parse_args()
 
-print "Using ice density of {} kg/m3 if required for unit conversions".format(rhoi)
+print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
 
-print "Mass balance will be inaccurate if not writing stats on every timestep."
+print("Mass balance will be inaccurate if not writing stats on every timestep.")
 
-print "Reading and plotting file: " + options.fileName
+print("Reading and plotting file: {}".format(options.fileName))
 f = Dataset(options.fileName,'r')
 yr = f.variables['daysSinceStart'][:]/365.0
 dyr = np.zeros(yr.shape)
@@ -83,7 +84,7 @@ plt.plot(yr, ( (SMBg+BMBg-GLflux-GLMigrationflux) * dyr).cumsum(), "--", label='
 plt.legend(loc='best', prop={'size': 6})
 plt.tight_layout()
 
-print "Plotting complete."
+print("Plotting complete.")
 
 plt.show()
 f.close()

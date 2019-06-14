@@ -3,6 +3,8 @@
 Script to plot common time-series from one or more landice globalStats files.
 '''
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import sys
 import numpy as np
 import numpy.ma as ma
@@ -13,7 +15,7 @@ import matplotlib.pyplot as plt
 rhoi = 910.0
 
 
-print "** Gathering information.  (Invoke with --help for more details. All arguments are optional)"
+print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser(description=__doc__)
 parser.add_option("-1", dest="file1inName", help="input filename", default="globalStats.nc", metavar="FILENAME")
 parser.add_option("-2", dest="file2inName", help="input filename", metavar="FILENAME")
@@ -22,7 +24,7 @@ parser.add_option("-4", dest="file4inName", help="input filename", metavar="FILE
 parser.add_option("-u", dest="units", help="units for mass/volume: m3, kg, Gt", default="m3", metavar="FILENAME")
 options, args = parser.parse_args()
 
-print "Using ice density of {} kg/m3 if required for unit conversions".format(rhoi)
+print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
 
 # create axes to plot into
 fig = plt.figure(1, figsize=(9, 11), facecolor='w')
@@ -40,7 +42,7 @@ elif options.units == "Gt":
    massUnit = "Gt"
 else:
    sys.exit("Unknown mass/volume units")
-print "Using volume/mass units of: ", massUnit
+print("Using volume/mass units of: ", massUnit)
 
 axVol = fig.add_subplot(nrow, ncol, 1)
 plt.xlabel('Year')
@@ -94,7 +96,7 @@ plt.grid()
 
 
 def plotStat(fname):
-    print "Reading and plotting file: " + fname
+    print("Reading and plotting file: {}".format(fname))
 
     name = fname
 
@@ -167,8 +169,7 @@ if(options.file4inName):
 
 axCalvFlux.legend(loc='best', prop={'size': 6})
 
-print "Generating plot."
+print("Generating plot.")
 fig.tight_layout()
 plt.show()
-
 

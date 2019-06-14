@@ -3,6 +3,8 @@
 Script to convert landice bit mask into individual masks for each bit and save them to the netcdf file.
 Converts any of cellMask, edgeMask, vertexMask present in file.
 '''
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import numpy
 from netCDF4 import Dataset
 
@@ -32,7 +34,7 @@ masks = {'ice': li_mask_ValueIce,
         }
 
 
-print "** Gathering information."
+print("** Gathering information.")
 parser = OptionParser()
 parser.add_option("-f", "--filename", dest="filename", help="file to visualize; default: output.nc", default="output.nc", metavar="FILE")
 options, args = parser.parse_args()
@@ -50,9 +52,9 @@ if 'cellMask' in inFile.variables:
      else:
         newMaskVar = inFile.createVariable(varName, 'i', ('Time','nCells'))
      for t in range(nTime):
-        newMaskVar[t,:] = (inFile.variables['cellMask'][t,:] & masks[maskName]) / masks[maskName]
+        newMaskVar[t,:] = (inFile.variables['cellMask'][t,:] & masks[maskName]) // masks[maskName]
    inFile.sync()
-   print "cellMask converted to individual masks."
+   print("cellMask converted to individual masks.")
 
 if 'edgeMask' in inFile.variables:
    for maskName in masks:
@@ -62,9 +64,9 @@ if 'edgeMask' in inFile.variables:
      else:
         newMaskVar = inFile.createVariable(varName, 'i', ('Time','nEdges'))
      for t in range(nTime):
-        newMaskVar[t,:] = (inFile.variables['edgeMask'][t,:] & masks[maskName]) / masks[maskName]
+        newMaskVar[t,:] = (inFile.variables['edgeMask'][t,:] & masks[maskName]) // masks[maskName]
    inFile.sync()
-   print "edgeMask converted to individual masks."
+   print("edgeMask converted to individual masks.")
 
 if 'vertexMask' in inFile.variables:
    for maskName in masks:
@@ -74,9 +76,9 @@ if 'vertexMask' in inFile.variables:
      else:
         newMaskVar = inFile.createVariable(varName, 'i', ('Time','nVertices'))
      for t in range(nTime):
-        newMaskVar[t,:] = (inFile.variables['vertexMask'][t,:] & masks[maskName]) / masks[maskName]
+        newMaskVar[t,:] = (inFile.variables['vertexMask'][t,:] & masks[maskName]) // masks[maskName]
    inFile.sync()
-   print "vertexMask converted to individual masks."
+   print("vertexMask converted to individual masks.")
 
 
 inFile.close()
