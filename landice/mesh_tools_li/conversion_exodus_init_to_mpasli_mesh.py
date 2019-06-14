@@ -1,9 +1,13 @@
 #!/usr/bin/env python
 """
+Script to convert Albany-Land Ice output file in Exodus format to an MPAS-Land Ice format mesh.
+
 Created on Tue Feb 13 23:50:20 2018
 
 @author: Tong Zhang, Matt Hoffman
 """
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import numpy as np
 from netCDF4 import Dataset
@@ -61,20 +65,20 @@ y_exo = np.array(xyz_exo[1]) * 1000
 # change the unit of the exo coord data from km to m. Be careful if it changes in the future
 
 if ordering == 1.0:
-    print "column wise pattern"
+    print("column wise pattern")
     layer_num = int(stride)
     data_exo_layer = data_exo[::layer_num]
     x_exo_layer = x_exo[::layer_num]
     y_exo_layer = y_exo[::layer_num]
 elif ordering == 0.0:
-    print "layer wise pattern"
+    print("layer wise pattern")
     node_num = int(stride)
     data_exo_layer = data_exo[0:node_num+1]
     x_exo_layer = x_exo[0:node_num+1]
     y_exo_layer = y_exo[0:node_num+1]
-    layer_num = int(len(data_exo)/node_num)
+    layer_num = len(data_exo)//node_num
 else:
-    print "The ordering is probably wrong"
+    print("The ordering is probably wrong")
 # slice the exo data to get the MPAS data
 
 node_num_layer = len(x_exo_layer)
@@ -83,7 +87,7 @@ node_num_layer = len(x_exo_layer)
 # set beta value to some uniform value before we put new data in it
 
 if (options.conversion_method == 'coord'):
-    print "use coordinate method"
+    print("use coordinate method")
     for i in range(node_num_layer):
         index_x, = np.where(abs(x[:]-x_exo_layer[i])/(abs(x[:])+1e-10)<1e-3)
         index_y, = np.where(abs(y[:]-y_exo_layer[i])/(abs(y[:])+1e-10)<1e-3)
@@ -98,7 +102,7 @@ if (options.conversion_method == 'coord'):
         # This method may fail at the point where x or y = 0, while x_exo or y_exo is not
 
 elif (options.conversion_method == 'id'):
-    print "use global id method. Need a global id file"
+    print("use global id method. Need a global id file")
     usefullCellID = np.loadtxt(options.id_file,dtype='i')
     usefullCellID_array = usefullCellID[1::]
     # The first number in the file is the total number. skip it
@@ -112,7 +116,7 @@ elif (options.conversion_method == 'id'):
 else:
     sys.exit("wrong conversion method! Set option m as id or coord!")
 
-print "Successful in converting data from Exodus to MPAS!"
+print("Successful in converting data from Exodus to MPAS!")
 
 nCells = len(dataset.dimensions['nCells'])
 thickness = dataset.variables['thickness'][0,:]
@@ -141,10 +145,10 @@ keepCellMaskOld = np.copy(keepCellMask)  # make a copy to edit that can be edite
 # 5) Update mask
 # 6) go to step 1)
 
-print "\nStart extrapolation!"
+print("\nStart extrapolation!")
 
 while np.count_nonzero(keepCellMask) != nCells:
-    
+
     keepCellMask = np.copy(keepCellMaskNew)
     searchCells = np.where(keepCellMask==0)[0]
 
@@ -164,7 +168,7 @@ while np.count_nonzero(keepCellMask) != nCells:
                 dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
                 keepCellMask[iCell] = 1
 
-        print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+        print("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
 
 
     else:
@@ -200,10 +204,10 @@ while np.count_nonzero(keepCellMask) != nCells:
                 keepCellMaskNew[iCell] = 1
 
 
-        print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+        print("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
 
 
-print "\nStart idw smoothing for extrapolated field!"
+print("\nStart idw smoothing for extrapolated field!")
 
 iter_num = 0
 while iter_num < int(options.smooth_iter_num):
@@ -226,7 +230,7 @@ while iter_num < int(options.smooth_iter_num):
 
             dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
 
-        print ("{0:3d} smoothing in total {1:3s} iters".format(iter_num,  options.smooth_iter_num))
+        print("{0:3d} smoothing in total {1:3s} iters".format(iter_num,  options.smooth_iter_num))
 
 
     else:
@@ -254,13 +258,13 @@ while iter_num < int(options.smooth_iter_num):
             var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
             dataset.variables[options.var_name][0,iCell] = var_interp
 
-        print ("{0:3d} smoothing in total {1:3s} iters".format(iter_num,  options.smooth_iter_num))
+        print("{0:3d} smoothing in total {1:3s} iters".format(iter_num,  options.smooth_iter_num))
 
     iter_num = iter_num + 1
 
 if iter_num == 0:
-    print "\nNo smoothing! Iter number is 0!"
+    print("\nNo smoothing! Iter number is 0!")
 
-print "\nExtrapolation and smoothing finished!"
+print("\nExtrapolation and smoothing finished!")
 
 dataset.close()
