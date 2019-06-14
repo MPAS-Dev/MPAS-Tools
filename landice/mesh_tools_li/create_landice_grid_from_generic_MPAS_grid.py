@@ -133,7 +133,7 @@ for optionalVar in ['meshDensity', 'gridSpacing', 'cellQuality', 'triangleQualit
       vars2copy.append(optionalVar)
 
 for varname in vars2copy:
-   print("-"),
+   print("- ", end='')
 print("|")
 for varname in vars2copy:
    thevar = filein.variables[varname]
