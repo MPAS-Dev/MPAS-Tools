@@ -63,7 +63,8 @@ and which parts of cell and edge polygons are interior (boundaryMask == 0).
 Together, this can be used to plot topography by using a calculator filter like
 the following:
 
-    coords*(1.0 + 100.0/mag(coords)*((1 - boundaryMask)*(-bottomDepth) + 10.0*boundaryMask))
+    coords*(1.0 + 100.0/mag(coords)*((1 - boundaryMask)*(-bottomDepth)
+                                     + 10.0*boundaryMask))
 
 If this is entered into a Calculator Filter in ParaView with the "coordinate
 result" box checked, the result will to display the MPAS-Ocean topography,
@@ -249,7 +250,8 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
                 else:
                     if xtimeName not in time_series_file.variables:
                         raise ValueError("xtime variable name {} not found in "
-                                         "{}".format(xtimeName, time_series_file))
+                                         "{}".format(xtimeName,
+                                                     time_series_file))
                     var = time_series_file.variables[xtimeName]
                     if len(var.shape) == 2:
                         xtime = var[local_time_indices[time_index],
@@ -377,7 +379,8 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
     if any_var_has_time_dim:
         # finish the pdv file
         pvd_file.write('</Collection>\n')
-        pvd_file.write('</VTKFile>\n')  # }}}
+        pvd_file.write('</VTKFile>\n')
+        pvd_file.close()  # }}}
 
 
 if __name__ == "__main__":
