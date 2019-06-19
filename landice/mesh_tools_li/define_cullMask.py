@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-# Script for adding a field named cullMask to an MPAS land ice grid for use with the MpasCellCuller tool that actually culls the unwanted cells.
-# Matt Hoffman, February 28, 2013
+"""
+Script for adding a field named cullMask to an MPAS land ice grid for use with the MpasCellCuller tool that actually culls the unwanted cells.
+Matt Hoffman, February 28, 2013
+"""
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals

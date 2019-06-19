@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-# Script to create a grid with land ice variables from an MPAS grid.
-# I've only tested it with a periodic_hex grid, but it should work with any MPAS grid.
-# Currently variable attributes are not copied (and periodic_hex does not assign any, so this is ok).  If variable attributes are added to periodic_hex, this script should be modified to copy them (looping over dir(var), skipping over variable function names "assignValue", "getValue", "typecode").
+"""
+Script to create a grid with land ice variables from an MPAS grid.
+Currently variable attributes are not copied.
+This script could be modified to copy them (looping over dir(var), skipping over variable function names "assignValue", "getValue", "typecode").
+"""
 
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
@@ -131,7 +133,7 @@ for optionalVar in ['meshDensity', 'gridSpacing', 'cellQuality', 'triangleQualit
       vars2copy.append(optionalVar)
 
 for varname in vars2copy:
-   print("-"),
+   print("- ", end='')
 print("|")
 for varname in vars2copy:
    thevar = filein.variables[varname]

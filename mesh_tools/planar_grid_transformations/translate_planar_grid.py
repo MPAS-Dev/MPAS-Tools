@@ -2,15 +2,15 @@
 '''
 Translate planar MPAS grid by one of three methods
 '''
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import sys
 import netCDF4
-#import numpy as np
 from optparse import OptionParser
 from datetime import datetime
 
 
-print "== Gathering information.  (Invoke with --help for more details. All arguments are optional)"
+print("== Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser()
 parser.description = ("This script translates the coordinate system of the planar MPAS mesh specified with the -f flag. "
                       "There are 3 possible methods to choose from:"
@@ -27,7 +27,7 @@ for option in parser.option_list:
         option.help += (" " if option.help else "") + "[default: %default]"
 options, args = parser.parse_args()
 
-print "Attempting to translate coordinates in file: %s"%options.fileInName
+print("Attempting to translate coordinates in file: {}".format(options.fileInName))
 
 
 if options.dataFileName and (options.xshift or options.yshift):
@@ -44,17 +44,17 @@ if not options.center and not options.xshift and not options.yshift and not opti
 
 if options.dataFileName:
   method = 'file'
-  print "  Translating coordinates in %s so the domain center matches the domain center in %s."%(options.fileInName, options.dataFileName)
+  print("  Translating coordinates in {} so the domain center matches the domain center in {}.".format(options.fileInName, options.dataFileName))
 
 if options.xshift or options.yshift:
   method = 'xy'
-  print "  Translating coordinates in %s by user-specified values.  X-shift=%f; Y-shift=%f"%(options.fileInName, options.xshift, options.yshift)
+  print("  Translating coordinates in {} by user-specified values.  X-shift={}; Y-shift={}".format(options.fileInName, options.xshift, options.yshift))
 
-if options.center:        
+if options.center:
   method = 'center'
-  print "  Translating coordinates in %s so the origin is the center of the domain."
+  print("  Translating coordinates in %s so the origin is the center of the domain.")
 
-print '' # make a space in stdout before further output
+print('') # make a space in stdout before further output
 
 
 # =================================================
@@ -114,4 +114,4 @@ setattr(f, 'history', newhist )
 
 f.close()
 
-print "Translation completed."
+print("Translation completed.")
