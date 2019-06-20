@@ -13,6 +13,8 @@ build:
   entry_points:
     - planar_hex = mpas_tools.planar_hex:main
     - translate_planar_grid = mpas_tools.translate:main
+    - merge_grids = mpas_tools.merge_grids:main
+    - split_grids = mpas_tools.split_grids:main
 
 requirements:
   build:
@@ -20,6 +22,7 @@ requirements:
     - cmake
   host:
     - python
+    - netcdf4
     - hdf5
     - libnetcdf
     - setuptools
@@ -65,6 +68,8 @@ test:
     - widen_transect_edge_masks.py --help
     - add_critical_land_blockages_to_mask.py --help
     - paraview_vtk_field_extractor.py -f mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc -v latCell,lonCell --ignore_time -o vtk_test
+    - split_grids --help
+    - merge_grids --help
 
 about:
   home: https://github.com/MPAS-Dev/MPAS-Tools/
@@ -75,7 +80,7 @@ about:
   description: |
     A set of tools for creating and manipulating meshes for the climate
     components based on the Model for Prediction Across Scales (MPAS) framework
-  doc_url: 'https://github.com/MPAS-Dev/MPAS-Tools/README.md'
+  doc_url: 'https://github.com/MPAS-Dev/MPAS-Tools/blob/master/README.md'
   dev_url: 'https://github.com/MPAS-Dev/MPAS-Tools/'
 
 extra:

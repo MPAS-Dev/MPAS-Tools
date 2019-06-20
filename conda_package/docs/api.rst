@@ -14,7 +14,7 @@ MPAS mesh tools
 .. autosummary::
    :toctree: generated/
 
-   make_periodic_planar_hex_mesh
+   make_planar_hex_mesh
 
 .. currentmodule:: mpas_tools.translate
 
@@ -33,6 +33,19 @@ MPAS mesh tools
    cull
    mask
 
+.. currentmodule:: mpas_tools.merge_grids
+
+.. autosummary::
+   :toctree: generated/
+
+   merge_grids
+
+.. currentmodule:: mpas_tools.split_grids
+
+.. autosummary::
+   :toctree: generated/
+
+   split_grids
 
 .. currentmodule:: mpas_tools.io
 
