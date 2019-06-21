@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 
+import os
+import re
 from setuptools import setup, find_packages
 
-version = '0.0.2'
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'mpas_tools', '__init__.py')) as f:
+    init_file = f.read()
+
+version = re.search(r'{}\s*=\s*[(]([^)]*)[)]'.format('__version_info__'),
+                    init_file).group(1).replace(', ', '.')
 
 setup(name='mpas_tools',
       version=version,

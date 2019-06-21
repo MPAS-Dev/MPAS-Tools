@@ -1,5 +1,5 @@
 {% set name = "mpas_tools" %}
-{% set version = "0.0.2" %}
+{% set version = "0.0.3" %}
 
 package:
   name: '{{ name|lower }}'
@@ -26,6 +26,9 @@ requirements:
     - hdf5
     - libnetcdf
     - setuptools
+    - netcdf4
+    - openmp  # [osx]
+
   run:
     - python
     - netcdf4
