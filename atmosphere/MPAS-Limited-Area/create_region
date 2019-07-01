@@ -1,0 +1,66 @@
+#!/usr/bin/env python
+
+from __future__ import absolute_import, division, print_function
+import argparse
+from limited_area.limited_area import LimitedArea
+
+if __name__ == "__main__":
+    description = ("Create a limited area MPAS grid from a global MPAS grid"
+                   " and a file that specifies the regional area boundary.")
+
+    epilog = ("For more information please see: "
+             "https://github.com/MiCurry/MPAS-Limited-Area")
+
+
+    parser = argparse.ArgumentParser(description=description,
+                                     epilog=epilog)
+
+    required = parser.add_argument_group('Required', "Limited Area requires a"
+                                                     " MPAS Grid as well as a"
+                                                     " file specifying the"
+                                                     " limited area.")
+
+    options = parser.add_argument_group('Options', "Options to generating the"
+                                                   " MPAS limited area.")
+
+
+    required.add_argument('points',
+                          help='Points file specifying the MPAS regional area',
+                          type=str)
+    required.add_argument('grid',
+                          help=('Global MPAS grid file. Either a grid.nc or'
+                                ' static.nc file'),
+                          type=str)
+
+    options.add_argument('-v', '--verbose',
+                         help='Turn on verbose setting 0-5',
+                         type=int,
+                         default=0)
+
+    args, unkown = parser.parse_known_args()
+
+
+    DEBUG = args.verbose
+    if  DEBUG > 0:
+        print("DEBUG: DEBUG set to verbose level ", DEBUG, '\n')
+
+    if DEBUG > 1:
+        print("DEBUG: Grid File: ", args.grid)
+        print("DEBUG: Points File: ", args.points)
+
+
+    kwargs = { 'DEBUG' : DEBUG }
+
+    regional_area = LimitedArea(args.grid,
+                                args.points,
+                                format='NETCDF3_64BIT_OFFSET',
+                                **kwargs)
+
+    regional_area.gen_region(**kwargs)
+
+
+    if DEBUG > 0:
+        print("DEBUG: Limited Area Creation Finished")
+
+
+
