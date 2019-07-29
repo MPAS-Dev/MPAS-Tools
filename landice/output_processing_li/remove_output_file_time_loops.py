@@ -22,20 +22,28 @@ days = f.variables['daysSinceStart'][:]
 nt = len(f.dimensions['Time'])
 
 keepInd = np.zeros((nt,))
-keepInd[0] = 1
+keepInd[:] = 1 # initialize to keep all days
 prevMaxDay = days[0]
+nLoops = 0
 for i in range(1,nt):
-  if days[i] > prevMaxDay:
-     keepInd[i] = 1
-     prevMaxDay = days[i]
-  else:
-     keepInd[i] = 0
-print("Keeping {} indices out of {}".format(int(keepInd.sum()), nt))
+  if days[i] < prevMaxDay:
+     # found a loop.
+     print("Found a time loop at index {}".format(i))
+     nLoops += 1
+     # We want the second instance of this time period, not the first
+     # So we need to "unkeep" all previous time slices before this one that have greater times
+     ind = np.where(days[:i] > days[i])[0]
+     keepInd[ind] = 0
+  prevMaxDay = days[i]
+
+print("Found and repairing {} time loops. Keeping {} indices out of {}.".format(nLoops, int(keepInd.sum()), nt))
 keepList = np.nonzero(keepInd)[0]
 
 if int(keepInd.sum())==nt:
    print("No cleaning required.")
    sys.exit()
+
+# ----- continue processing if needed -----
 
 # Copy all fields to a new file
 fnameCleaned=args.file+".cleaned"
