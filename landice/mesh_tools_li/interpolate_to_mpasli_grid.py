@@ -355,6 +355,7 @@ print('Gathering coordinate information from input and output files.')
 # Open the output file, get needed dimensions & variables
 try:
     MPASfile = netCDF4.Dataset(options.mpasFile,'r+')
+    MPASfile.set_auto_mask(False)
     try:
       nVertLevels = len(MPASfile.dimensions['nVertLevels'])
     except:
@@ -387,6 +388,7 @@ print("==================\n")
 
 # Open the input file, get needed dimensions
 inputFile = netCDF4.Dataset(options.inputFile,'r')
+inputFile.set_auto_mask(False)
 
 # Figure out if this is CISM or MPAS
 if 'x1' in inputFile.variables:
