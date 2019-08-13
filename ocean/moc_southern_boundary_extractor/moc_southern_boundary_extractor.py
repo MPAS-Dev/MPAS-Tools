@@ -245,7 +245,8 @@ def addTransectsToMOC(mesh, mocMask, southernBoundaryEdges,
     mocMask['transectVertexGlobalIDs'] = \
         (('nTransects', 'maxVerticesInTransect'), transectVertexGlobalIDs)
 
-    mocMask['transectNames'] = mocMask.regionNames
+    mocMask['transectNames'] = mocMask.regionNames.rename(
+        {'nRegions': 'nTransects'})
 
 
 if __name__ == "__main__":
