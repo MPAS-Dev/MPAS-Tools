@@ -248,6 +248,15 @@ def addTransectsToMOC(mesh, mocMask, southernBoundaryEdges,
     mocMask['transectNames'] = mocMask.regionNames.rename(
         {'nRegions': 'nTransects'})
 
+    mocMask['nTransectsInGroup'] = mocMask.nRegionsInGroup.rename(
+        {'nRegionGroups': 'nTransectGroups'})
+
+    mocMask['transectsInGroup'] = mocMask.regionsInGroup.rename(
+        {'nRegionGroups': 'nTransectGroups', 'maxRegionsInGroup': 'maxTransectsInGroup'})
+
+    mocMask['transectGroupNames'] = mocMask.regionGroupNames.rename(
+        {'nRegionGroups': 'nTransectGroups'})
+
 
 if __name__ == "__main__":
 
