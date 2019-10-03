@@ -11,6 +11,9 @@ with open(os.path.join(here, 'mpas_tools', '__init__.py')) as f:
 version = re.search(r'{}\s*=\s*[(]([^)]*)[)]'.format('__version_info__'),
                     init_file).group(1).replace(', ', '.')
 
+
+os.chdir(here)
+
 setup(name='mpas_tools',
       version=version,
       description='A set of tools for creating and manipulating meshes for the'
