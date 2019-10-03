@@ -3,6 +3,7 @@
 import os
 import re
 from setuptools import setup, find_packages
+import shutil
 
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'mpas_tools', '__init__.py')) as f:
@@ -11,8 +12,10 @@ with open(os.path.join(here, 'mpas_tools', '__init__.py')) as f:
 version = re.search(r'{}\s*=\s*[(]([^)]*)[)]'.format('__version_info__'),
                     init_file).group(1).replace(', ', '.')
 
-
 os.chdir(here)
+
+for path in ['ocean', 'landice', 'visualization', 'mesh_tools']:
+    shutil.copytree('../{}'.format(path), './{}'.format(path))
 
 setup(name='mpas_tools',
       version=version,
