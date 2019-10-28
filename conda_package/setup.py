@@ -15,7 +15,8 @@ version = re.search(r'{}\s*=\s*[(]([^)]*)[)]'.format('__version_info__'),
 os.chdir(here)
 
 for path in ['ocean', 'landice', 'visualization', 'mesh_tools']:
-    shutil.copytree('../{}'.format(path), './{}'.format(path))
+    if not os.path.exists(path):
+        shutil.copytree('../{}'.format(path), './{}'.format(path))
 
 setup(name='mpas_tools',
       version=version,
@@ -43,13 +44,13 @@ setup(name='mpas_tools',
       package_data={},
       scripts=['mesh_tools/mesh_conversion_tools/mark_horns_for_culling.py',
                'mesh_tools/planar_grid_transformations/set_lat_lon_fields_in_planar_grid.py',
+               'mesh_tools/create_SCRIP_files/create_SCRIP_file_from_MPAS_mesh.py',
                'landice/mesh_tools_li/create_landice_grid_from_generic_MPAS_grid.py',
                'landice/mesh_tools_li/define_cullMask.py',
                'landice/mesh_tools_li/interpolate_to_mpasli_grid.py',
                'landice/mesh_tools_li/mark_domain_boundaries_dirichlet.py',
                'ocean/coastline_alteration/add_land_locked_cells_to_mask.py',
                'ocean/coastline_alteration/widen_transect_edge_masks.py',
-               'ocean/coastline_alteration/add_critical_land_blockages_to_mask.py',
                'ocean/coastline_alteration/add_critical_land_blockages_to_mask.py',
                'visualization/paraview_vtk_field_extractor/paraview_vtk_field_extractor.py'],
       install_requires=['numpy', 'xarray', 'netCDF4', 'pyevtk'],
