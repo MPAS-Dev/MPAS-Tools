@@ -17,21 +17,32 @@ def main():
     config = ConfigParser()
     config.read("create_E3SM_MPAS_coupling_files.ini")
 
-    initial_condition_ocean(config)
-    graph_partition_ocean(config)
-    initial_condition_seaice(config)
-    scrip(config)
-    transects_and_regions(config)
-    #mapping_Gcase(config)
-    domain(config)
+    coupling_function('initial_condition_ocean',config)
+    coupling_function('graph_partition_ocean',config)
+    coupling_function('initial_condition_seaice',config)
+    coupling_function('scrip',config)
+    coupling_function('transects_and_regions',config)
+    coupling_function('mapping_Gcase',config)
+    coupling_function('domain',config)
 
+def coupling_function(function_name,config):
 
-def initial_condition_ocean(config):
-    section = 'initial_condition_ocean'
-    if config.get(section, 'enable') == False:
+    print("****** " + function_name + " ******")
+
+    if config.get(function_name, 'enable') == False:
+        print("Disabled in .ini file")
         return
-    make_dir(section)
-    os.chdir(section)
+    make_dir(function_name)
+    os.chdir(function_name)
+
+    try:
+        globals()[function_name](function_name, config)
+        print('SUCCESS: ' + function_name + ' completed.')
+    except:
+        print('WARNING: ' + function_name + ' failed.')
+    print(" ")
+
+def initial_condition_ocean(function_name,config):
 
     # obtain configuration settings
     mesh_name = config.get('main', 'mesh_name')
@@ -46,28 +57,22 @@ def initial_condition_ocean(config):
             mesh_name + '.nc',
             mesh_name + '_no_xtime.nc'
             ]
-
     run_command(args)
 
     # create link to output directory
     make_dir('../' + coupling_output + '/ocn/mpas-o/' + mesh_name)
     os.chdir('../' + coupling_output + '/ocn/mpas-o/' + mesh_name)
-    make_link('../../../../../' + section + '/' + mesh_name + '_no_xtime.nc',
+    make_link('../../../../../' + function_name + '/' + mesh_name + '_no_xtime.nc',
         mesh_name + '_no_xtime.nc')
     os.chdir('../../../../..')
 
 
-def graph_partition_ocean(config):
-    section = 'graph_partition_ocean'
-    if config.get(section, 'enable') == False:
-        return
-    make_dir(section)
-    os.chdir(section)
+def graph_partition_ocean(function_name,config):
 
     # obtain configuration settings
-    min_graph_size = config.getint(section, 'min_graph_size')
-    max_graph_size = config.getint(section, 'max_graph_size')
-    graph_file = config.get(section, 'graph_file')
+    min_graph_size = config.getint(function_name, 'min_graph_size')
+    max_graph_size = config.getint(function_name, 'max_graph_size')
+    graph_file = config.get(function_name, 'graph_file')
     mesh_name = config.get('main', 'mesh_name')
     date_string = config.get('main', 'date_string')
     coupling_output = config.get('main', 'coupling_file_output')
@@ -91,19 +96,14 @@ def graph_partition_ocean(config):
     # create link to output directory
     make_dir('../' + coupling_output + '/ocn/mpas-o/' + mesh_name)
     os.chdir('../' + coupling_output + '/ocn/mpas-o/' + mesh_name)
-    for file in os.listdir('../../../../../' + section):
+    for file in os.listdir('../../../../../' + function_name):
         if file.startswith('mpas-o.graph.info.' + date_string + '.part.'):
-            make_link('../../../../../' + section + '/' + file, './' + file)
+            make_link('../../../../../' + function_name + '/' + file, './' + file)
 
     os.chdir('../../../../..')
 
 
-def initial_condition_seaice(config):
-    section = 'initial_condition_seaice'
-    if config.get(section, 'enable') == False:
-        return
-    make_dir(section)
-    os.chdir(section)
+def initial_condition_seaice(function_name,config):
 
     # obtain configuration settings
     mesh_name = config.get('main', 'mesh_name')
@@ -130,18 +130,13 @@ def initial_condition_seaice(config):
     # make links to output directory
     make_dir('../' + coupling_output + 'ice/mpas-cice/' + mesh_name)
     os.chdir('../' + coupling_output + 'ice/mpas-cice/' + mesh_name)
-    make_link( '../../../../../' + section + '/seaice.' + mesh_name + '.nc',
+    make_link( '../../../../../' + function_name + '/seaice.' + mesh_name + '.nc',
                'seaice.' + mesh_name + '.nc')
 
     os.chdir('../../../../../')
 
 
-def scrip(config):
-    section = 'scrip'
-    if config.get(section, 'enable') == False:
-        return
-    make_dir(section)
-    os.chdir(section)
+def scrip(function_name,config):
 
     # obtain configuration settings
     mesh_name = config.get('main', 'mesh_name')
@@ -178,12 +173,7 @@ def scrip(config):
     os.chdir('../../../../..')
 
 
-def transects_and_regions(config):
-    section = 'transects_and_regions'
-    if config.get(section, 'enable') == False:
-        return
-    make_dir(section)
-    os.chdir(section)
+def transects_and_regions(function_name,config):
 
     # obtain configuration settings
     MPAS_Tools = config.get('main', 'MPAS_Tools')
@@ -209,18 +199,13 @@ def transects_and_regions(config):
     # make links in output directory
     make_dir('../' + coupling_output + 'ocn/mpas-o/' + mesh_name)
     os.chdir('../' + coupling_output + 'ocn/mpas-o/' + mesh_name)
-    make_link('../../../../../' + section + '/masks_SingleRegionAtlanticWTransportTransects.' + mesh_name + '.nc',
+    make_link('../../../../../' + function_name + '/masks_SingleRegionAtlanticWTransportTransects.' + mesh_name + '.nc',
              'masks_SingleRegionAtlanticWTransportTransects.' + mesh_name + '.nc')
 
     os.chdir('../../../../..')
 
 
-def mapping_Gcase(config):
-    section = 'mapping_Gcase'
-    if config.get(section, 'enable') == False:
-        return
-    make_dir(section)
-    os.chdir(section)
+def mapping_Gcase(function_name,config):
 
     # obtain configuration settings
     MPAS_Tools = config.get('main', 'MPAS_Tools')
@@ -290,12 +275,7 @@ def mapping_Gcase(config):
 
     os.chdir('../../../..')
 
-def domain(config):
-    section = 'domain'
-    if config.get(section, 'enable') == False:
-        return
-    make_dir(section)
-    os.chdir(section)
+def domain(function_name,config):
 
     # obtain configuration settings
     date_string = config.get('main', 'date_string')
@@ -315,11 +295,11 @@ def domain(config):
     # make links in output directories
     make_dir('../' + coupling_output + 'share/domains')
     os.chdir('../' + coupling_output + '/share/domains')
-    make_link('../../../../' + section + '/domain.lnd.T62_' + mesh_name + '.' + date_string + '.nc',
+    make_link('../../../../' + function_name + '/domain.lnd.T62_' + mesh_name + '.' + date_string + '.nc',
               'domain.lnd.T62_' + mesh_name + '.' + date_string + '.nc' )
-    make_link('../../../../' + section + '/domain.ocn.T62_' + mesh_name + '.' + date_string + '.nc',
+    make_link('../../../../' + function_name + '/domain.ocn.T62_' + mesh_name + '.' + date_string + '.nc',
               'domain.ocn.T62_' + mesh_name + '.' + date_string + '.nc')
-    make_link('../../../../' + section + '/domain.ocn.' + mesh_name + '.' + date_string + '.nc',
+    make_link('../../../../' + function_name + '/domain.ocn.' + mesh_name + '.' + date_string + '.nc',
               'domain.ocn' + mesh_name + '.' + date_string + '.nc')
     
     os.chdir('../../../..')
