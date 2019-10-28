@@ -9,7 +9,7 @@ import numpy as np
 from optparse import OptionParser
 
 
-print ("== Gathering information.  (Invoke with --help for more details. All arguments are optional)")
+print("== Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser()
 parser.description = "This script takes an MPAS grid file and generates a SCRIP grid file."
 parser.add_option("-m", "--mpas", dest="mpasFile", help="MPAS grid file name used as input.", default="grid.nc", metavar="FILENAME")
@@ -29,11 +29,11 @@ if not options.landiceMasks:
         options.landiceMasks = False
 
 if options.landiceMasks:
-        print (" -- Landice Masks are enabled")
+        print(" -- Landice Masks are enabled")
 else:
-        print (" -- Landice Masks are disabled")
+        print(" -- Landice Masks are disabled")
 
-print ('') # make a space in stdout before further output
+print('') # make a space in stdout before further output
 
 
 # ===============================================
@@ -56,10 +56,10 @@ on_a_sphere = str(fin.on_a_sphere)
 
 
 if sphereRadius <= 0:
-    print (" -- WARNING: conservative remapping is NOT possible when 'sphereRadius' <= 0 because 'grid_area' field will be infinite (from division by 0)")
+    print(" -- WARNING: conservative remapping is NOT possible when 'sphereRadius' <= 0 because 'grid_area' field will be infinite (from division by 0)")
 
 if on_a_sphere == "NO":
-    print (" -- WARNING: 'on_a_sphere' attribute is 'NO', which means that there may be some disagreement regarding area between the planar (source) and spherical (target) mesh")
+    print(" -- WARNING: 'on_a_sphere' attribute is 'NO', which means that there may be some disagreement regarding area between the planar (source) and spherical (target) mesh")
 
 if options.landiceMasks:
     landIceMask = fin.variables['landIceMask'][:]
@@ -122,13 +122,13 @@ grid_corner_lon[:] = grid_corner_lon_local[:]
 #plt.show()
 
 
-print ("Input latCell min/max values (radians):", latCell[:].min(), latCell[:].max())
-print ("Input lonCell min/max values (radians):", lonCell[:].min(), lonCell[:].max())
-print ("Calculated grid_center_lat min/max values (radians):", grid_center_lat[:].min(), grid_center_lat[:].max())
-print ("Calculated grid_center_lon min/max values (radians):", grid_center_lon[:].min(), grid_center_lon[:].max())
-print ("Calculated grid_area min/max values (sq radians):", grid_area[:].min(), grid_area[:].max())
+print("Input latCell min/max values (radians):", latCell[:].min(), latCell[:].max())
+print("Input lonCell min/max values (radians):", lonCell[:].min(), lonCell[:].max())
+print("Calculated grid_center_lat min/max values (radians):", grid_center_lat[:].min(), grid_center_lat[:].max())
+print("Calculated grid_center_lon min/max values (radians):", grid_center_lon[:].min(), grid_center_lon[:].max())
+print("Calculated grid_area min/max values (sq radians):", grid_area[:].min(), grid_area[:].max())
 
 fin.close()
 fout.close()
 
-print ("Creation of SCRIP file is complete.")
+print("Creation of SCRIP file is complete.")
