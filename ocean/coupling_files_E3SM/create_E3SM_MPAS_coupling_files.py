@@ -74,14 +74,12 @@ def graph_partition_ocean(config):
     min_graph_size = config.getint(section, 'min_graph_size')
     max_graph_size = config.getint(section, 'max_graph_size')
     graph_file = config.get(section, 'graph_file')
-    gpmetis_executable = config.get(section, 'gpmetis_executable')
     mesh_name = config.get('main', 'mesh_name')
     date_string = config.get('main', 'date_string')
     coupling_output = config.get('main', 'coupling_file_output')
 
     # create links
     make_link('../' + graph_file, 'mpas-o.graph.info.' + date_string)
-    make_link(gpmetis_executable, 'gpmetis')
 
     # command line execution
     n_power2 = 2**np.arange(3, 10 + 1)
@@ -93,7 +91,7 @@ def graph_partition_ocean(config):
 
     for j in range(len(n)):
         if n[j] >= min_graph_size and n[j] <= max_graph_size:
-            args = ['./gpmetis', 'mpas-o.graph.info.' + date_string, str(n[j])]
+            args = ['gpmetis', 'mpas-o.graph.info.' + date_string, str(n[j])]
             run_command(args)
 
     # create link to output directory
