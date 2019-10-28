@@ -22,7 +22,7 @@ def main():
     initial_condition_seaice(config)
     scrip(config)
     transects_and_regions(config)
-    mapping_Gcase(config)
+    #mapping_Gcase(config)
     domain(config)
 
 
@@ -52,14 +52,8 @@ def initial_condition_ocean(config):
     # create link to output directory
     make_dir('../' + coupling_output + '/ocn/mpas-o/' + mesh_name)
     os.chdir('../' + coupling_output + '/ocn/mpas-o/' + mesh_name)
-    make_link(
-    '../../../../../' +
-    section +
-    '/' +
-    mesh_name +
-    '_no_xtime.nc',
-    mesh_name +
-     '_no_xtime.nc')
+    make_link('../../../../../' + section + '/' + mesh_name + '_no_xtime.nc',
+        mesh_name + '_no_xtime.nc')
     os.chdir('../../../../..')
 
 
@@ -136,15 +130,8 @@ def initial_condition_seaice(config):
     # make links to output directory
     make_dir('../' + coupling_output + 'ice/mpas-cice/' + mesh_name)
     os.chdir('../' + coupling_output + 'ice/mpas-cice/' + mesh_name)
-    make_link(
-    '../../../../../' +
-    section +
-    '/seaice.' +
-    mesh_name +
-    '.nc',
-    'seaice.' +
-    mesh_name +
-     '.nc')
+    make_link( '../../../../../' + section + '/seaice.' + mesh_name + '.nc',
+               'seaice.' + mesh_name + '.nc')
 
     os.chdir('../../../../../')
 
@@ -179,10 +166,8 @@ def scrip(config):
     args = [
         'python',
         'create_SCRIP_file_from_MPAS_mesh.py',
-        '-m',
-        scrip_file,
-        '-s',
-        ocean_scrip_file]
+        '-m', scrip_file,
+        '-s', ocean_scrip_file]
 
     run_command(args)
 
@@ -245,17 +230,8 @@ def mapping_Gcase(config):
     coupling_output = config.get('main', 'coupling_file_output')
 
     # make links
-    make_link(
-    '../scrip/ocean.' +
-    mesh_name +
-    '.scrip.' +
-    date_string +
-    '.nc',
-    'ocean.' +
-    mesh_name +
-    '.scrip.' +
-    date_string +
-     '.nc')
+    make_link('../scrip/ocean.' + mesh_name + '.scrip.' + date_string + '.nc',
+              'ocean.' + mesh_name + '.scrip.' + date_string + '.nc')
     make_link(E3SM_input + 'share/scripgrids/T62_040121.nc', 'T62_040121.nc')
 
     # execute commands
