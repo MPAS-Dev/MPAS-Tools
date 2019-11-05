@@ -19,7 +19,7 @@ parser = OptionParser()
 parser.add_option("-f", "--file", dest="file", help="grid file to modify; default: landice_grid.nc", metavar="FILE")
 parser.add_option("-m", "--method", dest="method", help="method to use for marking cells to cull.  Supported methods: 'noIce', 'numCells', 'distance', 'radius', 'edgeFraction'", metavar="METHOD")
 parser.add_option("-n", "--numCells", dest="numCells", default=5, help="number of cells to keep beyond ice extent", metavar="NUM")
-parser.add_option("-d", "--distance", dest="distance", default=50, help="distance (km) beyond ice extent to keep", metavar="DIST")
+parser.add_option("-d", "--distance", dest="distance", default=50, help="numeric value to use for the various methods: distance method->distance (km), radius method->radius (km), edgeFraction method->fraction of width or height", metavar="DIST")
 parser.add_option("-p", "--plot", dest="makePlot", help="Include to have the script generate a plot of the resulting mask, default=false", default=False, action="store_true")
 options, args = parser.parse_args()
 
@@ -152,15 +152,22 @@ elif maskmethod == 'distance':
 # =========
 #  cut out beyond some radius (good for the dome)
 elif maskmethod == 'radius':
-  print("Method: remove cells beyond a radius")
-  ind = np.nonzero( (xCell[:]**2 + yCell[:]**2)**0.5 > 26000.0 )
+  dist=float(options.distance)
+  print("Method: remove cells beyond a radius of {} km from center of mesh".format(dist))
+  xc = (xCell.max()-xCell.min())/2.0 + xCell.min()
+  yc = (yCell.max()-yCell.min())/2.0 + yCell.min()
+  ind = np.nonzero( ( (xCell[:]-xc)**2 + (yCell[:]-yc)**2)**0.5 > dist*1000.0 )
   cullCell[ind] = 1
 
 # =========
 #  cut off some fraction of the height/width on all 4 sides - useful for cleaning up a mesh from periodic_general
 elif maskmethod == 'edgeFraction':
-  print("Method: remove a fraction from all 4 edges")
-  frac=0.025
+  frac=float(options.distance)
+  print("Method: remove a fraction from all 4 edges of {}".format(frac))
+  if frac>=0.5:
+     sys.exit("ERROR: fraction cannot be >=0.5.")
+  if frac<0.0:
+     sys.exit("ERROR: fraction cannot be <0.")
 
   cullCell[:] = 0
   width = xCell.max()-xCell.min()
