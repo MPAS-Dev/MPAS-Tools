@@ -1727,7 +1727,7 @@ int outputMaskDimensions( const string outputFilename ){/*{{{*/
 		if (!(tempDim = grid.add_dim("maxPointsInGroup", maxPointsInGroup))) return NC_ERR;
 	}
 
-	if (!(tempDim = grid.add_dim("StrLen", 1024))) return NC_ERR;
+	if (!(tempDim = grid.add_dim("StrLen", 64))) return NC_ERR;
 
 	grid.close();
 
@@ -1743,7 +1743,7 @@ int outputMaskAttributes( const string outputFilename, const string inputFilenam
 	 * **********************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	char mesh_spec_str[1024];
+	char mesh_spec_str[64];
 
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
