@@ -16,31 +16,32 @@ def main():
 
     config = ConfigParser()
     config.read("create_E3SM_MPAS_coupling_files.ini")
+    function_list = ['initial_condition_ocean',
+                     'graph_partition_ocean',
+                     'initial_condition_seaice',
+                     'scrip',
+                     'transects_and_regions',
+                     'mapping_Gcase',
+                     'domain'];
 
-    coupling_function('initial_condition_ocean',config)
-    coupling_function('graph_partition_ocean',config)
-    coupling_function('initial_condition_seaice',config)
-    coupling_function('scrip',config)
-    coupling_function('transects_and_regions',config)
-    coupling_function('mapping_Gcase',config)
-    coupling_function('domain',config)
+    for function_name in function_list:
+        print("****** " + function_name + " ******")
 
-def coupling_function(function_name,config):
+        if config.get(function_name, 'enable') == False:
+            print("Disabled in .ini file")
+            return
+        currentDir = os.getcwd()
+        make_dir(function_name)
+        os.chdir(function_name)
 
-    print("****** " + function_name + " ******")
+        try:
+            globals()[function_name](function_name, config)
+            print('SUCCESS: ' + function_name + ' completed.')
+        except:
+            print('WARNING: ' + function_name + ' failed.')
+        print(" ")
+        os.chdir(currentDir)
 
-    if config.get(function_name, 'enable') == False:
-        print("Disabled in .ini file")
-        return
-    make_dir(function_name)
-    os.chdir(function_name)
-
-    try:
-        globals()[function_name](function_name, config)
-        print('SUCCESS: ' + function_name + ' completed.')
-    except:
-        print('WARNING: ' + function_name + ' failed.')
-    print(" ")
 
 def initial_condition_ocean(function_name,config):
 
@@ -64,7 +65,6 @@ def initial_condition_ocean(function_name,config):
     os.chdir('../' + coupling_output + '/ocn/mpas-o/' + mesh_name)
     make_link('../../../../../' + function_name + '/' + mesh_name + '_no_xtime.nc',
         mesh_name + '_no_xtime.nc')
-    os.chdir('../../../../..')
 
 
 def graph_partition_ocean(function_name,config):
@@ -100,8 +100,6 @@ def graph_partition_ocean(function_name,config):
         if file.startswith('mpas-o.graph.info.' + date_string + '.part.'):
             make_link('../../../../../' + function_name + '/' + file, './' + file)
 
-    os.chdir('../../../../..')
-
 
 def initial_condition_seaice(function_name,config):
 
@@ -132,8 +130,6 @@ def initial_condition_seaice(function_name,config):
     os.chdir('../' + coupling_output + 'ice/mpas-cice/' + mesh_name)
     make_link( '../../../../../' + function_name + '/seaice.' + mesh_name + '.nc',
                'seaice.' + mesh_name + '.nc')
-
-    os.chdir('../../../../../')
 
 
 def scrip(function_name,config):
@@ -170,13 +166,11 @@ def scrip(function_name,config):
     make_dir('../' + coupling_output + 'ocn/mpas-o/' + mesh_name)
     os.chdir('../' + coupling_output + 'ocn/mpas-o/' + mesh_name)
     make_link('../../../../../scrip/' + ocean_scrip_file, ocean_scrip_file)
-    os.chdir('../../../../..')
 
 
 def transects_and_regions(function_name,config):
 
     # obtain configuration settings
-    MPAS_Tools = config.get('main', 'MPAS_Tools')
     mesh_name = config.get('main', 'mesh_name')
     date_string = config.get('main', 'date_string')
     coupling_output = config.get('main', 'coupling_file_output')
@@ -184,15 +178,13 @@ def transects_and_regions(function_name,config):
     maskfile = 'masks_SingleRegionAtlanticWTransportTransects.' + mesh_name + '.nc'
 
     # make links
-    make_link(
-        '/usr/projects/climate/mpeterse/repos/tools/compiled_mesh_conversion_tools/mesh_tools/mesh_conversion_tools/bin/gr/gnu/MpasMaskCreator.x',
-        'MpasMaskCreator.x')
     make_link('../' + mesh_name + '.nc', mesh_name + '.nc')
     make_link(
         '/usr/projects/climate/mpeterse/analysis_input_files/geojson_files/SingleRegionAtlanticWTransportTransects.geojson',
         'SingleRegionAtlanticWTransportTransects.geojson')
 
-    argv = ['./MpasMaskCreator.x', mesh_name + '.nc', maskfile,
+    # check: how does this call MpasMaskCreator?
+    argv = ['MpasMaskCreator.x', mesh_name + '.nc', maskfile,
             '-f', 'SingleRegionAtlanticWTransportTransects.geojson']
     run_command(argv)
 
@@ -202,22 +194,19 @@ def transects_and_regions(function_name,config):
     make_link('../../../../../' + function_name + '/masks_SingleRegionAtlanticWTransportTransects.' + mesh_name + '.nc',
              'masks_SingleRegionAtlanticWTransportTransects.' + mesh_name + '.nc')
 
-    os.chdir('../../../../..')
-
 
 def mapping_Gcase(function_name,config):
 
     # obtain configuration settings
-    MPAS_Tools = config.get('main', 'MPAS_Tools')
     mesh_name = config.get('main', 'mesh_name')
     date_string = config.get('main', 'date_string')
-    E3SM_input = config.get('main', 'E3SM_input')
+    E3SM_input_data = config.get('main', 'E3SM_input_data')
     coupling_output = config.get('main', 'coupling_file_output')
 
     # make links
     make_link('../scrip/ocean.' + mesh_name + '.scrip.' + date_string + '.nc',
               'ocean.' + mesh_name + '.scrip.' + date_string + '.nc')
-    make_link(E3SM_input + 'share/scripgrids/T62_040121.nc', 'T62_040121.nc')
+    make_link(E3SM_input_data + 'share/scripgrids/T62_040121.nc', 'T62_040121.nc')
 
     # execute commands
     try:
@@ -273,18 +262,17 @@ def mapping_Gcase(function_name,config):
         if file.startswith('map_'):
             make_link('../../../../mapping_Gcase/' + file, './' + file)
 
-    os.chdir('../../../..')
 
 def domain(function_name,config):
 
     # obtain configuration settings
     date_string = config.get('main', 'date_string')
     mesh_name = config.get('main', 'mesh_name')
-    E3SM_data = config.get('main', 'E3SM_data_repo')
+    E3SM_repo = config.get('main', 'E3SM_repo')
     coupling_output = config.get('main', 'coupling_file_output')
 
     # make links
-    make_link(E3SM_data + 'compiled_cime_tools/cime/tools/mapping/gen_domain_files/src/gen_domain', 'gen_domain')
+    make_link(E3SM_repo + 'compiled_cime_tools/cime/tools/mapping/gen_domain_files/src/gen_domain', 'gen_domain')
     make_link('../mapping_Gcase/map_' + mesh_name +'_TO_T62_040121_aave.' + date_string +'.nc',
               'map_' + mesh_name +'_TO_T62_040121_aave.' + date_string +'.nc')
     
@@ -302,7 +290,6 @@ def domain(function_name,config):
     make_link('../../../../' + function_name + '/domain.ocn.' + mesh_name + '.' + date_string + '.nc',
               'domain.ocn' + mesh_name + '.' + date_string + '.nc')
     
-    os.chdir('../../../..')
 
 def make_dir(dirName):
     try:
