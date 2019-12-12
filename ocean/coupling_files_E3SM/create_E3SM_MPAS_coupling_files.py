@@ -259,7 +259,6 @@ def mapping_Gcase(function_name,config):
     files = glob.glob('map_*')
     os.chdir('../assembled_files_for_upload/input_data/cpl/cpl6')
     for file in files:
-        print(file)
         make_link('../../../../mapping_Gcase/' + file, './' + file)
 
 
@@ -268,10 +267,10 @@ def domain(function_name,config):
     # obtain configuration settings
     date_string = config.get('main', 'date_string')
     mesh_name = config.get('main', 'mesh_name')
-    E3SM_repo = config.get('main', 'E3SM_repo')
+    gen_domain = config.get('domain', 'gen_domain')
 
     # make links
-    make_link(E3SM_repo + 'compiled_cime_tools/cime/tools/mapping/gen_domain_files/src/gen_domain', 'gen_domain')
+    make_link(gen_domain, 'gen_domain')
     mapping_file = 'map_' + mesh_name + '_TO_T62_040121_aave.' + date_string +'.nc'
     make_link('../mapping_Gcase/' + mapping_file, mapping_file)
     
@@ -283,7 +282,6 @@ def domain(function_name,config):
     files = glob.glob('domain*.nc')
     os.chdir('../assembled_files_for_upload/input_data/share/domains')
     for file in files:
-        print(file)
         make_link('../../../../domain/' + file, './' + file)
     
 
