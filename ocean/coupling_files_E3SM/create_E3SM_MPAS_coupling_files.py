@@ -37,6 +37,7 @@ def main():
     make_dir('assembled_files_for_upload/input_data/cpl/cpl6')
     make_dir('assembled_files_for_upload/input_data/share/domains')
 
+    success = True
     for function_name in function_list:
         print("****** " + function_name + " ******")
 
@@ -49,11 +50,17 @@ def main():
 
         try:
             globals()[function_name](function_name, config)
-            print('SUCCESS: ' + function_name + ' completed.')
+            print('SUCCESS')
         except:
-            print('WARNING: ' + function_name + ' failed.')
+            print('!!! FAILURE !!!')
+            success = False
         print(" ")
         os.chdir(currentDir)
+
+    if success:
+        print("****** SUCCESS for all files ******")
+    else:
+        print("!!!!!! FAILURE: One or more steps failed. See output above !!!!!!")
 
 
 def initial_condition_ocean(function_name,config):
@@ -82,12 +89,11 @@ def graph_partition_ocean(function_name,config):
     # obtain configuration settings
     min_graph_size = config.getint(function_name, 'min_graph_size')
     max_graph_size = config.getint(function_name, 'max_graph_size')
-    graph_file = config.get(function_name, 'graph_file')
     mesh_name = config.get('main', 'mesh_name')
     date_string = config.get('main', 'date_string')
 
     # create links
-    make_link('../' + graph_file, 'mpas-o.graph.info.' + date_string)
+    make_link('../graph.info.mpas-o.graph.info.' + date_string)
 
     # command line execution
     n_power2 = 2**np.arange(3, 10 + 1)
@@ -129,7 +135,6 @@ def initial_condition_seaice(function_name,config):
             mesh_name + '.nc',
             'seaice.' + mesh_name + '.nc'
             ]
-
     run_command(args)
 
     # make links to output directory
@@ -142,7 +147,6 @@ def scrip(function_name,config):
 
     # obtain configuration settings
     mesh_name = config.get('main', 'mesh_name')
-    MPAS_Tools = config.get('main', 'MPAS_Tools')
     date_string = config.get('main', 'date_string')
     mesh_name = config.get('main', 'mesh_name')
 
@@ -151,18 +155,12 @@ def scrip(function_name,config):
 
     # create links
     make_link('../' + mesh_name + '.nc', mesh_name + '.nc')
-    make_link(
-        MPAS_Tools +
-        '/mesh_tools/create_SCRIP_files/create_SCRIP_file_from_MPAS_mesh.py',
-        'create_SCRIP_file_from_MPAS_mesh.py')
 
     # command line execution
     args = [
-        'python',
         'create_SCRIP_file_from_MPAS_mesh.py',
         '-m', mesh_name + '.nc',
         '-s', scrip_file]
-
     run_command(args)
 
     # make links to output directories
@@ -185,9 +183,9 @@ def transects_and_regions(function_name,config):
         'SingleRegionAtlanticWTransportTransects.geojson')
 
     # check: how does this call MpasMaskCreator?
-    argv = ['MpasMaskCreator.x', mesh_name + '.nc', maskfile,
+    args = ['MpasMaskCreator.x', mesh_name + '.nc', maskfile,
             '-f', 'SingleRegionAtlanticWTransportTransects.geojson']
-    run_command(argv)
+    run_command(args)
 
     # make links in output directory
     os.chdir('../assembled_files_for_upload/input_data/ocn/mpas-o/' + mesh_name)
@@ -200,58 +198,42 @@ def mapping_Gcase(function_name,config):
     # obtain configuration settings
     mesh_name = config.get('main', 'mesh_name')
     date_string = config.get('main', 'date_string')
-    E3SM_input_data = config.get('main', 'E3SM_input_data')
+    atm_scrip_tag = config.get('mapping_Gcase', 'atm_scrip_tag')
+    atm_scrip_path = config.get('mapping_Gcase', 'atm_scrip_path')
 
     # make links
-    scrip_file = 'ocean.' + mesh_name + '.scrip.' + date_string + '.nc'
+    ocn_scrip_file = 'ocean.' + mesh_name + '.scrip.' + date_string + '.nc'
     make_link('../scrip/ocean.' + mesh_name + '.scrip.' + date_string + '.nc',
-              scrip_file)
-    make_link(E3SM_input_data + 'share/scripgrids/T62_040121.nc', 'T62_040121.nc')
+              ocn_scrip_file)
+    atm_scrip_file = atm_scrip_tag + '.nc'
+    make_link(atm_scrip_path + '/' + atm_scrip_file, atm_scrip_file)
 
     # execute commands
     try:
-       argv = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen', '--source',
-       scrip_file,
-       '--destination', 'T62_040121.nc', '--method', 'conserve', '--weight',
-       'map_' + mesh_name + '_TO_T62_040121_aave.' + date_string + '.nc',
-       '--ignore_unmapped']
-       run_command(argv)
-       
-       argv = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen', '--source',
-       scrip_file,
-       '--destination', 'T62_040121.nc', '--method', 'bilinear', '--weight',
-       'map_' + mesh_name + '_TO_T62_040121_blin.' + date_string + '.nc',
-       '--ignore_unmapped']
-       run_command(argv)
-       
-       argv = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen', '--source',
-       scrip_file,
-       '--destination', 'T62_040121.nc', '--method', 'patch', '--weight',
-       'map_' + mesh_name + '_TO_T62_040121_patc.' + date_string + '.nc',
-       '--ignore_unmapped']
-       run_command(argv)
-       
-       argv = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen', '--destination',
-       scrip_file,
-       '--source', 'T62_040121.nc', '--method', 'conserve', '--weight',
-       'map_T62_040121_TO_' + mesh_name + '_aave.' + date_string + '.nc',
-       '--ignore_unmapped']
-       run_command(argv)
-       
-       argv = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen', '--destination',
-       scrip_file,
-       '--source', 'T62_040121.nc', '--method', 'bilinear', '--weight',
-       'map_T62_040121_TO_' + mesh_name + '_blin.' + date_string + '.nc',
-       '--ignore_unmapped']
-       run_command(argv)
-       
-       argv = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen', '--destination',
-       scrip_file,
-       '--source', 'T62_040121.nc', '--method', 'patch', '--weight',
-       'map_T62_040121_TO_' + mesh_name + '_patc.' + date_string + '.nc',
-       '--ignore_unmapped'] 
-       run_command(argv)
+        method = ['conserve','bilinear','patch']
+        short = ['aave','blin','patc']
+        for j in range(len(method)):
 
+            # Ocean to atmosphere
+            args = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen', 
+                    '--method', method[j], 
+                    '--source', ocn_scrip_file,
+                    '--destination', atm_scrip_file,
+                    '--weight', 'map_' + mesh_name + '_TO_T62_040121_' 
+                       + short[j] + '.' + date_string + '.nc',
+                    '--ignore_unmapped']
+            run_command(args)
+
+            # Atmosphere to ocean
+            args = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen', 
+                    '--method', method[j], 
+                    '--source', atm_scrip_file,
+                    '--destination', ocn_scrip_file,
+                    '--weight', 'map_T62_040121_TO_' + mesh_name + '_' 
+                       + short[j] + '.' + date_string + '.nc',
+                    '--ignore_unmapped']
+            run_command(args)
+       
     except OSError: 
         print('mapping_Gcase must be run on one compute node')
    
@@ -275,8 +257,8 @@ def domain(function_name,config):
     make_link('../mapping_Gcase/' + mapping_file, mapping_file)
     
     # execute commands
-    argv = ['./gen_domain', '-m', mapping_file, '-o', mesh_name, '-l', 'T62']
-    run_command(argv)
+    args = ['./gen_domain', '-m', mapping_file, '-o', mesh_name, '-l', 'T62']
+    run_command(args)
 
     # make links in output directories
     files = glob.glob('domain*.nc')
