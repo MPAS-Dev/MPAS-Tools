@@ -14,13 +14,14 @@ import subprocess
 from six.moves.configparser import ConfigParser
 import numpy as np
 import glob
+from datetime import datetime
 
 
 def main():
 
     # obtain configuration settings
     config = ConfigParser()
-    config.read("create_E3SM_MPAS_coupling_files.ini")
+    config.read("create_E3SM_coupling_files.ini")
     mesh_name = config.get('main', 'mesh_name')
 
     function_list = ['initial_condition_ocean',
@@ -31,45 +32,48 @@ def main():
                      'mapping_Gcase',
                      'domain'];
 
-    # create input_data directories
-    make_dir('assembled_files_for_upload/input_data/ocn/mpas-o/' + mesh_name)
-    make_dir('assembled_files_for_upload/input_data/ice/mpas-cice/' + mesh_name)
-    make_dir('assembled_files_for_upload/input_data/cpl/cpl6')
-    make_dir('assembled_files_for_upload/input_data/share/domains')
+    # create inputdata directories
+    make_dir('assembled_files_for_upload/inputdata/ocn/mpas-o/' + mesh_name)
+    make_dir('assembled_files_for_upload/inputdata/ice/mpas-cice/' + mesh_name)
+    make_dir('assembled_files_for_upload/inputdata/cpl/cpl6')
+    make_dir('assembled_files_for_upload/inputdata/share/domains')
 
     success = True
+
+    now = datetime.now()
+    date_string = now.strftime("%y%m%d")
     for function_name in function_list:
         print("****** " + function_name + " ******")
 
-        if config.get(function_name, 'enable') == False:
+        if (config.get(function_name, 'enable').lower() == 'false'):
             print("Disabled in .ini file")
-            return
-        currentDir = os.getcwd()
-        make_dir(function_name)
-        os.chdir(function_name)
-
-        try:
-            globals()[function_name](function_name, config)
-            print('SUCCESS')
-        except:
-            print('!!! FAILURE !!!')
-            success = False
+        else:
+            currentDir = os.getcwd()
+            make_dir(function_name)
+            os.chdir(function_name)
+    
+            try:
+                globals()[function_name](config, date_string)
+                print('SUCCESS')
+            except:
+                print('!!! FAILURE !!!')
+                success = False
+            os.chdir(currentDir)
         print(" ")
-        os.chdir(currentDir)
 
     if success:
-        print("****** SUCCESS for all files ******")
+        print("****** SUCCESS for all enabled steps ******")
     else:
         print("!!!!!! FAILURE: One or more steps failed. See output above !!!!!!")
 
 
-def initial_condition_ocean(function_name,config):
+def initial_condition_ocean(config, date_string):
 
     # obtain configuration settings
     mesh_name = config.get('main', 'mesh_name')
 
     # create links
-    make_link('../' + mesh_name + '.nc', mesh_name + '.nc')
+    make_link('../init.nc', mesh_name + '.nc')
 
     # command line execution
     args = ['ncks', '-x', '-v', 'xtime', '-O',
@@ -79,24 +83,25 @@ def initial_condition_ocean(function_name,config):
     run_command(args)
 
     # create link to output directory
-    os.chdir('../assembled_files_for_upload/input_data/ocn/mpas-o/' + mesh_name)
-    make_link('../../../../../' + function_name + '/' + mesh_name + '_no_xtime.nc',
+    os.chdir('../assembled_files_for_upload/inputdata/ocn/mpas-o/' + mesh_name)
+    make_link('../../../../../initial_condition_ocean/' + mesh_name + '_no_xtime.nc',
         mesh_name + '_no_xtime.nc')
 
 
-def graph_partition_ocean(function_name,config):
+def graph_partition_ocean(config, date_string):
 
     # obtain configuration settings
-    min_graph_size = config.getint(function_name, 'min_graph_size')
-    max_graph_size = config.getint(function_name, 'max_graph_size')
     mesh_name = config.get('main', 'mesh_name')
-    date_string = config.get('main', 'date_string')
 
     # create links
-    make_link('../graph.info.mpas-o.graph.info.' + date_string)
+    make_link('../graph.info','mpas-o.graph.info.' + date_string)
 
     # command line execution
-    n_power2 = 2**np.arange(3, 10 + 1)
+    nCells = sum(1 for l in open('../graph.info'))
+    min_graph_size = int(nCells/6000)
+    max_graph_size = int(nCells/100)
+    print("Creating graph files between ",min_graph_size," and ",max_graph_size)
+    n_power2 = 2**np.arange(1, 20 + 1)
     n_multiples12 = 12 * np.arange(1, 8 + 1)
 
     n = n_power2
@@ -110,18 +115,18 @@ def graph_partition_ocean(function_name,config):
 
     # create link to output directory
     files = glob.glob('mpas-o.graph.info.*')
-    os.chdir('../assembled_files_for_upload/input_data/ocn/mpas-o/' + mesh_name)
+    os.chdir('../assembled_files_for_upload/inputdata/ocn/mpas-o/' + mesh_name)
     for file in files:
         make_link('../../../../../graph_partition_ocean/' + file, './' + file)
 
 
-def initial_condition_seaice(function_name,config):
+def initial_condition_seaice(config, date_string):
 
     # obtain configuration settings
     mesh_name = config.get('main', 'mesh_name')
 
     # create links
-    make_link('../' + mesh_name + '.nc', mesh_name + '.nc')
+    make_link('../init.nc', mesh_name + '.nc')
 
     # command line execution
     args = ['ncks', '-x', '-v',
@@ -138,23 +143,21 @@ def initial_condition_seaice(function_name,config):
     run_command(args)
 
     # make links to output directory
-    os.chdir('../assembled_files_for_upload/input_data/ice/mpas-cice/' + mesh_name)
-    make_link( '../../../../../' + function_name + '/seaice.' + mesh_name + '.nc',
+    os.chdir('../assembled_files_for_upload/inputdata/ice/mpas-cice/' + mesh_name)
+    make_link( '../../../../../initial_condition_seaice/seaice.' + mesh_name + '.nc',
                'seaice.' + mesh_name + '.nc')
 
 
-def scrip(function_name,config):
+def scrip(config, date_string):
 
     # obtain configuration settings
-    mesh_name = config.get('main', 'mesh_name')
-    date_string = config.get('main', 'date_string')
     mesh_name = config.get('main', 'mesh_name')
 
     # name scrip files
     scrip_file = ('ocean.' + mesh_name + '.scrip.' + date_string + '.nc')
 
     # create links
-    make_link('../' + mesh_name + '.nc', mesh_name + '.nc')
+    make_link('../init.nc', mesh_name + '.nc')
 
     # command line execution
     args = [
@@ -164,21 +167,20 @@ def scrip(function_name,config):
     run_command(args)
 
     # make links to output directories
-    os.chdir('../assembled_files_for_upload/input_data/ocn/mpas-o/' + mesh_name)
+    os.chdir('../assembled_files_for_upload/inputdata/ocn/mpas-o/' + mesh_name)
     make_link('../../../../../scrip/' + scrip_file, scrip_file)
 
 
-def transects_and_regions(function_name,config):
+def transects_and_regions(config, date_string):
 
     # obtain configuration settings
     mesh_name = config.get('main', 'mesh_name')
-    date_string = config.get('main', 'date_string')
     transect_region_geojson = config.get('transects_and_regions', 'transect_region_geojson')
 
     maskfile = 'masks_SingleRegionAtlanticWTransportTransects.' + mesh_name + '.nc'
 
     # make links
-    make_link('../' + mesh_name + '.nc', mesh_name + '.nc')
+    make_link('../init.nc', mesh_name + '.nc')
     make_link(transect_region_geojson,
         'SingleRegionAtlanticWTransportTransects.geojson')
 
@@ -188,17 +190,16 @@ def transects_and_regions(function_name,config):
     run_command(args)
 
     # make links in output directory
-    os.chdir('../assembled_files_for_upload/input_data/ocn/mpas-o/' + mesh_name)
-    make_link('../../../../../' + function_name + '/masks_SingleRegionAtlanticWTransportTransects.' + mesh_name + '.nc',
+    os.chdir('../assembled_files_for_upload/inputdata/ocn/mpas-o/' + mesh_name)
+    make_link('../../../../../transects_and_regions/masks_SingleRegionAtlanticWTransportTransects.' + mesh_name + '.nc',
              'masks_SingleRegionAtlanticWTransportTransects.' + mesh_name + '.nc')
 
 
-def mapping_Gcase(function_name,config):
+def mapping_Gcase(config, date_string):
 
     # obtain configuration settings
     mesh_name = config.get('main', 'mesh_name')
-    date_string = config.get('main', 'date_string')
-    atm_scrip_tag = config.get('mapping_Gcase', 'atm_scrip_tag')
+    atm_scrip_tag = 'T62_040121'
     atm_scrip_path = config.get('mapping_Gcase', 'atm_scrip_path')
 
     # make links
@@ -215,57 +216,57 @@ def mapping_Gcase(function_name,config):
         for j in range(len(method)):
 
             # Ocean to atmosphere
-            args = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen', 
-                    '--method', method[j], 
+            args = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen',
+                    '--method', method[j],
                     '--source', ocn_scrip_file,
                     '--destination', atm_scrip_file,
-                    '--weight', 'map_' + mesh_name + '_TO_T62_040121_' 
+                    '--weight', 'map_' + mesh_name + '_TO_' + atm_scrip_tag + '_'
                        + short[j] + '.' + date_string + '.nc',
                     '--ignore_unmapped']
             run_command(args)
 
             # Atmosphere to ocean
-            args = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen', 
-                    '--method', method[j], 
+            args = ['mpirun', '-n', '1', 'ESMF_RegridWeightGen',
+                    '--method', method[j],
                     '--source', atm_scrip_file,
                     '--destination', ocn_scrip_file,
-                    '--weight', 'map_T62_040121_TO_' + mesh_name + '_' 
+                    '--weight', 'map_' + atm_scrip_tag + '_TO_' + mesh_name + '_'
                        + short[j] + '.' + date_string + '.nc',
                     '--ignore_unmapped']
             run_command(args)
-       
-    except OSError: 
+
+    except OSError:
         print('mapping_Gcase must be run on one compute node')
-   
+
     # make links in output directory
     files = glob.glob('map_*')
-    os.chdir('../assembled_files_for_upload/input_data/cpl/cpl6')
+    os.chdir('../assembled_files_for_upload/inputdata/cpl/cpl6')
     for file in files:
         make_link('../../../../mapping_Gcase/' + file, './' + file)
 
 
-def domain(function_name,config):
+def domain(config, date_string):
 
     # obtain configuration settings
-    date_string = config.get('main', 'date_string')
     mesh_name = config.get('main', 'mesh_name')
     gen_domain = config.get('domain', 'gen_domain')
+    atm_scrip_tag = 'T62_040121'
 
     # make links
     make_link(gen_domain, 'gen_domain')
-    mapping_file = 'map_' + mesh_name + '_TO_T62_040121_aave.' + date_string +'.nc'
+    mapping_file = 'map_' + mesh_name + '_TO_' + atm_scrip_tag + '_aave.' + date_string +'.nc'
     make_link('../mapping_Gcase/' + mapping_file, mapping_file)
-    
+
     # execute commands
     args = ['./gen_domain', '-m', mapping_file, '-o', mesh_name, '-l', 'T62']
     run_command(args)
 
     # make links in output directories
     files = glob.glob('domain*.nc')
-    os.chdir('../assembled_files_for_upload/input_data/share/domains')
+    os.chdir('../assembled_files_for_upload/inputdata/share/domains')
     for file in files:
         make_link('../../../../domain/' + file, './' + file)
-    
+
 
 def make_dir(dirName):
     try:
