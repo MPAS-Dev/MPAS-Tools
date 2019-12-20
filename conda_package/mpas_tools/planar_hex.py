@@ -67,7 +67,6 @@ def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
     # drop some arrays that aren't stantard for MPAS but were used to compute
     # the hex mesh
     mesh = mesh.drop(['cellIdx', 'cellRow', 'cellCol'])
-    mesh.attrs.pop('dc')
 
     if outFileName is not None:
         write_netcdf(mesh, outFileName, format=format)
@@ -102,7 +101,8 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
         mesh.attrs['y_period'] = ny * dc * numpy.sqrt(3.) / 2.
 
     mesh.attrs['dc'] = dc
-
+    mesh.attrs['nx'] = nx
+    mesh.attrs['ny'] = ny
     mesh.attrs['on_a_sphere'] = 'NO'
     mesh.attrs['sphere_radius'] = 0.
 
