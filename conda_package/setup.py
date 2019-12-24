@@ -52,6 +52,7 @@ setup(name='mpas_tools',
                'ocean/coastline_alteration/add_land_locked_cells_to_mask.py',
                'ocean/coastline_alteration/widen_transect_edge_masks.py',
                'ocean/coastline_alteration/add_critical_land_blockages_to_mask.py',
+               'ocean/moc_southern_boundary_extractor/moc_southern_boundary_extractor.py',
                'visualization/paraview_vtk_field_extractor/paraview_vtk_field_extractor.py'],
       install_requires=['numpy', 'xarray', 'netCDF4', 'pyevtk'],
       entry_points={'console_scripts':

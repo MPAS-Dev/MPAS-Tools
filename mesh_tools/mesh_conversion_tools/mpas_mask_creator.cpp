@@ -147,8 +147,12 @@ void print_usage() {/*{{{*/
 	cout << "\t\t\tthat will be used as seed points in a flood fill algorithim. This is useful when trying to remove isolated cells from a mesh." << endl;
 	cout << "\t\t-f file.geojson: This argument pair defines a set of geojson features (regions, transects, or points)" << endl;
 	cout << "\t\t\tthat will be converted into masks / lists." << endl;
-	cout << "\t\t--positive_lon: This argument causes the logitude range to be 0-360 degrees with the prime meridian at 0 degrees." << endl;
-	cout << "\t\t\tIf this flag is not set, the logitude range is -180-180 with 0 degrees being the prime meridian." << endl;
+	cout << "\t\t--positive_lon: It is unlikely that you want this argument.  In rare cases when using a non-standard geojson" << endl;
+	cout << "\t\t\tfile where the logitude ranges from 0 to 360 degrees (with the prime meridian at 0 degrees), use this flag." << endl;
+	cout << "\t\t\tIf this flag is not set, the logitude range is -180-180 with 0 degrees being the prime meridian, which is the" << endl;
+	cout << "\t\t\tcase for standar geojson files including all features from the geometric_feature repo." << endl;
+	cout << "\t\t\tThe fact that longitudes in the input MPAS mesh range from 0 to 360 is not relevant to this flag," << endl;
+	cout << "\t\t\tas latitude and longitude are recomputed internally from Cartesian coordinates." << endl;
 	cout << "\t\t\tWhether this flag is passed in or not, any longitudes written are in the 0-360 range." << endl;
 }/*}}}*/
 
