@@ -449,9 +449,8 @@ double netcdf_mpas_read_yperiod(string filename){/*{{{*/
 		vals = att_id -> values();
 
 		for(int i = 0; i < vals -> num(); i++){
-			tmp_name = vals -> as_string(i);
 
-			return atof(vals -> as_string(i));
+			return vals -> as_double(i);
 		}
 	} else {
 		return -1.0;
