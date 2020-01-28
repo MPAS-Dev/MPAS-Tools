@@ -366,7 +366,7 @@ def interpolate_field_with_layers(MPASfieldName):
 def vertical_interp_MPAS_grid(mpas_grid_input_layers, input_layers):
     destinationField = np.zeros((nCells, nVertLevels))
     for i in range(nCells):
-        destinationField[i,:] = np.interp(mpasLayerCenters, input_layers, mpas_grid_input_layers[:,i])
+        destinationField[i,:] = np.interp(mpasLayerCenters,input_layers, mpas_grid_input_layers[:,i])
     return destinationField
 
 
@@ -476,11 +476,6 @@ if filetype=='cism':
 
 
 elif filetype == 'mpas':
-    # Get the MPAS vertical dimensions if they exist
-    try:
-      nVertLevels = len(inputFile.dimensions['nVertLevels'])
-    except:
-      print('  Input file is missing the dimension nVertLevels.  Might not be a problem.')
 
     #try:
     #  nVertInterfaces = len(inputFile.dimensions['nVertInterfaces'])
