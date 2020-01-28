@@ -476,11 +476,6 @@ if filetype=='cism':
 
 
 elif filetype == 'mpas':
-    # Get the MPAS vertical dimensions if they exist
-    try:
-      input_nVertLevels = len(inputFile.dimensions['nVertLevels'])
-    except:
-      print('  Input file is missing the dimension nVertLevels.  Might not be a problem.')
 
     #try:
     #  nVertInterfaces = len(inputFile.dimensions['nVertInterfaces'])
