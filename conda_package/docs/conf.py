@@ -62,8 +62,8 @@ author = u'Xylar Asay-Davis, Doug Jacobsen, Michael Duda, Mark Petersen, ' \
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# The short X.Y version.
-version = '.'.join(str(vi) for vi in mpas_tools.__version_info__[0:2])
+# The short X.Y.Z version.
+version = mpas_tools.__version__
 # The full version, including alpha/beta/rc tags.
 release = mpas_tools.__version__
 
