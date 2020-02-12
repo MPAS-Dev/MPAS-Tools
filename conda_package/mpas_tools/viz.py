@@ -10,10 +10,7 @@ files on MPAS grids.
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-try:
-    from evtk.vtk import VtkFile, VtkPolyData
-except ImportError:
-    from pyevtk.vtk import VtkFile, VtkPolyData
+from pyevtk.vtk import VtkFile, VtkPolyData
 
 import sys
 import glob
