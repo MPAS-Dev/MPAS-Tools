@@ -73,7 +73,7 @@ points of edge polygons (a "water-tight" surface).
 
 Requirements:
 This script requires access to the following non standard modules:
-evtk (available from e3sm channel)
+pyevtk
 netcdf4
 numpy
 
