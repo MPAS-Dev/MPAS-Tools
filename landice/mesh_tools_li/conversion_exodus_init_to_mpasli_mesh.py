@@ -83,8 +83,10 @@ else:
 
 node_num_layer = len(x_exo_layer)
 
-#dataset.variables[options.var_name][0,:] = 1.0e-0
-# set beta value to some uniform value before we put new data in it
+#dataset.variables[options.var_name][0,:] = 1e-0
+# set variable value to some uniform value before we put new data in it
+# Often we need do this when we want to convert thickness from exodus to mpas
+# in order to make sure ice thickness = 0 for void cells
 
 if (options.conversion_method == 'coord'):
     print("use coordinate method")
@@ -95,22 +97,35 @@ if (options.conversion_method == 'coord'):
         index = index_intersect[0]
         if options.var_name == "beta":
             dataset.variables[options.var_name][0,index] = np.exp(data_exo_layer[i]) * 1000.0
+        elif options.var_name == "stiffnessFactor":
+            dataset.variables[options.var_name][0,index] = np.exp(data_exo_layer[i])
+        elif options.var_name == "thickness":
+            dataset.variables[options.var_name][0,index] = data_exo_layer[i]*1000.0
         else:
-            dataset.variables[options.var_name][0,index] = (data_exo_layer[i])
+            dataset.variables[options.var_name][0,index] = data_exo_layer[i]
 
         # The beta unit of the mpas mesh is Pa yr/m, not SI. 
         # This method may fail at the point where x or y = 0, while x_exo or y_exo is not
 
 elif (options.conversion_method == 'id'):
     print("use global id method. Need a global id file")
-    usefullCellID = np.loadtxt(options.id_file,dtype='i')
-    usefullCellID_array = usefullCellID[1::]
+    usefulCellID = np.loadtxt(options.id_file,dtype='i')
+    usefulCellID_array = usefulCellID[1::]
     # The first number in the file is the total number. skip it
 
     if options.var_name == "beta":
-        dataset.variables[options.var_name][0,usefullCellID_array-1] = np.exp(data_exo_layer) * 1000.0
+        dataset.variables[options.var_name][0,usefulCellID_array-1] = np.exp(data_exo_layer) * 1000.0
+    elif options.var_name == "stiffnessFactor":
+        dataset.variables[options.var_name][0,usefulCellID_array-1] = np.exp(data_exo_layer)
+    elif options.var_name == "thickness":
+        # change bedTopography also when we change thickness
+        thicknessOrig = np.copy(dataset.variables[options.var_name][0,:])
+        bedTopographyOrig = np.copy(dataset.variables['bedTopography'][0,:])
+        surfaceTopographyOrig = thicknessOrig + bedTopographyOrig
+        dataset.variables[options.var_name][0,usefulCellID_array-1] = data_exo_layer*1000.0
+        dataset.variables['bedTopography'][0,usefulCellID_array-1] = surfaceTopographyOrig[usefulCellID_array-1] - data_exo_layer*1000.0
     else:
-        dataset.variables[options.var_name][0,usefullCellID_array-1] = np.exp(data_exo_layer)
+        dataset.variables[options.var_name][0,usefulCellID_array-1] = data_exo_layer
         # We need convert fortran indice to python indice
 
 else:
@@ -145,69 +160,70 @@ keepCellMaskOld = np.copy(keepCellMask)  # make a copy to edit that can be edite
 # 5) Update mask
 # 6) go to step 1)
 
-print("\nStart extrapolation!")
+if options.var_name == 'thickness':
+    print("Do not do extrapolation!")
+else:
+    print("\nStart extrapolation!")
+    while np.count_nonzero(keepCellMask) != nCells:
 
-while np.count_nonzero(keepCellMask) != nCells:
+        keepCellMask = np.copy(keepCellMaskNew)
+        searchCells = np.where(keepCellMask==0)[0]
 
-    keepCellMask = np.copy(keepCellMaskNew)
-    searchCells = np.where(keepCellMask==0)[0]
+        if useKDTree:
+            for iCell in searchCells:
+                x_tmp = x[iCell]
+                y_tmp = y[iCell]
+                neareastPointNum = nEdgesOnCell[iCell]+1
+                dist, idx = tree.query([x_tmp,y_tmp],k=neareastPointNum) # KD tree take account of [x_tmp,y_tmp] itself
+                mask_for_idx = keepCellMask[idx]
+                mask_nonzero_idx, = np.nonzero(mask_for_idx)
 
-    if useKDTree:
-        for iCell in searchCells:
-            x_tmp = x[iCell]
-            y_tmp = y[iCell]
-            neareastPointNum = nEdgesOnCell[iCell]+1
-            dist, idx = tree.query([x_tmp,y_tmp],k=neareastPointNum) # KD tree take account of [x_tmp,y_tmp] itself
-            mask_for_idx = keepCellMask[idx]
-            mask_nonzero_idx, = np.nonzero(mask_for_idx)
+                nonzero_id = idx[mask_nonzero_idx]
+                nonzero_num = np.count_nonzero(mask_for_idx)
 
-            nonzero_id = idx[mask_nonzero_idx]
-            nonzero_num = np.count_nonzero(mask_for_idx)
+                if nonzero_num > 0:
+                    dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
+                    keepCellMask[iCell] = 1
 
-            if nonzero_num > 0:
-                dataset.variables[options.var_name][0,iCell] = sum(dataset.variables[options.var_name][0,nonzero_id])/nonzero_num
-                keepCellMask[iCell] = 1
-
-        print("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
-
-
-    else:
-        for iCell in searchCells:
-            neighborCellId = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
-
-            mask_for_idx = keepCellMask[neighborCellId] # active cell mask
-            mask_nonzero_idx, = np.nonzero(mask_for_idx)
-
-            nonzero_id = neighborCellId[mask_nonzero_idx] # id for nonzero beta cells
-            nonzero_num = np.count_nonzero(mask_for_idx)
+            print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
 
 
-            assert len(nonzero_id) == nonzero_num
+        else:
+            for iCell in searchCells:
+                neighborCellId = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
 
-            if nonzero_num > 0:
-                x_i = x[iCell]
-                y_i = y[iCell]
-                x_adj = x[nonzero_id]
-                y_adj = y[nonzero_id]
-                ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
-                assert np.count_nonzero(ds)==len(ds)
-                var_adj = dataset.variables[options.var_name][0,nonzero_id]
-                if options.extrapolation == 'idw':
-                    var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
-                    dataset.variables[options.var_name][0,iCell] = var_interp
-                elif options.extrapolation == 'min':
-                    var_adj_min = min(var_adj)
-                    dataset.variables[options.var_name][0,iCell] = var_adj_min
-                else:
-                    sys.exit("wrong extrapolation scheme! Set option x as idw or min!")
+                mask_for_idx = keepCellMask[neighborCellId] # active cell mask
+                mask_nonzero_idx, = np.nonzero(mask_for_idx)
 
-                keepCellMaskNew[iCell] = 1
+                nonzero_id = neighborCellId[mask_nonzero_idx] # id for nonzero beta cells
+                nonzero_num = np.count_nonzero(mask_for_idx)
 
 
-        print("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+                assert len(nonzero_id) == nonzero_num
+
+                if nonzero_num > 0:
+                    x_i = x[iCell]
+                    y_i = y[iCell]
+                    x_adj = x[nonzero_id]
+                    y_adj = y[nonzero_id]
+                    ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
+                    assert np.count_nonzero(ds)==len(ds)
+                    var_adj = dataset.variables[options.var_name][0,nonzero_id]
+                    if options.extrapolation == 'idw':
+                        var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+                        dataset.variables[options.var_name][0,iCell] = var_interp
+                    elif options.extrapolation == 'min':
+                        var_adj_min = min(var_adj)
+                        dataset.variables[options.var_name][0,iCell] = var_adj_min
+                    else:
+                        sys.exit("wrong extrapolation scheme! Set option x as idw or min!")
+
+                    keepCellMaskNew[iCell] = 1
 
 
-print("\nStart idw smoothing for extrapolated field!")
+            print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+
+
 
 iter_num = 0
 while iter_num < int(options.smooth_iter_num):
@@ -255,7 +271,12 @@ while iter_num < int(options.smooth_iter_num):
             ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
             assert np.count_nonzero(ds)==len(ds)
             var_adj = dataset.variables[options.var_name][0,nonzero_id]
-            var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+            if options.var_name == "beta":
+                var_interp = min(var_adj)
+            elif options.var_name == "stiffnessFactor":
+                var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+            else:
+                sys.exit("Smoothing is only for beta and stiffness for now. Set option i to 0 to disable smoothing!")
             dataset.variables[options.var_name][0,iCell] = var_interp
 
         print("{0:3d} smoothing in total {1:3s} iters".format(iter_num,  options.smooth_iter_num))
