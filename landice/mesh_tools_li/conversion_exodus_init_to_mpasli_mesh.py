@@ -83,46 +83,38 @@ node_num_layer = len(x_exo_layer)
 
 if (options.conversion_method == 'coord'):
     print("use coordinate method")
+    usefulCellID_array = np.zeros((node_num_layer,), dtype=np.int32)
     for i in range(node_num_layer):
         index_x, = np.where(abs(x[:]-x_exo_layer[i])/(abs(x[:])+1e-10)<1e-3)
         index_y, = np.where(abs(y[:]-y_exo_layer[i])/(abs(y[:])+1e-10)<1e-3)
         index_intersect = list(set(index_x) & set(index_y))
         index = index_intersect[0]
-        if options.var_name == "beta":
-            dataset.variables[options.var_name][0,index] = np.exp(data_exo_layer[i]) * 1000.0
-        elif options.var_name == "stiffnessFactor":
-            dataset.variables[options.var_name][0,index] = np.exp(data_exo_layer[i])
-        elif options.var_name == "thickness":
-            dataset.variables[options.var_name][0,index] = data_exo_layer[i]*1000.0
-        else:
-            dataset.variables[options.var_name][0,index] = data_exo_layer[i]
-
-        # The beta unit of the mpas mesh is Pa yr/m, not SI. 
-        # This method may fail at the point where x or y = 0, while x_exo or y_exo is not
-
+        usefulCellID_array[i] = index + 1 # convert to Fortran indexing
+    # save id map so it could be used subsequently for convenience
+    np.savetxt('exodus_to_mpas_id_map.txt', np.concatenate( (np.array([node_num_layer]), usefulCellID_array)), fmt=str("%i"))
+    print('Coordinate IDs written to "exodus_to_mpas_id_map.txt".  You can use this file with "id" conversion method.')
 elif (options.conversion_method == 'id'):
     print("use global id method. Need a global id file")
     usefulCellID = np.loadtxt(options.id_file,dtype='i')
     usefulCellID_array = usefulCellID[1::]
     # The first number in the file is the total number. skip it
-
-    if options.var_name == "beta":
-        dataset.variables[options.var_name][0,usefulCellID_array-1] = np.exp(data_exo_layer) * 1000.0
-    elif options.var_name == "stiffnessFactor":
-        dataset.variables[options.var_name][0,usefulCellID_array-1] = np.exp(data_exo_layer)
-    elif options.var_name == "thickness":
-        # change bedTopography also when we change thickness
-        thicknessOrig = np.copy(dataset.variables[options.var_name][0,:])
-        bedTopographyOrig = np.copy(dataset.variables['bedTopography'][0,:])
-        surfaceTopographyOrig = thicknessOrig + bedTopographyOrig
-        dataset.variables[options.var_name][0,usefulCellID_array-1] = data_exo_layer*1000.0
-        dataset.variables['bedTopography'][0,usefulCellID_array-1] = surfaceTopographyOrig[usefulCellID_array-1] - data_exo_layer*1000.0
-    else:
-        dataset.variables[options.var_name][0,usefulCellID_array-1] = data_exo_layer
-        # We need convert fortran indice to python indice
-
 else:
-    sys.exit("wrong conversion method! Set option m as id or coord!")
+    sys.exit("Unsupported conversion method chosen! Set option m as 'id' or 'coord'!")
+
+# Now convert the requested field
+if options.var_name == "beta":
+    dataset.variables[options.var_name][0,usefulCellID_array-1] = np.exp(data_exo_layer) * 1000.0
+elif options.var_name == "stiffnessFactor":
+    dataset.variables[options.var_name][0,usefulCellID_array-1] = np.exp(data_exo_layer)
+elif options.var_name == "thickness":
+    # change bedTopography also when we change thickness
+    thicknessOrig = np.copy(dataset.variables[options.var_name][0,:])
+    bedTopographyOrig = np.copy(dataset.variables['bedTopography'][0,:])
+    surfaceTopographyOrig = thicknessOrig + bedTopographyOrig
+    dataset.variables[options.var_name][0,usefulCellID_array-1] = data_exo_layer*1000.0
+    dataset.variables['bedTopography'][0,usefulCellID_array-1] = surfaceTopographyOrig[usefulCellID_array-1] - data_exo_layer*1000.0
+else:
+    sys.exit("Unsupported variable requested for converstion.")
 
 print("Successful in converting data from Exodus to MPAS!")
 
