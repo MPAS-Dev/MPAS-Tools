@@ -10,7 +10,7 @@ import shutil
 from mpas_tools.io import write_netcdf
 
 
-def convert(dsIn, graphInfoFileName=None):
+def convert(dsIn, graphInfoFileName=None, logger=None):
     '''
     Use ``MpasMeshConverter.x`` to convert an input mesh to a valid MPAS
     mesh that is fully compliant with the MPAS mesh specification.
@@ -25,6 +25,9 @@ def convert(dsIn, graphInfoFileName=None):
         A file path (relative or absolute) where the graph file (typically
         ``graph.info`` should be written out.  By default, ``graph.info`` is
         not saved.
+
+    logger : ``logging.Logger``, optional
+        A logger for the output if not stdout
 
     Returns
     -------
@@ -46,7 +49,8 @@ def convert(dsIn, graphInfoFileName=None):
         owd = os.getcwd()
         outDir = os.path.dirname(outFileName)
         os.chdir(outDir)
-        subprocess.check_call(['MpasMeshConverter.x', inFileName, outFileName])
+        _call_subprocess(['MpasMeshConverter.x', inFileName, outFileName],
+                         logger)
         os.chdir(owd)
 
         dsOut = xarray.open_dataset(outFileName)
@@ -60,7 +64,7 @@ def convert(dsIn, graphInfoFileName=None):
 
 
 def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
-         graphInfoFileName=None):
+         graphInfoFileName=None, logger=None):
     '''
     Use ``MpasCellCuller.x`` to cull cells from a mesh based on the
     ``cullCell`` field in the input file or DataSet and/or the provided masks.
@@ -90,6 +94,9 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
         A file path (relative or absolute) where the graph file (typically
         ``culled_graph.info`` should be written out.  By default,
         ``culled_graph.info`` is not saved.
+
+    logger : ``logging.Logger``, optional
+        A logger for the output if not stdout
 
     Returns
     -------
@@ -138,7 +145,7 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
         owd = os.getcwd()
         outDir = os.path.dirname(outFileName)
         os.chdir(outDir)
-        subprocess.check_call(args)
+        _call_subprocess(args, logger)
         os.chdir(owd)
 
         dsOut = xarray.open_dataset(outFileName)
@@ -151,7 +158,7 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
     return dsOut
 
 
-def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False):
+def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False, logger=None):
     '''
     Use ``MpasMaskCreator.x`` to create a set of region masks either from
     mask feature collecitons or from seed points to be used to flood fill
@@ -167,6 +174,9 @@ def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False):
     fcSeed : ``geometric_features.FeatureCollection``, optional
         A feature collection with points to use a seeds for a flood fill that
         will create a mask of all cells connected to the seed points
+
+    logger : ``logging.Logger``, optional
+        A logger for the output if not stdout
 
     Returns
     -------
@@ -195,9 +205,32 @@ def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False):
         if positiveLon:
             args.append('--positive_lon')
 
-        subprocess.check_call(args)
+        _call_subprocess(args, logger)
 
         dsOut = xarray.open_dataset(outFileName)
         dsOut.load()
 
     return dsOut
+
+
+def _call_subprocess(args, logger):
+    """Call the givne subprocess and send the output to the logger"""
+    if logger is None:
+        subprocess.check_call(args)
+    else:
+        process = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        stdout, stderr = process.communicate()
+
+        if stdout:
+            stdout = stdout.decode('utf-8')
+            for line in stdout.split('\n'):
+                logger.info(line)
+        if stderr:
+            stderr = stderr.decode('utf-8')
+            for line in stderr.split('\n'):
+                logger.error(line)
+
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(process.returncode,
+                                                ' '.join(args))
