@@ -15,7 +15,7 @@ requirements:
   run:
     - python
     - geometric_features 0.1.5
-    - mpas_tools 0.0.6
+    - mpas_tools 0.0.8
     - jigsaw 0.9.12
     - jigsawpy 0.2.1
     - metis
