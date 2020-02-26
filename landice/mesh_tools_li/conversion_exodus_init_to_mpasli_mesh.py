@@ -4,7 +4,7 @@ Script to convert Albany-Land Ice output file in Exodus format to an MPAS-Land I
 
 Created on Tue Feb 13 23:50:20 2018
 
-@author: Tong Zhang, Matt Hoffman
+@author: Tong Zhang, Matt Hoffman, Trevor Hillebrand
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -29,9 +29,15 @@ for option in parser.option_list:
 options, args = parser.parse_args()
 
 import sys
-sys.path.append('/home/tzhang/Apps/seacas/lib')
+sys.path.append('/Users/trevorhillebrand/Documents/mpas/seacas/lib/')
 from exodus import exodus
-mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness", "stiffnessFactor":"stiffening_factor"}
+mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness",\
+                       "stiffnessFactor":"stiffening_factor", \
+                       "basalTemperature":"temperature", \
+                       "temperature":"temperature", \
+                       "surfaceTemperature":"surface_air_temperature", \
+                       "uReconstructX":"solution_1", \
+                       "uReconstructY":"solution_2"}
 # A mapping between mpas and exodus file. Add one if you need to manipulate a different variable!
 ice_density = 910.0
 ocean_density = 1028.0
@@ -49,7 +55,15 @@ ordering = np.array(exo.get_global_variable_values('ordering'))
 # if ordering = 1, exo data is in the column-wise manner, stride is the vertical layer number
 # if ordering = 0, exo data is in the layer-wise manner, stride is the node number each layer
 
-data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))
+# Exodus ice thickness is in km. Convert to m. Exodus velocities are m/yr, convert to m/s
+if exo_var_name=='ice_thickness':
+    data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))*1000
+elif exo_var_name=='solution_1':
+    data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))/(60.*60.*24*365)
+elif exo_var_name=='solution_2':
+    data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))/(60.*60.*24*365)
+else:
+    data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))
 # read data from the exo file
 
 xyz_exo = exo.get_coords()
@@ -101,28 +115,77 @@ elif (options.conversion_method == 'id'):
 else:
     sys.exit("Unsupported conversion method chosen! Set option m as 'id' or 'coord'!")
 
-# Now convert the requested field
-if options.var_name == "beta":
-    dataset.variables[options.var_name][0,usefulCellID_array-1] = np.exp(data_exo_layer) * 1000.0
-elif options.var_name == "stiffnessFactor":
-    dataset.variables[options.var_name][0,usefulCellID_array-1] = np.exp(data_exo_layer)
-elif options.var_name == "thickness":
-    # change bedTopography also when we change thickness
-    thicknessOrig = np.copy(dataset.variables[options.var_name][0,:])
-    bedTopographyOrig = np.copy(dataset.variables['bedTopography'][0,:])
-    surfaceTopographyOrig = thicknessOrig + bedTopographyOrig
-    dataset.variables[options.var_name][0,usefulCellID_array-1] = data_exo_layer*1000.0
-    dataset.variables['bedTopography'][0,usefulCellID_array-1] = surfaceTopographyOrig[usefulCellID_array-1] - data_exo_layer*1000.0
+#Get number of vertical layers from mpas output file.
+if len(np.shape(dataset.variables[options.var_name])) == 3:
+    nVert_max = np.shape(dataset.variables[options.var_name])[2]
 else:
-    sys.exit("Unsupported variable requested for converstion.")
+    nVert_max = 1
+
+#loop through nVertLevels (or nVertInterfaces)
+for nVert in np.arange(0, nVert_max):
+    print('Converting layer/level', nVert)
+    #Albany has inverted layer/level ordering relative to MPAS. 
+    #Also, we have to avoid sampling basal temperature for the temperature field,
+    #since those are separate in the MPAS file
+    if dataset.variables[options.var_name].get_dims().__contains__('nVertLayers'):
+        nVert_albany = nVert_max - nVert 
+    else:
+        nVert_albany = nVert_max - nVert - 1
+
+    if ordering == 1.0:
+        print("column wise pattern")
+        layer_num = int(stride)
+        data_exo_layer = data_exo[nVert_albany::layer_num]
+        x_exo_layer = x_exo[nVert_albany::layer_num]
+        y_exo_layer = y_exo[nVert_albany::layer_num]
+    elif ordering == 0.0:
+        print("layer wise pattern")
+        node_num = int(stride)
+        data_exo_layer = data_exo[0:node_num+1]
+        x_exo_layer = x_exo[0:node_num+1]
+        y_exo_layer = y_exo[0:node_num+1]
+        layer_num = len(data_exo)//node_num
+    else:
+        print("The ordering is probably wrong")
+    
+    # slice the exo data to get the MPAS data
+    node_num_layer = len(x_exo_layer)
+
+#    for i in range(node_num_layer):
+#    index_x, = np.where(abs(x[:]-x_exo_layer[i])/(abs(x[:])+1e-10)<1e-3)
+#    index_y, = np.where(abs(y[:]-y_exo_layer[i])/(abs(y[:])+1e-10)<1e-3)
+#    index_intersect = list(set(index_x) & set(index_y))
+#    index = index_intersect[0]
+    if options.var_name == "beta":
+        dataset.variables[options.var_name][0,usefulCellID_array-1] = np.exp(data_exo_layer) * 1000.0
+    elif options.var_name == "thickness":
+        dataset.variables[options.var_name][0,usefulCellID_array-1] = data_exo_layer
+        # change bedTopography also when we change thickness, if that field exists
+        if 'bedTopography' in dataset.variables.keys():
+            thicknessOrig = np.copy(dataset.variables[options.var_name][0,usefulCellID_array-1])
+            bedTopographyOrig = np.copy(dataset.variables['bedTopography'][0,usefulCellID_array-1])
+            surfaceTopographyOrig = thicknessOrig + bedTopographyOrig
+            dataset.variables[options.var_name][0,usefulCellID_array-1] = data_exo_layer
+            dataset.variables['bedTopography'][0,usefulCellID_array-1] = surfaceTopographyOrig - data_exo_layer
+    elif nVert_max>1:
+        dataset.variables[options.var_name][0,usefulCellID_array-1,nVert] = data_exo_layer
+    elif options.var_name in dataset.variables.keys() == False:
+        sys.exit("Unsupported variable requested for converstion.")
+    else:
+        dataset.variables[options.var_name][0,usefulCellID_array-1] = data_exo_layer
 
 print("Successful in converting data from Exodus to MPAS!")
 
+
 nCells = len(dataset.dimensions['nCells'])
 thickness = dataset.variables['thickness'][0,:]
-bedrock = dataset.variables['bedTopography'][0,:]
 cellsOnCell = dataset.variables['cellsOnCell'][:]
 nEdgesOnCell = dataset.variables['nEdgesOnCell'][:]
+if 'bedTopography' in dataset.variables.keys():
+    bedrock = dataset.variables['bedTopography'][0,:]
+else:
+    bedrock = np.zeros(np.shape(thickness))    
+
 
 keepCellMask = np.zeros((nCells,), dtype=np.int8)
 
@@ -178,7 +241,7 @@ else:
                     var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
                     dataset.variables[options.var_name][0,iCell] = var_interp
                 elif options.extrapolation == 'min':
-                    var_adj_min = min(var_adj)
+                    var_adj_min = np.min(var_adj)
                     dataset.variables[options.var_name][0,iCell] = var_adj_min
                 else:
                     sys.exit("wrong extrapolation scheme! Set option x as idw or min!")
