@@ -23,6 +23,7 @@ from optparse import OptionParser
 import scipy.spatial as spt
 import os
 import sys
+from datetime import datetime
 
 parser = OptionParser(description='Read the basal friction data in the exo file and put them back to MPAS mesh. WARNING: Change the SEACAS library dir to your own path! A simple usage example: conversion_exodus_init_to_mpasli_mesh.py -e ./antarctica.exo -o target.nc -a ./mpas_cellID.ascii -v beta -k grd')
 parser.add_option("-e", "--exo", dest="exo_file", help="the exo input file")
@@ -312,5 +313,14 @@ if iter_num == 0:
     print("\nNo smoothing! Iter number is 0!")
 
 print("\nExtrapolation and smoothing finished!")
+
+# Update history attribute of netCDF file
+thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
+if hasattr(dataset, 'history'):
+   newhist = '\n'.join([thiscommand, getattr(dataset, 'history')])
+else:
+   newhist = thiscommand
+setattr(dataset, 'history', newhist )
+
 
 dataset.close()
