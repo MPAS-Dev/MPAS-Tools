@@ -2,6 +2,14 @@
 """
 Script to convert Albany-Land Ice output file in Exodus format to an MPAS-Land Ice format mesh.
 
+See below for variables that are supported.
+
+The script will use an environment variable SEACAS to find the Exodus python module.
+To install the exodus python module, follow instructions here:
+    https://github.com/gsjaardema/seacas
+Note that you can follow the shortened instructions under "Exodus", and it is not necessary
+to install the entire SEACAS set of libraries.
+
 Created on Tue Feb 13 23:50:20 2018
 
 @author: Tong Zhang, Matt Hoffman, Trevor Hillebrand
@@ -13,6 +21,8 @@ import numpy as np
 from netCDF4 import Dataset
 from optparse import OptionParser
 import scipy.spatial as spt
+import os
+import sys
 
 parser = OptionParser(description='Read the basal friction data in the exo file and put them back to MPAS mesh. WARNING: Change the SEACAS library dir to your own path! A simple usage example: conversion_exodus_init_to_mpasli_mesh.py -e ./antarctica.exo -o target.nc -a ./mpas_cellID.ascii -v beta -k grd')
 parser.add_option("-e", "--exo", dest="exo_file", help="the exo input file")
@@ -28,8 +38,15 @@ for option in parser.option_list:
         option.help += (" " if option.help else "") + "[default: %default]"
 options, args = parser.parse_args()
 
-import sys
-sys.path.append('/Users/trevorhillebrand/Documents/mpas/seacas/lib/')
+# Get path to SEACAS module.  Two options:
+#   environment variables SEACAS
+#   or hard-coded default location
+SEACAS_path = os.getenv('SEACAS')
+if SEACAS_path == None:
+   sys.path.append('/Users/mhoffman/software/seacas/install/lib')
+else:
+   sys.path.append(SEACAS_path+'/lib')
+
 from exodus import exodus
 mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness",\
                        "stiffnessFactor":"stiffening_factor", \
