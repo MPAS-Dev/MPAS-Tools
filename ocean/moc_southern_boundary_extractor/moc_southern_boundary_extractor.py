@@ -15,8 +15,11 @@ last modified: 5/22/2018
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
+import xarray
 import argparse
 
+from mpas_tools.io import \
+    write_netcdf
 from mpas_tools.ocean.moc import \
     add_moc_southern_boundary_transects
 
@@ -38,5 +41,9 @@ if __name__ == "__main__":
                         required=True)
     args = parser.parse_args()
 
-    add_moc_southern_boundary_transects(args.in_file, args.mesh_file,
-                                        args.out_file)
+    dsMasks = xarray.open_dataset(args.in_file)
+    dsMesh = xarray.open_dataset(args.mesh_file)
+
+    dsMasksAndTransects = add_moc_southern_boundary_transects(dsMasks, dsMesh)
+
+    write_netcdf(dsMasksAndTransects, args.out_file)
