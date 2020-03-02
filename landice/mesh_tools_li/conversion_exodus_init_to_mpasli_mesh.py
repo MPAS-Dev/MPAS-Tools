@@ -49,6 +49,8 @@ else:
    sys.path.append(SEACAS_path+'/lib')
 
 from exodus import exodus
+
+# Create dictionary of variables that are supported by the script
 mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness",\
                        "stiffnessFactor":"stiffening_factor", \
                        "basalTemperature":"temperature", \
@@ -69,9 +71,6 @@ y = dataset.variables['yCell'][:]
 exo = exodus(options.exo_file)
 
 stride = np.array(exo.get_global_variable_values('stride'))
-ordering = np.array(exo.get_global_variable_values('ordering'))
-# if ordering = 1, exo data is in the column-wise manner, stride is the vertical layer number
-# if ordering = 0, exo data is in the layer-wise manner, stride is the node number each layer
 
 # Exodus ice thickness is in km. Convert to m. Exodus velocities are m/yr, convert to m/s
 if exo_var_name=='ice_thickness':
@@ -89,6 +88,10 @@ x_exo = np.array(xyz_exo[0]) * 1000
 y_exo = np.array(xyz_exo[1]) * 1000
 # change the unit of the exo coord data from km to m. Be careful if it changes in the future
 
+# Determine Exodus data ordering scheme
+ordering = np.array(exo.get_global_variable_values('ordering'))
+# if ordering = 1, exo data is in the column-wise manner, stride is the vertical layer number
+# if ordering = 0, exo data is in the layer-wise manner, stride is the node number each layer
 if ordering == 1.0:
     print("column wise pattern")
     layer_num = int(stride)
@@ -103,8 +106,7 @@ elif ordering == 0.0:
     y_exo_layer = y_exo[0:node_num+1]
     layer_num = len(data_exo)//node_num
 else:
-    print("The ordering is probably wrong")
-# slice the exo data to get the MPAS data
+    sys.exit("Invalid ordering in Exodus file.  Ordering must be 0 or 1.")
 
 node_num_layer = len(x_exo_layer)
 
@@ -150,22 +152,6 @@ for nVert in np.arange(0, nVert_max):
     else:
         nVert_albany = nVert_max - nVert - 1
 
-    if ordering == 1.0:
-        print("column wise pattern")
-        layer_num = int(stride)
-        data_exo_layer = data_exo[nVert_albany::layer_num]
-        x_exo_layer = x_exo[nVert_albany::layer_num]
-        y_exo_layer = y_exo[nVert_albany::layer_num]
-    elif ordering == 0.0:
-        print("layer wise pattern")
-        node_num = int(stride)
-        data_exo_layer = data_exo[0:node_num+1]
-        x_exo_layer = x_exo[0:node_num+1]
-        y_exo_layer = y_exo[0:node_num+1]
-        layer_num = len(data_exo)//node_num
-    else:
-        print("The ordering is probably wrong")
-    
     # slice the exo data to get the MPAS data
     node_num_layer = len(x_exo_layer)
 
