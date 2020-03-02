@@ -50,6 +50,9 @@ else:
 
 from exodus import exodus
 
+
+# === Step 1: Map and copy Exodus data to MPAS data  =============
+
 # Create dictionary of variables that are supported by the script
 mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness",\
                        "stiffnessFactor":"stiffening_factor", \
@@ -83,9 +86,10 @@ else:
     data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))
 # read data from the exo file
 
+# Get Exodus coordinate arrays
 xyz_exo = exo.get_coords()
-x_exo = np.array(xyz_exo[0]) * 1000
-y_exo = np.array(xyz_exo[1]) * 1000
+x_exo = np.array(xyz_exo[0]) * 1000.0
+y_exo = np.array(xyz_exo[1]) * 1000.0
 # change the unit of the exo coord data from km to m. Be careful if it changes in the future
 
 # Determine Exodus data ordering scheme
@@ -143,7 +147,7 @@ else:
 
 #loop through nVertLevels (or nVertInterfaces)
 for nVert in np.arange(0, nVert_max):
-    print('Converting layer/level', nVert)
+    print('Converting layer/level {} of {}'.format(nVert, nVert_max))
     #Albany has inverted layer/level ordering relative to MPAS. 
     #Also, we have to avoid sampling basal temperature for the temperature field,
     #since those are separate in the MPAS file
@@ -180,6 +184,8 @@ for nVert in np.arange(0, nVert_max):
 
 print("Successful in converting data from Exodus to MPAS!")
 
+
+# === Step 2: Optional extrapolation =============
 
 nCells = len(dataset.dimensions['nCells'])
 thickness = dataset.variables['thickness'][0,:]
@@ -257,6 +263,8 @@ else:
 
 
 
+# === Step 3: Optional smoothing =============
+
 iter_num = 0
 while iter_num < int(options.smooth_iter_num):
 
@@ -299,6 +307,9 @@ if iter_num == 0:
     print("\nNo smoothing! Iter number is 0!")
 
 print("\nExtrapolation and smoothing finished!")
+
+
+# === Step 4: Clean-up =============
 
 # Update history attribute of netCDF file
 thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
