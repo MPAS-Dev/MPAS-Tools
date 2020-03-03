@@ -59,8 +59,8 @@ elif [[ $HOSTNAME = "cooley"* ]]; then
   activ_path="/lus/theta-fs0/projects/ccsm/acme/tools/e3sm-unified"
   group="ccsm"
 elif [[ $HOSTNAME = "compy"* ]]; then
-  base_path="/compyfs/software/e3sm-unified/base"
-  activ_path="/compyfs/software/e3sm-unified"
+  base_path="/share/apps/E3SM/conda_envs/base"
+  activ_path="/share/apps/E3SM/conda_envs"
   group="users"
 elif [[ $HOSTNAME = "gr-fe"* ]] || [[ $HOSTNAME = "wf-fe"* ]]; then
   base_path="/usr/projects/climate/SHARED_CLIMATE/anaconda_envs/base"
