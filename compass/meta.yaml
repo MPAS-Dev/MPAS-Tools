@@ -1,0 +1,54 @@
+{% set name = "compass" %}
+{% set version = "0.1.0" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+build:
+  noarch: python
+  number: 0
+
+requirements:
+  host:
+    - python
+  run:
+    - python
+    - geometric_features 0.1.6
+    - mpas_tools 0.0.8
+    - jigsaw 0.9.12
+    - jigsawpy 0.2.1
+    - metis
+    - pyflann
+    - scikit-image
+    - cartopy
+    - cartopy_offlinedata
+    - pyamg
+    - ffmpeg
+
+test:
+  imports:
+    - geometric_features
+    - mpas_tools
+    - jigsawpy
+  commands:
+    - gpmetis --help
+    - ffmpeg -help
+
+about:
+  home: https://github.com/MPAS-Dev/MPAS-Model/tree/ocean/develop/testing_and_setup/compass
+  license: BSD 3-Clause
+  license_family: BSD
+  license_file: LICENSE
+  summary: 'A metapackage for creating test cases in the Model for Prediction Across Scales'
+  description: |
+    A metapackage of all the tools needed by COMPASS (Configuration Of Model
+    for Prediction Across Scales Setups), a framework for setting up and running
+    ocean and land-ice test cases in the Model for Prediction Across Scales
+    (MPAS) framework.
+  doc_url: https://github.com/MPAS-Dev/MPAS-Model/blob/ocean/develop/testing_and_setup/compass/README_ocean.md
+  dev_url: https://github.com/MPAS-Dev/MPAS-Model/tree/ocean/develop/testing_and_setup/compass
+
+extra:
+  recipe-maintainers:
+    - xylar
