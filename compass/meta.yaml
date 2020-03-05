@@ -1,5 +1,5 @@
 {% set name = "compass" %}
-{% set version = "0.1.0" %}
+{% set version = "0.1.1" %}
 
 package:
   name: {{ name|lower }}
@@ -7,7 +7,7 @@ package:
 
 build:
   noarch: python
-  number: 1
+  number: 0
 
 requirements:
   host:
@@ -15,7 +15,7 @@ requirements:
   run:
     - python
     - geometric_features 0.1.6 with_data*
-    - mpas_tools 0.0.8
+    - mpas_tools 0.0.9
     - jigsaw 0.9.12
     - jigsawpy 0.2.1
     - metis
