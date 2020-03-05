@@ -117,7 +117,7 @@ bool netcdf_mpas_read_onsphere(string filename){/*{{{*/
 
 	if(valid){
 		att_id = ncid.get_att(sph_name.c_str());
-		
+
 		vals = att_id -> values();
 
 		sph_name = "YES";
@@ -200,15 +200,13 @@ double netcdf_mpas_read_sphereradius(string filename){/*{{{*/
 
 	if(valid){
 		att_id = ncid.get_att(sph_name.c_str());
-		
+
 		vals = att_id -> values();
 
 		sph_name = "YES             ";
 
 		for(int i = 0; i < vals -> num(); i++){
-			tmp_name = vals -> as_string(i);
-
-			return atof(vals -> as_string(i));
+			return vals -> as_double(i);
 		}
 	} else {
 		return 0.0;
@@ -282,7 +280,7 @@ bool netcdf_mpas_read_isperiodic(string filename){/*{{{*/
 
 	if(valid){
 		att_id = ncid.get_att(sph_name.c_str());
-		
+
 		vals = att_id -> values();
 
 		sph_name = "YES";
@@ -365,13 +363,11 @@ double netcdf_mpas_read_xperiod(string filename){/*{{{*/
 
 	if(valid){
 		att_id = ncid.get_att(sph_name.c_str());
-		
+
 		vals = att_id -> values();
 
 		for(int i = 0; i < vals -> num(); i++){
-			tmp_name = vals -> as_string(i);
-
-			return atof(vals -> as_string(i));
+			return vals -> as_double(i);
 		}
 	} else {
 		return -1.0;
@@ -445,7 +441,7 @@ double netcdf_mpas_read_yperiod(string filename){/*{{{*/
 
 	if(valid){
 		att_id = ncid.get_att(sph_name.c_str());
-		
+
 		vals = att_id -> values();
 
 		for(int i = 0; i < vals -> num(); i++){
@@ -524,7 +520,7 @@ string netcdf_mpas_read_history(string filename){/*{{{*/
 
 	if(valid){
 		att_id = ncid.get_att(sph_name.c_str());
-		
+
 		vals = att_id -> values();
 
 		for(int i = 0; i < vals -> num(); i++){
@@ -603,7 +599,7 @@ string netcdf_mpas_read_fileid(string filename){/*{{{*/
 
 	if(valid){
 		att_id = ncid.get_att(sph_name.c_str());
-		
+
 		vals = att_id -> values();
 
 		for(int i = 0; i < vals -> num(); i++){
@@ -684,7 +680,7 @@ string netcdf_mpas_read_parentid(string filename){/*{{{*/
 
 	if(valid){
 		att_id = ncid.get_att(sph_name.c_str());
-		
+
 		vals = att_id -> values();
 
 		for(int i = 0; i < vals -> num(); i++){
@@ -762,15 +758,13 @@ double netcdf_mpas_read_meshspec(string filename){/*{{{*/
 
 	if(valid){
 		att_id = ncid.get_att(sph_name.c_str());
-		
+
 		vals = att_id -> values();
 
 		sph_name = "YES             ";
 
 		for(int i = 0; i < vals -> num(); i++){
-			tmp_name = vals -> as_string(i);
-
-			return atof(vals -> as_string(i));
+			return vals -> as_double(i);
 		}
 	} else {
 		return 0.0;
@@ -1343,7 +1337,7 @@ void netcdf_mpas_read_mesh_density ( string filename, int ncells, double mesh_de
 	//  Get the variable values.
 	//
 	NcError err(NcError::silent_nonfatal); // Don't error if the variable isn't found.
-	
+
 #ifdef _DEBUG
 	cout << "   Reading meshDensity" << endl;
 #endif
@@ -1671,7 +1665,7 @@ void netcdf_mpas_read_xyzvertex ( string filename, int nvertices, double xvertex
 	//
 	//    Input, int NVERTICES, the number of vertices.
 	//
-	//    Output, double XVERTEX[NVERTICES], YVERTEXL[NVERTICES], 
+	//    Output, double XVERTEX[NVERTICES], YVERTEXL[NVERTICES],
 	//    ZVERTEX[NVERTICES], the coordinates of the nodes.
 	//
 	NcVar *var_id;
@@ -2047,7 +2041,7 @@ void netcdf_mpas_read_xyzedge ( string filename, int nedges, double xedge[], dou
 	//
 	//    Input, int NEDGES, the number of edges.
 	//
-	//    Output, double XEDGE[NEDGES], YEDGE[NEDGES], 
+	//    Output, double XEDGE[NEDGES], YEDGE[NEDGES],
 	//    ZEDGE[NEDGES], the coordinates of the edges.
 	//
 	NcVar *var_id;
