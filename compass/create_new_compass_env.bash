@@ -26,7 +26,7 @@ check_env () {
 # Modify the following to choose which e3sm-unified version(s) the python version(s) are installed and whether to make
 # an environment with x-windows support under cdat (cdatx) and/or without (nox).  Typically, both environments should
 # be created.
-versions=(0.1.0)
+versions=(0.1.1)
 pythons=(3.7)
 
 default_python=3.7
