@@ -26,7 +26,7 @@ check_env () {
 # Modify the following to choose which e3sm-unified version(s) the python version(s) are installed and whether to make
 # an environment with x-windows support under cdat (cdatx) and/or without (nox).  Typically, both environments should
 # be created.
-versions=(0.1.1)
+versions=(0.1.2)
 pythons=(3.7)
 
 default_python=3.7
@@ -41,7 +41,7 @@ world_read="True"
 if [[ $HOSTNAME = "cori"* ]] || [[ $HOSTNAME = "dtn"* ]]; then
   base_path="/global/cfs/cdirs/acme/software/anaconda_envs/base"
   activ_path="/global/cfs/cdirs/acme/software/anaconda_envs"
-  group="acme"
+  group="e3sm"
 elif [[ $HOSTNAME = "acme1"* ]] || [[ $HOSTNAME = "aims4"* ]]; then
   base_path="/usr/local/e3sm_unified/envs/base"
   activ_path="/usr/local/e3sm_unified/envs"
