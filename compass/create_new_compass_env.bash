@@ -28,14 +28,18 @@ check_env () {
 # be created.
 versions=(0.1.2)
 pythons=(3.7)
+mpis=(serial mpich)
 
 default_python=3.7
+
+remove_existing=False
 
 # Any subsequent commands which fail will cause the shell script to exit
 # immediately
 set -e
 
 world_read="True"
+default_mpi=serial
 
 # The rest of the script should not need to be modified
 if [[ $HOSTNAME = "cori"* ]] || [[ $HOSTNAME = "dtn"* ]]; then
@@ -50,6 +54,7 @@ elif [[ $HOSTNAME = "blueslogin"* ]]; then
   base_path="/lcrc/soft/climate/e3sm-unified/base"
   activ_path="/lcrc/soft/climate/e3sm-unified"
   group="climate"
+  default_mpi=mpich
 elif [[ $HOSTNAME = "rhea"* ]]; then
   base_path="/ccs/proj/cli900/sw/rhea/e3sm-unified/base"
   activ_path="/ccs/proj/cli900/sw/rhea/e3sm-unified"
@@ -83,6 +88,7 @@ if [ ! -d $base_path ]; then
 fi
 
 # activate the new environment
+# shellcheck disable=SC1090
 source ${base_path}/etc/profile.d/conda.sh
 conda activate
 
@@ -94,41 +100,60 @@ for version in "${versions[@]}"
 do
   for python in "${pythons[@]}"
   do
-    channels="--override-channels -c conda-forge -c defaults -c e3sm"
-    packages="python=$python compass=${version}"
+    for mpi in "${mpis[@]}"
+    do
+      channels=("--override-channels" "-c" "conda-forge" "-c" "defaults" "-c"
+                "e3sm")
+      packages=("python=$python")
 
-    if [[ "$python" == "$default_python" ]]; then
-      suffix=""
-    else
-      suffix="_py${python}"
-    fi
+      if [[ "$python" == "$default_python" ]]; then
+        suffix=""
+      else
+        suffix="_py${python}"
+      fi
+      if [[ "$mpi" != "$default_mpi" ]]; then
+        suffix="${suffix}_${mpi}"
+      fi
 
-    env_name=compass_${version}${suffix}
-    if [ ! -d "$base_path/envs/$env_name" ]; then
-      echo creating "$env_name"
-      conda create -n "$env_name" -y $channels $packages
+      if [[ "$mpi" == "mpich" ]]; then
+        packages+=("compass=${version}=mpi_mpich*")
+      elif [[ "$mpi" == "openmpi" ]]; then
+        packages+=("compass=${version}=mpi_openmpi*")
+      elif [[ "$mpi" == "serial" ]]; then
+        packages+=("compass=${version}=nompi*")
+      fi
+
+      env_name=compass_${version}${suffix}
+      if [[ "$remove_existing" == "True" ]]; then
+        conda remove -y --all -n "$env_name"
+      fi
+
+      if [ ! -d "$base_path/envs/$env_name" ]; then
+        echo creating "$env_name"
+        conda create -n "$env_name" -y "${channels[@]}" "${packages[@]}"
+        conda activate "$env_name"
+        conda deactivate
+      else
+        echo "$env_name" already exists
+      fi
+
       conda activate "$env_name"
+      check_env
       conda deactivate
-    else
-      echo "$env_name" already exists
-    fi
 
-    conda activate "$env_name"
-    check_env
-    conda deactivate
+      mkdir -p "$activ_path"
 
-    mkdir -p "$activ_path"
-
-    # make activation scripts
-    script=""
-    script="${script}"$'\n'"if [ -x \"\$(command -v module)\" ] ; then"
-    script="${script}"$'\n'"  module unload python"
-    script="${script}"$'\n'"fi"
-    script="${script}"$'\n'"source ${base_path}/etc/profile.d/conda.sh"
-    script="${script}"$'\n'"conda activate $env_name"
-    file_name=$activ_path/load_latest_compass${suffix}.sh
-    rm -f "$file_name"
-    echo "${script}" > "$file_name"
+      # make activation scripts
+      script=""
+      script="${script}"$'\n'"if [ -x \"\$(command -v module)\" ] ; then"
+      script="${script}"$'\n'"  module unload python"
+      script="${script}"$'\n'"fi"
+      script="${script}"$'\n'"source ${base_path}/etc/profile.d/conda.sh"
+      script="${script}"$'\n'"conda activate $env_name"
+      file_name=$activ_path/load_latest_compass${suffix}.sh
+      rm -f "$file_name"
+      echo "${script}" > "$file_name"
+    done
   done
 done
 
