@@ -1,9 +1,0 @@
-&periodic_grid
-   nx = 50,
-   ny = 50,
-   dc = 100000.,
-   nVertLevels = 1,
-   nTracers = 2,
-   nVertexDegree = 4,
-   nproc = 2, 4, 8,
-/

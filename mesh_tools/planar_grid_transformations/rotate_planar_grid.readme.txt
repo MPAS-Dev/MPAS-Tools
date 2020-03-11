@@ -1,1 +1,0 @@
-The tool up one directory called grid_rotate can be used to rotate planar grids.  (It works with either planar or spherical grids.)

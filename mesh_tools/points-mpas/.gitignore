@@ -1,5 +1,0 @@
-# Ignore object files.
-*.o
-
-# Ignore executable.
-PointsToMpas.x
