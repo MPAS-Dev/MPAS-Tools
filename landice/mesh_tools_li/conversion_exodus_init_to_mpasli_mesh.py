@@ -32,7 +32,7 @@ parser.add_option("-a", "--ascii", dest="id_file", help="the ascii global id inp
 parser.add_option("-m", "--method", dest="conversion_method", default="id", help="two options: id or coord. The id method is recommended. The coord method may fail at points where x or y = 0 while x_exodus or y_exodus is not")
 parser.add_option("-k", "--mask", dest="mask_scheme", help="two options: all or grd. The all method is to mask cells with ice thickness > 0 as 1. The grd method masks grounded cells as 1.")
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas input/output file")
-parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable you want to convert from an exodus file")
+parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable(s) you want to convert from an exodus file. May be 'all', a single variable, or multiple variables comma-separated (no spaces)")
 parser.add_option("-x", "--extra", dest="extrapolation", default="min", help="Two options: idw and min. idw is the Inverse Distance Weighting method, and min is the method that uses the minimum value of the surrounding cells.")
 parser.add_option("-i", "--iter", dest="smooth_iter_num", default="3", help="Maximum number for the recursive smoothing. A larger number means a more uniform smoothing field and more running time.")
 for option in parser.option_list:
@@ -59,10 +59,11 @@ from exodus import exodus
 
 # Create dictionary of variables that are supported by the script
 mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness",\
-#                       "stiffnessFactor":"stiffening_factor", \
+                       "stiffnessFactor":"stiffening_factor", \
                        "basalTemperature":"temperature", \
+                       "surfaceTemperature":"temperature", \
                        "temperature":"temperature", \
-                       "surfaceTemperature":"surface_air_temperature", \
+                       "surfaceAirTemperature":"surface_air_temperature", \
                        "uReconstructX":"solution_1", \
                        "uReconstructY":"solution_2"}
 # A mapping between mpas and exodus file. Add one if you need to manipulate a different variable!
@@ -87,12 +88,25 @@ y_exo = np.array(xyz_exo[1]) * 1000.0
 # Determine Exodus data ordering scheme
 ordering = np.array(exo.get_global_variable_values('ordering'))
 
+# Check that Albany and Exodus layer thicknesses are the same
+exo_layer_name = []
+exo_layer_thick = []
+for glob_var_name in exo.get_global_variable_names():
+    if "layer_thickness_ratio" in glob_var_name:
+        exo_layer_name.append(glob_var_name)
+        exo_layer_thick.append(exo.get_global_variable_values(glob_var_name))
 
+# Albany layering is in reverse order from mpas
+exo_layer_thick = np.flip(np.reshape(np.array(exo_layer_thick), [len(exo_layer_thick),]))
+mpas_layer_thick = np.ma.filled(dataset.variables['layerThicknessFractions'][:])
+if mpas_layer_thick.any() != exo_layer_thick.any():
+    sys.exit("Albany layer_thickness_ratio does not match MPAS layerThicknessFractions! Aborting")
+        
 # read data from the exo file
 def read_exo_data(var_name):
     exo_var_name = mpas_exodus_var_dic[var_name]
     data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))
-    return(data_exo)
+    return data_exo
 
 # if ordering = 1, exo data is in the column-wise manner, stride is the vertical layer number
 # if ordering = 0, exo data is in the layer-wise manner, stride is the node number each layer
@@ -114,11 +128,9 @@ def get_data_exo_layer(start_ind):
         sys.exit("Invalid ordering in Exodus file.  Ordering must be 0 or 1.")
     
     node_num_layer = len(x_exo_layer)
-    return(node_num_layer, data_exo_layer, x_exo_layer, y_exo_layer)
+    return data_exo_layer, node_num_layer, x_exo_layer, y_exo_layer
     
-# set variable value to some uniform value before we put new data in it
-# Often we need do this when we want to convert thickness from exodus to mpas
-# in order to make sure ice thickness = 0 for void cells
+
 def get_CellID_array():
     if (options.conversion_method == 'coord'):
         print("use coordinate method")
@@ -139,88 +151,77 @@ def get_CellID_array():
         # The first number in the file is the total number. skip it
     else:
         sys.exit("Unsupported conversion method chosen! Set option m as 'id' or 'coord'!")
-    return(usefulCellID_array)
+    return usefulCellID_array
 
 #Get number of vertical layers from mpas output file.
 def get_nVert_MPAS(var_name):
     if len(np.shape(dataset.variables[var_name])) == 3:
-        nVert_max = np.shape(dataset.variables[var_name])[2]
+        if var_name == "temperature":
+            nVert_max = np.shape(dataset.variables[var_name])[2] + 1 #albany temperature is on diferent vertical grid than MPAS
+        else:
+            nVert_max = np.shape(dataset.variables[var_name])[2]
     else:
         nVert_max = 1
-    return(nVert_max)
+    return nVert_max
     
 
-#loop through nVertLevels (or nVertInterfaces)
+#loop through nVertLevels (or nVertInterfaces) and convert variables from Albany to MPAS units
 def loop_over_nVertLevels(var_name):
+    albanyTemperature = np.zeros((np.max(usefulCellID_array), nVert_max)) #initialize albanyTemperature array to fill in below
+    dataset.variables[var_name][:] = 0
+    # Fill variable with zeros in order to ensure proper values in void 
+    
     for nVert in np.arange(0, nVert_max):
-        print(nVert)
-        print('Converting layer/level {} of {}'.format(nVert, nVert_max))
+        print('Converting layer/level {} of {}'.format(nVert+1, nVert_max))
         #Albany has inverted layer/level ordering relative to MPAS. 
         #Also, we have to avoid sampling basal temperature for the temperature field,
         #since those are separate in the MPAS file
         if dataset.variables[var_name].get_dims().__contains__('nVertLayers'):
             nVert_albany = nVert_max - nVert 
+        elif var_name == "surfaceTemperature":
+            nVert_albany = int(stride)-1
         else:
             nVert_albany = nVert_max - nVert - 1
-    
-        node_num_layer, data_exo_layer, x_exo_layer, y_exo_layer = get_data_exo_layer(start_ind=nVert_albany)
+        
+        #extract layer data from exodus file
+        data_exo_layer, node_num_layer,  x_exo_layer, y_exo_layer = get_data_exo_layer(start_ind=nVert_albany)
 
         if var_name == "beta":
             dataset.variables[var_name][0,usefulCellID_array-1] = np.exp(data_exo_layer) * 1000.0
         elif var_name == "uReconstructX" or var_name == "uReconstructY":
             dataset.variables[var_name][0,usefulCellID_array-1, nVert] = data_exo_layer / (60. * 60. * 24 * 365)
         elif var_name == "thickness":
-            dataset.variables[var_name][0,usefulCellID_array-1] = data_exo_layer * 1000.0
             # change bedTopography also when we change thickness, if that field exists
+            dataset.variables[var_name][0,usefulCellID_array-1] = data_exo_layer * 1000.0
             if 'bedTopography' in dataset.variables.keys():
                 thicknessOrig = np.copy(dataset.variables[var_name][0,usefulCellID_array-1])
                 bedTopographyOrig = np.copy(dataset.variables['bedTopography'][0,usefulCellID_array-1])
                 surfaceTopographyOrig = thicknessOrig + bedTopographyOrig
-                dataset.variables[var_name][0,usefulCellID_array-1] = data_exo_layer
-                dataset.variables['bedTopography'][0,usefulCellID_array-1] = surfaceTopographyOrig - data_exo_layer
+                dataset.variables['bedTopography'][0,usefulCellID_array-1] = surfaceTopographyOrig - data_exo_layer * 1000.0
         elif var_name == "temperature":
-            dataset.variables[var_name][0,usefulCellID_array-1,nVert] = data_exo_layer 
+            albanyTemperature[usefulCellID_array-1, nVert] = data_exo_layer #interpolate onto MPAS mesh in interpolateTemperature
+        elif var_name == "surfaceTemperature":
+            dataset.variables[var_name][0,usefulCellID_array-1] = data_exo_layer
         elif var_name in dataset.variables.keys() == False:
             sys.exit("Unsupported variable requested for conversion.")
         else:
             dataset.variables[var_name][0,usefulCellID_array-1] = data_exo_layer
             
-    return(dataset)
+    return dataset, albanyTemperature
         
+# linearly interpolate temperature between vertical Albany layers onto MPAS grid.
 def interpolateTemperature():
-    albanyTemperature = dataset.variables["temperature"][:].copy()
-    basalTemperature = np.reshape(dataset.variables["basalTemperature"][:], [len(x), 1]) 
-    fullTemperature = np.concatenate([albanyTemperature[0,:,:], basalTemperature], axis=1)
-    albany_layers = np.arange(0, nVert_max+1)
-    MPAS_layers = np.arange(1, nVert_max+1)
-    temperatureInterpolant = interp1d(albany_layers, fullTemperature, axis=1)
+    albany_layers = np.arange(0, nVert_max)
+    MPAS_layers = np.arange(1, nVert_max)
+    temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)
     dataset.variables["temperature"][0,:,:] = temperatureInterpolant(MPAS_layers)
+    print('Temperature interpolation complete')
     
-    return(dataset)
+    return dataset
     
 
-var_names = []
-if options.var_name == "all":
-    for mpas_name in mpas_exodus_var_dic:
-        var_names.append(mpas_name)
-else:
-    var_names = [options.var_name]
-
-
-for var_name in var_names:
-    data_exo = read_exo_data(var_name)
-    node_num_layer, data_exo_layer, x_exo_layer, y_exo_layer = get_data_exo_layer(start_ind=0)
-    usefulCellID_array = get_CellID_array()                                
-    nVert_max = get_nVert_MPAS(var_name)
-    dataset = loop_over_nVertLevels(var_name)
-    if var_name == "temperature":
-        dataset = interpolateTemperature()
-
-    
-    print("Successful in converting data from Exodus to MPAS!")
-
-    # === Step 2: Optional extrapolation =============
-    
+# === Step 2: Optional extrapolation =============
+def extrapolateMPASVariable():   
     nCells = len(dataset.dimensions['nCells'])
     thickness = dataset.variables['thickness'][0,:]
     cellsOnCell = dataset.variables['cellsOnCell'][:]
@@ -253,9 +254,9 @@ for var_name in var_names:
     # 6) go to step 1)
     
     if var_name == 'thickness':
-        print("Do not do extrapolation!")
+        print("Do not extrapolate ice thickness!")
     else:
-        print("\nStart extrapolation!")
+        print("\nStart {} extrapolation!".format(var_name))
         while np.count_nonzero(keepCellMask) != nCells:
     
             keepCellMask = np.copy(keepCellMaskNew)
@@ -294,11 +295,11 @@ for var_name in var_names:
     
     
             print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+    return dataset, keepCellMask, keepCellMaskOld, cellsOnCell, nEdgesOnCell
     
     
-    
-    # === Step 3: Optional smoothing =============
-    
+# === Step 3: Optional smoothing =============
+def smoothMPASVariable():
     iter_num = 0
     while iter_num < int(options.smooth_iter_num):
     
@@ -333,25 +334,55 @@ for var_name in var_names:
                 sys.exit("Smoothing is only for beta and stiffness for now. Set option i to 0 to disable smoothing!")
             dataset.variables[var_name][0,iCell] = var_interp
     
-        print("{0:3d} smoothing in total {1:3s} iters".format(iter_num,  options.smooth_iter_num))
+        print("\n{0:3d} smoothing in total {1:3s} iters".format(iter_num,  options.smooth_iter_num))
     
         iter_num = iter_num + 1
     
     if iter_num == 0:
         print("\nNo smoothing! Iter number is 0!")
     
-    print("\nExtrapolation and smoothing finished!")
-    
-    
-    # === Step 4: Clean-up =============
-    
-    # Update history attribute of netCDF file
-    thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
-    if hasattr(dataset, 'history'):
-       newhist = '\n'.join([thiscommand, getattr(dataset, 'history')])
+    print("\n{} extrapolation and smoothing finished!".format(var_name))
+    return dataset
+ 
+# === Step 4: Call functions to perform conversion, extrapolation, and smoothing =============
+# Define the variable(s) you are converting. Currently supports a single variable or "all"
+var_names = []
+if options.var_name == "all":
+    for mpas_name in mpas_exodus_var_dic:
+        var_names.append(mpas_name)
+else:
+    var_names = options.var_name.split(',') #parse variable names into a list
+
+# Loop through the variables, calling functions defined above to convert from Albany to MPAS, exrapolate and smooth as needed
+for var_name in var_names:
+    #check that the desired variable exists in MPAS and albany files
+    if mpas_exodus_var_dic[var_name] in exo.get_node_variable_names() and var_name in dataset.variables.keys():
+        print("\nBeginning {} conversion.".format(var_name))
+        data_exo = read_exo_data(var_name)
+        data_exo_layer, node_num_layer,  x_exo_layer, y_exo_layer = get_data_exo_layer(start_ind=0)
+        usefulCellID_array = get_CellID_array()                                
+        nVert_max = get_nVert_MPAS(var_name)        
+        dataset, albanyTemperature = loop_over_nVertLevels(var_name)
+        if var_name == "temperature": #temperature requires vertical interpolation.
+            dataset = interpolateTemperature()
+        print("\nSuccessful in converting {} data from Exodus to MPAS!".format(var_name))
+        dataset, keepCellMask, keepCellMaskOld, cellsOnCell, nEdgesOnCell = extrapolateMPASVariable()
+        if var_name in ["beta", "stiffnessFactor"]: #smoothing only available for beta and stiffnessFactor
+            dataset = smoothMPASVariable()
     else:
-       newhist = thiscommand
-    setattr(dataset, 'history', newhist )
+        print("\nNo equivalent of MPAS variable {} found in exodus file".format(var_name))
+ 
+print("\nConversion, extrapolation, and smoothing complete. Enjoy!")
+
+# === Step 5: Clean-up =============
+
+# Update history attribute of netCDF file
+thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
+if hasattr(dataset, 'history'):
+   newhist = '\n'.join([thiscommand, getattr(dataset, 'history')])
+else:
+   newhist = thiscommand
+setattr(dataset, 'history', newhist )
 
 
 dataset.close()
