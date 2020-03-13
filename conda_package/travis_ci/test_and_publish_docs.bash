@@ -37,7 +37,7 @@ if [[ -d "$DOCS_VERSION" ]]; then
   git rm -rf "$DOCS_VERSION" > /dev/null
 fi
 mkdir "$DOCS_VERSION"
-cp -r "$REPO_PATH"/docs/_build/html/* "$DOCS_VERSION"
+cp -r "$REPO_PATH"/conda_package/docs/_build/html/* "$DOCS_VERSION"
 # Commit and push latest version
 git add .
 if git diff-index --quiet HEAD; then
