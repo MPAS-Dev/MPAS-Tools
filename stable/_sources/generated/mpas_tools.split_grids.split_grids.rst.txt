@@ -1,0 +1,6 @@
+mpas\_tools.split\_grids.split\_grids
+=====================================
+
+.. currentmodule:: mpas_tools.split_grids
+
+.. autofunction:: split_grids
