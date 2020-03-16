@@ -29,7 +29,6 @@ from datetime import datetime
 parser = OptionParser(description='Read the basal friction data in the exo file and put them back to MPAS mesh. WARNING: Change the SEACAS library dir to your own path! A simple usage example: conversion_exodus_init_to_mpasli_mesh.py -e ./antarctica.exo -o target.nc -a ./mpas_cellID.ascii -v beta -k grd')
 parser.add_option("-e", "--exo", dest="exo_file", help="the exo input file")
 parser.add_option("-a", "--ascii", dest="id_file", help="the ascii global id input file")
-parser.add_option("-m", "--method", dest="conversion_method", default="id", help="two options: id or coord. The id method is recommended. The coord method may fail at points where x or y = 0 while x_exodus or y_exodus is not")
 parser.add_option("-k", "--mask", dest="mask_scheme", help="two options: all or grd. The all method is to mask cells with ice thickness > 0 as 1. The grd method masks grounded cells as 1.")
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas input/output file")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable(s) you want to convert from an exodus file. May be 'all', a single variable, or multiple variables comma-separated (no spaces)")
@@ -132,25 +131,10 @@ def get_data_exo_layer(start_ind):
     
 
 def get_CellID_array():
-    if (options.conversion_method == 'coord'):
-        print("use coordinate method")
-        usefulCellID_array = np.zeros((node_num_layer,), dtype=np.int32)
-        for i in range(node_num_layer):
-            index_x, = np.where(abs(x[:]-x_exo_layer[i])/(abs(x[:])+1e-10)<1e-3)
-            index_y, = np.where(abs(y[:]-y_exo_layer[i])/(abs(y[:])+1e-10)<1e-3)
-            index_intersect = list(set(index_x) & set(index_y))
-            index = index_intersect[0]
-            usefulCellID_array[i] = index + 1 # convert to Fortran indexing
-        # save id map so it could be used subsequently for convenience
-        np.savetxt('exodus_to_mpas_id_map.txt', np.concatenate( (np.array([node_num_layer]), usefulCellID_array)), fmt=str("%i"))
-        print('Coordinate IDs written to "exodus_to_mpas_id_map.txt".  You can use this file with "id" conversion method.')
-    elif (options.conversion_method == 'id'):
-        print("use global id method. Need a global id file")
-        usefulCellID = np.loadtxt(options.id_file,dtype='i')
-        usefulCellID_array = usefulCellID[1::]
-        # The first number in the file is the total number. skip it
-    else:
-        sys.exit("Unsupported conversion method chosen! Set option m as 'id' or 'coord'!")
+    print("Reading global id file {}".format(options.id_file))
+    usefulCellID = np.loadtxt(options.id_file,dtype='i')
+    usefulCellID_array = usefulCellID[1::]
+    # The first number in the file is the total number. skip it
     return usefulCellID_array
 
 #Get number of vertical layers from mpas output file.
@@ -161,7 +145,7 @@ def get_nVert_MPAS(var_name):
         else:
             nVert_max = np.shape(dataset.variables[var_name])[2]
     else:
-        nVert_max = 1
+        nVert_max = 1     
     return nVert_max
     
 
