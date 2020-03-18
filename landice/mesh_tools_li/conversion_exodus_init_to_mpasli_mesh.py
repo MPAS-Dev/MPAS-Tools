@@ -236,7 +236,7 @@ for var_name in var_names:
             # 5) Update mask
             # 6) go to step 1)
 
-            print("\nStart {} extrapolation!".format(var_name))
+            print("\nStart {} extrapolation using {} method!".format(var_name, extrapolation))
             while np.count_nonzero(keepCellMask) != nCells:
 
                 keepCellMask = np.copy(keepCellMaskNew)
@@ -278,6 +278,7 @@ for var_name in var_names:
 
             # Smoothing
             iter_num = 0
+            varValue = dataset.variables[var_name][0,:] # get variable array value so we can work from memory and not disk
             print("\nStart {} smoothing!".format(var_name))
             while iter_num < int(smooth_iter_num):
                 print("\nSmoothing iteration {} of {}".format(iter_num+1,  smooth_iter_num))
@@ -285,6 +286,7 @@ for var_name in var_names:
 
                 for iCell in searchCells:
                     neighborcellID = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
+                    neighborcellID = neighborcellID[neighborcellID>=0] # Important: ignore the phantom "neighbors" that are off the edge of the mesh (0 values in cellsOnCell)
                     nonzero_idx, = np.nonzero(neighborcellID+1)
                     cell_nonzero_id = neighborcellID[nonzero_idx] # neighbor cell id
 
@@ -303,16 +305,17 @@ for var_name in var_names:
                     y_adj = yCell[nonzero_id]
                     ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
                     assert np.count_nonzero(ds)==len(ds)
-                    var_adj = dataset.variables[var_name][0,nonzero_id]
-                    if var_name == "beta":
-                        var_interp = min(var_adj)
-                    elif var_name == "stiffnessFactor":
+                    var_adj = varValue[nonzero_id]
+                    if extrapolation == 'idw':
                         var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+                    elif extrapolation == 'min':
+                        var_interp = min(var_adj)
                     else:
                         sys.exit("Smoothing is only for beta and stiffness for now. Set option i to 0 to disable smoothing!")
-                    dataset.variables[var_name][0,iCell] = var_interp
+                    varValue[iCell] = var_interp
 
                 iter_num = iter_num + 1
+            dataset.variables[var_name][0,:] = varValue # Put updated array back into file.
 
             if iter_num == 0:
                 print("\nNo smoothing! Iter number is 0!")
