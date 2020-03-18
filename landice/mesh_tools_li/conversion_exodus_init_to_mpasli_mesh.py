@@ -65,8 +65,8 @@ ice_density = 910.0
 ocean_density = 1028.0
 
 dataset = Dataset(options.nc_file, 'r+')
-x = dataset.variables['xCell'][:]
-y = dataset.variables['yCell'][:]
+xCell = dataset.variables['xCell'][:]
+yCell = dataset.variables['yCell'][:]
 
 exo = exodus(options.exo_file)
 
@@ -214,17 +214,19 @@ for var_name in var_names:
                 bedrock = dataset.variables['bedTopography'][0,:]
             else:
                 bedrock = np.zeros(np.shape(thickness))
+            varValue = dataset.variables[var_name][0,:] # get variable array value so we can work from memory and not disk
 
             keepCellMask = np.zeros((nCells,), dtype=np.int8)
 
             if mask_scheme == 'grd':
-                keepCellMask[thickness*ice_density/ocean_density + bedrock > 0.0] = 1
+                keepCellMask[(thickness*ice_density/ocean_density + bedrock > 0.0) * (thickness>0.0)] = 1
             # find the mask for grounded ice region
             elif mask_scheme == 'all':
                 keepCellMask[thickness > 0.0] = 1
 
             keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that will be used later
-            keepCellMaskOld = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
+            keepCellMaskOrig = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
+
 
             # recursive extrapolation steps:
             # 1) find cell A with mask = 0
@@ -239,9 +241,11 @@ for var_name in var_names:
 
                 keepCellMask = np.copy(keepCellMaskNew)
                 searchCells = np.where(keepCellMask==0)[0]
+                varValueOld = np.copy(varValue)
 
                 for iCell in searchCells:
                     neighborcellID = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
+                    neighborcellID = neighborcellID[neighborcellID>=0] # Important: ignore the phantom "neighbors" that are off the edge of the mesh (0 values in cellsOnCell)
 
                     mask_for_idx = keepCellMask[neighborcellID] # active cell mask
                     mask_nonzero_idx, = np.nonzero(mask_for_idx)
@@ -252,32 +256,32 @@ for var_name in var_names:
                     assert len(nonzero_id) == nonzero_num
 
                     if nonzero_num > 0:
-                        x_i = x[iCell]
-                        y_i = y[iCell]
-                        x_adj = x[nonzero_id]
-                        y_adj = y[nonzero_id]
-                        ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
-                        assert np.count_nonzero(ds)==len(ds)
-                        var_adj = dataset.variables[var_name][0,nonzero_id]
+                        x_i = xCell[iCell]
+                        y_i = yCell[iCell]
+                        x_adj = xCell[nonzero_id]
+                        y_adj = yCell[nonzero_id]
+                        var_adj = varValueOld[nonzero_id]
                         if extrapolation == 'idw':
+                            ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
+                            assert np.count_nonzero(ds)==len(ds)
                             var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
-                            dataset.variables[var_name][0,iCell] = var_interp
+                            varValue[iCell] = var_interp
                         elif extrapolation == 'min':
-                            var_adj_min = np.min(var_adj)
-                            dataset.variables[var_name][0,iCell] = var_adj_min
+                            varValue[iCell] = np.min(var_adj)
                         else:
                             sys.exit("wrong extrapolation scheme! Set option x as idw or min!")
 
                         keepCellMaskNew[iCell] = 1
 
                 print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+            dataset.variables[var_name][0,:] = varValue # Put updated array back into file.
 
             # Smoothing
             iter_num = 0
             print("\nStart {} smoothing!".format(var_name))
             while iter_num < int(smooth_iter_num):
                 print("\nSmoothing iteration {} of {}".format(iter_num+1,  smooth_iter_num))
-                searchCells = np.where(keepCellMaskOld==0)[0]
+                searchCells = np.where(keepCellMaskOrig==0)[0]
 
                 for iCell in searchCells:
                     neighborcellID = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
@@ -293,10 +297,10 @@ for var_name in var_names:
                     assert len(nonzero_id) == nonzero_num
                     assert nonzero_num > 0
 
-                    x_i = x[iCell]
-                    y_i = y[iCell]
-                    x_adj = x[nonzero_id]
-                    y_adj = y[nonzero_id]
+                    x_i = xCell[iCell]
+                    y_i = yCell[iCell]
+                    x_adj = xCell[nonzero_id]
+                    y_adj = yCell[nonzero_id]
                     ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
                     assert np.count_nonzero(ds)==len(ds)
                     var_adj = dataset.variables[var_name][0,nonzero_id]
