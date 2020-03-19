@@ -26,7 +26,7 @@ check_env () {
 # Modify the following to choose which e3sm-unified version(s) the python version(s) are installed and whether to make
 # an environment with x-windows support under cdat (cdatx) and/or without (nox).  Typically, both environments should
 # be created.
-versions=(0.1.2)
+versions=(0.1.3)
 pythons=(3.7)
 mpis=(serial mpich)
 
@@ -54,7 +54,6 @@ elif [[ $HOSTNAME = "blueslogin"* ]]; then
   base_path="/lcrc/soft/climate/e3sm-unified/base"
   activ_path="/lcrc/soft/climate/e3sm-unified"
   group="climate"
-  default_mpi=mpich
 elif [[ $HOSTNAME = "rhea"* ]]; then
   base_path="/ccs/proj/cli900/sw/rhea/e3sm-unified/base"
   activ_path="/ccs/proj/cli900/sw/rhea/e3sm-unified"
