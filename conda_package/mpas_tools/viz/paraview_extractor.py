@@ -78,6 +78,8 @@ import os
 import glob
 import numpy
 import argparse
+from datetime import datetime
+from netCDF4 import date2num
 
 from builtins import input
 
@@ -103,13 +105,13 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
     for the filename pattern, for exmaple ``filename_pattern="hist.comp.*.nc"``.
 
     By default, time-independent fields on cells are written to a file
-    
+
     .. code-block::
 
       vtk_files/staticFieldsOnCells.vtp
 
     and time-dependent fields on cells are written to
-    
+
     .. code-block::
 
       vtk_files/timeDependentFieldsOnCells.pvd
@@ -259,17 +261,15 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
                          mesh_file, topo_dim=topo_dim,
                          topo_cell_index_name=topo_cell_index)
     basic_dims = ['nCells', 'nEdges', 'nVertices', 'Time']
-    include_dims = ['nCells', 'nEdges', 'nVertices']
     if topo_dim is not None:
         basic_dims.append(topo_dim)
-        include_dims = ['nCells']
 
     (all_dim_vals, cellVars, vertexVars, edgeVars) = \
         setup_dimension_values_and_sort_vars(
             time_series_file, mesh_file,  variable_list, extra_dims,
             basic_dims=basic_dims)
     time_series_file.close()
-    if(mesh_file is not None):
+    if mesh_file is not None:
         mesh_file.close()
 
     summarize_extraction(mesh_filename, time_indices, cellVars,
@@ -417,7 +417,7 @@ def main():
                              "(default is the topo_dim-1 for all cells)")
     args = parser.parse_args()
 
-    extract_vtk(filename_pattern=args.filename_pattern, 
+    extract_vtk(filename_pattern=args.filename_pattern,
                 variable_list=args.variable_list,
                 dimension_list=args.dimension_list,
                 mesh_filename=args.mesh_filename,
@@ -801,7 +801,7 @@ def setup_time_indices(fn_pattern, xtimeName):  # {{{
                 else:
                     local_times = xtime[:]
 
-                if(len(local_times) == 0):
+                if len(local_times) == 0:
                     local_times = ['0']
 
         nTime = len(local_times)
@@ -820,7 +820,7 @@ def setup_time_indices(fn_pattern, xtimeName):  # {{{
     if use_progress_bar:
         time_bar.finish()
 
-    return (local_indices, file_names)  # }}}
+    return local_indices, file_names  # }}}
 
 
 def parse_extra_dim(dim_name, index_string, time_series_file, mesh_file):
@@ -845,11 +845,11 @@ def parse_extra_dim(dim_name, index_string, time_series_file, mesh_file):
     index_string : str
         An index string indicating with indices are to be extracted
 
-    time_series_file : str
+    time_series_file : NetCDF4.Dataset
         The name of a time series file that can be used to determine the size
         of the dimension if ``mesh_file=None``.
 
-    mesh_file : str
+    mesh_file : NetCDF4.Dataset
         The name of a mesh file that can be used to determine the size
         of the dimension, or ``None`` if the time series file should be used
 
@@ -956,18 +956,18 @@ def parse_index_string(index_string, dim_size):  # {{{
         The indices corresponding to the given index string.
     """
     if not isinstance(index_string, str):
-        numerical_indices = index_string 
+        numerical_indices = index_string
         indices = []
         for index in numerical_indices:
-            if val < 0 or val >= dim_size:
+            if index < 0 or index >= dim_size:
                 raise ValueError("Index (or indices) out of bounds 0 <= "
                                  "index < {}: {}".format(dim_size,
                                                          index_string))
             indices.append('{}'.format(index))
-    else:       
+    else:
         if index_string == '':
             return [], []
-    
+
         if ',' in index_string:
             indices = [index for index in index_string.split(',')]
         elif ':' in index_string:
@@ -990,19 +990,19 @@ def parse_index_string(index_string, dim_size):  # {{{
             indices = [str(index) for index in numpy.arange(first, last, step)]
         else:
             indices = [index_string]
-    
+
         numerical_indices = []
         for index in indices:
             try:
                 val = int(index)
             except ValueError:
                 continue
-    
+
             if val < 0 or val >= dim_size:
                 raise ValueError("Index (or indices) out of bounds 0 <= "
                                  "index < {}: {}".format(dim_size,
                                                          index_string))
-    
+
             numerical_indices.append(val)
 
     return indices, numerical_indices  # }}}
@@ -1012,7 +1012,7 @@ def parse_extra_dims(dimension_list, time_series_file, mesh_file,
                      topo_dim=None, topo_cell_index_name=None,
                      max_index_count=None):
     # {{{
-    '''
+    """
     Parses a list of dimensions and corresponding indices separated by equals
     signs. Optionally, a max_index_count (typically 1) can be provided,
     indicating that indices beyond max_index_count-1 will be ignored in each
@@ -1022,7 +1022,7 @@ def parse_extra_dims(dimension_list, time_series_file, mesh_file,
     a constant value for the vertical index to the topography or the name of a
     field with dimension nCells that contains the vertical index of the
     topography.
-    '''
+    """
 
     extra_dims = {}
     topo_cell_indices = None
@@ -1058,9 +1058,9 @@ def parse_extra_dims(dimension_list, time_series_file, mesh_file,
 
 def setup_dimension_values_and_sort_vars(
         time_series_file, mesh_file,  variable_list, extra_dims,
-        basic_dims=['nCells', 'nEdges', 'nVertices', 'Time'],
-        include_dims=['nCells', 'nEdges', 'nVertices']):  # {{{
-    '''
+        basic_dims=('nCells', 'nEdges', 'nVertices', 'Time'),
+        include_dims=('nCells', 'nEdges', 'nVertices')):  # {{{
+    """
     Creates a list of variables names to be extracted.  Prompts for indices
     of any extra dimensions that were not specified on the command line.
     extra_dims should be a dictionary of indices along extra dimensions (as
@@ -1068,23 +1068,23 @@ def setup_dimension_values_and_sort_vars(
     that should be excluded from extra_dims.  include_dims is a list of
     possible dimensions, one of which must be in each vairable to be extracted
     (used in expanding command line placeholders "all", "allOnCells", etc.)
-    '''
+    """
 
-    def add_var(variables, variable_name, include_dims, exclude_dims=None):
-        if variable_name in variable_names:
+    def add_var(variables, var_name, inc_dims, exc_dims=None):
+        if var_name in variable_names:
             return
 
-        dims = variables[variable_name].dimensions
+        dims = variables[var_name].dimensions
         supported = False
-        for dim in include_dims:
-            if dim in dims:
+        for d in inc_dims:
+            if d in dims:
                 supported = True
-        if (exclude_dims is not None):
-            for dim in exclude_dims:
-                if dim in dims:
+        if exc_dims is not None:
+            for d in exc_dims:
+                if d in dims:
                     supported = False
         if supported:
-            variable_names.append(variable_name)
+            variable_names.append(var_name)
 
     all_dim_vals = {}
     cellVars = []
@@ -1096,7 +1096,7 @@ def setup_dimension_values_and_sort_vars(
         exclude_dims = ['Time']
         for variable_name in time_series_file.variables:
             add_var(time_series_file.variables, str(variable_name),
-                    include_dims, exclude_dims=None)
+                    include_dims, exc_dims=None)
         if mesh_file is not None:
             for variable_name in mesh_file.variables:
                 add_var(mesh_file.variables, str(variable_name), include_dims,
@@ -1107,19 +1107,20 @@ def setup_dimension_values_and_sort_vars(
         variable_names = variable_list
 
     for suffix in ['Cells', 'Edges', 'Vertices']:
-        include_dim = 'n%s' % suffix
-        if ('allOn%s' % suffix in variable_names) and (include_dim in
+        include_dim = 'n{}'.format(suffix)
+        all_on = 'allOn{}'.format(suffix)
+        if (all_on in variable_names) and (include_dim in
                                                        include_dims):
-            variable_names.remove('allOn%s' % suffix)
+            variable_names.remove(all_on)
             exclude_dims = ['Time']
             for variable_name in time_series_file.variables:
                 add_var(time_series_file.variables, str(variable_name),
-                        include_dims=[include_dim], exclude_dims=None)
+                        inc_dims=[include_dim], exc_dims=None)
             if mesh_file is not None:
                 for variable_name in mesh_file.variables:
                     add_var(mesh_file.variables, str(variable_name),
-                            include_dims=[include_dim],
-                            exclude_dims=exclude_dims)
+                            inc_dims=[include_dim],
+                            exc_dims=exclude_dims)
 
     variable_names.sort()
 
@@ -1146,10 +1147,10 @@ def setup_dimension_values_and_sort_vars(
             dim_size = len(nc_file.dimensions[dim])
             valid = False
             while not valid:
-                print("Valid range for dimension %s between 0 and %d"
-                      "" % (dim, dim_size-1))
-                index_string = input("Enter a value for dimension %s: "
-                                     "" % (dim))
+                print("Valid range for dimension {} between 0 and {}"
+                      "".format(dim, dim_size-1))
+                index_string = input("Enter a value for dimension {}: "
+                                     "".format(dim))
                 indices = parse_extra_dim(str(dim), index_string,
                                           time_series_file, mesh_file)
                 valid = indices is not None
@@ -1198,8 +1199,8 @@ def setup_dimension_values_and_sort_vars(
                     for index2 in indices[2]:
                         dim_vals.append([index0, index1, index2])
         else:
-            print("variable %s has too many extra dimensions and will be "
-                  "skipped." % variable_name)
+            print("variable {} has too many extra dimensions and will be "
+                  "skipped.".format(variable_name))
             continue
 
         if "nCells" in field_dims:
@@ -1212,23 +1213,23 @@ def setup_dimension_values_and_sort_vars(
         all_dim_vals[variable_name] = dim_vals
         del dim_vals
 
-    return (all_dim_vals, cellVars, vertexVars, edgeVars)
+    return all_dim_vals, cellVars, vertexVars, edgeVars
 # }}}
 
 
 def summarize_extraction(mesh_file, time_indices, cellVars, vertexVars,
                          edgeVars, transects_file=None):  # {{{
-    '''
+    """
     print a summary of the time levels, mesh file, transects file (optional)
     and variables to be extracted.
-    '''
+    """
 
     print("")
-    print("Extracting a total of %d time levels." % (len(time_indices)))
-    print("Using file '%s' as the mesh file for this extraction."
-          "" % (mesh_file))
+    print("Extracting a total of {} time levels.".format(len(time_indices)))
+    print("Using file '{}' as the mesh file for this extraction."
+          "".format(mesh_file))
     if transects_file is not None:
-        print("Using file '%s' as the transects file." % (transects_file))
+        print("Using file '{}' as the transects file.".format(transects_file))
     print("")
     print("")
     print("The following variables will be extracted from the input file(s).")
@@ -1237,17 +1238,17 @@ def summarize_extraction(mesh_file, time_indices, cellVars, vertexVars,
     if len(cellVars) > 0:
         print("   Variables with 'nCells' as a dimension:")
         for variable_name in cellVars:
-            print("      name: %s" % (variable_name))
+            print("      name: {}".format(variable_name))
 
     if len(vertexVars) > 0:
         print("   Variables with 'nVertices' as a dimension:")
         for variable_name in vertexVars:
-            print("      name: %s" % (variable_name))
+            print("      name: {}".format(variable_name))
 
     if len(edgeVars) > 0:
         print("   Variables with 'nEdges' as adimension:")
         for variable_name in edgeVars:
-            print("      name: %s" % (variable_name))
+            print("      name: {}".format(variable_name))
 
     print("")
 # }}}
@@ -1263,16 +1264,16 @@ def write_pvd_header(path, prefix):  # {{{
 
 
 def get_hyperslab_name_and_dims(var_name, extra_dim_vals):  # {{{
-    if(extra_dim_vals is None):
-        return ([var_name], None)
-    if(len(extra_dim_vals) == 0):
-        return ([], None)
+    if extra_dim_vals is None:
+        return [var_name], None
+    if len(extra_dim_vals) == 0:
+        return [], None
     out_var_names = []
     for hyper_slab in extra_dim_vals:
         pieces = [var_name]
         pieces.extend(hyper_slab)
         out_var_names.append('_'.join(pieces))
-    return (out_var_names, extra_dim_vals)
+    return out_var_names, extra_dim_vals
 # }}}
 
 
@@ -1301,7 +1302,7 @@ def write_vtp_header(path, prefix, active_var_index, var_indices,
     vtkFile.addData(str("offsets"), offsets)
     vtkFile.closeElement(str("Polys"))
 
-    if(cellData):
+    if cellData:
         vtkFile.openData(str("Cell"),
                          scalars=[str(var) for var in
                                   variable_list[active_var_index]])
@@ -1312,7 +1313,7 @@ def write_vtp_header(path, prefix, active_var_index, var_indices,
             for out_var_name in out_var_names:
                 vtkFile.addHeader(str(out_var_name), outType, nPolygons, 1)
         vtkFile.closeData(str("Cell"))
-    if(pointData):
+    if pointData:
         vtkFile.openData(str("Point"),
                          scalars=[str(var) for var in
                                   variable_list[active_var_index]])
@@ -1362,8 +1363,6 @@ def build_topo_point_and_polygon_lists(nc_file, output_32bit, lonlat):  # {{{
     X = numpy.zeros(nPoints, dtype)
     Y = numpy.zeros(nPoints, dtype)
     Z = numpy.zeros(nPoints, dtype)
-
-    outIndex = 0
 
     # The points on an edge are vertex 0, 1, 1, 0 on that edge, making a
     # vertical rectangle if the points are offset
@@ -1461,8 +1460,8 @@ def build_topo_point_and_polygon_lists(nc_file, output_32bit, lonlat):  # {{{
     # we want to know the cells corresponding to each point.  The first two
     # points correspond to the first cell, the second two to the second cell
     # (if any).
-    cell_to_point_map = -1*numpy.ones((nPoints), int)
-    boundary_mask = numpy.zeros((nPoints), bool)
+    cell_to_point_map = -1*numpy.ones((nPoints,), int)
+    boundary_mask = numpy.zeros((nPoints,), bool)
 
     # first cell on edge always exists
     coe = cellsOnEdge[:, 0].copy()
@@ -1546,7 +1545,7 @@ def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
     offsets = numpy.cumsum(nEdgesOnCell, dtype=int)
     valid_mask = numpy.ones(nCells, bool)
 
-    return (vertices, connectivity, offsets, valid_mask)  # }}}
+    return vertices, connectivity, offsets, valid_mask  # }}}
 
 
 def build_vertex_geom_lists(nc_file, output_32bit, lonlat):  # {{{
@@ -1595,7 +1594,7 @@ def build_vertex_geom_lists(nc_file, output_32bit, lonlat):  # {{{
     validCount = cellsOnVertex.shape[0]
     offsets = vertexDegree*numpy.arange(1, validCount+1)
 
-    return (vertices, connectivity, offsets, valid_mask)  # }}}
+    return vertices, connectivity, offsets, valid_mask  # }}}
 
 
 def build_edge_geom_lists(nc_file, output_32bit, lonlat):  # {{{
@@ -1662,7 +1661,7 @@ def build_edge_geom_lists(nc_file, output_32bit, lonlat):  # {{{
     validCount = numpy.sum(numpy.array(validVerts, int), axis=1)
     offsets = numpy.cumsum(validCount, dtype=int)
 
-    return (vertices, connectivity, offsets, valid_mask)  # }}}
+    return vertices, connectivity, offsets, valid_mask  # }}}
 
 
 def get_field_sign(field_name):
@@ -1672,7 +1671,7 @@ def get_field_sign(field_name):
     else:
         sign = 1
 
-    return (field_name, sign)
+    return field_name, sign
 
 
 def read_field(var_name, mesh_file, time_series_file, extra_dim_vals,
@@ -1684,8 +1683,8 @@ def read_field(var_name, mesh_file, time_series_file, extra_dim_vals,
         temp_field = numpy.zeros(temp_shape, dtype=outType)
         inDims = len(dim_vals)
         if inDims <= 0 or inDims > 5:
-            print('reading field %s with %s dimensions not supported.'
-                  '' % (var_name, inDims))
+            print('reading field {} with {} dimensions not supported.'
+                  ''.format(var_name, inDims))
             sys.exit(1)
 
         if inDims == 1:
@@ -1719,8 +1718,8 @@ def read_field(var_name, mesh_file, time_series_file, extra_dim_vals,
         outDims = len(temp_field.shape)
 
         if outDims <= 0 or outDims > 4:
-            print('something went wrong reading field %s, resulting in a temp '
-                  'array with %s dimensions.' % (var_name, outDims))
+            print('something went wrong reading field {}, resulting in a temp '
+                  'array with {} dimensions.'.format(var_name, outDims))
             sys.exit(1)
         block_indices = numpy.arange(temp_field.shape[0])
         if outDims == 1:
@@ -1829,7 +1828,7 @@ def compute_zInterface(minLevelCell, maxLevelCell, layerThicknessCell,
         # Get a list of valid cells on edges and a mask of which are valid
         cellsOnEdgeMask = numpy.logical_and(cellsOnEdge >= 0,
                                             cellsOnEdge < nCells)
-        cellIndicesOnEdge = []
+        cellIndicesOnEdge = list()
         cellIndicesOnEdge.append(cellsOnEdge[cellsOnEdgeMask[:, 0], 0])
         cellIndicesOnEdge.append(cellsOnEdge[cellsOnEdgeMask[:, 1], 1])
 
@@ -1888,7 +1887,7 @@ def compute_zInterface(minLevelCell, maxLevelCell, layerThicknessCell,
         for iLevel in range(nLevels+1):
             zInterfaceEdge[:, iLevel] += zOffsetEdge
 
-        return (zInterfaceCell, zInterfaceEdge)  # }}}
+        return zInterfaceCell, zInterfaceEdge  # }}}
 
 
 def _build_location_list_xyz(nc_file, suffix, output_32bit, lonlat):  # {{{
@@ -1905,7 +1904,7 @@ def _build_location_list_xyz(nc_file, suffix, output_32bit, lonlat):  # {{{
         X = numpy.array(X, 'f4')
         Y = numpy.array(Y, 'f4')
         Z = numpy.array(Z, 'f4')
-    return (X, Y, Z)
+    return X, Y, Z
 
 # }}}
 

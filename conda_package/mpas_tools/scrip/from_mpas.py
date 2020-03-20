@@ -27,13 +27,13 @@ def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
         print(" -- Landice Masks are enabled")
     else:
         print(" -- Landice Masks are disabled")
-    
-    print('') # make a space in stdout before further output
 
+    # make a space in stdout before further output
+    print('')
     fin = netCDF4.Dataset(mpasFile, 'r')
     # This will clobber existing files
     fout = netCDF4.Dataset(scripFile, 'w')
-    
+
     # Get info from input file
     latCell = fin.variables['latCell'][:]
     lonCell = fin.variables['lonCell'][:]
@@ -46,27 +46,28 @@ def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
     areaCell = fin.variables['areaCell'][:]
     sphereRadius = float(fin.sphere_radius)
     on_a_sphere = str(fin.on_a_sphere)
-    
-    
+
     if sphereRadius <= 0:
         print(" -- WARNING: conservative remapping is NOT possible when "
               "'sphereRadius' <= 0 because 'grid_area' field will be infinite "
               "(from division by 0)")
-    
+
     if on_a_sphere == "NO":
         print(" -- WARNING: 'on_a_sphere' attribute is 'NO', which means that "
               "there may be some disagreement regarding area between the "
               "planar (source) and spherical (target) mesh")
-    
+
     if useLandIceMask:
         landIceMask = fin.variables['landIceMask'][:]
-    
+    else:
+        landIceMask = None
+
     # Write to output file
     # Dimensions
     fout.createDimension("grid_size", nCells)
-    fout.createDimension("grid_corners", maxVertices )
+    fout.createDimension("grid_corners", maxVertices)
     fout.createDimension("grid_rank", 1)
-    
+
     # Variables
     grid_center_lat = fout.createVariable('grid_center_lat', 'f8',
                                           ('grid_size',))
@@ -85,18 +86,18 @@ def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
     grid_imask = fout.createVariable('grid_imask', 'i4', ('grid_size',))
     grid_imask.units = 'unitless'
     grid_dims = fout.createVariable('grid_dims', 'i4', ('grid_rank',))
-    
+
     grid_center_lat[:] = latCell[:]
     grid_center_lon[:] = lonCell[:]
-    # SCRIP uses square radians 
-    grid_area[:] = areaCell[:]/ ( sphereRadius**2 )
+    # SCRIP uses square radians
+    grid_area[:] = areaCell[:]/(sphereRadius**2)
     grid_dims[:] = nCells
-    
+
     # grid corners:
     # It is WAYYY faster to fill in the array entry-by-entry in memory than to
-    # disk. 
-    grid_corner_lon_local = np.zeros( (nCells, maxVertices) )  
-    grid_corner_lat_local = np.zeros( (nCells, maxVertices) )
+    # disk.
+    grid_corner_lon_local = np.zeros((nCells, maxVertices))
+    grid_corner_lat_local = np.zeros((nCells, maxVertices))
     for iCell in range(nCells):
         vertexMax = nEdgesOnCell[iCell]
         grid_corner_lat_local[iCell, 0:vertexMax] = \
@@ -110,7 +111,7 @@ def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
                 latVertex[verticesOnCell[iCell, vertexMax-1] - 1]
             grid_corner_lon_local[iCell, vertexMax:] = \
                 lonVertex[verticesOnCell[iCell, vertexMax-1] - 1]
-    
+
             if useLandIceMask:
                 # If useLandIceMask are enabled, mask out ocean under land ice.
                 grid_imask[iCell] = 1 - landIceMask[0, iCell]
@@ -119,21 +120,21 @@ def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
                 grid_imask[iCell] = 1
     grid_corner_lat[:] = grid_corner_lat_local[:]
     grid_corner_lon[:] = grid_corner_lon_local[:]
-    
+
     print("Input latCell min/max values (radians): {}, {}".format(
         latCell[:].min(), latCell[:].max()))
-    print("Input lonCell min/max values (radians): {}, {}".format( 
+    print("Input lonCell min/max values (radians): {}, {}".format(
         lonCell[:].min(), lonCell[:].max()))
-    print("Calculated grid_center_lat min/max values (radians): {}, {}".format( 
+    print("Calculated grid_center_lat min/max values (radians): {}, {}".format(
          grid_center_lat[:].min(), grid_center_lat[:].max()))
-    print("Calculated grid_center_lon min/max values (radians): {}, {}".format( 
+    print("Calculated grid_center_lon min/max values (radians): {}, {}".format(
         grid_center_lon[:].min(), grid_center_lon[:].max()))
-    print("Calculated grid_area min/max values (sq radians): {}, {}".format( 
+    print("Calculated grid_area min/max values (sq radians): {}, {}".format(
         grid_area[:].min(), grid_area[:].max()))
-    
+
     fin.close()
     fout.close()
-    
+
     print("Creation of SCRIP file is complete.")
 
 
@@ -150,23 +151,22 @@ def main():
                       help="SCRIP grid file to output.", default="scrip.nc",
                       metavar="FILENAME")
     parser.add_option("-l", "--landice", dest="landiceMasks",
-                      help="If flag is on, landice masks will be computed " \
+                      help="If flag is on, landice masks will be computed "
                            "and used.",
                       action="store_true")
     for option in parser.option_list:
         if option.default != ("NO", "DEFAULT"):
             option.help += (" " if option.help else "") + "[default: %default]"
     options, args = parser.parse_args()
-    
+
     if not options.mpasFile:
         sys.exit('Error: MPAS input grid file is required.  Specify with -m '
                  'command line argument.')
     if not options.scripFile:
         sys.exit('Error: SCRIP output grid file is required.  Specify with -s '
                  'command line argument.')
-    
-    if not options.landiceMasks:
-            options.landiceMasks = False
-    
-    scrip_from_mpas(options.mpasFile, options.scripFile, options.landiceMasks)
 
+    if not options.landiceMasks:
+        options.landiceMasks = False
+
+    scrip_from_mpas(options.mpasFile, options.scripFile, options.landiceMasks)
