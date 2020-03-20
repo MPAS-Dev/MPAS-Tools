@@ -1,5 +1,11 @@
 {% set name = "compass" %}
 {% set version = "0.1.2" %}
+{% set build = 1 %}
+
+{% if mpi == "nompi" %}
+# prioritize nompi via build number
+{% set build = build + 100 %}
+{% endif %}
 
 package:
   name: {{ name|lower }}
@@ -7,11 +13,21 @@ package:
 
 build:
   noarch: python
-  number: 0
+  number: {{ build }}
+  {% if mpi != "nompi" %}
+  {% set mpi_prefix = "mpi_" + mpi %}
+  {% else %}
+  {% set mpi_prefix = "nompi" %}
+  {% endif %}
+  # add build string so packages can depend on
+  # mpi or nompi variants
+  # dependencies:
+  # `PKG_NAME * mpi_mpich_*` for mpich
+  # `PKG_NAME * mpi_*` for any mpi
+  # `PKG_NAME * nompi_*` for no mpi
+  string: "{{ mpi_prefix }}_py_h{{ PKG_HASH }}_{{ build }}"
 
 requirements:
-  host:
-    - python
   run:
     - python
     - geometric_features 0.1.6 with_data*
@@ -25,10 +41,10 @@ requirements:
     - cartopy_offlinedata
     - pyamg
     - ffmpeg
-    - mpich
-    - esmf * mpi_mpich*
+    - {{ mpi }}  # [mpi != 'nompi']
+    - esmf * {{ mpi_prefix }}_*
     - nco
-    - pyremap
+    - pyremap >=0.0.5,<0.1.0
 
 test:
   imports:
