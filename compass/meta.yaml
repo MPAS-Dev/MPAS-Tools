@@ -47,6 +47,8 @@ requirements:
     - pyremap >=0.0.5,<0.1.0
     - rasterio
     - affine
+    - ipython
+    - jupyter
 
 test:
   imports:
