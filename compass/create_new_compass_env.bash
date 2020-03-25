@@ -54,6 +54,7 @@ elif [[ $HOSTNAME = "blueslogin"* ]]; then
   base_path="/lcrc/soft/climate/e3sm-unified/base"
   activ_path="/lcrc/soft/climate/e3sm-unified"
   group="climate"
+  default_mpi=mpich
 elif [[ $HOSTNAME = "rhea"* ]]; then
   base_path="/ccs/proj/cli900/sw/rhea/e3sm-unified/base"
   activ_path="/ccs/proj/cli900/sw/rhea/e3sm-unified"
@@ -66,14 +67,11 @@ elif [[ $HOSTNAME = "compy"* ]]; then
   base_path="/share/apps/E3SM/conda_envs/base"
   activ_path="/share/apps/E3SM/conda_envs"
   group="users"
-elif [[ $HOSTNAME = "gr-fe"* ]] || [[ $HOSTNAME = "wf-fe"* ]]; then
+elif [[ $HOSTNAME = "gr-fe"* ]] || [[ $HOSTNAME = "ba-fe"* ]]; then
   base_path="/usr/projects/climate/SHARED_CLIMATE/anaconda_envs/base"
   activ_path="/usr/projects/climate/SHARED_CLIMATE/anaconda_envs"
   group="climate"
-elif [[ $HOSTNAME = "burnham"* ]]; then
-  base_path="/home/xylar/Desktop/test_e3sm_unified/base"
-  activ_path="/home/xylar/Desktop/test_e3sm_unified"
-  group="xylar"
+  default_mpi=mpich
 else
   echo "Unknown host name $HOSTNAME.  Add env_path and group for this machine to the script."
   exit 1
