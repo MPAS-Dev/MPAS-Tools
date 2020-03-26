@@ -43,8 +43,8 @@ default_mpi=serial
 
 # The rest of the script should not need to be modified
 if [[ $HOSTNAME = "cori"* ]] || [[ $HOSTNAME = "dtn"* ]]; then
-  base_path="/global/cfs/cdirs/acme/software/anaconda_envs/base"
-  activ_path="/global/cfs/cdirs/acme/software/anaconda_envs"
+  base_path="/global/cfs/cdirs/e3sm/software/anaconda_envs/base"
+  activ_path="/global/cfs/cdirs/e3sm/software/anaconda_envs"
   group="e3sm"
 elif [[ $HOSTNAME = "acme1"* ]] || [[ $HOSTNAME = "aims4"* ]]; then
   base_path="/usr/local/e3sm_unified/envs/base"
