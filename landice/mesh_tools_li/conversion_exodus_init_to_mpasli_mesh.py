@@ -67,6 +67,7 @@ ocean_density = 1028.0
 dataset = Dataset(options.nc_file, 'r+')
 xCell = dataset.variables['xCell'][:]
 yCell = dataset.variables['yCell'][:]
+nCells = dataset.dimensions['nCells'].size
 
 exo = exodus(options.exo_file)
 
@@ -133,25 +134,22 @@ for var_name in var_names:
         # Get number of vertical layers from mpas output file.
         if len(np.shape(dataset.variables[var_name])) == 3:
             if var_name == "temperature":
-                nVert_max = np.shape(dataset.variables[var_name])[2] + 1 #albany temperature is on diferent vertical grid than MPAS
+                nVert_max = np.shape(dataset.variables[var_name])[2] + 1 #albany temperature is on diferent vertical grid than MPAS, and has one extra layer
             else:
                 nVert_max = np.shape(dataset.variables[var_name])[2]
         else:
             nVert_max = 1
-
-        albanyTemperature = np.zeros((np.max(cellID_array), nVert_max)) #initialize albanyTemperature array to fill in below
+        
+        albanyTemperature = np.zeros((nCells, nVert_max)) #initialize albanyTemperature array to fill in below
         dataset.variables[var_name][:] = 0 # Fill variable with zeros in order to ensure proper values in void
 
         print("\nBegin {} conversion".format(var_name))
         # loop through nVertLevels (or nVertInterfaces) and convert variables from Albany to MPAS units
         for nVert in np.arange(0, nVert_max):
             print('Converting layer/level {} of {}'.format(nVert+1, nVert_max))
+            
             #Albany has inverted layer/level ordering relative to MPAS.
-            #Also, we have to avoid sampling basal temperature for the temperature field,
-            #since those are separate in the MPAS file
-            if dataset.variables[var_name].get_dims().__contains__('nVertLayers'):
-                nVert_albany = nVert_max - nVert
-            elif var_name == "surfaceTemperature":
+            if var_name == "surfaceTemperature":
                 nVert_albany = int(stride)-1
             else:
                 nVert_albany = nVert_max - nVert - 1
@@ -198,7 +196,7 @@ for var_name in var_names:
 
         if var_name == "temperature":
             albany_layers = np.arange(0, nVert_max)
-            MPAS_layers = np.arange(1, nVert_max)
+            MPAS_layers = np.arange(1, nVert_max) - 0.5 # MPAS and albany temperature layers are staggered
             temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)
             dataset.variables["temperature"][0,:,:] = temperatureInterpolant(MPAS_layers)
             print('\nTemperature interpolation complete')
