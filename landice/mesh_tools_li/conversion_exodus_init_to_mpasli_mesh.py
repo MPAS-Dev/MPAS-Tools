@@ -195,6 +195,10 @@ for var_name in var_names:
                 dataset.variables[var_name][0,cellID_array-1] = data_exo_layer
 
         if var_name == "temperature":
+            # Make generic equally-spaced layers for albany and MPAS. This works
+            # even for unequally-spaced layers because this is a linear interpolation
+            # and MPAS temperature layers are always halfway between Albany temperature
+            # layers.
             albany_layers = np.arange(0, nVert_max)
             MPAS_layers = np.arange(1, nVert_max) - 0.5 # MPAS and albany temperature layers are staggered
             temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)
