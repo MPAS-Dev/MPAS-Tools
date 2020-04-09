@@ -54,6 +54,12 @@ MPAS mesh tools
 
    write_netcdf
 
+.. currentmodule:: mpas_tools.scrip.from_mpas
+
+.. autosummary::
+   :toctree: generated/
+
+   scrip_from_mpas
 
 Ocean Tools
 ===========
@@ -66,3 +72,20 @@ Ocean Tools
    add_critical_land_blockages
    widen_transect_edge_masks
 
+.. currentmodule:: mpas_tools.ocean.moc
+
+.. autosummary::
+   :toctree: generated/
+
+   make_moc_basins_and_transects
+   build_moc_basins
+
+Visualization
+=============
+
+.. currentmodule:: mpas_tools.viz.paraview_extractor
+
+.. autosummary::
+   :toctree: generated/
+
+   extract_vtk

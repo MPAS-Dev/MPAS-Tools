@@ -26,7 +26,7 @@ check_env () {
 # Modify the following to choose which e3sm-unified version(s) the python version(s) are installed and whether to make
 # an environment with x-windows support under cdat (cdatx) and/or without (nox).  Typically, both environments should
 # be created.
-versions=(0.1.2)
+versions=(0.1.3)
 pythons=(3.7)
 mpis=(serial mpich)
 
@@ -43,8 +43,8 @@ default_mpi=serial
 
 # The rest of the script should not need to be modified
 if [[ $HOSTNAME = "cori"* ]] || [[ $HOSTNAME = "dtn"* ]]; then
-  base_path="/global/cfs/cdirs/acme/software/anaconda_envs/base"
-  activ_path="/global/cfs/cdirs/acme/software/anaconda_envs"
+  base_path="/global/cfs/cdirs/e3sm/software/anaconda_envs/base"
+  activ_path="/global/cfs/cdirs/e3sm/software/anaconda_envs"
   group="e3sm"
 elif [[ $HOSTNAME = "acme1"* ]] || [[ $HOSTNAME = "aims4"* ]]; then
   base_path="/usr/local/e3sm_unified/envs/base"
@@ -67,14 +67,11 @@ elif [[ $HOSTNAME = "compy"* ]]; then
   base_path="/share/apps/E3SM/conda_envs/base"
   activ_path="/share/apps/E3SM/conda_envs"
   group="users"
-elif [[ $HOSTNAME = "gr-fe"* ]] || [[ $HOSTNAME = "wf-fe"* ]]; then
+elif [[ $HOSTNAME = "gr-fe"* ]] || [[ $HOSTNAME = "ba-fe"* ]]; then
   base_path="/usr/projects/climate/SHARED_CLIMATE/anaconda_envs/base"
   activ_path="/usr/projects/climate/SHARED_CLIMATE/anaconda_envs"
   group="climate"
-elif [[ $HOSTNAME = "burnham"* ]]; then
-  base_path="/home/xylar/Desktop/test_e3sm_unified/base"
-  activ_path="/home/xylar/Desktop/test_e3sm_unified"
-  group="xylar"
+  default_mpi=mpich
 else
   echo "Unknown host name $HOSTNAME.  Add env_path and group for this machine to the script."
   exit 1
