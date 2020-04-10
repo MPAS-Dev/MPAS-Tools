@@ -95,11 +95,20 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.io.write_netcdf.html">mpas_tools.io.write_netcdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 </ul>
 </li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
 </ul>
 
             
@@ -168,9 +177,9 @@
             
   <div class="section" id="mpas-tools-planar-hex-make-planar-hex-mesh">
 <h1>mpas_tools.planar_hex.make_planar_hex_mesh<a class="headerlink" href="#mpas-tools-planar-hex-make-planar-hex-mesh" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
+<dl class="py function">
 <dt id="mpas_tools.planar_hex.make_planar_hex_mesh">
-<code class="sig-prename descclassname">mpas_tools.planar_hex.</code><code class="sig-name descname">make_planar_hex_mesh</code><span class="sig-paren">(</span><em class="sig-param">nx</em>, <em class="sig-param">ny</em>, <em class="sig-param">dc</em>, <em class="sig-param">nonperiodic_x</em>, <em class="sig-param">nonperiodic_y</em>, <em class="sig-param">outFileName=None</em>, <em class="sig-param">compareWithFileName=None</em>, <em class="sig-param">format='NETCDF3_64BIT'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/planar_hex.html#make_planar_hex_mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.planar_hex.make_planar_hex_mesh" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mpas_tools.planar_hex.</code><code class="sig-name descname">make_planar_hex_mesh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nx</span></em>, <em class="sig-param"><span class="n">ny</span></em>, <em class="sig-param"><span class="n">dc</span></em>, <em class="sig-param"><span class="n">nonperiodic_x</span></em>, <em class="sig-param"><span class="n">nonperiodic_y</span></em>, <em class="sig-param"><span class="n">outFileName</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">compareWithFileName</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">format</span><span class="o">=</span><span class="default_value">'NETCDF3_64BIT'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/planar_hex.html#make_planar_hex_mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.planar_hex.make_planar_hex_mesh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds an MPAS periodic, planar hexagonal mesh with the requested
 dimensions, optionally saving it to a file, and returs it as an
 <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>.</p>

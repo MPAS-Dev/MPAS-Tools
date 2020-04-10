@@ -95,11 +95,20 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.split_grids.split_grids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.io.write_netcdf.html">mpas_tools.io.write_netcdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 </ul>
 </li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
 </ul>
 
             
@@ -168,9 +177,9 @@
             
   <div class="section" id="mpas-tools-split-grids-split-grids">
 <h1>mpas_tools.split_grids.split_grids<a class="headerlink" href="#mpas-tools-split-grids-split-grids" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
+<dl class="py function">
 <dt id="mpas_tools.split_grids.split_grids">
-<code class="sig-prename descclassname">mpas_tools.split_grids.</code><code class="sig-name descname">split_grids</code><span class="sig-paren">(</span><em class="sig-param">infile=None</em>, <em class="sig-param">outfile1=None</em>, <em class="sig-param">outfile2=None</em>, <em class="sig-param">nCells=None</em>, <em class="sig-param">nEdges=None</em>, <em class="sig-param">nVertices=None</em>, <em class="sig-param">maxEdges=None</em>, <em class="sig-param">runner=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/split_grids.html#split_grids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.split_grids.split_grids" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mpas_tools.split_grids.</code><code class="sig-name descname">split_grids</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">infile</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">outfile1</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">outfile2</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nCells</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nEdges</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nVertices</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">maxEdges</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">runner</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/split_grids.html#split_grids"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.split_grids.split_grids" title="Permalink to this definition">¶</a></dt>
 <dd><p>Split two previously merged MPAS non-contiguous meshes together into
 separate files. Typical usage is:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">split_grids</span><span class="p">(</span><span class="n">infile</span><span class="o">=</span><span class="s1">&#39;infile.nc&#39;</span><span class="p">,</span> <span class="n">outfile1</span><span class="o">=</span><span class="s1">&#39;outfile1.nc&#39;</span><span class="p">,</span> <span class="n">outfile2</span><span class="o">=</span><span class="s1">&#39;outfile2.nc&#39;</span><span class="p">)</span>

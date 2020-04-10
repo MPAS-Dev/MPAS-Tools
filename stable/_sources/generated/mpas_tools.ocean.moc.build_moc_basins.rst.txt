@@ -1,0 +1,6 @@
+mpas\_tools.ocean.moc.build\_moc\_basins
+========================================
+
+.. currentmodule:: mpas_tools.ocean.moc
+
+.. autofunction:: build_moc_basins

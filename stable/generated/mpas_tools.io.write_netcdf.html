@@ -35,7 +35,7 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages" href="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages.html" />
+    <link rel="next" title="mpas_tools.scrip.from_mpas.scrip_from_mpas" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html" />
     <link rel="prev" title="mpas_tools.split_grids.split_grids" href="mpas_tools.split_grids.split_grids.html" /> 
 </head>
 
@@ -95,11 +95,20 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.io.write_netcdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 </ul>
 </li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
 </ul>
 
             
@@ -168,9 +177,9 @@
             
   <div class="section" id="mpas-tools-io-write-netcdf">
 <h1>mpas_tools.io.write_netcdf<a class="headerlink" href="#mpas-tools-io-write-netcdf" title="Permalink to this headline">¶</a></h1>
-<dl class="function">
+<dl class="py function">
 <dt id="mpas_tools.io.write_netcdf">
-<code class="sig-prename descclassname">mpas_tools.io.</code><code class="sig-name descname">write_netcdf</code><span class="sig-paren">(</span><em class="sig-param">ds</em>, <em class="sig-param">fileName</em>, <em class="sig-param">fillValues={'S1': '\x00'</em>, <em class="sig-param">'f4': 9.969209968386869e+36</em>, <em class="sig-param">'f8': 9.969209968386869e+36</em>, <em class="sig-param">'i1': -127</em>, <em class="sig-param">'i2': -32767</em>, <em class="sig-param">'i4': -2147483647</em>, <em class="sig-param">'i8': -9223372036854775806</em>, <em class="sig-param">'u1': 255</em>, <em class="sig-param">'u2': 65535</em>, <em class="sig-param">'u4': 4294967295</em>, <em class="sig-param">'u8': 18446744073709551614}</em>, <em class="sig-param">format='NETCDF3_64BIT'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/io.html#write_netcdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.io.write_netcdf" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mpas_tools.io.</code><code class="sig-name descname">write_netcdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ds</span></em>, <em class="sig-param"><span class="n">fileName</span></em>, <em class="sig-param"><span class="n">fillValues</span><span class="o">=</span><span class="default_value">{'S1': '\x00', 'f4': 9.969209968386869e+36, 'f8': 9.969209968386869e+36, 'i1': - 127, 'i2': - 32767, 'i4': - 2147483647, 'i8': - 9223372036854775806, 'u1': 255, 'u2': 65535, 'u4': 4294967295, 'u8': 18446744073709551614}</span></em>, <em class="sig-param"><span class="n">format</span><span class="o">=</span><span class="default_value">'NETCDF3_64BIT'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/io.html#write_netcdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.io.write_netcdf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write an xarray Dataset with NetCDF4 fill values where needed</p>
 </dd></dl>
 
@@ -184,7 +193,7 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html" class="btn btn-neutral float-right" title="mpas_tools.scrip.from_mpas.scrip_from_mpas" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="mpas_tools.split_grids.split_grids.html" class="btn btn-neutral float-left" title="mpas_tools.split_grids.split_grids" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>mpas_tools.translate.translate &mdash; mpas_tools stable documentation</title>
+  <title>mpas_tools.ocean.moc.make_moc_basins_and_transects &mdash; mpas_tools stable documentation</title>
   
 
   
@@ -35,8 +35,8 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.conversion.convert" href="mpas_tools.conversion.convert.html" />
-    <link rel="prev" title="mpas_tools.planar_hex.make_planar_hex_mesh" href="mpas_tools.planar_hex.make_planar_hex_mesh.html" /> 
+    <link rel="next" title="mpas_tools.ocean.moc.build_moc_basins" href="mpas_tools.ocean.moc.build_moc_basins.html" />
+    <link rel="prev" title="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks" href="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,19 +86,14 @@
             
               <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.planar_hex.make_planar_hex_mesh.html">mpas_tools.planar_hex.make_planar_hex_mesh</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.translate.translate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.conversion.convert.html">mpas_tools.conversion.convert</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.conversion.cull.html">mpas_tools.conversion.cull</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.conversion.mask.html">mpas_tools.conversion.mask</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.io.write_netcdf.html">mpas_tools.io.write_netcdf</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages.html">mpas_tools.ocean.coastline_alteration.add_critical_land_blockages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html">mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.moc.make_moc_basins_and_transects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.build_moc_basins.html">mpas_tools.ocean.moc.build_moc_basins</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 </ul>
 </li>
@@ -156,13 +151,13 @@
         
           <li><a href="../api.html">API reference</a> &raquo;</li>
         
-      <li>mpas_tools.translate.translate</li>
+      <li>mpas_tools.ocean.moc.make_moc_basins_and_transects</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/generated/mpas_tools.translate.translate.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/generated/mpas_tools.ocean.moc.make_moc_basins_and_transects.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -175,20 +170,28 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="mpas-tools-translate-translate">
-<h1>mpas_tools.translate.translate<a class="headerlink" href="#mpas-tools-translate-translate" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="mpas-tools-ocean-moc-make-moc-basins-and-transects">
+<h1>mpas_tools.ocean.moc.make_moc_basins_and_transects<a class="headerlink" href="#mpas-tools-ocean-moc-make-moc-basins-and-transects" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="mpas_tools.translate.translate">
-<code class="sig-prename descclassname">mpas_tools.translate.</code><code class="sig-name descname">translate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mesh</span></em>, <em class="sig-param"><span class="n">xOffset</span><span class="o">=</span><span class="default_value">0.0</span></em>, <em class="sig-param"><span class="n">yOffset</span><span class="o">=</span><span class="default_value">0.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/translate.html#translate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.translate.translate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Translates the coordinate system of the planar MPAS mesh by an arbirary
-shift in x and/or y</p>
+<dt id="mpas_tools.ocean.moc.make_moc_basins_and_transects">
+<code class="sig-prename descclassname">mpas_tools.ocean.moc.</code><code class="sig-name descname">make_moc_basins_and_transects</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gf</span></em>, <em class="sig-param"><span class="n">mesh_filename</span></em>, <em class="sig-param"><span class="n">mask_and_transect_filename</span></em>, <em class="sig-param"><span class="n">geojson_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mask_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/moc.html#make_moc_basins_and_transects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.ocean.moc.make_moc_basins_and_transects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds features defining the ocean basins and southern transects used in
+computing the meridional overturning circulation (MOC)
+:param gf: An object that knows how to download and read geometric featuers
+:type gf: <code class="docutils literal notranslate"><span class="pre">GeometricFeatures</span></code>
+:param mesh_filename: A file with MPAS mesh information
+:type mesh_filename: str
+:param mask_and_transect_filename: A file to write the MOC region masks and southern-boundary transects to
+:type mask_and_transect_filename: str
+:param geojson_filename: A file to write MOC regions to
+:type geojson_filename: str, optional
+:param mask_filename: A file to write MOC region masks to
+:type mask_filename: str, optional
+:param logger: A logger for the output if not stdout
+:type logger: <code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, optional</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>mesh</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>) – A planar mesh to translate</p></li>
-<li><p><strong>xOffset</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em>, </em><em>optional</em>) – user-specified shift in the x-direction</p></li>
-<li><p><strong>yOffset</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em>, </em><em>optional</em>) – user-specified shift in the y-direction</p></li>
-</ul>
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>fc</strong> (<code class="docutils literal notranslate"><span class="pre">FeatureCollection</span></code>) – The new feature collection</p>
 </dd>
 </dl>
 </dd></dl>
@@ -203,10 +206,10 @@ shift in x and/or y</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="mpas_tools.conversion.convert.html" class="btn btn-neutral float-right" title="mpas_tools.conversion.convert" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="mpas_tools.ocean.moc.build_moc_basins.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.moc.build_moc_basins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="mpas_tools.planar_hex.make_planar_hex_mesh.html" class="btn btn-neutral float-left" title="mpas_tools.planar_hex.make_planar_hex_mesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -1,0 +1,6 @@
+mpas\_tools.viz.paraview\_extractor.extract\_vtk
+================================================
+
+.. currentmodule:: mpas_tools.viz.paraview_extractor
+
+.. autofunction:: extract_vtk
