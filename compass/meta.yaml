@@ -1,5 +1,5 @@
 {% set name = "compass" %}
-{% set version = "0.1.3" %}
+{% set version = "0.1.4" %}
 {% set build = 0 %}
 
 {% if mpi == "nompi" %}
@@ -30,7 +30,7 @@ build:
 requirements:
   run:
     - python
-    - geometric_features 0.1.6 with_data*
+    - geometric_features 0.1.7 with_data*
     - mpas_tools 0.0.10
     - jigsaw 0.9.12
     - jigsawpy 0.2.1
