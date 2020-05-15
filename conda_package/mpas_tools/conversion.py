@@ -214,7 +214,7 @@ def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False, logger=None):
 
 
 def _call_subprocess(args, logger):
-    """Call the givne subprocess and send the output to the logger"""
+    """Call the given subprocess and send the output to the logger"""
     if logger is None:
         subprocess.check_call(args)
     else:
