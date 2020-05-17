@@ -1,5 +1,5 @@
 {% set name = "mpas_tools" %}
-{% set version = "0.0.10" %}
+{% set version = "0.0.11" %}
 
 package:
   name: '{{ name|lower }}'
@@ -47,6 +47,14 @@ requirements:
     - pyevtk
     - future
     - backports.tempfile
+    - jigsaw >=0.9.12
+    - jigsawpy >=0.2.1
+    - pyflann
+    - scikit-image
+    - cartopy
+    - pyamg
+    - rasterio
+    - affine
 
 test:
   requires:
@@ -89,6 +97,14 @@ test:
     - paraview_vtk_field_extractor.py -f mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc -v latCell,lonCell --ignore_time -o vtk_test
     - split_grids --help
     - merge_grids --help
+    # define_base_mesh.py must exist locally for build_mesh to work
+    - cp conda_package/mpas_tools/tests/define_base_mesh.py .
+    - build_mesh --help
+    - inject_bathymetry mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
+    - inject_preserve_floodplain --help
+    - mpas_to_triangle --help
+    - triangle_to_netcdf --help
+    - jigsaw_to_netcdf --help
 
 about:
   home: https://github.com/MPAS-Dev/MPAS-Tools/
