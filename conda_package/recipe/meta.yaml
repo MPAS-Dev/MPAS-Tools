@@ -57,6 +57,12 @@ test:
     - mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
     - mesh_tools/mesh_conversion_tools/test/land_mask_final.nc
     - conda_package/mpas_tools/tests/*
+  imports:
+    - mpas_tools
+    - mpas_tools.mesh.conversion
+    - mpas_tools.mesh.creation
+    - mpas_tools.viz
+    - mpas_tools.conversion
   commands:
     - planar_hex --nx=10 --ny=20 --dc=1000. --outFileName='periodic_mesh_10x20_1km.nc'
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -x 1000. -y 2000.
