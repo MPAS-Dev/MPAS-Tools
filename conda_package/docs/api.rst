@@ -24,7 +24,7 @@ MPAS mesh tools
    translate
 
 
-.. currentmodule:: mpas_tools.conversion
+.. currentmodule:: mpas_tools.mesh.conversion
 
 .. autosummary::
    :toctree: generated/

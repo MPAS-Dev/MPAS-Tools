@@ -10,7 +10,7 @@ import shapely.ops
 import shapely.geometry
 from geometric_features import GeometricFeatures, FeatureCollection
 
-import mpas_tools.conversion
+import mpas_tools.mesh.conversion
 from mpas_tools.io import write_netcdf
 
 
@@ -57,8 +57,8 @@ def make_moc_basins_and_transects(gf, mesh_filename,
         fcMOC.to_geojson(geojson_filename)
 
     dsMesh = xarray.open_dataset(mesh_filename)
-    dsMasks = mpas_tools.conversion.mask(dsMesh=dsMesh, fcMask=fcMOC,
-                                         logger=logger)
+    dsMasks = mpas_tools.mesh.conversion.mask(dsMesh=dsMesh, fcMask=fcMOC,
+                                              logger=logger)
 
     if mask_filename is not None:
         write_netcdf(dsMasks, mask_filename)
