@@ -63,4 +63,6 @@ setup(name='mpas_tools',
                      'build_mesh = mpas_tools.mesh.creation.build_mesh:main',
                      'inject_bathymetry = mpas_tools.mesh.creation.inject_bathymetry:main',
                      'inject_preserve_floodplain = mpas_tools.mesh.creation.inject_preserve_floodplain:main',
-                     'mpas_to_triangle = mpas_tools.mesh.creation.mpas_to_triangle:main']})
+                     'mpas_to_triangle = mpas_tools.mesh.creation.mpas_to_triangle:main',
+                     'triangle_to_netcdf = mpas_tools.mesh.creation.triangle_jigsaw_to_netcdf:main_triangle',
+                     'jigsaw_to_netcdf = mpas_tools.mesh.creation.triangle_jigsaw_to_netcdf:main_jigsaw']})
