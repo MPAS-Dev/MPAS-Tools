@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # Simple script to inject bathymetry onto a mesh
 # Phillip Wolfram, 01/19/2018
 
@@ -115,8 +114,7 @@ def interpolate_topomsh(lon_pts, lat_pts):
     return bathymetry
 
 
-if __name__ == "__main__":
-
+def main():
     # Open NetCDF mesh file and read mesh points
     mesh_file = sys.argv[1]
     inject_bathymetry(mesh_file)

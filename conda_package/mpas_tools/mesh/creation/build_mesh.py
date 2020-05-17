@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 This script performs the first step of initializing the global ocean.  This
 includes:
@@ -136,7 +135,7 @@ def build_mesh(
     print("***********************************************")
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--preserve_floodplain', action='store_true')
     parser.add_argument('--floodplain_elevation', action='store',

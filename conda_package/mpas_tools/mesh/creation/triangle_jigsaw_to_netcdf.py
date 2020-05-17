@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Name: triangle_jigsaw_to_netcdf.py
 Authors: Phillip J. Wolfram and Matthew Hoffman
@@ -292,7 +291,7 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere):
     grid.close()
 
 
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawTextHelpFormatter)

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 '''
 Script to convert from MPAS netCDF format to the Triangle format:
 https://www.cs.cmu.edu/~quake/triangle.node.html
@@ -79,7 +78,7 @@ def mpas_to_triangle(mpasfile, trifile):
     print("Conversion complete.")
 
 
-if __name__ == '__main__':
+def main():
     parser = OptionParser()
     parser.add_option(
         "-m",

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
@@ -20,7 +18,7 @@ def inject_preserve_floodplain(mesh_file, floodplain_elevation):
     nc_mesh.close()
 
 
-if __name__ == "__main__":
+def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('mesh_file', action='store', type=str)
