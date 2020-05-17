@@ -30,7 +30,7 @@ from jigsaw_to_MPAS.inject_bathymetry import inject_bathymetry
 from jigsaw_to_MPAS.inject_meshDensity import inject_meshDensity
 from jigsaw_to_MPAS.inject_preserve_floodplain import \
     inject_preserve_floodplain
-from jigsaw_to_MPAS.mesh_definition_tools import register_sci_viz_colormaps
+from mpas_tools.viz.colormaps import register_sci_viz_colormaps
 
 import define_base_mesh
 
