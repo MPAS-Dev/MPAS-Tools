@@ -31,7 +31,13 @@ from mpas_tools.mesh.creation.inject_preserve_floodplain import \
     inject_preserve_floodplain
 from mpas_tools.viz.colormaps import register_sci_viz_colormaps
 
+import sys
+import os
+# add the current working directory to the system path
+sys.path.append(os.getcwd())
 import define_base_mesh
+# okay, now we don't want to get anything else from CWD
+del sys.path[-1]
 
 def build_mesh(
         preserve_floodplain=False,
