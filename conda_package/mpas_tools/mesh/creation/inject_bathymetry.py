@@ -5,7 +5,7 @@
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from jigsaw_to_MPAS.open_msh import readmsh
+from mpas_tools.mesh.creation.open_msh import readmsh
 import numpy as np
 from scipy import interpolate
 import netCDF4 as nc4

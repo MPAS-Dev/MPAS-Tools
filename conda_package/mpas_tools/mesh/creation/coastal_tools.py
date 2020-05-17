@@ -24,7 +24,7 @@ from rasterio.features import rasterize
 from affine import Affine
 import shapely.geometry
 from geometric_features.plot import subdivide_geom
-import jigsaw_to_MPAS.mesh_definition_tools as mdt
+import mpas_tools.mesh.creation.mesh_definition_tools as mdt
 plt.switch_backend('agg')
 cartopy.config['pre_existing_data_dir'] = \
     os.getenv('CARTOPY_DIR', cartopy.config.get('pre_existing_data_dir'))

@@ -32,7 +32,7 @@ from __future__ import absolute_import, division, print_function, \
 import numpy as np
 
 from netCDF4 import Dataset as NetCDFFile
-from jigsaw_to_MPAS.open_msh import readmsh
+from mpas_tools.mesh.creation.open_msh import readmsh
 
 import argparse
 

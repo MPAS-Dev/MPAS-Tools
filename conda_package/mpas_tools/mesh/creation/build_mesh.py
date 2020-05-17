@@ -24,11 +24,11 @@ from mpas_tools.mesh.conversion import convert
 from mpas_tools.io import write_netcdf
 from mpas_tools.viz.paraview_extractor import extract_vtk
 
-from jigsaw_to_MPAS.jigsaw_driver import jigsaw_driver
-from jigsaw_to_MPAS.triangle_jigsaw_to_netcdf import jigsaw_to_netcdf
-from jigsaw_to_MPAS.inject_bathymetry import inject_bathymetry
-from jigsaw_to_MPAS.inject_meshDensity import inject_meshDensity
-from jigsaw_to_MPAS.inject_preserve_floodplain import \
+from mpas_tools.mesh.creation.jigsaw_driver import jigsaw_driver
+from mpas_tools.mesh.creation.triangle_jigsaw_to_netcdf import jigsaw_to_netcdf
+from mpas_tools.mesh.creation.inject_bathymetry import inject_bathymetry
+from mpas_tools.mesh.creation.inject_meshDensity import inject_meshDensity
+from mpas_tools.mesh.creation.inject_preserve_floodplain import \
     inject_preserve_floodplain
 from mpas_tools.viz.colormaps import register_sci_viz_colormaps
 
