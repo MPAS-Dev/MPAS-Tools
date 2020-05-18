@@ -20,6 +20,9 @@ Developer's Guide
 .. toctree::
    :maxdepth: 2
 
+   making_changes
+   testing_changes
+
    api
 
 Indices and tables
