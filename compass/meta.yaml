@@ -1,5 +1,5 @@
 {% set name = "compass" %}
-{% set version = "0.1.5" %}
+{% set version = "0.1.6" %}
 {% set build = 0 %}
 
 {% if mpi == "nompi" %}
@@ -45,7 +45,7 @@ requirements:
     - esmf * {{ mpi_prefix }}_*
     - netcdf4 * nompi_*
     - nco
-    - pyremap >=0.0.6,<0.1.0
+    - pyremap >=0.0.7,<0.1.0
     - rasterio
     - affine
     - ipython
