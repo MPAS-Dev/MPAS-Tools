@@ -85,18 +85,28 @@ from builtins import input
 
 from netCDF4 import Dataset as NetCDFFile
 
+import xarray
+import json
+from geometric_features import FeatureCollection
+import logging
+from io import StringIO
+
 try:
     from progressbar import ProgressBar, Percentage, Bar, ETA
     use_progress_bar = True
 except ImportError:
     use_progress_bar = False
 
+from mpas_tools.conversion import mask, cull
+from mpas_tools.io import write_netcdf
+
 
 def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
                 mesh_filename=None, blocking=10000, output_32bit=False,
                 combine=False, append=False, out_dir=None, xtime='xtime',
                 lonlat=False, time=None, ignore_time=False, topo_dim=None,
-                topo_cell_index=None):
+                topo_cell_index=None, include_mesh_vars=False,
+                fc_region_mask=None, temp_dir='./culled_region'):
     """
     Extract fields from a time series of NetCDF files as VTK files for plotting
     in paraview.
@@ -233,6 +243,18 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
     topo_cell_index: str, optional
         Index array indicating the bottom of the domain (default is the
         topo_dim-1 for all cells)
+
+    include_mesh_vars: bool, optional
+        Whether to include mesh variables as well as time-series variables
+        in the extraction
+
+    fc_region_mask: geometric_features.FeatureCollection, optional
+        A feature collection used to define a mask.  The MPAS data is culled to
+        lie within the mask before conversion to VTK proceeds
+
+    temp_dir: str, optional
+        If fc_region_mask is supplied, a temporary directory where the culled
+        mesh and time series files are stored
     """
 
     if ignore_time:
@@ -249,6 +271,12 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
     if mesh_filename is None:
         mesh_filename = time_file_names[0]
         separate_mesh_file = False
+
+    if fc_region_mask is not None:
+        mesh_filename, time_file_names = _cull_files(
+            fc_region_mask, temp_dir, mesh_filename, time_file_names,
+            separate_mesh_file, variable_list, include_mesh_vars, xtime)
+        separate_mesh_file = True
 
     # Setting dimension values:
     time_series_file = open_netcdf(time_file_names[0])
@@ -267,7 +295,7 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
     (all_dim_vals, cellVars, vertexVars, edgeVars) = \
         setup_dimension_values_and_sort_vars(
             time_series_file, mesh_file,  variable_list, extra_dims,
-            basic_dims=basic_dims)
+            include_mesh_vars, basic_dims=basic_dims)
     time_series_file.close()
     if mesh_file is not None:
         mesh_file.close()
@@ -415,7 +443,39 @@ def main():
                         required=False,
                         help="Index array indicating the bottom of the domain "
                              "(default is the topo_dim-1 for all cells)")
+    parser.add_argument("--include_mesh_vars", dest="include_mesh_vars",
+                        action="store_true",
+                        help="Whether to extract mesh variables as well as"
+                             "time-series variables")
+    parser.add_argument("--region_mask", dest="region_mask", required=False,
+                        help="A geojson file defining a region that the data"
+                             "should be masked to before extraction.  Make one"
+                             "easily at https://goejson.io")
+    parser.add_argument("--temp_dir", dest="temp_dir", required=False,
+                        default="./culled_region",
+                        help="If --region_mask is provided, a temporary "
+                             "directory for the culled files")
     args = parser.parse_args()
+
+    if args.region_mask is not None:
+        fc_region_mask = FeatureCollection()
+        with open(args.region_mask) as f:
+            featuresDict = json.load(f)
+            defaults = {'component': 'ocean',
+                        'name': 'mask',
+                        'object': 'region'}
+            for feature in featuresDict['features']:
+                if feature['geometry']['type'] not in ['Polygon',
+                                                       'MultiPolygon']:
+                    raise ValueError('All masking features must be regions '
+                                     '(Polygons or MultiPolygons)')
+                # assign the default values if they're not already present
+                for key, value in defaults.items():
+                    if key not in feature['properties']:
+                        feature['properties'][key] = value
+                fc_region_mask.add_feature(feature)
+    else:
+        fc_region_mask = None
 
     extract_vtk(filename_pattern=args.filename_pattern,
                 variable_list=args.variable_list,
@@ -431,7 +491,10 @@ def main():
                 time=args.time,
                 ignore_time=args.ignore_time,
                 topo_dim=args.topo_dim,
-                topo_cell_index=args.topo_cell_index)
+                topo_cell_index=args.topo_cell_index,
+                include_mesh_vars=args.include_mesh_vars,
+                fc_region_mask=fc_region_mask,
+                temp_dir=args.temp_dir)
 
 
 def build_field_time_series(local_time_indices, file_names, mesh_file,
@@ -1029,6 +1092,7 @@ def parse_extra_dims(dimension_list, time_series_file, mesh_file,
 
     if dimension_list is not None:
         for dim_item in dimension_list:
+            print(dim_item)
             (dimName, index_string) = dim_item.split('=')
             indices = parse_extra_dim(dimName, index_string, time_series_file,
                                       mesh_file)
@@ -1058,7 +1122,7 @@ def parse_extra_dims(dimension_list, time_series_file, mesh_file,
 
 def setup_dimension_values_and_sort_vars(
         time_series_file, mesh_file,  variable_list, extra_dims,
-        basic_dims=('nCells', 'nEdges', 'nVertices', 'Time'),
+        include_mesh_vars, basic_dims=('nCells', 'nEdges', 'nVertices', 'Time'),
         include_dims=('nCells', 'nEdges', 'nVertices')):  # {{{
     """
     Creates a list of variables names to be extracted.  Prompts for indices
@@ -1070,59 +1134,18 @@ def setup_dimension_values_and_sort_vars(
     (used in expanding command line placeholders "all", "allOnCells", etc.)
     """
 
-    def add_var(variables, var_name, inc_dims, exc_dims=None):
-        if var_name in variable_names:
-            return
-
-        dims = variables[var_name].dimensions
-        supported = False
-        for d in inc_dims:
-            if d in dims:
-                supported = True
-        if exc_dims is not None:
-            for d in exc_dims:
-                if d in dims:
-                    supported = False
-        if supported:
-            variable_names.append(var_name)
+    time_series_variables = time_series_file.variables
+    if mesh_file is None or not include_mesh_vars:
+        mesh_variables = None
+    else:
+        mesh_variables = mesh_file.variables
+    variable_names = _expand_variable_list(variable_list, time_series_variables,
+                                           mesh_variables, include_dims)
 
     all_dim_vals = {}
     cellVars = []
     vertexVars = []
     edgeVars = []
-
-    if variable_list == 'all':
-        variable_names = []
-        exclude_dims = ['Time']
-        for variable_name in time_series_file.variables:
-            add_var(time_series_file.variables, str(variable_name),
-                    include_dims, exc_dims=None)
-        if mesh_file is not None:
-            for variable_name in mesh_file.variables:
-                add_var(mesh_file.variables, str(variable_name), include_dims,
-                        exclude_dims)
-    elif isinstance(variable_list, str):
-        variable_names = variable_list.split(',')
-    else:
-        variable_names = variable_list
-
-    for suffix in ['Cells', 'Edges', 'Vertices']:
-        include_dim = 'n{}'.format(suffix)
-        all_on = 'allOn{}'.format(suffix)
-        if (all_on in variable_names) and (include_dim in
-                                                       include_dims):
-            variable_names.remove(all_on)
-            exclude_dims = ['Time']
-            for variable_name in time_series_file.variables:
-                add_var(time_series_file.variables, str(variable_name),
-                        inc_dims=[include_dim], exc_dims=None)
-            if mesh_file is not None:
-                for variable_name in mesh_file.variables:
-                    add_var(mesh_file.variables, str(variable_name),
-                            inc_dims=[include_dim],
-                            exc_dims=exclude_dims)
-
-    variable_names.sort()
 
     promptDimNames = []
     display_prompt = True
@@ -2012,5 +2035,163 @@ def _fix_periodic_vertices_1D(vertices, verticesOnCell, validVertices,
 
     return tuple(outVertices), verticesOnCell  # }}}
 
+
+def _expand_variable_list(variable_list, time_series_variables,
+                          mesh_variables, include_dims):
+
+
+    if variable_list == 'all':
+        variable_names = []
+        exclude_dims = ['Time']
+        for variable_name in time_series_variables:
+            _add_var(time_series_variables, str(variable_name),
+                     include_dims, variable_names, exc_dims=None)
+        if mesh_variables is not None:
+            for variable_name in mesh_variables:
+                _add_var(mesh_variables, str(variable_name), include_dims,
+                         variable_names, exclude_dims)
+    elif isinstance(variable_list, str):
+        variable_names = variable_list.split(',')
+    else:
+        variable_names = variable_list
+
+    for suffix in ['Cells', 'Edges', 'Vertices']:
+        include_dim = 'n{}'.format(suffix)
+        all_on = 'allOn{}'.format(suffix)
+        if (all_on in variable_names) and (include_dim in include_dims):
+            variable_names.remove(all_on)
+            exclude_dims = ['Time']
+            for variable_name in time_series_variables:
+                _add_var(time_series_variables, str(variable_name),
+                         inc_dims=[include_dim], variable_names=variable_names,
+                         exc_dims=None)
+            if mesh_variables is not None:
+                for variable_name in mesh_variables:
+                    _add_var(mesh_variables, str(variable_name),
+                             inc_dims=[include_dim],
+                             variable_names=variable_names,
+                             exc_dims=exclude_dims)
+
+    variable_names.sort()
+    return variable_names
+
+
+def _add_var(variables, var_name, inc_dims, variable_names, exc_dims=None):
+    if var_name in variable_names:
+        return
+
+    dims = variables[var_name].dimensions
+    supported = False
+    for d in inc_dims:
+        if d in dims:
+            supported = True
+    if exc_dims is not None:
+        for d in exc_dims:
+            if d in dims:
+                supported = False
+    if supported:
+        variable_names.append(var_name)
+
+
+def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
+    separate_mesh_file, variable_list, include_mesh_vars, xtime):
+
+    mesh_vars = [
+        'areaCell', 'cellsOnCell', 'edgesOnCell', 'indexToCellID',
+        'latCell', 'lonCell', 'nEdgesOnCell', 'verticesOnCell',
+        'xCell', 'yCell', 'zCell', 'angleEdge', 'cellsOnEdge', 'dcEdge',
+        'dvEdge', 'edgesOnEdge', 'indexToEdgeID', 'latEdge',
+        'lonEdge', 'nEdgesOnCell', 'nEdgesOnEdge', 'verticesOnEdge',
+        'xEdge', 'yEdge', 'zEdge', 'areaTriangle',
+        'cellsOnVertex', 'edgesOnVertex', 'indexToVertexID',
+        'kiteAreasOnVertex', 'latVertex', 'lonVertex', 'xVertex', 'yVertex',
+        'zVertex', 'weightsOnEdge']
+
+    try:
+        os.makedirs(temp_dir)
+    except OSError:
+        pass
+
+    log_stream = StringIO()
+    logger = logging.getLogger('_cull_files')
+    for handler in logger.handlers:
+        logger.removeHandler(handler)
+    handler = logging.StreamHandler(log_stream)
+    logger.addHandler(handler)
+    handler.setLevel(logging.INFO)
+
+    # Figure out the variable names we want to extract
+    with open_netcdf(time_file_names[0]) as time_series_file:
+        time_series_variables = time_series_file.variables
+        if separate_mesh_file and include_mesh_vars:
+            mesh_file = open_netcdf(mesh_filename)
+            mesh_variables = mesh_file.variables
+        else:
+            mesh_file = None
+            mesh_variables = None
+
+        include_dims = ('nCells', 'nEdges', 'nVertices')
+        variable_names = _expand_variable_list(variable_list,
+                                               time_series_variables,
+                                               mesh_variables, include_dims)
+
+        if mesh_file is not None:
+            mesh_file.close()
+
+    print('Including variables: {}'.format(', '.join(variable_names)))
+
+    with xarray.open_dataset(mesh_filename) as ds_mesh:
+        ds_mesh = ds_mesh[mesh_vars]
+        print('Making a region mask file')
+        ds_mask = mask(dsMesh=ds_mesh, fcMask=fc_region_mask, logger=logger)
+        write_netcdf(ds_mask, '{}/mask.nc'.format(temp_dir))
+        print('Cropping mesh to region')
+        out_mesh_filename = '{}/mesh.nc'.format(temp_dir)
+        ds_culled = cull(dsIn=ds_mesh, dsInverse=ds_mask, logger=logger)
+        write_netcdf(ds_culled, out_mesh_filename)
+
+        region_masks = dict()
+        cell_mask = ds_mask.regionCellMasks.sum(dim='nRegions') > 0
+        region_masks['nCells'] = cell_mask
+        region_masks['nVertices'] = \
+                ds_mask.regionVertexMasks.sum(dim='nRegions') > 0
+        coe = ds_mesh.cellsOnEdge - 1
+        valid_cell_on_edge = numpy.logical_and(coe >= 0, cell_mask[coe])
+        region_masks['nEdges'] = numpy.logical_or(
+            valid_cell_on_edge.isel(TWO=0),
+            valid_cell_on_edge.isel(TWO=1))
+
+    if use_progress_bar:
+        widgets = ['Cropping time series to region: ', Percentage(), ' ',
+                   Bar(), ' ', ETA()]
+        bar = ProgressBar(widgets=widgets, maxval=len(time_file_names)).start()
+    else:
+        print('Cropping time series to region')
+        bar = None
+
+    out_time_file_names = []
+    for index, filename in enumerate(time_file_names):
+        out_filename = '{}/time_series{:04d}.nc'.format(temp_dir, index)
+        out_time_file_names.append(out_filename)
+        ds_in = xarray.open_dataset(filename)
+        ds_out = xarray.Dataset()
+        if xtime is None:
+            ds_in = ds_in[variable_names]
+        else:
+            ds_in = ds_in[variable_names + [xtime]]
+            ds_out[xtime] = ds_in[xtime]
+        for var in ds_in.data_vars:
+            for dim in region_masks:
+                if dim in ds_in[var].dims:
+                    ds_out[var] = ds_in[var].where(region_masks[dim], drop=True)
+        write_netcdf(ds_out, out_filename)
+        if use_progress_bar:
+            bar.update(index+1)
+    bar.finish()
+
+    logger.removeHandler(handler)
+    handler.close()
+
+    return out_mesh_filename, out_time_file_names
 
 # vim: set expandtab:
