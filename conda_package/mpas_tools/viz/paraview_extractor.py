@@ -465,6 +465,10 @@ def main():
                         'name': 'mask',
                         'object': 'region'}
             for feature in featuresDict['features']:
+                if feature['geometry']['type'] not in ['Polygon',
+                                                       'MultiPolygon']:
+                    raise ValueError('All masking features must be regions '
+                                     '(Polygons or MultiPolygons)')
                 # assign the default values if they're not already present
                 for key, value in defaults.items():
                     if key not in feature['properties']:
