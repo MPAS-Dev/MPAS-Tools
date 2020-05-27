@@ -31,6 +31,7 @@ Developer's Guide
 
    making_changes
    testing_changes
+   building_docs
 
    api
 
