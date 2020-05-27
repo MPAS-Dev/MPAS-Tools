@@ -47,6 +47,11 @@ match:
   {% set name = "mpas_tools" %}
   {% set version = "0.0.11" %}
 
+It is also a good idea to add the new version to the :ref:`versions`.  The new
+links won't be valid until a new release is made and Travis CI has generated
+the associated documentation.  Eventually, it should be possible to do this
+automatically but that has not yet been implemented.
+
 Building the package
 ********************
 
