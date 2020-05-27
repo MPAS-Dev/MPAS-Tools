@@ -7,7 +7,7 @@ Mesh Creation
 Building a Mesh
 ===============
 
-The py:func:`mpas_tools.mesh.creation.build_mesh.build_mesh` function is used
+The :py:func:`mpas_tools.mesh.creation.build_mesh.build_mesh` function is used
 create an MPAS mesh using the `JIGSAW <https://github.com/dengwirda/jigsaw>`_
 and `JIGSAW-Python <https://github.com/dengwirda/jigsaw-python>`_ packages.
 
@@ -27,13 +27,13 @@ The result is an MPAS mesh file ``base_mesh.nc`` as well as several intermediate
 files: ``mesh.log``, ``mesh-HFUN.msh``, ``mesh.jig``, ``mesh-MESH.msh``,
 ``mesh.msh``, and ``mesh_triangles.nc``.
 
-The py:func:`mpas_tools.viz.paraview_extractor.extract_vtk()` function is used
+The :py:func:`mpas_tools.viz.paraview_extractor.extract_vtk` function is used
 to produce a VTK file in the ``base_mesh_vtk`` directory that can be viewed in
 `ParaVeiw <https://www.paraview.org/>`_.
 
 Optionally, a field, ``cellSeedMask``, can be added to the mesh file that can
 later be used preserve a "flood plain" of positive elevations in the MPAS mesh.
-See py:func:`mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain``.
+See :py:func:`mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain`.
 
 Optioanlly, a field, ``bottomDepthObserved``, can be added to the mesh file
 with bathymetry data from one of two topography files: ``earth_relief_15s.nc``
