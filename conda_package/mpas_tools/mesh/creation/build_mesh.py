@@ -45,6 +45,54 @@ def build_mesh(
         do_inject_bathymetry=False,
         geometry='sphere',
         plot_cellWidth=True):
+    """
+    Build an MPAS mesh using JIGSAW with the given cell sizes as a function of
+    latitude and longitude (on a sphere) or x and y (on a plane).
+
+    The user must define a local python module ``define_base_mesh`` that
+    provides a function that returns a 2D array ``cellWidth`` of cell sizes in
+    kilometers.
+
+    If ``geometry = 'sphere'``, this function is called ``cellWidthVsLatLon()``
+    and also returns 1D ``lon`` and ``lat`` arrays.
+
+    If ``geometry = 'plane'`` (or any value other than `'sphere'``), the
+    function is called ``cellWidthVsXY()`` and returns 4 arrays in addition to
+    ``cellWidth``: 1D ``x`` and ``y`` arrays defining planar coordinates in
+    meters; as well as ``geom_points``, list of point coordinates for bounding
+    polygon for the planar mesh; and ``geom_edges``, list of edges between
+    points in ``geom_points`` that define the bounding polygon.
+
+    The result is ``base_mesh.nc`` as well as several intermediate files:
+    ``mesh.log``, ``mesh-HFUN.msh``, ``mesh.jig``, ``mesh-MESH.msh``,
+    ``mesh.msh``, and ``mesh_triangles.nc``.
+
+    The ``extract_vtk()`` function is used to produce a VTK file in the
+    ``base_mesh_vtk`` directory that can be viewed in ParaVeiw.
+
+    Parameters
+    ----------
+    preserve_floodplain : bool, optional
+        Whether a flood plain (bathymetry above z = 0) should be preserved in
+        the mesh.  If so, a field ``cellSeedMask`` is added to the MPAS mesh
+        indicating positive elevations that should be preserved.
+
+    floodplain_elevation : float, optional
+        The elevation in meters to which the flood plain is preserved.
+
+    do_inject_bathymetry : bool, optional
+        Whether one of the default bathymetry datasets, ``earth_relief_15s.nc``
+        or ``topo.msh``, should be added to the MPAS mesh in the field
+        ``bottomDepthObserved``.  If so, a local link to one of these file names
+        must exist.
+
+    geometry : {'sphere', 'plane'}, optional
+        Whether the mesh is spherical or planar
+
+    plot_cellWidth : bool, optional
+        If ``geometry = 'sphere'``, whether to produce a plot of ``cellWidth``.
+        If so, it will be written to ``cellWidthGlobal.png``.
+    """
 
     if geometry == 'sphere':
         on_sphere = True
@@ -143,12 +191,22 @@ def build_mesh(
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--preserve_floodplain', action='store_true')
+    parser.add_argument('--preserve_floodplain', action='store_true',
+                        help='Whether a flood plain (bathymetry above z = 0) '
+                             'should be preserved in the mesh')
     parser.add_argument('--floodplain_elevation', action='store',
-                        type=float, default=20.0)
-    parser.add_argument('--inject_bathymetry', action='store_true')
-    parser.add_argument('--geometry', default='sphere')
-    parser.add_argument('--plot_cellWidth', action='store_true')
+                        type=float, default=20.0,
+                        help='The elevation in meters to which the flood plain '
+                             'is preserved, default is 20 m')
+    parser.add_argument('--inject_bathymetry', action='store_true',
+                        help='Whether one of the default bathymetry datasets, '
+                             'earth_relief_15s.nc or topo.msh, should be added '
+                             'to the MPAS mesh')
+    parser.add_argument('--geometry', default='sphere',
+                        help='Whether the mesh is on a sphere or a plane, '
+                             'default is a sphere')
+    parser.add_argument('--plot_cellWidth', action='store_true',
+                        help='Whether to produce a plot of cellWidth')
     cl_args = parser.parse_args()
     build_mesh(cl_args.preserve_floodplain, cl_args.floodplain_elevation,
                cl_args.inject_bathymetry, cl_args.geometry,
