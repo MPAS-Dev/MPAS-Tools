@@ -24,7 +24,7 @@ from mpas_tools.io import write_netcdf
 from mpas_tools.viz.paraview_extractor import extract_vtk
 
 from mpas_tools.mesh.creation.jigsaw_driver import jigsaw_driver
-from mpas_tools.mesh.creation.triangle_jigsaw_to_netcdf import jigsaw_to_netcdf
+from mpas_tools.mesh.creation.jigsaw_to_netcdf import jigsaw_to_netcdf
 from mpas_tools.mesh.creation.inject_bathymetry import inject_bathymetry
 from mpas_tools.mesh.creation.inject_meshDensity import inject_meshDensity
 from mpas_tools.mesh.creation.inject_preserve_floodplain import \

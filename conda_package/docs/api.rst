@@ -40,8 +40,8 @@ MPAS mesh tools
    mesh_definition_tools.AtlanticPacificGrid
    mpas_to_triangle.mpas_to_triangle
    open_msh.readmsh
-   triangle_jigsaw_to_netcdf.triangle_to_netcdf
-   triangle_jigsaw_to_netcdf.jigsaw_to_netcdf
+   triangle_to_netcdf.triangle_to_netcdf
+   jigsaw_to_netcdf.jigsaw_to_netcdf
 
 .. currentmodule:: mpas_tools.mesh.conversion
 
