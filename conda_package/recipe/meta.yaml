@@ -15,7 +15,6 @@ build:
     - translate_planar_grid = mpas_tools.translate:main
     - merge_grids = mpas_tools.merge_grids:main
     - split_grids = mpas_tools.split_grids:main
-    - build_mesh = mpas_tools.mesh.creation.build_mesh:main
     - inject_bathymetry = mpas_tools.ocean.inject_bathymetry:main
     - inject_preserve_floodplain = mpas_tools.ocean.inject_preserve_floodplain:main
     - mpas_to_triangle = mpas_tools.mesh.creation.mpas_to_triangle:main
@@ -97,9 +96,6 @@ test:
     - paraview_vtk_field_extractor.py -f mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc -v latCell,lonCell --ignore_time -o vtk_test
     - split_grids --help
     - merge_grids --help
-    # define_base_mesh.py must exist locally for build_mesh to work
-    - cp conda_package/mpas_tools/tests/define_base_mesh.py .
-    - build_mesh --help
     - inject_bathymetry mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
     - inject_preserve_floodplain --help
     - mpas_to_triangle --help
