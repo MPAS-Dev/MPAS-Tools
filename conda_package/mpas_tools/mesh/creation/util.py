@@ -1,9 +1,20 @@
 import collections
+import numpy as np
 
 point = collections.namedtuple('Point', ['x', 'y', 'z'])
 
 
-def circumcenter(on_sphere, x1, y1, z1, x2, y2, z2, x3, y3, z3):  # {{{
+def circumcenter(on_sphere, x1, y1, z1, x2, y2, z2, x3, y3, z3):
+    """
+    Compute the circumcenter of the triangle (possibly on a sphere)
+    with the three given vertices in Cartesian coordinates.
+
+    Returns
+    -------
+    center : point
+        The circumcenter of the triangle with x, y and z attributes
+
+    """
     p1 = point(x1, y1, z1)
     p2 = point(x2, y2, z2)
     p3 = point(x3, y3, z3)
@@ -36,4 +47,30 @@ def circumcenter(on_sphere, x1, y1, z1, x2, y2, z2, x3, y3, z3):  # {{{
         # yv = yv / 3.0
     return point(xv, yv, zv)
 
-# }}}
+
+def lonlat2xyz(lon, lat, R=6378206.4):
+    """
+    Convert from longitude and latitude to Cartesian coordinates
+
+    Parameters
+    ----------
+    lon : float or numpy.ndarray
+        longitude
+    lat : float or numpy.ndarray
+        latitude
+    R : float, optional
+        Earth radius
+
+    Returns
+    -------
+    x, y, z: float or numpy.array
+        Cartesian coordinates
+    """
+
+    lon = np.deg2rad(lon)
+    lat = np.deg2rad(lat)
+    x = R*np.multiply(np.cos(lon), np.cos(lat))
+    y = R*np.multiply(np.sin(lon), np.cos(lat))
+    z = R*np.sin(lat)
+
+    return x, y, z
