@@ -14,7 +14,6 @@ from mpas_tools.viz.paraview_extractor import extract_vtk
 
 from mpas_tools.mesh.creation.jigsaw_driver import jigsaw_driver
 from mpas_tools.mesh.creation.jigsaw_to_netcdf import jigsaw_to_netcdf
-from mpas_tools.mesh.creation.inject_meshDensity import inject_meshDensity
 from mpas_tools.viz.colormaps import register_sci_viz_colormaps
 
 
@@ -152,11 +151,7 @@ def _shared_steps(cw_filename, out_filename, vtk_dir, on_sphere):
     write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc')),
                  out_filename)
 
-    print('Step 4. Inject correct meshDensity variable into base mesh file')
-    inject_meshDensity(cw_filename=cw_filename,
-                       mesh_filename=out_filename, on_sphere=on_sphere)
-
-    print('Step 5. Create vtk file for visualization')
+    print('Step 4. Create vtk file for visualization')
     extract_vtk(ignore_time=True, lonlat=True, dimension_list=['maxEdges='],
                 variable_list=['allOnCells'], filename_pattern=out_filename,
                 out_dir=vtk_dir)

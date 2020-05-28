@@ -30,7 +30,6 @@ MPAS mesh tools
 
    build_mesh.build_spherical_mesh
    build_mesh.build_planar_mesh
-   inject_meshDensity.inject_meshDensity
    jigsaw_driver.jigsaw_driver
    jigsaw_to_netcdf.jigsaw_to_netcdf
    mesh_definition_tools.mergeCellWidthVsLat
@@ -119,8 +118,6 @@ Ocean Tools
    plot_coarse_coast
    plot_region_box
 
-
-
 .. currentmodule:: mpas_tools.ocean.inject_bathymetry
 
 .. autosummary::
@@ -128,12 +125,20 @@ Ocean Tools
 
    inject_bathymetry
 
+.. currentmodule:: mpas_tools.ocean.inject_meshDensity
+
+.. autosummary::
+   :toctree: generated/
+
+   inject_meshDensity
+
 .. currentmodule:: mpas_tools.ocean.inject_preserve_floodplain
 
 .. autosummary::
    :toctree: generated/
 
    inject_preserve_floodplain
+
 
 Visualization
 =============
