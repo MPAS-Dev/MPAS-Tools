@@ -5,7 +5,7 @@ import numpy
 import jigsawpy
 
 
-def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0,
+def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0e3,
                   geom_points=None, geom_edges=None):
     '''
     A function for building a jigsaw mesh
@@ -23,7 +23,7 @@ def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0,
         Whether this mesh is spherical or planar
 
     earth_radius : float, optional
-        Earth radius
+        Earth radius in meters
 
     geom_points : ndarray, optional
         list of point coordinates for bounding polygon for planar mesh
@@ -60,7 +60,7 @@ def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0,
     geom = jigsawpy.jigsaw_msh_t()
     if on_sphere:
        geom.mshID = 'ELLIPSOID-MESH'
-       geom.radii = earth_radius*numpy.ones(3, float)
+       geom.radii = earth_radius*1e-3*numpy.ones(3, float)
     else:
        geom.mshID = 'EUCLIDEAN-MESH'
        geom.vert2 = geom_points

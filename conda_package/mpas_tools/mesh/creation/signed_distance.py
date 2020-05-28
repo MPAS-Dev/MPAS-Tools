@@ -27,7 +27,7 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
     lat_grd : numpy.ndarray
         A 1D array of evenly spaced latitude values
     earth_radius : float
-        Earth radius
+        Earth radius in meters
     max_length : float, optional
         The maximum distance (in degrees) between points on the boundary of the
         geojson region.  If the boundary is too coarse, it will be subdivided.
@@ -112,7 +112,7 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
     lat_grd : numpy.ndarray
         A 1D array of evenly spaced latitude values
     earth_radius : float
-        Earth radius
+        Earth radius in meters
     nn_search: {'kdtree', 'flann'}
         The method used to find the nearest point on the shape boundary
     max_length : float, optional

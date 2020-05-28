@@ -59,7 +59,7 @@ def lonlat2xyz(lon, lat, R=6378206.4):
     lat : float or numpy.ndarray
         latitude
     R : float, optional
-        Earth radius
+        Earth radius in meters
 
     Returns
     -------

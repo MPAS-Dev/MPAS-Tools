@@ -41,7 +41,7 @@ def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
         longitude in degrees (length m and between -90 and 90)
 
     earth_radius : float
-        Earth radius
+        Earth radius in meters
 
     out_filename : str, optional
         The file name of the resulting MPAS mesh
