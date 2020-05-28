@@ -28,20 +28,21 @@ MPAS mesh tools
 .. autosummary::
    :toctree: generated/
 
-   build_mesh.build_mesh
-   coastal_tools.coastal_refined_mesh
-   inject_bathymetry.inject_bathymetry
+   build_mesh.build_spherical_mesh
+   build_mesh.build_planar_mesh
    inject_meshDensity.inject_meshDensity
-   inject_preserve_floodplain.inject_preserve_floodplain
    jigsaw_driver.jigsaw_driver
+   jigsaw_to_netcdf.jigsaw_to_netcdf
    mesh_definition_tools.mergeCellWidthVsLat
    mesh_definition_tools.EC_CellWidthVsLat
    mesh_definition_tools.RRS_CellWidthVsLat
    mesh_definition_tools.AtlanticPacificGrid
    mpas_to_triangle.mpas_to_triangle
    open_msh.readmsh
+   signed_distance.signed_distance_from_geojson
+   signed_distance.mask_from_geojson
+   signed_distance.distance_from_geojson
    triangle_to_netcdf.triangle_to_netcdf
-   jigsaw_to_netcdf.jigsaw_to_netcdf
 
 .. currentmodule:: mpas_tools.mesh.conversion
 
@@ -98,6 +99,41 @@ Ocean Tools
 
    make_moc_basins_and_transects
    build_moc_basins
+
+.. currentmodule:: mpas_tools.ocean.coastal_tools
+
+.. autosummary::
+   :toctree: generated/
+
+   coastal_refined_mesh
+   create_background_mesh
+   extract_coastlines
+   distance_to_coast
+   compute_cell_width
+   save_matfile
+   CPP_projection
+   smooth_coastline
+   get_data_inside_box
+   get_indices_inside_quad
+   get_convex_hull_coordinates
+   plot_coarse_coast
+   plot_region_box
+
+
+
+.. currentmodule:: mpas_tools.ocean.inject_bathymetry
+
+.. autosummary::
+   :toctree: generated/
+
+   inject_bathymetry
+
+.. currentmodule:: mpas_tools.ocean.inject_preserve_floodplain
+
+.. autosummary::
+   :toctree: generated/
+
+   inject_preserve_floodplain
 
 Visualization
 =============
