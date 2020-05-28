@@ -130,7 +130,9 @@ Ocean Tools
 .. autosummary::
    :toctree: generated/
 
-   inject_meshDensity
+   inject_meshDensity_from_file
+   inject_spherical_meshDensity
+   inject_planar_meshDensity
 
 .. currentmodule:: mpas_tools.ocean.inject_preserve_floodplain
 
