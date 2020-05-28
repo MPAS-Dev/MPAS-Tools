@@ -10,7 +10,6 @@ import cartopy
 
 from mpas_tools.mesh.conversion import convert
 from mpas_tools.io import write_netcdf
-from mpas_tools.viz.paraview_extractor import extract_vtk
 
 from mpas_tools.mesh.creation.jigsaw_driver import jigsaw_driver
 from mpas_tools.mesh.creation.jigsaw_to_netcdf import jigsaw_to_netcdf
@@ -18,11 +17,10 @@ from mpas_tools.viz.colormaps import register_sci_viz_colormaps
 
 
 def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
-                         out_filename='base_mesh.nc', plot_cellWidth=True,
-                         vtk_dir='base_mesh_vtk'):
+                         out_filename='base_mesh.nc', plot_cellWidth=True):
     """
     Build an MPAS mesh using JIGSAW with the given cell sizes as a function of
-    latitude and longitude (on a sphere) or x and y (on a plane).
+    latitude and longitude.
 
     The result is a mesh file stored in ``out_filename`` as well as several
     intermediate files: ``mesh.log``, ``mesh-HFUN.msh``, ``mesh.jig``,
@@ -48,10 +46,6 @@ def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
     plot_cellWidth : bool, optional
         Whether to produce a plot of ``cellWidth``. If so, it will be written to
         ``cellWidthGlobal.png``.
-
-    vtk_dir : str, optional
-        The name of the directory where mesh data will be extracted for viewing
-        in ParaVeiw.
     """
 
     da = xarray.DataArray(cellWidth,
@@ -92,11 +86,17 @@ def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
     jigsaw_driver(cellWidth, lon, lat, on_sphere=True,
                   earth_radius=earth_radius)
 
-    _shared_steps(cw_filename, out_filename, vtk_dir, on_sphere=True)
+    print('Step 2. Convert triangles from jigsaw format to netcdf')
+    jigsaw_to_netcdf(msh_filename='mesh-MESH.msh',
+                     output_name='mesh_triangles.nc', on_sphere=True)
+
+    print('Step 3. Convert from triangles to MPAS mesh')
+    write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc')),
+                 out_filename)
 
 
 def build_planar_mesh(cellWidth, x, y, geom_points, geom_edges,
-                      out_filename='base_mesh.nc', vtk_dir='base_mesh_vtk'):
+                      out_filename='base_mesh.nc'):
     """
     Build a planar MPAS mesh
 
@@ -117,11 +117,6 @@ def build_planar_mesh(cellWidth, x, y, geom_points, geom_edges,
 
     out_filename : str, optional
         The file name of the resulting MPAS mesh
-
-    vtk_dir : str, optional
-        The name of the directory where mesh data will be extracted for viewing
-        in ParaVeiw.
-
     """
     da = xarray.DataArray(cellWidth,
                           dims=['y', 'x'],
@@ -139,23 +134,11 @@ def build_planar_mesh(cellWidth, x, y, geom_points, geom_edges,
         geom_points=geom_points,
         geom_edges=geom_edges)
 
-    _shared_steps(cw_filename, out_filename, vtk_dir, on_sphere=False)
-
-
-def _shared_steps(cw_filename, out_filename, vtk_dir, on_sphere):
     print('Step 2. Convert triangles from jigsaw format to netcdf')
     jigsaw_to_netcdf(msh_filename='mesh-MESH.msh',
-                     output_name='mesh_triangles.nc', on_sphere=on_sphere)
+                     output_name='mesh_triangles.nc', on_sphere=False)
 
     print('Step 3. Convert from triangles to MPAS mesh')
     write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc')),
                  out_filename)
 
-    print('Step 4. Create vtk file for visualization')
-    extract_vtk(ignore_time=True, lonlat=True, dimension_list=['maxEdges='],
-                variable_list=['allOnCells'], filename_pattern=out_filename,
-                out_dir=vtk_dir)
-
-    print("***********************************************")
-    print("**    The global mesh file is {}   **".format(out_filename))
-    print("***********************************************")
