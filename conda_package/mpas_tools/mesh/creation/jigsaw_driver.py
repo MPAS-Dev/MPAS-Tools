@@ -5,7 +5,8 @@ import numpy
 import jigsawpy
 
 
-def jigsaw_driver(cellWidth, x, y, on_sphere=True, geom_points=None, geom_edges=None):
+def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0,
+                  geom_points=None, geom_edges=None):
     '''
     A function for building a jigsaw mesh
 
@@ -15,14 +16,20 @@ def jigsaw_driver(cellWidth, x, y, on_sphere=True, geom_points=None, geom_edges=
         The size of each cell in the resulting mesh as a function of space
 
     x, y : ndarray
-        The x and y coordinates of each point in the cellWidth array (lon and lat for spherical mesh)
+        The x and y coordinates of each point in the cellWidth array (lon and
+        lat for spherical mesh)
 
-    on_sphere : logical
+    on_sphere : logical, optional
         Whether this mesh is spherical or planar
 
-    geom_points : list of point coordinates for bounding polygon for planar mesh
+    earth_radius : float, optional
+        Earth radius
 
-    geom_edges : list of edges between points in geom_points that define the bounding polygon
+    geom_points : ndarray, optional
+        list of point coordinates for bounding polygon for planar mesh
+
+    geom_edges : ndarray, optional
+        list of edges between points in geom_points that define the bounding polygon
 
     '''
     # Authors
@@ -53,7 +60,7 @@ def jigsaw_driver(cellWidth, x, y, on_sphere=True, geom_points=None, geom_edges=
     geom = jigsawpy.jigsaw_msh_t()
     if on_sphere:
        geom.mshID = 'ELLIPSOID-MESH'
-       geom.radii = 6371.*numpy.ones(3, float)
+       geom.radii = earth_radius*numpy.ones(3, float)
     else:
        geom.mshID = 'EUCLIDEAN-MESH'
        geom.vert2 = geom_points
