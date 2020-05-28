@@ -22,15 +22,11 @@ check_env () {
   done
 }
 
-
-# Modify the following to choose which e3sm-unified version(s) the python version(s) are installed and whether to make
-# an environment with x-windows support under cdat (cdatx) and/or without (nox).  Typically, both environments should
-# be created.
-versions=(0.1.3)
-pythons=(3.7)
+versions=(0.1.6)
+pythons=(3.8)
 mpis=(serial mpich)
 
-default_python=3.7
+default_python=3.8
 
 remove_existing=False
 
@@ -39,13 +35,14 @@ remove_existing=False
 set -e
 
 world_read="True"
-default_mpi=serial
+default_mpi=mpich
 
 # The rest of the script should not need to be modified
 if [[ $HOSTNAME = "cori"* ]] || [[ $HOSTNAME = "dtn"* ]]; then
   base_path="/global/cfs/cdirs/e3sm/software/anaconda_envs/base"
   activ_path="/global/cfs/cdirs/e3sm/software/anaconda_envs"
   group="e3sm"
+  default_mpi=serial
 elif [[ $HOSTNAME = "acme1"* ]] || [[ $HOSTNAME = "aims4"* ]]; then
   base_path="/usr/local/e3sm_unified/envs/base"
   activ_path="/usr/local/e3sm_unified/envs"
@@ -54,7 +51,6 @@ elif [[ $HOSTNAME = "blueslogin"* ]]; then
   base_path="/lcrc/soft/climate/e3sm-unified/base"
   activ_path="/lcrc/soft/climate/e3sm-unified"
   group="climate"
-  default_mpi=mpich
 elif [[ $HOSTNAME = "rhea"* ]]; then
   base_path="/ccs/proj/cli900/sw/rhea/e3sm-unified/base"
   activ_path="/ccs/proj/cli900/sw/rhea/e3sm-unified"
@@ -63,15 +59,16 @@ elif [[ $HOSTNAME = "cooley"* ]]; then
   base_path="/lus/theta-fs0/projects/ccsm/acme/tools/e3sm-unified/base"
   activ_path="/lus/theta-fs0/projects/ccsm/acme/tools/e3sm-unified"
   group="ccsm"
+  default_mpi=serial
 elif [[ $HOSTNAME = "compy"* ]]; then
   base_path="/share/apps/E3SM/conda_envs/base"
   activ_path="/share/apps/E3SM/conda_envs"
   group="users"
+  default_mpi=serial
 elif [[ $HOSTNAME = "gr-fe"* ]] || [[ $HOSTNAME = "ba-fe"* ]]; then
   base_path="/usr/projects/climate/SHARED_CLIMATE/anaconda_envs/base"
   activ_path="/usr/projects/climate/SHARED_CLIMATE/anaconda_envs"
   group="climate"
-  default_mpi=mpich
 else
   echo "Unknown host name $HOSTNAME.  Add env_path and group for this machine to the script."
   exit 1
@@ -85,7 +82,6 @@ if [ ! -d $base_path ]; then
 fi
 
 # activate the new environment
-# shellcheck disable=SC1090
 source ${base_path}/etc/profile.d/conda.sh
 conda activate
 
@@ -141,15 +137,20 @@ do
       mkdir -p "$activ_path"
 
       # make activation scripts
-      script=""
-      script="${script}"$'\n'"if [ -x \"\$(command -v module)\" ] ; then"
-      script="${script}"$'\n'"  module unload python"
-      script="${script}"$'\n'"fi"
-      script="${script}"$'\n'"source ${base_path}/etc/profile.d/conda.sh"
-      script="${script}"$'\n'"conda activate $env_name"
-      file_name=$activ_path/load_latest_compass${suffix}.sh
-      rm -f "$file_name"
-      echo "${script}" > "$file_name"
+      for ext in sh csh
+      do
+        script=""
+        if [[ $ext = "sh" ]]; then
+          script="${script}"$'\n'"if [ -x \"\$(command -v module)\" ] ; then"
+          script="${script}"$'\n'"  module unload python"
+          script="${script}"$'\n'"fi"
+        fi
+        script="${script}"$'\n'"source ${base_path}/etc/profile.d/conda.${ext}"
+        script="${script}"$'\n'"conda activate $env_name"
+        file_name=$activ_path/load_latest_compass${suffix}.${ext}
+        rm -f "$file_name"
+        echo "${script}" > "$file_name"
+      done
     done
   done
 done
