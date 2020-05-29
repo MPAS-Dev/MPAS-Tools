@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from mpas_tools.mesh.creation import build_spherical_mesh as create_spherical_mesh
 from mpas_tools.mesh.creation import build_planar_mesh as create_planar_mesh
+from mpas_tools.cime.constants import constants
 from mpas_tools.ocean.inject_bathymetry import inject_bathymetry
 from mpas_tools.ocean.inject_meshDensity import inject_spherical_meshDensity, \
     inject_planar_meshDensity
@@ -57,7 +58,7 @@ def build_spherical_mesh(cellWidth, lon, lat, out_filename='base_mesh.nc',
     """
 
     # from https://github.com/E3SM-Project/E3SM/blob/master/cime/src/share/util/shr_const_mod.F90#L20
-    earth_radius = 6.37122e6
+    earth_radius = constants['SHR_CONST_REARTH']
 
     create_spherical_mesh(cellWidth, lon, lat, earth_radius,  out_filename,
                           plot_cellWidth)
