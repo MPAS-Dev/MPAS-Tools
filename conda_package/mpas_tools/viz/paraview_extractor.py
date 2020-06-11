@@ -648,8 +648,9 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
                                                      time_series_file))
                     var = time_series_file.variables[xtimeName]
                     if len(var.shape) == 2:
-                        xtime = var[local_time_indices[time_index],
-                                    :].tostring().decode('utf-8').strip()
+                        xtime = var[local_time_indices[time_index], :]
+                        xtime = xtime.tostring().decode('utf-8').strip().strip(
+                            '\x00')
                         date = datetime(int(xtime[0:4]), int(xtime[5:7]),
                                         int(xtime[8:10]), int(xtime[11:13]),
                                         int(xtime[14:16]), int(xtime[17:19]))
