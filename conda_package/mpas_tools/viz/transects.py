@@ -44,7 +44,8 @@ def make_triangle_tree(dsTris):
 def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
                                     tree, degrees=True, subdivisionRes=10e3):
     """
-    Find edges from the MPAS mesh that intersect the given transect
+    Find "nodes" where the transect intersects the edges of the triangles
+    that make up MPAS cells.
 
     Parameters
     ----------
@@ -81,33 +82,37 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
         repeated twice, once for each triangle that node touches.  This allows
         for discontinuous fields between triangles (e.g. if one wishes to plot
         constant values on each MPAS cell).  The Cartesian and lon/lat
-        coordinates of these nodes are ``xNode``, ``yNode``, ``zNode``,
-        ``lonNode`` and ``latNode``.  The distance along the transect of each
-        intersection is ``dNode``. The index of the triangle and the first
-        triangle node in ``dsTris`` associated with each intersection node are
-        given by ``triangleIndices`` and ``triangleNodeIndices``, respectively.
-        The second node on the triangle for the edge associated with the
-        intersection is given by ``numpy.mod(triangleNodeIndices + 1, 3)``.
+        coordinates of these nodes are ``xCartNode``, ``yCartNode``, `
+        `zCartNode``, ``lonNode`` and ``latNode``.  The distance along the
+        transect of each intersection is ``dNode``. The index of the triangle
+        and the first triangle node in ``dsTris`` associated with each
+        intersection node are given by ``horizTriangleIndices`` and
+        ``horizTriangleNodeIndices``, respectively. The second node on the
+        triangle for the edge associated with the intersection is given by
+        ``numpy.mod(horizTriangleNodeIndices + 1, 3)``.
 
         The MPAS cell tha a given node belongs to is given by ``cellIndices``.
-        Each node also has an associated set of 6 ``interpCellIndices`` and
-        ``interpCellWeights`` that can be used to interpolate from MPAS cell
-        centers to nodes first with area-weighted averaging to MPAS vertices
-        and then linear interpolation along triangle edges.  Some of the weights
-        may be zero, in which case the associated ``interpCellIndices`` will be
-        -1.
+        Each node also has an associated set of 6 ``interpHorizCellIndices`` and
+        ``interpHorizCellWeights`` that can be used to interpolate from MPAS
+        cell centers to nodes first with area-weighted averaging to MPAS
+        vertices and then linear interpolation along triangle edges.  Some of
+        the weights may be zero, in which case the associated
+        ``interpHorizCellIndices`` will be -1.
 
         Finally, ``lonTransect`` and ``latTransect`` are included in the
-        dataset, along with Cartesian coordinates ``xTransect``, ``yTransect``,
-        ``zTransect``, and ``dTransect``, the great-circle distance along the
-        transect of each original transect point.  In order to interpolate
-        values (e.g. observations) from the original transect points to the
-        intersection nodes, linear interpolation indices
-        ``transectIndicesOnNode`` and weights ``transectWeightsOnNode`` are
-        provided.  The values at nodes are found by::
+        dataset, along with Cartesian coordinates ``xCartTransect``,
+        ``yCartTransect``, `zCartTransect``, and ``dTransect``, the great-circle
+        distance along the transect of each original transect point.  In order
+        to interpolate values (e.g. observations) from the original transect
+        points to the intersection nodes, linear interpolation indices
+        ``transectIndicesOnHorizNode`` and weights
+        ``transectWeightsOnHorizNode`` are provided.  The values at nodes are
+        found by::
 
-          nodeValues = transectValues[transectIndicesOnNode]*transectWeightsOnNode
-          + transectValues[transectIndicesOnNode+1]*(1.0 - transectWeightsOnNode)
+          nodeValues = ((transectValues[transectIndicesOnHorizNode] *
+                         transectWeightsOnHorizNode)
+                        + (transectValues[transectIndicesOnHorizNode+1] *
+                           (1.0 - transectWeightsOnHorizNode))
     """
     earth_radius = dsMesh.attrs['sphere_radius']
     buffer = numpy.maximum(numpy.amax(dsMesh.dvEdge.values),
@@ -136,6 +141,8 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
     nodes = None
     interpCells = None
     cellWeights = None
+
+    nHorizWeights = 6
 
     first = True
 
@@ -253,8 +260,8 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
         nodeWeights = (_angular_distance(first=intersections, second=n1Inter) /
                        _angular_distance(first=n0Inter, second=n1Inter))
 
-        weights = numpy.zeros((len(trisInter), 6))
-        cellIndices = numpy.zeros((len(trisInter), 6), int)
+        weights = numpy.zeros((len(trisInter), nHorizWeights))
+        cellIndices = numpy.zeros((len(trisInter), nHorizWeights), int)
         for index in range(3):
             weights[:, index] = (nodeWeights *
                                  nodeCellWeights[trisInter, node0Inter, index])
@@ -282,7 +289,7 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
     # we need to figure out if the end points of the transect are in a triangle
     # and add tris, nodes, interpCells and cellWeights if so
 
-    if len(tris) > 2 and tris[0] != tris[1]:
+    if len(tris) >= 2 and tris[0] != tris[1]:
         # the starting point is in a triangle so we need to duplicate the first
         # entry in several fields to handle this
         tris = numpy.concatenate((tris[0:1], tris))
@@ -299,7 +306,7 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
         yOut = yOut[1:]
         zOut = zOut[1:]
 
-    if len(tris) > 2 and tris[-1] != tris[-2]:
+    if len(tris) >= 2 and tris[-1] != tris[-2]:
         # the end point is in a triangle so we need to add final entries or
         # duplicate the last entry in several fields to handle this
         tris = numpy.concatenate((tris, tris[-1:]))
@@ -316,44 +323,64 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
 
     assert(numpy.all(tris[0::2] == tris[1::2]))
 
+    tris = tris[0::2]
+
     lonOut, latOut = _cartesian_to_lon_lat(xOut, yOut, zOut, earth_radius,
                                            degrees)
 
-    dsOut = xarray.Dataset()
-    dsOut['xNode'] = ('nNodes', xOut)
-    dsOut['yNode'] = ('nNodes', yOut)
-    dsOut['zNode'] = ('nNodes', zOut)
-    dsOut['dNode'] = ('nNodes', dNode)
-    dsOut['lonNode'] = ('nNodes', lonOut)
-    dsOut['latNode'] = ('nNodes', latOut)
+    nSegments = len(xOut)//2
+    nBounds = 2
 
     cellIndices = dsTris.triCellIndices.values[tris]
+    nodes = nodes.reshape((nSegments, nBounds))
+    dNode = dNode.reshape((nSegments, nBounds))
 
-    dsOut['triangleIndices'] = ('nNodes', tris)
-    dsOut['triangleNodeIndices'] = ('nNodes', nodes)
-    dsOut['cellIndices'] = ('nNodes', cellIndices)
-    dsOut['interpCellIndices'] = (('nNodes', 'nWeights'), interpCells)
-    dsOut['interpCellWeights'] = (('nNodes', 'nWeights'), cellWeights)
+    dsOut = xarray.Dataset()
+    dsOut['xCartNode'] = (('nSegments', 'nBounds'),
+                          xOut.reshape((nSegments, nBounds)))
+    dsOut['yCartNode'] = (('nSegments', 'nBounds'),
+                          yOut.reshape((nSegments, nBounds)))
+    dsOut['zCartNode'] = (('nSegments', 'nBounds'),
+                          zOut.reshape((nSegments, nBounds)))
+    dsOut['dNode'] = (('nSegments', 'nBounds'), dNode)
+    dsOut['lonNode'] = (('nSegments', 'nBounds'),
+                        lonOut.reshape((nSegments, nBounds)))
+    dsOut['latNode'] = (('nSegments', 'nBounds'),
+                        latOut.reshape((nSegments, nBounds)))
 
-    transectIndicesOnNode = numpy.zeros(nodes.shape, int)
-    transectWeightsOnNode = numpy.zeros(nodes.shape)
+    dsOut['horizTriangleIndices'] = ('nSegments', tris)
+    dsOut['cellIndices'] = ('nSegments', cellIndices)
+    dsOut['horizTriangleNodeIndices'] = (('nSegments', 'nBounds'), nodes)
+    dsOut['interpHorizCellIndices'] = \
+        (('nSegments', 'nBounds', 'nHorizWeights'),
+         interpCells.reshape((nSegments, nBounds, nHorizWeights)))
+    dsOut['interpHorizCellWeights'] = \
+        (('nSegments', 'nBounds', 'nHorizWeights'),
+         cellWeights.reshape((nSegments, nBounds, nHorizWeights)))
+
+    transectIndicesOnHorizNode = numpy.zeros(dNode.shape, int)
+    transectWeightsOnHorizNode = numpy.zeros(dNode.shape)
     for segIndex in range(len(dTransect)-1):
         d0 = dTransect[segIndex]
         d1 = dTransect[segIndex+1]
         mask = numpy.logical_and(dNode >= d0, dNode < d1)
-        transectIndicesOnNode[mask] = segIndex
-        transectWeightsOnNode[mask] = (d1 - dNode[mask])/(d1 - d0)
-    transectIndicesOnNode[-1] = len(dTransect)-1
-    transectWeightsOnNode[-1] = 0.0
+        transectIndicesOnHorizNode[mask] = segIndex
+        transectWeightsOnHorizNode[mask] = (d1 - dNode[mask])/(d1 - d0)
+    # last index will get missed by the mask and needs to be handled as a
+    # special case
+    transectIndicesOnHorizNode[-1, 1] = len(dTransect)-2
+    transectWeightsOnHorizNode[-1, 1] = 0.0
 
     dsOut['lonTransect'] = lonTransect
     dsOut['latTransect'] = latTransect
-    dsOut['xTransect'] = x
-    dsOut['yTransect'] = y
-    dsOut['zTransect'] = z
+    dsOut['xCartTransect'] = x
+    dsOut['yCartTransect'] = y
+    dsOut['zCartTransect'] = z
     dsOut['dTransect'] = (lonTransect.dims, dTransect)
-    dsOut['transectIndicesOnNode'] = ('nNodes', transectIndicesOnNode)
-    dsOut['transectWeightsOnNode'] = ('nNodes', transectWeightsOnNode)
+    dsOut['transectIndicesOnHorizNode'] = (('nSegments', 'nBounds'),
+                                           transectIndicesOnHorizNode)
+    dsOut['transectWeightsOnHorizNode'] = (('nSegments', 'nBounds'),
+                                           transectWeightsOnHorizNode)
 
     return dsOut
 
