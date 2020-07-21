@@ -1565,7 +1565,7 @@ def build_cell_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                           nc_file.x_period,
                                                           nc_file.y_period)
 
-    connectivity = verticesOnCell[validVertices]
+    connectivity = numpy.array(verticesOnCell[validVertices], int)
     offsets = numpy.cumsum(nEdgesOnCell, dtype=int)
     valid_mask = numpy.ones(nCells, bool)
 
