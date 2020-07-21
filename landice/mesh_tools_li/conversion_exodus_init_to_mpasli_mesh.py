@@ -115,16 +115,13 @@ else:
 for var_name in var_names:
     #set appropriate methods for smoothing and extrapolation
     if var_name == "beta":
-        smooth_iter_num = 3
-        mask_scheme = "grd"
+        smooth_iter_num = 0
         extrapolation = "min"
     elif var_name == "stiffnessFactor":
         smooth_iter_num = 3
-        mask_scheme = "all"
         extrapolation = "idw"
     else:
         smooth_iter_num = 0
-        mask_scheme = "all"
         extrapolation = None
 
     if mpas_exodus_var_dic[var_name] in exo.get_node_variable_names() and var_name in dataset.variables.keys():
@@ -220,10 +217,11 @@ for var_name in var_names:
 
             keepCellMask = np.zeros((nCells,), dtype=np.int8)
 
-            if mask_scheme == 'grd':
-                keepCellMask[(thickness*ice_density/ocean_density + bedrock > 0.0) * (thickness>0.0)] = 1
+            # Define region of good data to extrapolate from.  Different methods for different variables
+            if var_name == "beta":
+                keepCellMask[varValue > 0.0] = 1
             # find the mask for grounded ice region
-            elif mask_scheme == 'all':
+            else:
                 keepCellMask[thickness > 0.0] = 1
 
             keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that will be used later
