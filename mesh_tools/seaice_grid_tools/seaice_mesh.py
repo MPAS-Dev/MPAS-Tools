@@ -14,7 +14,7 @@ def write_scrip_file(scripFilename, title, nCells, maxEdges, latCell, lonCell, c
     # output mesh file
     scripFile = Dataset(scripFilename, "w", format="NETCDF3_CLASSIC")
 
-    scripFile.title = string.strip(title)
+    scripFile.title = title.strip()
 
     scripFile.createDimension("grid_size", nCells)
     scripFile.createDimension("grid_corners", maxEdges)

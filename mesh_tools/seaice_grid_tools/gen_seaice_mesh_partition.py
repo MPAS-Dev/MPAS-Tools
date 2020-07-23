@@ -41,7 +41,7 @@ def load_partition(graphFilename):
 
     partition = []
     for line in lines:
-        partition.append(string.atoi(line))
+        partition.append(int(line))
 
     return partition
 
@@ -67,7 +67,7 @@ def get_cell_ids(culledFilename, originalFilename):
         if (iCellOriginal % 1000 == 0):
             print(iCellOriginal, " of ", nCellsOriginal)
 
-        cellMap = string.atoi(cellMapLine)
+        cellMap = int(cellMapLine)
 
         if (cellMap != -1):
 

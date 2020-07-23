@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-
+from __future__ import print_function
 from netCDF4 import Dataset
 import numpy as np
 import sys
@@ -16,7 +15,7 @@ def regrid_mpas_array(weightsFilename, mpasArrayIn, nCells, nEdgesOnCell, cellsO
     nMax = 100
 
     # load weights
-    print "Load weights...", weightsFilename
+    print("Load weights...", weightsFilename)
     weightsFile = Dataset(weightsFilename,"r")
 
     n_s = len(weightsFile.dimensions["n_s"])
@@ -30,7 +29,7 @@ def regrid_mpas_array(weightsFilename, mpasArrayIn, nCells, nEdgesOnCell, cellsO
     weightsFile.close()
 
     # regrid
-    print "Regrid array..."
+    print("Regrid array...")
     mpasArrayOut = np.zeros(n_b)
     mpasArrayOutMask = np.zeros(n_b,dtype="i")
     for i_s in range(0,n_s):
@@ -44,7 +43,7 @@ def regrid_mpas_array(weightsFilename, mpasArrayIn, nCells, nEdgesOnCell, cellsO
 def regrid_to_other_mesh(meshFilenameSrc, filenameData, meshFilenameDst, filenameOut):
 
     # make scrip files
-    print "Make scrip files..."
+    print("Make scrip files...")
     SCRIPFilenameSrc = "scrip_src_tmp.nc"
     SCRIPFilenameDst = "scrip_dst_tmp.nc"
 
@@ -55,13 +54,13 @@ def regrid_to_other_mesh(meshFilenameSrc, filenameData, meshFilenameDst, filenam
     make_mpas_scripfile_on_cells(meshFilenameDst, SCRIPFilenameDst, titleDst)
 
     # generate weights file
-    print "Generate weights..."
+    print("Generate weights...")
     weightsFilename = os.getcwd() + "/weights_tmp.nc"
     generate_weights_file(SCRIPFilenameSrc, SCRIPFilenameDst, weightsFilename, False)
 
 
     # load output mesh
-    print "Load output mesh..."
+    print("Load output mesh...")
     meshFile = Dataset(meshFilenameDst,"r")
 
     nCells = len(meshFile.dimensions["nCells"])
@@ -76,7 +75,7 @@ def regrid_to_other_mesh(meshFilenameSrc, filenameData, meshFilenameDst, filenam
     meshFile.close()
 
     # load data
-    print "Load input data..."
+    print("Load input data...")
     fileIn = Dataset(filenameData,"r")
 
     iceFractionIn = fileIn.variables["iceFraction"][:]
@@ -86,13 +85,13 @@ def regrid_to_other_mesh(meshFilenameSrc, filenameData, meshFilenameDst, filenam
 
 
     # regrid
-    print "Regrid array..."
+    print("Regrid array...")
     iceFractionOut, iceFractionOutMask = regrid_mpas_array(weightsFilename, iceFractionIn, nCells, nEdgesOnCell, cellsOnCell, False)
 
 
 
     # output
-    print "Output..."
+    print("Output...")
     fileOut = Dataset(filenameOut,"w",format="NETCDF3_CLASSIC")
 
     fileOut.createDimension("nCells",nCells)
