@@ -53,7 +53,7 @@ programmableFilter1.PythonPath = ''
 
 # create a new 'Python Annotation'
 pythonAnnotation1 = paraview.simple.PythonAnnotation(Input=programmableFilter1)
-pythonAnnotation1.ArrayAssociation = 'Row Data'
+pythonAnnotation1.ArrayAssociation = 'Field Data'
 pythonAnnotation1.Expression = \
     '"{}".format(input.RowData["datetime"].GetValue(0))'
 
