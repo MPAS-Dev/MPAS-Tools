@@ -1487,8 +1487,7 @@
 
     <span class="k">if</span> <span class="n">cellData</span><span class="p">:</span>
         <span class="n">vtkFile</span><span class="o">.</span><span class="n">openData</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="s2">&quot;Cell&quot;</span><span class="p">),</span>
-                         <span class="n">scalars</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span>
-                                  <span class="n">variable_list</span><span class="p">[</span><span class="n">active_var_index</span><span class="p">]])</span>
+                         <span class="n">scalars</span><span class="o">=</span><span class="n">variable_list</span><span class="p">[</span><span class="n">active_var_index</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">iVar</span> <span class="ow">in</span> <span class="n">var_indices</span><span class="p">:</span>
             <span class="n">var_name</span> <span class="o">=</span> <span class="n">variable_list</span><span class="p">[</span><span class="n">iVar</span><span class="p">]</span>
             <span class="p">(</span><span class="n">out_var_names</span><span class="p">,</span> <span class="n">dim_list</span><span class="p">)</span> <span class="o">=</span> \
@@ -1498,8 +1497,7 @@
         <span class="n">vtkFile</span><span class="o">.</span><span class="n">closeData</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="s2">&quot;Cell&quot;</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">pointData</span><span class="p">:</span>
         <span class="n">vtkFile</span><span class="o">.</span><span class="n">openData</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="s2">&quot;Point&quot;</span><span class="p">),</span>
-                         <span class="n">scalars</span><span class="o">=</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">var</span><span class="p">)</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span>
-                                  <span class="n">variable_list</span><span class="p">[</span><span class="n">active_var_index</span><span class="p">]])</span>
+                         <span class="n">scalars</span><span class="o">=</span><span class="n">variable_list</span><span class="p">[</span><span class="n">active_var_index</span><span class="p">])</span>
         <span class="k">for</span> <span class="n">iVar</span> <span class="ow">in</span> <span class="n">var_indices</span><span class="p">:</span>
             <span class="n">var_name</span> <span class="o">=</span> <span class="n">variable_list</span><span class="p">[</span><span class="n">iVar</span><span class="p">]</span>
             <span class="p">(</span><span class="n">out_var_names</span><span class="p">,</span> <span class="n">dim_list</span><span class="p">)</span> <span class="o">=</span> \
@@ -1724,7 +1722,7 @@
                                                           <span class="n">nc_file</span><span class="o">.</span><span class="n">x_period</span><span class="p">,</span>
                                                           <span class="n">nc_file</span><span class="o">.</span><span class="n">y_period</span><span class="p">)</span>
 
-    <span class="n">connectivity</span> <span class="o">=</span> <span class="n">verticesOnCell</span><span class="p">[</span><span class="n">validVertices</span><span class="p">]</span>
+    <span class="n">connectivity</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">validVertices</span><span class="p">],</span> <span class="nb">int</span><span class="p">)</span>
     <span class="n">offsets</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">nEdgesOnCell</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">valid_mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
 
