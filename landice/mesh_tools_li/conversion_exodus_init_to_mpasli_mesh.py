@@ -52,7 +52,7 @@ from exodus import exodus
 # Map and copy Exodus data to MPAS data
 
 # Create dictionary of variables that are supported by the script
-mpas_exodus_var_dic = {"beta":"basal_friction", "thickness":"ice_thickness",\
+mpas_exodus_var_dic = {"beta":"basal_friction_log", "thickness":"ice_thickness",\
                        "stiffnessFactor":"stiffening_factor", \
                        "basalTemperature":"temperature", \
                        "surfaceTemperature":"temperature", \
@@ -201,7 +201,7 @@ for var_name in var_names:
             temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)
             dataset.variables["temperature"][0,:,:] = temperatureInterpolant(MPAS_layers)
             print('\nTemperature interpolation complete')
-        
+
         # Extrapolate and smooth beta and stiffnessFactor fields
         if var_name in ["beta", "stiffnessFactor"]:
             # Extrapolation
