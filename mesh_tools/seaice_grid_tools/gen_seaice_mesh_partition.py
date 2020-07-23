@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-
-# tool for creating better than naive grid partitions for MPAS-Seaice
-
-# requires python/anaconda-2.7 and that the MPAS-Tools mesh_conversion_tools are installed
-
+from __future__ import print_function
 from netCDF4 import Dataset
 import os, math, string, sys
 import numpy as np
@@ -46,7 +41,7 @@ def load_partition(graphFilename):
 
     partition = []
     for line in lines:
-        partition.append(string.atoi(line))
+        partition.append(int(line))
 
     return partition
 
@@ -70,9 +65,9 @@ def get_cell_ids(culledFilename, originalFilename):
     for cellMapLine in cellMapLines:
 
         if (iCellOriginal % 1000 == 0):
-            print iCellOriginal, " of ", nCellsOriginal
+            print(iCellOriginal, " of ", nCellsOriginal)
 
-        cellMap = string.atoi(cellMapLine)
+        cellMap = int(cellMapLine)
 
         if (cellMap != -1):
 
@@ -101,7 +96,7 @@ def get_cell_ids_orig(culledFilename, originalFilename):
     for iCellCulled in range(0,nCellsCulled):
 
         if (iCellCulled % 1000 == 0):
-            print "iCellCulled: ", iCellCulled, "of ", nCellsCulled
+            print("iCellCulled: ", iCellCulled, "of ", nCellsCulled)
 
         for iCellOriginal in range(0,nCellsOriginal):
 
@@ -115,58 +110,34 @@ def get_cell_ids_orig(culledFilename, originalFilename):
 
 #-------------------------------------------------------------------
 
-# parsing
-parser = argparse.ArgumentParser(description='Create sea ice grid partition')
+def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLocation, outputPrefix, plotting, metis, cullEquatorialRegion):
 
-parser.add_argument('-m', '--mesh',        dest="meshFilename",         required=True,  help='MPAS mesh file')
-parser.add_argument('-r', '--regions',     dest="regionFilename",       required=True,  help='region file')
-parser.add_argument('-n', '--nprocs',      dest="nProcs",               required=True,  help='number of processors', type=int)
-parser.add_argument('-c', '--culler',      dest="mpasCullerLocation",   required=False, help='location of cell culler')
-parser.add_argument('-o', '--outprefix',   dest="outputPrefix",         required=False, help='output graph file prefic', default="graph.info")
-parser.add_argument('-p', '--plotting',    dest="plotting",             required=False, help='create diagnostic plotting file of partitions', action='store_true')
-parser.add_argument('-g', '--metis',       dest="metis",                required=False, help='name of metis utility', default="gpmetis")
-parser.add_argument('-e', '--equatorcull', dest="cullEquatorialRegion", required=False, help='create diagnostic plotting file of partitions', action='store_true')
+    # arguments
+    if (mpasCullerLocation == None):
+        meshToolsDir = os.path.dirname(os.path.realpath(__file__)) + "/../mesh_conversion_tools/"
+    else:
+        meshToolsDir = mpasCullerLocation
+    if (not os.path.exists(meshToolsDir + "/MpasCellCuller.x")):
+        print("ERROR: MpasCellCuller.x does not exist at the requested loaction.")
+        sys.exit();
 
-args = parser.parse_args()
+    plotFilename = "partition_diag.nc"
 
-# required arguments
-meshFilename = args.meshFilename
-regionFilename = args.regionFilename
-nProcsArray = [args.nProcs]
+    # get regions
+    regionFile = Dataset(regionFilename,"r")
+    nRegions = regionFile.nRegions
+    region = regionFile.variables["region"][:]
+    regionFile.close()
 
-# optional arguments
-if (args.mpasCullerLocation == None):
-    meshToolsDir = os.path.dirname(os.path.realpath(__file__)) + "/../mesh_conversion_tools/"
-else:
-    meshToolsDir = args.mpasCullerLocation
-decompName = args.outputPrefix
-plotting = args.plotting
-cullEquatorialRegion = args.cullEquatorialRegion
-metis = args.metis
+    # diagnostics
+    if (plotting):
+        os.system("cp %s %s" %(meshFilename,plotFilename))
 
-#./gen_seaice_mesh_partition.py -m /Users/l235697/Work/MPAS-CICE/Standalone_sim_configs/domains/domain_QU120km/seaice_QU_120km.nc -r /Users/l235697/Work/MPAS-CICE/Performance/sea_ice_coverage_partition/regions.nc -c /Users/l235697/Work/MPAS-CICE/MPAS-Tools/grid_gen/mesh_conversion_tools/ -n 32
-
-#./gen_seaice_mesh_partition.py --mesh /Users/l235697/Work/MPAS-CICE/Standalone_sim_configs/domains/domain_QU120km/seaice_QU_120km.nc --regions region.nc --culler /Users/l235697/Work/MPAS-Tools/Feature_branches/generalize_partition_script/MPAS-Tools/grid_gen/mesh_conversion_tools --nprocs 32 --plotting --outprefix wibble2
-
-plotFilename = "partition_diag.nc"
-
-# get regions
-regionFile = Dataset(regionFilename,"r")
-nRegions = regionFile.nRegions
-region = regionFile.variables["region"][:]
-regionFile.close()
-
-# diagnostics
-if (plotting):
-    os.system("cp %s %s" %(meshFilename,plotFilename))
-
-# load mesh file
-mesh = Dataset(meshFilename,"r")
-nCells = len(mesh.dimensions["nCells"])
-latCell = mesh.variables["latCell"][:]
-mesh.close()
-
-for nProcs in nProcsArray:
+    # load mesh file
+    mesh = Dataset(meshFilename,"r")
+    nCells = len(mesh.dimensions["nCells"])
+    latCell = mesh.variables["latCell"][:]
+    mesh.close()
 
     if (cullEquatorialRegion):
         nBlocks = nRegions * nProcs
@@ -191,11 +162,6 @@ for nProcs in nProcsArray:
             if (region[iCell] == iRegion):
                 cullCell[iCell] = 0
 
-        #for iCell in range(0,nCells):
-        #    if (latCell[iCell] >= degree_to_radian(minLatitudeLimits[iRegion]) and \
-        #        latCell[iCell] <  degree_to_radian(maxLatitudeLimits[iRegion])):
-        #        cullCell[iCell] = 0
-
         # cull the mesh
         tmpFilenamesPostcull = tmp+"_postcull.nc"
         cull_mesh(meshToolsDir, tmpFilenamesPrecull, tmpFilenamesPostcull, cullCell)
@@ -209,10 +175,10 @@ for nProcs in nProcsArray:
             subprocess.call([metis, graphFilename, str(nProcs)])
         except OSError as e:
             if e.errno == os.errno.ENOENT:
-                print "metis program %s not found" %(metis)
+                print("metis program %s not found" %(metis))
                 sys.exit()
             else:
-                print "metis error"
+                print("metis error")
                 raise
 
         # get the cell IDs for this partition
@@ -229,14 +195,14 @@ for nProcs in nProcsArray:
                 combinedGraph[cellid[iCellPartition]] = graph[iCellPartition]
 
     # output the cell partition file
-    cellPartitionFile = open("%s.part.%i" %(decompName,nBlocks), "w")
+    cellPartitionFile = open("%s.part.%i" %(outputPrefix,nBlocks), "w")
     for iCell in range(0,nCells):
         cellPartitionFile.write("%i\n" %(combinedGraph[iCell]))
     cellPartitionFile.close()
 
     # output block partition file
     if (cullEquatorialRegion):
-        blockPartitionFile = open("%s.part.%i" %(decompName,nProcs), "w")
+        blockPartitionFile = open("%s.part.%i" %(outputPrefix,nProcs), "w")
         for iRegion in range(0,nRegions):
             for iProc in range(0,nProcs):
                 blockPartitionFile.write("%i\n" %(iProc))
@@ -251,3 +217,23 @@ for nProcs in nProcsArray:
         plottingFile.close()
 
     os.system("rm *tmp*")
+
+#-------------------------------------------------------------------
+
+if __name__ == "__main__":
+
+    # parsing
+    parser = argparse.ArgumentParser(description='Create sea ice grid partition')
+
+    parser.add_argument('-m', '--mesh',        dest="meshFilename",         required=True,  help='MPAS mesh file')
+    parser.add_argument('-r', '--regions',     dest="regionFilename",       required=True,  help='region file')
+    parser.add_argument('-n', '--nprocs',      dest="nProcs",               required=True,  help='number of processors', type=int)
+    parser.add_argument('-c', '--culler',      dest="mpasCullerLocation",   required=False, help='location of cell culler')
+    parser.add_argument('-o', '--outprefix',   dest="outputPrefix",         required=False, help='output graph file prefic', default="graph.info")
+    parser.add_argument('-p', '--plotting',    dest="plotting",             required=False, help='create diagnostic plotting file of partitions', action='store_true')
+    parser.add_argument('-g', '--metis',       dest="metis",                required=False, help='name of metis utility', default="gpmetis")
+    parser.add_argument('-e', '--equatorcull', dest="cullEquatorialRegion", required=False, help='create diagnostic plotting file of partitions', action='store_true')
+
+    args = parser.parse_args()
+
+    gen_seaice_mesh_partition(args.meshFilename, args.regionFilename, args.nProcs, args.mpasCullerLocation, args.outputPrefix, args.plotting, args.metis, args.cullEquatorialRegion)

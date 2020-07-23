@@ -1,5 +1,49 @@
-These scripts produce partitions that improve the load balancing of the MPAS-Seaice model above that achieved with standard partitions from metis.
+These scripts generate partition files that have better load balancing that normal ones generated with metis. prepare_seaice_partitions.py prepares files needed to generate the partition files. create_seaice_partitions.py creates the partition file. Run prepare_seaice_partitions.py first then create_seaice_partitions.py.
 
-Partitions are generated with the gen_seaice_mesh_partition.py using an input mesh file and a regions files that defines a number of regions that will be individually partitioned.
 
-Currently only one method exists for generating the partition region file: gen_seaice_regions_latitude_bands.py. This generates regions based on latitude bands. The default bands run from -90.0:-60.0, -60.0,60.0 and 60.0,90.0. The default can be overwritten with the -l command.
+prepare_seaice_partitions.py
+----------------------------
+
+usage: prepare_seaice_partitions.py [-h] -i MESHFILENAMESRC -p FILENAMEDATA
+                                    -m MESHFILENAMEDST -o OUTPUTDIR
+
+Perform prepatory work for making seaice partitions.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i MESHFILENAMESRC, --inputmesh MESHFILENAMESRC
+                        MPAS mesh file for source regridding mesh.
+  -p FILENAMEDATA, --presence FILENAMEDATA
+                        Input ice presence file for source mesh.
+  -m MESHFILENAMEDST, --outputmesh MESHFILENAMEDST
+                        MPAS mesh file for destination regridding mesh.
+  -o OUTPUTDIR, --outputDir OUTPUTDIR
+                        Output directory for temporary files and partition files.
+
+
+create_seaice_partitions.py
+---------------------------
+
+usage: create_seaice_partitions.py [-h] -m MESHFILENAME -o OUTPUTDIR
+                                   [-c MPASCULLERLOCATION] [-p OUTPUTPREFIX]
+                                   [-x] [-g METIS] [-n NPROCS] [-f NPROCSFILE]
+
+Create sea-ice partitions.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m MESHFILENAME, --outputmesh MESHFILENAME
+                        MPAS mesh file for destination regridding mesh.
+  -o OUTPUTDIR, --outputDir OUTPUTDIR
+                        Output directory for temporary files and partition files.
+  -c MPASCULLERLOCATION, --cullerDir MPASCULLERLOCATION
+                        Location of MPAS MpasCellCuller.x executable.
+  -p OUTPUTPREFIX, --prefix OUTPUTPREFIX
+                        prefix for output partition filenames.
+  -x, --plotting        create diagnostic plotting file of partitions
+  -g METIS, --metis METIS
+                        name of metis utility
+  -n NPROCS, --nProcs NPROCS
+                        number of processors to create partition for.
+  -f NPROCSFILE, --nProcsFile NPROCSFILE
+                        number of processors to create partition for.
