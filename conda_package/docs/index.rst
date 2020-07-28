@@ -1,7 +1,7 @@
 MPAS-Tools
 ==========
 
-.. image:: _static/so60to10.png
+.. image:: images/so60to10.png
    :width: 500 px
    :align: center
 
