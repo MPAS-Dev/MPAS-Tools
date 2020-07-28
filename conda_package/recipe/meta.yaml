@@ -23,8 +23,8 @@ requirements:
   host:
     - python
     - netcdf4
-    - hdf5
-    - libnetcdf
+    - hdf5 * nompi_*
+    - libnetcdf * nompi_*
     - setuptools
     - netcdf4
     - openmp  # [osx]
