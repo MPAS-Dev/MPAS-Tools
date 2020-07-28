@@ -7,11 +7,12 @@ def find_transect_levels_and_weights(dsTransect, layerThickness, bottomDepth,
     """
     Construct a vertical coordinate for a transect produced by
     ``mpas_tools.viz.transects.find_transect_cells_and_weights()``, then break
-     each resulting quadrilateral into 2 triangles that can later be visualized
-     with functions like ``tripcolor`` and ``tricontourf``.  Also, compute
-     interpolation weights such that observations at points on the original
-     transect and with vertical cooridinate ``transectZ`` can be bilinearly
-     interpolated to the nodes of the transect.
+    each resulting quadrilateral into 2 triangles that can later be visualized
+    with functions like ``tripcolor`` and ``tricontourf``.  Also, compute
+    interpolation weights such that observations at points on the original
+    transect and with vertical coordinate ``transectZ`` can be bilinearly
+    interpolated to the nodes of the transect.
+
     Parameters
     ----------
     dsTransect : xarray.Dataset
@@ -64,7 +65,7 @@ def find_transect_levels_and_weights(dsTransect, layerThickness, bottomDepth,
 
             - interpCellIndices, interpLevelIndices: the MPAS-Ocean cells and
               levels from which the value at a given triangle node are
-              interpolated.  This can involve up to `nWeights = 12` different
+              interpolated.  This can involve up to ``nWeights = 12`` different
               cells and levels.
             - interpCellWeights: the weight to multiply each field value by
               to perform interpolation to a triangle node.

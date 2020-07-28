@@ -392,12 +392,11 @@ def subdivide_great_circle(x, y, z, maxRes, earthRadius):  # {{{
 
     Uses a formula for interpolating unit vectors on the sphere from
     https://en.wikipedia.org/wiki/Slerp
+
     Parameters
     ----------
-    x : numpy.array
-    y : numpy.array
-    z : numpy.array
-        The cartsian coordinates of a transect, where the number of segments
+    x, y, z : numpy.array
+        The Cartesian coordinates of a transect, where the number of segments
         is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length.
 
     maxRes : float
@@ -408,9 +407,7 @@ def subdivide_great_circle(x, y, z, maxRes, earthRadius):  # {{{
 
     Returns
     -------
-    xOut : numpy.array
-    yOut : numpy.array
-    zOut : numpy.array
+    xOut, yOut, zOut : numpy.array
         The transect subdivided into segments with segment length at most
         ``maxRes``.  All the points in ``x``, ``y`` and ``z`` are guaranteed
         to be included.
