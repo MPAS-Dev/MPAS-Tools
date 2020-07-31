@@ -130,13 +130,12 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
     yNode = dsTris.yNode.values.ravel()
     zNode = dsTris.zNode.values.ravel()
 
-    dNode = numpy.array([0.])
-    xOut = x[0].values
-    yOut = y[0].values
-    zOut = z[0].values
-
     dTransect = numpy.zeros(lonTransect.shape)
 
+    dNode = None
+    xOut = None
+    yOut = None
+    zOut = None
     tris = None
     nodes = None
     interpCells = None
@@ -206,50 +205,7 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
         angularDistance = _angular_distance(first=transectv0,
                                             second=intersections)
 
-        # compute the average angular distance to all intersections with a given
-        # triangle
-
-        distanceOnEdge = numpy.zeros((nTriangles*nNodes))
-        distanceWeights = numpy.zeros((nTriangles*nNodes))
-        distanceOnEdge[n0IndicesInter] = angularDistance
-        distanceWeights[n0IndicesInter] = 1.0
-
-        distanceOnEdge = distanceOnEdge.reshape(nTriangles, nNodes)
-        distanceWeights = distanceWeights.reshape(nTriangles, nNodes)
-        numer = numpy.sum(distanceOnEdge, axis=1)[trisInter]
-        denom = numpy.sum(distanceWeights, axis=1)[trisInter]
-        meanDistanceOnTriangle = numer/denom
-
-        # compute the angular distance half way between the intersections and
-        # the triangle average of the intersections, which can be used as a
-        # unique "sortingDistance" for intersection
-
-        sortingDistance = 0.5*(angularDistance + meanDistanceOnTriangle)
-
-        # sort intersections by the "sortingDistance"
-        indices = numpy.argsort(sortingDistance)
-        angularDistance = angularDistance[indices]
-        trisInter = trisInter[indices]
-        n0IndicesInter = n0IndicesInter[indices]
-        n1IndicesInter = n1IndicesInter[indices]
-
-        intersections = Vector(intersections.x[indices],
-                               intersections.y[indices],
-                               intersections.z[indices])
-
-        n0Inter = Vector(n0Inter.x[indices],
-                         n0Inter.y[indices],
-                         n0Inter.z[indices])
-
-        n1Inter = Vector(n1Inter.x[indices],
-                         n1Inter.y[indices],
-                         n1Inter.z[indices])
-
-        xOut = numpy.append(xOut, intersections.x)
-        yOut = numpy.append(yOut, intersections.y)
-        zOut = numpy.append(zOut, intersections.z)
-
-        dNode = numpy.append(dNode, dStart + earth_radius*angularDistance)
+        dNodeLocal = dStart + earth_radius * angularDistance
 
         dStart += earth_radius*_angular_distance(first=transectv0,
                                                  second=transectv1)
@@ -273,18 +229,86 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
                 nodeCellIndices[trisInter, node1Inter, index]
 
         if first:
+            xOut = intersections.x
+            yOut = intersections.y
+            zOut = intersections.z
+            dNode = dNodeLocal
+
             tris = trisInter
             nodes = node0Inter
             interpCells = cellIndices
             cellWeights = weights
             first = False
         else:
+            xOut = numpy.append(xOut, intersections.x)
+            yOut = numpy.append(yOut, intersections.y)
+            zOut = numpy.append(zOut, intersections.z)
+            dNode = numpy.append(dNode, dNodeLocal)
+
             tris = numpy.concatenate((tris, trisInter))
             nodes = numpy.concatenate((nodes, node0Inter))
             interpCells = numpy.concatenate((interpCells, cellIndices), axis=0)
             cellWeights = numpy.concatenate((cellWeights, weights), axis=0)
 
         dTransect[segIndex + 1] = dStart
+
+    # sort nodes by distance
+    sortIndices = numpy.argsort(dNode)
+    dSorted = dNode[sortIndices]
+    trisSorted = tris[sortIndices]
+
+    epsilon = 1e-6*subdivisionRes
+    nodesAreSame = numpy.abs(dSorted[1:] - dSorted[:-1]) < epsilon
+    if nodesAreSame[0]:
+        # the first two nodes are the same, so the first transect point is in a
+        # triangle, and we need to figure out which
+        if trisSorted[1] == trisSorted[2] or trisSorted[1] == trisSorted[3]:
+            # the first transect point is in trisSorted[0], so the first two
+            # nodes are in the right order
+            indices = [0, 1]
+        elif trisSorted[0] == trisSorted[2] or trisSorted[0] == trisSorted[3]:
+            # the first transect point is in trisSorted[1], so the first two
+            # nodes need to be swapped
+            indices = [1, 0]
+        else:
+            raise ValueError('Couldn\'t find an order for the first two nodes')
+    else:
+        # the first transect point is outside of an MPAS cell
+        indices = [0]
+
+    while len(indices) < len(sortIndices):
+        index = len(indices)
+        currentTri = trisSorted[indices[-1]]
+        if nodesAreSame[index]:
+            # the next two nodes are the same, so we need to know which
+            # corresponds to the current triangle
+            if trisSorted[index] == currentTri:
+                # the first node is in the current triangle, so add the next
+                # two nodes in the current order
+                indices.extend([index, index+1])
+            elif trisSorted[index+1] == currentTri:
+                # the second node is in the current triangle, so add the next
+                # two nodes in swapped order
+                indices.extend([index+1, index])
+            else:
+                raise ValueError('Couldn\'t find an order for nodes {} and '
+                                 '{}'.format(index, index+1))
+        else:
+            # the next node is a boundary of the MPAS domain, so there is no
+            # ambiguity about order and we just add it
+            indices.extend([index])
+
+    indices = sortIndices[indices]
+
+    dNode = dNode[indices]
+    xOut= xOut[indices]
+    yOut = yOut[indices]
+    zOut = zOut[indices]
+
+    tris = tris[indices]
+    nodes = nodes[indices]
+    interpCells = interpCells[indices, :]
+    cellWeights = cellWeights[indices, :]
 
     # we need to figure out if the end points of the transect are in a triangle
     # and add tris, nodes, interpCells and cellWeights if so
@@ -298,13 +322,11 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
                                         axis=0)
         cellWeights = numpy.concatenate((cellWeights[0:1, :], cellWeights),
                                         axis=0)
-    else:
-        # the starting point isn't in a triangle so we need to remove it from
-        # some fields
-        dNode = dNode[1:]
-        xOut = xOut[1:]
-        yOut = yOut[1:]
-        zOut = zOut[1:]
+
+        dNode = numpy.append(numpy.array([0.]), dNode)
+        xOut = numpy.append(x[0].values, xOut)
+        yOut = numpy.append(y[0].values, yOut)
+        zOut = numpy.append(z[0].values, zOut)
 
     if len(tris) >= 2 and tris[-1] != tris[-2]:
         # the end point is in a triangle so we need to add final entries or
