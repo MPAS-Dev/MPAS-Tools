@@ -229,26 +229,57 @@ def interp_transect_grid_to_transect_triangle_nodes(dsTransectTriangles, da):
     return daNodes
 
 
-def get_outline_segments(dsTransectTriangles):
+def get_outline_segments(dsTransectTriangles, epsilon=1e-3):
     """Get a set of line segments that outline the given transect"""
 
+    nSegments = dsTransectTriangles.sizes['nSegments']
     dSeaFloor = dsTransectTriangles.dNode.values
     zSeaFloor = dsTransectTriangles.zSeaFloor.values
     ssh = dsTransectTriangles.ssh.values
 
-    dJump = numpy.zeros((dSeaFloor.shape[0]-1, 2))
-    zJump = numpy.zeros(dJump.shape)
-    dJump[:, 0] = dSeaFloor[0:-1, 1]
-    dJump[:, 1] = dSeaFloor[1:, 0]
-    zJump[:, 0] = zSeaFloor[0:-1, 1]
-    zJump[:, 1] = zSeaFloor[1:, 0]
-    mask = numpy.abs(dJump[:, 0] - dJump[:, 1]) < 1e-3
-    dJump = dJump[mask, :]
-    zJump = zJump[mask, :]
+    seaFloorJumps = numpy.abs(dSeaFloor[0:-1, 1] - dSeaFloor[1:, 0]) < epsilon
+    nSeaFloorJumps = numpy.count_nonzero(seaFloorJumps)
+    nSurface = nSegments
+    nSeaFloor = nSegments + nSeaFloorJumps
+    nLandJumps = nSegments - nSeaFloorJumps
 
-    d = numpy.append(numpy.append(dSeaFloor, dSeaFloor, axis=0),
-                     dJump, axis=0).T
-    z = numpy.append(numpy.append(ssh, zSeaFloor, axis=0), zJump, axis=0).T
+    nOutline = nSurface + nSeaFloor + 2*nLandJumps
+
+    d = numpy.zeros((nOutline, 2))
+    z = numpy.zeros((nOutline, 2))
+
+    d[0:nSegments, :] = dSeaFloor
+    z[0:nSegments, :] = ssh
+    d[nSegments:2*nSegments, :] = dSeaFloor
+    z[nSegments:2*nSegments, :] = zSeaFloor
+
+    dSeaFloorJump = numpy.vstack((dSeaFloor[0:-1, 1], dSeaFloor[1:, 0])).T
+    zSeaFloorJump = numpy.vstack((zSeaFloor[0:-1, 1], zSeaFloor[1:, 0])).T
+    slc = slice(2*nSegments, 2*nSegments+nSeaFloorJumps)
+    d[slc, :] = dSeaFloorJump[seaFloorJumps, :]
+    z[slc, :] = zSeaFloorJump[seaFloorJumps, :]
+
+    landJumps1 = numpy.ones(nSegments, bool)
+    landJumps1[1:] = numpy.logical_not(seaFloorJumps)
+    landJumps2 = numpy.ones(nSegments, bool)
+    landJumps2[0:-1] = numpy.logical_not(seaFloorJumps)
+
+    offset = 2*nSegments+nSeaFloorJumps
+    slc = slice(offset, offset + nLandJumps)
+    d[slc, 0] = dSeaFloor[landJumps1, 0]
+    d[slc, 1] = dSeaFloor[landJumps1, 0]
+    z[slc, 0] = ssh[landJumps1, 0]
+    z[slc, 1] = zSeaFloor[landJumps1, 0]
+
+    offset = 2*nSegments+nSeaFloorJumps+nLandJumps
+    slc = slice(offset, offset + nLandJumps)
+    d[slc, 0] = dSeaFloor[landJumps2, 1]
+    d[slc, 1] = dSeaFloor[landJumps2, 1]
+    z[slc, 0] = ssh[landJumps2, 1]
+    z[slc, 1] = zSeaFloor[landJumps2, 1]
+
+    d = d.T
+    z = z.T
 
     return d, z
 
