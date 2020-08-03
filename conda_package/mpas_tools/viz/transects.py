@@ -172,6 +172,10 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
             uniqueIndices.update(indices)
 
         n0IndicesCand = numpy.array(list(uniqueIndices))
+
+        if len(n0IndicesCand) == 0:
+            continue
+
         trisCand = n0IndicesCand//nNodes
         nextNodeIndex = numpy.mod(n0IndicesCand + 1, nNodes)
         n1IndicesCand = nNodes * trisCand + nextNodeIndex
