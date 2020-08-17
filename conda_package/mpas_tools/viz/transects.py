@@ -121,7 +121,6 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
     x, y, z = _lon_lat_to_cartesian(lonTransect, latTransect, earth_radius,
                                     degrees)
 
-    nTriangles = dsTris.sizes['nTriangles']
     nNodes = dsTris.sizes['nNodes']
     nodeCellWeights = dsTris.nodeCellWeights.values
     nodeCellIndices = dsTris.nodeCellIndices.values
@@ -283,7 +282,7 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
     while len(indices) < len(sortIndices):
         index = len(indices)
         currentTri = trisSorted[indices[-1]]
-        if nodesAreSame[index]:
+        if index < len(nodesAreSame) and nodesAreSame[index]:
             # the next two nodes are the same, so we need to know which
             # corresponds to the current triangle
             if trisSorted[index] == currentTri:
