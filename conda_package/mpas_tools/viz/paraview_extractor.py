@@ -1612,9 +1612,9 @@ def build_vertex_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                          nc_file.x_period,
                                                          nc_file.y_period)
 
-    connectivity = cellsOnVertex.ravel()
+    connectivity = numpy.array(cellsOnVertex.ravel(), int)
     validCount = cellsOnVertex.shape[0]
-    offsets = vertexDegree*numpy.arange(1, validCount+1)
+    offsets = numpy.array(vertexDegree*numpy.arange(1, validCount+1), int)
 
     return vertices, connectivity, offsets, valid_mask  # }}}
 
@@ -1679,7 +1679,7 @@ def build_edge_geom_lists(nc_file, output_32bit, lonlat):  # {{{
                                                        nc_file.x_period,
                                                        nc_file.y_period)
 
-    connectivity = vertsOnCell[validVerts]
+    connectivity = numpy.array(vertsOnCell[validVerts], int)
     validCount = numpy.sum(numpy.array(validVerts, int), axis=1)
     offsets = numpy.cumsum(validCount, dtype=int)
 
