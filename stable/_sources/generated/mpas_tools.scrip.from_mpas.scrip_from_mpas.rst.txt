@@ -1,4 +1,4 @@
-mpas\_tools.scrip.from\_mpas.scrip\_from\_mpas
+﻿mpas\_tools.scrip.from\_mpas.scrip\_from\_mpas
 ==============================================
 
 .. currentmodule:: mpas_tools.scrip.from_mpas

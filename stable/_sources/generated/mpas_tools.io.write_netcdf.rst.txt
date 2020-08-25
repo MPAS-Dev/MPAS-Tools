@@ -1,4 +1,4 @@
-mpas\_tools.io.write\_netcdf
+﻿mpas\_tools.io.write\_netcdf
 ============================
 
 .. currentmodule:: mpas_tools.io

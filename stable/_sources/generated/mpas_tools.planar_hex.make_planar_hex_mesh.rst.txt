@@ -1,4 +1,4 @@
-mpas\_tools.planar\_hex.make\_planar\_hex\_mesh
+﻿mpas\_tools.planar\_hex.make\_planar\_hex\_mesh
 ===============================================
 
 .. currentmodule:: mpas_tools.planar_hex

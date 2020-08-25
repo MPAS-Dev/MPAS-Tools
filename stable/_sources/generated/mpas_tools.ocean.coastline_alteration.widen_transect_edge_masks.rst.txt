@@ -1,4 +1,4 @@
-mpas\_tools.ocean.coastline\_alteration.widen\_transect\_edge\_masks
+﻿mpas\_tools.ocean.coastline\_alteration.widen\_transect\_edge\_masks
 ====================================================================
 
 .. currentmodule:: mpas_tools.ocean.coastline_alteration

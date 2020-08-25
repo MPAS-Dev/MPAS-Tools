@@ -1,4 +1,4 @@
-mpas\_tools.conversion.mask
+﻿mpas\_tools.conversion.mask
 ===========================
 
 .. currentmodule:: mpas_tools.conversion
