@@ -5,6 +5,6 @@ channel_targets:
   - conda-forge main
 
 python:
-   - 3.7
    - 3.6
-   - 2.7
+   - 3.7
+   - 3.8

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from mpas_tools.conversion import convert, cull, mask
+from mpas_tools.mesh.conversion import convert, cull, mask
 from mpas_tools.io import write_netcdf
 import matplotlib
 matplotlib.use('Agg')
