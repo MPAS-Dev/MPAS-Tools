@@ -1,0 +1,302 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mpas_tools.mesh.creation.build_mesh.build_mesh &mdash; mpas_tools 0.0.11 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mpas_tools.mesh.creation.coastal_tools.coastal_refined_mesh" href="mpas_tools.mesh.creation.coastal_tools.coastal_refined_mesh.html" />
+    <link rel="prev" title="mpas_tools.translate.translate" href="mpas_tools.translate.translate.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.11
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.planar_hex.make_planar_hex_mesh.html">mpas_tools.planar_hex.make_planar_hex_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.translate.translate.html">mpas_tools.translate.translate</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.mesh.creation.build_mesh.build_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.coastal_tools.coastal_refined_mesh.html">mpas_tools.mesh.creation.coastal_tools.coastal_refined_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.inject_bathymetry.inject_bathymetry.html">mpas_tools.mesh.creation.inject_bathymetry.inject_bathymetry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.inject_meshDensity.inject_meshDensity.html">mpas_tools.mesh.creation.inject_meshDensity.inject_meshDensity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver.html">mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat.html">mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat.html">mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat.html">mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid.html">mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle.html">mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.open_msh.readmsh.html">mpas_tools.mesh.creation.open_msh.readmsh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf.html">mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html">mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.conversion.convert.html">mpas_tools.mesh.conversion.convert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.conversion.cull.html">mpas_tools.mesh.conversion.cull</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.conversion.mask.html">mpas_tools.mesh.conversion.mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.io.write_netcdf.html">mpas_tools.io.write_netcdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../api.html">API reference</a> &raquo;</li>
+        
+      <li>mpas_tools.mesh.creation.build_mesh.build_mesh</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/generated/mpas_tools.mesh.creation.build_mesh.build_mesh.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mpas-tools-mesh-creation-build-mesh-build-mesh">
+<h1>mpas_tools.mesh.creation.build_mesh.build_mesh<a class="headerlink" href="#mpas-tools-mesh-creation-build-mesh-build-mesh" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="mpas_tools.mesh.creation.build_mesh.build_mesh">
+<code class="sig-prename descclassname">mpas_tools.mesh.creation.build_mesh.</code><code class="sig-name descname">build_mesh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">preserve_floodplain</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">floodplain_elevation</span><span class="o">=</span><span class="default_value">20.0</span></em>, <em class="sig-param"><span class="n">do_inject_bathymetry</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">geometry</span><span class="o">=</span><span class="default_value">'sphere'</span></em>, <em class="sig-param"><span class="n">plot_cellWidth</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/build_mesh.html#build_mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.mesh.creation.build_mesh.build_mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build an MPAS mesh using JIGSAW with the given cell sizes as a function of
+latitude and longitude (on a sphere) or x and y (on a plane).</p>
+<p>The user must define a local python module <code class="docutils literal notranslate"><span class="pre">define_base_mesh</span></code> that
+provides a function that returns a 2D array <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code> of cell sizes in
+kilometers.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">geometry</span> <span class="pre">=</span> <span class="pre">'sphere'</span></code>, this function is called <code class="docutils literal notranslate"><span class="pre">cellWidthVsLatLon()</span></code>
+and also returns 1D <code class="docutils literal notranslate"><span class="pre">lon</span></code> and <code class="docutils literal notranslate"><span class="pre">lat</span></code> arrays.</p>
+<p>If <code class="docutils literal notranslate"><span class="pre">geometry</span> <span class="pre">=</span> <span class="pre">'plane'</span></code> (or any value other than <cite>‘sphere’`</cite>), the
+function is called <code class="docutils literal notranslate"><span class="pre">cellWidthVsXY()</span></code> and returns 4 arrays in addition to
+<code class="docutils literal notranslate"><span class="pre">cellWidth</span></code>: 1D <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> arrays defining planar coordinates in
+meters; as well as <code class="docutils literal notranslate"><span class="pre">geom_points</span></code>, list of point coordinates for bounding
+polygon for the planar mesh; and <code class="docutils literal notranslate"><span class="pre">geom_edges</span></code>, list of edges between
+points in <code class="docutils literal notranslate"><span class="pre">geom_points</span></code> that define the bounding polygon.</p>
+<p>The result is <code class="docutils literal notranslate"><span class="pre">base_mesh.nc</span></code> as well as several intermediate files:
+<code class="docutils literal notranslate"><span class="pre">mesh.log</span></code>, <code class="docutils literal notranslate"><span class="pre">mesh-HFUN.msh</span></code>, <code class="docutils literal notranslate"><span class="pre">mesh.jig</span></code>, <code class="docutils literal notranslate"><span class="pre">mesh-MESH.msh</span></code>,
+<code class="docutils literal notranslate"><span class="pre">mesh.msh</span></code>, and <code class="docutils literal notranslate"><span class="pre">mesh_triangles.nc</span></code>.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">extract_vtk()</span></code> function is used to produce a VTK file in the
+<code class="docutils literal notranslate"><span class="pre">base_mesh_vtk</span></code> directory that can be viewed in ParaVeiw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>preserve_floodplain</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether a flood plain (bathymetry above z = 0) should be preserved in
+the mesh.  If so, a field <code class="docutils literal notranslate"><span class="pre">cellSeedMask</span></code> is added to the MPAS mesh
+indicating positive elevations that should be preserved.</p></li>
+<li><p><strong>floodplain_elevation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><em>float</em></a><em>, </em><em>optional</em>) – The elevation in meters to which the flood plain is preserved.</p></li>
+<li><p><strong>do_inject_bathymetry</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether one of the default bathymetry datasets, <code class="docutils literal notranslate"><span class="pre">earth_relief_15s.nc</span></code>
+or <code class="docutils literal notranslate"><span class="pre">topo.msh</span></code>, should be added to the MPAS mesh in the field
+<code class="docutils literal notranslate"><span class="pre">bottomDepthObserved</span></code>.  If so, a local link to one of these file names
+must exist.</p></li>
+<li><p><strong>geometry</strong> (<em>{'sphere'</em><em>, </em><em>'plane'}</em><em>, </em><em>optional</em>) – Whether the mesh is spherical or planar</p></li>
+<li><p><strong>plot_cellWidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – If <code class="docutils literal notranslate"><span class="pre">geometry</span> <span class="pre">=</span> <span class="pre">'sphere'</span></code>, whether to produce a plot of <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code>.
+If so, it will be written to <code class="docutils literal notranslate"><span class="pre">cellWidthGlobal.png</span></code>.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mpas_tools.mesh.creation.coastal_tools.coastal_refined_mesh.html" class="btn btn-neutral float-right" title="mpas_tools.mesh.creation.coastal_tools.coastal_refined_mesh" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mpas_tools.translate.translate.html" class="btn btn-neutral float-left" title="mpas_tools.translate.translate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

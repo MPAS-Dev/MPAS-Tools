@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.creation.inject\_meshDensity.inject\_meshDensity
+=================================================================
+
+.. currentmodule:: mpas_tools.mesh.creation.inject_meshDensity
+
+.. autofunction:: inject_meshDensity
