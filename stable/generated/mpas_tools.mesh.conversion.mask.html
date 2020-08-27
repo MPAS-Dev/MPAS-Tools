@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>mpas_tools.conversion.mask &mdash; mpas_tools stable documentation</title>
+  <title>mpas_tools.mesh.conversion.mask &mdash; mpas_tools stable documentation</title>
   
 
   
@@ -37,7 +37,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="mpas_tools.merge_grids.merge_grids" href="mpas_tools.merge_grids.merge_grids.html" />
-    <link rel="prev" title="mpas_tools.conversion.cull" href="mpas_tools.conversion.cull.html" /> 
+    <link rel="prev" title="mpas_tools.mesh.conversion.cull" href="mpas_tools.mesh.conversion.cull.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -86,14 +86,35 @@
               
             
             
-              <ul class="current">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.planar_hex.make_planar_hex_mesh.html">mpas_tools.planar_hex.make_planar_hex_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.translate.translate.html">mpas_tools.translate.translate</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.conversion.convert.html">mpas_tools.conversion.convert</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.conversion.cull.html">mpas_tools.conversion.cull</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.conversion.mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.build_mesh.build_mesh.html">mpas_tools.mesh.creation.build_mesh.build_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.coastal_tools.coastal_refined_mesh.html">mpas_tools.mesh.creation.coastal_tools.coastal_refined_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.inject_bathymetry.inject_bathymetry.html">mpas_tools.mesh.creation.inject_bathymetry.inject_bathymetry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.inject_meshDensity.inject_meshDensity.html">mpas_tools.mesh.creation.inject_meshDensity.inject_meshDensity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver.html">mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat.html">mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat.html">mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat.html">mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid.html">mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle.html">mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.open_msh.readmsh.html">mpas_tools.mesh.creation.open_msh.readmsh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf.html">mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html">mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.conversion.convert.html">mpas_tools.mesh.conversion.convert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.mesh.conversion.cull.html">mpas_tools.mesh.conversion.cull</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.mesh.conversion.mask</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.io.write_netcdf.html">mpas_tools.io.write_netcdf</a></li>
@@ -159,13 +180,13 @@
         
           <li><a href="../api.html">API reference</a> &raquo;</li>
         
-      <li>mpas_tools.conversion.mask</li>
+      <li>mpas_tools.mesh.conversion.mask</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/generated/mpas_tools.conversion.mask.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/generated/mpas_tools.mesh.conversion.mask.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -178,11 +199,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="mpas-tools-conversion-mask">
-<h1>mpas_tools.conversion.mask<a class="headerlink" href="#mpas-tools-conversion-mask" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="mpas-tools-mesh-conversion-mask">
+<h1>mpas_tools.mesh.conversion.mask<a class="headerlink" href="#mpas-tools-mesh-conversion-mask" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="mpas_tools.conversion.mask">
-<code class="sig-prename descclassname">mpas_tools.conversion.</code><code class="sig-name descname">mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dsMesh</span></em>, <em class="sig-param"><span class="n">fcMask</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fcSeed</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">positiveLon</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/conversion.html#mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.conversion.mask" title="Permalink to this definition">¶</a></dt>
+<dt id="mpas_tools.mesh.conversion.mask">
+<code class="sig-prename descclassname">mpas_tools.mesh.conversion.</code><code class="sig-name descname">mask</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dsMesh</span></em>, <em class="sig-param"><span class="n">fcMask</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">fcSeed</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">positiveLon</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/conversion.html#mask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.mesh.conversion.mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Use <code class="docutils literal notranslate"><span class="pre">MpasMaskCreator.x</span></code> to create a set of region masks either from
 mask feature collecitons or from seed points to be used to flood fill</p>
 <dl class="field-list simple">
@@ -214,7 +235,7 @@ will create a mask of all cells connected to the seed points</p></li>
         <a href="mpas_tools.merge_grids.merge_grids.html" class="btn btn-neutral float-right" title="mpas_tools.merge_grids.merge_grids" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="mpas_tools.conversion.cull.html" class="btn btn-neutral float-left" title="mpas_tools.conversion.cull" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="mpas_tools.mesh.conversion.cull.html" class="btn btn-neutral float-left" title="mpas_tools.mesh.conversion.cull" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

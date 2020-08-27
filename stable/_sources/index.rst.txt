@@ -15,10 +15,23 @@ ocean and land-ice test cases,
 the `MPAS-Analysis <https://github.com/MPAS-Dev/MPAS-Analysis>`_ package for
 analyzing simulations, and in other MPAS-related workflows.
 
+User's Guide
+============
+
+.. toctree::
+   :maxdepth: 2
+
+   mesh_creation
+   mesh_conversion
+
 Developer's Guide
 =================
 .. toctree::
    :maxdepth: 2
+
+   making_changes
+   testing_changes
+   building_docs
 
    api
 

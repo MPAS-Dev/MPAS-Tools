@@ -1,0 +1,297 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Making Changes to mpas_tools &mdash; mpas_tools stable documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Testing Changes to mpas_tools" href="testing_changes.html" />
+    <link rel="prev" title="Mesh Conversion" href="mesh_conversion.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                stable
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Making Changes to mpas_tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#entry-points">Entry Points</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Making Changes to mpas_tools</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/making_changes.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="making-changes-to-mpas-tools">
+<span id="dev-making-changes"></span><h1>Making Changes to mpas_tools<a class="headerlink" href="#making-changes-to-mpas-tools" title="Permalink to this headline">¶</a></h1>
+<p>New python functions and modules (<code class="docutils literal notranslate"><span class="pre">.py</span></code> files) can be added within the
+<code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools</span></code>.  These will automatically be part of the
+<code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> package.  New directories with python modules should include an
+<code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file (which can be empty) to indicate that they are also part of
+the package.</p>
+<div class="section" id="entry-points">
+<h2>Entry Points<a class="headerlink" href="#entry-points" title="Permalink to this headline">¶</a></h2>
+<p>The best way to add new “scripts” to the package is to add a function without
+any arguments somewhere in the package, and then to add it as an “entry point”
+both in <code class="docutils literal notranslate"><span class="pre">conda_package/setup.py</span></code> and <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code>.</p>
+<p>As an example, the entry point <code class="docutils literal notranslate"><span class="pre">planar_hex</span></code> is defined in <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">setup</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;mpas_tools&#39;</span><span class="p">,</span>
+<span class="o">...</span>
+      <span class="n">entry_points</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;console_scripts&#39;</span><span class="p">:</span>
+                  <span class="p">[</span><span class="s1">&#39;planar_hex = mpas_tools.planar_hex:main&#39;</span><span class="p">,</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>and in <code class="docutils literal notranslate"><span class="pre">meta.yaml</span></code> as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">build</span><span class="p">:</span>
+  <span class="n">number</span><span class="p">:</span> <span class="mi">0</span>
+  <span class="n">entry_points</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">planar_hex</span> <span class="o">=</span> <span class="n">mpas_tools</span><span class="o">.</span><span class="n">planar_hex</span><span class="p">:</span><span class="n">main</span>
+</pre></div>
+</div>
+<p>When the package is installed in a conda environment, a stub script
+<code class="docutils literal notranslate"><span class="pre">planar_hex</span></code> will be in the user’s path that will call the function <code class="docutils literal notranslate"><span class="pre">main()</span></code>
+in the module <code class="docutils literal notranslate"><span class="pre">mpas_tools.planar_hex</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span> <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--nx&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;nx&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Cells in x direction&#39;</span><span class="p">)</span>
+    <span class="o">...</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">nx</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">ny</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">dc</span><span class="p">,</span>
+                         <span class="n">args</span><span class="o">.</span><span class="n">nonperiodic_x</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">nonperiodic_y</span><span class="p">,</span>
+                         <span class="n">args</span><span class="o">.</span><span class="n">outFileName</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As you can see, the function pointed to by the entry point can used to parse
+command-line arguments, just as a “normal” python script would do</p>
+<p>By convention, entry points do not typically include the <code class="docutils literal notranslate"><span class="pre">.py</span></code> extension.</p>
+</div>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<p>If you changes introduce new dependencies, these need to be added to the recipe
+for the conda package in <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code></p>
+<p>Add these changes to the end of the <code class="docutils literal notranslate"><span class="pre">run</span></code> section of <code class="docutils literal notranslate"><span class="pre">requirements</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">requirements</span><span class="p">:</span>
+<span class="o">...</span>
+  <span class="n">run</span><span class="p">:</span>
+    <span class="o">-</span> <span class="n">python</span>
+    <span class="o">-</span> <span class="n">netcdf4</span>
+    <span class="o">...</span>
+    <span class="o">-</span> <span class="n">affine</span>
+</pre></div>
+</div>
+<p>These requirements <em>must</em> be on the <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code> anaconda channel.  If you
+need help with this, please contact the developers.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="testing_changes.html" class="btn btn-neutral float-right" title="Testing Changes to mpas_tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mesh_conversion.html" class="btn btn-neutral float-left" title="Mesh Conversion" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

@@ -23,8 +23,27 @@ MPAS mesh tools
 
    translate
 
+.. currentmodule:: mpas_tools.mesh.creation
 
-.. currentmodule:: mpas_tools.conversion
+.. autosummary::
+   :toctree: generated/
+
+   build_mesh.build_mesh
+   coastal_tools.coastal_refined_mesh
+   inject_bathymetry.inject_bathymetry
+   inject_meshDensity.inject_meshDensity
+   inject_preserve_floodplain.inject_preserve_floodplain
+   jigsaw_driver.jigsaw_driver
+   mesh_definition_tools.mergeCellWidthVsLat
+   mesh_definition_tools.EC_CellWidthVsLat
+   mesh_definition_tools.RRS_CellWidthVsLat
+   mesh_definition_tools.AtlanticPacificGrid
+   mpas_to_triangle.mpas_to_triangle
+   open_msh.readmsh
+   triangle_to_netcdf.triangle_to_netcdf
+   jigsaw_to_netcdf.jigsaw_to_netcdf
+
+.. currentmodule:: mpas_tools.mesh.conversion
 
 .. autosummary::
    :toctree: generated/

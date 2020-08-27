@@ -7,12 +7,12 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>mpas_tools.conversion &mdash; mpas_tools stable documentation</title>
+  <title>mpas_tools.mesh.conversion &mdash; mpas_tools stable documentation</title>
   
 
   
-  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
 
   
   
@@ -21,21 +21,21 @@
 
   
   <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
     
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/underscore.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
     
-    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
     
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" /> 
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -49,7 +49,7 @@
           
 
           
-            <a href="../../index.html" class="icon icon-home" alt="Documentation Home"> mpas_tools
+            <a href="../../../index.html" class="icon icon-home" alt="Documentation Home"> mpas_tools
           
 
           
@@ -66,7 +66,7 @@
 
           
 <div role="search">
-  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
@@ -85,14 +85,21 @@
             
             
               <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../api.html">API reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Main Authors</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../authors.html#contributors">Contributors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../versions.html">Versions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../versions.html">Versions</a></li>
 </ul>
 
             
@@ -108,7 +115,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="../../index.html">mpas_tools</a>
+          <a href="../../../index.html">mpas_tools</a>
         
       </nav>
 
@@ -137,11 +144,11 @@
 
   <ul class="wy-breadcrumbs">
     
-      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
         
-          <li><a href="../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
         
-      <li>mpas_tools.conversion</li>
+      <li>mpas_tools.mesh.conversion</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -156,7 +163,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for mpas_tools.conversion</h1><div class="highlight"><pre>
+  <h1>Source code for mpas_tools.mesh.conversion</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
@@ -169,7 +176,7 @@
 <span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
 
 
-<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../generated/mpas_tools.conversion.convert.html#mpas_tools.conversion.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Use ``MpasMeshConverter.x`` to convert an input mesh to a valid MPAS</span>
 <span class="sd">    mesh that is fully compliant with the MPAS mesh specification.</span>
@@ -222,7 +229,7 @@
     <span class="k">return</span> <span class="n">dsOut</span></div>
 
 
-<div class="viewcode-block" id="cull"><a class="viewcode-back" href="../../generated/mpas_tools.conversion.cull.html#mpas_tools.conversion.cull">[docs]</a><span class="k">def</span> <span class="nf">cull</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">dsMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsInverse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsPreserve</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="cull"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull">[docs]</a><span class="k">def</span> <span class="nf">cull</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">dsMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsInverse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsPreserve</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
          <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Use ``MpasCellCuller.x`` to cull cells from a mesh based on the</span>
@@ -317,7 +324,7 @@
     <span class="k">return</span> <span class="n">dsOut</span></div>
 
 
-<div class="viewcode-block" id="mask"><a class="viewcode-back" href="../../generated/mpas_tools.conversion.mask.html#mpas_tools.conversion.mask">[docs]</a><span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fcSeed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">positiveLon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="mask"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask">[docs]</a><span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fcSeed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">positiveLon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Use ``MpasMaskCreator.x`` to create a set of region masks either from</span>
 <span class="sd">    mask feature collecitons or from seed points to be used to flood fill</span>
