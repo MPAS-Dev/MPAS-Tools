@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.creation.coastal\_tools.coastal\_refined\_mesh
+===============================================================
+
+.. currentmodule:: mpas_tools.mesh.creation.coastal_tools
+
+.. autofunction:: coastal_refined_mesh

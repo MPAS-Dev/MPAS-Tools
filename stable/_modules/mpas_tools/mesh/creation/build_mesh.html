@@ -1,0 +1,428 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mpas_tools.mesh.creation.build_mesh &mdash; mpas_tools stable documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script src="../../../../_static/jquery.js"></script>
+        <script src="../../../../_static/underscore.js"></script>
+        <script src="../../../../_static/doctools.js"></script>
+        <script src="../../../../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home" alt="Documentation Home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                stable
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../mesh_conversion.html">Mesh Conversion</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>mpas_tools.mesh.creation.build_mesh</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for mpas_tools.mesh.creation.build_mesh</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This script performs the first step of initializing the global ocean.  This</span>
+<span class="sd">includes:</span>
+<span class="sd">Step 1. Build cellWidth array as function of latitude and longitude</span>
+<span class="sd">Step 2. Build mesh using JIGSAW</span>
+<span class="sd">Step 3. Convert triangles from jigsaw format to netcdf</span>
+<span class="sd">Step 4. Convert from triangles to MPAS mesh</span>
+<span class="sd">Step 5. Create vtk file for visualization</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
+    <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">xarray</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;Agg&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">cartopy.crs</span> <span class="k">as</span> <span class="nn">ccrs</span>
+<span class="kn">import</span> <span class="nn">cartopy</span>
+
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.conversion</span> <span class="kn">import</span> <span class="n">convert</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.jigsaw_driver</span> <span class="kn">import</span> <span class="n">jigsaw_driver</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.jigsaw_to_netcdf</span> <span class="kn">import</span> <span class="n">jigsaw_to_netcdf</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.inject_bathymetry</span> <span class="kn">import</span> <span class="n">inject_bathymetry</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.inject_meshDensity</span> <span class="kn">import</span> <span class="n">inject_meshDensity</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.inject_preserve_floodplain</span> <span class="kn">import</span> \
+    <span class="n">inject_preserve_floodplain</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.viz.colormaps</span> <span class="kn">import</span> <span class="n">register_sci_viz_colormaps</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="c1"># add the current working directory to the system path</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+<span class="kn">import</span> <span class="nn">define_base_mesh</span>
+<span class="c1"># okay, now we don&#39;t want to get anything else from CWD</span>
+<span class="k">del</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<div class="viewcode-block" id="build_mesh"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.build_mesh.build_mesh.html#mpas_tools.mesh.creation.build_mesh.build_mesh">[docs]</a><span class="k">def</span> <span class="nf">build_mesh</span><span class="p">(</span>
+        <span class="n">preserve_floodplain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">floodplain_elevation</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+        <span class="n">do_inject_bathymetry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">geometry</span><span class="o">=</span><span class="s1">&#39;sphere&#39;</span><span class="p">,</span>
+        <span class="n">plot_cellWidth</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build an MPAS mesh using JIGSAW with the given cell sizes as a function of</span>
+<span class="sd">    latitude and longitude (on a sphere) or x and y (on a plane).</span>
+
+<span class="sd">    The user must define a local python module ``define_base_mesh`` that</span>
+<span class="sd">    provides a function that returns a 2D array ``cellWidth`` of cell sizes in</span>
+<span class="sd">    kilometers.</span>
+
+<span class="sd">    If ``geometry = &#39;sphere&#39;``, this function is called ``cellWidthVsLatLon()``</span>
+<span class="sd">    and also returns 1D ``lon`` and ``lat`` arrays.</span>
+
+<span class="sd">    If ``geometry = &#39;plane&#39;`` (or any value other than `&#39;sphere&#39;``), the</span>
+<span class="sd">    function is called ``cellWidthVsXY()`` and returns 4 arrays in addition to</span>
+<span class="sd">    ``cellWidth``: 1D ``x`` and ``y`` arrays defining planar coordinates in</span>
+<span class="sd">    meters; as well as ``geom_points``, list of point coordinates for bounding</span>
+<span class="sd">    polygon for the planar mesh; and ``geom_edges``, list of edges between</span>
+<span class="sd">    points in ``geom_points`` that define the bounding polygon.</span>
+
+<span class="sd">    The result is ``base_mesh.nc`` as well as several intermediate files:</span>
+<span class="sd">    ``mesh.log``, ``mesh-HFUN.msh``, ``mesh.jig``, ``mesh-MESH.msh``,</span>
+<span class="sd">    ``mesh.msh``, and ``mesh_triangles.nc``.</span>
+
+<span class="sd">    The ``extract_vtk()`` function is used to produce a VTK file in the</span>
+<span class="sd">    ``base_mesh_vtk`` directory that can be viewed in ParaVeiw.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    preserve_floodplain : bool, optional</span>
+<span class="sd">        Whether a flood plain (bathymetry above z = 0) should be preserved in</span>
+<span class="sd">        the mesh.  If so, a field ``cellSeedMask`` is added to the MPAS mesh</span>
+<span class="sd">        indicating positive elevations that should be preserved.</span>
+
+<span class="sd">    floodplain_elevation : float, optional</span>
+<span class="sd">        The elevation in meters to which the flood plain is preserved.</span>
+
+<span class="sd">    do_inject_bathymetry : bool, optional</span>
+<span class="sd">        Whether one of the default bathymetry datasets, ``earth_relief_15s.nc``</span>
+<span class="sd">        or ``topo.msh``, should be added to the MPAS mesh in the field</span>
+<span class="sd">        ``bottomDepthObserved``.  If so, a local link to one of these file names</span>
+<span class="sd">        must exist.</span>
+
+<span class="sd">    geometry : {&#39;sphere&#39;, &#39;plane&#39;}, optional</span>
+<span class="sd">        Whether the mesh is spherical or planar</span>
+
+<span class="sd">    plot_cellWidth : bool, optional</span>
+<span class="sd">        If ``geometry = &#39;sphere&#39;``, whether to produce a plot of ``cellWidth``.</span>
+<span class="sd">        If so, it will be written to ``cellWidthGlobal.png``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">geometry</span> <span class="o">==</span> <span class="s1">&#39;sphere&#39;</span><span class="p">:</span>
+        <span class="n">on_sphere</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">on_sphere</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 1. Build cellWidth array as function of horizontal coordinates&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">on_sphere</span><span class="p">:</span>
+        <span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">define_base_mesh</span><span class="o">.</span><span class="n">cellWidthVsLatLon</span><span class="p">()</span>
+        <span class="n">da</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span>
+                              <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">],</span>
+                              <span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">},</span>
+                              <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cellWidth&#39;</span><span class="p">)</span>
+        <span class="n">cw_filename</span> <span class="o">=</span> <span class="s1">&#39;cellWidthVsLatLon.nc&#39;</span>
+        <span class="n">da</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">)</span>
+        <span class="n">plot_cellWidth</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">plot_cellWidth</span><span class="p">:</span>
+            <span class="n">register_sci_viz_colormaps</span><span class="p">()</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mf">16.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">])</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_global</span><span class="p">()</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span>
+                           <span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">(),</span>
+                           <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;3Wbgy5&#39;</span><span class="p">,</span>
+                           <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="n">cartopy</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">LAND</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">gl</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">gridlines</span><span class="p">(</span>
+                <span class="n">crs</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">(),</span>
+                <span class="n">draw_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">gl</span><span class="o">.</span><span class="n">top_labels</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">gl</span><span class="o">.</span><span class="n">right_labels</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span>
+                <span class="s1">&#39;Grid cell size, km, min: </span><span class="si">{:.1f}</span><span class="s1"> max: </span><span class="si">{:.1f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">cellWidth</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">cellWidth</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">shrink</span><span class="o">=.</span><span class="mi">60</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;cellWidthGlobal.png&#39;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span> <span class="o">=</span> <span class="n">define_base_mesh</span><span class="o">.</span><span class="n">cellWidthVsXY</span><span class="p">()</span>
+        <span class="n">da</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span>
+                              <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">],</span>
+                              <span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">},</span>
+                              <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cellWidth&#39;</span><span class="p">)</span>
+        <span class="n">cw_filename</span> <span class="o">=</span> <span class="s1">&#39;cellWidthVsXY.nc&#39;</span>
+        <span class="n">da</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 2. Generate mesh with JIGSAW&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">on_sphere</span><span class="p">:</span>
+        <span class="n">jigsaw_driver</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">jigsaw_driver</span><span class="p">(</span>
+            <span class="n">cellWidth</span><span class="p">,</span>
+            <span class="n">x</span><span class="p">,</span>
+            <span class="n">y</span><span class="p">,</span>
+            <span class="n">on_sphere</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">geom_points</span><span class="o">=</span><span class="n">geom_points</span><span class="p">,</span>
+            <span class="n">geom_edges</span><span class="o">=</span><span class="n">geom_edges</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 3. Convert triangles from jigsaw format to netcdf&#39;</span><span class="p">)</span>
+    <span class="n">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">msh_filename</span><span class="o">=</span><span class="s1">&#39;mesh-MESH.msh&#39;</span><span class="p">,</span>
+                     <span class="n">output_name</span><span class="o">=</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="n">on_sphere</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 4. Convert from triangles to MPAS mesh&#39;</span><span class="p">)</span>
+    <span class="n">write_netcdf</span><span class="p">(</span><span class="n">convert</span><span class="p">(</span><span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">)),</span>
+                 <span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 5. Inject correct meshDensity variable into base mesh file&#39;</span><span class="p">)</span>
+    <span class="n">inject_meshDensity</span><span class="p">(</span><span class="n">cw_filename</span><span class="o">=</span><span class="n">cw_filename</span><span class="p">,</span>
+                       <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="n">on_sphere</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">do_inject_bathymetry</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 6. Injecting bathymetry&#39;</span><span class="p">)</span>
+        <span class="n">inject_bathymetry</span><span class="p">(</span><span class="n">mesh_file</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">preserve_floodplain</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 7. Injecting flag to preserve floodplain&#39;</span><span class="p">)</span>
+        <span class="n">inject_preserve_floodplain</span><span class="p">(</span><span class="n">mesh_file</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span>
+                                   <span class="n">floodplain_elevation</span><span class="o">=</span><span class="n">floodplain_elevation</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 8. Create vtk file for visualization&#39;</span><span class="p">)</span>
+    <span class="n">extract_vtk</span><span class="p">(</span><span class="n">ignore_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lonlat</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;maxEdges=&#39;</span><span class="p">],</span>
+                <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;allOnCells&#39;</span><span class="p">],</span> <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span>
+                <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;base_mesh_vtk&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;***********************************************&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;**    The global mesh file is base_mesh.nc   **&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;***********************************************&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--preserve_floodplain&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Whether a flood plain (bathymetry above z = 0) &#39;</span>
+                             <span class="s1">&#39;should be preserved in the mesh&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--floodplain_elevation&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store&#39;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The elevation in meters to which the flood plain &#39;</span>
+                             <span class="s1">&#39;is preserved, default is 20 m&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--inject_bathymetry&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Whether one of the default bathymetry datasets, &#39;</span>
+                             <span class="s1">&#39;earth_relief_15s.nc or topo.msh, should be added &#39;</span>
+                             <span class="s1">&#39;to the MPAS mesh&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--geometry&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;sphere&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Whether the mesh is on a sphere or a plane, &#39;</span>
+                             <span class="s1">&#39;default is a sphere&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--plot_cellWidth&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Whether to produce a plot of cellWidth&#39;</span><span class="p">)</span>
+    <span class="n">cl_args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">build_mesh</span><span class="p">(</span><span class="n">cl_args</span><span class="o">.</span><span class="n">preserve_floodplain</span><span class="p">,</span> <span class="n">cl_args</span><span class="o">.</span><span class="n">floodplain_elevation</span><span class="p">,</span>
+               <span class="n">cl_args</span><span class="o">.</span><span class="n">inject_bathymetry</span><span class="p">,</span> <span class="n">cl_args</span><span class="o">.</span><span class="n">geometry</span><span class="p">,</span>
+               <span class="n">cl_args</span><span class="o">.</span><span class="n">plot_cellWidth</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
