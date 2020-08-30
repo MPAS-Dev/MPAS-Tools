@@ -1,0 +1,14 @@
+channel_sources:
+- conda-forge,defaults
+cxx_compiler:
+- gxx
+cxx_compiler_version:
+- '7'
+hdf5:
+- 1.10.6
+pin_run_as_build:
+  python:
+    min_pin: x.x
+    max_pin: x.x
+python:
+- 3.8.* *_cpython
