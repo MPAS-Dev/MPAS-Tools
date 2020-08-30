@@ -1,6 +1,0 @@
-﻿mpas\_tools.mesh.creation.open\_msh.readmsh
-===========================================
-
-.. currentmodule:: mpas_tools.mesh.creation.open_msh
-
-.. autofunction:: readmsh
