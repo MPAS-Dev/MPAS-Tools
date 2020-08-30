@@ -5,9 +5,6 @@
 *.o
 *.mod
 
-# Ignore all PNGs
-*.png
-
 # Each tool should also have it's own .gitignore file that ignores the build files for that tool.
 
 # Byte-compiled / optimized / DLL files
