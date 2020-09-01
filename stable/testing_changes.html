@@ -214,9 +214,9 @@ match:</p>
 </pre></div>
 </div>
 <p>It is also a good idea to add the new version to the <a class="reference internal" href="versions.html#versions"><span class="std std-ref">Versions</span></a>.  The new
-links won’t be valid until a new release is made and Travis CI has generated
-the associated documentation.  Eventually, it should be possible to do this
-automatically but that has not yet been implemented.</p>
+links won’t be valid until a new release is made and Azure Pipelines has
+generated the associated documentation.  Eventually, it should be possible to
+do this automatically but that has not yet been implemented.</p>
 </div>
 <div class="section" id="building-the-package">
 <h3>Building the package<a class="headerlink" href="#building-the-package" title="Permalink to this headline">¶</a></h3>
@@ -230,13 +230,15 @@ $ conda install -n base conda-build
 </div>
 <p>To build the package, make sure you are in the base of the repo and run:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ rm -rf ~/miniconda3/conda-bld
-$ conda build conda_package/recipe
+$ conda build -m conda_package/ci/linux_python3.8.yaml conda_package/recipe
 </pre></div>
 </div>
 <p>The first is to make sure you don’t have existing packages already built that
 would get used in your building and testing instead of the versions from
 <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code>.  If your conda setup is installed somewhere other than
-<code class="docutils literal notranslate"><span class="pre">~/miniconda3</span></code>, use the appropriate path.</p>
+<code class="docutils literal notranslate"><span class="pre">~/miniconda3</span></code>, use the appropriate path.  If you would like to build for
+<code class="docutils literal notranslate"><span class="pre">osx</span></code> instead of <code class="docutils literal notranslate"><span class="pre">linux</span></code> or for python <code class="docutils literal notranslate"><span class="pre">3.6</span></code> or <code class="docutils literal notranslate"><span class="pre">3.7</span></code>, point
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">build</span></code> to the appropriate YAML file.</p>
 </div>
 <div class="section" id="installing-the-package">
 <h3>Installing the package<a class="headerlink" href="#installing-the-package" title="Permalink to this headline">¶</a></h3>
