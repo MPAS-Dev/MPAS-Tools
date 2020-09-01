@@ -48,9 +48,9 @@ match:
   {% set version = "0.0.11" %}
 
 It is also a good idea to add the new version to the :ref:`versions`.  The new
-links won't be valid until a new release is made and Travis CI has generated
-the associated documentation.  Eventually, it should be possible to do this
-automatically but that has not yet been implemented.
+links won't be valid until a new release is made and Azure Pipelines has
+generated the associated documentation.  Eventually, it should be possible to
+do this automatically but that has not yet been implemented.
 
 Building the package
 ********************
@@ -70,12 +70,14 @@ To build the package, make sure you are in the base of the repo and run:
 .. code-block::
 
   $ rm -rf ~/miniconda3/conda-bld
-  $ conda build conda_package/recipe
+  $ conda build -m conda_package/ci/linux_python3.8.yaml conda_package/recipe
 
 The first is to make sure you don't have existing packages already built that
 would get used in your building and testing instead of the versions from
 ``conda-forge``.  If your conda setup is installed somewhere other than
-``~/miniconda3``, use the appropriate path.
+``~/miniconda3``, use the appropriate path.  If you would like to build for
+``osx`` instead of ``linux`` or for python ``3.6`` or ``3.7``, point
+``conda build`` to the appropriate YAML file.
 
 Installing the package
 **********************
