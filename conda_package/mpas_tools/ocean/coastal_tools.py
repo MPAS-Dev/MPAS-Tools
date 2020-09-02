@@ -342,6 +342,8 @@ def create_background_mesh(grd_box, ddeg, mesh_type, dx_min, dx_max,  # {{{
         cell_width_lat = mdt.EC_CellWidthVsLat(lat_grd)
     elif mesh_type == 'RRS':
         cell_width_lat = mdt.RRS_CellWidthVsLat(lat_grd, dx_max / km, dx_min / km)
+    else:
+        raise ValueError('Unknown mesh_type {}'.format(mesh_type))
     cell_width = np.tile(cell_width_lat, (nx_grd, 1)).T * km
 
     # Plot background cell width
