@@ -5,6 +5,7 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 from mpas_tools.mesh.creation.open_msh import readmsh
+from mpas_tools.mesh.interpolation import interp_bilin
 import numpy as np
 from scipy import interpolate
 import netCDF4 as nc4
@@ -84,13 +85,8 @@ def interpolate_SRTM(lon_pts, lat_pts):
         idx = np.intersect1d(lon_idx, lat_idx)
         xpts = lon_pts[idx]
         ypts = lat_pts[idx]
-        xy_pts = np.vstack((xpts, ypts)).T
 
-        # Interpolate bathymetry onto points
-        bathy = interpolate.RegularGridInterpolator(
-            (xdata, ydata), zdata.T, bounds_error=False, fill_value=np.nan)
-        bathy_int = bathy(xy_pts)
-        bathymetry[idx] = bathy_int
+        bathymetry[idx] = interp_bilin(xdata, ydata, zdata, xpts, ypts)
 
     end = timeit.default_timer()
     print(end - start, " seconds")
