@@ -17,7 +17,8 @@ from mpas_tools.viz.colormaps import register_sci_viz_colormaps
 
 
 def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
-                         out_filename='base_mesh.nc', plot_cellWidth=True):
+                         out_filename='base_mesh.nc', plot_cellWidth=True,
+                         dir='./'):
     """
     Build an MPAS mesh using JIGSAW with the given cell sizes as a function of
     latitude and longitude.
@@ -46,6 +47,10 @@ def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
     plot_cellWidth : bool, optional
         Whether to produce a plot of ``cellWidth``. If so, it will be written to
         ``cellWidthGlobal.png``.
+
+    dir : str, optional
+        A directory in which a temporary directory will be added with files
+        produced during mesh conversion and then deleted upon completion.
     """
 
     da = xarray.DataArray(cellWidth,
@@ -92,7 +97,7 @@ def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
                      sphere_radius=earth_radius)
 
     print('Step 3. Convert from triangles to MPAS mesh')
-    write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc')),
+    write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc'), dir=dir),
                  out_filename)
 
 
