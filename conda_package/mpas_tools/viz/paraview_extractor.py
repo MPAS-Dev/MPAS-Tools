@@ -2142,11 +2142,13 @@ def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
     with xarray.open_dataset(mesh_filename) as ds_mesh:
         ds_mesh = ds_mesh[mesh_vars]
         print('Making a region mask file')
-        ds_mask = mask(dsMesh=ds_mesh, fcMask=fc_region_mask, logger=logger)
+        ds_mask = mask(dsMesh=ds_mesh, fcMask=fc_region_mask, logger=logger,
+                       dir=temp_dir)
         write_netcdf(ds_mask, '{}/mask.nc'.format(temp_dir))
         print('Cropping mesh to region')
         out_mesh_filename = '{}/mesh.nc'.format(temp_dir)
-        ds_culled = cull(dsIn=ds_mesh, dsInverse=ds_mask, logger=logger)
+        ds_culled = cull(dsIn=ds_mesh, dsInverse=ds_mask, logger=logger,
+                         dir=temp_dir)
         write_netcdf(ds_culled, out_mesh_filename)
 
         region_masks = dict()
