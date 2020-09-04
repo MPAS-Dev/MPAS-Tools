@@ -7,6 +7,8 @@ Mesh Creation
 Building a Mesh
 ===============
 
+This is all out of date and needs refining!!!
+
 The :py:func:`mpas_tools.mesh.creation.build_mesh.build_mesh` function is used
 create an MPAS mesh using the `JIGSAW <https://github.com/dengwirda/jigsaw>`_
 and `JIGSAW-Python <https://github.com/dengwirda/jigsaw-python>`_ packages.
