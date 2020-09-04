@@ -329,10 +329,10 @@ def create_background_mesh(grd_box, ddeg, mesh_type, dx_min, dx_max,  # {{{
     print("------------------------")
 
     # Create cell width background grid
-    lat_grd = np.arange(grd_box[2], grd_box[3], ddeg)
-    lon_grd = np.arange(grd_box[0], grd_box[1], ddeg)
-    nx_grd = lon_grd.size
-    ny_grd = lat_grd.size
+    ny_grd = int((grd_box[3]-grd_box[2])/ddeg) + 1
+    nx_grd = int((grd_box[1]-grd_box[0])/ddeg) + 1
+    lat_grd = grd_box[2] + ddeg*np.arange(ny_grd)
+    lon_grd = grd_box[0] + ddeg*np.arange(nx_grd)
     print("   Background grid dimensions:", ny_grd, nx_grd)
 
     # Assign background grid cell width values
@@ -342,6 +342,8 @@ def create_background_mesh(grd_box, ddeg, mesh_type, dx_min, dx_max,  # {{{
         cell_width_lat = mdt.EC_CellWidthVsLat(lat_grd)
     elif mesh_type == 'RRS':
         cell_width_lat = mdt.RRS_CellWidthVsLat(lat_grd, dx_max / km, dx_min / km)
+    else:
+        raise ValueError('Unknown mesh_type {}'.format(mesh_type))
     cell_width = np.tile(cell_width_lat, (nx_grd, 1)).T * km
 
     # Plot background cell width
