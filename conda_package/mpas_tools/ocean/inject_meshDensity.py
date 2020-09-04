@@ -11,9 +11,10 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 import numpy as np
-from scipy import interpolate
 import netCDF4 as nc4
 import sys
+
+from mpas_tools.mesh.interpolation import interp_bilin
 
 
 def inject_meshDensity_from_file(cw_filename, mesh_filename, on_sphere=True):
@@ -74,15 +75,6 @@ def inject_spherical_meshDensity(cellWidth, lon, lat, mesh_filename):
         The mesh file to add ``meshDensity`` to
     """
 
-    # Add extra column in longitude to interpolate over the Date Line
-    cellWidth = np.concatenate(
-        (cellWidth, cellWidth[:, 0:1]), axis=1)
-    LonPos = np.deg2rad(np.concatenate(
-        (lon.T, lon.T[0:1] + 360)))
-    LatPos = np.deg2rad(lat.T)
-    # set max lat position to be exactly at North Pole to avoid interpolation
-    # errors
-    LatPos[np.argmax(LatPos)] = np.pi / 2.0
     minCellWidth = cellWidth.min()
     meshDensityVsXY = (minCellWidth / cellWidth)**4
     print('  minimum cell width in grid definition: {0:.0f} km'.format(
@@ -90,21 +82,19 @@ def inject_spherical_meshDensity(cellWidth, lon, lat, mesh_filename):
     print('  maximum cell width in grid definition: {0:.0f} km'.format(
         cellWidth.max()))
 
-    X, Y = np.meshgrid(LonPos, LatPos)
-
     print('Open unstructured MPAS mesh file...')
     ds = nc4.Dataset(mesh_filename, 'r+')
     meshDensity = ds.variables['meshDensity']
+    lonCell = ds.variables['lonCell'][:]
+    latCell = ds.variables['latCell'][:]
 
-    print('Preparing interpolation of meshDensity from native coordinates to mesh...')
-    meshDensityInterp = interpolate.LinearNDInterpolator(
-        np.vstack((X.ravel(), Y.ravel())).T, meshDensityVsXY.ravel())
+    lonCell = np.mod(np.rad2deg(lonCell) + 180., 360.) - 180.
+    latCell = np.rad2deg(latCell)
 
     print('Interpolating and writing meshDensity...')
-    meshDensity[:] = meshDensityInterp(
-        np.vstack((np.mod(ds.variables['lonCell'][:] + np.pi,
-                          2*np.pi) - np.pi,
-                   ds.variables['latCell'][:])).T)
+    mpasMeshDensity = interp_bilin(lon, lat, meshDensityVsXY, lonCell, latCell)
+
+    meshDensity[:] = mpasMeshDensity
 
     ds.close()
 
@@ -131,21 +121,16 @@ def inject_planar_meshDensity(cellWidth, x, y, mesh_filename):
     print('  minimum cell width in grid definition: {0:.0f} km'.format(minCellWidth))
     print('  maximum cell width in grid definition: {0:.0f} km'.format(cellWidth.max()))
 
-    X, Y = np.meshgrid(x, y)
-
     print('Open unstructured MPAS mesh file...')
     ds = nc4.Dataset(mesh_filename, 'r+')
     meshDensity = ds.variables['meshDensity']
-
-    print('Preparing interpolation of meshDensity from native coordinates to mesh...')
-    meshDensityInterp = interpolate.LinearNDInterpolator(
-        np.vstack((X.ravel(), Y.ravel())).T, meshDensityVsXY.ravel())
+    xCell = ds.variables['xCell'][:]
+    yCell = ds.variables['xCell'][:]
 
     print('Interpolating and writing meshDensity...')
-    meshDensity[:] = meshDensityInterp(
-        np.vstack(
-            (ds.variables['xCell'][:],
-             ds.variables['yCell'][:])).T)
+    mpasMeshDensity = interp_bilin(x, y, meshDensityVsXY, xCell, yCell)
+
+    meshDensity[:] = mpasMeshDensity
 
     ds.close()
 
