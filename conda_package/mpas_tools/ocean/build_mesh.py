@@ -58,8 +58,7 @@ def build_spherical_mesh(cellWidth, lon, lat, out_filename='base_mesh.nc',
     """
 
     # from https://github.com/E3SM-Project/E3SM/blob/master/cime/src/share/util/shr_const_mod.F90#L20
-    # earth_radius = constants['SHR_CONST_REARTH']
-    earth_radius = 6371.0e3
+    earth_radius = constants['SHR_CONST_REARTH']
 
     create_spherical_mesh(cellWidth, lon, lat, earth_radius,  out_filename,
                           plot_cellWidth)
