@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Mesh Creation &mdash; mpas_tools 0.0.12 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Mesh Conversion" href="mesh_conversion.html" />
+    <link rel="prev" title="MPAS-Tools" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.12
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mesh Creation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#building-a-mesh">Building a Mesh</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Mesh Creation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/mesh_creation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mesh-creation">
+<span id="id1"></span><h1>Mesh Creation<a class="headerlink" href="#mesh-creation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="building-a-mesh">
+<h2>Building a Mesh<a class="headerlink" href="#building-a-mesh" title="Permalink to this headline">¶</a></h2>
+<p>This is all out of date and needs refining!!!</p>
+<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.build_mesh.build_mesh()</span></code> function is used
+create an MPAS mesh using the <a class="reference external" href="https://github.com/dengwirda/jigsaw">JIGSAW</a>
+and <a class="reference external" href="https://github.com/dengwirda/jigsaw-python">JIGSAW-Python</a> packages.</p>
+<p>The user must define a local python module <code class="docutils literal notranslate"><span class="pre">define_base_mesh</span></code> that provides a
+function that returns a 2D array <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code> of cell sizes in kilometers.</p>
+<p>If the mesh is on a sphere, this function is called <code class="docutils literal notranslate"><span class="pre">cellWidthVsLatLon()</span></code>
+and also returns 1D <code class="docutils literal notranslate"><span class="pre">lon</span></code> and <code class="docutils literal notranslate"><span class="pre">lat</span></code> arrays.</p>
+<p>The mesh is planar, the function is called <code class="docutils literal notranslate"><span class="pre">cellWidthVsXY()</span></code> and returns 4
+arrays in addition to <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code>: 1D <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> arrays defining planar
+coordinates in meters; as well as <code class="docutils literal notranslate"><span class="pre">geom_points</span></code>, list of point coordinates for
+bounding polygon for the planar mesh; and <code class="docutils literal notranslate"><span class="pre">geom_edges</span></code>, list of edges between
+points in <code class="docutils literal notranslate"><span class="pre">geom_points</span></code> that define the bounding polygon.</p>
+<p>The result is an MPAS mesh file <code class="docutils literal notranslate"><span class="pre">base_mesh.nc</span></code> as well as several intermediate
+files: <code class="docutils literal notranslate"><span class="pre">mesh.log</span></code>, <code class="docutils literal notranslate"><span class="pre">mesh-HFUN.msh</span></code>, <code class="docutils literal notranslate"><span class="pre">mesh.jig</span></code>, <code class="docutils literal notranslate"><span class="pre">mesh-MESH.msh</span></code>,
+<code class="docutils literal notranslate"><span class="pre">mesh.msh</span></code>, and <code class="docutils literal notranslate"><span class="pre">mesh_triangles.nc</span></code>.</p>
+<p>The <a class="reference internal" href="generated/mpas_tools.viz.paraview_extractor.extract_vtk.html#mpas_tools.viz.paraview_extractor.extract_vtk" title="mpas_tools.viz.paraview_extractor.extract_vtk"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.paraview_extractor.extract_vtk()</span></code></a> function is used
+to produce a VTK file in the <code class="docutils literal notranslate"><span class="pre">base_mesh_vtk</span></code> directory that can be viewed in
+<a class="reference external" href="https://www.paraview.org/">ParaVeiw</a>.</p>
+<p>Optionally, a field, <code class="docutils literal notranslate"><span class="pre">cellSeedMask</span></code>, can be added to the mesh file that can
+later be used preserve a “flood plain” of positive elevations in the MPAS mesh.
+See <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain()</span></code>.</p>
+<p>Optioanlly, a field, <code class="docutils literal notranslate"><span class="pre">bottomDepthObserved</span></code>, can be added to the mesh file
+with bathymetry data from one of two topography files: <code class="docutils literal notranslate"><span class="pre">earth_relief_15s.nc</span></code>
+or <code class="docutils literal notranslate"><span class="pre">topo.msh</span></code>. If bathymetry should be added to the mesh, a local link with
+one of these file names must exist. See
+py:func:<cite>mpas_tools.mesh.creation.inject_bathymetry.inject_bathymetry`</cite>.</p>
+<p>A simple example of <code class="docutils literal notranslate"><span class="pre">define_base_mesh.py</span></code> for a spherical mesh with constant,
+240-km resolution is:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<span class="k">def</span> <span class="nf">cellWidthVsLatLon</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create cell width array for this mesh on a regular latitude-longitude grid.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cellWidth : numpy.ndarray</span>
+<span class="sd">        m x n array of cell width in km</span>
+<span class="sd">    lon : numpy.ndarray</span>
+<span class="sd">        longitude in degrees (length n and between -180 and 180)</span>
+<span class="sd">    lat : numpy.ndarray</span>
+<span class="sd">        longitude in degrees (length m and between -90 and 90)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">ddeg</span> <span class="o">=</span> <span class="mi">10</span>
+    <span class="n">constantCellWidth</span> <span class="o">=</span> <span class="mi">240</span>
+
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mf">90.01</span><span class="p">,</span> <span class="n">ddeg</span><span class="p">)</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mf">180.01</span><span class="p">,</span> <span class="n">ddeg</span><span class="p">)</span>
+
+    <span class="n">cellWidth</span> <span class="o">=</span> <span class="n">constantCellWidth</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">lat</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">lon</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span>
+</pre></div>
+</div>
+<p>With this module defined locally, a mesh can be generated either with the
+command-line tool <code class="docutils literal notranslate"><span class="pre">build_mesh</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ build_mesh
+</pre></div>
+</div>
+<p>or by calling py:func:<cite>mpas_tools.mesh.creation.build_mesh.build_mesh</cite>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.build_mesh</span> <span class="kn">import</span> <span class="n">build_mesh</span>
+
+
+<span class="n">build_mesh</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The full usage details of the command-line tool are:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ build_mesh --help
+
+usage: build_mesh [-h] [--preserve_floodplain]
+                  [--floodplain_elevation FLOODPLAIN_ELEVATION]
+                  [--inject_bathymetry] [--geometry GEOMETRY]
+                  [--plot_cellWidth]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --preserve_floodplain
+                        Whether a flood plain (bathymetry above z = 0) should
+                        be preserved in the mesh
+  --floodplain_elevation FLOODPLAIN_ELEVATION
+                        The elevation in meters to which the flood plain is
+                        preserved, default is 20 m
+  --inject_bathymetry   Whether one of the default bathymetry datasets,
+                        earth_relief_15s.nc or topo.msh, should be added to
+                        the MPAS mesh
+  --geometry GEOMETRY   Whether the mesh is on a sphere or a plane, default is
+                        a sphere
+  --plot_cellWidth      Whether to produce a plot of cellWidth
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mesh_conversion.html" class="btn btn-neutral float-right" title="Mesh Conversion" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="MPAS-Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

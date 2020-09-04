@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mpas_tools.ocean.moc.make_moc_basins_and_transects &mdash; mpas_tools 0.0.12 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mpas_tools.ocean.moc.build_moc_basins" href="mpas_tools.ocean.moc.build_moc_basins.html" />
+    <link rel="prev" title="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks" href="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.12
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages.html">mpas_tools.ocean.coastline_alteration.add_critical_land_blockages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html">mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.moc.make_moc_basins_and_transects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.build_moc_basins.html">mpas_tools.ocean.moc.build_moc_basins</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../api.html">API reference</a> &raquo;</li>
+        
+      <li>mpas_tools.ocean.moc.make_moc_basins_and_transects</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/generated/mpas_tools.ocean.moc.make_moc_basins_and_transects.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mpas-tools-ocean-moc-make-moc-basins-and-transects">
+<h1>mpas_tools.ocean.moc.make_moc_basins_and_transects<a class="headerlink" href="#mpas-tools-ocean-moc-make-moc-basins-and-transects" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="mpas_tools.ocean.moc.make_moc_basins_and_transects">
+<code class="sig-prename descclassname">mpas_tools.ocean.moc.</code><code class="sig-name descname">make_moc_basins_and_transects</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gf</span></em>, <em class="sig-param"><span class="n">mesh_filename</span></em>, <em class="sig-param"><span class="n">mask_and_transect_filename</span></em>, <em class="sig-param"><span class="n">geojson_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mask_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/moc.html#make_moc_basins_and_transects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.ocean.moc.make_moc_basins_and_transects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds features defining the ocean basins and southern transects used in
+computing the meridional overturning circulation (MOC)
+:param gf: An object that knows how to download and read geometric featuers
+:type gf: <code class="docutils literal notranslate"><span class="pre">GeometricFeatures</span></code>
+:param mesh_filename: A file with MPAS mesh information
+:type mesh_filename: str
+:param mask_and_transect_filename: A file to write the MOC region masks and southern-boundary transects to
+:type mask_and_transect_filename: str
+:param geojson_filename: A file to write MOC regions to
+:type geojson_filename: str, optional
+:param mask_filename: A file to write MOC region masks to
+:type mask_filename: str, optional
+:param logger: A logger for the output if not stdout
+:type logger: <code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, optional</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>fc</strong> (<code class="docutils literal notranslate"><span class="pre">FeatureCollection</span></code>) – The new feature collection</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mpas_tools.ocean.moc.build_moc_basins.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.moc.build_moc_basins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

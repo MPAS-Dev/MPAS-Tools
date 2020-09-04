@@ -1,0 +1,343 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mpas_tools.viz.paraview_extractor.extract_vtk &mdash; mpas_tools 0.0.12 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Main Authors" href="../authors.html" />
+    <link rel="prev" title="mpas_tools.ocean.moc.build_moc_basins" href="mpas_tools.ocean.moc.build_moc_basins.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.0.12
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#visualization">Visualization</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.viz.paraview_extractor.extract_vtk</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../api.html">API reference</a> &raquo;</li>
+        
+      <li>mpas_tools.viz.paraview_extractor.extract_vtk</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/generated/mpas_tools.viz.paraview_extractor.extract_vtk.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mpas-tools-viz-paraview-extractor-extract-vtk">
+<h1>mpas_tools.viz.paraview_extractor.extract_vtk<a class="headerlink" href="#mpas-tools-viz-paraview-extractor-extract-vtk" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="mpas_tools.viz.paraview_extractor.extract_vtk">
+<code class="sig-prename descclassname">mpas_tools.viz.paraview_extractor.</code><code class="sig-name descname">extract_vtk</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename_pattern</span></em>, <em class="sig-param"><span class="n">variable_list</span><span class="o">=</span><span class="default_value">'all'</span></em>, <em class="sig-param"><span class="n">dimension_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mesh_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">blocking</span><span class="o">=</span><span class="default_value">10000</span></em>, <em class="sig-param"><span class="n">output_32bit</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">combine</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">append</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">out_dir</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">xtime</span><span class="o">=</span><span class="default_value">'xtime'</span></em>, <em class="sig-param"><span class="n">lonlat</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">time</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">ignore_time</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">topo_dim</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">topo_cell_index</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">include_mesh_vars</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">fc_region_mask</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">temp_dir</span><span class="o">=</span><span class="default_value">'./culled_region'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/viz/paraview_extractor.html#extract_vtk"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.viz.paraview_extractor.extract_vtk" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract fields from a time series of NetCDF files as VTK files for plotting
+in paraview.</p>
+<p>To extract fields across multiple files, passing in a regular expression
+for the filename pattern, for exmaple <code class="docutils literal notranslate"><span class="pre">filename_pattern=&quot;hist.comp.*.nc&quot;</span></code>.</p>
+<p>By default, time-independent fields on cells are written to a file</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vtk_files</span><span class="o">/</span><span class="n">staticFieldsOnCells</span><span class="o">.</span><span class="n">vtp</span>
+</pre></div>
+</div>
+<p>and time-dependent fields on cells are written to</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">vtk_files</span><span class="o">/</span><span class="n">timeDependentFieldsOnCells</span><span class="o">.</span><span class="n">pvd</span>
+<span class="n">vtk_files</span><span class="o">/</span><span class="n">time_series</span><span class="o">/</span><span class="n">timeDependentFieldsOnCells</span><span class="o">.</span><span class="mf">0.</span><span class="n">vtp</span>
+<span class="n">vtk_files</span><span class="o">/</span><span class="n">time_series</span><span class="o">/</span><span class="n">timeDependentFieldsOnCells</span><span class="o">.</span><span class="mf">1.</span><span class="n">vtp</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>and similarly for edges and vertices.  Time-independent fields can be
+included in each time step of the time-dependent fields for with
+<code class="docutils literal notranslate"><span class="pre">combine=True</span></code>.  This allows time-dependent and -independent fields
+to be combined in filters within Paraview at the expense of considerable
+additional storage space.</p>
+<p>Indices for extra dimensions can either be supplied at runtime at a prompt
+(if <code class="docutils literal notranslate"><span class="pre">dimension_list=None</span></code>) or via a list of strings with the dimensions
+and associated indices.  For each extra dimension, you can specifiy
+nothing for the indices (an empty string, meaning skip any fields with this
+dimension), a single index, a comma-separated list of indices, or a range
+of indices (separated by 1 or 2 colons).  For example,</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;maxEdges=&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLeves=0:10:2&#39;</span><span class="p">,</span> <span class="s1">&#39;nParticles=0,2,4,6,8&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>will ignore any fields with dimension <code class="docutils literal notranslate"><span class="pre">maxEdges</span></code>, extract every other
+layer from the first 10 vertical levels (each into its own field) and
+extract the 5 specified particles.</p>
+<p>An index array can also be specified in this way (and these can be mixed
+with integer indices in a comma-separated list but not in a colon-separated
+range):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLeves=0,maxLevelCell&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>will extract fields from the first vertical level and the vertical level
+with index given by <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code>.</p>
+<p>The extractor includes optional support for extracting geometry appropriate
+for displaying variables at the depth of a topographic feature (typically
+the top or bottom of the domain) for MPAS components with a spatially
+variable top or bottom index (e.g. <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> in MPAS-Ocean).  This is
+accomplished with arguments such as:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">topo_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">,</span> <span class="n">topo_cell_index</span><span class="o">=</span><span class="s1">&#39;maxLevelCell&#39;</span>
+</pre></div>
+</div>
+<p>Fields on cells are sampled at the topographic index and the geometry
+includes polygons corresponding to edges so that vertical faces between
+adjacent cells can be displayed.  Fields are extracted as normal except
+that they are sampled as point data rather than cell data, allowing
+computations in ParaView to display the topography.  A mask field is also
+included indicating which parts of edge polygons correspond to the boundary
+of the domain (<code class="docutils literal notranslate"><span class="pre">boundaryMask</span> <span class="pre">==</span> <span class="pre">1</span></code>) and which parts of cell and edge
+polygons are interior (<code class="docutils literal notranslate"><span class="pre">boundaryMask</span> <span class="pre">==</span> <span class="pre">0</span></code>).  Together, this can be used
+to plot topography by using a calculator filter like the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">coords</span><span class="o">*</span><span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="mf">100.0</span><span class="o">/</span><span class="n">mag</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span><span class="o">*</span><span class="p">((</span><span class="mi">1</span> <span class="o">-</span> <span class="n">boundaryMask</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="o">-</span><span class="n">bottomDepth</span><span class="p">)</span>
+                                 <span class="o">+</span> <span class="mf">10.0</span><span class="o">*</span><span class="n">boundaryMask</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>If this is entered into a Calculator Filter in ParaView with the “coordinate
+result” box checked, the result will to display the MPAS-Ocean topography,
+exaggerated by a factor of 100, with a value equivalent to 10 m along
+boundary points of edge polygons (a “water-tight” surface).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename_pattern</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a>) – MPAS Filename pattern</p></li>
+<li><p><strong>variable_list</strong> (<em>list of str</em><em>, </em><em>optional</em>) – List of variables to extract (‘all’ for all variables, ‘allOnCells’
+for all variables on cells, etc.)”</p></li>
+<li><p><strong>dimension_list</strong> (<em>list of str</em><em>, </em><em>optional</em>) – A list of dimensions and associated indices</p></li>
+<li><p><strong>mesh_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>optional</em>) – MPAS Mesh filename. By default, the first file matching
+<code class="docutils literal notranslate"><span class="pre">filename_pattern</span></code> will be used</p></li>
+<li><p><strong>blocking</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><em>int</em></a><em>, </em><em>optional</em>) – Size of blocks when reading MPAS file</p></li>
+<li><p><strong>output_32bit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether the vtk files will be written using 32bit floats</p></li>
+<li><p><strong>combine</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether time-independent fields are written to each file along with
+time-dependent fields</p></li>
+<li><p><strong>append</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether only vtp files that do not already exist are written out</p></li>
+<li><p><strong>out_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>optional</em>) – The output directory</p></li>
+<li><p><strong>xtime</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>optional&quot;</em>) – The name of the xtime variable or ‘none’ to extract Time dim without
+xtime</p></li>
+<li><p><strong>lonlat</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether the resulting points are in lon-lat space, not Cartesian</p></li>
+<li><p><strong>time</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>optional</em>) – Indices for the time dimension</p></li>
+<li><p><strong>ignore_time</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to ignore the Time dimension if it exists for files with a Time
+dimension but no xtime variable (e.g. mesh file)</p></li>
+<li><p><strong>topo_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>optional</em>) – Dimension and range for topography dimension</p></li>
+<li><p><strong>topo_cell_index</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>optional</em>) – Index array indicating the bottom of the domain (default is the
+topo_dim-1 for all cells)</p></li>
+<li><p><strong>include_mesh_vars</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to include mesh variables as well as time-series variables
+in the extraction</p></li>
+<li><p><strong>fc_region_mask</strong> (<em>geometric_features.FeatureCollection</em><em>, </em><em>optional</em>) – A feature collection used to define a mask.  The MPAS data is culled to
+lie within the mask before conversion to VTK proceeds</p></li>
+<li><p><strong>temp_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><em>str</em></a><em>, </em><em>optional</em>) – If fc_region_mask is supplied, a temporary directory where the culled
+mesh and time series files are stored</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../authors.html" class="btn btn-neutral float-right" title="Main Authors" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mpas_tools.ocean.moc.build_moc_basins.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.moc.build_moc_basins" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
