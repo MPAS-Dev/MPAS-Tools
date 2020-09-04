@@ -88,7 +88,8 @@ def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
 
     print('Step 2. Convert triangles from jigsaw format to netcdf')
     jigsaw_to_netcdf(msh_filename='mesh-MESH.msh',
-                     output_name='mesh_triangles.nc', on_sphere=True)
+                     output_name='mesh_triangles.nc', on_sphere=True,
+                     sphere_radius=earth_radius)
 
     print('Step 3. Convert from triangles to MPAS mesh')
     write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc')),

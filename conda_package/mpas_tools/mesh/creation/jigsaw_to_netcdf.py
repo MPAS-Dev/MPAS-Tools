@@ -10,7 +10,7 @@ from mpas_tools.mesh.creation.util import circumcenter
 import argparse
 
 
-def jigsaw_to_netcdf(msh_filename, output_name, on_sphere):
+def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
     """
     Converts mesh data defined in triangle format to NetCDF
 
@@ -22,6 +22,9 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere):
         The name of the output file
     on_sphere : bool
         Whether the mesh is spherical or planar
+    sphere_radius : float, optional
+        The radius of the sphere in meters.  If ``on_sphere=True`` this argument
+        is required, otherwise it is ignored.
     """
     # Authors: Phillip J. Wolfram, Matthew Hoffman and Xylar Asay-Davis
 
@@ -45,7 +48,6 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere):
     grid.createDimension('vertexDegree', vertexDegree)
 
     # Create cell variables and sphere_radius
-    sphere_radius = 6371000
     xCell_full = msh['POINT'][:, 0]
     yCell_full = msh['POINT'][:, 1]
     zCell_full = msh['POINT'][:, 2]
@@ -55,6 +57,10 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere):
     if on_sphere:
         grid.on_a_sphere = "YES"
         grid.sphere_radius = sphere_radius
+        # convert from km to meters
+        xCell_full *= 1e3
+        yCell_full *= 1e3
+        zCell_full *= 1e3
     else:
         grid.on_a_sphere = "NO"
         grid.sphere_radius = 0.0
@@ -142,7 +148,13 @@ def main():
         action="store_true",
         default=False,
         help="Determines if the input/output should be spherical or not.")
+    parser.add_argument(
+        "-r",
+        "--sphere_radius",
+        dest="sphere_radius",
+        type=float,
+        help="The radius of the sphere in meters")
 
-    options = parser.parse_args()
+    args = parser.parse_args()
 
-    jigsaw_to_netcdf(options.msh, options.output, options.spherical)
+    jigsaw_to_netcdf(args.msh, args.output, args.spherical, args.sphere_radius)
