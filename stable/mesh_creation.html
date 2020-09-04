@@ -174,7 +174,8 @@
 <span id="id1"></span><h1>Mesh Creation<a class="headerlink" href="#mesh-creation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="building-a-mesh">
 <h2>Building a Mesh<a class="headerlink" href="#building-a-mesh" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference internal" href="generated/mpas_tools.mesh.creation.build_mesh.build_mesh.html#mpas_tools.mesh.creation.build_mesh.build_mesh" title="mpas_tools.mesh.creation.build_mesh.build_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.build_mesh.build_mesh()</span></code></a> function is used
+<p>This is all out of date and needs refining!!!</p>
+<p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.build_mesh.build_mesh()</span></code> function is used
 create an MPAS mesh using the <a class="reference external" href="https://github.com/dengwirda/jigsaw">JIGSAW</a>
 and <a class="reference external" href="https://github.com/dengwirda/jigsaw-python">JIGSAW-Python</a> packages.</p>
 <p>The user must define a local python module <code class="docutils literal notranslate"><span class="pre">define_base_mesh</span></code> that provides a
@@ -194,7 +195,7 @@ to produce a VTK file in the <code class="docutils literal notranslate"><span cl
 <a class="reference external" href="https://www.paraview.org/">ParaVeiw</a>.</p>
 <p>Optionally, a field, <code class="docutils literal notranslate"><span class="pre">cellSeedMask</span></code>, can be added to the mesh file that can
 later be used preserve a “flood plain” of positive elevations in the MPAS mesh.
-See <a class="reference internal" href="generated/mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain.html#mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain" title="mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain()</span></code></a>.</p>
+See <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.inject_preserve_floodplain.inject_preserve_floodplain()</span></code>.</p>
 <p>Optioanlly, a field, <code class="docutils literal notranslate"><span class="pre">bottomDepthObserved</span></code>, can be added to the mesh file
 with bathymetry data from one of two topography files: <code class="docutils literal notranslate"><span class="pre">earth_relief_15s.nc</span></code>
 or <code class="docutils literal notranslate"><span class="pre">topo.msh</span></code>. If bathymetry should be added to the mesh, a local link with

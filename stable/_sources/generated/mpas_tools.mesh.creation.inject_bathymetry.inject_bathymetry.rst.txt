@@ -1,6 +1,0 @@
-﻿mpas\_tools.mesh.creation.inject\_bathymetry.inject\_bathymetry
-===============================================================
-
-.. currentmodule:: mpas_tools.mesh.creation.inject_bathymetry
-
-.. autofunction:: inject_bathymetry
