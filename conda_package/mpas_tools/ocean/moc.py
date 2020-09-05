@@ -18,7 +18,8 @@ def make_moc_basins_and_transects(gf, mesh_filename,
                                   mask_and_transect_filename,
                                   geojson_filename=None,
                                   mask_filename=None,
-                                  logger=None):
+                                  logger=None,
+                                  dir=None):
     """
     Builds features defining the ocean basins and southern transects used in
     computing the meridional overturning circulation (MOC)
@@ -42,6 +43,10 @@ def make_moc_basins_and_transects(gf, mesh_filename,
     logger : ``logging.Logger``, optional
         A logger for the output if not stdout
 
+    dir : str, optional
+        A directory in which a temporary directory will be added with files
+        produced during conversion and then deleted upon completion.
+
     Returns
     -------
     fc : ``FeatureCollection``
@@ -58,7 +63,7 @@ def make_moc_basins_and_transects(gf, mesh_filename,
 
     dsMesh = xarray.open_dataset(mesh_filename)
     dsMasks = mpas_tools.mesh.conversion.mask(dsMesh=dsMesh, fcMask=fcMOC,
-                                              logger=logger)
+                                              logger=logger, dir=dir)
 
     if mask_filename is not None:
         write_netcdf(dsMasks, mask_filename)

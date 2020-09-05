@@ -1,5 +1,5 @@
 {% set name = "mpas_tools" %}
-{% set version = "0.0.12" %}
+{% set version = "0.0.13" %}
 
 package:
   name: {{ name|lower }}
@@ -45,7 +45,6 @@ requirements:
     - geometric_features
     - pyevtk
     - future
-    - backports.tempfile
     - jigsaw >=0.9.12
     - jigsawpy >=0.2.1
     - pyflann

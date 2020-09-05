@@ -1,17 +1,14 @@
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
 import os
 import xarray
 import subprocess
-from backports.tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory
 import shutil
 
 from mpas_tools.io import write_netcdf
 
 
-def convert(dsIn, graphInfoFileName=None, logger=None):
-    '''
+def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
+    """
     Use ``MpasMeshConverter.x`` to convert an input mesh to a valid MPAS
     mesh that is fully compliant with the MPAS mesh specification.
     https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf
@@ -29,13 +26,18 @@ def convert(dsIn, graphInfoFileName=None, logger=None):
     logger : ``logging.Logger``, optional
         A logger for the output if not stdout
 
+    dir : str, optional
+        A directory in which a temporary directory will be added with files
+        produced during conversion and then deleted upon completion.
+
     Returns
     -------
     dsOut : ``xarray.Dataset``
         The MPAS mesh
-    '''
-
-    with TemporaryDirectory() as tempdir:
+    """
+    if dir is not None:
+        dir = os.path.abspath(dir)
+    with TemporaryDirectory(dir=dir) as tempdir:
         inFileName = '{}/mesh_in.nc'.format(tempdir)
         write_netcdf(dsIn, inFileName)
 
@@ -64,8 +66,8 @@ def convert(dsIn, graphInfoFileName=None, logger=None):
 
 
 def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
-         graphInfoFileName=None, logger=None):
-    '''
+         graphInfoFileName=None, logger=None, dir=None):
+    """
     Use ``MpasCellCuller.x`` to cull cells from a mesh based on the
     ``cullCell`` field in the input file or DataSet and/or the provided masks.
     ``cullCell``, dsMask and dsInverse are merged together so that the final
@@ -98,14 +100,19 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
     logger : ``logging.Logger``, optional
         A logger for the output if not stdout
 
+    dir : str, optional
+        A directory in which a temporary directory will be added with files
+        produced during cell culling and then deleted upon completion.
+
     Returns
     -------
     dsOut : ``xarray.Dataset``
         The culled mesh
 
-    '''
-
-    with TemporaryDirectory() as tempdir:
+    """
+    if dir is not None:
+        dir = os.path.abspath(dir)
+    with TemporaryDirectory(dir=dir) as tempdir:
         inFileName = '{}/ds_in.nc'.format(tempdir)
         write_netcdf(dsIn, inFileName)
         outFileName = '{}/ds_out.nc'.format(tempdir)
@@ -158,8 +165,9 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
     return dsOut
 
 
-def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False, logger=None):
-    '''
+def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False, logger=None,
+         dir=None):
+    """
     Use ``MpasMaskCreator.x`` to create a set of region masks either from
     mask feature collecitons or from seed points to be used to flood fill
 
@@ -178,14 +186,19 @@ def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False, logger=None):
     logger : ``logging.Logger``, optional
         A logger for the output if not stdout
 
+    dir : str, optional
+        A directory in which a temporary directory will be added with files
+        produced during mask creation and then deleted upon completion.
+
     Returns
     -------
     dsMask : ``xarray.Dataset``
         The masks
 
-    '''
-
-    with TemporaryDirectory() as tempdir:
+    """
+    if dir is not None:
+        dir = os.path.abspath(dir)
+    with TemporaryDirectory(dir=dir) as tempdir:
         inFileName = '{}/mesh_in.nc'.format(tempdir)
         write_netcdf(dsMesh, inFileName)
         outFileName = '{}/mesh_out.nc'.format(tempdir)
