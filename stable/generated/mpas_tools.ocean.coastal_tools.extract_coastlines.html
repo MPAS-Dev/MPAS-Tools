@@ -1,0 +1,266 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mpas_tools.ocean.coastal_tools.extract_coastlines &mdash; mpas_tools stable documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mpas_tools.ocean.coastal_tools.distance_to_coast" href="mpas_tools.ocean.coastal_tools.distance_to_coast.html" />
+    <link rel="prev" title="mpas_tools.ocean.coastal_tools.create_background_mesh" href="mpas_tools.ocean.coastal_tools.create_background_mesh.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                stable
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages.html">mpas_tools.ocean.coastline_alteration.add_critical_land_blockages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html">mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.make_moc_basins_and_transects.html">mpas_tools.ocean.moc.make_moc_basins_and_transects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.build_moc_basins.html">mpas_tools.ocean.moc.build_moc_basins</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html">mpas_tools.ocean.coastal_tools.coastal_refined_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.create_background_mesh.html">mpas_tools.ocean.coastal_tools.create_background_mesh</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools.extract_coastlines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.distance_to_coast.html">mpas_tools.ocean.coastal_tools.distance_to_coast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.compute_cell_width.html">mpas_tools.ocean.coastal_tools.compute_cell_width</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.save_matfile.html">mpas_tools.ocean.coastal_tools.save_matfile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.CPP_projection.html">mpas_tools.ocean.coastal_tools.CPP_projection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.smooth_coastline.html">mpas_tools.ocean.coastal_tools.smooth_coastline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_data_inside_box.html">mpas_tools.ocean.coastal_tools.get_data_inside_box</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_indices_inside_quad.html">mpas_tools.ocean.coastal_tools.get_indices_inside_quad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates.html">mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_coarse_coast.html">mpas_tools.ocean.coastal_tools.plot_coarse_coast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_region_box.html">mpas_tools.ocean.coastal_tools.plot_region_box</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_bathymetry.inject_bathymetry.html">mpas_tools.ocean.inject_bathymetry.inject_bathymetry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html">mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../api.html">API reference</a> &raquo;</li>
+        
+      <li>mpas_tools.ocean.coastal_tools.extract_coastlines</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/generated/mpas_tools.ocean.coastal_tools.extract_coastlines.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mpas-tools-ocean-coastal-tools-extract-coastlines">
+<h1>mpas_tools.ocean.coastal_tools.extract_coastlines<a class="headerlink" href="#mpas-tools-ocean-coastal-tools-extract-coastlines" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="mpas_tools.ocean.coastal_tools.extract_coastlines">
+<code class="sig-prename descclassname">mpas_tools.ocean.coastal_tools.</code><code class="sig-name descname">extract_coastlines</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">nc_file</span></em>, <em class="sig-param"><span class="n">nc_vars</span></em>, <em class="sig-param"><span class="n">region_box</span></em>, <em class="sig-param"><span class="n">z_contour</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">n_longest</span><span class="o">=</span><span class="default_value">10</span></em>, <em class="sig-param"><span class="n">point_list</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">plot_option</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">plot_box</span><span class="o">=</span><span class="default_value">[]</span></em>, <em class="sig-param"><span class="n">call</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/coastal_tools.html#extract_coastlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.ocean.coastal_tools.extract_coastlines" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mpas_tools.ocean.coastal_tools.distance_to_coast.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.coastal_tools.distance_to_coast" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mpas_tools.ocean.coastal_tools.create_background_mesh.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.coastal_tools.create_background_mesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
