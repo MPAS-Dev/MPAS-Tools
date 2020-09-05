@@ -35,6 +35,8 @@ def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
     dsOut : ``xarray.Dataset``
         The MPAS mesh
     """
+    if dir is not None:
+        dir = os.path.abspath(dir)
     with TemporaryDirectory(dir=dir) as tempdir:
         inFileName = '{}/mesh_in.nc'.format(tempdir)
         write_netcdf(dsIn, inFileName)
@@ -108,7 +110,8 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
         The culled mesh
 
     """
-
+    if dir is not None:
+        dir = os.path.abspath(dir)
     with TemporaryDirectory(dir=dir) as tempdir:
         inFileName = '{}/ds_in.nc'.format(tempdir)
         write_netcdf(dsIn, inFileName)
@@ -193,7 +196,8 @@ def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False, logger=None,
         The masks
 
     """
-
+    if dir is not None:
+        dir = os.path.abspath(dir)
     with TemporaryDirectory(dir=dir) as tempdir:
         inFileName = '{}/mesh_in.nc'.format(tempdir)
         write_netcdf(dsMesh, inFileName)
