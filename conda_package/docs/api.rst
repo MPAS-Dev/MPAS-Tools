@@ -28,6 +28,7 @@ MPAS mesh tools
 .. autosummary::
    :toctree: generated/
 
+   build_mesh
    build_mesh.build_spherical_mesh
    build_mesh.build_planar_mesh
    jigsaw_driver.jigsaw_driver
@@ -98,6 +99,15 @@ Ocean Tools
 
    make_moc_basins_and_transects
    build_moc_basins
+
+.. currentmodule:: mpas_tools.ocean
+
+.. autosummary::
+   :toctree: generated/
+
+   build_mesh
+   build_mesh.build_spherical_mesh
+   build_mesh.build_planar_mesh
 
 .. currentmodule:: mpas_tools.ocean.coastal_tools
 
