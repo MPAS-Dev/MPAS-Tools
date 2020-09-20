@@ -24,6 +24,8 @@ User's Guide
    mesh_creation
    mesh_conversion
 
+   ocean/index
+
 Developer's Guide
 =================
 .. toctree::
