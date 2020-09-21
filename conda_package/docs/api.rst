@@ -9,6 +9,9 @@ the documentation.
 MPAS mesh tools
 ===============
 
+Mesh creation
+-------------
+
 .. currentmodule:: mpas_tools.planar_hex
 
 .. autosummary::
@@ -44,6 +47,9 @@ MPAS mesh tools
    signed_distance.distance_from_geojson
    triangle_to_netcdf.triangle_to_netcdf
 
+Mesh conversion
+---------------
+
 .. currentmodule:: mpas_tools.mesh.conversion
 
 .. autosummary::
@@ -52,13 +58,6 @@ MPAS mesh tools
    convert
    cull
    mask
-
-.. currentmodule:: mpas_tools.cime
-
-.. autosummary::
-   :toctree: generated/
-
-   constants
 
 .. currentmodule:: mpas_tools.merge_grids
 
@@ -87,6 +86,16 @@ MPAS mesh tools
    :toctree: generated/
 
    scrip_from_mpas
+
+CIME constants
+--------------
+
+.. currentmodule:: mpas_tools.cime
+
+.. autosummary::
+   :toctree: generated/
+
+   constants
 
 Ocean Tools
 ===========
