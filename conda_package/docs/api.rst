@@ -88,6 +88,16 @@ Mesh conversion
 
    scrip_from_mpas
 
+Inerpolation
+------------
+
+.. currentmodule:: mpas_tools.mesh.interpolation
+
+.. autosummary::
+   :toctree: generated/
+
+   interp_bilin
+
 CIME constants
 --------------
 
