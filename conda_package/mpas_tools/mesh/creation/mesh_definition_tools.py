@@ -1,20 +1,13 @@
 #!/usr/bin/env python
-'''
-name: mesh_definition_tools
-
-These functions are tools used to define the cellWidth variable on
-regular lat/lon grids.  The cellWidth variable is a jigsaw input that
+"""
+These functions are tools used to define the ``cellWidth`` variable on
+regular lat/lon grids.  The ``cellWidth`` variable is a ``jigsaw`` input that
 defines the mesh.
-'''
+"""
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 import numpy as np
-
-
-##########################################################################
-# Functions
-##########################################################################
 
 
 def mergeCellWidthVsLat(
@@ -23,27 +16,33 @@ def mergeCellWidthVsLat(
         cellWidthInNorth,
         latTransition,
         latWidthTransition):
-    '''
-    mergeCellWidthVsLat: combine two cell width distributions using a tanh function.
-    This is inted as part of the workflow to make an MPAS global mesh.
+    """
+    Combine two cell width distributions using a ``tanh`` function. This is
+    intended as part of the workflow to make an MPAS global mesh.
 
-    Syntax: cellWidthOut = mergeCellWidthVsLat(lat, cellWidthInSouth, cellWidthInNorth, latTransition, latWidthTransition)
+    Parameters
+    ----------
+    lat : ndarray
+        vector of length n, with entries between -90 and 90, degrees
 
-    Inputs:
-       lat - vector of length n, with entries between -90 and 90, degrees
-       cellWidthInSouth - vector of length n, first distribution
-       cellWidthInNorth - vector of length n, second distribution
+    cellWidthInSouth : ndarray
+        vector of length n, first distribution
 
-    Optional inputs:
-       latTransition = 0 # lat to change from cellWidthInSouth to cellWidthInNorth, degrees
-       latWidthTransition = 0 # width of lat transition, degrees
+    cellWidthInNorth : ndarray
+        vector of length n, second distribution
 
-    Outputs:
-       cellWidthOut - vector of length n, entries are cell width as a function of lat
-    '''
-    # Assign defaults
-    # latTransition = 0 # lat to change from cellWidthInSouth to cellWidthInNorth, degrees
-    # latWidthTransition = 0 # width of lat transition, degrees
+    latTransition : float
+        lat to change from ``cellWidthInSouth`` to ``cellWidthInNorth`` in
+        degrees
+
+    latWidthTransition : float
+        width of lat transition in degrees
+
+    Returns
+    -------
+    cellWidthOut : ndarray
+        vector of length n, entries are cell width as a function of lat
+    """
 
     cellWidthOut = np.ones(lat.size)
     if latWidthTransition == 0:
@@ -72,7 +71,7 @@ def EC_CellWidthVsLat(lat, cellWidthEq=30.0, cellWidthMidLat=60.0,
 
     Parameters
     ----------
-    lat : numpy.ndarray
+    lat : ndarray
        vector of length n, with entries between -90 and 90, degrees
 
     cellWidthEq : float, optional
@@ -101,8 +100,7 @@ def EC_CellWidthVsLat(lat, cellWidthEq=30.0, cellWidthMidLat=60.0,
 
     Returns
     -------
-
-    cellWidthOut : numpy.ndarray
+    cellWidthOut : ndarray
          1D array of same length as ``lat`` with entries that are cell width as
          a function of lat
 
@@ -134,23 +132,31 @@ def EC_CellWidthVsLat(lat, cellWidthEq=30.0, cellWidthMidLat=60.0,
 
 
 def RRS_CellWidthVsLat(lat, cellWidthEq, cellWidthPole):
-    '''
-    RRS_CellWidthVsLat - Create Rossby Radius Scaling as a function of lat.
-    This is inted as part of the workflow to make an MPAS global mesh.
+    """
+    Create Rossby Radius Scaling as a function of lat.  This is intended  as
+    part of the workflow to make an MPAS global mesh.
 
-    Syntax: cellWidthOut = RRS_CellWidthVsLat(lat, cellWidthEq, cellWidthPole)
+    Parameters
+    ----------
+    lat : ndarray
+       vector of length n, with entries between -90 and 90, degrees
 
-    Inputs:
-       lat - vector of length n, with entries between -90 and 90, degrees
-       cellWidthEq - Cell width at the equator, km
-       cellWidthPole - Cell width at the poles, km
+    cellWidthEq : float, optional
+       Cell width in km at the equator
 
-    Outputs:
-       RRS_CellWidth - vector of length n, entries are cell width as a function of lat
+    cellWidthPole : float, optional
+       Cell width in km at the poles
 
-    Example:
-       RRS18to6 = RRS_CellWidthVsLat(lat,18,6)
-    '''
+    Returns
+    -------
+    cellWidthOut : ndarray
+         1D array of same length as ``lat`` with entries that are cell width as
+         a function of lat
+
+    Examples
+    --------
+    >>> RRS18to6 = EC_CellWidthVsLat(lat, 18., 6.)
+    """
 
     # ratio between high and low resolution
     gamma = (cellWidthPole / cellWidthEq)**4.0
@@ -162,20 +168,29 @@ def RRS_CellWidthVsLat(lat, cellWidthEq, cellWidthPole):
 
 
 def AtlanticPacificGrid(lat, lon, cellWidthInAtlantic, cellWidthInPacific):
-    '''
-    AtlanticPacificGrid: combine two cell width distributions using a tanh function.
+    """
+    Combine two cell width distributions using a ``tanh`` function.
 
-    Inputs:
-      lon - vector of length m, with entries between -180, 180, degrees
-      lat - vector of length n, with entries between -90, 90, degrees
-      cellWidthInAtlantic - vector of length n, cell width in Atlantic as a function of lon, km
-      cellWidthInPacific - vector of length n, cell width in Pacific as a function of lon, km
+    Parameters
+    ----------
+    lat : ndarray
+       vector of length n, with entries between -90 and 90, degrees
 
-    Optional inputs:
+    lon : ndarray
+       vector of length m, with entries between -180, 180, degrees
 
-    Outputs:
-      cellWidthOut - m by n array, grid cell width on globe, km
-    '''
+    cellWidthInAtlantic : float, optional
+       vector of length n, cell width in Atlantic as a function of lon, km
+
+    cellWidthInPacific : float, optional
+       vector of length n, cell width in Pacific as a function of lon, km
+
+    Returns
+    -------
+    cellWidthOut : ndarray
+         m by n array, grid cell width on globe, km
+
+    """
     cellWidthOut = np.zeros((lat.size, lon.size))
     for i in range(lon.size):
         for j in range(lat.size):
@@ -195,5 +210,3 @@ def AtlanticPacificGrid(lat, lon, cellWidthInAtlantic, cellWidthInPacific):
                 if (lon[i] > -60.0) & (lon[i] < 20.0):
                     cellWidthOut[j, i] = cellWidthInAtlantic[j]
     return cellWidthOut
-
-##############################################################
