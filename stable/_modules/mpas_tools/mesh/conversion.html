@@ -164,20 +164,17 @@
            <div itemprop="articleBody">
             
   <h1>Source code for mpas_tools.mesh.conversion</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
-    <span class="n">unicode_literals</span>
-
-<span class="kn">import</span> <span class="nn">os</span>
+<span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">xarray</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">from</span> <span class="nn">backports.tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
+<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
 
 <span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
 
 
-<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use ``MpasMeshConverter.x`` to convert an input mesh to a valid MPAS</span>
 <span class="sd">    mesh that is fully compliant with the MPAS mesh specification.</span>
 <span class="sd">    https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf</span>
@@ -195,13 +192,18 @@
 <span class="sd">    logger : ``logging.Logger``, optional</span>
 <span class="sd">        A logger for the output if not stdout</span>
 
+<span class="sd">    dir : str, optional</span>
+<span class="sd">        A directory in which a temporary directory will be added with files</span>
+<span class="sd">        produced during conversion and then deleted upon completion.</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dsOut : ``xarray.Dataset``</span>
 <span class="sd">        The MPAS mesh</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-
-    <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tempdir</span><span class="p">:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">)</span> <span class="k">as</span> <span class="n">tempdir</span><span class="p">:</span>
         <span class="n">inFileName</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/mesh_in.nc&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>
         <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">inFileName</span><span class="p">)</span>
 
@@ -230,8 +232,8 @@
 
 
 <div class="viewcode-block" id="cull"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull">[docs]</a><span class="k">def</span> <span class="nf">cull</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">dsMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsInverse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsPreserve</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-         <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+         <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use ``MpasCellCuller.x`` to cull cells from a mesh based on the</span>
 <span class="sd">    ``cullCell`` field in the input file or DataSet and/or the provided masks.</span>
 <span class="sd">    ``cullCell``, dsMask and dsInverse are merged together so that the final</span>
@@ -264,14 +266,19 @@
 <span class="sd">    logger : ``logging.Logger``, optional</span>
 <span class="sd">        A logger for the output if not stdout</span>
 
+<span class="sd">    dir : str, optional</span>
+<span class="sd">        A directory in which a temporary directory will be added with files</span>
+<span class="sd">        produced during cell culling and then deleted upon completion.</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dsOut : ``xarray.Dataset``</span>
 <span class="sd">        The culled mesh</span>
 
-<span class="sd">    &#39;&#39;&#39;</span>
-
-    <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tempdir</span><span class="p">:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">)</span> <span class="k">as</span> <span class="n">tempdir</span><span class="p">:</span>
         <span class="n">inFileName</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/ds_in.nc&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>
         <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">inFileName</span><span class="p">)</span>
         <span class="n">outFileName</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/ds_out.nc&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>
@@ -324,8 +331,9 @@
     <span class="k">return</span> <span class="n">dsOut</span></div>
 
 
-<div class="viewcode-block" id="mask"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask">[docs]</a><span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fcSeed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">positiveLon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<div class="viewcode-block" id="mask"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask">[docs]</a><span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fcSeed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">positiveLon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+         <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use ``MpasMaskCreator.x`` to create a set of region masks either from</span>
 <span class="sd">    mask feature collecitons or from seed points to be used to flood fill</span>
 
@@ -344,14 +352,19 @@
 <span class="sd">    logger : ``logging.Logger``, optional</span>
 <span class="sd">        A logger for the output if not stdout</span>
 
+<span class="sd">    dir : str, optional</span>
+<span class="sd">        A directory in which a temporary directory will be added with files</span>
+<span class="sd">        produced during mask creation and then deleted upon completion.</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dsMask : ``xarray.Dataset``</span>
 <span class="sd">        The masks</span>
 
-<span class="sd">    &#39;&#39;&#39;</span>
-
-    <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">()</span> <span class="k">as</span> <span class="n">tempdir</span><span class="p">:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="nb">dir</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">TemporaryDirectory</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">)</span> <span class="k">as</span> <span class="n">tempdir</span><span class="p">:</span>
         <span class="n">inFileName</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/mesh_in.nc&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>
         <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">inFileName</span><span class="p">)</span>
         <span class="n">outFileName</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/mesh_out.nc&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>

@@ -202,7 +202,7 @@
 <h1>mpas_tools.ocean.moc.make_moc_basins_and_transects<a class="headerlink" href="#mpas-tools-ocean-moc-make-moc-basins-and-transects" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt id="mpas_tools.ocean.moc.make_moc_basins_and_transects">
-<code class="sig-prename descclassname">mpas_tools.ocean.moc.</code><code class="sig-name descname">make_moc_basins_and_transects</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gf</span></em>, <em class="sig-param"><span class="n">mesh_filename</span></em>, <em class="sig-param"><span class="n">mask_and_transect_filename</span></em>, <em class="sig-param"><span class="n">geojson_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mask_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/moc.html#make_moc_basins_and_transects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.ocean.moc.make_moc_basins_and_transects" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mpas_tools.ocean.moc.</code><code class="sig-name descname">make_moc_basins_and_transects</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gf</span></em>, <em class="sig-param"><span class="n">mesh_filename</span></em>, <em class="sig-param"><span class="n">mask_and_transect_filename</span></em>, <em class="sig-param"><span class="n">geojson_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mask_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dir</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/moc.html#make_moc_basins_and_transects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.ocean.moc.make_moc_basins_and_transects" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds features defining the ocean basins and southern transects used in
 computing the meridional overturning circulation (MOC)
 :param gf: An object that knows how to download and read geometric featuers
@@ -216,7 +216,11 @@ computing the meridional overturning circulation (MOC)
 :param mask_filename: A file to write MOC region masks to
 :type mask_filename: str, optional
 :param logger: A logger for the output if not stdout
-:type logger: <code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, optional</p>
+:type logger: <code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, optional
+:param dir: A directory in which a temporary directory will be added with files</p>
+<blockquote>
+<div><p>produced during conversion and then deleted upon completion.</p>
+</div></blockquote>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><strong>fc</strong> (<code class="docutils literal notranslate"><span class="pre">FeatureCollection</span></code>) – The new feature collection</p>

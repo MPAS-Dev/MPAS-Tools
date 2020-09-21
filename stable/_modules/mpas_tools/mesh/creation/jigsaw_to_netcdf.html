@@ -176,7 +176,7 @@
 <span class="kn">import</span> <span class="nn">argparse</span>
 
 
-<div class="viewcode-block" id="jigsaw_to_netcdf"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html#mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf">[docs]</a><span class="k">def</span> <span class="nf">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">msh_filename</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">on_sphere</span><span class="p">):</span>
+<div class="viewcode-block" id="jigsaw_to_netcdf"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html#mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf">[docs]</a><span class="k">def</span> <span class="nf">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">msh_filename</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">on_sphere</span><span class="p">,</span> <span class="n">sphere_radius</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Converts mesh data defined in triangle format to NetCDF</span>
 
@@ -188,6 +188,9 @@
 <span class="sd">        The name of the output file</span>
 <span class="sd">    on_sphere : bool</span>
 <span class="sd">        Whether the mesh is spherical or planar</span>
+<span class="sd">    sphere_radius : float, optional</span>
+<span class="sd">        The radius of the sphere in meters.  If ``on_sphere=True`` this argument</span>
+<span class="sd">        is required, otherwise it is ignored.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Authors: Phillip J. Wolfram, Matthew Hoffman and Xylar Asay-Davis</span>
 
@@ -211,7 +214,6 @@
     <span class="n">grid</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;vertexDegree&#39;</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">)</span>
 
     <span class="c1"># Create cell variables and sphere_radius</span>
-    <span class="n">sphere_radius</span> <span class="o">=</span> <span class="mi">6371000</span>
     <span class="n">xCell_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;POINT&#39;</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span>
     <span class="n">yCell_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;POINT&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">zCell_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;POINT&#39;</span><span class="p">][:,</span> <span class="mi">2</span><span class="p">]</span>
@@ -221,6 +223,10 @@
     <span class="k">if</span> <span class="n">on_sphere</span><span class="p">:</span>
         <span class="n">grid</span><span class="o">.</span><span class="n">on_a_sphere</span> <span class="o">=</span> <span class="s2">&quot;YES&quot;</span>
         <span class="n">grid</span><span class="o">.</span><span class="n">sphere_radius</span> <span class="o">=</span> <span class="n">sphere_radius</span>
+        <span class="c1"># convert from km to meters</span>
+        <span class="n">xCell_full</span> <span class="o">*=</span> <span class="mf">1e3</span>
+        <span class="n">yCell_full</span> <span class="o">*=</span> <span class="mf">1e3</span>
+        <span class="n">zCell_full</span> <span class="o">*=</span> <span class="mf">1e3</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">grid</span><span class="o">.</span><span class="n">on_a_sphere</span> <span class="o">=</span> <span class="s2">&quot;NO&quot;</span>
         <span class="n">grid</span><span class="o">.</span><span class="n">sphere_radius</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -308,10 +314,16 @@
         <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Determines if the input/output should be spherical or not.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;-r&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;--sphere_radius&quot;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;sphere_radius&quot;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The radius of the sphere in meters&quot;</span><span class="p">)</span>
 
-    <span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
-    <span class="n">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">msh</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">spherical</span><span class="p">)</span>
+    <span class="n">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">msh</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">output</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">spherical</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">sphere_radius</span><span class="p">)</span>
 </pre></div>
 
            </div>
