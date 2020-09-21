@@ -53,6 +53,13 @@ MPAS mesh tools
    cull
    mask
 
+.. currentmodule:: mpas_tools.cime
+
+.. autosummary::
+   :toctree: generated/
+
+   constants
+
 .. currentmodule:: mpas_tools.merge_grids
 
 .. autosummary::
@@ -161,3 +168,15 @@ Visualization
    :toctree: generated/
 
    extract_vtk
+
+
+Tests
+=====
+
+.. currentmodule:: mpas_tools.tests.test_cime_constants
+
+.. autosummary::
+   :toctree: generated/
+
+   test_cime_constants
+
