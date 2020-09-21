@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-'''
+"""
 name: coastal_tools
 authors: Steven Brus
 
 last modified: 07/09/2018
 
-'''
+"""
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
@@ -251,7 +251,40 @@ default_params = {
 ##########################################################################
 
 
-def coastal_refined_mesh(params, cell_width=None, lon_grd=None, lat_grd=None):  # {{{
+def coastal_refined_mesh(params, cell_width=None, lon_grd=None, lat_grd=None):
+    # {{{
+    """
+    Optionally create a background field of cell widths, then add a region of
+    refined resolution to the cell widths.
+
+    Parameters
+    ----------
+    params : dict
+        A dictionary of parameters determining how the mesh is constructed.
+        See ``mpas_tools.ocean.coastal_tools.default_params``.
+
+    cell_width : ndarray, optional
+        A 2D array of cell widths in meters.  If none is provided, one a base
+        ``cell_width`` field constructed using parameter values from ``params``
+        to call ``create_background_mesh``.
+
+    lon_grd : ndarray, optional
+        A 1D array of longitudes in degrees in the range from -180 to 180
+
+    lat_grd : ndarray, optional
+        A 1D array of latitudes in degrees in the range from -90 to 90
+
+    Returns
+    -------
+    cell_width : ndarray
+        A 2D array of cell widths in meters.
+
+    lon_grd : ndarray
+        A 1D array of longitudes in degrees in the range from -180 to 180
+
+    lat_grd : ndarray
+        A 1D array of latitudes in degrees in the range from -90 to 90
+    """
 
     coastal_refined_mesh.counter += 1
     call_count = coastal_refined_mesh.counter
@@ -324,6 +357,58 @@ coastal_refined_mesh.counter = 0
 
 def create_background_mesh(grd_box, ddeg, mesh_type, dx_min, dx_max,  # {{{
                            plot_option=False, plot_box=[], call=None):
+    """
+    Create a background field of cell widths
+
+    Parameters
+    ----------
+    grd_box : list of float
+        A list of 4 floats defining the bounds (min lon, max lon, min lat, max
+        lat) of the grid
+
+    ddeg : float
+        The resolution of the mesh in degrees
+
+    mesh_type : {'QU', 'EC', 'RRS'}
+        The type of mesh: quasi-uniform (QU), Eddy-closure (EC) or Rossby-radius
+        scaling (RRS)
+
+    dx_min : float
+        The resolution in meters of a QU mesh or the minimum resolution of of
+        an RRS mesh. This parameter is ignored for EC meshes and the default
+        function arguments to ``EC_CellWidthVsLat()`` are used instead.
+
+    dx_max : float
+        The maximum resolution in meters of of an RRS mesh. This parameter is
+        ignored for QU meshes and EC meshes.  For EC meshes, the default
+        function arguments are used instead.
+
+    plot_option : bool, optional
+        Whether to plot the resulting cell width and save it to files
+        named ``bckgrnd_grid_cell_width_vs_lat###.png`` and
+        ``bckgnd_grid_cell_width###.png``, where ``###`` is given by
+        ``call`` and is meant to indicate how many times this function has been
+        called during mesh creation.
+
+    plot_box : list of float, optional
+        The extent of the plot if ``plot_option=True``
+
+    call : int, optional
+        The number of times the function has been called, used to give the
+        plot a unique name.
+
+
+    Returns
+    -------
+    cell_width : ndarray
+        A 2D array of cell widths in meters.
+
+    lon_grd : ndarray
+        A 1D array of longitudes in degrees in the range from -180 to 180
+
+    lat_grd : ndarray
+        A 1D array of latitudes in degrees in the range from -90 to 90
+    """
 
     print("Create background mesh")
     print("------------------------")
@@ -372,8 +457,56 @@ def create_background_mesh(grd_box, ddeg, mesh_type, dx_min, dx_max,  # {{{
 ##############################################################
 
 
-def extract_coastlines(nc_file, nc_vars, region_box, z_contour=0, n_longest=10, point_list=None,   # {{{
-                       plot_option=False, plot_box=[], call=None):
+def extract_coastlines(nc_file, nc_vars, region_box, z_contour=0, n_longest=10,
+                       point_list=None, plot_option=False, plot_box=[],
+                       call=None):   # {{{
+
+    """
+    Extracts a set of coastline contours
+
+    Parameters
+    ----------
+    nc_file : str
+        A bathymetry dataset on a lon/lat grid in NetCDF format
+
+    nc_vars : list of str
+        The names of the longitude (nc_vars[0]), latitude (nc_vars[1]) and
+        bathymetry (nc_vars[2]) variables.
+
+    region_box : dict of list of ndarrays
+        A region made up of a list of quadrilaterals to ``include`` and another
+        list to ``exclude``.  The quadrilaterals are either bounding rectangles
+        (min lon, max lon, min lat, max lat) or lists of 4 (lon, lat) points.
+
+    z_contour : float, optional
+        The isocontour of the bathymetry dataset to extract
+
+    n_longest : int, optional
+        The maximum number of contours to keep, after sorting from the longest
+        to the shortest
+
+    point_list : ndarray, optional
+        A list of points to add to the coastline
+
+    plot_option : bool, optional
+        Whether to plot the resulting coastline points and the plot to a file
+        named ``bathy_coastlines###.png``, where ``###`` is given by
+        ``call`` and is meant to indicate how many times this function has been
+        called during mesh creation.
+
+    plot_box : list of float, optional
+        The extent of the plot if ``plot_option=True``
+
+    call : int, optional
+        The number of times the function has been called, used to give the
+        plot a unique name.
+
+    Returns
+    -------
+    coastlines : ndarray
+        An n x 2 array of (longitude, latitude) points along the coastline
+        contours
+    """
 
     print("Extract coastlines")
     print("------------------")
@@ -435,8 +568,6 @@ def extract_coastlines(nc_file, nc_vars, region_box, z_contour=0, n_longest=10, 
             cpad = np.vstack((points, [np.nan, np.nan]))
             coastline_list.append(cpad)
 
-
-
     # Combine coastlines
     coastlines = np.concatenate(coastline_list)
 
@@ -479,8 +610,55 @@ def extract_coastlines(nc_file, nc_vars, region_box, z_contour=0, n_longest=10, 
 ##############################################################
 
 
-def distance_to_coast(coastlines, lon_grd, lat_grd, origin, nn_search, smooth_window,  # {{{
-                      plot_option=False, plot_box=[], call=None):
+def distance_to_coast(coastlines, lon_grd, lat_grd, origin, nn_search,
+                      smooth_window, plot_option=False, plot_box=[], call=None):
+    # {{{
+    """
+    Extracts a set of coastline contours
+
+    Parameters
+    ----------
+    coastlines : ndarray
+        An n x 2 array of (longitude, latitude) points along the coastline
+        contours returned from ``extract_coastlines()``
+
+    lon_grd : ndarray
+        A 1D array of longitudes in degrees in the range from -180 to 180
+
+    lat_grd : ndarray
+        A 1D array of latitudes in degrees in the range from -90 to 90
+
+    origin : ndarray
+        A lon/lat point defining the origin, not currently used by the code
+
+    nn_search : {'kdtree', 'flann'}
+        The algorithm to use for the nearest neightbor search.  'flann' is
+        strongly recommended, as it is faster and more memory efficient in our
+        testing.
+
+    smooth_window : int
+        The number of adjacent coastline points to average together to smooth
+        the coastal contours.  Use ``0`` to indicate no smoothing.
+
+    plot_option : bool, optional
+        Whether to plot the resulting coastline points and the plot to a file
+        named ``bathy_coastlines###.png``, where ``###`` is given by
+        ``call`` and is meant to indicate how many times this function has been
+        called during mesh creation.
+
+    plot_box : list of float, optional
+        The extent of the plot if ``plot_option=True``
+
+    call : int, optional
+        The number of times the function has been called, used to give the
+        plot a unique name.
+
+    Returns
+    -------
+    D : ndarray
+        A len(lat_grd) x len(lon_grd) array of distances in meters on the
+        lon/lat grid to the closest point in the (smoothed) coastline contour.
+    """
 
     print("Distance to coast")
     print("-----------------")
@@ -561,8 +739,77 @@ def distance_to_coast(coastlines, lon_grd, lat_grd, origin, nn_search, smooth_wi
 ##############################################################
 
 
-def compute_cell_width(D, cell_width, lon, lat, dx_min, trans_start, trans_width, restrict_box,   # {{{
-                       plot_option=False, plot_box=[], lon_grd=[], lat_grd=[], coastlines=[], call=None):
+def compute_cell_width(D, cell_width, lon, lat, dx_min, trans_start,
+                       trans_width, restrict_box, plot_option=False,
+                       plot_box=[], lon_grd=[], lat_grd=[], coastlines=[],
+                       call=None):  # {{{
+    """
+    Blend cell widths from the input field with the new resolution in the
+    refined region determined by the distance to the coastline contour.
+
+    Parameters
+    ----------
+    D : ndarray
+        A len(lat) x len(lon) array of distances in meters on the lon/lat grid
+        to the closest point in the (smoothed) coastline contour returned from
+        ``distance_to_coast()``
+
+    cell_width : ndarray
+        A len(lat) x len(lon) array of cell widths in meters
+
+    lon : ndarray
+        A 1D array of longitudes in degrees in the range from -180 to 180
+
+    lat : ndarray
+        A 1D array of latitudes in degrees in the range from -90 to 90
+
+    dx_min : float
+        The resolution in meters of the new refined region.
+
+    trans_start : float
+        The approximate value of ``D`` in meters at which the transition in
+        resolution should start
+
+    trans_width : float
+        The approximate width in meters over which the transition in resolution
+        should take place
+
+    restrict_box : dict of lists of ndarrays
+        A region of made up of quadrilaterals to ``include`` and ``exclude``
+        that defines where resolution may be altered.  Outside of the
+        ``restrict_box``, the resolution remains unchanged.
+
+    plot_option : bool, optional
+        Whether to plot the resulting coastline points and the plot to files
+        named ``cell_width###.png`` and ``trans_func###.png```, where ``###``
+        is given by ``call`` and is meant to indicate how many times this
+        function has been called during mesh creation.
+
+    plot_box : list of float, optional
+        The extent of the plot if ``plot_option=True``
+
+    lon_grd : ndarray
+        A 1D array of longitudes in degrees in the range from -180 to 180 used
+        in plotting if ``plot_option=True`` (the same as ``lon``)
+
+    lat_grd : ndarray
+        A 1D array of latitudes in degrees in the range from -90 to 90 used
+        in plotting if ``plot_option=True`` (the same as ``lat``)
+
+    coastlines : ndarray
+        An n x 2 array of (longitude, latitude) points along the coastline
+        contours returned from ``extract_coastlines()`` used in plotting if
+        ``plot_option=True``
+
+    call : int, optional
+        The number of times the function has been called, used to give the
+        plot a unique name.
+
+    Returns
+    -------
+    cell_width : ndarray
+        A len(lat) x len(lon) array of the new cell widths in meters
+    """
 
     print("Compute cell width")
     print("------------------")
@@ -596,7 +843,7 @@ def compute_cell_width(D, cell_width, lon, lat, dx_min, trans_start, trans_width
         cell_width = (dx_min*dist_weight +
                       np.multiply(cell_width_old, backgnd_weight))
 
-    # Don't applt cell width function in exclude regions (revert to previous values)
+    # Don't apply cell width function in exclude regions (revert to previous values)
     if len(restrict_box["exclude"]) > 0:
         for box in restrict_box["exclude"]:
             idx = get_indices_inside_quad(lon, lat, box)

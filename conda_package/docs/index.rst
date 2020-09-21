@@ -27,7 +27,14 @@ User's Guide
 
    cime
 
-   ocean/index
+Ocean Tools
+-----------
+
+.. toctree::
+   :maxdepth: 2
+
+   ocean/mesh_creation
+   ocean/coastal_tools
 
 Developer's Guide
 =================
