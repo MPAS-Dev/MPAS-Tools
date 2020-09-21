@@ -1,10 +1,4 @@
-'''
-Script to convert from MPAS netCDF format to the Triangle format:
-https://www.cs.cmu.edu/~quake/triangle.node.html
-https://www.cs.cmu.edu/~quake/triangle.ele.html
 
-Only works for planar meshes.
-'''
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
@@ -14,8 +8,23 @@ from optparse import OptionParser
 
 
 def mpas_to_triangle(mpasfile, trifile):
+    """
+    Script to convert from MPAS netCDF format to the Triangle format:
+    https://www.cs.cmu.edu/~quake/triangle.node.html
+    https://www.cs.cmu.edu/~quake/triangle.ele.html
 
-    fin = NetCDFFile(options.mpasfile, 'r')
+    Parameters
+    ----------
+    mpasfile : str
+        The path to an MPAS mesh in NetCDF format
+
+    trifile : str
+        The prefix for the Triangle output files.  Files with extensions
+        ``.node`` and ``.ele`` will be produced.
+
+    Only works for planar meshes.
+    """
+    fin = NetCDFFile(mpasfile, 'r')
     if fin.on_a_sphere == "YES":
         sys.abort("ERROR: This script only works for planar meshes!")
 
@@ -32,7 +41,7 @@ def mpas_to_triangle(mpasfile, trifile):
     ConV = fin.variables['cellsOnVertex'][:]
 
     # create node file
-    fnode = open(options.trifile + ".node", 'w')
+    fnode = open(trifile + ".node", 'w')
     # write node file header:   First line: <# of vertices> <dimension (must
     # be 2)> <# of attributes> <# of boundary markers (0 or 1)>
     fnode.write("{:d} 2 0 1\n".format(nCells))
@@ -48,11 +57,11 @@ def mpas_to_triangle(mpasfile, trifile):
                 xCell[i],
                 yCell[i],
                 isBdy))
-    fnode.write("# Generated from MPAS file: {}\n".format(options.mpasfile))
+    fnode.write("# Generated from MPAS file: {}\n".format(mpasfile))
     fnode.close()
 
     # create ele file
-    fele = open(options.trifile + ".ele", "w")
+    fele = open(trifile + ".ele", "w")
 
     # calculate number of non-degenerate triangles
     numtri = 0
@@ -71,7 +80,7 @@ def mpas_to_triangle(mpasfile, trifile):
             cnt += 1
             fele.write("{:d} {:d} {:d} {:d}\n".format(
                 cnt, ConV[i, 0], ConV[i, 1], ConV[i, 2]))
-    fele.write("# Generated from MPAS file: {}\n".format(options.mpasfile))
+    fele.write("# Generated from MPAS file: {}\n".format(mpasfile))
     fele.close()
 
     fin.close()
