@@ -136,24 +136,25 @@ Ocean Tools
    build_mesh.build_spherical_mesh
    build_mesh.build_planar_mesh
 
-.. currentmodule:: mpas_tools.ocean.coastal_tools
+.. currentmodule:: mpas_tools.ocean
 
 .. autosummary::
    :toctree: generated/
 
-   coastal_refined_mesh
-   create_background_mesh
-   extract_coastlines
-   distance_to_coast
-   compute_cell_width
-   save_matfile
-   CPP_projection
-   smooth_coastline
-   get_data_inside_box
-   get_indices_inside_quad
-   get_convex_hull_coordinates
-   plot_coarse_coast
-   plot_region_box
+   coastal_tools
+   coastal_tools.coastal_refined_mesh
+   coastal_tools.create_background_mesh
+   coastal_tools.extract_coastlines
+   coastal_tools.distance_to_coast
+   coastal_tools.compute_cell_width
+   coastal_tools.save_matfile
+   coastal_tools.CPP_projection
+   coastal_tools.smooth_coastline
+   coastal_tools.get_data_inside_box
+   coastal_tools.get_indices_inside_quad
+   coastal_tools.get_convex_hull_coordinates
+   coastal_tools.plot_coarse_coast
+   coastal_tools.plot_region_box
 
 .. currentmodule:: mpas_tools.ocean.inject_bathymetry
 
