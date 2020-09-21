@@ -1,5 +1,8 @@
 .. _mesh_creation:
 
+.. |---| unicode:: U+2014  .. em dash, trimming surrounding whitespace
+   :trim:
+
 *************
 Mesh Creation
 *************
@@ -252,6 +255,9 @@ km) around Antarctica.
 
     cellWidth = mdt.EC_CellWidthVsLat(lat)
 
+    # broadcast cellWidth to 2D
+    _, cellWidth = np.meshgrid(lon, cellWidthVsLat)
+
     # now, add the high-res region
     fc = read_feature_collection('high_res_region.geojson')
 
@@ -276,5 +282,4 @@ distance.  For these purposes, use the functions
 and
 :py:func:`mpas_tools.mesh.creation.signed_distance.distance_from_geojson()`,
 respectively.
-
 
