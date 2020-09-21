@@ -98,3 +98,99 @@ Underlying both spherical and planar mesh creation is the JIGSAW driver
 function :py:func:`mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver()`.  This
 function is used to setup data structures and then build a JIGSAW mesh using
 ``jigsawpy``.
+
+Mesh Definition Tools
+=====================
+
+The :py:mod:`mpas_tools.mesh.creation.mesh_definition_tools` module includes
+several tools for defining the ``cellWidth`` variable.
+
+Merging Cell Widths
+-------------------
+The function
+:py:func:`mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat()`
+is used to combine two cell-width distributions that are functions of latitude
+only and which asymptote to different constant values north and south of a given
+transition latitude with a ``tanh`` function of a given characteristic width.
+
+For example, the following code snippet will produce cell widths as a function
+of latitude of about 30 km south of the Arctic Circle and 10 km north of that
+latitude, transitioning over a characteristic "distance" of about 5 degrees.
+
+.. code-block:: python
+
+    import numpy
+    from mpas_tools.mesh.creation.mesh_definition_tools import \
+        mergeCellWidthVsLat
+
+
+    lat = numpy.linspace(-90., 90., 181)
+    cellWidthInSouth = 30.
+    cellWidthInNorth = 10.
+    latTransition = 66.5
+    latWidthTransition = 5.
+
+    cellWidths = mergeCellWidthVsLat(lat, cellWidthInSouth, cellWidthInNorth,
+        latTransition, latWidthTransition)
+
+
+Defining an Eddy-closure Mesh
+-----------------------------
+
+One of the commonly used flavor of MPAS-Ocean and MPAS-Seaice meshes is designed
+with relatively coarse resolution in mind (requiring parameterization of ocean
+eddies with an "eddy closure").  This flavor of mesh has resolution that is
+purely a function of latitude, with 5 regions of relatively uniform resolution
+(north polar, northern mid-latitudes, equatorial, southern mid-latitudes and
+south polar) with smooth (``tanh``) transitions between these resolutions.
+
+The default EC mesh has resolutions of 35 km at the poles, 60 km at
+mid-latitudes and 30 km at the equator.  Transitions between equatorial and
+mid-latitude regions are at 15 degrees N/S latitude and transitions between
+mid-latitude and polar regions are at 73 degrees N/S latitude.  The
+transition near the equator is somewhat more abrupt (~6 degrees) than near the
+poles (~9 degrees).  The switch between the transitional ``tanh`` functions is
+made at 40 degrees N/S latitude, where the resolution is nearly constant and no
+appreciable discontinuity arises.  The default EC mesh can be obtained with the
+function
+:py:func:`mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat()`:
+
+.. code-block:: python
+
+    import numpy
+    from mpas_tools.mesh.creation.mesh_definition_tools import \
+        EC_CellWidthVsLat
+
+    lat = numpy.linspace(-90., 90., 181)
+    cellWidths = EC_CellWidthVsLat(lat)
+
+Defining a Rossby-radius Mesh
+-----------------------------
+
+Another common flavor of MPAS-Ocean and MPAS-Seaice meshes is designed for
+higher resolutions, where the Rossby radius of deformation can be (at least
+partially) resolved.  These meshes approximately scale their resolution in
+proportion to the Rossby radius.
+
+A typical Rossby Radius Scaling (RRS) mesh has a resolution at the poles that is
+three times finer than the resolution at the equator.  For example, the RRS mesh
+used in E3SMv1 high resolution simulations would be defined, using the function
+:py:func:`mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat()`
+by:
+
+.. code-block:: python
+
+    import numpy
+    from mpas_tools.mesh.creation.mesh_definition_tools import \
+        RRS_CellWidthVsLat
+
+    lat = numpy.linspace(-90., 90., 181)
+    cellWidths = RRS_CellWidthVsLat(lat, cellWidthEq=18., cellWidthPole=6.)
+
+Defining an Atlantic/Pacific Mesh
+---------------------------------
+
+The function
+:py:func:`mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid()`
+can be used to define a mesh that has two different, constant resolutions in the
+Atlantic and Pacific Oceans.

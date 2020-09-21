@@ -36,12 +36,13 @@ Mesh creation
    build_mesh.build_planar_mesh
    jigsaw_driver.jigsaw_driver
    jigsaw_to_netcdf.jigsaw_to_netcdf
+   mesh_definition_tools
    mesh_definition_tools.mergeCellWidthVsLat
    mesh_definition_tools.EC_CellWidthVsLat
    mesh_definition_tools.RRS_CellWidthVsLat
    mesh_definition_tools.AtlanticPacificGrid
    mpas_to_triangle.mpas_to_triangle
-   open_msh.readmsh
+   signed_distance
    signed_distance.signed_distance_from_geojson
    signed_distance.mask_from_geojson
    signed_distance.distance_from_geojson
