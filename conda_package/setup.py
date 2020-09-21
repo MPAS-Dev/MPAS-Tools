@@ -64,4 +64,5 @@ setup(name='mpas_tools',
                      'inject_preserve_floodplain = mpas_tools.ocean.inject_preserve_floodplain:main',
                      'mpas_to_triangle = mpas_tools.mesh.creation.mpas_to_triangle:main',
                      'triangle_to_netcdf = mpas_tools.mesh.creation.triangle_to_netcdf:main',
-                     'jigsaw_to_netcdf = mpas_tools.mesh.creation.jigsaw_to_netcdf:main']})
+                     'jigsaw_to_netcdf = mpas_tools.mesh.creation.jigsaw_to_netcdf:main',
+                     'scrip_from_mpas = mpas_tools.scrip.from_mpas:main']})
