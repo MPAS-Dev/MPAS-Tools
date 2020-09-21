@@ -133,6 +133,7 @@ latitude, transitioning over a characteristic "distance" of about 5 degrees.
     cellWidths = mergeCellWidthVsLat(lat, cellWidthInSouth, cellWidthInNorth,
         latTransition, latWidthTransition)
 
+.. _ec_mesh:
 
 Defining an Eddy-closure Mesh
 -----------------------------
@@ -164,6 +165,8 @@ function
     lat = numpy.linspace(-90., 90., 181)
     cellWidths = EC_CellWidthVsLat(lat)
 
+.. _rrs_mesh:
+
 Defining a Rossby-radius Mesh
 -----------------------------
 
@@ -194,3 +197,84 @@ The function
 :py:func:`mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid()`
 can be used to define a mesh that has two different, constant resolutions in the
 Atlantic and Pacific Oceans.
+
+
+Signed Distance Functions
+=========================
+
+The :py:mod:`mpas_tools.mesh.creation.signed_distance` module includes several
+functions for creating ``cellWidth`` variables based on the signed distance from
+a boundary curve on the sphere.  A signed distance function is positive outside
+the bounding shape and negative inside, with a value proportional to the
+distance to the nearest point on the curve (so the function is equal to zero on
+the curve).  Signed distance functions provide a useful way ot define
+transitions in resolution based on complex shapes that can be defined using
+`geojson <https://geojson.org/>`_ files.  These files can be created by hand,
+e.g. at `geojson.io <http://geojson.io/>`_ or in python using libraries like
+`shapely <https://shapely.readthedocs.io/en/stable/index.html>`_.
+
+Calls to the functions in this module require a
+`FeatureCollection <http://mpas-dev.github.io/geometric_features/stable/feature_collection.html>`_
+object from the
+`geometric_features <http://mpas-dev.github.io/geometric_features/stable/index.html>`_
+package.  The ``FeatureColleciton`` must define one or more regions on the
+sphere from which the distance, mask, or signed distance will be computed.
+The ``FeatureColleciton`` could come from the predefined features included in
+``geometric_features``, could be read in from a ``geojson`` file (see
+`Reading in Features <http://mpas-dev.github.io/geometric_features/stable/feature_collection.html#reading-in-features>`_),
+or could be created as part of a python script with ``shapely`` or other tools.
+
+In this example, we first define a base resolution using the default EC mesh
+(see :ref:`ec_mesh`) and then use
+:py:func:`mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson()`
+to create a signed distance function from a ``FeatureCollection`` read in from
+`this geojson file <https://github.com/MPAS-Dev/MPAS-Model/blob/ocean/develop/testing_and_setup/compass/ocean/global_ocean/SO60to10wISC/init/high_res_region.geojson>`_.
+The signed distance function is used to define a region of high resolution (12
+km) around Antarctica.
+
+.. code-block:: python
+
+    import numpy as np
+    import mpas_tools.mesh.creation.mesh_definition_tools as mdt
+    from mpas_tools.mesh.creation.signed_distance import \
+        signed_distance_from_geojson
+    from geometric_features import read_feature_collection
+    from mpas_tools.cime.constants import constants
+
+
+    dlon = 0.1
+    dlat = dlon
+    earth_radius = constants['SHR_CONST_REARTH']
+    nlon = int(360./dlon) + 1
+    nlat = int(180./dlat) + 1
+    lon = np.linspace(-180., 180., nlon)
+    lat = np.linspace(-90., 90., nlat)
+
+    cellWidth = mdt.EC_CellWidthVsLat(lat)
+
+    # now, add the high-res region
+    fc = read_feature_collection('high_res_region.geojson')
+
+    so_signed_distance = signed_distance_from_geojson(fc, lon, lat,
+                                                      earth_radius,
+                                                      max_length=0.25)
+
+    # Equivalent to 20 degrees latitude
+    trans_width = 1600e3
+    trans_start = -500e3
+    dx_min = 12.
+
+    weights = 0.5 * (1 + np.tanh((so_signed_distance - trans_start) /
+                                 trans_width))
+
+    cellWidth = dx_min * (1 - weights) + cellWidth * weights
+
+Sometimes it can be useful to extract just the mask of the region of interest
+(defined as ``0`` outside the the region and ``1`` inside it) or the unsigned
+distance.  For these purposes, use the functions
+:py:func:`mpas_tools.mesh.creation.signed_distance.mask_from_geojson()`
+and
+:py:func:`mpas_tools.mesh.creation.signed_distance.distance_from_geojson()`,
+respectively.
+
+
