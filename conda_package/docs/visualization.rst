@@ -606,5 +606,19 @@ Here are the resulting plots (which look nearly identical at this resolution):
 Colormaps
 =========
 
+Some MPAS-Tools routines include plots of mesh resolution and related variables.
+We have found it handy to use the
+`SciVisColor Colormaps <https://sciviscolor.org/>`_ for some of these plots.
+Unfortunately, there is not a standard python package for adding these
+colormaps to ``matplotlib`` (as is the case for
+`cmocean <https://matplotlib.org/cmocean/>`_, for example).  To add the
+SciVisColor colormaps, call the function
+:py:func:`mpas_tools.viz.colormaps.register_sci_viz_colormaps()`.  No arguments
+are required, as the XML files for defining the colormaps are included in the
+package.
 
+In this example, we use the ``3Wbgy5`` colormap:
 
+.. image:: images/so60to12_res.png
+   :width: 500 px
+   :align: center
