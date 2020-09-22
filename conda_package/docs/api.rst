@@ -111,35 +111,23 @@ CIME constants
 Ocean Tools
 ===========
 
-.. currentmodule:: mpas_tools.ocean.coastline_alteration
-
-.. autosummary::
-   :toctree: generated/
-
-   add_critical_land_blockages
-   widen_transect_edge_masks
-
-.. currentmodule:: mpas_tools.ocean.moc
-
-.. autosummary::
-   :toctree: generated/
-
-   make_moc_basins_and_transects
-   build_moc_basins
-
 .. currentmodule:: mpas_tools.ocean
 
 .. autosummary::
    :toctree: generated/
+
+   coastline_alteration
+   coastline_alteration.add_critical_land_blockages
+   coastline_alteration.widen_transect_edge_masks
+   coastline_alteration.add_land_locked_cells_to_mask
+
+   moc
+   moc.make_moc_basins_and_transects
+   moc.build_moc_basins
 
    build_mesh
    build_mesh.build_spherical_mesh
    build_mesh.build_planar_mesh
-
-.. currentmodule:: mpas_tools.ocean
-
-.. autosummary::
-   :toctree: generated/
 
    coastal_tools
    coastal_tools.coastal_refined_mesh
