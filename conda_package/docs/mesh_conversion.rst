@@ -205,6 +205,221 @@ Here is the full usage of ``MpasMaskCreator.x``:
             as latitude and longitude are recomputed internally from Cartesian coordinates.
             Whether this flag is passed in or not, any longitudes written are in the 0-360 range.
 
+.. _merge_split:
+
+Merging and Splitting
+=====================
+
+In order to support running
+`MPAS-Albany Land Ice (MALI) <https://github.com/MPAS-Dev/MPAS-Model/tree/landice/develop>`_
+with both Greenland and Antarctica at the same time, tools have been added to
+support merging and splitting MPAS meshes.
+
+Merging two meshes can be accomplished with
+:py:func:`mpas_tools.merge_grids.merge_grids()`:
+
+.. code-block:: python
+
+    from mpas_tools.translate import translate
+    from mpas_tools.merge_grids import merge_grids
+    from mpas_tools.planar_hex import make_planar_hex_mesh
+    from mpas_tools.io import write_netcdf
+
+
+    dsMesh1 = make_planar_hex_mesh(nx=10, ny=10, dc=1000., nonperiodic_x=True,
+                                   nonperiodic_y=True)
+
+    dsMesh2 = make_planar_hex_mesh(nx=10, ny=10, dc=1000., nonperiodic_x=True,
+                                   nonperiodic_y=True)
+
+    translate(dsMesh2, xOffset=20000., yOffset=0.)
+
+    write_netcdf(dsMesh1, 'mesh1.nc')
+    write_netcdf(dsMesh2, 'mesh2.nc')
+
+    merge_grids(infile1='mesh1.nc', infile2='mesh2.nc',
+                outfile='merged_mesh.nc')
+
+Typically, it will only make sense to merge non-periodic meshes in this way.
+
+Later, perhaps during analysis or visualization, it can be useful to split
+apart the merged meshes.  This can be done with
+:py:func:`mpas_tools.split_grids.split_grids()`
+
+.. code-block:: python
+
+    from mpas_tools.translate import translate
+    from mpas_tools.split_grids import split_grids
+    from mpas_tools.planar_hex import make_planar_hex_mesh
+    from mpas_tools.io import write_netcdf
+
+
+    dsMesh1 = make_planar_hex_mesh(nx=10, ny=10, dc=1000., nonperiodic_x=True,
+                                   nonperiodic_y=True)
+
+    dsMesh2 = make_planar_hex_mesh(nx=10, ny=10, dc=1000., nonperiodic_x=True,
+                                   nonperiodic_y=True)
+
+    translate(dsMesh2, xOffset=20000., yOffset=0.)
+
+    write_netcdf(dsMesh1, 'mesh1.nc')
+    write_netcdf(dsMesh2, 'mesh2.nc')
+
+
+    split_grids(infile='merged_mesh.nc', outfile1='split_mesh1.nc',
+                outfile='split_mesh2.nc')
+
+Merging meshes can also be accomplished with the ``merge_grids`` command-line
+tool:
+
+.. code-block:: none
+
+    $ merge_grids --help
+
+    usage: merge_grids [-h] [-o FILENAME] FILENAME1 FILENAME2
+
+    Tool to merge 2 MPAS non-contiguous meshes together into a single file
+
+    positional arguments:
+      FILENAME1    File name for first mesh to merge
+      FILENAME2    File name for second mesh to merge
+
+    optional arguments:
+      -h, --help   show this help message and exit
+      -o FILENAME  The merged mesh file
+
+Similarly, ``split_grids`` can be used to to split meshes:
+
+.. code-block:: none
+
+    $ split_grids --help
+
+    usage: split_grids [-h] [-1 FILENAME] [-2 FILENAME] [--nCells NCELLS]
+                       [--nEdges NEDGES] [--nVertices NVERTICES]
+                       [--maxEdges MAXEDGES1 MAXEDGES2]
+                       MESHFILE
+
+    Tool to split 2 previously merged MPAS non-contiguous meshes into separate files.
+    Typical usage is:
+        split_grids.py -1 outfile1.nc -2 outfile2.nc infile
+    The optional arguments for nCells, nEdges, nVertices, and maxEdges should
+    generally not be required as this information is saved in the combined mesh file
+    as global attributes by the merge_grids.py script.
+
+    positional arguments:
+      MESHFILE              Mesh file to split
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -1 FILENAME, --outfile1 FILENAME
+                            File name for first mesh output
+                            (default: mesh1.nc)
+      -2 FILENAME, --outfile2 FILENAME
+                            File name for second mesh output
+                            (default: mesh2.nc)
+      --nCells NCELLS       The number of cells in the first mesh
+                            (default: the value specified in MESHFILE global attribute merge_point)
+      --nEdges NEDGES       The number of edges in the first mesh
+                            (default: the value specified in MESHFILE global attribute merge_point)
+      --nVertices NVERTICES
+                            The number of vertices in the first mesh
+                            (default: the value specified in MESHFILE global attribute merge_point)
+      --maxEdges MAXEDGES1 MAXEDGES2
+                            The number of maxEdges in each mesh
+                            (default: the value specified in MESHFILE global attribute merge_point
+                                  OR: will use MESHFILE maxEdges dimension and assume same for both)
+
+
+.. _mesh_translation:
+
+Translation
+===========
+
+A planar mesh can be translated in x, y or both by calling
+:py:func:`mpas_tools.translate.translate()`:
+
+.. code-block:: python
+
+    from mpas_tools.translate import translate
+    from mpas_tools.planar_hex import make_planar_hex_mesh
+
+    dsMesh = make_planar_hex_mesh(nx=10, ny=20, dc=1000., nonperiodic_x=False,
+                                  nonperiodic_y=False)
+
+    translate(dsMesh, xOffset=1000., yOffset=2000.)
+
+This creates a periodic, planar mesh and then translates it by 1 km in x and
+2 km in y.
+
+.. note::
+
+    All the functions in the ``mpas_tools.translate`` module modify the mesh
+    inplace, rather than returning a new ``xarray.Dataset`` object.  This is
+    in contrast to typical ``xarray`` functions and methods.
+
+
+A mesh can be translated so that its center is at ``x = 0.``, ``y = 0.`` with
+the function :py:func:`mpas_tools.translate.center()`:
+
+.. code-block:: python
+
+    from mpas_tools.translate import center
+    from mpas_tools.planar_hex import make_planar_hex_mesh
+
+    dsMesh = make_planar_hex_mesh(nx=10, ny=20, dc=1000., nonperiodic_x=False,
+                                  nonperiodic_y=False)
+
+    center(dsMesh)
+
+A mesh can be translated so its center matches the center of another mesh by
+using :py:func:`mpas_tools.translate.center_on_mesh()`:
+
+.. code-block:: python
+
+    from mpas_tools.translate import center_on_mesh
+    from mpas_tools.planar_hex import make_planar_hex_mesh
+
+    dsMesh1 = make_planar_hex_mesh(nx=10, ny=20, dc=1000., nonperiodic_x=False,
+                                   nonperiodic_y=False)
+
+    dsMesh2 = make_planar_hex_mesh(nx=20, ny=40, dc=2000., nonperiodic_x=False,
+                                   nonperiodic_y=False)
+
+    center_on_mesh(dsMesh2, dsMesh1)
+
+In this example, the coordinates of ``dsMesh2`` are altered so its center
+matches that of ``dsMesh1``.
+
+The functionality of all three of these functions is also available via the
+``translate_planar_grid`` command-line tool:
+
+.. code-block:: none
+
+    $ translate_planar_grid --help
+
+    == Gathering information.  (Invoke with --help for more details. All arguments are optional)
+    Usage: translate_planar_grid [options]
+
+    This script translates the coordinate system of the planar MPAS mesh specified
+    with the -f flag.  There are 3 possible methods to choose from: 1) shift the
+    origin to the center of the domain 2) arbirary shift in x and/or y 3) shift to
+    the center of the domain described in a separate file
+
+    Options:
+      -h, --help            show this help message and exit
+      -f FILENAME, --file=FILENAME
+                            MPAS planar grid file name. [default: grid.nc]
+      -d FILENAME, --datafile=FILENAME
+                            data file name to which to match the domain center of.
+                            Uses xCell,yCell or, if those fields do not exist,
+                            will secondly try x1,y1 fields.
+      -x SHIFT_VALUE        user-specified shift in the x-direction. [default:
+                            0.0]
+      -y SHIFT_VALUE        user-specified shift in the y-direction. [default:
+                            0.0]
+      -c                    shift so origin is at center of domain [default:
+                            False]
+
 Converting Between Mesh Formats
 ===============================
 
@@ -250,3 +465,22 @@ used to convert an MPAS mesh file in NetCDF format to
 `SCRIP <http://www.earthsystemmodeling.org/esmf_releases/public/ESMF_5_2_0rp1/ESMF_refdoc/node3.html#SECTION03024000000000000000>`_
 format.  SCRIP files are typically used to create mapping files used to
 interpolate between meshes.
+
+A command-line tools is also available for this purpose:
+
+.. code-block:: none
+
+    $ scrip_from_mpas --help
+    == Gathering information.  (Invoke with --help for more details. All arguments are optional)
+    Usage: scrip_from_mpas [options]
+
+    This script takes an MPAS grid file and generates a SCRIP grid file.
+
+    Options:
+      -h, --help            show this help message and exit
+      -m FILENAME, --mpas=FILENAME
+                            MPAS grid file name used as input. [default: grid.nc]
+      -s FILENAME, --scrip=FILENAME
+                            SCRIP grid file to output. [default: scrip.nc]
+      -l, --landice         If flag is on, landice masks will be computed and
+                            used.
