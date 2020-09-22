@@ -1,6 +1,6 @@
 """
 Extract a field from a time series of NetCDF files as VTK files for plotting in
-paraview.
+ParaView.
 
 It can extract a field across multiple files by passing in a regular expression
 for the filename patter. As an example, one can run the script using:
@@ -18,11 +18,11 @@ vtk_files/time_series/timeDependentFieldsOnCells.1.vtp
 and similarly for edges and vertices.  Time-independent fields can be
 included in each time step of the time-dependent fields for with
 the --combine flag.  This allows time-dependent and -independent fields
-to be combined in filters within Paraview at the expense of considerable
+to be combined in filters within ParaView at the expense of considerable
 additional storage space.
 
 Indices for extra dimensions can either be supplied at runtime at a prompt
-or through the -d flag.  For each extra dimension, the use can specifiy
+or through the -d flag.  For each extra dimension, the use can specify
 nothing (an empty string, meaning skip any fields with this dimension),
 a single index, or a comma-separated list of indices or a range of indices
 indices (separated by 1 or 2 colons).  For example,
@@ -103,26 +103,26 @@ from mpas_tools.io import write_netcdf
 
 def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
                 mesh_filename=None, blocking=10000, output_32bit=False,
-                combine=False, append=False, out_dir=None, xtime='xtime',
+                combine=False, append=False, out_dir='vtk_files', xtime='xtime',
                 lonlat=False, time=None, ignore_time=False, topo_dim=None,
                 topo_cell_index=None, include_mesh_vars=False,
                 fc_region_mask=None, temp_dir='./culled_region'):
     """
     Extract fields from a time series of NetCDF files as VTK files for plotting
-    in paraview.
+    in ParaView.
 
     To extract fields across multiple files, passing in a regular expression
-    for the filename pattern, for exmaple ``filename_pattern="hist.comp.*.nc"``.
+    for the filename pattern, for example ``filename_pattern="hist.comp.*.nc"``.
 
     By default, time-independent fields on cells are written to a file
 
-    .. code-block::
+    .. code-block:: none
 
       vtk_files/staticFieldsOnCells.vtp
 
     and time-dependent fields on cells are written to
 
-    .. code-block::
+    .. code-block:: none
 
       vtk_files/timeDependentFieldsOnCells.pvd
       vtk_files/time_series/timeDependentFieldsOnCells.0.vtp
@@ -132,17 +132,17 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
     and similarly for edges and vertices.  Time-independent fields can be
     included in each time step of the time-dependent fields for with
     ``combine=True``.  This allows time-dependent and -independent fields
-    to be combined in filters within Paraview at the expense of considerable
+    to be combined in filters within ParaView at the expense of considerable
     additional storage space.
 
     Indices for extra dimensions can either be supplied at runtime at a prompt
     (if ``dimension_list=None``) or via a list of strings with the dimensions
-    and associated indices.  For each extra dimension, you can specifiy
+    and associated indices.  For each extra dimension, you can specify
     nothing for the indices (an empty string, meaning skip any fields with this
     dimension), a single index, a comma-separated list of indices, or a range
     of indices (separated by 1 or 2 colons).  For example,
 
-    .. code-block::
+    .. code-block:: python
 
       dimension_list=['maxEdges=', 'nVertLeves=0:10:2', 'nParticles=0,2,4,6,8']
 
@@ -154,7 +154,7 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
     with integer indices in a comma-separated list but not in a colon-separated
     range):
 
-    .. code-block::
+    .. code-block:: python
 
       dimension_list=['nVertLeves=0,maxLevelCell']
 
@@ -167,7 +167,7 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
     variable top or bottom index (e.g. ``maxLevelCell`` in MPAS-Ocean).  This is
     accomplished with arguments such as:
 
-    .. code-block::
+    .. code-block:: python
 
       topo_dim='nVertLevels', topo_cell_index='maxLevelCell'
 
@@ -181,7 +181,7 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
     polygons are interior (``boundaryMask == 0``).  Together, this can be used
     to plot topography by using a calculator filter like the following:
 
-    .. code-block::
+    .. code-block:: none
 
       coords*(1.0 + 100.0/mag(coords)*((1 - boundaryMask)*(-bottomDepth)
                                        + 10.0*boundaryMask))
@@ -955,7 +955,7 @@ def parse_extra_dim(dim_name, index_string, time_series_file, mesh_file):
 def parse_time_indices(index_string, time_indices, time_file_names):  # {{{
     """
     Parses the indices to be extracted along the Time dimension.
-    The index_string can be fomatted as follows:
+    The index_string can be formatted as follows:
       <blank> -- no indices are to be extracted
       n       -- the index n is to be extracted
       m,n,p   -- the list of indices is to be extracted

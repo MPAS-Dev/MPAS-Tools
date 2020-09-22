@@ -27,6 +27,8 @@ User's Guide
 
    cime
 
+   visualization
+
 Ocean Tools
 -----------
 
