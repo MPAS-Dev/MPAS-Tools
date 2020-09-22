@@ -182,6 +182,20 @@ Visualization
 
    extract_vtk
 
+.. currentmodule:: mpas_tools.viz.mesh_to_triangles
+
+.. autosummary::
+   :toctree: generated/
+
+   mesh_to_triangles
+
+
+.. currentmodule:: mpas_tools.viz.colormaps
+
+.. autosummary::
+   :toctree: generated/
+
+   register_sci_viz_colormaps
 
 Tests
 =====
