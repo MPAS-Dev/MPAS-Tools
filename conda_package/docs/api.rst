@@ -124,6 +124,7 @@ Ocean Tools
    moc
    moc.make_moc_basins_and_transects
    moc.build_moc_basins
+   moc.add_moc_southern_boundary_transects
 
    build_mesh
    build_mesh.build_spherical_mesh

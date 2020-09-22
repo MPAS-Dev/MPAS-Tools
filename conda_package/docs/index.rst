@@ -36,7 +36,7 @@ Ocean Tools
    ocean/mesh_creation
    ocean/coastal_tools
    ocean/coastline_alteration
-
+   ocean/moc
 
 Developer's Guide
 =================
