@@ -19,13 +19,6 @@ Mesh creation
 
    make_planar_hex_mesh
 
-.. currentmodule:: mpas_tools.translate
-
-.. autosummary::
-   :toctree: generated/
-
-   translate
-
 .. currentmodule:: mpas_tools.mesh.creation
 
 .. autosummary::
@@ -73,6 +66,16 @@ Mesh conversion
    :toctree: generated/
 
    split_grids
+
+.. currentmodule:: mpas_tools.translate
+
+.. autosummary::
+   :toctree: generated/
+
+   translate
+   center
+   center_on_mesh
+
 
 .. currentmodule:: mpas_tools.io
 

@@ -11,13 +11,13 @@ from mpas_tools.io import write_netcdf
 
 
 def translate(mesh, xOffset=0., yOffset=0.):
-    '''
-    Translates the coordinate system of the planar MPAS mesh by an arbirary
+    """
+    Translates the coordinate system of the planar MPAS mesh by an arbitrary
     shift in x and/or y
 
     Parameters
     ----------
-    mesh : ``xarray.Dataset``
+    mesh : xarray.Dataset
         A planar mesh to translate
 
     xOffset : float, optional
@@ -26,7 +26,7 @@ def translate(mesh, xOffset=0., yOffset=0.):
     yOffset : float, optional
         user-specified shift in the y-direction
 
-    '''
+    """
 
     mesh.xCell[:] += xOffset
     mesh.yCell[:] += yOffset
@@ -37,20 +37,20 @@ def translate(mesh, xOffset=0., yOffset=0.):
 
 
 def center_on_mesh(mesh, otherMesh):
-    '''
+    """
     Translates the coordinate system of the planar MPAS mesh by shifting the
     origin to the center of the domain described in a separate mesh
 
     Parameters
     ----------
-    mesh : ``xarray.Dataset``
+    mesh : xarray.Dataset
         A planar mesh to translate
 
-    otherMesh : ``xarray.Dataset``
+    otherMesh : xarray.Dataset
         Another planar mesh whose center will become the center of this mesh.
         Uses xCell,yCell or, if those fields do not exist, will secondly try
         x1,y1 fields
-    '''
+    """
 
     mpasXcenter, mpasYcenter = get_center(mesh)
 
@@ -67,24 +67,24 @@ def center_on_mesh(mesh, otherMesh):
 
 
 def center(mesh):
-    '''
+    """
     Translates the coordinate system of the planar MPAS mesh by shifting the
     origin to the center of the domain
 
     Parameters
     ----------
-    mesh : ``xarray.Dataset``
+    mesh : xarray.Dataset
         A planar mesh to translate
-    '''
+    """
     mpasXcenter, mpasYcenter = get_center(mesh)
 
     translate(mesh, -mpasXcenter, -mpasYcenter)
 
 
 def get_center(mesh, xVar='xCell', yVar='yCell'):
-    '''
+    """
     Find the center of the mesh
-    '''
+    """
 
     xCenter = (mesh[xVar].min() + mesh[xVar].max()) * 0.5
     yCenter = (mesh[yVar].min() + mesh[yVar].max()) * 0.5
