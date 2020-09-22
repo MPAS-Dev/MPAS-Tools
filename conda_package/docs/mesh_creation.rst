@@ -7,8 +7,38 @@
 Mesh Creation
 *************
 
-Building a Mesh
-===============
+Uniform, Planar Meshes
+======================
+
+The most basic tool for creating an MPAS mesh is the function
+:py:func:`mpas_tools.planar_hex.make_planar_hex_mesh()` or the associated
+command-line tool ``planar_hex``.  These tools create a uniform, planar mesh
+of hexagons that may optionally be periodic in either or both of the x and
+y directions.  A typical call to ``make_planar_hex_mesh()`` might look like
+the following:
+
+.. code-block:: python
+
+    from mpas_tools.planar_hex import make_planar_hex_mesh
+
+    dsMesh = make_planar_hex_mesh(nx=10, ny=20, dc=1000., nonperiodic_x=False,
+                                  nonperiodic_y=False)
+
+This creates a periodic mesh in both x and y that is 10 grid cells by 20 grid
+cells in size with 1-km resolution.  The mesh is not save to a file in this
+example but is instead returned as an ``xarray.Dataset`` object.
+
+The command-line approach for generating the same mesh would be:
+
+.. code-block:: none
+
+    $ planar_hex --nx=10 --ny=20 --dc=1000. \
+         --outFileName='periodic_mesh_10x20_1km.nc
+
+In this case, the resulting mesh is written to a file.
+
+Building a JIGSAW Mesh
+======================
 
 The :py:mod:`mpas_tools.mesh.creation.build_mesh` module is used
 create an MPAS mesh using the `JIGSAW <https://github.com/dengwirda/jigsaw>`_
