@@ -64,9 +64,9 @@ def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
     compute_coordinates(mesh)
     add_one_to_indices(mesh)
 
-    # drop some arrays that aren't stantard for MPAS but were used to compute
+    # drop some arrays that aren't standard for MPAS but were used to compute
     # the hex mesh
-    mesh = mesh.drop_vas(['cellIdx', 'cellRow', 'cellCol'])
+    mesh = mesh.drop_vars(['cellIdx', 'cellRow', 'cellCol'])
 
     if outFileName is not None:
         write_netcdf(mesh, outFileName, format=format)
