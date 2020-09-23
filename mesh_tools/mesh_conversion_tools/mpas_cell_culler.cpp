@@ -25,7 +25,7 @@ double sphere_radius, xPeriod, yPeriod;
 string in_history = "";
 string in_file_id = "";
 string in_parent_id = "";
-double in_mesh_spec = 1.0;
+string in_mesh_spec = "1.0";
 bool outputMap = false;
 
 // Connectivity and location information {{{
@@ -728,7 +728,7 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
 	id_str = gen_random(ID_LEN);
 
 	if (!(history = grid.add_att(   "history", history_str.c_str() ))) return NC_ERR;
-	if (!(spec = grid.add_att(   "mesh_spec", in_mesh_spec ))) return NC_ERR;
+	if (!(spec = grid.add_att(   "mesh_spec", in_mesh_spec.c_str() ))) return NC_ERR;
 	if (!(conventions = grid.add_att(   "Conventions", "MPAS" ))) return NC_ERR;
 	if (!(source = grid.add_att(   "source", "MpasCellCuller.x" ))) return NC_ERR;
 	if (!(id = grid.add_att(   "file_id", id_str.c_str() ))) return NC_ERR;

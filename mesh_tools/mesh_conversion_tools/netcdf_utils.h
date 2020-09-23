@@ -14,7 +14,7 @@ double netcdf_mpas_read_yperiod(string filename);
 string netcdf_mpas_read_history(string filename);
 string netcdf_mpas_read_fileid(string filename);
 string netcdf_mpas_read_parentid(string filename);
-double netcdf_mpas_read_meshspec(string filename);
+string netcdf_mpas_read_meshspec(string filename);
 /*}}}*/
 
 /* Dimension reading functions {{{*/
