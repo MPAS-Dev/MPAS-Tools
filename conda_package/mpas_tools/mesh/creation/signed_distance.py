@@ -13,7 +13,7 @@ from mpas_tools.mesh.creation.util import lonlat2xyz
 
 
 def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
-                                 max_length=None):
+                                 max_length=None, epsilon=1e-10):
     """
     Get the distance for each point on a lon/lat grid from the closest point
     on the boundary of the geojson regions.
@@ -22,15 +22,23 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
     ----------
     fc : geometrics_features.FeatureCollection
         The regions to be rasterized
+
     lon_grd : numpy.ndarray
         A 1D array of evenly spaced longitude values
+
     lat_grd : numpy.ndarray
         A 1D array of evenly spaced latitude values
+
     earth_radius : float
         Earth radius in meters
+
     max_length : float, optional
         The maximum distance (in degrees) between points on the boundary of the
         geojson region.  If the boundary is too coarse, it will be subdivided.
+
+    epsilon : float, optional
+        A small amount to expand each shape by to make sure lon/lat points on
+        the domain boundary are within shapes that touch the domain boundary.
 
     Returns
     -------
@@ -38,16 +46,21 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
        A 2D field of distances (negative inside the region, positive outside)
        to the shape boundary
     """
-    distance = distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
-                                     nn_search='flann', max_length=max_length)
+    shapes = _subdivide_shapes(fc, max_length)
 
-    mask = mask_from_geojson(fc, lon_grd, lat_grd)
+    distance = distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
+                                     nn_search='flann', max_length=max_length,
+                                     shapes=shapes)
+
+    mask = mask_from_geojson(fc, lon_grd, lat_grd, shapes=shapes,
+                             epsilon=epsilon)
 
     signed_distance = (-2.0 * mask + 1.0) * distance
     return signed_distance
 
 
-def mask_from_geojson(fc, lon_grd, lat_grd, epsilon=1e-10):
+def mask_from_geojson(fc, lon_grd, lat_grd, max_length=None, shapes=None,
+                      epsilon=1e-10):
     """
     Make a rasterized mask on a lon/lat grid from shapes (geojson multipolygon
     data).
@@ -62,6 +75,14 @@ def mask_from_geojson(fc, lon_grd, lat_grd, epsilon=1e-10):
 
     lat_grd : numpy.ndarray
         A 1D array of evenly spaced latitude values
+
+    max_length : float, optional
+        The maximum distance (in degrees) between points on the boundary of the
+        geojson region.  If the boundary is too coarse, it will be subdivided.
+
+    shapes : list of shapely.geometry, optional
+        A list of shapes that have already been extracted from fc and possibly
+        subdivided
 
     epsilon : float, optional
         A small amount to expand each shape by to make sure lon/lat points on
@@ -88,20 +109,21 @@ def mask_from_geojson(fc, lon_grd, lat_grd, epsilon=1e-10):
     transform = Affine(dlon, 0.0, lon_grd[0] - 0.5*dlon,
                        0.0, dlat, lat_grd[0] - 0.5*dlat)
 
-    shapes = []
-    for feature in fc.features:
-        # a list of feature geometries and mask values (always 1.0)
-        shape = shapely.geometry.shape(feature['geometry'])
+    if shapes is None:
+        shapes = _subdivide_shapes(fc, max_length)
+
+    raster_shapes = []
+    for shape in shapes:
         # expand a bit to make sure we hit the edges of the domain
         shape = shape.buffer(epsilon)
-        shapes.append((shapely.geometry.mapping(shape), 1.0))
+        raster_shapes.append((shapely.geometry.mapping(shape), 1.0))
 
-    mask = rasterize(shapes, out_shape=(nlat, nlon), transform=transform)
+    mask = rasterize(raster_shapes, out_shape=(nlat, nlon), transform=transform)
     return mask
 
 
 def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
-                          max_length=None):
+                          max_length=None, shapes=None):
     # {{{
     """
     Get the distance for each point on a lon/lat grid from the closest point
@@ -111,17 +133,26 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
     ----------
     fc : geometrics_features.FeatureCollection
         The regions to be rasterized
+
     lon_grd : numpy.ndarray
         A 1D array of evenly spaced longitude values
+
     lat_grd : numpy.ndarray
         A 1D array of evenly spaced latitude values
+
     earth_radius : float
         Earth radius in meters
+
     nn_search: {'kdtree', 'flann'}
         The method used to find the nearest point on the shape boundary
+
     max_length : float, optional
         The maximum distance (in degrees) between points on the boundary of the
         geojson region.  If the boundary is too coarse, it will be subdivided.
+
+    shapes : list of shapely.geometry, optional
+        A list of shapes that have already been extracted from fc and possibly
+        subdivided
 
     Returns
     -------
@@ -131,17 +162,15 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
     print("Distance from geojson")
     print("---------------------")
 
+    if shapes is None:
+        shapes = _subdivide_shapes(fc, max_length)
+
     print("   Finding region boundaries")
     boundary_lon = []
     boundary_lat = []
-    for feature in fc.features:
+    for shape in shapes:
         # get the boundary of each shape
-        shape = shapely.geometry.shape(feature['geometry']).boundary
-        if max_length is not None:
-            # subdivide the shape if it's too coarse
-            geom_type = shape.geom_type
-            shape = subdivide_geom(shape, geom_type, max_length)
-        x, y = shape.coords.xy
+        x, y = shape.boundary.coords.xy
         boundary_lon.extend(x)
         boundary_lat.extend(y)
 
@@ -202,3 +231,19 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
     distance = np.reshape(distance, Lon_grd.shape)
 
     return distance
+
+
+def _subdivide_shapes(fc, max_length):
+
+    shapes = []
+    for feature in fc.features:
+        # get the boundary of each shape
+        shape = shapely.geometry.shape(feature['geometry'])
+        if max_length is not None:
+            # subdivide the shape if it's too coarse
+            geom_type = shape.geom_type
+            shape = subdivide_geom(shape, geom_type, max_length)
+        shapes.append(shape)
+
+    return shapes
+
