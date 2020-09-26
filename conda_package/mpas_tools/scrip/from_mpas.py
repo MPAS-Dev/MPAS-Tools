@@ -39,7 +39,7 @@ def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
     lonCell = fin.variables['lonCell'][:]
     latVertex = fin.variables['latVertex'][:]
     lonVertex = fin.variables['lonVertex'][:]
-    verticesOnCell = fin.variables['verticesOnCell'][:]
+    verticesOnCell = fin.variables['verticesOnCell'][:] - 1
     nEdgesOnCell = fin.variables['nEdgesOnCell'][:]
     nCells = len(fin.dimensions['nCells'])
     maxVertices = len(fin.dimensions['maxEdges'])
@@ -94,30 +94,28 @@ def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
     grid_dims[:] = nCells
 
     # grid corners:
-    # It is WAYYY faster to fill in the array entry-by-entry in memory than to
-    # disk.
     grid_corner_lon_local = np.zeros((nCells, maxVertices))
     grid_corner_lat_local = np.zeros((nCells, maxVertices))
-    for iCell in range(nCells):
-        vertexMax = nEdgesOnCell[iCell]
-        grid_corner_lat_local[iCell, 0:vertexMax] = \
-            latVertex[verticesOnCell[iCell, 0:vertexMax] - 1]
-        grid_corner_lon_local[iCell, 0:vertexMax] = \
-            lonVertex[verticesOnCell[iCell, 0:vertexMax] - 1]
-        if vertexMax < maxVertices:
-            # repeat the last vertex location for any remaining, unused vertex
-            # indices
-            grid_corner_lat_local[iCell, vertexMax:] = \
-                latVertex[verticesOnCell[iCell, vertexMax-1] - 1]
-            grid_corner_lon_local[iCell, vertexMax:] = \
-                lonVertex[verticesOnCell[iCell, vertexMax-1] - 1]
+    cellIndices = np.arange(nCells)
+    lastValidVertex = verticesOnCell[cellIndices, nEdgesOnCell-1]
+    for iVertex in range(maxVertices):
+        mask = iVertex < nEdgesOnCell
+        grid_corner_lat_local[mask, iVertex] = \
+            latVertex[verticesOnCell[mask, iVertex]]
+        grid_corner_lon_local[mask, iVertex] = \
+            lonVertex[verticesOnCell[mask, iVertex]]
 
-            if useLandIceMask:
-                # If useLandIceMask are enabled, mask out ocean under land ice.
-                grid_imask[iCell] = 1 - landIceMask[0, iCell]
-            else:
-                # If landiceMasks are not enabled, don't mask anything out.
-                grid_imask[iCell] = 1
+        mask = iVertex >= nEdgesOnCell
+        grid_corner_lat_local[mask, iVertex] = latVertex[lastValidVertex[mask]]
+        grid_corner_lon_local[mask, iVertex] = lonVertex[lastValidVertex[mask]]
+
+    if useLandIceMask:
+        # If useLandIceMask are enabled, mask out ocean under land ice.
+        grid_imask[:] = 1 - landIceMask[0, :]
+    else:
+        # If landiceMasks are not enabled, don't mask anything out.
+        grid_imask[:] = 1
+
     grid_corner_lat[:] = grid_corner_lat_local[:]
     grid_corner_lon[:] = grid_corner_lon_local[:]
 
