@@ -699,7 +699,7 @@ string netcdf_mpas_read_parentid(string filename){/*{{{*/
 
 }/*}}}*/
 //****************************************************************************80
-double netcdf_mpas_read_meshspec(string filename){/*{{{*/
+string netcdf_mpas_read_meshspec(string filename){/*{{{*/
 	//****************************************************************************80
 	//
 	//  Purpose:
@@ -712,11 +712,11 @@ double netcdf_mpas_read_meshspec(string filename){/*{{{*/
 	//
 	//  Modified:
 	//
-	//    18 February 2014
+	//    23 September 2020
 	//
 	//  Author:
 	//
-	//    Doug Jacobsen
+	//    Doug Jacobsen, Xylar Asay-Davis
 	//
 	//  Reference:
 	//
@@ -728,13 +728,14 @@ double netcdf_mpas_read_meshspec(string filename){/*{{{*/
 	//
 	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
 	//
-	//    Output, double NETCDF_MPAS_READ_MESHSPEC, the value of the mesh_spec attribute
+	//    Output, string NETCDF_MPAS_READ_MESHSPEC, the value of the mesh_spec attribute
 	//
 	NcAtt *att_id;
 	NcValues *vals;
 	bool valid;
 	string tmp_name;
 	string sph_name = "mesh_spec";
+	string mesh_spec_str = "";
 	//
 	//  Open the file.
 	//
@@ -764,17 +765,18 @@ double netcdf_mpas_read_meshspec(string filename){/*{{{*/
 		sph_name = "YES             ";
 
 		for(int i = 0; i < vals -> num(); i++){
-			return vals -> as_double(i);
+			mesh_spec_str += vals -> as_string(i);
+			return mesh_spec_str;
 		}
 	} else {
-		return 0.0;
+		return mesh_spec_str;
 	}
 	//
 	//  Close the file.
 	//
 	ncid.close ( );
 
-	return 0.0;
+	return mesh_spec_str;
 
 }/*}}}*/
 /*}}}*/
