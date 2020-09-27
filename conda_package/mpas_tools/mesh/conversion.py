@@ -165,11 +165,10 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
     return dsOut
 
 
-def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False, logger=None,
-         dir=None):
+def mask(dsMesh, fcMask=None, fcSeed=None, logger=None, dir=None):
     """
     Use ``MpasMaskCreator.x`` to create a set of region masks either from
-    mask feature collecitons or from seed points to be used to flood fill
+    mask feature collections or from seed points to be used to flood fill
 
     Parameters
     ----------
@@ -214,9 +213,6 @@ def mask(dsMesh, fcMask=None, fcSeed=None, positiveLon=False, logger=None,
             fileName = '{}/seed.geojson'.format(tempdir)
             fcSeed.to_geojson(fileName)
             args.extend(['-s', fileName])
-
-        if positiveLon:
-            args.append('--positive_lon')
 
         _call_subprocess(args, logger)
 
