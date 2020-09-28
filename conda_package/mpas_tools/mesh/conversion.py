@@ -15,7 +15,7 @@ def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
 
     Parameters
     ----------
-    dsIn : ``xarray.Dataset``
+    dsIn : xarray.Dataset
         A data set to convert
 
     graphInfoFileName : str, optional
@@ -23,7 +23,7 @@ def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
         ``graph.info`` should be written out.  By default, ``graph.info`` is
         not saved.
 
-    logger : ``logging.Logger``, optional
+    logger : logging.Logger, optional
         A logger for the output if not stdout
 
     dir : str, optional
@@ -32,7 +32,7 @@ def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
 
     Returns
     -------
-    dsOut : ``xarray.Dataset``
+    dsOut : xarray.Dataset
         The MPAS mesh
     """
     if dir is not None:
@@ -76,19 +76,19 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
 
     Parameters
     ----------
-    dsIn : ``xarray.Dataset``
+    dsIn : xarray.Dataset
         A data set to cull, possibly with a ``cullCell`` field set to one where
         cells should be removed
 
-    dsMask : ``xarray.Dataset`` or list, optional
+    dsMask : xarray.Dataset or list, optional
         A data set (or data sets) with region masks that are 1 where cells
         should be culled
 
-    dsInverse : ``xarray.Dataset`` or list, optional
+    dsInverse : xarray.Dataset or list, optional
         A data set (or data sets) with region masks that are 0 where cells
         should be culled
 
-    dsPreserve : ``xarray.Dataset`` or list, optional
+    dsPreserve : xarray.Dataset or list, optional
         A data set (or data sets) with region masks that are 1 where cells
         should *not* be culled
 
@@ -97,7 +97,7 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
         ``culled_graph.info`` should be written out.  By default,
         ``culled_graph.info`` is not saved.
 
-    logger : ``logging.Logger``, optional
+    logger : logging.Logger, optional
         A logger for the output if not stdout
 
     dir : str, optional
@@ -106,7 +106,7 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
 
     Returns
     -------
-    dsOut : ``xarray.Dataset``
+    dsOut : xarray.Dataset
         The culled mesh
 
     """
@@ -172,17 +172,17 @@ def mask(dsMesh, fcMask=None, fcSeed=None, logger=None, dir=None):
 
     Parameters
     ----------
-    dsMesh : ``xarray.Dataset``, optional
+    dsMesh : xarray.Dataset, optional
         An MPAS mesh on which the masks should be created
 
-    fcMask : ``geometric_features.FeatureCollection``, optional
+    fcMask : geometric_features.FeatureCollection, optional
         A feature collection containing features to use to create the mask
 
-    fcSeed : ``geometric_features.FeatureCollection``, optional
+    fcSeed : geometric_features.FeatureCollection, optional
         A feature collection with points to use a seeds for a flood fill that
         will create a mask of all cells connected to the seed points
 
-    logger : ``logging.Logger``, optional
+    logger : logging.Logger, optional
         A logger for the output if not stdout
 
     dir : str, optional
@@ -191,7 +191,7 @@ def mask(dsMesh, fcMask=None, fcSeed=None, logger=None, dir=None):
 
     Returns
     -------
-    dsMask : ``xarray.Dataset``
+    dsMask : xarray.Dataset
         The masks
 
     """
