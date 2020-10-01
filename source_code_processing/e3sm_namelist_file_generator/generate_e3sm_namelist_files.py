@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 """
-This script can be used to autogenerate some of the files used by ACME/CESM to
+This script can be used to autogenerate some of the files used by E3SM/CESM to
 define namelist options for each component.  These files are:
 
 * models/<COMPONENT>/bld/build-namelist:
-  This perl script builds the namelist that ACME uses for the component.
+  This perl script builds the namelist that E3SM uses for the component.
   It creates the default namelist that the component will use by a hardcoded
   list of namelist options that should be included.
   It uses the namelist_definition_*.xml file to validate the data type of
@@ -17,7 +17,7 @@ define namelist options for each component.  These files are:
 
 * models/<COMPONENT>/bld/namelist-files/namelist_defaults_<MODEL>.xml:
   This xml file defines the default value for each namelist option defined in
-  namelist_definition_*.xml.  The default values defined here for ACME could differ
+  namelist_definition_*.xml.  The default values defined here for E3SM could differ
   from the defaults used in standalone MPAS.
 
 This script requires a processed registry file from a compiled instance of MPAS
@@ -38,19 +38,24 @@ Optionally, a pre-existing namelist_defaults_*.xml file can be specified.  If it
 there will be warnings to the screen and lines written to the newly generated
 namelist_default_*.xml file that is output indicating where the values in the
 pre-existing namelist_defaults file differ from those in the MPAS Registry file.
-This is useful when the defaults used for ACME differ from those used in standalone
-MPAS, and the ACME defaults should be preserved.  This information alerts the operator
+This is useful when the defaults used for E3SM differ from those used in standalone
+MPAS, and the E3SM defaults should be preserved.  This information alerts the operator
 to these diferences and allows the conflicts to be manually resolved.
+
+Optionally, an additional Registry file can be specified that will be combined with
+main processed Registry file. The filename for this extra Registry file is specified
+with the '-e' or '--extra_registry' command line arguments.
 
 """
 
+from __future__ import print_function
 import collections
 import argparse
 import xml.etree.ElementTree as ET
 
 def write_definition_file(registry):#{{{
 	nl_defin_filename = "namelist_definitions.xml"
-	print "=== Writing namelist definitions to: " + nl_defin_filename
+	print("=== Writing namelist definitions to: " + nl_defin_filename)
 	definitions = open(nl_defin_filename, 'w+')
 
 	# Write definitions header#{{{
@@ -133,6 +138,9 @@ def write_definition_file(registry):#{{{
 
 			if ( option_type == "character" ):
 				entry_type = "char*1024"
+			elif ( "character_array" in option_type ):
+				arraySize = int(option_type.split("::")[1])
+				entry_type = "char*1024(%i)" %(arraySize)
 			else:
 				entry_type = option_type
 
@@ -148,13 +156,13 @@ def write_definition_file(registry):#{{{
 	# Write definitions footer
 	definitions.write('</namelist_definition>\n')
 	definitions.close()
-	print "=== Complete.\n"
+	print("=== Complete.\n")
 
 #}}}
 
 def write_defaults_file(registry, defaults_tree, use_defaults):#{{{
 	nl_defaults_filename = "namelist_defaults.xml"
-	print "=== Writing namelist defaults to: " + nl_defaults_filename
+	print("=== Writing namelist defaults to: " + nl_defaults_filename)
 	defaults = open(nl_defaults_filename, 'w+')
 
 	# Write defaults header#{{{
@@ -177,7 +185,7 @@ def write_defaults_file(registry, defaults_tree, use_defaults):#{{{
 				wrote_opt = False
 				for nml_defaults in defaults_tree.iter("namelist_defaults"):
 					for def_option in nml_defaults.iter("%s"%(option_name.strip())):
- 						if ( not len(def_option.attrib) == 0 ):
+						if ( not len(def_option.attrib) == 0 ):
 							defaults.write("<%s"%(option_name))
 							for key, val in def_option.attrib.items():
 								defaults.write(" %s=\"%s\""%(key.strip(), val.strip()))
@@ -185,11 +193,11 @@ def write_defaults_file(registry, defaults_tree, use_defaults):#{{{
 							wrote_opt = True
 						elif len(def_option.attrib) == 0:
 							if not option_default_value.strip() == def_option.text.strip().strip("'"):
-								print "  Default values don't match for option: %s"%(option_name.strip())
-								print "    Values are: Reg (%s) Def (%s)"%(option_default_value.strip(), def_option.text.strip())
-								print "    Writing both. Clean up manually..."
+								print("  Default values don't match for option: %s"%(option_name.strip()))
+								print("    Values are: Reg (%s) Def (%s)"%(option_default_value.strip(), def_option.text.strip()))
+								print("    Writing both. Clean up manually...")
 
-								if option_type == 'character':
+								if option_type == 'character' or "character_array" in option_type:
 									defaults.write("<<<<<<<<< FROM REGISTRY\n")
 									defaults.write("<%s>'%s'</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
 								else:
@@ -198,19 +206,19 @@ def write_defaults_file(registry, defaults_tree, use_defaults):#{{{
 
 								defaults.write("=======================\n")
 								defaults.write("<%s>%s</%s>\n"%(option_name.strip(), def_option.text.strip(), option_name.strip()))
-								defaults.write("<<<<<<<<< FROM OLD DEFAULTS\n")
+								defaults.write(">>>>>>>>> FROM OLD DEFAULTS\n")
 							else:
 								defaults.write("<%s>%s</%s>\n"%(option_name.strip(), def_option.text.strip(), option_name.strip()))
 							wrote_opt = True
 				if not wrote_opt:
-					if option_type == 'character':
+					if option_type == 'character' or "character_array" in option_type:
 						defaults.write("<%s>'%s'</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
 					else:
 						defaults.write("<%s>%s</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
 					wrote_opt = True
 			else:
 				# Write the built in default.
-				if option_type == 'character':
+				if option_type == 'character' or "character_array" in option_type:
 					defaults.write("<%s>'%s'</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
 				else:
 					defaults.write("<%s>%s</%s>\n"%(option_name.strip(), option_default_value.strip(), option_name.strip()))
@@ -220,13 +228,13 @@ def write_defaults_file(registry, defaults_tree, use_defaults):#{{{
 	defaults.write('\n')
 	defaults.write('</namelist_defaults>\n')
 	defaults.close()
-	print "=== Complete.\n"
+	print("=== Complete.\n")
 
 #}}}
 
 def write_build_namelist_section(registry):#{{{
 	bld_nl_sec_filename = "build-namelist-section-new"
-	print "=== Writing section of the 'build-namelist' file that writes a list of namelist options to: " + bld_nl_sec_filename
+	print("=== Writing section of the 'build-namelist' file that writes a list of namelist options to: " + bld_nl_sec_filename)
 	build_nml = open(bld_nl_sec_filename, 'w+')
 
 	group_list = open('build-namelist-group-list', 'w+')
@@ -262,13 +270,14 @@ def write_build_namelist_section(registry):#{{{
 	group_list.write(');\n')
 	group_list.close()
 	build_nml.close()
-	print "   NOTE: You should ensure the build-namelist generated has the correct syntax. Some options need additional logic this script is not capable of generating."
-	print "=== Complete.\n"
+	print("   NOTE: You should ensure the build-namelist generated has the correct syntax. Some options need additional logic this script is not capable of generating.")
+	print("=== Complete.\n")
 #}}}
 
 parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument("-r", "--registry", dest="registry", help="Path to Preprocessed Registry file", metavar="FILE", required=True)
 parser.add_argument("-d", "--defaults", dest="defaults", help="Path to namelist defaults file (Optional)", metavar="FILE")
+parser.add_argument("-e", "--extra_registry", dest="extra_registry", help="Path to additional Registry file to concatenate with main one (Optional)", metavar="FILE")
 
 args = parser.parse_args()
 
@@ -284,12 +293,14 @@ try:
 	registry_tree = ET.parse(args.registry)
 except:
 	parser.error('%s does not exist or is not parsable. Exiting.\nSometimes blank lines at the beginning of the file break the parser.'%args.registry)
+	raise
 
 if use_defaults:
 	try:
 		defaults_tree = ET.parse(args.defaults)
 	except:
 		parser.error('%s does not exist or is not parsable. Exiting.\nSometimes blank lines at the beginning of the file break the parser.'%args.defaults)
+		raise
 
 	defaults = defaults_tree.getroot()
 else:
@@ -297,7 +308,15 @@ else:
 
 registry = registry_tree.getroot()
 
+if args.extra_registry:
+	try:
+		extra_registry_tree = ET.parse(args.extra_registry)
+	except:
+		parser.error('%s does not exist or is not parsable. Exiting.\nSometimes blank lines at the beginning of the file break the parser.'%args.extra_registry)
+		raise
+	extra_registry = extra_registry_tree.getroot()
+	registry.extend(extra_registry)
+
 write_definition_file(registry)
 write_defaults_file(registry, defaults, use_defaults)
 write_build_namelist_section(registry)
-
