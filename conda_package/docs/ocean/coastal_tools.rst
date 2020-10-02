@@ -280,9 +280,17 @@ meters.
 
 The resolution refinement can be confined to a region using
 ``params['restrict_box']`` to supply a region of made up of quadrilaterals to
-``include`` and ``exclude`` from the restricted region.  For example, a
-restriction box for the region around Delaware from the example above is defined
-by:
+``include`` and ``exclude`` from the restricted region. ``include`` boxes
+specify regions where the distance-based coastal refinement function should be
+used to update the desired cell width values. ``exclude`` boxes eliminate areas
+within the ``include`` regions so they are not affected by the coastal
+refinement function. This is useful for preventing resolution from appearing on
+one side of a narrow piece of land. For example, coastal refinement in the Gulf
+of Mexico should not appear on the other Pacific Ocean side of Central America.
+The ``params['restrict_box']`` regions can be used to enforce this.
+
+Here is an example of a restriction box for the region around Delaware, used in
+the example above:
 
 .. code-block:: python
 
@@ -305,7 +313,16 @@ Regions
 :ref:`coastal_tools_extract` requires a set of bounding regions to be defined.
 These regions are made up of a list of quadrilaterals to ``include`` and another
 list to ``exclude``.  The quadrilaterals are either bounding rectangles
-(min lon, max lon, min lat, max lat) or lists of 4 (lon, lat) points.
+(min lon, max lon, min lat, max lat) or lists of 4 (lon, lat) points numbered
+counter clockwise.
+
+``include`` boxes specify areas where coastline contours will be extracted from
+the underlying bathymetry dataset. ``exclude`` boxes can be used to select
+regions within ``include`` regions where coastline extraction should not be
+done. For example, a large include box covering the U.S. East Coast may contain
+small islands in the Atlantic, which may need to be ignored when placing coastal
+refinement. In this case, ``exclude`` boxes can be specified to eliminate the
+small coastlines.
 
 An example of such a region is:
 
