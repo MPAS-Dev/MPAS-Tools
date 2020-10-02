@@ -318,7 +318,6 @@ def coastal_refined_mesh(params, cell_width=None, lon_grd=None, lat_grd=None):
         coastlines,
         lon_grd,
         lat_grd,
-        params["origin"],
         params["nn_search"],
         params["smooth_coastline"],
         params["plot_option"],
@@ -337,8 +336,6 @@ def coastal_refined_mesh(params, cell_width=None, lon_grd=None, lat_grd=None):
         params["restrict_box"],
         params["plot_option"],
         params["plot_box"],
-        lon_grd,
-        lat_grd,
         coastlines,
         call_count)
 
@@ -610,8 +607,8 @@ def extract_coastlines(nc_file, nc_vars, region_box, z_contour=0, n_longest=10,
 ##############################################################
 
 
-def distance_to_coast(coastlines, lon_grd, lat_grd, origin, nn_search,
-                      smooth_window, plot_option=False, plot_box=[], call=None):
+def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search, smooth_window,
+                      plot_option=False, plot_box=[], call=None):
     # {{{
     """
     Extracts a set of coastline contours
@@ -627,9 +624,6 @@ def distance_to_coast(coastlines, lon_grd, lat_grd, origin, nn_search,
 
     lat_grd : ndarray
         A 1D array of latitudes in degrees in the range from -90 to 90
-
-    origin : ndarray
-        A lon/lat point defining the origin, not currently used by the code
 
     nn_search : {'kdtree', 'flann'}
         The algorithm to use for the nearest neightbor search.  'flann' is
@@ -741,8 +735,7 @@ def distance_to_coast(coastlines, lon_grd, lat_grd, origin, nn_search,
 
 def compute_cell_width(D, cell_width, lon, lat, dx_min, trans_start,
                        trans_width, restrict_box, plot_option=False,
-                       plot_box=[], lon_grd=[], lat_grd=[], coastlines=[],
-                       call=None):  # {{{
+                       plot_box=[], coastlines=[], call=None):  # {{{
     """
     Blend cell widths from the input field with the new resolution in the
     refined region determined by the distance to the coastline contour.
@@ -787,14 +780,6 @@ def compute_cell_width(D, cell_width, lon, lat, dx_min, trans_start,
 
     plot_box : list of float, optional
         The extent of the plot if ``plot_option=True``
-
-    lon_grd : ndarray
-        A 1D array of longitudes in degrees in the range from -180 to 180 used
-        in plotting if ``plot_option=True`` (the same as ``lon``)
-
-    lat_grd : ndarray
-        A 1D array of latitudes in degrees in the range from -90 to 90 used
-        in plotting if ``plot_option=True`` (the same as ``lat``)
 
     coastlines : ndarray
         An n x 2 array of (longitude, latitude) points along the coastline
@@ -855,7 +840,7 @@ def compute_cell_width(D, cell_width, lon, lat, dx_min, trans_start,
 
         # Find coordinates and data inside plotting box
         lon_plot, lat_plot, cell_width_plot = get_data_inside_box(
-            lon_grd, lat_grd, cell_width / km, plot_box)
+            lon, lat, cell_width / km, plot_box)
 
         # Plot cell width
         fig = plt.figure()

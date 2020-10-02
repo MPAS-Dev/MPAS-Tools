@@ -116,7 +116,6 @@ Next, the distance to the coastal contours is computed using
 :py:func:`mpas_tools.ocean.coastal_tools.distance_to_coast()` with the
 following values from ``params``:
 
-* ``'origin'`` - A lon and lat point---no longer used in the code
 * ``'nn_search'`` - Whether to use the ``'flann'`` or ``'kdtree'`` algorithm,
   with the ``'flann'`` strongly recommended.
 * ``'smooth_coastline'`` - The number of neighboring cells along the coastline
