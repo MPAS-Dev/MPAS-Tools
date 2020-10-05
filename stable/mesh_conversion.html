@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Making Changes to mpas_tools" href="making_changes.html" />
+    <link rel="next" title="Interpolation" href="interpolation.html" />
     <link rel="prev" title="Mesh Creation" href="mesh_creation.html" /> 
 </head>
 
@@ -92,8 +92,26 @@
 <li class="toctree-l2"><a class="reference internal" href="#mesh-converter">Mesh Converter</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#cell-culler">Cell Culler</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#mask-creator">Mask Creator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#merging-and-splitting">Merging and Splitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#translation">Translation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#converting-between-mesh-formats">Converting Between Mesh Formats</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#msh-to-mpas-netcdf">MSH to MPAS NetCDF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#triangle-to-mpas-netcdf">Triangle to MPAS NetCDF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mpas-netcdf-to-triangle">MPAS NetCDF to Triangle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mpas-netcdf-to-scrip">MPAS NetCDF to SCRIP</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/moc.html">Meridional Overturning Circulation</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
@@ -175,7 +193,7 @@
   <div class="section" id="mesh-conversion">
 <span id="id1"></span><h1>Mesh Conversion<a class="headerlink" href="#mesh-conversion" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="mesh-converter">
-<h2>Mesh Converter<a class="headerlink" href="#mesh-converter" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>Mesh Converter<a class="headerlink" href="#mesh-converter" title="Permalink to this headline">¶</a></h2>
 <p>The command-line tool <code class="docutils literal notranslate"><span class="pre">MpasMeshConverter.x</span></code> and the corresponding wrapper
 function <a class="reference internal" href="generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert" title="mpas_tools.mesh.conversion.convert"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.conversion.convert()</span></code></a> are used to convert a
 dataset describing cell locations, vertex locations, and connectivity between
@@ -249,7 +267,7 @@ that can be used to capture the output that would otherwise go to the screen
 via <code class="docutils literal notranslate"><span class="pre">stdout</span></code> and <code class="docutils literal notranslate"><span class="pre">stderr</span></code>.</p>
 </div>
 <div class="section" id="cell-culler">
-<h2>Cell Culler<a class="headerlink" href="#cell-culler" title="Permalink to this headline">¶</a></h2>
+<span id="id3"></span><h2>Cell Culler<a class="headerlink" href="#cell-culler" title="Permalink to this headline">¶</a></h2>
 <p>The command-line tool <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code> and the corresponding wrapper
 function <a class="reference internal" href="generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull" title="mpas_tools.mesh.conversion.cull"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.conversion.cull()</span></code></a> are used to cull cells from
 a mesh based on the <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field in the input dataset and/or the provided
@@ -317,7 +335,7 @@ are to be removed).</p>
 </div>
 </div>
 <div class="section" id="mask-creator">
-<h2>Mask Creator<a class="headerlink" href="#mask-creator" title="Permalink to this headline">¶</a></h2>
+<span id="id4"></span><h2>Mask Creator<a class="headerlink" href="#mask-creator" title="Permalink to this headline">¶</a></h2>
 <p>The command-line tool <code class="docutils literal notranslate"><span class="pre">MpasMaskCreator.x</span></code> and the corresponding wrapper
 function <a class="reference internal" href="generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask" title="mpas_tools.mesh.conversion.mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.conversion.mask()</span></code></a> are used to create a set of
 region masks either from mask features or from seed points to be used to flood
@@ -341,6 +359,251 @@ fill a contiguous block of cells.</p>
 </pre></div>
 </div>
 </div>
+<div class="section" id="merging-and-splitting">
+<span id="merge-split"></span><h2>Merging and Splitting<a class="headerlink" href="#merging-and-splitting" title="Permalink to this headline">¶</a></h2>
+<p>In order to support running
+<a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Model/tree/landice/develop">MPAS-Albany Land Ice (MALI)</a>
+with both Greenland and Antarctica at the same time, tools have been added to
+support merging and splitting MPAS meshes.</p>
+<p>Merging two meshes can be accomplished with
+<a class="reference internal" href="generated/mpas_tools.merge_grids.merge_grids.html#mpas_tools.merge_grids.merge_grids" title="mpas_tools.merge_grids.merge_grids"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.merge_grids.merge_grids()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">translate</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.merge_grids</span> <span class="kn">import</span> <span class="n">merge_grids</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+
+
+<span class="n">dsMesh1</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">dsMesh2</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">translate</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">20000.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh1</span><span class="p">,</span> <span class="s1">&#39;mesh1.nc&#39;</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="s1">&#39;mesh2.nc&#39;</span><span class="p">)</span>
+
+<span class="n">merge_grids</span><span class="p">(</span><span class="n">infile1</span><span class="o">=</span><span class="s1">&#39;mesh1.nc&#39;</span><span class="p">,</span> <span class="n">infile2</span><span class="o">=</span><span class="s1">&#39;mesh2.nc&#39;</span><span class="p">,</span>
+            <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;merged_mesh.nc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Typically, it will only make sense to merge non-periodic meshes in this way.</p>
+<p>Later, perhaps during analysis or visualization, it can be useful to split
+apart the merged meshes.  This can be done with
+<a class="reference internal" href="generated/mpas_tools.split_grids.split_grids.html#mpas_tools.split_grids.split_grids" title="mpas_tools.split_grids.split_grids"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.split_grids.split_grids()</span></code></a></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">translate</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.split_grids</span> <span class="kn">import</span> <span class="n">split_grids</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+
+
+<span class="n">dsMesh1</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">dsMesh2</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">translate</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">20000.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh1</span><span class="p">,</span> <span class="s1">&#39;mesh1.nc&#39;</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="s1">&#39;mesh2.nc&#39;</span><span class="p">)</span>
+
+
+<span class="n">split_grids</span><span class="p">(</span><span class="n">infile</span><span class="o">=</span><span class="s1">&#39;merged_mesh.nc&#39;</span><span class="p">,</span> <span class="n">outfile1</span><span class="o">=</span><span class="s1">&#39;split_mesh1.nc&#39;</span><span class="p">,</span>
+            <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;split_mesh2.nc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Merging meshes can also be accomplished with the <code class="docutils literal notranslate"><span class="pre">merge_grids</span></code> command-line
+tool:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ merge_grids --help
+
+usage: merge_grids [-h] [-o FILENAME] FILENAME1 FILENAME2
+
+Tool to merge 2 MPAS non-contiguous meshes together into a single file
+
+positional arguments:
+  FILENAME1    File name for first mesh to merge
+  FILENAME2    File name for second mesh to merge
+
+optional arguments:
+  -h, --help   show this help message and exit
+  -o FILENAME  The merged mesh file
+</pre></div>
+</div>
+<p>Similarly, <code class="docutils literal notranslate"><span class="pre">split_grids</span></code> can be used to to split meshes:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ split_grids --help
+
+usage: split_grids [-h] [-1 FILENAME] [-2 FILENAME] [--nCells NCELLS]
+                   [--nEdges NEDGES] [--nVertices NVERTICES]
+                   [--maxEdges MAXEDGES1 MAXEDGES2]
+                   MESHFILE
+
+Tool to split 2 previously merged MPAS non-contiguous meshes into separate files.
+Typical usage is:
+    split_grids.py -1 outfile1.nc -2 outfile2.nc infile
+The optional arguments for nCells, nEdges, nVertices, and maxEdges should
+generally not be required as this information is saved in the combined mesh file
+as global attributes by the merge_grids.py script.
+
+positional arguments:
+  MESHFILE              Mesh file to split
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -1 FILENAME, --outfile1 FILENAME
+                        File name for first mesh output
+                        (default: mesh1.nc)
+  -2 FILENAME, --outfile2 FILENAME
+                        File name for second mesh output
+                        (default: mesh2.nc)
+  --nCells NCELLS       The number of cells in the first mesh
+                        (default: the value specified in MESHFILE global attribute merge_point)
+  --nEdges NEDGES       The number of edges in the first mesh
+                        (default: the value specified in MESHFILE global attribute merge_point)
+  --nVertices NVERTICES
+                        The number of vertices in the first mesh
+                        (default: the value specified in MESHFILE global attribute merge_point)
+  --maxEdges MAXEDGES1 MAXEDGES2
+                        The number of maxEdges in each mesh
+                        (default: the value specified in MESHFILE global attribute merge_point
+                              OR: will use MESHFILE maxEdges dimension and assume same for both)
+</pre></div>
+</div>
+</div>
+<div class="section" id="translation">
+<span id="mesh-translation"></span><h2>Translation<a class="headerlink" href="#translation" title="Permalink to this headline">¶</a></h2>
+<p>A planar mesh can be translated in x, y or both by calling
+<a class="reference internal" href="generated/mpas_tools.translate.translate.html#mpas_tools.translate.translate" title="mpas_tools.translate.translate"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.translate.translate()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">translate</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+
+<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">translate</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">2000.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This creates a periodic, planar mesh and then translates it by 1 km in x and
+2 km in y.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All the functions in the <code class="docutils literal notranslate"><span class="pre">mpas_tools.translate</span></code> module modify the mesh
+inplace, rather than returning a new <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> object.  This is
+in contrast to typical <code class="docutils literal notranslate"><span class="pre">xarray</span></code> functions and methods.</p>
+</div>
+<p>A mesh can be translated so that its center is at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">0.</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">0.</span></code> with
+the function <a class="reference internal" href="generated/mpas_tools.translate.center.html#mpas_tools.translate.center" title="mpas_tools.translate.center"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.translate.center()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">center</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+
+<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">center</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A mesh can be translated so its center matches the center of another mesh by
+using <a class="reference internal" href="generated/mpas_tools.translate.center_on_mesh.html#mpas_tools.translate.center_on_mesh" title="mpas_tools.translate.center_on_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.translate.center_on_mesh()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">center_on_mesh</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+
+<span class="n">dsMesh1</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">dsMesh2</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">2000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">center_on_mesh</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="n">dsMesh1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this example, the coordinates of <code class="docutils literal notranslate"><span class="pre">dsMesh2</span></code> are altered so its center
+matches that of <code class="docutils literal notranslate"><span class="pre">dsMesh1</span></code>.</p>
+<p>The functionality of all three of these functions is also available via the
+<code class="docutils literal notranslate"><span class="pre">translate_planar_grid</span></code> command-line tool:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ translate_planar_grid --help
+
+== Gathering information.  (Invoke with --help for more details. All arguments are optional)
+Usage: translate_planar_grid [options]
+
+This script translates the coordinate system of the planar MPAS mesh specified
+with the -f flag.  There are 3 possible methods to choose from: 1) shift the
+origin to the center of the domain 2) arbirary shift in x and/or y 3) shift to
+the center of the domain described in a separate file
+
+Options:
+  -h, --help            show this help message and exit
+  -f FILENAME, --file=FILENAME
+                        MPAS planar grid file name. [default: grid.nc]
+  -d FILENAME, --datafile=FILENAME
+                        data file name to which to match the domain center of.
+                        Uses xCell,yCell or, if those fields do not exist,
+                        will secondly try x1,y1 fields.
+  -x SHIFT_VALUE        user-specified shift in the x-direction. [default:
+                        0.0]
+  -y SHIFT_VALUE        user-specified shift in the y-direction. [default:
+                        0.0]
+  -c                    shift so origin is at center of domain [default:
+                        False]
+</pre></div>
+</div>
+</div>
+<div class="section" id="converting-between-mesh-formats">
+<h2>Converting Between Mesh Formats<a class="headerlink" href="#converting-between-mesh-formats" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="msh-to-mpas-netcdf">
+<h3>MSH to MPAS NetCDF<a class="headerlink" href="#msh-to-mpas-netcdf" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">jigsawpy</span></code> produces meshes in <code class="docutils literal notranslate"><span class="pre">.msh</span></code> format that need to be converted to
+<a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a> files for use by MPAS
+components.  A utility function
+<a class="reference internal" href="generated/mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html#mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf" title="mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf()</span></code></a> or the
+command-line utility <code class="docutils literal notranslate"><span class="pre">jigsaw_to_netcdf</span></code> are used for this purpose.</p>
+<p>In addition to the input <code class="docutils literal notranslate"><span class="pre">.msh</span></code> and output <code class="docutils literal notranslate"><span class="pre">.nc</span></code> files, the user must
+specify whether this is a spherical or planar mesh and, if it is spherical,
+provide the radius of the Earth in meters.</p>
+</div>
+<div class="section" id="triangle-to-mpas-netcdf">
+<h3>Triangle to MPAS NetCDF<a class="headerlink" href="#triangle-to-mpas-netcdf" title="Permalink to this headline">¶</a></h3>
+<p>Meshes in <a class="reference external" href="https://www.cs.cmu.edu/~quake/triangle.html">Triangle</a> format
+can be converted to MPAS NetCDF format using
+<a class="reference internal" href="generated/mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf.html#mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf" title="mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf()</span></code></a> or
+the <code class="docutils literal notranslate"><span class="pre">triangle_to_netcdf</span></code> command-line tool.</p>
+<p>The user supplies the names of input <code class="docutils literal notranslate"><span class="pre">.node</span></code> and <code class="docutils literal notranslate"><span class="pre">.ele</span></code> files and the
+name of an output MPAS mesh file.</p>
+</div>
+<div class="section" id="mpas-netcdf-to-triangle">
+<h3>MPAS NetCDF to Triangle<a class="headerlink" href="#mpas-netcdf-to-triangle" title="Permalink to this headline">¶</a></h3>
+<p>MPAS meshes in NetCDF format can be converted to <code class="docutils literal notranslate"><span class="pre">Triangle</span></code> format using
+<a class="reference internal" href="generated/mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle.html#mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle" title="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle()</span></code></a> or
+the <code class="docutils literal notranslate"><span class="pre">mpas_to_triangle</span></code> command-line tool.</p>
+<p>The user supplies the name of an input MPAS mesh file and the output prefix
+for the resulting Triangle <code class="docutils literal notranslate"><span class="pre">.node</span></code> and <code class="docutils literal notranslate"><span class="pre">.ele</span></code> files.</p>
+</div>
+<div class="section" id="mpas-netcdf-to-scrip">
+<h3>MPAS NetCDF to SCRIP<a class="headerlink" href="#mpas-netcdf-to-scrip" title="Permalink to this headline">¶</a></h3>
+<p>The function <a class="reference internal" href="generated/mpas_tools.scrip.from_mpas.scrip_from_mpas.html#mpas_tools.scrip.from_mpas.scrip_from_mpas" title="mpas_tools.scrip.from_mpas.scrip_from_mpas"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.scrip.from_mpas.scrip_from_mpas()</span></code></a> can be
+used to convert an MPAS mesh file in NetCDF format to
+<a class="reference external" href="http://www.earthsystemmodeling.org/esmf_releases/public/ESMF_5_2_0rp1/ESMF_refdoc/node3.html#SECTION03024000000000000000">SCRIP</a>
+format.  SCRIP files are typically used to create mapping files used to
+interpolate between meshes.</p>
+<p>A command-line tools is also available for this purpose:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ scrip_from_mpas --help
+== Gathering information.  (Invoke with --help for more details. All arguments are optional)
+Usage: scrip_from_mpas [options]
+
+This script takes an MPAS grid file and generates a SCRIP grid file.
+
+Options:
+  -h, --help            show this help message and exit
+  -m FILENAME, --mpas=FILENAME
+                        MPAS grid file name used as input. [default: grid.nc]
+  -s FILENAME, --scrip=FILENAME
+                        SCRIP grid file to output. [default: scrip.nc]
+  -l, --landice         If flag is on, landice masks will be computed and
+                        used.
+</pre></div>
+</div>
+</div>
+</div>
 </div>
 
 
@@ -351,7 +614,7 @@ fill a contiguous block of cells.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="making_changes.html" class="btn btn-neutral float-right" title="Making Changes to mpas_tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="interpolation.html" class="btn btn-neutral float-right" title="Interpolation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="mesh_creation.html" class="btn btn-neutral float-left" title="Mesh Creation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

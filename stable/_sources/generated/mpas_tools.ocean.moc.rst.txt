@@ -1,0 +1,31 @@
+﻿mpas\_tools.ocean.moc
+=====================
+
+.. automodule:: mpas_tools.ocean.moc
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_moc_southern_boundary_transects
+      build_moc_basins
+      make_moc_basins_and_transects
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+

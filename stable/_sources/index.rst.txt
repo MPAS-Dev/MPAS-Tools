@@ -23,6 +23,22 @@ User's Guide
 
    mesh_creation
    mesh_conversion
+   interpolation
+
+   cime
+
+   visualization
+
+Ocean Tools
+-----------
+
+.. toctree::
+   :maxdepth: 2
+
+   ocean/mesh_creation
+   ocean/coastal_tools
+   ocean/coastline_alteration
+   ocean/moc
 
 Developer's Guide
 =================

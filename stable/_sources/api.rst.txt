@@ -9,6 +9,9 @@ the documentation.
 MPAS mesh tools
 ===============
 
+Mesh creation
+-------------
+
 .. currentmodule:: mpas_tools.planar_hex
 
 .. autosummary::
@@ -16,32 +19,30 @@ MPAS mesh tools
 
    make_planar_hex_mesh
 
-.. currentmodule:: mpas_tools.translate
-
-.. autosummary::
-   :toctree: generated/
-
-   translate
-
 .. currentmodule:: mpas_tools.mesh.creation
 
 .. autosummary::
    :toctree: generated/
 
+   build_mesh
    build_mesh.build_spherical_mesh
    build_mesh.build_planar_mesh
    jigsaw_driver.jigsaw_driver
    jigsaw_to_netcdf.jigsaw_to_netcdf
+   mesh_definition_tools
    mesh_definition_tools.mergeCellWidthVsLat
    mesh_definition_tools.EC_CellWidthVsLat
    mesh_definition_tools.RRS_CellWidthVsLat
    mesh_definition_tools.AtlanticPacificGrid
    mpas_to_triangle.mpas_to_triangle
-   open_msh.readmsh
+   signed_distance
    signed_distance.signed_distance_from_geojson
    signed_distance.mask_from_geojson
    signed_distance.distance_from_geojson
    triangle_to_netcdf.triangle_to_netcdf
+
+Mesh conversion
+---------------
 
 .. currentmodule:: mpas_tools.mesh.conversion
 
@@ -66,6 +67,16 @@ MPAS mesh tools
 
    split_grids
 
+.. currentmodule:: mpas_tools.translate
+
+.. autosummary::
+   :toctree: generated/
+
+   translate
+   center
+   center_on_mesh
+
+
 .. currentmodule:: mpas_tools.io
 
 .. autosummary::
@@ -80,43 +91,62 @@ MPAS mesh tools
 
    scrip_from_mpas
 
+Inerpolation
+------------
+
+.. currentmodule:: mpas_tools.mesh.interpolation
+
+.. autosummary::
+   :toctree: generated/
+
+   interp_bilin
+
+CIME constants
+--------------
+
+.. currentmodule:: mpas_tools.cime
+
+.. autosummary::
+   :toctree: generated/
+
+   constants
+
 Ocean Tools
 ===========
 
-.. currentmodule:: mpas_tools.ocean.coastline_alteration
+.. currentmodule:: mpas_tools.ocean
 
 .. autosummary::
    :toctree: generated/
 
-   add_critical_land_blockages
-   widen_transect_edge_masks
+   coastline_alteration
+   coastline_alteration.add_critical_land_blockages
+   coastline_alteration.widen_transect_edge_masks
+   coastline_alteration.add_land_locked_cells_to_mask
 
-.. currentmodule:: mpas_tools.ocean.moc
+   moc
+   moc.make_moc_basins_and_transects
+   moc.build_moc_basins
+   moc.add_moc_southern_boundary_transects
 
-.. autosummary::
-   :toctree: generated/
+   build_mesh
+   build_mesh.build_spherical_mesh
+   build_mesh.build_planar_mesh
 
-   make_moc_basins_and_transects
-   build_moc_basins
-
-.. currentmodule:: mpas_tools.ocean.coastal_tools
-
-.. autosummary::
-   :toctree: generated/
-
-   coastal_refined_mesh
-   create_background_mesh
-   extract_coastlines
-   distance_to_coast
-   compute_cell_width
-   save_matfile
-   CPP_projection
-   smooth_coastline
-   get_data_inside_box
-   get_indices_inside_quad
-   get_convex_hull_coordinates
-   plot_coarse_coast
-   plot_region_box
+   coastal_tools
+   coastal_tools.coastal_refined_mesh
+   coastal_tools.create_background_mesh
+   coastal_tools.extract_coastlines
+   coastal_tools.distance_to_coast
+   coastal_tools.compute_cell_width
+   coastal_tools.save_matfile
+   coastal_tools.CPP_projection
+   coastal_tools.smooth_coastline
+   coastal_tools.get_data_inside_box
+   coastal_tools.get_indices_inside_quad
+   coastal_tools.get_convex_hull_coordinates
+   coastal_tools.plot_coarse_coast
+   coastal_tools.plot_region_box
 
 .. currentmodule:: mpas_tools.ocean.inject_bathymetry
 
@@ -151,3 +181,29 @@ Visualization
    :toctree: generated/
 
    extract_vtk
+
+.. currentmodule:: mpas_tools.viz.mesh_to_triangles
+
+.. autosummary::
+   :toctree: generated/
+
+   mesh_to_triangles
+
+
+.. currentmodule:: mpas_tools.viz.colormaps
+
+.. autosummary::
+   :toctree: generated/
+
+   register_sci_viz_colormaps
+
+Tests
+=====
+
+.. currentmodule:: mpas_tools.tests.test_cime_constants
+
+.. autosummary::
+   :toctree: generated/
+
+   test_cime_constants
+
