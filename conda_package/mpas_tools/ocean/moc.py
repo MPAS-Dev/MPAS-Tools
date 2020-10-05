@@ -23,6 +23,7 @@ def make_moc_basins_and_transects(gf, mesh_filename,
     """
     Builds features defining the ocean basins and southern transects used in
     computing the meridional overturning circulation (MOC)
+
     Parameters
     ----------
     gf : ``GeometricFeatures``
@@ -77,6 +78,7 @@ def build_moc_basins(gf, logger=None):
     """
     Builds features defining the ocean basins used in computing the meridional
     overturning circulation (MOC)
+
     Parameters
     ----------
     gf : ``GeometricFeatures``
@@ -428,13 +430,16 @@ def _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
 def _remove_small_polygons(fc, minArea, logger):
     """
     A helper function to remove small polygons from a feature collection
+
     Parameters
     ----------
     fc : ``FeatureCollection``
         The feature collection to remove polygons from
+
     minArea : float
         The minimum area (in square degrees) below which polygons should be
         removed
+
     Returns
     -------
     fcOut : ``FeatureCollection``

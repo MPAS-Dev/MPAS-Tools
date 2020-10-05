@@ -21,6 +21,7 @@ def inject_meshDensity_from_file(cw_filename, mesh_filename, on_sphere=True):
     """
     Add a ``meshDensity`` field into an MPAS mesh.  The mesh density is defined
     as:
+
       meshDensity = (minCellWidth / cellWidth)**4
 
     Parameters
@@ -33,10 +34,6 @@ def inject_meshDensity_from_file(cw_filename, mesh_filename, on_sphere=True):
 
     on_sphere : bool, optional
         Whether the mesh is spherical (as opposed to planar)
-
-    Returns
-    -------
-
     """
     print('Read cell width field from nc file regular grid...')
     ds = nc4.Dataset(cw_filename,'r')
@@ -58,6 +55,7 @@ def inject_spherical_meshDensity(cellWidth, lon, lat, mesh_filename):
     """
     Add a ``meshDensity`` field into a spherical MPAS mesh.  The mesh density is
     defined as:
+
       meshDensity = (minCellWidth / cellWidth)**4
 
     Parameters
@@ -103,6 +101,7 @@ def inject_planar_meshDensity(cellWidth, x, y, mesh_filename):
     """
     Add a ``meshDensity`` field into a planar MPAS mesh.  The mesh density is
     defined as:
+
       meshDensity = (minCellWidth / cellWidth)**4
 
     Parameters

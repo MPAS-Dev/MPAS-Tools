@@ -6,20 +6,23 @@ import xarray
 
 
 def add_critical_land_blockages(dsMask, dsBlockages):
-    '''
+    """
+    Add the masks associated with one or more transects to the land mask
+
     Parameters
     ----------
-    dsMask : `xarray.Dataset`
+    dsMask : xarray.Dataset
         The mask to which critical blockages should be added
-    dsBlockage : `xarray.Dataset`
+
+    dsBlockages : xarray.Dataset
         The transect masks defining critical land regions that should block
         ocean flow (e.g. the Antarctic Peninsula)
 
     Returns
     -------
-    dsMask : `xarray.Dataset`
+    dsMask : xarray.Dataset
         The mask with critical blockages included
-    '''
+    """
 
     dsMask = dsMask.copy()
 
@@ -33,22 +36,27 @@ def add_critical_land_blockages(dsMask, dsBlockages):
 
 
 def widen_transect_edge_masks(dsMask, dsMesh, latitude_threshold=43.0):
-    '''
+    """
+    Alter critical passages at polar latitudes to be at least two cells wide, to
+    avoid sea ice blockage
+
     Parameters
     ----------
-    dsMask : `xarray.Dataset`
+    dsMask : xarray.Dataset
         The mask to which critical blockages should be added
-    dsMesh : `xarray.Dataset`
+
+    dsMesh : xarray.Dataset
         The transect masks defining critical land regions that should block
         ocean flow (e.g. the Antarctic Peninsula)
+
     latitude_threshold : float
         Minimum latitude, degrees, for transect widening
 
     Returns
     -------
-    dsMask : `xarray.Dataset`
+    dsMask : xarray.Dataset
         The mask with critical blockages included
-    '''
+    """
     latitude_threshold_radians = numpy.deg2rad(latitude_threshold)
 
     dsMask = dsMask.copy()
@@ -72,16 +80,16 @@ def widen_transect_edge_masks(dsMask, dsMesh, latitude_threshold=43.0):
 
 def add_land_locked_cells_to_mask(dsMask, dsMesh, latitude_threshold=43.0,
                                   nSweeps=10):
-    '''
+    """
     Find ocean cells that are land-locked, and alter the cell mask so that they
     are counted as land cells.
 
     Parameters
     ----------
-    dsMask : ``xarray.Dataset``
+    dsMask : xarray.Dataset
         A land-mask data set
 
-    dsMesh : ``xarray.Dataset``
+    dsMesh : xarray.Dataset
         MPAS Mesh data set
 
     latitude_threshold : float, optional
@@ -92,10 +100,10 @@ def add_land_locked_cells_to_mask(dsMask, dsMesh, latitude_threshold=43.0,
 
     Returns
     -------
-    dsMask : ``xarray.Dataset``
+    dsMask : xarray.Dataset
         A copy of the land-mask data set with land-locked cells added to the
         mask for the first region
-    '''
+    """
 
     dsMask = xarray.Dataset(dsMask)
     dsMesh = dsMesh.copy(deep=True)

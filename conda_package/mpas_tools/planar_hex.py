@@ -14,9 +14,9 @@ def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
                          nonperiodic_y, outFileName=None,
                          compareWithFileName=None,
                          format='NETCDF3_64BIT'):
-    '''
+    """
     Builds an MPAS periodic, planar hexagonal mesh with the requested
-    dimensions, optionally saving it to a file, and returs it as an
+    dimensions, optionally saving it to a file, and returns it as an
     ``xarray.Dataset``.
 
     Parameters
@@ -47,10 +47,10 @@ def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
 
     Returns
     -------
-    mesh : ``xarray.Dataset``
-        The mesh data set, available for further maniuplation such as culling
+    mesh : xarray.Dataset
+        The mesh data set, available for further manipulation such as culling
         cells or removing periodicity.
-    '''
+    """
 
     mesh = initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y)
     compute_indices_on_cell(mesh)
@@ -64,9 +64,9 @@ def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
     compute_coordinates(mesh)
     add_one_to_indices(mesh)
 
-    # drop some arrays that aren't stantard for MPAS but were used to compute
+    # drop some arrays that aren't standard for MPAS but were used to compute
     # the hex mesh
-    mesh = mesh.drop(['cellIdx', 'cellRow', 'cellCol'])
+    mesh = mesh.drop_vars(['cellIdx', 'cellRow', 'cellCol'])
 
     if outFileName is not None:
         write_netcdf(mesh, outFileName, format=format)
@@ -79,7 +79,7 @@ def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
 
 
 def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
-    '''Setup the dimensions and add placeholders for some index variables'''
+    """Setup the dimensions and add placeholders for some index variables"""
     if ny % 2 != 0:
         raise ValueError('ny must be divisible by 2 for the grid\'s '
                          'periodicity to work properly.')
@@ -127,14 +127,14 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
                                       numpy.arange(ny, dtype='i4'))
 
     mesh['cellIdx'] = (('ny', 'nx'), cellIdx)
-    mesh['cellRow'] = (('nCells'), cellRow.ravel())
-    mesh['cellCol'] = (('nCells'), cellCol.ravel())
+    mesh['cellRow'] = (('nCells',), cellRow.ravel())
+    mesh['cellCol'] = (('nCells',), cellCol.ravel())
 
-    mesh['indexToCellID'] = (('nCells'), indexToCellID)
-    mesh['indexToEdgeID'] = (('nEdges'), indexToEdgeID)
-    mesh['indexToVertexID'] = (('nVertices'), indexToVertexID)
+    mesh['indexToCellID'] = (('nCells',), indexToCellID)
+    mesh['indexToEdgeID'] = (('nEdges',), indexToEdgeID)
+    mesh['indexToVertexID'] = (('nVertices',), indexToVertexID)
 
-    mesh['cullCell'] = (('nCells'), numpy.zeros(nCells, 'i4'))
+    mesh['cullCell'] = (('nCells',), numpy.zeros(nCells, 'i4'))
 
     mesh['nEdgesOnCell'] = (('nCells',), 6 * numpy.ones((nCells,), 'i4'))
     mesh['cellsOnCell'] = (('nCells', 'maxEdges'),
@@ -332,14 +332,14 @@ def compute_coordinates(mesh):
     nVertices = mesh.sizes['nVertices']
     vertexDegree = mesh.sizes['vertexDegree']
 
-    mesh['latCell'] = (('nCells'), numpy.zeros((nCells,), 'f8'))
-    mesh['lonCell'] = (('nCells'), numpy.zeros((nCells,), 'f8'))
+    mesh['latCell'] = (('nCells',), numpy.zeros((nCells,), 'f8'))
+    mesh['lonCell'] = (('nCells',), numpy.zeros((nCells,), 'f8'))
 
-    mesh['latEdge'] = (('nEdges'), numpy.zeros((nEdges,), 'f8'))
-    mesh['lonEdge'] = (('nEdges'), numpy.zeros((nEdges,), 'f8'))
+    mesh['latEdge'] = (('nEdges',), numpy.zeros((nEdges,), 'f8'))
+    mesh['lonEdge'] = (('nEdges',), numpy.zeros((nEdges,), 'f8'))
 
-    mesh['latVertex'] = (('nVertices'), numpy.zeros((nVertices,), 'f8'))
-    mesh['lonVertex'] = (('nVertices'), numpy.zeros((nVertices,), 'f8'))
+    mesh['latVertex'] = (('nVertices',), numpy.zeros((nVertices,), 'f8'))
+    mesh['lonVertex'] = (('nVertices',), numpy.zeros((nVertices,), 'f8'))
 
     cellRow = mesh.cellRow
     cellCol = mesh.cellCol
@@ -347,11 +347,11 @@ def compute_coordinates(mesh):
 
     mesh['xCell'] = (dc * (cellCol + 0.5)).where(mask, dc * (cellCol + 1))
     mesh['yCell'] = dc * (cellRow + 1) * numpy.sqrt(3.) / 2.
-    mesh['zCell'] = (('nCells'), numpy.zeros((nCells,), 'f8'))
+    mesh['zCell'] = (('nCells',), numpy.zeros((nCells,), 'f8'))
 
-    mesh['xEdge'] = (('nEdges'), numpy.zeros((nEdges,), 'f8'))
-    mesh['yEdge'] = (('nEdges'), numpy.zeros((nEdges,), 'f8'))
-    mesh['zEdge'] = (('nEdges'), numpy.zeros((nEdges,), 'f8'))
+    mesh['xEdge'] = (('nEdges',), numpy.zeros((nEdges,), 'f8'))
+    mesh['yEdge'] = (('nEdges',), numpy.zeros((nEdges,), 'f8'))
+    mesh['zEdge'] = (('nEdges',), numpy.zeros((nEdges,), 'f8'))
 
     mesh.xEdge[edgesOnCell[:, 0]] = mesh.xCell - 0.5 * dc
     mesh.yEdge[edgesOnCell[:, 0]] = mesh.yCell
@@ -366,9 +366,9 @@ def compute_coordinates(mesh):
     mesh.yEdge[edgesOnCell[:, 2]] = mesh.yCell - \
         0.5 * dc * numpy.sin(numpy.pi / 3.)
 
-    mesh['xVertex'] = (('nVertices'), numpy.zeros((nVertices,), 'f8'))
-    mesh['yVertex'] = (('nVertices'), numpy.zeros((nVertices,), 'f8'))
-    mesh['zVertex'] = (('nVertices'), numpy.zeros((nVertices,), 'f8'))
+    mesh['xVertex'] = (('nVertices',), numpy.zeros((nVertices,), 'f8'))
+    mesh['yVertex'] = (('nVertices',), numpy.zeros((nVertices,), 'f8'))
+    mesh['zVertex'] = (('nVertices',), numpy.zeros((nVertices,), 'f8'))
 
     mesh.xVertex[verticesOnCell[:, 0]] = mesh.xCell - 0.5 * dc
     mesh.yVertex[verticesOnCell[:, 0]] = mesh.yCell + dc * numpy.sqrt(3.) / 6.
@@ -376,18 +376,18 @@ def compute_coordinates(mesh):
     mesh.xVertex[verticesOnCell[:, 1]] = mesh.xCell - 0.5 * dc
     mesh.yVertex[verticesOnCell[:, 1]] = mesh.yCell - dc * numpy.sqrt(3.) / 6.
 
-    mesh['angleEdge'] = (('nEdges'), numpy.zeros((nEdges,), 'f8'))
+    mesh['angleEdge'] = (('nEdges',), numpy.zeros((nEdges,), 'f8'))
     mesh.angleEdge[edgesOnCell[:, 1]] = numpy.pi / 3.
     mesh.angleEdge[edgesOnCell[:, 2]] = 2. * numpy.pi / 3.
 
-    mesh['dcEdge'] = (('nEdges'), dc * numpy.ones((nEdges,), 'f8'))
+    mesh['dcEdge'] = (('nEdges',), dc * numpy.ones((nEdges,), 'f8'))
     mesh['dvEdge'] = mesh.dcEdge * numpy.sqrt(3.) / 3.
 
     mesh['areaCell'] = \
-        (('nCells'), dc**2 * numpy.sqrt(3.) / 2. * numpy.ones((nCells,), 'f8'))
+        (('nCells',), dc**2 * numpy.sqrt(3.) / 2. * numpy.ones((nCells,), 'f8'))
 
     mesh['areaTriangle'] = \
-        (('nVertices'), dc**2 * numpy.sqrt(3.) /
+        (('nVertices',), dc**2 * numpy.sqrt(3.) /
          4. * numpy.ones((nVertices,), 'f8'))
 
     mesh['kiteAreasOnVertex'] = \
@@ -399,7 +399,7 @@ def compute_coordinates(mesh):
 
 
 def add_one_to_indices(mesh):
-    '''Neede to adhere to Fortran indexing'''
+    """Needed to adhere to Fortran indexing"""
     indexVars = ['indexToCellID', 'indexToEdgeID', 'indexToVertexID',
                  'cellsOnCell', 'edgesOnCell', 'verticesOnCell',
                  'cellsOnEdge', 'edgesOnEdge', 'verticesOnEdge',
