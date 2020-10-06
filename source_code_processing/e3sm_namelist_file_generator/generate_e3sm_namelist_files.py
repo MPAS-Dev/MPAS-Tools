@@ -199,7 +199,7 @@ def write_defaults_file(registry, defaults_tree, use_defaults):#{{{
 
 								defaults.write("=======================\n")
 								defaults.write("<%s>%s</%s>\n"%(option_name.strip(), def_option.text.strip(), option_name.strip()))
-								defaults.write("<<<<<<<<< FROM OLD DEFAULTS\n")
+								defaults.write(">>>>>>>>> FROM OLD DEFAULTS\n")
 							else:
 								defaults.write("<%s>%s</%s>\n"%(option_name.strip(), def_option.text.strip(), option_name.strip()))
 							wrote_opt = True
