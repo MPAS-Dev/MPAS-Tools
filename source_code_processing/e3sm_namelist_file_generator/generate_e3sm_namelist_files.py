@@ -51,7 +51,7 @@ import xml.etree.ElementTree as ET
 
 def write_definition_file(registry):#{{{
 	nl_defin_filename = "namelist_definitions.xml"
-	print "=== Writing namelist definitions to: " + nl_defin_filename
+	print("=== Writing namelist definitions to: " + nl_defin_filename)
 	definitions = open(nl_defin_filename, 'w+')
 
 	# Write definitions header#{{{
@@ -285,14 +285,14 @@ try:
 	registry_tree = ET.parse(args.registry)
 except:
 	parser.error('%s does not exist or is not parsable. Exiting.\nSometimes blank lines at the beginning of the file break the parser.'%args.registry)
-        raise
+	raise
 
 if use_defaults:
 	try:
 		defaults_tree = ET.parse(args.defaults)
 	except:
 		parser.error('%s does not exist or is not parsable. Exiting.\nSometimes blank lines at the beginning of the file break the parser.'%args.defaults)
-                raise
+		raise
 
 	defaults = defaults_tree.getroot()
 else:
