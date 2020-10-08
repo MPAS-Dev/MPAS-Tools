@@ -623,7 +623,8 @@ if filetype=='cism':
    fieldInfo['thickness'] =     {'InputName':'thk',  'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
    if not args.thicknessOnly:
      fieldInfo['bedTopography'] = {'InputName':'topg', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
-     fieldInfo['sfcMassBal'] =    {'InputName':'acab', 'scalefactor':910.0/(3600.0*24.0*365.0)/1000.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming default CISM density and mm/yr w.e. units for acab
+     fieldInfo['sfcMassBal'] =    {'InputName':'smb', 'scalefactor':910.0/(3600.0*24.0*365.0)/1000.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming default CISM density and mm/yr w.e. units for smb
+     fieldInfo['sfcMassBalUncertainty'] =    {'InputName':'smb_std', 'scalefactor':910.0/(3600.0*24.0*365.0)/1000.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming default CISM density and mm/yr w.e. units for smb
      fieldInfo['floatingBasalMassBal'] =    {'InputName':'subm', 'scalefactor':910.0/(3600.0*24.0*365.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming default CISM density
      #fieldInfo['temperature'] =   {'InputName':'temp', 'scalefactor':1.0, 'offset':273.15, 'gridType':'x1', 'vertDim':True}
      fieldInfo['temperature'] =   {'InputName':'tempstag', 'scalefactor':1.0, 'offset':273.15, 'gridType':'x1', 'vertDim':True}  # pick one or the other
@@ -637,7 +638,7 @@ if filetype=='cism':
      fieldInfo['observedSurfaceVelocityUncertainty'] = {'InputName':'vErr', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['observedThicknessTendency'] = {'InputName':'dHdt', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['observedThicknessTendencyUncertainty'] = {'InputName':'dHdtErr', 'scalefactor':1.0/(365.0*24.0*3600.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}
-     fieldInfo['thicknessUncertainty'] = {'InputName':'thkErr', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+     fieldInfo['thicknessUncertainty'] = {'InputName':'topgerr', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
 
      fieldInfo['ismip6shelfMelt_basin'] = {'InputName':'ismip6shelfMelt_basin', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['ismip6shelfMelt_deltaT'] = {'InputName':'ismip6shelfMelt_deltaT', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
@@ -660,6 +661,16 @@ elif filetype=='mpas':
      fieldInfo['observedThicknessTendency'] = {'InputName':'observedThicknessTendency', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['observedThicknessTendencyUncertainty'] = {'InputName':'observedThicknessTendencyUncertainty', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['thicknessUncertainty'] = {'InputName':'thicknessUncertainty', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['basalFrictionFlux'] =    {'InputName':'basalFrictionFlux', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+
+# Used by Trevor
+#     fieldInfo['sfcMassBalUncertainty'] = {'InputName':'smb_std_vector', 'scalefactor':910.0/(3600.0*24.0*365.0)/1000.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+#     fieldInfo['ismip6Runoff'] = {'InputName':'runoff_vector', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+#     fieldInfo['ismip6_2dThermalForcing'] = {'InputName':'thermal_forcing_vector', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+#     fieldInfo['ismip6aST'] = {'InputName':'aST_vector', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+#     fieldInfo['ismip6aSMB'] = {'InputName':'aSMB_vector', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+#     fieldInfo['ismip6refST'] = {'InputName':'ST_vector', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+#     fieldInfo['externalWaterInput'] = {'InputName':'externalWaterInput_vector', 'scalefactor':1.0/(3600.0*24.0*365.0), 'offset':0.0, 'gridType':'cell', 'vertDim':False}
 
 
 #----------------------------
