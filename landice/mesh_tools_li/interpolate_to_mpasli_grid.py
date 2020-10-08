@@ -513,11 +513,11 @@ if args.interpType == 'd':
       cismXY1[:,1] = Xi.flatten()
 
       print('\nBuilding interpolation weights: CISM x1/y1 -> MPAS')
-      start = time.clock()
+      start = time.perf_counter()
       vtx1, wts1, outsideIndx1, treex1 = delaunay_interp_weights(cismXY1, mpasXY)
       if len(outsideIndx1) > 0:
          outsideIndx1 = outsideIndx1[0]  # get the list itself
-      end = time.clock(); print('done in {}'.format(end-start))
+      end = time.perf_counter(); print('done in {}'.format(end-start))
 
       if 'x0' in inputFile.variables and not args.thicknessOnly:
          # Need to setup separate weights for this grid
@@ -527,18 +527,18 @@ if args.interpType == 'd':
          cismXY0[:,1] = Xi.flatten()
 
          print('Building interpolation weights: CISM x0/y0 -> MPAS')
-         start = time.clock()
+         start = time.perf_counter()
          vtx0, wts0, outsideIndx0, treex0 = delaunay_interp_weights(cismXY0, mpasXY)
          if len(outsideIndx0) > 0:
             outsideIndx0 = outsideIndx0[0]  # get the list itself
-         end = time.clock(); print('done in {}'.format(end-start))
+         end = time.perf_counter(); print('done in {}'.format(end-start))
 
    elif filetype=='mpas':
       inputmpasXY= np.vstack((inputxCell[:], inputyCell[:])).transpose()
       print('Building interpolation weights: MPAS in -> MPAS out')
-      start = time.clock()
+      start = time.perf_counter()
       vtCell, wtsCell, outsideIndcell, treecell = delaunay_interp_weights(inputmpasXY, mpasXY)
-      end = time.clock(); print('done in {}'.format(end-start))
+      end = time.perf_counter(); print('done in {}'.format(end-start))
 
 #----------------------------
 # Setup NN interpolation weights if needed
@@ -552,9 +552,9 @@ if args.interpType == 'n':
       cismXY1[:,1] = Xi.flatten()
 
       print('\nBuilding interpolation weights: CISM x1/y1 -> MPAS')
-      start = time.clock()
+      start = time.perf_counter()
       nn_idx_x1 = nn_interp_weights(cismXY1, mpasXY)
-      end = time.clock(); print('done in {}'.format(end-start))
+      end = time.perf_counter(); print('done in {}'.format(end-start))
 
       if 'x0' in inputFile.variables and not args.thicknessOnly:
          # Need to setup separate weights for this grid
@@ -564,16 +564,16 @@ if args.interpType == 'n':
          cismXY0[:,1] = Xi.flatten()
 
          print('Building interpolation weights: CISM x0/y0 -> MPAS')
-         start = time.clock()
+         start = time.perf_counter()
          nn_idx_x0 = nn_interp_weights(cismXY0, mpasXY)
-         end = time.clock(); print('done in {}'.format(end-start))
+         end = time.perf_counter(); print('done in {}'.format(end-start))
 
    elif filetype=='mpas':
       inputmpasXY= np.vstack((inputxCell[:], inputyCell[:])).transpose()
       print('Building interpolation weights: MPAS in -> MPAS out')
-      start = time.clock()
+      start = time.perf_counter()
       nn_idx_cell = nn_interp_weights(inputmpasXY, mpasXY)
-      end = time.clock(); print('done in {}'.format(end-start))
+      end = time.perf_counter(); print('done in {}'.format(end-start))
 
 
 #----------------------------
@@ -640,12 +640,12 @@ for MPASfieldName in fieldInfo:
        print("  Warning: Field '{}' is not in the source file.  Skipping.".format(fieldInfo[MPASfieldName]['InputName']))
        continue  # skip the rest of this iteration of the for loop over variables
 
-    start = time.clock()
+    start = time.perf_counter()
     if fieldInfo[MPASfieldName]['vertDim']:
       MPASfield = interpolate_field_with_layers(MPASfieldName)
     else:
       MPASfield = interpolate_field(MPASfieldName)
-    end = time.clock(); print('  interpolation done in {}'.format(end-start))
+    end = time.perf_counter(); print('  interpolation done in {}'.format(end-start))
 
     # Don't allow negative thickness.
     if MPASfieldName == 'thickness' and MPASfield.min() < 0.0:
