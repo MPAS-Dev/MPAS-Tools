@@ -286,18 +286,18 @@ def interpolate_field_with_layers(MPASfieldName):
        # build MPAS sigma levels at center of each layer
        input_layers = np.zeros( (inputVerticalDimSize,) )
        if inputVerticalDimSize == len(layerThicknessFractions):
-          print("Using layer centers for the vertical coordinate of this field.")
+          print("  Using layer centers for the vertical coordinate of this field.")
           input_layers[0] = layerThicknessFractions[0] * 0.5
           for k in range(1,inputVerticalDimSize):
              input_layers[k] = input_layers[k-1] + 0.5 * layerThicknessFractions[k-1] + 0.5 * layerThicknessFractions[k]
           layerFieldName = '(sigma levels calculated from layerThicknessFractions)'
        elif inputVerticalDimSize == len(layerThicknessFractions)+1:
-          print("Using layer interfaces for the vertical coordinate of this field.")
+          print("  Using layer interfaces for the vertical coordinate of this field.")
           input_layers[0] = 0.0
           for k in range(1,inputVerticalDimSize):
-             input_layers[k] = input_layers[k-1] + layerThicknessFractions[k]
+             input_layers[k] = input_layers[k-1] + layerThicknessFractions[k-1]
        else:
-           sys.exit("Unknown vertical dimension for this variable source file.")
+           sys.exit("\nUnknown vertical dimension for this variable source file.")
 
     # create array for interpolated source field at all layers
     mpas_grid_input_layers = np.zeros( (inputVerticalDimSize, nCells) ) # make it the size of the CISM vertical layers, but the MPAS horizontal locations
@@ -342,10 +342,10 @@ def interpolate_field_with_layers(MPASfieldName):
     # ------------
     # Now interpolate vertically
     print("  Input layer field {} has layers: {}".format(inputFile.variables[InputFieldName].dimensions[1], input_layers))
-    if 'nVertLevels' in MPASfile.variables[MPASfieldName].dimensions():
+    if 'nVertLevels' in MPASfile.variables[MPASfieldName].dimensions:
        print("  MPAS layer centers are: {}".format(mpasLayerCenters))
        destVertCoord = mpasLayerCenters
-    elif 'nVertInterfaces' in MPASfile.variables[MPASfieldName].dimensions():
+    elif 'nVertInterfaces' in MPASfile.variables[MPASfieldName].dimensions:
        print("  MPAS layer interfaces are: {}".format(mpasLayerInterfaces))
        destVertCoord = mpasLayerInterfaces
     else:
@@ -430,7 +430,7 @@ try:
       mpasLayerInterfaces = np.zeros( (nVertInterfaces,) )
       mpasLayerInterfaces[0] = 0.0
       for k in range(1, nVertInterfaces):  # skip the first level
-          mpasLayerCenters[k] = mpasLayerCenters[k-1] + layerThicknessFractions[k]
+          mpasLayerInterfaces[k] = mpasLayerInterfaces[k-1] + layerThicknessFractions[k-1]
       print("  Using MPAS layer interfaces at sigma levels: {}".format(mpasLayerInterfaces))
     except:
       print('Trouble calculating mpas layer interfaces. Might not be a problem.')
@@ -662,6 +662,8 @@ elif filetype=='mpas':
      fieldInfo['observedThicknessTendencyUncertainty'] = {'InputName':'observedThicknessTendencyUncertainty', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['thicknessUncertainty'] = {'InputName':'thicknessUncertainty', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['basalFrictionFlux'] =    {'InputName':'basalFrictionFlux', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['uReconstructX'] = {'InputName':'uReconstructX', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':True}
+     fieldInfo['uReconstructY'] = {'InputName':'uReconstructY', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':True}
 
 # Used by Trevor
 #     fieldInfo['sfcMassBalUncertainty'] = {'InputName':'smb_std_vector', 'scalefactor':910.0/(3600.0*24.0*365.0)/1000.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
@@ -692,7 +694,7 @@ for MPASfieldName in fieldInfo:
     for timelev in range(args.timestart, args.timeend+1):
        # Note; the interpolate functions called below access timelev as a global variable
        timelevout = timelev # assuming the time level of the output file should match that of the input file
-       print("  -- Interpolating time level {}".format(timelev))
+       print("    ---- Interpolating time level {} ----".format(timelev))
        start = time.perf_counter()
        if fieldInfo[MPASfieldName]['vertDim']:
          MPASfield = interpolate_field_with_layers(MPASfieldName)
