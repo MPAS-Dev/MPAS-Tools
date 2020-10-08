@@ -42,6 +42,7 @@ parser.add_argument("-w", "--weight", dest="weightFile", help="ESMF weight file 
 parser.add_argument("-t", "--thickness-only", dest="thicknessOnly", action="store_true", default=False, help="Only interpolate thickness and ignore all other variables (useful for setting up a cullMask)")
 parser.add_argument("--timestart", dest="timestart", type=int, default=0, help="time level in input file to start from (0-based)")
 parser.add_argument("--timeend", dest="timeend", type=int, default=0, help="time level in input file to end with (0-based, inclusive)")
+parser.add_argument("-v", "--variables", dest="vars", nargs='*', type=str, default="all", help="Variables in the destination mesh for which interpolation should be attempted.  Interpolation will only actually occur if the requested field 1) is in the dictionary of supported fields at the end of this script and 2) exists in both the source and destination files.  'all' can be used to attempt to interpolate all fields present in the destination mesh.  Provide a space-delimited list.")
 args = parser.parse_args()
 
 
@@ -680,7 +681,11 @@ elif filetype=='mpas':
 
 #----------------------------
 # try each field.  If it exists in the input file, it will be copied.  If not, it will be skipped.
+interpolated_vars = []
 for MPASfieldName in fieldInfo:
+    if not 'all' in args.vars and not MPASfieldName in args.vars:
+       continue
+
     print('\n## {} ##'.format(MPASfieldName))
 
     if not MPASfieldName in MPASfile.variables:
@@ -714,12 +719,16 @@ for MPASfieldName in fieldInfo:
            MPASfile.variables[MPASfieldName][:] = MPASfield
 
        MPASfile.sync()  # update the file now in case we get an error later
+    interpolated_vars.append(MPASfieldName)
 
 if args.timeend > args.timestart:
    print("\n\nMultiple time levels have been copied, but xtime has not.  Be sure to manually copy or assign xtime values in the destination file if needed.")
 
+print("\nFields successfully interpolated: " + ",".join(interpolated_vars))
+
 # Update history attribute of netCDF file
-thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
+thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])#.join("Variables interpolated: {}".format(interpolated_vars))
+thiscommand = thiscommand+";  Variables successfully interpolated: " + ",".join(interpolated_vars)
 if hasattr(MPASfile, 'history'):
    newhist = '\n'.join([thiscommand, getattr(MPASfile, 'history')])
 else:
