@@ -285,13 +285,22 @@ def interpolate_field_with_layers(MPASfieldName):
        layerThicknessFractions = inputFile.variables['layerThicknessFractions'][:]
        # build MPAS sigma levels at center of each layer
        input_layers = np.zeros( (inputVerticalDimSize,) )
-       input_layers[0] = layerThicknessFractions[0] * 0.5
-       for k in range(1,inputVerticalDimSize):
-          input_layers[k] = input_layers[k-1] + 0.5 * layerThicknessFractions[k-1] + 0.5 * layerThicknessFractions[k]
-       layerFieldName = '(sigma levels calculated from layerThicknessFractions)'
+       if inputVerticalDimSize == len(layerThicknessFractions):
+          print("Using layer centers for the vertical coordinate of this field.")
+          input_layers[0] = layerThicknessFractions[0] * 0.5
+          for k in range(1,inputVerticalDimSize):
+             input_layers[k] = input_layers[k-1] + 0.5 * layerThicknessFractions[k-1] + 0.5 * layerThicknessFractions[k]
+          layerFieldName = '(sigma levels calculated from layerThicknessFractions)'
+       elif inputVerticalDimSize == len(layerThicknessFractions)+1:
+          print("Using layer interfaces for the vertical coordinate of this field.")
+          input_layers[0] = 0.0
+          for k in range(1,inputVerticalDimSize):
+             input_layers[k] = input_layers[k-1] + layerThicknessFractions[k]
+       else:
+           sys.exit("Unknown vertical dimension for this variable source file.")
 
-    # create array for interpolated CISM field at all layers
-    mpas_grid_input_layers = np.zeros( (inputVerticalDimSize, nCells) ) # make it the size of the CISM vertical layers, but the MPAS horizontal layers
+    # create array for interpolated source field at all layers
+    mpas_grid_input_layers = np.zeros( (inputVerticalDimSize, nCells) ) # make it the size of the CISM vertical layers, but the MPAS horizontal locations
 
     for z in range(inputVerticalDimSize):
         if filetype=='cism':
@@ -333,27 +342,36 @@ def interpolate_field_with_layers(MPASfieldName):
     # ------------
     # Now interpolate vertically
     print("  Input layer field {} has layers: {}".format(inputFile.variables[InputFieldName].dimensions[1], input_layers))
-    print("  MPAS layer centers are: {}".format(mpasLayerCenters))
-    if input_layers.min() > mpasLayerCenters.min():
-        # This fix ensures that interpolation is done when input_layers.min is very slightly greater than mpasLayerCenters.min
-        if input_layers.min() - 1.0e-6 < mpasLayerCenters.min():
+    if 'nVertLevels' in MPASfile.variables[MPASfieldName].dimensions():
+       print("  MPAS layer centers are: {}".format(mpasLayerCenters))
+       destVertCoord = mpasLayerCenters
+    elif 'nVertInterfaces' in MPASfile.variables[MPASfieldName].dimensions():
+       print("  MPAS layer interfaces are: {}".format(mpasLayerInterfaces))
+       destVertCoord = mpasLayerInterfaces
+    else:
+       sys.exit("Unknown vertical dimension for this variable destination file.")
+
+
+    if input_layers.min() > destVertCoord.min():
+        # This fix ensures that interpolation is done when input_layers.min is very slightly greater than destVertCoord.min
+        if input_layers.min() - 1.0e-6 < destVertCoord.min():
             print('input_layers.min = {0:.16f}'.format(input_layers.min()))
-            print('mpasLayerCenters.min = {0:.16f}'.format(mpasLayerCenters.min()))
+            print('destVertCoord.min = {0:.16f}'.format(destVertCoord.min()))
             input_layers[0] = input_layers[0] - 1.0e-6
             print('New input_layers.min = {0:.16f}'.format(input_layers.min()))
         else:
-            print("WARNING: input_layers.min() > mpasLayerCenters.min()   Values at the first level of input_layers will be used for all MPAS layers in this region!")
-    if input_layers.max() < mpasLayerCenters.max():
-        # This fix ensures that interpolation is done when input_layers.max is very slightly smaller than mpasLayerCenters.max
-        if input_layers.max() + 1.0e-6 > mpasLayerCenters.min():
+            print("WARNING: input_layers.min() > destVertCoord.min()   Values at the first level of input_layers will be used for all MPAS layers in this region!")
+    if input_layers.max() < destVertCoord.max():
+        # This fix ensures that interpolation is done when input_layers.max is very slightly smaller than destVertCoord.max
+        if input_layers.max() + 1.0e-6 > destVertCoord.min():
             print('input_layers.max = {0:.16f}'.format(input_layers.max()))
-            print('mpasLayerCenters.max = {0:.16f}'.format(mpasLayerCenters.max()))
+            print('destVertCoord.max = {0:.16f}'.format(destVertCoord.max()))
             input_layers[inputVerticalDimSize-1] = input_layers[inputVerticalDimSize-1] + 1.0e-6
             print('New input_layers.max = {0:.16f}'.format(input_layers.max()))
             print('input_layers = {}'.format(input_layers))
         else:
-            print("WARNING: input_layers.max() < mpasLayerCenters.max()   Values at the last level of input_layers will be used for all MPAS layers in this region!")
-    MPASfield = vertical_interp_MPAS_grid(mpas_grid_input_layers, input_layers)
+            print("WARNING: input_layers.max() < destVertCoord.max()   Values at the last level of input_layers will be used for all MPAS layers in this region!")
+    MPASfield = vertical_interp_MPAS_grid(mpas_grid_input_layers, destVertCoord, input_layers)
     print('  MPAS {} on MPAS vertical layers, min/max of all layers:'.format(MPASfieldName, MPASfield.min(), MPASfield.max()))
 
     del mpas_grid_input_layers
@@ -363,10 +381,10 @@ def interpolate_field_with_layers(MPASfieldName):
 
 #----------------------------
 
-def vertical_interp_MPAS_grid(mpas_grid_input_layers, input_layers):
-    destinationField = np.zeros((nCells, nVertLevels))
+def vertical_interp_MPAS_grid(mpas_grid_input_layers, destVertCoord, input_layers):
+    destinationField = np.zeros((nCells, len(destVertCoord)))
     for i in range(nCells):
-        destinationField[i,:] = np.interp(mpasLayerCenters,input_layers, mpas_grid_input_layers[:,i])
+        destinationField[i,:] = np.interp(destVertCoord, input_layers, mpas_grid_input_layers[:,i])
     return destinationField
 
 
@@ -388,9 +406,13 @@ try:
       nVertLevels = len(MPASfile.dimensions['nVertLevels'])
     except:
       print('Output file is missing the dimension nVertLevels.  Might not be a problem.')
+    try:
+      nVertInterfaces = len(MPASfile.dimensions['nVertInterfaces'])
+    except:
+      print('Output file is missing the dimension nVertInterfaces.  Might not be a problem.')
 
     try:
-      # 1d vertical fields
+      # 1d vertical fields - layer centers
       layerThicknessFractions = MPASfile.variables['layerThicknessFractions'][:]
       # build up sigma levels
       mpasLayerCenters = np.zeros( (nVertLevels,) )
@@ -399,7 +421,20 @@ try:
           mpasLayerCenters[k] = mpasLayerCenters[k-1] + 0.5 * layerThicknessFractions[k-1] + 0.5 * layerThicknessFractions[k]
       print("  Using MPAS layer centers at sigma levels: {}".format(mpasLayerCenters))
     except:
-      print('Output file is missing the variable layerThicknessFractions.  Might not be a problem.')
+      print('Trouble calculating mpas layer centers. Might not be a problem.')
+
+    try:
+      # 1d vertical field - layer interfaces
+      layerThicknessFractions = MPASfile.variables['layerThicknessFractions'][:]
+      # build up sigma levels
+      mpasLayerInterfaces = np.zeros( (nVertInterfaces,) )
+      mpasLayerInterfaces[0] = 0.0
+      for k in range(1, nVertInterfaces):  # skip the first level
+          mpasLayerCenters[k] = mpasLayerCenters[k-1] + layerThicknessFractions[k]
+      print("  Using MPAS layer interfaces at sigma levels: {}".format(mpasLayerInterfaces))
+    except:
+      print('Trouble calculating mpas layer interfaces. Might not be a problem.')
+
 
     # '2d' spatial fields on cell centers
     xCell = MPASfile.variables['xCell'][:]
