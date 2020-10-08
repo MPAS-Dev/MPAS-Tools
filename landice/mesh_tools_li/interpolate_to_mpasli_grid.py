@@ -18,7 +18,7 @@ from __future__ import absolute_import, division, print_function, \
 import sys
 import numpy as np
 import netCDF4
-from optparse import OptionParser
+import argparse
 import math
 from collections import OrderedDict
 import scipy.spatial
@@ -27,29 +27,26 @@ from datetime import datetime
 
 
 print("== Gathering information.  (Invoke with --help for more details. All arguments are optional)\n")
-parser = OptionParser()
+parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.description = __doc__
-parser.add_option("-s", "--source", dest="inputFile", help="name of source (input) file.  Can be either CISM format or MPASLI format.", default="cism.nc", metavar="FILENAME")
-parser.add_option("-d", "--destination", dest="mpasFile", help="name of destination file on which to interpolate fields.  This needs to be MPASLI format with desired fields already existing.", default="landice_grid.nc", metavar="FILENAME")
-parser.add_option("-m", "--method", dest="interpType", help="interpolation method to use. b=bilinear, d=barycentric, e=ESMF, n=nearest neighbor", default="b", metavar="METHOD")
-parser.add_option("-w", "--weight", dest="weightFile", help="ESMF weight file to input.  Only used by ESMF interpolation method", metavar="FILENAME")
-parser.add_option("-t", "--thickness-only", dest="thicknessOnly", action="store_true", default=False, help="Only interpolate thickness and ignore all other variables (useful for setting up a cullMask)")
-for option in parser.option_list:
-    if option.default != ("NO", "DEFAULT"):
-        option.help += (" " if option.help else "") + "[default: %default]"
-options, args = parser.parse_args()
+parser.add_argument("-s", "--source", dest="inputFile", help="name of source (input) file.  Can be either CISM format or MPASLI format.", default="cism.nc", metavar="FILENAME")
+parser.add_argument("-d", "--destination", dest="mpasFile", help="name of destination file on which to interpolate fields.  This needs to be MPASLI format with desired fields already existing.", default="landice_grid.nc", metavar="FILENAME")
+parser.add_argument("-m", "--method", dest="interpType", help="interpolation method to use. b=bilinear, d=barycentric, e=ESMF, n=nearest neighbor", default="b", metavar="METHOD")
+parser.add_argument("-w", "--weight", dest="weightFile", help="ESMF weight file to input.  Only used by ESMF interpolation method", metavar="FILENAME")
+parser.add_argument("-t", "--thickness-only", dest="thicknessOnly", action="store_true", default=False, help="Only interpolate thickness and ignore all other variables (useful for setting up a cullMask)")
+args = parser.parse_args()
 
-print("  Source file:  {}".format(options.inputFile))
-print("  Destination MPASLI file to be modified:  {}".format(options.mpasFile))
+print("  Source file:  {}".format(args.inputFile))
+print("  Destination MPASLI file to be modified:  {}".format(args.mpasFile))
 
-print("  Interpolation method to be used:  {}".format(options.interpType))
+print("  Interpolation method to be used:  {}".format(args.interpType))
 print("    (b=bilinear, d=barycentric, e=esmf)")
 
-if options.weightFile and options.interpType == 'e':
-    print("  Interpolation will be performed using ESMF-weights method, where possible, using weights file:  {}".format(options.weightFile))
+if args.weightFile and args.interpType == 'e':
+    print("  Interpolation will be performed using ESMF-weights method, where possible, using weights file:  {}".format(args.weightFile))
     #----------------------------
     # Get weights from file
-    wfile = netCDF4.Dataset(options.weightFile, 'r')
+    wfile = netCDF4.Dataset(args.weightFile, 'r')
     S = wfile.variables['S'][:]
     col = wfile.variables['col'][:]
     row = wfile.variables['row'][:]
@@ -208,7 +205,7 @@ def delaunay_interpolate(values, gridType):
 
 def interpolate_field(MPASfieldName):
 
-    if fieldInfo[MPASfieldName]['gridType'] == 'x0' and options.interpType == 'e':
+    if fieldInfo[MPASfieldName]['gridType'] == 'x0' and args.interpType == 'e':
        assert "This CISM field is on the staggered grid, and currently this script does not support a second ESMF weight file for the staggered grid."
 
     InputFieldName = fieldInfo[MPASfieldName]['InputName']
@@ -226,13 +223,13 @@ def interpolate_field(MPASfieldName):
     print('  Input field  {} min/max: {} {}'.format(InputFieldName, InputField.min(), InputField.max()))
 
     # Call the appropriate routine for actually doing the interpolation
-    if options.interpType == 'b':
+    if args.interpType == 'b':
         print("  ...Interpolating to {} using built-in bilinear method...".format(MPASfieldName))
         MPASfield = BilinearInterp(InputField, fieldInfo[MPASfieldName]['gridType'])
-    elif options.interpType == 'd':
+    elif args.interpType == 'd':
         print("  ...Interpolating to {} using barycentric method...".format(MPASfieldName))
         MPASfield = delaunay_interpolate(InputField, fieldInfo[MPASfieldName]['gridType'])
-    elif options.interpType == 'n':
+    elif args.interpType == 'n':
         print("  ...Interpolating to {} using nearest neighbor method...".format(MPASfieldName))
         if fieldInfo[MPASfieldName]['gridType'] == 'x0':
            MPASfield = InputField.flatten()[nn_idx_x0]  # 2d cism fields need to be flattened. (Note the indices were flattened during init, so this just matches that operation for the field data itself.)  1d mpas fields do not, but the operation won't do anything because they are already flat.
@@ -240,7 +237,7 @@ def interpolate_field(MPASfieldName):
            MPASfield = InputField.flatten()[nn_idx_x1]  # 2d cism fields need to be flattened. (Note the indices were flattened during init, so this just matches that operation for the field data itself.)  1d mpas fields do not, but the operation won't do anything because they are already flat.
         elif fieldInfo[MPASfieldName]['gridType'] == 'cell':
            MPASfield = InputField.flatten()[nn_idx_cell]  # 2d cism fields need to be flattened. (Note the indices were flattened during init, so this just matches that operation for the field data itself.)  1d mpas fields do not, but the operation won't do anything because they are already flat.
-    elif options.interpType == 'e':
+    elif args.interpType == 'e':
         print("  ...Interpolating to {} using ESMF-weights method...".format(MPASfieldName))
         MPASfield = ESMF_interp(InputField)
     else:
@@ -264,7 +261,7 @@ def interpolate_field(MPASfieldName):
 
 def interpolate_field_with_layers(MPASfieldName):
 
-    if fieldInfo[MPASfieldName]['gridType'] == 'x0' and options.interpType == 'e':
+    if fieldInfo[MPASfieldName]['gridType'] == 'x0' and args.interpType == 'e':
        assert "This CISM field is on the staggered grid, and currently this script does not support a second ESMF weight file for the staggered grid."
 
     InputFieldName = fieldInfo[MPASfieldName]['InputName']
@@ -299,16 +296,16 @@ def interpolate_field_with_layers(MPASfieldName):
         elif filetype=='mpas':
            print('  Input layer {}, layer {} min/max: {} {}'.format(z, InputFieldName, InputField[:,z].min(), InputField[z,:].max()))
         # Call the appropriate routine for actually doing the interpolation
-        if options.interpType == 'b':
+        if args.interpType == 'b':
             print("  ...Layer {}, Interpolating this layer to MPAS grid using built-in bilinear method...".format(z))
             mpas_grid_input_layers[z,:] = BilinearInterp(InputField[z,:,:], fieldInfo[MPASfieldName]['gridType'])
-        elif options.interpType == 'd':
+        elif args.interpType == 'd':
             print("  ...Layer {}, Interpolating this layer to MPAS grid using built-in barycentric method...".format(z))
             if filetype=='cism':
                mpas_grid_input_layers[z,:] = delaunay_interpolate(InputField[z,:,:], fieldInfo[MPASfieldName]['gridType'])
             elif filetype=='mpas':
                mpas_grid_input_layers[z,:] = delaunay_interpolate(InputField[:,z], fieldInfo[MPASfieldName]['gridType'])
-        elif options.interpType == 'n':
+        elif args.interpType == 'n':
             print("  ...Layer {}, Interpolating this layer to MPAS grid using nearest neighbor method...".format(z))
             if fieldInfo[MPASfieldName]['gridType'] == 'x0':
                mpas_grid_input_layers[z,:] = InputField[z,:,:].flatten()[nn_idx_x0]  # 2d cism fields need to be flattened. (Note the indices were flattened during init, so this just matches that operation for the field data itself.)  1d mpas fields do not, but the operation won't do anything because they are already flat.
@@ -316,7 +313,7 @@ def interpolate_field_with_layers(MPASfieldName):
                mpas_grid_input_layers[z,:] = InputField[z,:,:].flatten()[nn_idx_x1]  # 2d cism fields need to be flattened. (Note the indices were flattened during init, so this just matches that operation for the field data itself.)  1d mpas fields do not, but the operation won't do anything because they are already flat.
             elif fieldInfo[MPASfieldName]['gridType'] == 'cell':
                 mpas_grid_input_layers[z,:] = InputField[:,z].flatten()[nn_idx_cell]  # 2d cism fields need to be flattened. (Note the indices were flattened during init, so this just matches that operation for the field data itself.)  1d mpas fields do not, but the operation won't do anything because they are already flat.
-        elif options.interpType == 'e':
+        elif args.interpType == 'e':
             print("  ...Layer{}, Interpolating this layer to MPAS grid using ESMF-weights method...".format(z))
             mpas_grid_input_layers[z,:] = ESMF_interp(InputField[z,:,:])
         else:
@@ -382,7 +379,7 @@ print('Gathering coordinate information from input and output files.')
 
 # Open the output file, get needed dimensions & variables
 try:
-    MPASfile = netCDF4.Dataset(options.mpasFile,'r+')
+    MPASfile = netCDF4.Dataset(args.mpasFile,'r+')
     MPASfile.set_auto_mask(False)
     try:
       nVertLevels = len(MPASfile.dimensions['nVertLevels'])
@@ -415,7 +412,7 @@ print("==================\n")
 
 
 # Open the input file, get needed dimensions
-inputFile = netCDF4.Dataset(options.inputFile,'r')
+inputFile = netCDF4.Dataset(args.inputFile,'r')
 inputFile.set_auto_mask(False)
 
 # Figure out if this is CISM or MPAS
@@ -501,12 +498,12 @@ elif filetype == 'mpas':
     print('==================')
 
 
-if filetype=='mpas' and not options.interpType == 'd':
+if filetype=='mpas' and not args.interpType == 'd':
    sys.exit("ERROR: Input files with MPAS format are only supported with the barycentric interpolation method ('d')")
 
 #----------------------------
 # Setup Delaunay/barycentric interpolation weights if needed
-if options.interpType == 'd':
+if args.interpType == 'd':
    mpasXY = np.vstack((xCell[:], yCell[:])).transpose()
 
    if filetype=='cism':
@@ -522,7 +519,7 @@ if options.interpType == 'd':
          outsideIndx1 = outsideIndx1[0]  # get the list itself
       end = time.clock(); print('done in {}'.format(end-start))
 
-      if 'x0' in inputFile.variables and not options.thicknessOnly:
+      if 'x0' in inputFile.variables and not args.thicknessOnly:
          # Need to setup separate weights for this grid
          [Yi,Xi] = np.meshgrid(x0[:], y0[:])
          cismXY0 = np.zeros([Xi.shape[0]*Xi.shape[1],2])
@@ -545,7 +542,7 @@ if options.interpType == 'd':
 
 #----------------------------
 # Setup NN interpolation weights if needed
-if options.interpType == 'n':
+if args.interpType == 'n':
    mpasXY = np.vstack((xCell[:], yCell[:])).transpose()
 
    if filetype=='cism':
@@ -559,7 +556,7 @@ if options.interpType == 'n':
       nn_idx_x1 = nn_interp_weights(cismXY1, mpasXY)
       end = time.clock(); print('done in {}'.format(end-start))
 
-      if 'x0' in inputFile.variables and not options.thicknessOnly:
+      if 'x0' in inputFile.variables and not args.thicknessOnly:
          # Need to setup separate weights for this grid
          [Yi,Xi] = np.meshgrid(x0[:], y0[:])
          cismXY0 = np.zeros([Xi.shape[0]*Xi.shape[1],2])
@@ -586,7 +583,7 @@ fieldInfo = OrderedDict()
 if filetype=='cism':
 
    fieldInfo['thickness'] =     {'InputName':'thk',  'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
-   if not options.thicknessOnly:
+   if not args.thicknessOnly:
      fieldInfo['bedTopography'] = {'InputName':'topg', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['sfcMassBal'] =    {'InputName':'acab', 'scalefactor':910.0/(3600.0*24.0*365.0)/1000.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming default CISM density and mm/yr w.e. units for acab
      fieldInfo['floatingBasalMassBal'] =    {'InputName':'subm', 'scalefactor':910.0/(3600.0*24.0*365.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming default CISM density
@@ -610,7 +607,7 @@ if filetype=='cism':
 elif filetype=='mpas':
 
    fieldInfo['thickness'] =     {'InputName':'thickness',  'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
-   if not options.thicknessOnly:
+   if not args.thicknessOnly:
      fieldInfo['bedTopography'] = {'InputName':'bedTopography', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['sfcMassBal'] =    {'InputName':'sfcMassBal', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['floatingBasalMassBal'] =    {'InputName':'floatingBasalMassBal', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
@@ -625,6 +622,7 @@ elif filetype=='mpas':
      fieldInfo['observedThicknessTendency'] = {'InputName':'observedThicknessTendency', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['observedThicknessTendencyUncertainty'] = {'InputName':'observedThicknessTendencyUncertainty', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['thicknessUncertainty'] = {'InputName':'thicknessUncertainty', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+
 
 #----------------------------
 
