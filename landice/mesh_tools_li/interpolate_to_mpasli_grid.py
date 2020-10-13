@@ -11,6 +11,10 @@ For CISM input files, three interpolation methods are supported:
 
 For MPAS input files only barycentric interpolation is supported.
 
+The ESMF interpolation method can be used to interpolate from history files of other E3SM components
+by using the ESMF weight mapping files used in the E3SM coupler.  You will likely need to add your
+own variable mappings in the dictionary for the 'other' filetype at the end of this script.
+
 Multiple time levels can be interpolated using the --timestart and --timeend options.
 Default is to copy the first time level from the source file to the first time level of
 the destination file.  If multiple time levels are used, they are translated directly
@@ -223,6 +227,11 @@ def interpolate_field(MPASfieldName):
            InputField = inputFile.variables[InputFieldName][timelev,:]
        else:
            InputField = inputFile.variables[InputFieldName][:]
+    elif filetype=='other':
+       if 'time' in inputFile.variables[InputFieldName].dimensions:
+           InputField = inputFile.variables[InputFieldName][timelev,:,:]
+       else:
+           InputField = inputFile.variables[InputFieldName][:,:]
 
     print('  Input field  {} min/max: {} {}'.format(InputFieldName, InputField.min(), InputField.max()))
 
@@ -299,6 +308,8 @@ def interpolate_field_with_layers(MPASfieldName):
              input_layers[k] = input_layers[k-1] + layerThicknessFractions[k-1]
        else:
            sys.exit("\nUnknown vertical dimension for this variable source file.")
+    else:
+       sys.exit("ERROR: Fields with vertical layers can only be interpolated using the barycentric or bilinear methods.")
 
     # create array for interpolated source field at all layers
     mpas_grid_input_layers = np.zeros( (inputVerticalDimSize, nCells) ) # make it the size of the CISM vertical layers, but the MPAS horizontal locations
@@ -457,10 +468,15 @@ inputFile.set_auto_mask(False)
 # Figure out if this is CISM or MPAS
 if 'x1' in inputFile.variables:
     filetype='cism'
+    print("Source file appears to be in CISM format.")
 elif 'xCell' in inputFile.variables:
     filetype='mpas'
+    print("Source file appears to be in MPAS format.")
 else:
-        sys.exit("ERROR: Unknown file type.  This does not appear to be a CISM file or an MPAS file.")
+    filetype='other'
+    print("Source file appears to be in a non-standard format.")
+    if not args.interpType == 'e':
+       sys.exit("ERROR: Source file does not appear to be a CISM file or an MPAS file.  The ESMF interpolation method is the only supported method for files with a non-standard format.")
 
 if filetype=='cism':
     # Get the CISM vertical dimensions if they exist
@@ -619,6 +635,7 @@ if args.interpType == 'n':
 # Map Input-Output field names - add new fields here as needed
 
 fieldInfo = OrderedDict()
+# -----------------
 if filetype=='cism':
 
    fieldInfo['thickness'] =     {'InputName':'thk',  'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
@@ -644,6 +661,7 @@ if filetype=='cism':
      fieldInfo['ismip6shelfMelt_basin'] = {'InputName':'ismip6shelfMelt_basin', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['ismip6shelfMelt_deltaT'] = {'InputName':'ismip6shelfMelt_deltaT', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
 
+# -----------------
 elif filetype=='mpas':
 
    fieldInfo['thickness'] =     {'InputName':'thickness',  'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
@@ -675,6 +693,13 @@ elif filetype=='mpas':
 #     fieldInfo['ismip6refST'] = {'InputName':'ST_vector', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
 #     fieldInfo['externalWaterInput'] = {'InputName':'externalWaterInput_vector', 'scalefactor':1.0/(3600.0*24.0*365.0), 'offset':0.0, 'gridType':'cell', 'vertDim':False}
 
+# -----------------
+elif filetype=='other':
+   # These are variable mappings for the ESMF method.  Update as needed for specific applications.
+   fieldInfo['surfaceAirTemperature'] = {'InputName':'TBOT',  'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False} # This example can be used with an ELM history file and an EMSF mapping file.
+
+else:
+   sys.exit("ERROR: Unknown file type.")
 
 #----------------------------
 
