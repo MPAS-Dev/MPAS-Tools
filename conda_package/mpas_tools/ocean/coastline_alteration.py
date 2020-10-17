@@ -4,6 +4,12 @@ from __future__ import absolute_import, division, print_function, \
 import numpy
 import xarray
 
+from scipy.spatial import distance
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import connected_components
+
+from mpas_tools.mesh.creation.util import lonlat2xyz
+
 
 def add_critical_land_blockages(dsMask, dsBlockages):
     """
@@ -31,6 +37,132 @@ def add_critical_land_blockages(dsMask, dsBlockages):
         dsMask.regionCellMasks[:, 0] = numpy.maximum(
             dsBlockages.transectCellMasks[:, transectIndex],
             dsMask.regionCellMasks[:, 0])
+
+    return dsMask
+
+
+def subtract_critical_passages(dsMask, dsPassages):
+    '''
+    Parameters
+    ----------
+    dsMask : `xarray.Dataset`
+        The mask to which critical passages should be added
+    dsPassages : `xarray.Dataset`
+        The transect masks defining critical passages to be kept open for
+        ocean flow
+
+    Returns
+    -------
+    dsMask : `xarray.Dataset`
+        The mask with critical passages included
+    '''
+    # Authors: Darren Engwirda
+
+    dsMask = dsMask.copy()
+
+    nTransects = dsPassages.sizes['nTransects']
+    for transectIndex in range(nTransects):
+        index = dsPassages.transectCellMasks[:, transectIndex] > 0
+        dsMask.regionCellMasks[index, 0] = 0
+
+    return dsMask
+
+
+def mask_reachable_ocean(dsMesh, dsMask, fcSeed):
+    '''
+    Return a new land mask that ensures all ocean cells are "reachable" from
+    (at least) one of the ocean points. Isolated patches of ocean cells will
+    be added to the land mask.
+
+    Parameters
+    ----------
+    dsMesh : `xarray.Dataset`
+        The unculled base mesh object to which the land mask is applied.
+
+    dsMask : `xarray.Dataset`
+        The current land mask.
+
+    fcSeed : `geometric_features.FeatureCollection`
+        A set of "seed" points associated with the ocean domain. Used to
+        determine which cells in the ocean mesh are "unreachable" wrt. the
+        land mask via a flood-fill.
+
+    Returns
+    -------
+    dsMask : `xarray.Dataset`
+        The updated land mask, with the set of unreachable ocean cells added.
+    '''
+    # Authors: Darren Engwirda
+
+    dsMask = dsMask.copy()
+
+    cellMasks = numpy.array(dsMask.regionCellMasks[:, 0])
+
+    nCells = dsMesh.sizes['nCells']
+
+    # a sparse matrix representation of masked cell-to-cell connectivity
+    iNext = +0
+    iPtrs = numpy.zeros(nCells + 1, dtype=int)
+    xData = numpy.zeros(
+        nCells * dsMesh.sizes['maxEdges'], dtype=int)
+    iCols = numpy.zeros(
+        nCells * dsMesh.sizes['maxEdges'], dtype=int)
+
+    countOnCell = numpy.array(dsMesh.nEdgesOnCell)
+    cellsOnCell = numpy.array(dsMesh.cellsOnCell)
+
+    # add graph edges between adjacent cells as long as they share common
+    # mask entries
+    for iCell in range(nCells):
+        for iEdge in range(countOnCell[iCell]):
+            iPair = cellsOnCell[iCell, iEdge] - 1
+            if (cellMasks[iCell] == cellMasks[iPair]):
+                xData[iNext] = +1
+                iCols[iNext] = iPair
+                iNext = iNext + 1
+
+        iPtrs[iCell + 1] = iNext
+
+    xData.resize((iPtrs[nCells]))
+    iCols.resize((iPtrs[nCells]))
+
+    spMesh = csr_matrix((xData, iCols, iPtrs), dtype=int)
+
+    # find "connected" parts of masked mesh, as the connected components of
+    # the masked cell-to-cell matrix
+    nLabel, labels = connected_components(
+        csgraph=spMesh, directed=False, return_labels=True)
+
+    # set seedMasks = +1 for the cells closest to any "seed" points defined
+    # for the ocean
+    seedMasks = numpy.zeros(nCells, dtype=int)
+
+    x, y, z = lonlat2xyz(
+        dsMesh.lonCell, dsMesh.latCell, R=1.E+0)
+
+    xyzCell = numpy.empty((nCells, 3), dtype=float)
+    xyzCell[:, 0] = x
+    xyzCell[:, 1] = y
+    xyzCell[:, 2] = z
+
+    for feature in fcSeed.features:
+        point = feature['geometry']['coordinates']
+
+        x, y, z = lonlat2xyz(point[0], point[1], R=1.E+0)
+
+        index = distance.cdist([[x, y, z]], xyzCell).argmin()
+
+        if (cellMasks[index] == 0):
+            seedMasks[index] = +1
+
+    # reset the land mask: mark all cells in any "connected" component that
+    # contains an ocean point as 0
+    dsMask.regionCellMasks[:, 0] = +1
+
+    for iLabel in range(nLabel):
+        labelMasks = seedMasks[labels == iLabel]
+        if (numpy.any(labelMasks > +0)):
+            dsMask.regionCellMasks[labels == iLabel, 0] = 0
 
     return dsMask
 

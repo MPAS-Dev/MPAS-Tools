@@ -57,7 +57,7 @@ setup(name='mpas_tools',
                'ocean/add_depth_coord/add_zMid.py',
                'ocean/add_depth_coord/write_time_varying_zMid.py',
                'visualization/paraview_vtk_field_extractor/paraview_vtk_field_extractor.py'],
-      install_requires=['numpy', 'xarray', 'netCDF4', 'pyevtk'],
+      install_requires=['numpy', 'xarray', 'netCDF4', 'pyevtk', 'scipy'],
       entry_points={'console_scripts':
                     ['planar_hex = mpas_tools.planar_hex:main',
                      'translate_planar_grid = mpas_tools.translate:main',
