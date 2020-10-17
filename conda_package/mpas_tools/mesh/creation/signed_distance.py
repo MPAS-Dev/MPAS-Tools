@@ -47,7 +47,7 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
     return signed_distance
 
 
-def mask_from_geojson(fc, lon_grd, lat_grd):
+def mask_from_geojson(fc, lon_grd, lat_grd, epsilon=1e-10):
     """
     Make a rasterized mask on a lon/lat grid from shapes (geojson multipolygon
     data).
@@ -56,10 +56,16 @@ def mask_from_geojson(fc, lon_grd, lat_grd):
     ----------
     fc : geometrics_features.FeatureCollection
         The regions to be rasterized
+
     lon_grd : numpy.ndarray
         A 1D array of evenly spaced longitude values
+
     lat_grd : numpy.ndarray
         A 1D array of evenly spaced latitude values
+
+    epsilon : float, optional
+        A small amount to expand each shape by to make sure lon/lat points on
+        the domain boundary are within shapes that touch the domain boundary.
 
     Returns
     -------
@@ -76,23 +82,21 @@ def mask_from_geojson(fc, lon_grd, lat_grd):
     dlon = (lon_grd[-1] - lon_grd[0])/(nlon-1)
     dlat = (lat_grd[-1] - lat_grd[0])/(nlat-1)
 
-    transform = Affine(dlon, 0.0, lon_grd[0],
-                       0.0, dlat, lat_grd[0])
+    # raserio works with pixels, and we want the lon/lat points to be at the
+    # centers of the pixels so the origin (the lower left of the first pixel) is
+    # half a pixel offset from the first lon/lat point
+    transform = Affine(dlon, 0.0, lon_grd[0] - 0.5*dlon,
+                       0.0, dlat, lat_grd[0] - 0.5*dlat)
 
     shapes = []
     for feature in fc.features:
         # a list of feature geometries and mask values (always 1.0)
         shape = shapely.geometry.shape(feature['geometry'])
         # expand a bit to make sure we hit the edges of the domain
-        shape = shape.buffer(dlat)
+        shape = shape.buffer(epsilon)
         shapes.append((shapely.geometry.mapping(shape), 1.0))
 
     mask = rasterize(shapes, out_shape=(nlat, nlon), transform=transform)
-    if np.abs(lon_grd[0] - (-180.)) < 1e-3 and \
-            np.abs(lon_grd[-1] - (180.)) < 1e-3:
-        # the extra column at the periodic boundary needs to be copied
-        print('  fixing periodic boundary')
-        mask[:, -1] = mask[:, 0]
     return mask
 
 
