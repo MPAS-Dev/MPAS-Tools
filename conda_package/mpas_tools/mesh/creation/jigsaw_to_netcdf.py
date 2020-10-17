@@ -4,15 +4,16 @@ from __future__ import absolute_import, division, print_function, \
 import numpy as np
 
 from netCDF4 import Dataset as NetCDFFile
-from mpas_tools.mesh.creation.open_msh import readmsh
 from mpas_tools.mesh.creation.util import circumcenter
+
+from jigsawpy import jigsaw_msh_t, loadmsh
 
 import argparse
 
 
 def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
-    """
-    Converts mesh data defined in triangle format to NetCDF
+    '''
+    Converts mesh data defined in JIGSAW format to NetCDF
 
     Parameters
     ----------
@@ -25,35 +26,43 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
     sphere_radius : float, optional
         The radius of the sphere in meters.  If ``on_sphere=True`` this argument
         is required, otherwise it is ignored.
-    """
-    # Authors: Phillip J. Wolfram, Matthew Hoffman and Xylar Asay-Davis
+    '''
+    # Authors: Phillip J. Wolfram, Matthew Hoffman, Xylar Asay-Davis
+    #          and Darren Engwirda
 
     grid = NetCDFFile(output_name, 'w', format='NETCDF3_CLASSIC')
 
     # Get dimensions
     # Get nCells
-    msh = readmsh(msh_filename)
-    nCells = msh['POINT'].shape[0]
+    msh = jigsaw_msh_t()
+    loadmsh(msh_filename, msh)
+    nCells = msh.point.shape[0]
 
     # Get vertexDegree and nVertices
     vertexDegree = 3  # always triangles with JIGSAW output
-    nVertices = msh['TRIA3'].shape[0]
+    nVertices = msh.tria3.shape[0]
 
     if vertexDegree != 3:
-        ValueError("This script can only compute vertices with triangular "
-                   "dual meshes currently.")
+        ValueError('This script can only compute vertices with triangular '
+                   'dual meshes currently.')
 
     grid.createDimension('nCells', nCells)
     grid.createDimension('nVertices', nVertices)
     grid.createDimension('vertexDegree', vertexDegree)
 
     # Create cell variables and sphere_radius
-    xCell_full = msh['POINT'][:, 0]
-    yCell_full = msh['POINT'][:, 1]
-    zCell_full = msh['POINT'][:, 2]
+    if msh.vert3.size > 0:
+        xCell_full = msh.vert3['coord'][:, 0]
+        yCell_full = msh.vert3['coord'][:, 1]
+        zCell_full = msh.vert3['coord'][:, 2]
+    else:
+        xCell_full = msh.vert2['coord'][:, 0]
+        yCell_full = msh.vert2['coord'][:, 1]
+        zCell_full = np.zeros(nVertices, dtype=float)
+
     for cells in [xCell_full, yCell_full, zCell_full]:
-        assert cells.shape[0] == nCells, 'Number of anticipated nodes is' \
-                                         ' not correct!'
+        assert cells.shape[0] == nCells, 'Number of anticipated nodes is ' \
+                                         'not correct!'
     if on_sphere:
         grid.on_a_sphere = "YES"
         grid.sphere_radius = sphere_radius
@@ -66,7 +75,7 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
         grid.sphere_radius = 0.0
 
     # Create cellsOnVertex
-    cellsOnVertex_full = msh['TRIA3'][:, :3] + 1
+    cellsOnVertex_full = msh.tria3['index'] + 1
     assert cellsOnVertex_full.shape == (nVertices, vertexDegree), \
         'cellsOnVertex_full is not the right shape!'
 
@@ -75,7 +84,7 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
     yVertex_full = np.zeros((nVertices,))
     zVertex_full = np.zeros((nVertices,))
 
-    for iVertex in np.arange(0, nVertices):
+    for iVertex in range(nVertices):
         cell1 = cellsOnVertex_full[iVertex, 0]
         cell2 = cellsOnVertex_full[iVertex, 1]
         cell3 = cellsOnVertex_full[iVertex, 2]
@@ -109,12 +118,16 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
     var[:] = yCell_full
     var = grid.createVariable('zCell', 'f8', ('nCells',))
     var[:] = zCell_full
+    var = grid.createVariable('featureTagCell', 'i4', ('nCells',))
+    var[:] = msh.point['IDtag']
     var = grid.createVariable('xVertex', 'f8', ('nVertices',))
     var[:] = xVertex_full
     var = grid.createVariable('yVertex', 'f8', ('nVertices',))
     var[:] = yVertex_full
     var = grid.createVariable('zVertex', 'f8', ('nVertices',))
     var[:] = zVertex_full
+    var = grid.createVariable('featureTagVertex', 'i4', ('nVertices',))
+    var[:] = msh.tria3['IDtag']
     var = grid.createVariable(
         'cellsOnVertex', 'i4', ('nVertices', 'vertexDegree',))
     var[:] = cellsOnVertex_full

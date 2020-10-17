@@ -16,7 +16,7 @@
 #include "netcdf.h"
 
 // Documentation warned this might change and now it has, for
-// consistency with C interface 
+// consistency with C interface
 typedef signed char ncbyte;
 
 #define NC_UNSPECIFIED ((nc_type)0)
@@ -30,15 +30,15 @@ typedef int nclong;
 #define	NC_VERBOSE	2
 #endif
 
-enum NcType 
+enum NcType
 {
-  ncNoType = NC_UNSPECIFIED, 
-  ncByte = NC_BYTE, 
-  ncChar = NC_CHAR, 
-  ncShort = NC_SHORT, 
+  ncNoType = NC_UNSPECIFIED,
+  ncByte = NC_BYTE,
+  ncChar = NC_CHAR,
+  ncShort = NC_SHORT,
   ncInt = NC_INT,
   ncLong = NC_LONG,		// deprecated, someday want to use for 64-bit ints
-  ncFloat = NC_FLOAT, 
+  ncFloat = NC_FLOAT,
   ncDouble = NC_DOUBLE
 };
 
@@ -260,7 +260,7 @@ class NcValues			// ABC for value blocks
     virtual float as_float( long n ) const = 0;   // nth value as floating-point
     virtual double as_double( long n ) const = 0; // nth value as double
     virtual char* as_string( long n ) const = 0;  // value as string
-    
+
   protected:
     NcType the_type;
     long the_number;

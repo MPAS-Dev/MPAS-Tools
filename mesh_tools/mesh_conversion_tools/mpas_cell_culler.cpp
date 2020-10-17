@@ -25,7 +25,7 @@ double sphere_radius, xPeriod, yPeriod;
 string in_history = "";
 string in_file_id = "";
 string in_parent_id = "";
-string in_mesh_spec = "1.0";
+double in_mesh_spec = 1.0;
 bool outputMap = false;
 
 // Connectivity and location information {{{
@@ -728,7 +728,7 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
 	id_str = gen_random(ID_LEN);
 
 	if (!(history = grid.add_att(   "history", history_str.c_str() ))) return NC_ERR;
-	if (!(spec = grid.add_att(   "mesh_spec", in_mesh_spec.c_str() ))) return NC_ERR;
+	if (!(spec = grid.add_att(   "mesh_spec", in_mesh_spec ))) return NC_ERR;
 	if (!(conventions = grid.add_att(   "Conventions", "MPAS" ))) return NC_ERR;
 	if (!(source = grid.add_att(   "source", "MpasCellCuller.x" ))) return NC_ERR;
 	if (!(id = grid.add_att(   "file_id", id_str.c_str() ))) return NC_ERR;
@@ -772,12 +772,14 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 	NcVar *xCellVar, *yCellVar, *zCellVar, *xEdgeVar, *yEdgeVar, *zEdgeVar, *xVertexVar, *yVertexVar, *zVertexVar;
 	NcVar *lonCellVar, *latCellVar, *lonEdgeVar, *latEdgeVar, *lonVertexVar, *latVertexVar;
 	NcVar *idx2cellVar, *idx2edgeVar, *idx2vertexVar;
+    NcVar *tag2cellVar, *tag2vertexVar;
 
 	int i, idx_map;
 
 	double *xOld, *yOld, *zOld, *latOld, *lonOld;
 	double *xNew, *yNew, *zNew, *latNew, *lonNew;
-	int *idxToNew;
+    int *IDtagOld;
+    int *idxToNew, *IDtagNew;
 
 	// Build and write cell coordinate arrays
 	xOld = new double[nCells];
@@ -785,6 +787,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 	zOld = new double[nCells];
 	latOld = new double[nCells];
 	lonOld = new double[nCells];
+    IDtagOld = new int[nCells];
 
 	xNew = new double[nCellsNew];
 	yNew = new double[nCellsNew];
@@ -792,8 +795,10 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 	latNew = new double[nCellsNew];
 	lonNew = new double[nCellsNew];
 	idxToNew = new int[nCellsNew];
+    IDtagNew = new int[nCellsNew];
 
 	netcdf_mpas_read_xyzcell ( inputFilename, nCells, xOld, yOld, zOld );
+    netcdf_mpas_read_featuretagcell( inputFilename, nCells, IDtagOld );
 	netcdf_mpas_read_latloncell ( inputFilename, nCells, latOld, lonOld );
 
 	idx_map = 0;
@@ -805,6 +810,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 			latNew[idx_map] = latOld[iCell];
 			lonNew[idx_map] = lonOld[iCell];
 			idxToNew[idx_map] = idx_map+1;
+            IDtagNew[idx_map] = IDtagOld[iCell];
 			idx_map++;
 		}
 	}
@@ -821,11 +827,14 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 	if (!zCellVar->put(zNew,nCellsNew)) return NC_ERR;
 	if (!(idx2cellVar = grid.add_var("indexToCellID", ncInt, nCellsDim))) return NC_ERR;
 	if (!idx2cellVar->put(idxToNew,nCellsNew)) return NC_ERR;
+    if (!(tag2cellVar = grid.add_var("featureTagCell", ncInt, nCellsDim))) return NC_ERR;
+	if (!tag2cellVar->put(IDtagNew,nCellsNew)) return NC_ERR;
 	delete[] xOld;
 	delete[] yOld;
 	delete[] zOld;
 	delete[] latOld;
 	delete[] lonOld;
+    delete[] IDtagOld;
 
 	delete[] xNew;
 	delete[] yNew;
@@ -833,6 +842,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 	delete[] latNew;
 	delete[] lonNew;
 	delete[] idxToNew;
+    delete[] IDtagNew;
 
 	//Build and write edge coordinate arrays
 	xOld = new double[nEdges];
@@ -895,6 +905,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 	zOld = new double[nVertices];
 	latOld = new double[nVertices];
 	lonOld = new double[nVertices];
+    IDtagOld = new int[nVertices];
 
 	xNew = new double[nVerticesNew];
 	yNew = new double[nVerticesNew];
@@ -902,8 +913,10 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 	latNew = new double[nVerticesNew];
 	lonNew = new double[nVerticesNew];
 	idxToNew = new int[nVerticesNew];
+    IDtagNew = new int[nVerticesNew];
 
 	netcdf_mpas_read_xyzvertex ( inputFilename, nVertices, xOld, yOld, zOld );
+    netcdf_mpas_read_featuretagvertex( inputFilename, nVertices, IDtagOld );
 	netcdf_mpas_read_latlonvertex ( inputFilename, nVertices, latOld, lonOld );
 
 	idx_map = 0;
@@ -915,6 +928,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 			latNew[idx_map] = latOld[iVertex];
 			lonNew[idx_map] = lonOld[iVertex];
 			idxToNew[idx_map] = idx_map+1;
+            IDtagNew[idx_map] = IDtagOld[iVertex];
 			idx_map++;
 		}
 	}
@@ -931,11 +945,14 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 	if (!zVertexVar->put(zNew,nVerticesNew)) return NC_ERR;
 	if (!(idx2vertexVar = grid.add_var("indexToVertexID", ncInt, nVerticesDim))) return NC_ERR;
 	if (!idx2vertexVar->put(idxToNew, nVerticesNew)) return NC_ERR;
+    if (!(tag2vertexVar = grid.add_var("featureTagVertex", ncInt, nVerticesDim))) return NC_ERR;
+	if (!tag2vertexVar->put(IDtagNew, nVerticesNew)) return NC_ERR;
 	delete[] xOld;
 	delete[] yOld;
 	delete[] zOld;
 	delete[] latOld;
 	delete[] lonOld;
+    delete[] IDtagOld;
 
 	delete[] xNew;
 	delete[] yNew;
@@ -943,6 +960,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 	delete[] latNew;
 	delete[] lonNew;
 	delete[] idxToNew;
+    delete[] IDtagNew;
 
 	grid.close();
 

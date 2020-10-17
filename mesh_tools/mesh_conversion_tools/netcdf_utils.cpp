@@ -699,7 +699,7 @@ string netcdf_mpas_read_parentid(string filename){/*{{{*/
 
 }/*}}}*/
 //****************************************************************************80
-string netcdf_mpas_read_meshspec(string filename){/*{{{*/
+double netcdf_mpas_read_meshspec(string filename){/*{{{*/
 	//****************************************************************************80
 	//
 	//  Purpose:
@@ -712,11 +712,11 @@ string netcdf_mpas_read_meshspec(string filename){/*{{{*/
 	//
 	//  Modified:
 	//
-	//    23 September 2020
+	//    18 February 2014
 	//
 	//  Author:
 	//
-	//    Doug Jacobsen, Xylar Asay-Davis
+	//    Doug Jacobsen
 	//
 	//  Reference:
 	//
@@ -728,14 +728,13 @@ string netcdf_mpas_read_meshspec(string filename){/*{{{*/
 	//
 	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
 	//
-	//    Output, string NETCDF_MPAS_READ_MESHSPEC, the value of the mesh_spec attribute
+	//    Output, double NETCDF_MPAS_READ_MESHSPEC, the value of the mesh_spec attribute
 	//
 	NcAtt *att_id;
 	NcValues *vals;
 	bool valid;
 	string tmp_name;
 	string sph_name = "mesh_spec";
-	string mesh_spec_str = "";
 	//
 	//  Open the file.
 	//
@@ -765,18 +764,17 @@ string netcdf_mpas_read_meshspec(string filename){/*{{{*/
 		sph_name = "YES             ";
 
 		for(int i = 0; i < vals -> num(); i++){
-			mesh_spec_str += vals -> as_string(i);
-			return mesh_spec_str;
+			return vals -> as_double(i);
 		}
 	} else {
-		return mesh_spec_str;
+		return 0.0;
 	}
 	//
 	//  Close the file.
 	//
 	ncid.close ( );
 
-	return mesh_spec_str;
+	return 0.0;
 
 }/*}}}*/
 /*}}}*/
@@ -923,6 +921,72 @@ void netcdf_mpas_read_xyzcell ( string filename, int ncells, double xcell[], dou
 #endif
 	var_id = ncid.get_var ( "zCell" );
 	(*var_id).get ( &zcell[0], ncells );
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return;
+}/*}}}*/
+//****************************************************************************80
+void netcdf_mpas_read_featuretagcell ( string filename, int ncells, int idtag[] ){/*{{{*/
+
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_FEATURETAGCELL reads cellFeatureTag.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    16 October 2020
+	//
+	//  Author:
+	//
+	//    Darren Engwirda
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Input, int NCELLS, the number of nodes.
+	//
+	//    Output, int IDTAG[NCELLS], the integer ID "tags" associated with the
+    //    nodes.
+	//
+	NcVar *var_id;
+	//
+	//  Open the file.
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//
+	//  Get the variable values.
+	//
+#ifdef _DEBUG
+	cout << "    Reading featureTagCell" << endl;
+#endif
+	var_id = ncid.get_var ( "featureTagCell" );
+    if (var_id == NULL) {
+	    for (int i = 0; i < ncells; ++i) {
+            idtag[i] = 0;
+        }
+    } else {
+        (*var_id).get ( &idtag[0], ncells );
+    }
 	//
 	//  Close the file.
 	//
@@ -1697,6 +1761,72 @@ void netcdf_mpas_read_xyzvertex ( string filename, int nvertices, double xvertex
 #endif
 	var_id = ncid.get_var ( "zVertex" );
 	(*var_id).get ( &zvertex[0], nvertices );
+	//
+	//  Close the file.
+	//
+	ncid.close ( );
+
+	return;
+}/*}}}*/
+//****************************************************************************80
+void netcdf_mpas_read_featuretagvertex ( string filename, int nvertices, int idtag[] ){/*{{{*/
+
+	//****************************************************************************80
+	//
+	//  Purpose:
+	//
+	//    NETCDF_MPAS_READ_FEATURETAGVERTEX reads vertexFeatureTag.
+	//
+	//  Licensing:
+	//
+	//    This code is distributed under the GNU LGPL license.
+	//
+	//  Modified:
+	//
+	//    16 October 2020
+	//
+	//  Author:
+	//
+	//    Darren Engwirda
+	//
+	//  Reference:
+	//
+	//    Russ Rew, Glenn Davis, Steve Emmerson, Harvey Davies, Ed Hartne,
+	//    The NETCDF User's Guide,
+	//    Unidata Program Center, March 2009.
+	//
+	//  Parameters:
+	//
+	//    Input, string NC_FILENAME, the name of the NETCDF file to examine.
+	//
+	//    Input, int NVERTICES, the number of vertices.
+	//
+	//    Output, int IDTAG[NVERTICES], the integer ID "tags" associated with
+    //    the vertices.
+	//
+	NcVar *var_id;
+	//
+	//  Open the file.
+	#ifdef _64BITPERIOD
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly, NULL, 0, NcFile::Period64Bits );
+	#else
+		NcFile ncid ( filename.c_str ( ), NcFile::ReadOnly );
+	#endif
+	//
+	//
+	//  Get the variable values.
+	//
+#ifdef _DEBUG
+	cout << "    Reading featureTagVertex" << endl;
+#endif
+	var_id = ncid.get_var ( "featureTagVertex" );
+    if (var_id == NULL) {
+	    for (int i = 0; i < nvertices; ++i) {
+            idtag[i] = 0;
+        }
+    } else {
+        (*var_id).get ( &idtag[0], nvertices );
+    }
 	//
 	//  Close the file.
 	//
