@@ -8,6 +8,8 @@ import timeit
 from rasterio.features import rasterize
 from affine import Affine
 import shapely.geometry
+import shapely.ops
+from functools import partial
 from geometric_features.plot import subdivide_geom
 from mpas_tools.mesh.creation.util import lonlat2xyz
 
@@ -24,10 +26,10 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
         The regions to be rasterized
 
     lon_grd : numpy.ndarray
-        A 1D array of evenly spaced longitude values
+        A 1D array of longitude values
 
     lat_grd : numpy.ndarray
-        A 1D array of evenly spaced latitude values
+        A 1D array of latitude values
 
     earth_radius : float
         Earth radius in meters
@@ -71,10 +73,10 @@ def mask_from_geojson(fc, lon_grd, lat_grd, max_length=None, shapes=None,
         The regions to be rasterized
 
     lon_grd : numpy.ndarray
-        A 1D array of evenly spaced longitude values
+        A 1D array of longitude values
 
     lat_grd : numpy.ndarray
-        A 1D array of evenly spaced latitude values
+        A 1D array of latitude values
 
     max_length : float, optional
         The maximum distance (in degrees) between points on the boundary of the
@@ -97,20 +99,28 @@ def mask_from_geojson(fc, lon_grd, lat_grd, max_length=None, shapes=None,
     print("Mask from geojson")
     print("-----------------")
 
+    if shapes is None:
+        shapes = _subdivide_shapes(fc, max_length)
+
     nlon = len(lon_grd)
     nlat = len(lat_grd)
 
-    dlon = (lon_grd[-1] - lon_grd[0])/(nlon-1)
-    dlat = (lat_grd[-1] - lat_grd[0])/(nlat-1)
+    uniform = (_is_uniform(lon_grd, epsilon=epsilon) and
+               _is_uniform(lat_grd, epsilon=epsilon))
 
-    # raserio works with pixels, and we want the lon/lat points to be at the
-    # centers of the pixels so the origin (the lower left of the first pixel) is
-    # half a pixel offset from the first lon/lat point
-    transform = Affine(dlon, 0.0, lon_grd[0] - 0.5*dlon,
-                       0.0, dlat, lat_grd[0] - 0.5*dlat)
+    if uniform:
+        dlon = (lon_grd[-1] - lon_grd[0])/(nlon-1)
+        dlat = (lat_grd[-1] - lat_grd[0])/(nlat-1)
 
-    if shapes is None:
-        shapes = _subdivide_shapes(fc, max_length)
+        # raserio works with pixels, and we want the lon/lat points to be at the
+        # centers of the pixels so the origin (the lower left of the first pixel) is
+        # half a pixel offset from the first lon/lat point
+        transform = Affine(dlon, 0., lon_grd[0] - 0.5*dlon,
+                           0., dlat, lat_grd[0] - 0.5*dlat)
+    else:
+        shapes = _shapes_to_pixel_cooords(lon_grd, lat_grd, shapes)
+        transform = Affine(1., 0., 0.,
+                           0., 1., 0.)
 
     raster_shapes = []
     for shape in shapes:
@@ -122,7 +132,7 @@ def mask_from_geojson(fc, lon_grd, lat_grd, max_length=None, shapes=None,
     return mask
 
 
-def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
+def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search='flann',
                           max_length=None, shapes=None):
     # {{{
     """
@@ -135,15 +145,15 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
         The regions to be rasterized
 
     lon_grd : numpy.ndarray
-        A 1D array of evenly spaced longitude values
+        A 1D array of longitude values
 
     lat_grd : numpy.ndarray
-        A 1D array of evenly spaced latitude values
+        A 1D array of latitude values
 
     earth_radius : float
         Earth radius in meters
 
-    nn_search: {'kdtree', 'flann'}
+    nn_search: {'kdtree', 'flann'}, optional
         The method used to find the nearest point on the shape boundary
 
     max_length : float, optional
@@ -246,4 +256,35 @@ def _subdivide_shapes(fc, max_length):
         shapes.append(shape)
 
     return shapes
+
+
+def _is_uniform(vector, epsilon=1e-10):
+    d = vector[1:] - vector[0:-1]
+    diff = d - np.mean(d)
+    return np.all(np.abs(diff) < epsilon)
+
+
+def _shapes_to_pixel_cooords(lon, lat, shapes):
+    intx = partial(_interpx, lon)
+    inty = partial(_interpy, lat)
+    new_shapes = []
+    for shape in shapes:
+        shape = shapely.ops.transform(intx, shape)
+        shape = shapely.ops.transform(inty, shape)
+        new_shapes.append(shape)
+    return new_shapes
+
+
+def _interpx(lon, x, y):
+    nlon = len(lon)
+    lon_pixels = np.arange(nlon, dtype=float)
+    x = np.interp(x, lon, lon_pixels)
+    return x, y
+
+
+def _interpy(lat, x, y):
+    nlat = len(lat)
+    lat_pixels = np.arange(nlat, dtype=float)
+    y = np.interp(y, lat, lat_pixels)
+    return x, y
 
