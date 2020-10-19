@@ -21,6 +21,9 @@ build:
     - triangle_to_netcdf = mpas_tools.mesh.creation.triangle_to_netcdf:main
     - jigsaw_to_netcdf = mpas_tools.mesh.creation.jigsaw_to_netcdf:main
     - scrip_from_mpas = mpas_tools.scrip.from_mpas:main
+    - ocean_add_depth = mpas_tools.ocean.depth:main_add_depth
+    - ocean_add_zmid = mpas_tools.ocean.depth:main_add_zmid
+    - ocean_write_time_varying_zmid = mpas_tools.ocean.depth:main_write_time_varying_zmid
 
 requirements:
   build:
@@ -94,9 +97,9 @@ test:
     - widen_transect_edge_masks.py --help
     - add_critical_land_blockages_to_mask.py --help
     - moc_southern_boundary_extractor.py --help
-    - add_depth.py --help
-    - add_zMid.py --help
-    - write_time_varying_zMid.py --help
+    - ocean_add_depth --help
+    - ocean_add_zmid --help
+    - ocean_write_time_varying_zmid --help
     - paraview_vtk_field_extractor.py -f mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc -v latCell,lonCell --ignore_time -o vtk_test
     - split_grids --help
     - merge_grids --help
