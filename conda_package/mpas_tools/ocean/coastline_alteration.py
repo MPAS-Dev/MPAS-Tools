@@ -174,6 +174,14 @@ def widen_transect_edge_masks(dsMask, dsMesh, latitude_threshold=43.0):
 
     Parameters
     ----------
+=======
+def widen_transect_edge_masks(dsMask, dsMesh, latitude_threshold=43.0):
+    """
+    Alter critical passages at polar latitudes to be at least two cells wide, to
+    avoid sea ice blockage
+
+    Parameters
+    ----------
     dsMask : xarray.Dataset
         The mask to which critical blockages should be added
 
