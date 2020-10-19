@@ -19,6 +19,7 @@ User's Guide
 ============
 
 .. toctree::
+   :caption: User's Guide
    :maxdepth: 2
 
    mesh_creation
@@ -33,6 +34,7 @@ Ocean Tools
 -----------
 
 .. toctree::
+   :caption: Ocean Tools
    :maxdepth: 2
 
    ocean/mesh_creation
@@ -43,6 +45,7 @@ Ocean Tools
 Developer's Guide
 =================
 .. toctree::
+   :caption: Developer's Guide
    :maxdepth: 2
 
    making_changes
