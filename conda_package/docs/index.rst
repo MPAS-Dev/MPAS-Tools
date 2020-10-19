@@ -39,6 +39,7 @@ Ocean Tools
    ocean/coastal_tools
    ocean/coastline_alteration
    ocean/moc
+   ocean/depth
 
 Developer's Guide
 =================
