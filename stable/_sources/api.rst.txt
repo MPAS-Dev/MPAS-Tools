@@ -148,6 +148,12 @@ Ocean Tools
    coastal_tools.plot_coarse_coast
    coastal_tools.plot_region_box
 
+    depth.add_depth
+    depth.add_zmid
+    depth.write_time_varying_zmid
+    depth.compute_depth
+    depth.compute_zmid
+
 .. currentmodule:: mpas_tools.ocean.inject_bathymetry
 
 .. autosummary::
