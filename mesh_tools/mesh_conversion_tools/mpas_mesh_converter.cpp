@@ -16,7 +16,7 @@
 #include "pnt.h"
 #include "edge.h"
 
-#define MESH_SPEC 1.0
+#define MESH_SPEC 1.1
 #define ID_LEN 10
 
 using namespace std;
@@ -264,7 +264,7 @@ int main ( int argc, char *argv[] ) {
 		cout << "Error - " << error << endl;
 		exit(error);
 	}
-	
+
 	cout << "Reading and writing meshDensity" << endl;
 	if(error = outputMeshDensity(out_name)){
 		cout << "Error - " << error << endl;
@@ -283,7 +283,7 @@ int readGridInput(const string inputFilename){/*{{{*/
 	int nCells, nVertices, vertexDegree;
 	double *xcell, *ycell,*zcell;
 	double *xvertex, *yvertex,*zvertex;
-	int *cellsonvertex_list;
+	int *cellsonvertex_list, *IDtag;
 	pnt new_location;
 
 #ifdef _DEBUG
@@ -363,8 +363,10 @@ int readGridInput(const string inputFilename){/*{{{*/
 	xcell = new double[nCells];
 	ycell = new double[nCells];
 	zcell = new double[nCells];
+	IDtag = new int[nCells];
 
 	netcdf_mpas_read_xyzcell ( inputFilename, nCells, xcell, ycell, zcell );
+	netcdf_mpas_read_featuretagcell ( inputFilename, nCells, IDtag );
 
 	cells.clear();
 	for(int i = 0; i < nCells; i++){
@@ -377,7 +379,7 @@ int readGridInput(const string inputFilename){/*{{{*/
 		zCellRange[0] = min(zCellRange[0], zcell[i]);
 		zCellRange[1] = max(zCellRange[1], zcell[i]);
 
-		new_location = pnt(xcell[i], ycell[i], zcell[i], i);
+		new_location = pnt(xcell[i], ycell[i], zcell[i], i, IDtag[i]);
 
 		if(spherical) new_location.normalize();
 		cells.push_back(new_location);
@@ -387,13 +389,16 @@ int readGridInput(const string inputFilename){/*{{{*/
 	delete[] xcell;
 	delete[] ycell;
 	delete[] zcell;
+	delete[] IDtag;
 
 	// Build vertex location information
 	xvertex = new double[nVertices];
 	yvertex = new double[nVertices];
 	zvertex = new double[nVertices];
+	IDtag = new int[nVertices];
 
 	netcdf_mpas_read_xyzvertex ( inputFilename, nVertices, xvertex, yvertex, zvertex );
+	netcdf_mpas_read_featuretagvertex ( inputFilename, nVertices, IDtag );
 
 	vertices.clear();
 	for(int i = 0; i < nVertices; i++){
@@ -406,7 +411,7 @@ int readGridInput(const string inputFilename){/*{{{*/
 		zVertexRange[0] = min(zVertexRange[0], zvertex[i]);
 		zVertexRange[1] = max(zVertexRange[1], zvertex[i]);
 
-		new_location = pnt(xvertex[i], yvertex[i], zvertex[i], i);
+		new_location = pnt(xvertex[i], yvertex[i], zvertex[i], i, IDtag[i]);
 		if(spherical) new_location.normalize();
 		vertices.push_back(new_location);
 	}
@@ -415,6 +420,7 @@ int readGridInput(const string inputFilename){/*{{{*/
 	delete[] xvertex;
 	delete[] yvertex;
 	delete[] zvertex;
+	delete[] IDtag;
 
 	// Build unordered cellsOnVertex information
 	cellsonvertex_list = new int[nVertices * vertexDegree];
@@ -506,14 +512,14 @@ int buildUnorderedCellConnectivity(){/*{{{*/
 	//    It should compute the inverse of cellsOnVertex (verticesOnCell) unordered.
 	//    It will also compute an unordered cellsOnCell that can be considered invalid for actual use (e.g. quad grids).
 	//    This ordering should happen regardless of it the mesh is planar or spherical.
-	
+
 	int iVertex, iCell, newCell, j, k, l, m, matches;
 	bool add;
 
 #ifdef _DEBUG
 	cout << endl << endl << "Begin function: buildUnorderedCellConnectivity" << endl << endl;
 #endif
-	
+
 	verticesOnCell.clear();
 	verticesOnCell.resize(cells.size());
 
@@ -732,7 +738,7 @@ int firstOrderingVerticesOnCell(){/*{{{*/
 }/*}}}*/
 int buildCompleteCellMask(){/*{{{*/
 	/*
-	 * The buildCompleteCellMask function parses an ordered 
+	 * The buildCompleteCellMask function parses an ordered
 	 * verticesOnCell field to determine if a cell is complete. It takes each
 	 * vertex-vertex pair (from verticesOnCell) and determines the angle
 	 * between them. If only one vertex is shared, the "edge" is skipped.
@@ -939,8 +945,8 @@ int buildEdges(){/*{{{*/
 		if(completeCellMask.at(iCell) == 1) {
 			// Build edges from every vertex/vertex pair around a cell if the cell is complete
 			for(l = 0; l < verticesOnCell.at(iCell).size()-1; l++){
-				vertex1 = verticesOnCell.at(iCell).at(l);	
-				vertex2 = verticesOnCell.at(iCell).at(l+1);	
+				vertex1 = verticesOnCell.at(iCell).at(l);
+				vertex2 = verticesOnCell.at(iCell).at(l+1);
 
 				// Find cell shaerd by vertices, that's not iCell
 				cell1 = iCell;
@@ -1073,7 +1079,7 @@ int buildEdges(){/*{{{*/
 						for(k = 0; k < verticesOnCell.at(cell2).size(); k++){
 							if(verticesOnCell.at(cell1).at(j) == verticesOnCell.at(cell2).at(k)) {
 								if(vertex1 == -1){
-									vertex1 = verticesOnCell.at(cell1).at(j);	
+									vertex1 = verticesOnCell.at(cell1).at(j);
 								} else if(vertex2 == -1) {
 									vertex2 = verticesOnCell.at(cell1).at(j);
 								} else {
@@ -1254,7 +1260,7 @@ int buildEdges(){/*{{{*/
 #ifdef _DEBUG
 		cout << "New Edge At: " << edge_loc << endl;
 		cout << "         c1: " << cells.at(cell1) << endl;
-		if(cell2 > -1) { 
+		if(cell2 > -1) {
 			cout << "         c2: " << cells.at(cell2) << endl;
 			cout << "    mod? c2: " << cell_loc2 << endl;
 		} else {
@@ -1344,7 +1350,7 @@ int orderVertexArrays(){/*{{{*/
 
 		if(vertex1 != -1) {
 			edgesOnVertex.at(vertex1).push_back(iEdge);
-		} 
+		}
 
 		if(vertex2 != -1){
 			edgesOnVertex.at(vertex2).push_back(iEdge);
@@ -1457,7 +1463,7 @@ int orderCellArrays(){/*{{{*/
 	 * orderCellArrays assumes verticesOnCell are ordered CCW already.
 	 *
 	 */
-	int iCell, iVertex, iEdge, iEdge2, add_cell;	
+	int iCell, iVertex, iEdge, iEdge2, add_cell;
 	int cell1, cell2, vertex1, vertex2, prev_vertex;
 	int edge_idx, loc_edge_idx;
 	int i, j, k, swp_idx;
@@ -1490,8 +1496,8 @@ int orderCellArrays(){/*{{{*/
 
 	// First, build full list of edges on cell.
 	for(iEdge = 0; iEdge < edges.size(); iEdge++){
-		cell1 = cellsOnEdge.at(iEdge).at(0);	
-		cell2 = cellsOnEdge.at(iEdge).at(1);	
+		cell1 = cellsOnEdge.at(iEdge).at(0);
+		cell2 = cellsOnEdge.at(iEdge).at(1);
 
 		edgesOnCell.at(cell1).push_back(iEdge);
 		if(cell2 != -1){
@@ -1521,7 +1527,7 @@ int orderCellArrays(){/*{{{*/
 #endif
 
 			// /*
-			// Determine starting edge. It should either be the first edge in the set, 
+			// Determine starting edge. It should either be the first edge in the set,
 			// or the only edge such that all other edges are CCW from it.
 			edge_idx = edgesOnCell.at(iCell).at(0);
 			loc_edge_idx = 0;
@@ -1736,7 +1742,7 @@ int buildAreas(){/*{{{*/
 
 	for(iCell = 0; iCell < cells.size(); iCell++){
 		areaCell.at(iCell) = 0.0;
-		
+
 		if(completeCellMask.at(iCell) == 1){
 			for(j = 0; j < edgesOnCell.at(iCell).size(); j++){
 				iEdge = edgesOnCell.at(iCell).at(j);
@@ -2108,7 +2114,7 @@ int buildAngleEdge(){/*{{{*/
 	 *    or
 	 * 2. The angles the positive normal direction (u)
 	 * 	  makes with the local eastward direction.
-	 * 	  
+	 *
 	 * 	  In a plane, local eastward is defined as the x axis, and
 	 * 	  nortward is defined as the y axis.
 	 */
@@ -2155,7 +2161,7 @@ int buildAngleEdge(){/*{{{*/
 		}
 
 		if(!spherical){
-			cell_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);	
+			cell_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
 
 			normal = cell_loc2 - cell_loc1;
 			angleEdge.at(iEdge) = acos( x_axis.dot(normal) / (x_axis.magnitude() * normal.magnitude()));
@@ -2254,7 +2260,7 @@ int buildMeshQualities(){/*{{{*/
 		} else {
 			cellQuality.at(iCell) = 0.0;
 		}
-		gridSpacing.at(iCell) = spacing / edgesOnCell.at(iCell).size(); 
+		gridSpacing.at(iCell) = spacing / edgesOnCell.at(iCell).size();
 	}
 
 #ifdef _DEBUG
@@ -2344,10 +2350,10 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	 * **********************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Replace, NULL, 0, NcFile::Offset64Bits);
 
@@ -2357,12 +2363,12 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 
 	/*
 	for(vec_int_itr = edgesOnCell.begin(); vec_int_itr != edgesOnCell.end(); ++vec_int_itr){
-		maxEdges = std::max(maxEdges, (int)(*vec_int_itr).size());	
+		maxEdges = std::max(maxEdges, (int)(*vec_int_itr).size());
 	}*/
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	
+
 	// define dimensions
 	NcDim *nCellsDim;
 	NcDim *nEdgesDim;
@@ -2373,7 +2379,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	NcDim *THREEDim;
 	NcDim *vertexDegreeDim;
 	NcDim *timeDim;
-	
+
 	// write dimensions
 	if (!(nCellsDim =		grid.add_dim(	"nCells",		cells.size())		)) return NC_ERR;
 	if (!(nEdgesDim =		grid.add_dim(	"nEdges",		edges.size())		)) return NC_ERR;
@@ -2385,7 +2391,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	if (!(timeDim = 		grid.add_dim(   "Time")								)) return NC_ERR;
 
 	grid.close();
-	
+
 	// file closed when file obj goes out of scope
 	return 0;
 }/*}}}*/
@@ -2399,10 +2405,10 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
 	char mesh_spec_str[1024];
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
 
@@ -2413,7 +2419,7 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 	string history_str = "";
 	string id_str = "";
 	string parent_str ="";
-	
+
 	// write attributes
 	if(!spherical){
 		if (!(sphereAtt = grid.add_att(   "on_a_sphere", "NO\0"))) return NC_ERR;
@@ -2459,7 +2465,7 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 	if (!(id = grid.add_att(   "file_id", id_str.c_str() ))) return NC_ERR;
 
 	grid.close();
-	
+
 	// file closed when file obj goes out of scope
 	return 0;
 }/*}}}*/
@@ -2474,16 +2480,16 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	 * **********************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	
+
 	// fetch dimensions
 	NcDim *nCellsDim = grid.get_dim( "nCells" );
 	NcDim *nEdgesDim = grid.get_dim( "nEdges" );
@@ -2497,11 +2503,12 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	NcVar *xCellVar, *yCellVar, *zCellVar, *xEdgeVar, *yEdgeVar, *zEdgeVar, *xVertexVar, *yVertexVar, *zVertexVar;
 	NcVar *lonCellVar, *latCellVar, *lonEdgeVar, *latEdgeVar, *lonVertexVar, *latVertexVar;
 	NcVar *idx2cellVar, *idx2edgeVar, *idx2vertexVar;
+	NcVar *tag2cellVar, *tag2vertexVar;
 
 	int i;
-	
+
 	double *x, *y, *z, *lat, *lon;
-	int *idxTo;
+	int *idxTo, *IDtag;
 
 	// Build and write cell coordinate arrays
 	x = new double[nCells];
@@ -2510,6 +2517,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	lat = new double[nCells];
 	lon = new double[nCells];
 	idxTo = new int[nCells];
+	IDtag = new int[nCells];
 	i = 0;
 	for(pnt_itr = cells.begin(); pnt_itr != cells.end(); ++pnt_itr){
 		if(!spherical){
@@ -2526,6 +2534,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 			lon[i] = (*pnt_itr).getLon();
 		}
 		idxTo[i] = (*pnt_itr).idx+1;
+		IDtag[i] = (*pnt_itr).tag+0;
 
 		i++;
 	}
@@ -2541,13 +2550,16 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	if (!zCellVar->put(z,nCells)) return NC_ERR;
 	if (!(idx2cellVar = grid.add_var("indexToCellID", ncInt, nCellsDim))) return NC_ERR;
 	if (!idx2cellVar->put(idxTo,nCells)) return NC_ERR;
+	if (!(tag2cellVar = grid.add_var("featureTagCell", ncInt, nCellsDim))) return NC_ERR;
+	if (!tag2cellVar->put(IDtag,nCells)) return NC_ERR;
 	delete[] x;
 	delete[] y;
 	delete[] z;
 	delete[] lat;
 	delete[] lon;
 	delete[] idxTo;
-	
+	delete[] IDtag;
+
 	//Build and write edge coordinate arrays
 	x = new double[nEdges];
 	y = new double[nEdges];
@@ -2601,6 +2613,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	lat = new double[nVertices];
 	lon = new double[nVertices];
 	idxTo = new int[nVertices];
+	IDtag = new int[nVertices];
 
 	i = 0;
 	for(pnt_itr = vertices.begin(); pnt_itr != vertices.end(); ++pnt_itr){
@@ -2618,6 +2631,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 			lon[i] = (*pnt_itr).getLon();
 		}
 		idxTo[i] = (*pnt_itr).idx+1;
+		IDtag[i] = (*pnt_itr).tag+0;
 
 		i++;
 	}
@@ -2633,12 +2647,15 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	if (!zVertexVar->put(z,nVertices)) return NC_ERR;
 	if (!(idx2vertexVar = grid.add_var("indexToVertexID", ncInt, nVerticesDim))) return NC_ERR;
 	if (!idx2vertexVar->put(idxTo, nVertices)) return NC_ERR;
+	if (!(tag2vertexVar = grid.add_var("featureTagVertex", ncInt, nVerticesDim))) return NC_ERR;
+	if (!tag2vertexVar->put(IDtag, nVertices)) return NC_ERR;
 	delete[] x;
 	delete[] y;
 	delete[] z;
 	delete[] lat;
 	delete[] lon;
 	delete[] idxTo;
+	delete[] IDtag;
 
 	grid.close();
 
@@ -2656,16 +2673,16 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
 	 * ***************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	
+
 	// fetch dimensions
 	NcDim *nCellsDim = grid.get_dim( "nCells" );
 	NcDim *maxEdgesDim = grid.get_dim( "maxEdges" );
@@ -2678,7 +2695,7 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
 	NcVar *cocVar, *nEocVar, *eocVar, *vocVar;
 
 	int *tmp_arr;
-	
+
 	// Build and write COC array
 	tmp_arr = new int[nCells*maxEdges];
 
@@ -2711,7 +2728,7 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = edgesOnCell.begin(); vec_int_itr != edgesOnCell.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*maxEdges + j] = (*int_itr) + 1;	
+			tmp_arr[i*maxEdges + j] = (*int_itr) + 1;
 			j++;
 		}
 
@@ -2721,7 +2738,7 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
 	if (!(eocVar = grid.add_var("edgesOnCell", ncInt, nCellsDim, maxEdgesDim))) return NC_ERR;
 	if (!eocVar->put(tmp_arr,nCells,maxEdges)) return NC_ERR;
 
-	// Build and write VOC array 
+	// Build and write VOC array
 	for(i = 0; i < nCells; i++){
 		for(j = 0; j < maxEdges; j++){
 			tmp_arr[i*maxEdges + j] = 0;
@@ -2732,7 +2749,7 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = verticesOnCell.begin(); vec_int_itr != verticesOnCell.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*maxEdges + j] = (*int_itr) + 1;	
+			tmp_arr[i*maxEdges + j] = (*int_itr) + 1;
 			j++;
 		}
 		i++;
@@ -2772,16 +2789,16 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
 	 * ***************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	
+
 	// fetch dimensions
 	NcDim *nEdgesDim = grid.get_dim( "nEdges" );
 	NcDim *maxEdges2Dim = grid.get_dim( "maxEdges2" );
@@ -2812,7 +2829,7 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = edgesOnEdge.begin(); vec_int_itr != edgesOnEdge.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*maxEdges2 + j] = (*int_itr) + 1;	
+			tmp_arr[i*maxEdges2 + j] = (*int_itr) + 1;
 			j++;
 		}
 
@@ -2834,7 +2851,7 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = cellsOnEdge.begin(); vec_int_itr != cellsOnEdge.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*two + j] = (*int_itr) + 1;	
+			tmp_arr[i*two + j] = (*int_itr) + 1;
 			j++;
 		}
 
@@ -2849,7 +2866,7 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = verticesOnEdge.begin(); vec_int_itr != verticesOnEdge.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*two + j] = (*int_itr) + 1;	
+			tmp_arr[i*two + j] = (*int_itr) + 1;
 			j++;
 		}
 
@@ -2876,7 +2893,7 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
 	cellsOnEdge.clear();
 //	verticesOnEdge.clear(); // Needed for Initial conditions.
 	edgesOnEdge.clear();
-	
+
 	return 0;
 }/*}}}*/
 int outputVertexConnectivity( const string outputFilename) {/*{{{*/
@@ -2889,16 +2906,16 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 	 * ***************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	
+
 	// fetch dimensions
 	NcDim *nVerticesDim = grid.get_dim( "nVertices" );
 	NcDim *vertexDegreeDim = grid.get_dim( "vertexDegree" );
@@ -2914,7 +2931,7 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 
 	// Build and write COV array
 	tmp_arr = new int[nVertices*vertexDegree];
-	
+
 	for(i = 0; i < nVertices; i++){
 		for(j = 0; j < vertexDegree; j++){
 			tmp_arr[i*vertexDegree + j] = 0;
@@ -2925,7 +2942,7 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = cellsOnVertex.begin(); vec_int_itr != cellsOnVertex.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*vertexDegree + j] = (*int_itr) + 1;	
+			tmp_arr[i*vertexDegree + j] = (*int_itr) + 1;
 			j++;
 		}
 		i++;
@@ -2944,7 +2961,7 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = edgesOnVertex.begin(); vec_int_itr != edgesOnVertex.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*vertexDegree + j] = (*int_itr) + 1;	
+			tmp_arr[i*vertexDegree + j] = (*int_itr) + 1;
 			j++;
 		}
 
@@ -2956,7 +2973,7 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 
 	// Build and write bdryVert array
 	tmp_arr = new int[nVertices];
-	
+
 	i = 0;
 	for(vec_int_itr = cellsOnVertex.begin(); vec_int_itr != cellsOnVertex.end(); ++vec_int_itr){
 		if((*vec_int_itr).size() == vertexDegree){
@@ -2986,16 +3003,16 @@ int outputCellParameters( const string outputFilename) {/*{{{*/
 	 * *******************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	
+
 	// fetch dimensions
 	NcDim *nCellsDim = grid.get_dim( "nCells" );
 
@@ -3028,16 +3045,16 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
 	 * *******************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	
+
 	// fetch dimensions
 	NcDim *nVerticesDim = grid.get_dim( "nVertices" );
 	NcDim *vertexDegreeDim = grid.get_dim( "vertexDegree" );
@@ -3103,16 +3120,16 @@ int outputEdgeParameters( const string outputFilename) {/*{{{*/
 	 * *******************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
-	
+
 	// fetch dimensions
 	NcDim *nEdgesDim = grid.get_dim( "nEdges" );
 	NcDim *maxEdges2Dim = grid.get_dim( "maxEdges2" );
@@ -3184,13 +3201,13 @@ int outputMeshDensity( const string outputFilename) {/*{{{*/
 	 * *************************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
 
@@ -3225,13 +3242,13 @@ int outputMeshQualities( const string outputFilename) {/*{{{*/
 	 * *************************************************************************/
 	// Return this code to the OS in case of failure.
 	static const int NC_ERR = 2;
-	
+
 	// set error behaviour (matches fortran behaviour)
 	NcError err(NcError::verbose_nonfatal);
-	
+
 	// open the scvtmesh file
 	NcFile grid(outputFilename.c_str(), NcFile::Write);
-	
+
 	// check to see if the file was opened
 	if(!grid.is_valid()) return NC_ERR;
 

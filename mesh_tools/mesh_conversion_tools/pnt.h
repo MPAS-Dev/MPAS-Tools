@@ -7,14 +7,15 @@ class pnt {/*{{{*/
 	public:
 		double x, y, z;
 		double lat, lon;
-		int idx;
+		int idx, tag;
 		bool positiveLonRange;
 
-		pnt(double x_, double y_, double z_, int idx_) {
+		pnt(double x_, double y_, double z_, int idx_, int tag_) {
 			(*this).x = x_;
 			(*this).y = y_;
 			(*this).z = z_;
 			(*this).idx = idx_;
+			(*this).tag = tag_;
 			(*this).positiveLonRange = true;
 			(*this).buildLat();
 			(*this).buildLon();
@@ -25,6 +26,7 @@ class pnt {/*{{{*/
 			(*this).y = y_;
 			(*this).z = z_;
 			(*this).idx = 0;
+			(*this).tag = 0;
 			(*this).positiveLonRange = true;
 			(*this).buildLat();
 			(*this).buildLon();
@@ -35,6 +37,7 @@ class pnt {/*{{{*/
 			(*this).y = 0.0;
 			(*this).z = 0.0;
 			(*this).idx = 0;
+			(*this).tag = 0;
 			(*this).positiveLonRange = true;
 			(*this).lat = 0.0;
 			(*this).lon = 0.0;
@@ -49,6 +52,7 @@ class pnt {/*{{{*/
 			y = p.y;
 			z = p.z;
 			idx = p.idx;
+			tag = p.tag;
 			(*this).buildLat();
 			(*this).buildLon();
 			return *this;
@@ -63,7 +67,7 @@ class pnt {/*{{{*/
 			y_ = y-p.y;
 			z_ = z-p.z;
 
-			return pnt(x_,y_,z_,0);
+			return pnt(x_,y_,z_,0,0);
 		}/*}}}*/
 		pnt operator+(const pnt &p) const {/*{{{*/
 			double x_, y_, z_;
@@ -72,14 +76,14 @@ class pnt {/*{{{*/
 			y_ = y+p.y;
 			z_ = z+p.z;
 
-			return pnt(x_,y_,z_,0);
+			return pnt(x_,y_,z_,0,0);
 		}/*}}}*/
 		pnt operator*(double d) const {/*{{{*/
 			double x_, y_, z_;
 			x_ = x*d;
 			y_ = y*d;
 			z_ = z*d;
-			return pnt(x_,y_,z_,0);
+			return pnt(x_,y_,z_,0,0);
 		}/*}}}*/
 		pnt operator/(double d) const {/*{{{*/
 			double x_, y_, z_;
@@ -93,7 +97,7 @@ class pnt {/*{{{*/
 			x_ = x/d;
 			y_ = y/d;
 			z_ = z/d;
-			return pnt(x_,y_,z_,0);
+			return pnt(x_,y_,z_,0,0);
 		}/*}}}*/
 		pnt& operator/=(double d){/*{{{*/
 			if(d == 0.0){
@@ -129,7 +133,7 @@ class pnt {/*{{{*/
 				std::cout << x << " " << y << " " << z << " " << idx << std::endl;
 
 				assert(norm != 0);
-			}	
+			}
 			norm = sqrt(norm);
 
 			x = x/norm;
@@ -161,7 +165,7 @@ class pnt {/*{{{*/
 			y_ = z*p.x - p.z*x;
 			z_ = x*p.y - p.x*y;
 
-			return pnt(x_,y_,z_,0);
+			return pnt(x_,y_,z_,0,0);
 		}/*}}}*/
 		void fixPeriodicity(const pnt &p, const double xRef, const double yRef){/*{{{*/
 			/* The fixPeriodicity function fixes the periodicity of the current point relative
@@ -271,7 +275,7 @@ class pnt {/*{{{*/
 		}/*}}}*/
 	struct hasher {/*{{{*/
 		size_t operator()(const pnt &p) const {
-			uint32_t hash; 
+			uint32_t hash;
 			size_t i, key[3] = { (size_t)p.x, (size_t)p.y, (size_t)p.z };
 			for(hash = i = 0; i < sizeof(key); ++i) {
 				hash += ((uint8_t *)key)[i];
@@ -292,7 +296,7 @@ class pnt {/*{{{*/
 };/*}}}*/
 
 inline pnt operator*(const double d, const pnt &p){/*{{{*/
-	return pnt(d*p.x, d*p.y, d*p.z, 0);
+	return pnt(d*p.x, d*p.y, d*p.z, 0, 0);
 }/*}}}*/
 
 inline std::ostream & operator<<(std::ostream &os, const pnt &p){/*{{{*/
