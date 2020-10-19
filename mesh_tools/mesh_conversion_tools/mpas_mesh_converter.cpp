@@ -363,10 +363,10 @@ int readGridInput(const string inputFilename){/*{{{*/
 	xcell = new double[nCells];
 	ycell = new double[nCells];
 	zcell = new double[nCells];
-    IDtag = new int[nCells];
+	IDtag = new int[nCells];
 
 	netcdf_mpas_read_xyzcell ( inputFilename, nCells, xcell, ycell, zcell );
-    netcdf_mpas_read_featuretagcell ( inputFilename, nCells, IDtag );
+	netcdf_mpas_read_featuretagcell ( inputFilename, nCells, IDtag );
 
 	cells.clear();
 	for(int i = 0; i < nCells; i++){
@@ -389,16 +389,16 @@ int readGridInput(const string inputFilename){/*{{{*/
 	delete[] xcell;
 	delete[] ycell;
 	delete[] zcell;
-    delete[] IDtag;
+	delete[] IDtag;
 
 	// Build vertex location information
 	xvertex = new double[nVertices];
 	yvertex = new double[nVertices];
 	zvertex = new double[nVertices];
-    IDtag = new int[nVertices];
+	IDtag = new int[nVertices];
 
 	netcdf_mpas_read_xyzvertex ( inputFilename, nVertices, xvertex, yvertex, zvertex );
-    netcdf_mpas_read_featuretagvertex ( inputFilename, nVertices, IDtag );
+	netcdf_mpas_read_featuretagvertex ( inputFilename, nVertices, IDtag );
 
 	vertices.clear();
 	for(int i = 0; i < nVertices; i++){
@@ -420,7 +420,7 @@ int readGridInput(const string inputFilename){/*{{{*/
 	delete[] xvertex;
 	delete[] yvertex;
 	delete[] zvertex;
-    delete[] IDtag;
+	delete[] IDtag;
 
 	// Build unordered cellsOnVertex information
 	cellsonvertex_list = new int[nVertices * vertexDegree];
@@ -2503,7 +2503,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	NcVar *xCellVar, *yCellVar, *zCellVar, *xEdgeVar, *yEdgeVar, *zEdgeVar, *xVertexVar, *yVertexVar, *zVertexVar;
 	NcVar *lonCellVar, *latCellVar, *lonEdgeVar, *latEdgeVar, *lonVertexVar, *latVertexVar;
 	NcVar *idx2cellVar, *idx2edgeVar, *idx2vertexVar;
-    NcVar *tag2cellVar, *tag2vertexVar;
+	NcVar *tag2cellVar, *tag2vertexVar;
 
 	int i;
 
@@ -2517,7 +2517,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	lat = new double[nCells];
 	lon = new double[nCells];
 	idxTo = new int[nCells];
-    IDtag = new int[nCells];
+	IDtag = new int[nCells];
 	i = 0;
 	for(pnt_itr = cells.begin(); pnt_itr != cells.end(); ++pnt_itr){
 		if(!spherical){
@@ -2534,7 +2534,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 			lon[i] = (*pnt_itr).getLon();
 		}
 		idxTo[i] = (*pnt_itr).idx+1;
-        IDtag[i] = (*pnt_itr).tag+0;
+		IDtag[i] = (*pnt_itr).tag+0;
 
 		i++;
 	}
@@ -2550,7 +2550,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	if (!zCellVar->put(z,nCells)) return NC_ERR;
 	if (!(idx2cellVar = grid.add_var("indexToCellID", ncInt, nCellsDim))) return NC_ERR;
 	if (!idx2cellVar->put(idxTo,nCells)) return NC_ERR;
-    if (!(tag2cellVar = grid.add_var("featureTagCell", ncInt, nCellsDim))) return NC_ERR;
+	if (!(tag2cellVar = grid.add_var("featureTagCell", ncInt, nCellsDim))) return NC_ERR;
 	if (!tag2cellVar->put(IDtag,nCells)) return NC_ERR;
 	delete[] x;
 	delete[] y;
@@ -2558,7 +2558,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	delete[] lat;
 	delete[] lon;
 	delete[] idxTo;
-    delete[] IDtag;
+	delete[] IDtag;
 
 	//Build and write edge coordinate arrays
 	x = new double[nEdges];
@@ -2613,7 +2613,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	lat = new double[nVertices];
 	lon = new double[nVertices];
 	idxTo = new int[nVertices];
-    IDtag = new int[nVertices];
+	IDtag = new int[nVertices];
 
 	i = 0;
 	for(pnt_itr = vertices.begin(); pnt_itr != vertices.end(); ++pnt_itr){
@@ -2631,7 +2631,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 			lon[i] = (*pnt_itr).getLon();
 		}
 		idxTo[i] = (*pnt_itr).idx+1;
-        IDtag[i] = (*pnt_itr).tag+0;
+		IDtag[i] = (*pnt_itr).tag+0;
 
 		i++;
 	}
@@ -2647,7 +2647,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	if (!zVertexVar->put(z,nVertices)) return NC_ERR;
 	if (!(idx2vertexVar = grid.add_var("indexToVertexID", ncInt, nVerticesDim))) return NC_ERR;
 	if (!idx2vertexVar->put(idxTo, nVertices)) return NC_ERR;
-    if (!(tag2vertexVar = grid.add_var("featureTagVertex", ncInt, nVerticesDim))) return NC_ERR;
+	if (!(tag2vertexVar = grid.add_var("featureTagVertex", ncInt, nVerticesDim))) return NC_ERR;
 	if (!tag2vertexVar->put(IDtag, nVertices)) return NC_ERR;
 	delete[] x;
 	delete[] y;
@@ -2655,7 +2655,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	delete[] lat;
 	delete[] lon;
 	delete[] idxTo;
-    delete[] IDtag;
+	delete[] IDtag;
 
 	grid.close();
 

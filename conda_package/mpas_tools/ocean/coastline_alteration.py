@@ -42,7 +42,7 @@ def add_critical_land_blockages(dsMask, dsBlockages):
 
 
 def subtract_critical_passages(dsMask, dsPassages):
-    '''
+    """
     Parameters
     ----------
     dsMask : `xarray.Dataset`
@@ -55,7 +55,7 @@ def subtract_critical_passages(dsMask, dsPassages):
     -------
     dsMask : `xarray.Dataset`
         The mask with critical passages included
-    '''
+    """
     # Authors: Darren Engwirda
 
     dsMask = dsMask.copy()
@@ -69,7 +69,7 @@ def subtract_critical_passages(dsMask, dsPassages):
 
 
 def mask_reachable_ocean(dsMesh, dsMask, fcSeed):
-    '''
+    """
     Return a new land mask that ensures all ocean cells are "reachable" from
     (at least) one of the ocean points. Isolated patches of ocean cells will
     be added to the land mask.
@@ -91,7 +91,7 @@ def mask_reachable_ocean(dsMesh, dsMask, fcSeed):
     -------
     dsMask : `xarray.Dataset`
         The updated land mask, with the set of unreachable ocean cells added.
-    '''
+    """
     # Authors: Darren Engwirda
 
     dsMask = dsMask.copy()

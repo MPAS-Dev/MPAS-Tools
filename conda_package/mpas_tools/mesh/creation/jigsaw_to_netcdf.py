@@ -12,7 +12,7 @@ import argparse
 
 
 def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
-    '''
+    """
     Converts mesh data defined in JIGSAW format to NetCDF
 
     Parameters
@@ -26,7 +26,7 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
     sphere_radius : float, optional
         The radius of the sphere in meters.  If ``on_sphere=True`` this argument
         is required, otherwise it is ignored.
-    '''
+    """
     # Authors: Phillip J. Wolfram, Matthew Hoffman, Xylar Asay-Davis
     #          and Darren Engwirda
 

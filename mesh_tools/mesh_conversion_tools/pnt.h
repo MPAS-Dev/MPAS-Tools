@@ -15,7 +15,7 @@ class pnt {/*{{{*/
 			(*this).y = y_;
 			(*this).z = z_;
 			(*this).idx = idx_;
-            (*this).tag = tag_;
+			(*this).tag = tag_;
 			(*this).positiveLonRange = true;
 			(*this).buildLat();
 			(*this).buildLon();
@@ -26,7 +26,7 @@ class pnt {/*{{{*/
 			(*this).y = y_;
 			(*this).z = z_;
 			(*this).idx = 0;
-            (*this).tag = 0;
+			(*this).tag = 0;
 			(*this).positiveLonRange = true;
 			(*this).buildLat();
 			(*this).buildLon();
@@ -37,7 +37,7 @@ class pnt {/*{{{*/
 			(*this).y = 0.0;
 			(*this).z = 0.0;
 			(*this).idx = 0;
-            (*this).tag = 0;
+			(*this).tag = 0;
 			(*this).positiveLonRange = true;
 			(*this).lat = 0.0;
 			(*this).lon = 0.0;
@@ -52,7 +52,7 @@ class pnt {/*{{{*/
 			y = p.y;
 			z = p.z;
 			idx = p.idx;
-            tag = p.tag;
+			tag = p.tag;
 			(*this).buildLat();
 			(*this).buildLon();
 			return *this;

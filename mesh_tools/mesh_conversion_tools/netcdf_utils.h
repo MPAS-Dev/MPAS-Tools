@@ -14,7 +14,7 @@ double netcdf_mpas_read_yperiod(string filename);
 string netcdf_mpas_read_history(string filename);
 string netcdf_mpas_read_fileid(string filename);
 string netcdf_mpas_read_parentid(string filename);
-double netcdf_mpas_read_meshspec(string filename);
+string netcdf_mpas_read_meshspec(string filename);
 /*}}}*/
 
 /* Dimension reading functions {{{*/
@@ -23,8 +23,8 @@ int netcdf_mpas_read_dim ( string filename, string dim_name );
 
 /* Cell Reading Functions {{{*/
 void netcdf_mpas_read_xyzcell ( string filename, int ncells, double xcell[], double ycell[], double zcell[] );
-void netcdf_mpas_read_featuretagcell ( string filename, int ncells, int idtag[] );
 void netcdf_mpas_read_latloncell ( string filename, int ncells, double latcell[], double loncell[] );
+void netcdf_mpas_read_featuretagcell ( string filename, int ncells, int idtag[] );
 void netcdf_mpas_read_areacell ( string filename, int ncells, double areacell[] );
 void netcdf_mpas_read_nedgesoncell ( string filename, int ncells, int edgesoncell[] );
 void netcdf_mpas_read_cellsoncell ( string filename, int ncells, int maxedges, int cellsoncell[] );
@@ -39,8 +39,8 @@ void netcdf_mpas_read_cellseedmask ( string filename, int ncells, int cellseedma
 
 /* Vertex Reading Functions {{{*/
 void netcdf_mpas_read_xyzvertex ( string filename, int nvertices, double xvertex[], double yvertex[], double zvertex[] );
-void netcdf_mpas_read_featuretagvertex ( string filename, int nvertices, int idtag[] );
 void netcdf_mpas_read_latlonvertex ( string filename, int nvertices, double latvertex[], double lonvertex[] );
+void netcdf_mpas_read_featuretagvertex ( string filename, int nvertices, int idtag[] );
 void netcdf_mpas_read_areatriangle ( string filename, int nvertices, double areatriangle[] );
 void netcdf_mpas_read_cellsonvertex ( string filename, int nvertices, int vertexdegree, int cellsonvertex[] );
 void netcdf_mpas_read_kiteareasonvertex ( string filename, int nvertices, int vertexdegree, double kiteareasonvertex[] );
