@@ -97,30 +97,11 @@ def compute_zmid(bottomDepth, maxLevelCell, layerThickness):
 
     return zMid
 
-
-def main():
-    parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-c", "--coordFileName", dest="coordFileName",
-                        type=str, required=False,
-                        help="A MPAS-Ocean file with bottomDepth, maxLevelCell"
-                             "and layerThickness but not zMid")
-    parser.add_argument("-i", "--inFileName", dest="inFileName", type=str,
-                        required=True,
-                        help="An input MPAS-Ocean file that zMid should be"
-                             "added to, used for coords if another file is"
-                             "not provided via -c.")
-    parser.add_argument("-o", "--outFileName", dest="outFileName", type=str,
-                        required=True,
-                        help="An output MPAS-Ocean file with zMid added")
-    args = parser.parse_args()
-
-    if args.coordFileName:
-        coordFileName = args.coordFileName
-    else:
-        coordFileName = args.inputFileName
-
-    ds = xarray.open_dataset(args.inFileName, mask_and_scale=False)
+def add_zMid(inFileName, coordFileName):
+    """
+    extracts the bottomDepth, maxLevelCell, and layerThickness coordinates
+    """
+    ds = xarray.open_dataset(inFileName, mask_and_scale=False)
     if 'nVertLevels' in ds.dims:
         ds = ds.rename({'nVertLevels': 'depth'})
 
@@ -152,6 +133,32 @@ def main():
                                               ds.attrs['history'])
     else:
         ds.attrs['history'] = history
+    
+    return ds
+
+def main():
+    parser = argparse.ArgumentParser(
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-c", "--coordFileName", dest="coordFileName",
+                        type=str, required=False,
+                        help="A MPAS-Ocean file with bottomDepth, maxLevelCell"
+                             "and layerThickness but not zMid")
+    parser.add_argument("-i", "--inFileName", dest="inFileName", type=str,
+                        required=True,
+                        help="An input MPAS-Ocean file that zMid should be"
+                             "added to, used for coords if another file is"
+                             "not provided via -c.")
+    parser.add_argument("-o", "--outFileName", dest="outFileName", type=str,
+                        required=True,
+                        help="An output MPAS-Ocean file with zMid added")
+    args = parser.parse_args()
+
+    if args.coordFileName:
+        coordFileName = args.coordFileName
+    else:
+        coordFileName = args.inFileName
+
+    ds = add_zMid(args.inFileName, coordFileName)
 
     write_netcdf(ds, args.outFileName)
 
