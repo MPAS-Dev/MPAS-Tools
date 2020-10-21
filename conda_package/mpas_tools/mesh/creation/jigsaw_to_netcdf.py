@@ -58,7 +58,7 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
     else:
         xCell_full = msh.vert2['coord'][:, 0]
         yCell_full = msh.vert2['coord'][:, 1]
-        zCell_full = np.zeros(nVertices, dtype=float)
+        zCell_full = np.zeros(nCells, dtype=float)
 
     for cells in [xCell_full, yCell_full, zCell_full]:
         assert cells.shape[0] == nCells, 'Number of anticipated nodes is ' \
