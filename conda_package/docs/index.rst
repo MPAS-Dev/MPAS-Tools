@@ -15,9 +15,6 @@ ocean and land-ice test cases,
 the `MPAS-Analysis <https://github.com/MPAS-Dev/MPAS-Analysis>`_ package for
 analyzing simulations, and in other MPAS-related workflows.
 
-User's Guide
-============
-
 .. toctree::
    :caption: User's Guide
    :maxdepth: 2
@@ -30,9 +27,6 @@ User's Guide
 
    visualization
 
-Ocean Tools
------------
-
 .. toctree::
    :caption: Ocean Tools
    :maxdepth: 2
@@ -43,8 +37,6 @@ Ocean Tools
    ocean/moc
    ocean/depth
 
-Developer's Guide
-=================
 .. toctree::
    :caption: Developer's Guide
    :maxdepth: 2
@@ -60,16 +52,14 @@ Indices and tables
 
 * :ref:`genindex`
 
-Authors
-=======
 .. toctree::
+   :caption: Authors
    :maxdepth: 1
 
    authors
 
-Versions
-========
 .. toctree::
+   :caption: Versions
    :maxdepth: 1
 
    versions
