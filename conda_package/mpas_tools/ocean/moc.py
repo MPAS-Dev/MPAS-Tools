@@ -67,11 +67,12 @@ def make_moc_basins_and_transects(gf, mesh_filename,
                                               logger=logger, dir=dir)
 
     if mask_filename is not None:
-        write_netcdf(dsMasks, mask_filename)
+        write_netcdf(dsMasks, mask_filename, char_dim_name='StrLen')
 
     dsMasksAndTransects = add_moc_southern_boundary_transects(dsMasks, dsMesh,
                                                               logger=logger)
-    write_netcdf(dsMasksAndTransects, mask_and_transect_filename)
+    write_netcdf(dsMasksAndTransects, mask_and_transect_filename,
+                 char_dim_name='StrLen')
 
 
 def build_moc_basins(gf, logger=None):
