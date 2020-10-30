@@ -53,11 +53,11 @@ def interp_bilin(x, y, field, xCell, yCell):
     # If points are exactly at the upper index, this is going to give us a bit
     # of trouble so we'll move them down one index and adjust the fraction
     # accordingly
-    mask = xIndices == len(x)
+    mask = xIndices == len(x) - 1
     xIndices[mask] -= 1
     xFrac[mask] += 1.
 
-    mask = yIndices == len(y)
+    mask = yIndices == len(y) - 1
     yIndices[mask] -= 1
     yFrac[mask] += 1.
 
