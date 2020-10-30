@@ -25,12 +25,15 @@ def test_cime_constants(cime_tag='master'):
         found[constant] = False
 
     for line in text:
-        for constant in constants:
-            if constant in line:
-                print('verifying {}'.format(constant))
-                value = _parse_value(line, constant)
-                assert value == constants[constant]
-                found[constant] = True
+        constant, value = _parse_value(line)
+        if constant is None:
+            continue
+        print(line)
+        print('parsed: {} = {}'.format(constant, value))
+        if constant in constants:
+            print('verifying {}'.format(constant))
+            assert value == constants[constant]
+            found[constant] = True
 
     allFound = True
     for constant in found:
@@ -41,20 +44,32 @@ def test_cime_constants(cime_tag='master'):
     assert allFound
 
 
-def _parse_value(line, key):
-    line, _ = line.split('!', 1)
-    _, line = line.split('=')
-    if '&' in line:
-        raise ValueError('This parser is too dumb to handle multi-line Fortran')
+def _parse_value(line):
+    if '::' not in line or '=' not in line:
+        return None, None
 
-    line, _ = line.split('_R8')
+    start = line.find('::') + 2
+    end = line.find('=')
+
+    key = line[start:end]
+    line = line[end+1:]
+
+    if '!' in line:
+        line, _ = line.split('!', 1)
+
+    if '_R8' in line:
+        line, _ = line.split('_R8')
+
+    if '_r8' in line:
+        line, _ = line.split('_r8')
 
     try:
         value = float(line)
     except ValueError:
-        value = line
+        value = line.strip()
 
-    return value
+    return key.strip(), value
+
 
 if __name__ == '__main__':
     test_cime_constants()
