@@ -1731,7 +1731,7 @@ def read_field(var_name, mesh_file, time_series_file, extra_dim_vals,
         if topo_dim is not None and topo_dim in field_var.dimensions:
             if len(temp_field.shape) != 2:
                 raise ValueError('Field with dimensions {} not supported in '
-                                 'topogrpahy extraction mode.'.format(
+                                 'topography extraction mode.'.format(
                                          field_var.dimensions))
             # sample the depth-dependent field at the index of the topography
             temp_field = temp_field[numpy.arange(temp_field.shape[0]),
@@ -1757,10 +1757,12 @@ def read_field(var_name, mesh_file, time_series_file, extra_dim_vals,
         return field  # }}}
 
     field_var = get_var(var_name, mesh_file, time_series_file)
-    try:
+    if 'missing_value' in field_var.ncattrs():
         missing_val = field_var.missing_value
-    except AttributeError:
-        missing_val = -9999999790214767953607394487959552.000000
+    elif '_FillValue' in field_var.ncattrs():
+        missing_val = field_var._FillValue
+    else:
+        missing_val = None
 
     dim_vals = []
     extra_dim_index = 0
@@ -1803,7 +1805,8 @@ def read_field(var_name, mesh_file, time_series_file, extra_dim_vals,
     field = read_field_with_dims(field_var, dim_vals, temp_shape, outType,
                                  index_arrays)
 
-    field[field == missing_val] = numpy.nan
+    if missing_val is not None:
+        field[field == missing_val] = numpy.nan
 
     return sign*field  # }}}
 
