@@ -20,7 +20,6 @@ import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import mpas_tools.mesh.creation.mesh_definition_tools as mdt
 from mpas_tools.mesh.creation.util import lonlat2xyz
-plt.switch_backend('agg')
 
 # Constants
 km = 1000.0
