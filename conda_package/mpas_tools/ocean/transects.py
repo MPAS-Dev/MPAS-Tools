@@ -221,7 +221,6 @@ def interp_transect_grid_to_transect_triangle_nodes(dsTransectTriangles, da):
                (1.0 - horizWeights) * vertWeights * da.isel(**kwargs10) +
                (1.0 - horizWeights) * (1.0 - vertWeights) * da.isel(**kwargs11))
 
-
     mask = numpy.logical_and(horizIndices != -1, vertIndices != -1)
 
     daNodes = daNodes.where(mask)
@@ -304,7 +303,7 @@ def _get_transect_cells_and_nodes(dsTransect, layerThickness, bottomDepth,
     cellMask = (levelIndices <= maxLevelCell).transpose('nCells', 'nHalfLevels')
 
     dsTransectCells = _add_valid_cells_and_levels(
-        dsTransect, dsTransect.cellIndices.values, levelIndices.values,
+        dsTransect, dsTransect.horizCellIndices.values, levelIndices.values,
         cellMask.values)
 
     # transect cells are made up of half-levels, and each half-level has a top
@@ -368,7 +367,7 @@ def _get_vertical_coordinate(dsTransect, layerThickness, bottomDepth,
     interpCellWeights = interpMask*interpCellWeights
     weightSum = interpCellWeights.sum(dim='nHorizWeights')
 
-    cellIndices = dsTransect.cellIndices
+    cellIndices = dsTransect.horizCellIndices
 
     validCells = cellMask.isel(nCells=cellIndices)
 

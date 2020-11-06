@@ -82,8 +82,8 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
         repeated twice, once for each triangle that node touches.  This allows
         for discontinuous fields between triangles (e.g. if one wishes to plot
         constant values on each MPAS cell).  The Cartesian and lon/lat
-        coordinates of these nodes are ``xCartNode``, ``yCartNode``, `
-        `zCartNode``, ``lonNode`` and ``latNode``.  The distance along the
+        coordinates of these nodes are ``xCartNode``, ``yCartNode``,
+        ``zCartNode``, ``lonNode`` and ``latNode``.  The distance along the
         transect of each intersection is ``dNode``. The index of the triangle
         and the first triangle node in ``dsTris`` associated with each
         intersection node are given by ``horizTriangleIndices`` and
@@ -91,13 +91,13 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
         triangle for the edge associated with the intersection is given by
         ``numpy.mod(horizTriangleNodeIndices + 1, 3)``.
 
-        The MPAS cell tha a given node belongs to is given by ``cellIndices``.
-        Each node also has an associated set of 6 ``interpHorizCellIndices`` and
-        ``interpHorizCellWeights`` that can be used to interpolate from MPAS
-        cell centers to nodes first with area-weighted averaging to MPAS
-        vertices and then linear interpolation along triangle edges.  Some of
-        the weights may be zero, in which case the associated
-        ``interpHorizCellIndices`` will be -1.
+        The MPAS cell that a given node belongs to is given by
+        ``horizCellIndices``. Each node also has an associated set of 6
+        ``interpHorizCellIndices`` and ``interpHorizCellWeights`` that can be
+        used to interpolate from MPAS cell centers to nodes first with
+        area-weighted averaging to MPAS vertices and then linear interpolation
+        along triangle edges.  Some of the weights may be zero, in which case
+        the associated ``interpHorizCellIndices`` will be -1.
 
         Finally, ``lonTransect`` and ``latTransect`` are included in the
         dataset, along with Cartesian coordinates ``xCartTransect``,
@@ -374,7 +374,7 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
                         latOut.reshape((nSegments, nBounds)))
 
     dsOut['horizTriangleIndices'] = ('nSegments', tris)
-    dsOut['cellIndices'] = ('nSegments', cellIndices)
+    dsOut['horizCellIndices'] = ('nSegments', cellIndices)
     dsOut['horizTriangleNodeIndices'] = (('nSegments', 'nBounds'), nodes)
     dsOut['interpHorizCellIndices'] = \
         (('nSegments', 'nBounds', 'nHorizWeights'),
@@ -410,7 +410,7 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
     return dsOut
 
 
-def subdivide_great_circle(x, y, z, maxRes, earthRadius):  # {{{
+def subdivide_great_circle(x, y, z, maxRes, earthRadius):
     """
     Subdivide each segment of the transect so the horizontal resolution
     approximately matches the requested resolution
