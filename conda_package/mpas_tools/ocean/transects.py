@@ -453,6 +453,8 @@ def _get_interp_indices_and_weights(layerThickness, maxLevelCell,
 
     topHalfLevelThickness = 0.5*layerThickness.isel(
         nCells=interpCellIndices, nVertLevels=topLevelIndices)
+    topHalfLevelThickness = topHalfLevelThickness.where(topLevelIndices >= 0,
+                                                        other=0.)
     botHalfLevelThickness = 0.5*layerThickness.isel(
         nCells=interpCellIndices, nVertLevels=botLevelIndices)
 
