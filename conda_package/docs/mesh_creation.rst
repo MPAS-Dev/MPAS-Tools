@@ -313,3 +313,132 @@ and
 :py:func:`mpas_tools.mesh.creation.signed_distance.distance_from_geojson()`,
 respectively.
 
+The grid does not necessarily have to be uniform in resolution.  Here is a
+relatively complicated example where the highest resolution (1/100 degree) of
+the lon/lat grid is concentrated within +/- 10 degrees of 0 degrees longitude
+and 0 degrees latitude and the resolution is ~2 degrees elsewhere.  The shape
+``test.geojson`` is given below, and is in the high-res region:
+
+.. code-block:: python
+
+    import numpy
+    import matplotlib.pyplot as plt
+
+    from geometric_features import read_feature_collection
+
+    from mpas_tools.cime.constants import constants
+    from mpas_tools.mesh.creation.signed_distance import \
+        distance_from_geojson, mask_from_geojson, signed_distance_from_geojson
+
+
+    def gaussian(dcoarse, dfine, cmin, cmax, center, width, iter_count=10):
+        def get_res(xval):
+            res = dcoarse + \
+                (dfine - dcoarse) * numpy.exp(-(xval - center) ** 2 /
+                                              (2. * width**2))
+            return res
+
+        x = [cmin]
+        while x[-1] < cmax:
+            d = get_res(x[-1])
+            for index in range(iter_count):
+                x_mid = x[-1] + 0.5*d
+                d = get_res(x_mid)
+            x.append(x[-1] + d)
+
+        x = numpy.array(x)
+        factor = (cmax - cmin)/(x[-1] - x[0])
+        x = cmin + factor*(x - x[0])
+        return x
+
+
+    def main():
+        dcoarse = 2.
+        dfine = 0.01
+        width = 10.
+
+        lon = gaussian(dcoarse=dcoarse, dfine=dfine, cmin=-180., cmax=180.,
+                       center=0., width=width)
+
+        lat = gaussian(dcoarse=dcoarse, dfine=dfine, cmin=-90., cmax=90.,
+                       center=0., width=width)
+
+        earth_radius = constants['SHR_CONST_REARTH']
+
+        fc = read_feature_collection('test.geojson')
+
+        distance = distance_from_geojson(fc, lon, lat, earth_radius,
+                                         max_length=dfine)
+
+        mask = mask_from_geojson(fc, lon, lat, max_length=dfine)
+
+        signed_distance = signed_distance_from_geojson(fc, lon, lat, earth_radius,
+                                                       max_length=dfine)
+
+
+Here is ``test.geojson``:
+
+.. code-block:: python
+
+    {
+      "type": "FeatureCollection",
+      "features": [
+        {
+          "type": "Feature",
+          "properties": {
+            "name": "weird shape",
+            "component": "ocean",
+            "object": "region",
+            "author": "Xylar Asay-Davis"
+          },
+          "geometry": {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  3.8232421875000173,
+                  3.283113991917228
+                ],
+                [
+                  1.5600585937500142,
+                  3.8752158957336085
+                ],
+                [
+                  0.9448242187500171,
+                  1.8453839885731744
+                ],
+                [
+                  -0.3186035156249841,
+                  0.8239462091017558
+                ],
+                [
+                  0.6372070312500188,
+                  -0.37353251022881745
+                ],
+                [
+                  2.3181152343750147,
+                  0.03295898255728466
+                ],
+                [
+                  3.636474609375017,
+                  -0.3405741662837591
+                ],
+                [
+                  4.163818359375015,
+                  1.5159363834516735
+                ],
+                [
+                  2.9443359375000164,
+                  1.9771465537125645
+                ],
+                [
+                  3.8232421875000173,
+                  3.283113991917228
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    }
+

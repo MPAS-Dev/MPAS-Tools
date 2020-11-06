@@ -8,12 +8,14 @@ import timeit
 from rasterio.features import rasterize
 from affine import Affine
 import shapely.geometry
+import shapely.ops
+from functools import partial
 from geometric_features.plot import subdivide_geom
 from mpas_tools.mesh.creation.util import lonlat2xyz
 
 
 def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
-                                 max_length=None):
+                                 max_length=None, epsilon=1e-10):
     """
     Get the distance for each point on a lon/lat grid from the closest point
     on the boundary of the geojson regions.
@@ -22,15 +24,23 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
     ----------
     fc : geometrics_features.FeatureCollection
         The regions to be rasterized
+
     lon_grd : numpy.ndarray
-        A 1D array of evenly spaced longitude values
+        A 1D array of longitude values
+
     lat_grd : numpy.ndarray
-        A 1D array of evenly spaced latitude values
+        A 1D array of latitude values
+
     earth_radius : float
         Earth radius in meters
+
     max_length : float, optional
         The maximum distance (in degrees) between points on the boundary of the
         geojson region.  If the boundary is too coarse, it will be subdivided.
+
+    epsilon : float, optional
+        A small amount to expand each shape by to make sure lon/lat points on
+        the domain boundary are within shapes that touch the domain boundary.
 
     Returns
     -------
@@ -38,16 +48,21 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
        A 2D field of distances (negative inside the region, positive outside)
        to the shape boundary
     """
-    distance = distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
-                                     nn_search='flann', max_length=max_length)
+    shapes = _subdivide_shapes(fc, max_length)
 
-    mask = mask_from_geojson(fc, lon_grd, lat_grd)
+    distance = distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
+                                     nn_search='flann', max_length=max_length,
+                                     shapes=shapes)
+
+    mask = mask_from_geojson(fc, lon_grd, lat_grd, shapes=shapes,
+                             epsilon=epsilon)
 
     signed_distance = (-2.0 * mask + 1.0) * distance
     return signed_distance
 
 
-def mask_from_geojson(fc, lon_grd, lat_grd, epsilon=1e-10):
+def mask_from_geojson(fc, lon_grd, lat_grd, max_length=None, shapes=None,
+                      epsilon=1e-10):
     """
     Make a rasterized mask on a lon/lat grid from shapes (geojson multipolygon
     data).
@@ -58,10 +73,18 @@ def mask_from_geojson(fc, lon_grd, lat_grd, epsilon=1e-10):
         The regions to be rasterized
 
     lon_grd : numpy.ndarray
-        A 1D array of evenly spaced longitude values
+        A 1D array of longitude values
 
     lat_grd : numpy.ndarray
-        A 1D array of evenly spaced latitude values
+        A 1D array of latitude values
+
+    max_length : float, optional
+        The maximum distance (in degrees) between points on the boundary of the
+        geojson region.  If the boundary is too coarse, it will be subdivided.
+
+    shapes : list of shapely.geometry, optional
+        A list of shapes that have already been extracted from fc and possibly
+        subdivided
 
     epsilon : float, optional
         A small amount to expand each shape by to make sure lon/lat points on
@@ -76,32 +99,41 @@ def mask_from_geojson(fc, lon_grd, lat_grd, epsilon=1e-10):
     print("Mask from geojson")
     print("-----------------")
 
+    if shapes is None:
+        shapes = _subdivide_shapes(fc, max_length)
+
     nlon = len(lon_grd)
     nlat = len(lat_grd)
 
-    dlon = (lon_grd[-1] - lon_grd[0])/(nlon-1)
-    dlat = (lat_grd[-1] - lat_grd[0])/(nlat-1)
+    uniform = (_is_uniform(lon_grd, epsilon=epsilon) and
+               _is_uniform(lat_grd, epsilon=epsilon))
 
-    # raserio works with pixels, and we want the lon/lat points to be at the
-    # centers of the pixels so the origin (the lower left of the first pixel) is
-    # half a pixel offset from the first lon/lat point
-    transform = Affine(dlon, 0.0, lon_grd[0] - 0.5*dlon,
-                       0.0, dlat, lat_grd[0] - 0.5*dlat)
+    if uniform:
+        dlon = (lon_grd[-1] - lon_grd[0])/(nlon-1)
+        dlat = (lat_grd[-1] - lat_grd[0])/(nlat-1)
 
-    shapes = []
-    for feature in fc.features:
-        # a list of feature geometries and mask values (always 1.0)
-        shape = shapely.geometry.shape(feature['geometry'])
+        # raserio works with pixels, and we want the lon/lat points to be at the
+        # centers of the pixels so the origin (the lower left of the first pixel) is
+        # half a pixel offset from the first lon/lat point
+        transform = Affine(dlon, 0., lon_grd[0] - 0.5*dlon,
+                           0., dlat, lat_grd[0] - 0.5*dlat)
+    else:
+        shapes = _shapes_to_pixel_cooords(lon_grd, lat_grd, shapes)
+        transform = Affine(1., 0., 0.,
+                           0., 1., 0.)
+
+    raster_shapes = []
+    for shape in shapes:
         # expand a bit to make sure we hit the edges of the domain
         shape = shape.buffer(epsilon)
-        shapes.append((shapely.geometry.mapping(shape), 1.0))
+        raster_shapes.append((shapely.geometry.mapping(shape), 1.0))
 
-    mask = rasterize(shapes, out_shape=(nlat, nlon), transform=transform)
+    mask = rasterize(raster_shapes, out_shape=(nlat, nlon), transform=transform)
     return mask
 
 
-def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
-                          max_length=None):
+def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search='flann',
+                          max_length=None, shapes=None):
     # {{{
     """
     Get the distance for each point on a lon/lat grid from the closest point
@@ -111,17 +143,26 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
     ----------
     fc : geometrics_features.FeatureCollection
         The regions to be rasterized
+
     lon_grd : numpy.ndarray
-        A 1D array of evenly spaced longitude values
+        A 1D array of longitude values
+
     lat_grd : numpy.ndarray
-        A 1D array of evenly spaced latitude values
+        A 1D array of latitude values
+
     earth_radius : float
         Earth radius in meters
-    nn_search: {'kdtree', 'flann'}
+
+    nn_search: {'kdtree', 'flann'}, optional
         The method used to find the nearest point on the shape boundary
+
     max_length : float, optional
         The maximum distance (in degrees) between points on the boundary of the
         geojson region.  If the boundary is too coarse, it will be subdivided.
+
+    shapes : list of shapely.geometry, optional
+        A list of shapes that have already been extracted from fc and possibly
+        subdivided
 
     Returns
     -------
@@ -131,17 +172,15 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
     print("Distance from geojson")
     print("---------------------")
 
+    if shapes is None:
+        shapes = _subdivide_shapes(fc, max_length)
+
     print("   Finding region boundaries")
     boundary_lon = []
     boundary_lat = []
-    for feature in fc.features:
+    for shape in shapes:
         # get the boundary of each shape
-        shape = shapely.geometry.shape(feature['geometry']).boundary
-        if max_length is not None:
-            # subdivide the shape if it's too coarse
-            geom_type = shape.geom_type
-            shape = subdivide_geom(shape, geom_type, max_length)
-        x, y = shape.coords.xy
+        x, y = shape.boundary.coords.xy
         boundary_lon.extend(x)
         boundary_lat.extend(y)
 
@@ -202,3 +241,50 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search,
     distance = np.reshape(distance, Lon_grd.shape)
 
     return distance
+
+
+def _subdivide_shapes(fc, max_length):
+
+    shapes = []
+    for feature in fc.features:
+        # get the boundary of each shape
+        shape = shapely.geometry.shape(feature['geometry'])
+        if max_length is not None:
+            # subdivide the shape if it's too coarse
+            geom_type = shape.geom_type
+            shape = subdivide_geom(shape, geom_type, max_length)
+        shapes.append(shape)
+
+    return shapes
+
+
+def _is_uniform(vector, epsilon=1e-10):
+    d = vector[1:] - vector[0:-1]
+    diff = d - np.mean(d)
+    return np.all(np.abs(diff) < epsilon)
+
+
+def _shapes_to_pixel_cooords(lon, lat, shapes):
+    intx = partial(_interpx, lon)
+    inty = partial(_interpy, lat)
+    new_shapes = []
+    for shape in shapes:
+        shape = shapely.ops.transform(intx, shape)
+        shape = shapely.ops.transform(inty, shape)
+        new_shapes.append(shape)
+    return new_shapes
+
+
+def _interpx(lon, x, y):
+    nlon = len(lon)
+    lon_pixels = np.arange(nlon, dtype=float)
+    x = np.interp(x, lon, lon_pixels)
+    return x, y
+
+
+def _interpy(lat, x, y):
+    nlat = len(lat)
+    lat_pixels = np.arange(nlat, dtype=float)
+    y = np.interp(y, lat, lat_pixels)
+    return x, y
+
