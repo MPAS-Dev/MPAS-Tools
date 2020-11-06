@@ -469,6 +469,130 @@ distance.  For these purposes, use the functions
 and
 <a class="reference internal" href="generated/mpas_tools.mesh.creation.signed_distance.distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.distance_from_geojson" title="mpas_tools.mesh.creation.signed_distance.distance_from_geojson"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.signed_distance.distance_from_geojson()</span></code></a>,
 respectively.</p>
+<p>The grid does not necessarily have to be uniform in resolution.  Here is a
+relatively complicated example where the highest resolution (1/100 degree) of
+the lon/lat grid is concentrated within +/- 10 degrees of 0 degrees longitude
+and 0 degrees latitude and the resolution is ~2 degrees elsewhere.  The shape
+<code class="docutils literal notranslate"><span class="pre">test.geojson</span></code> is given below, and is in the high-res region:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">read_feature_collection</span>
+
+<span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.signed_distance</span> <span class="kn">import</span> \
+    <span class="n">distance_from_geojson</span><span class="p">,</span> <span class="n">mask_from_geojson</span><span class="p">,</span> <span class="n">signed_distance_from_geojson</span>
+
+
+<span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="n">dcoarse</span><span class="p">,</span> <span class="n">dfine</span><span class="p">,</span> <span class="n">cmin</span><span class="p">,</span> <span class="n">cmax</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">iter_count</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">get_res</span><span class="p">(</span><span class="n">xval</span><span class="p">):</span>
+        <span class="n">res</span> <span class="o">=</span> <span class="n">dcoarse</span> <span class="o">+</span> \
+            <span class="p">(</span><span class="n">dfine</span> <span class="o">-</span> <span class="n">dcoarse</span><span class="p">)</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">xval</span> <span class="o">-</span> <span class="n">center</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span>
+                                          <span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">width</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">res</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="p">[</span><span class="n">cmin</span><span class="p">]</span>
+    <span class="k">while</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">cmax</span><span class="p">:</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">get_res</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">iter_count</span><span class="p">):</span>
+            <span class="n">x_mid</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">d</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">get_res</span><span class="p">(</span><span class="n">x_mid</span><span class="p">)</span>
+        <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">d</span><span class="p">)</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">factor</span> <span class="o">=</span> <span class="p">(</span><span class="n">cmax</span> <span class="o">-</span> <span class="n">cmin</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">cmin</span> <span class="o">+</span> <span class="n">factor</span><span class="o">*</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">dcoarse</span> <span class="o">=</span> <span class="mf">2.</span>
+    <span class="n">dfine</span> <span class="o">=</span> <span class="mf">0.01</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="mf">10.</span>
+
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">dcoarse</span><span class="o">=</span><span class="n">dcoarse</span><span class="p">,</span> <span class="n">dfine</span><span class="o">=</span><span class="n">dfine</span><span class="p">,</span> <span class="n">cmin</span><span class="o">=-</span><span class="mf">180.</span><span class="p">,</span> <span class="n">cmax</span><span class="o">=</span><span class="mf">180.</span><span class="p">,</span>
+                   <span class="n">center</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">)</span>
+
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">dcoarse</span><span class="o">=</span><span class="n">dcoarse</span><span class="p">,</span> <span class="n">dfine</span><span class="o">=</span><span class="n">dfine</span><span class="p">,</span> <span class="n">cmin</span><span class="o">=-</span><span class="mf">90.</span><span class="p">,</span> <span class="n">cmax</span><span class="o">=</span><span class="mf">90.</span><span class="p">,</span>
+                   <span class="n">center</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">)</span>
+
+    <span class="n">earth_radius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
+
+    <span class="n">fc</span> <span class="o">=</span> <span class="n">read_feature_collection</span><span class="p">(</span><span class="s1">&#39;test.geojson&#39;</span><span class="p">)</span>
+
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
+                                     <span class="n">max_length</span><span class="o">=</span><span class="n">dfine</span><span class="p">)</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="n">dfine</span><span class="p">)</span>
+
+    <span class="n">signed_distance</span> <span class="o">=</span> <span class="n">signed_distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
+                                                   <span class="n">max_length</span><span class="o">=</span><span class="n">dfine</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here is <code class="docutils literal notranslate"><span class="pre">test.geojson</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;FeatureCollection&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Feature&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;weird shape&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;component&quot;</span><span class="p">:</span> <span class="s2">&quot;ocean&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;object&quot;</span><span class="p">:</span> <span class="s2">&quot;region&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;Xylar Asay-Davis&quot;</span>
+      <span class="p">},</span>
+      <span class="s2">&quot;geometry&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Polygon&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="p">[</span>
+          <span class="p">[</span>
+            <span class="p">[</span>
+              <span class="mf">3.8232421875000173</span><span class="p">,</span>
+              <span class="mf">3.283113991917228</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+              <span class="mf">1.5600585937500142</span><span class="p">,</span>
+              <span class="mf">3.8752158957336085</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+              <span class="mf">0.9448242187500171</span><span class="p">,</span>
+              <span class="mf">1.8453839885731744</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+              <span class="o">-</span><span class="mf">0.3186035156249841</span><span class="p">,</span>
+              <span class="mf">0.8239462091017558</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+              <span class="mf">0.6372070312500188</span><span class="p">,</span>
+              <span class="o">-</span><span class="mf">0.37353251022881745</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+              <span class="mf">2.3181152343750147</span><span class="p">,</span>
+              <span class="mf">0.03295898255728466</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+              <span class="mf">3.636474609375017</span><span class="p">,</span>
+              <span class="o">-</span><span class="mf">0.3405741662837591</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+              <span class="mf">4.163818359375015</span><span class="p">,</span>
+              <span class="mf">1.5159363834516735</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+              <span class="mf">2.9443359375000164</span><span class="p">,</span>
+              <span class="mf">1.9771465537125645</span>
+            <span class="p">],</span>
+            <span class="p">[</span>
+              <span class="mf">3.8232421875000173</span><span class="p">,</span>
+              <span class="mf">3.283113991917228</span>
+            <span class="p">]</span>
+          <span class="p">]</span>
+        <span class="p">]</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </div>
 </div>
 
