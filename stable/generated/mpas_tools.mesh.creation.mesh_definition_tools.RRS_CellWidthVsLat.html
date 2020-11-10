@@ -220,19 +220,25 @@
 <dl class="py function">
 <dt id="mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat">
 <code class="sig-prename descclassname">mpas_tools.mesh.creation.mesh_definition_tools.</code><code class="sig-name descname">RRS_CellWidthVsLat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">cellWidthEq</span></em>, <em class="sig-param"><span class="n">cellWidthPole</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/mesh_definition_tools.html#RRS_CellWidthVsLat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat" title="Permalink to this definition">¶</a></dt>
-<dd><p>RRS_CellWidthVsLat - Create Rossby Radius Scaling as a function of lat.
-This is inted as part of the workflow to make an MPAS global mesh.</p>
-<p>Syntax: cellWidthOut = RRS_CellWidthVsLat(lat, cellWidthEq, cellWidthPole)</p>
-<dl class="simple">
-<dt>Inputs:</dt><dd><p>lat - vector of length n, with entries between -90 and 90, degrees
-cellWidthEq - Cell width at the equator, km
-cellWidthPole - Cell width at the poles, km</p>
+<dd><p>Create Rossby Radius Scaling as a function of lat.  This is intended  as
+part of the workflow to make an MPAS global mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lat</strong> (<em>ndarray</em>) – vector of length n, with entries between -90 and 90, degrees</p></li>
+<li><p><strong>cellWidthEq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at the equator</p></li>
+<li><p><strong>cellWidthPole</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at the poles</p></li>
+</ul>
 </dd>
-<dt>Outputs:</dt><dd><p>RRS_CellWidth - vector of length n, entries are cell width as a function of lat</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>cellWidthOut</strong> (<em>ndarray</em>) – 1D array of same length as <code class="docutils literal notranslate"><span class="pre">lat</span></code> with entries that are cell width as
+a function of lat</p>
 </dd>
 </dl>
-<p class="rubric">Example</p>
-<p>RRS18to6 = RRS_CellWidthVsLat(lat,18,6)</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">RRS18to6</span> <span class="o">=</span> <span class="n">EC_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="mf">18.</span><span class="p">,</span> <span class="mf">6.</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>

@@ -220,7 +220,20 @@
 <dl class="py function">
 <dt id="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle">
 <code class="sig-prename descclassname">mpas_tools.mesh.creation.mpas_to_triangle.</code><code class="sig-name descname">mpas_to_triangle</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mpasfile</span></em>, <em class="sig-param"><span class="n">trifile</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/mpas_to_triangle.html#mpas_to_triangle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Script to convert from MPAS netCDF format to the Triangle format:
+<a class="reference external" href="https://www.cs.cmu.edu/~quake/triangle.node.html">https://www.cs.cmu.edu/~quake/triangle.node.html</a>
+<a class="reference external" href="https://www.cs.cmu.edu/~quake/triangle.ele.html">https://www.cs.cmu.edu/~quake/triangle.ele.html</a></p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mpasfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The path to an MPAS mesh in NetCDF format</p></li>
+<li><p><strong>trifile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The prefix for the Triangle output files.  Files with extensions
+<code class="docutils literal notranslate"><span class="pre">.node</span></code> and <code class="docutils literal notranslate"><span class="pre">.ele</span></code> will be produced.</p></li>
+<li><p><strong>works for planar meshes.</strong> (<em>Only</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 

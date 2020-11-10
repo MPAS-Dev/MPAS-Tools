@@ -220,17 +220,18 @@
 <dl class="py function">
 <dt id="mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid">
 <code class="sig-prename descclassname">mpas_tools.mesh.creation.mesh_definition_tools.</code><code class="sig-name descname">AtlanticPacificGrid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">cellWidthInAtlantic</span></em>, <em class="sig-param"><span class="n">cellWidthInPacific</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/mesh_definition_tools.html#AtlanticPacificGrid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid" title="Permalink to this definition">¶</a></dt>
-<dd><p>AtlanticPacificGrid: combine two cell width distributions using a tanh function.</p>
-<dl class="simple">
-<dt>Inputs:</dt><dd><p>lon - vector of length m, with entries between -180, 180, degrees
-lat - vector of length n, with entries between -90, 90, degrees
-cellWidthInAtlantic - vector of length n, cell width in Atlantic as a function of lon, km
-cellWidthInPacific - vector of length n, cell width in Pacific as a function of lon, km</p>
+<dd><p>Combine two cell width distributions using a <code class="docutils literal notranslate"><span class="pre">tanh</span></code> function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lat</strong> (<em>ndarray</em>) – vector of length n, with entries between -90 and 90, degrees</p></li>
+<li><p><strong>lon</strong> (<em>ndarray</em>) – vector of length m, with entries between -180, 180, degrees</p></li>
+<li><p><strong>cellWidthInAtlantic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – vector of length n, cell width in Atlantic as a function of lon, km</p></li>
+<li><p><strong>cellWidthInPacific</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – vector of length n, cell width in Pacific as a function of lon, km</p></li>
+</ul>
 </dd>
-</dl>
-<p>Optional inputs:</p>
-<dl class="simple">
-<dt>Outputs:</dt><dd><p>cellWidthOut - m by n array, grid cell width on globe, km</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>cellWidthOut</strong> (<em>ndarray</em>) – m by n array, grid cell width on globe, km</p>
 </dd>
 </dl>
 </dd></dl>

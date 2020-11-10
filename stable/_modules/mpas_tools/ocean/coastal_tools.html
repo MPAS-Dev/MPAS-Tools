@@ -180,13 +180,13 @@
             
   <h1>Source code for mpas_tools.ocean.coastal_tools</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">name: coastal_tools</span>
 <span class="sd">authors: Steven Brus</span>
 
 <span class="sd">last modified: 07/09/2018</span>
 
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
@@ -201,7 +201,6 @@
 <span class="kn">import</span> <span class="nn">cartopy.feature</span> <span class="k">as</span> <span class="nn">cfeature</span>
 <span class="kn">import</span> <span class="nn">mpas_tools.mesh.creation.mesh_definition_tools</span> <span class="k">as</span> <span class="nn">mdt</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.util</span> <span class="kn">import</span> <span class="n">lonlat2xyz</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">switch_backend</span><span class="p">(</span><span class="s1">&#39;agg&#39;</span><span class="p">)</span>
 
 <span class="c1"># Constants</span>
 <span class="n">km</span> <span class="o">=</span> <span class="mf">1000.0</span>
@@ -432,7 +431,40 @@
 <span class="c1">##########################################################################</span>
 
 
-<div class="viewcode-block" id="coastal_refined_mesh"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html#mpas_tools.ocean.coastal_tools.coastal_refined_mesh">[docs]</a><span class="k">def</span> <span class="nf">coastal_refined_mesh</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">cell_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lon_grd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lat_grd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<div class="viewcode-block" id="coastal_refined_mesh"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html#mpas_tools.ocean.coastal_tools.coastal_refined_mesh">[docs]</a><span class="k">def</span> <span class="nf">coastal_refined_mesh</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">cell_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lon_grd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lat_grd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># {{{</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optionally create a background field of cell widths, then add a region of</span>
+<span class="sd">    refined resolution to the cell widths.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    params : dict</span>
+<span class="sd">        A dictionary of parameters determining how the mesh is constructed.</span>
+<span class="sd">        See ``mpas_tools.ocean.coastal_tools.default_params``.</span>
+
+<span class="sd">    cell_width : ndarray, optional</span>
+<span class="sd">        A 2D array of cell widths in meters.  If none is provided, one a base</span>
+<span class="sd">        ``cell_width`` field constructed using parameter values from ``params``</span>
+<span class="sd">        to call ``create_background_mesh``.</span>
+
+<span class="sd">    lon_grd : ndarray, optional</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180</span>
+
+<span class="sd">    lat_grd : ndarray, optional</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cell_width : ndarray</span>
+<span class="sd">        A 2D array of cell widths in meters.</span>
+
+<span class="sd">    lon_grd : ndarray</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180</span>
+
+<span class="sd">    lat_grd : ndarray</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">coastal_refined_mesh</span><span class="o">.</span><span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="n">call_count</span> <span class="o">=</span> <span class="n">coastal_refined_mesh</span><span class="o">.</span><span class="n">counter</span>
@@ -505,6 +537,58 @@
 
 <div class="viewcode-block" id="create_background_mesh"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.create_background_mesh.html#mpas_tools.ocean.coastal_tools.create_background_mesh">[docs]</a><span class="k">def</span> <span class="nf">create_background_mesh</span><span class="p">(</span><span class="n">grd_box</span><span class="p">,</span> <span class="n">ddeg</span><span class="p">,</span> <span class="n">mesh_type</span><span class="p">,</span> <span class="n">dx_min</span><span class="p">,</span> <span class="n">dx_max</span><span class="p">,</span>  <span class="c1"># {{{</span>
                            <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a background field of cell widths</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    grd_box : list of float</span>
+<span class="sd">        A list of 4 floats defining the bounds (min lon, max lon, min lat, max</span>
+<span class="sd">        lat) of the grid</span>
+
+<span class="sd">    ddeg : float</span>
+<span class="sd">        The resolution of the mesh in degrees</span>
+
+<span class="sd">    mesh_type : {&#39;QU&#39;, &#39;EC&#39;, &#39;RRS&#39;}</span>
+<span class="sd">        The type of mesh: quasi-uniform (QU), Eddy-closure (EC) or Rossby-radius</span>
+<span class="sd">        scaling (RRS)</span>
+
+<span class="sd">    dx_min : float</span>
+<span class="sd">        The resolution in meters of a QU mesh or the minimum resolution of of</span>
+<span class="sd">        an RRS mesh. This parameter is ignored for EC meshes and the default</span>
+<span class="sd">        function arguments to ``EC_CellWidthVsLat()`` are used instead.</span>
+
+<span class="sd">    dx_max : float</span>
+<span class="sd">        The maximum resolution in meters of of an RRS mesh. This parameter is</span>
+<span class="sd">        ignored for QU meshes and EC meshes.  For EC meshes, the default</span>
+<span class="sd">        function arguments are used instead.</span>
+
+<span class="sd">    plot_option : bool, optional</span>
+<span class="sd">        Whether to plot the resulting cell width and save it to files</span>
+<span class="sd">        named ``bckgrnd_grid_cell_width_vs_lat###.png`` and</span>
+<span class="sd">        ``bckgnd_grid_cell_width###.png``, where ``###`` is given by</span>
+<span class="sd">        ``call`` and is meant to indicate how many times this function has been</span>
+<span class="sd">        called during mesh creation.</span>
+
+<span class="sd">    plot_box : list of float, optional</span>
+<span class="sd">        The extent of the plot if ``plot_option=True``</span>
+
+<span class="sd">    call : int, optional</span>
+<span class="sd">        The number of times the function has been called, used to give the</span>
+<span class="sd">        plot a unique name.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cell_width : ndarray</span>
+<span class="sd">        A 2D array of cell widths in meters.</span>
+
+<span class="sd">    lon_grd : ndarray</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180</span>
+
+<span class="sd">    lat_grd : ndarray</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Create background mesh&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------------&quot;</span><span class="p">)</span>
@@ -553,8 +637,56 @@
 <span class="c1">##############################################################</span>
 
 
-<div class="viewcode-block" id="extract_coastlines"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.extract_coastlines.html#mpas_tools.ocean.coastal_tools.extract_coastlines">[docs]</a><span class="k">def</span> <span class="nf">extract_coastlines</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">nc_vars</span><span class="p">,</span> <span class="n">region_box</span><span class="p">,</span> <span class="n">z_contour</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_longest</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">point_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>   <span class="c1"># {{{</span>
-                       <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="extract_coastlines"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.extract_coastlines.html#mpas_tools.ocean.coastal_tools.extract_coastlines">[docs]</a><span class="k">def</span> <span class="nf">extract_coastlines</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">nc_vars</span><span class="p">,</span> <span class="n">region_box</span><span class="p">,</span> <span class="n">z_contour</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_longest</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                       <span class="n">point_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span>
+                       <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>   <span class="c1"># {{{</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts a set of coastline contours</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nc_file : str</span>
+<span class="sd">        A bathymetry dataset on a lon/lat grid in NetCDF format</span>
+
+<span class="sd">    nc_vars : list of str</span>
+<span class="sd">        The names of the longitude (nc_vars[0]), latitude (nc_vars[1]) and</span>
+<span class="sd">        bathymetry (nc_vars[2]) variables.</span>
+
+<span class="sd">    region_box : dict of list of ndarrays</span>
+<span class="sd">        A region made up of a list of quadrilaterals to ``include`` and another</span>
+<span class="sd">        list to ``exclude``.  The quadrilaterals are either bounding rectangles</span>
+<span class="sd">        (min lon, max lon, min lat, max lat) or lists of 4 (lon, lat) points.</span>
+
+<span class="sd">    z_contour : float, optional</span>
+<span class="sd">        The isocontour of the bathymetry dataset to extract</span>
+
+<span class="sd">    n_longest : int, optional</span>
+<span class="sd">        The maximum number of contours to keep, after sorting from the longest</span>
+<span class="sd">        to the shortest</span>
+
+<span class="sd">    point_list : ndarray, optional</span>
+<span class="sd">        A list of points to add to the coastline</span>
+
+<span class="sd">    plot_option : bool, optional</span>
+<span class="sd">        Whether to plot the resulting coastline points and the plot to a file</span>
+<span class="sd">        named ``bathy_coastlines###.png``, where ``###`` is given by</span>
+<span class="sd">        ``call`` and is meant to indicate how many times this function has been</span>
+<span class="sd">        called during mesh creation.</span>
+
+<span class="sd">    plot_box : list of float, optional</span>
+<span class="sd">        The extent of the plot if ``plot_option=True``</span>
+
+<span class="sd">    call : int, optional</span>
+<span class="sd">        The number of times the function has been called, used to give the</span>
+<span class="sd">        plot a unique name.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    coastlines : ndarray</span>
+<span class="sd">        An n x 2 array of (longitude, latitude) points along the coastline</span>
+<span class="sd">        contours</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extract coastlines&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------&quot;</span><span class="p">)</span>
@@ -616,8 +748,6 @@
             <span class="n">cpad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">points</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]))</span>
             <span class="n">coastline_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cpad</span><span class="p">)</span>
 
-
-
     <span class="c1"># Combine coastlines</span>
     <span class="n">coastlines</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">coastline_list</span><span class="p">)</span>
 
@@ -660,8 +790,55 @@
 <span class="c1">##############################################################</span>
 
 
-<div class="viewcode-block" id="distance_to_coast"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.distance_to_coast.html#mpas_tools.ocean.coastal_tools.distance_to_coast">[docs]</a><span class="k">def</span> <span class="nf">distance_to_coast</span><span class="p">(</span><span class="n">coastlines</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">nn_search</span><span class="p">,</span> <span class="n">smooth_window</span><span class="p">,</span>  <span class="c1"># {{{</span>
-                      <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="distance_to_coast"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.distance_to_coast.html#mpas_tools.ocean.coastal_tools.distance_to_coast">[docs]</a><span class="k">def</span> <span class="nf">distance_to_coast</span><span class="p">(</span><span class="n">coastlines</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">nn_search</span><span class="p">,</span>
+                      <span class="n">smooth_window</span><span class="p">,</span> <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># {{{</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts a set of coastline contours</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coastlines : ndarray</span>
+<span class="sd">        An n x 2 array of (longitude, latitude) points along the coastline</span>
+<span class="sd">        contours returned from ``extract_coastlines()``</span>
+
+<span class="sd">    lon_grd : ndarray</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180</span>
+
+<span class="sd">    lat_grd : ndarray</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
+
+<span class="sd">    origin : ndarray</span>
+<span class="sd">        A lon/lat point defining the origin, not currently used by the code</span>
+
+<span class="sd">    nn_search : {&#39;kdtree&#39;, &#39;flann&#39;}</span>
+<span class="sd">        The algorithm to use for the nearest neightbor search.  &#39;flann&#39; is</span>
+<span class="sd">        strongly recommended, as it is faster and more memory efficient in our</span>
+<span class="sd">        testing.</span>
+
+<span class="sd">    smooth_window : int</span>
+<span class="sd">        The number of adjacent coastline points to average together to smooth</span>
+<span class="sd">        the coastal contours.  Use ``0`` to indicate no smoothing.</span>
+
+<span class="sd">    plot_option : bool, optional</span>
+<span class="sd">        Whether to plot the resulting coastline points and the plot to a file</span>
+<span class="sd">        named ``bathy_coastlines###.png``, where ``###`` is given by</span>
+<span class="sd">        ``call`` and is meant to indicate how many times this function has been</span>
+<span class="sd">        called during mesh creation.</span>
+
+<span class="sd">    plot_box : list of float, optional</span>
+<span class="sd">        The extent of the plot if ``plot_option=True``</span>
+
+<span class="sd">    call : int, optional</span>
+<span class="sd">        The number of times the function has been called, used to give the</span>
+<span class="sd">        plot a unique name.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    D : ndarray</span>
+<span class="sd">        A len(lat_grd) x len(lon_grd) array of distances in meters on the</span>
+<span class="sd">        lon/lat grid to the closest point in the (smoothed) coastline contour.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Distance to coast&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-----------------&quot;</span><span class="p">)</span>
@@ -742,8 +919,77 @@
 <span class="c1">##############################################################</span>
 
 
-<div class="viewcode-block" id="compute_cell_width"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.compute_cell_width.html#mpas_tools.ocean.coastal_tools.compute_cell_width">[docs]</a><span class="k">def</span> <span class="nf">compute_cell_width</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">dx_min</span><span class="p">,</span> <span class="n">trans_start</span><span class="p">,</span> <span class="n">trans_width</span><span class="p">,</span> <span class="n">restrict_box</span><span class="p">,</span>   <span class="c1"># {{{</span>
-                       <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">lon_grd</span><span class="o">=</span><span class="p">[],</span> <span class="n">lat_grd</span><span class="o">=</span><span class="p">[],</span> <span class="n">coastlines</span><span class="o">=</span><span class="p">[],</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_cell_width"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.compute_cell_width.html#mpas_tools.ocean.coastal_tools.compute_cell_width">[docs]</a><span class="k">def</span> <span class="nf">compute_cell_width</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">dx_min</span><span class="p">,</span> <span class="n">trans_start</span><span class="p">,</span>
+                       <span class="n">trans_width</span><span class="p">,</span> <span class="n">restrict_box</span><span class="p">,</span> <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">lon_grd</span><span class="o">=</span><span class="p">[],</span> <span class="n">lat_grd</span><span class="o">=</span><span class="p">[],</span> <span class="n">coastlines</span><span class="o">=</span><span class="p">[],</span>
+                       <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># {{{</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Blend cell widths from the input field with the new resolution in the</span>
+<span class="sd">    refined region determined by the distance to the coastline contour.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    D : ndarray</span>
+<span class="sd">        A len(lat) x len(lon) array of distances in meters on the lon/lat grid</span>
+<span class="sd">        to the closest point in the (smoothed) coastline contour returned from</span>
+<span class="sd">        ``distance_to_coast()``</span>
+
+<span class="sd">    cell_width : ndarray</span>
+<span class="sd">        A len(lat) x len(lon) array of cell widths in meters</span>
+
+<span class="sd">    lon : ndarray</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180</span>
+
+<span class="sd">    lat : ndarray</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
+
+<span class="sd">    dx_min : float</span>
+<span class="sd">        The resolution in meters of the new refined region.</span>
+
+<span class="sd">    trans_start : float</span>
+<span class="sd">        The approximate value of ``D`` in meters at which the transition in</span>
+<span class="sd">        resolution should start</span>
+
+<span class="sd">    trans_width : float</span>
+<span class="sd">        The approximate width in meters over which the transition in resolution</span>
+<span class="sd">        should take place</span>
+
+<span class="sd">    restrict_box : dict of lists of ndarrays</span>
+<span class="sd">        A region of made up of quadrilaterals to ``include`` and ``exclude``</span>
+<span class="sd">        that defines where resolution may be altered.  Outside of the</span>
+<span class="sd">        ``restrict_box``, the resolution remains unchanged.</span>
+
+<span class="sd">    plot_option : bool, optional</span>
+<span class="sd">        Whether to plot the resulting coastline points and the plot to files</span>
+<span class="sd">        named ``cell_width###.png`` and ``trans_func###.png```, where ``###``</span>
+<span class="sd">        is given by ``call`` and is meant to indicate how many times this</span>
+<span class="sd">        function has been called during mesh creation.</span>
+
+<span class="sd">    plot_box : list of float, optional</span>
+<span class="sd">        The extent of the plot if ``plot_option=True``</span>
+
+<span class="sd">    lon_grd : ndarray</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180 used</span>
+<span class="sd">        in plotting if ``plot_option=True`` (the same as ``lon``)</span>
+
+<span class="sd">    lat_grd : ndarray</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90 used</span>
+<span class="sd">        in plotting if ``plot_option=True`` (the same as ``lat``)</span>
+
+<span class="sd">    coastlines : ndarray</span>
+<span class="sd">        An n x 2 array of (longitude, latitude) points along the coastline</span>
+<span class="sd">        contours returned from ``extract_coastlines()`` used in plotting if</span>
+<span class="sd">        ``plot_option=True``</span>
+
+<span class="sd">    call : int, optional</span>
+<span class="sd">        The number of times the function has been called, used to give the</span>
+<span class="sd">        plot a unique name.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cell_width : ndarray</span>
+<span class="sd">        A len(lat) x len(lon) array of the new cell widths in meters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compute cell width&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------&quot;</span><span class="p">)</span>
@@ -777,7 +1023,7 @@
         <span class="n">cell_width</span> <span class="o">=</span> <span class="p">(</span><span class="n">dx_min</span><span class="o">*</span><span class="n">dist_weight</span> <span class="o">+</span>
                       <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">cell_width_old</span><span class="p">,</span> <span class="n">backgnd_weight</span><span class="p">))</span>
 
-    <span class="c1"># Don&#39;t applt cell width function in exclude regions (revert to previous values)</span>
+    <span class="c1"># Don&#39;t apply cell width function in exclude regions (revert to previous values)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">restrict_box</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">restrict_box</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]:</span>
             <span class="n">idx</span> <span class="o">=</span> <span class="n">get_indices_inside_quad</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">box</span><span class="p">)</span>

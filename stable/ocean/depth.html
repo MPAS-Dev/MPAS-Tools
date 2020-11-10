@@ -191,19 +191,19 @@
 <span id="ocean-depth"></span><h1>Adding a Depth Coordinate<a class="headerlink" href="#adding-a-depth-coordinate" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="adding-a-1d-depth-coordinate">
 <h2>Adding a 1D depth coordinate<a class="headerlink" href="#adding-a-1d-depth-coordinate" title="Permalink to this headline">¶</a></h2>
-<p>The function <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.add_depth()</span></code> can be used to add
+<p>The function <a class="reference internal" href="../generated/mpas_tools.ocean.depth.add_depth.html#mpas_tools.ocean.depth.add_depth" title="mpas_tools.ocean.depth.add_depth"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.add_depth()</span></code></a> can be used to add
 a 1D <code class="docutils literal notranslate"><span class="pre">depth</span></code> coordinate that is appropriate for runs with a z-star MPAS-Ocean
 mesh.  The coordinate is only approximately correct but is useful for
 visualization.</p>
 <p>Internally, the depth is computed with
-<code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.compute_depth()</span></code>, which could also be called
+<a class="reference internal" href="../generated/mpas_tools.ocean.depth.compute_depth.html#mpas_tools.ocean.depth.compute_depth" title="mpas_tools.ocean.depth.compute_depth"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.compute_depth()</span></code></a>, which could also be called
 directly if one has a suitable <code class="docutils literal notranslate"><span class="pre">refBottomDepth</span></code> data array indicating the
 reference depth of the bottom of each layer in a 1D coordinate that is
 independent of both time and horizontal coordinate.</p>
 </div>
 <div class="section" id="adding-a-3d-zmid-coordinate">
 <h2>Adding a 3D zMid coordinate<a class="headerlink" href="#adding-a-3d-zmid-coordinate" title="Permalink to this headline">¶</a></h2>
-<p>The function <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.add_zmid()</span></code> can be used to add
+<p>The function <a class="reference internal" href="../generated/mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid" title="mpas_tools.ocean.depth.add_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.add_zmid()</span></code></a> can be used to add
 a time-independent, 3D <code class="docutils literal notranslate"><span class="pre">zMid</span></code> coordinate that is appropriate for runs with
 any MPAS-Ocean vertical coordinate that is not a significant function of time.
 This is appropriate for both z-star simulations and those with ice-shelf
@@ -213,19 +213,19 @@ in time (with the undulation of the sea surface).  The time-independent <code cl
 is appropriate for visualization an analysis that does not need to account for
 this time variability.</p>
 <p>Internally, the <code class="docutils literal notranslate"><span class="pre">zMid</span></code> is computed with
-<code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.compute_zmid()</span></code>, which could also be called
+<a class="reference internal" href="../generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid" title="mpas_tools.ocean.depth.compute_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.compute_zmid()</span></code></a>, which could also be called
 directly if one has a suitable <code class="docutils literal notranslate"><span class="pre">bottomDepth</span></code>, <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code>,
 and (reference) <code class="docutils literal notranslate"><span class="pre">layerThickness</span></code> data arrays.</p>
 </div>
 <div class="section" id="writing-a-time-dependent-3d-zmid-variable">
 <h2>Writing a time-dependent, 3D zMid variable<a class="headerlink" href="#writing-a-time-dependent-3d-zmid-variable" title="Permalink to this headline">¶</a></h2>
-<p>The function <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.write_time_varying_zmid()</span></code> can be
+<p>The function <a class="reference internal" href="../generated/mpas_tools.ocean.depth.write_time_varying_zmid.html#mpas_tools.ocean.depth.write_time_varying_zmid" title="mpas_tools.ocean.depth.write_time_varying_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.write_time_varying_zmid()</span></code></a> can be
 used to write out a time-dependent, 3D <code class="docutils literal notranslate"><span class="pre">zMid</span></code> variable to its own file.
 This is the “true” MPAS-Ocean vertical coordinate, in contrast to the 1D and
 3D time-independent coordinates mentioned above.  However, it requires a
 significant amount of disk space so may not be desirable in many contexts.</p>
 <p>Internally, the <code class="docutils literal notranslate"><span class="pre">&lt;prefix&gt;zMid</span></code> is computed with
-<code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.compute_zmid()</span></code> using the time-dependent
+<a class="reference internal" href="../generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid" title="mpas_tools.ocean.depth.compute_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.compute_zmid()</span></code></a> using the time-dependent
 <code class="docutils literal notranslate"><span class="pre">&lt;prefix&gt;layerThickness</span></code> variable, where <code class="docutils literal notranslate"><span class="pre">&lt;prefix&gt;</span></code> is a prefix such as
 <code class="docutils literal notranslate"><span class="pre">'timeMonthly_avg_'</span></code> or an empty string (<code class="docutils literal notranslate"><span class="pre">''</span></code>) for no prefix.</p>
 </div>

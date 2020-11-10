@@ -181,7 +181,7 @@
   <h1>Source code for mpas_tools.viz.paraview_extractor</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Extract a field from a time series of NetCDF files as VTK files for plotting in</span>
-<span class="sd">paraview.</span>
+<span class="sd">ParaView.</span>
 
 <span class="sd">It can extract a field across multiple files by passing in a regular expression</span>
 <span class="sd">for the filename patter. As an example, one can run the script using:</span>
@@ -199,11 +199,11 @@
 <span class="sd">and similarly for edges and vertices.  Time-independent fields can be</span>
 <span class="sd">included in each time step of the time-dependent fields for with</span>
 <span class="sd">the --combine flag.  This allows time-dependent and -independent fields</span>
-<span class="sd">to be combined in filters within Paraview at the expense of considerable</span>
+<span class="sd">to be combined in filters within ParaView at the expense of considerable</span>
 <span class="sd">additional storage space.</span>
 
 <span class="sd">Indices for extra dimensions can either be supplied at runtime at a prompt</span>
-<span class="sd">or through the -d flag.  For each extra dimension, the use can specifiy</span>
+<span class="sd">or through the -d flag.  For each extra dimension, the use can specify</span>
 <span class="sd">nothing (an empty string, meaning skip any fields with this dimension),</span>
 <span class="sd">a single index, or a comma-separated list of indices or a range of indices</span>
 <span class="sd">indices (separated by 1 or 2 colons).  For example,</span>
@@ -284,26 +284,26 @@
 
 <div class="viewcode-block" id="extract_vtk"><a class="viewcode-back" href="../../../generated/mpas_tools.viz.paraview_extractor.extract_vtk.html#mpas_tools.viz.paraview_extractor.extract_vtk">[docs]</a><span class="k">def</span> <span class="nf">extract_vtk</span><span class="p">(</span><span class="n">filename_pattern</span><span class="p">,</span> <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">dimension_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">mesh_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blocking</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">output_32bit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">combine</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime&#39;</span><span class="p">,</span>
+                <span class="n">combine</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime&#39;</span><span class="p">,</span>
                 <span class="n">lonlat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">topo_dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">topo_cell_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="n">fc_region_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">temp_dir</span><span class="o">=</span><span class="s1">&#39;./culled_region&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract fields from a time series of NetCDF files as VTK files for plotting</span>
-<span class="sd">    in paraview.</span>
+<span class="sd">    in ParaView.</span>
 
 <span class="sd">    To extract fields across multiple files, passing in a regular expression</span>
-<span class="sd">    for the filename pattern, for exmaple ``filename_pattern=&quot;hist.comp.*.nc&quot;``.</span>
+<span class="sd">    for the filename pattern, for example ``filename_pattern=&quot;hist.comp.*.nc&quot;``.</span>
 
 <span class="sd">    By default, time-independent fields on cells are written to a file</span>
 
-<span class="sd">    .. code-block::</span>
+<span class="sd">    .. code-block:: none</span>
 
 <span class="sd">      vtk_files/staticFieldsOnCells.vtp</span>
 
 <span class="sd">    and time-dependent fields on cells are written to</span>
 
-<span class="sd">    .. code-block::</span>
+<span class="sd">    .. code-block:: none</span>
 
 <span class="sd">      vtk_files/timeDependentFieldsOnCells.pvd</span>
 <span class="sd">      vtk_files/time_series/timeDependentFieldsOnCells.0.vtp</span>
@@ -313,17 +313,17 @@
 <span class="sd">    and similarly for edges and vertices.  Time-independent fields can be</span>
 <span class="sd">    included in each time step of the time-dependent fields for with</span>
 <span class="sd">    ``combine=True``.  This allows time-dependent and -independent fields</span>
-<span class="sd">    to be combined in filters within Paraview at the expense of considerable</span>
+<span class="sd">    to be combined in filters within ParaView at the expense of considerable</span>
 <span class="sd">    additional storage space.</span>
 
 <span class="sd">    Indices for extra dimensions can either be supplied at runtime at a prompt</span>
 <span class="sd">    (if ``dimension_list=None``) or via a list of strings with the dimensions</span>
-<span class="sd">    and associated indices.  For each extra dimension, you can specifiy</span>
+<span class="sd">    and associated indices.  For each extra dimension, you can specify</span>
 <span class="sd">    nothing for the indices (an empty string, meaning skip any fields with this</span>
 <span class="sd">    dimension), a single index, a comma-separated list of indices, or a range</span>
 <span class="sd">    of indices (separated by 1 or 2 colons).  For example,</span>
 
-<span class="sd">    .. code-block::</span>
+<span class="sd">    .. code-block:: python</span>
 
 <span class="sd">      dimension_list=[&#39;maxEdges=&#39;, &#39;nVertLeves=0:10:2&#39;, &#39;nParticles=0,2,4,6,8&#39;]</span>
 
@@ -335,7 +335,7 @@
 <span class="sd">    with integer indices in a comma-separated list but not in a colon-separated</span>
 <span class="sd">    range):</span>
 
-<span class="sd">    .. code-block::</span>
+<span class="sd">    .. code-block:: python</span>
 
 <span class="sd">      dimension_list=[&#39;nVertLeves=0,maxLevelCell&#39;]</span>
 
@@ -348,7 +348,7 @@
 <span class="sd">    variable top or bottom index (e.g. ``maxLevelCell`` in MPAS-Ocean).  This is</span>
 <span class="sd">    accomplished with arguments such as:</span>
 
-<span class="sd">    .. code-block::</span>
+<span class="sd">    .. code-block:: python</span>
 
 <span class="sd">      topo_dim=&#39;nVertLevels&#39;, topo_cell_index=&#39;maxLevelCell&#39;</span>
 
@@ -362,7 +362,7 @@
 <span class="sd">    polygons are interior (``boundaryMask == 0``).  Together, this can be used</span>
 <span class="sd">    to plot topography by using a calculator filter like the following:</span>
 
-<span class="sd">    .. code-block::</span>
+<span class="sd">    .. code-block:: none</span>
 
 <span class="sd">      coords*(1.0 + 100.0/mag(coords)*((1 - boundaryMask)*(-bottomDepth)</span>
 <span class="sd">                                       + 10.0*boundaryMask))</span>
@@ -1136,7 +1136,7 @@
 <span class="k">def</span> <span class="nf">parse_time_indices</span><span class="p">(</span><span class="n">index_string</span><span class="p">,</span> <span class="n">time_indices</span><span class="p">,</span> <span class="n">time_file_names</span><span class="p">):</span>  <span class="c1"># {{{</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parses the indices to be extracted along the Time dimension.</span>
-<span class="sd">    The index_string can be fomatted as follows:</span>
+<span class="sd">    The index_string can be formatted as follows:</span>
 <span class="sd">      &lt;blank&gt; -- no indices are to be extracted</span>
 <span class="sd">      n       -- the index n is to be extracted</span>
 <span class="sd">      m,n,p   -- the list of indices is to be extracted</span>
@@ -1912,7 +1912,7 @@
         <span class="k">if</span> <span class="n">topo_dim</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">topo_dim</span> <span class="ow">in</span> <span class="n">field_var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">temp_field</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Field with dimensions </span><span class="si">{}</span><span class="s1"> not supported in &#39;</span>
-                                 <span class="s1">&#39;topogrpahy extraction mode.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                                 <span class="s1">&#39;topography extraction mode.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                                          <span class="n">field_var</span><span class="o">.</span><span class="n">dimensions</span><span class="p">))</span>
             <span class="c1"># sample the depth-dependent field at the index of the topography</span>
             <span class="n">temp_field</span> <span class="o">=</span> <span class="n">temp_field</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">temp_field</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
@@ -1938,10 +1938,12 @@
         <span class="k">return</span> <span class="n">field</span>  <span class="c1"># }}}</span>
 
     <span class="n">field_var</span> <span class="o">=</span> <span class="n">get_var</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">,</span> <span class="n">time_series_file</span><span class="p">)</span>
-    <span class="k">try</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s1">&#39;missing_value&#39;</span> <span class="ow">in</span> <span class="n">field_var</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">():</span>
         <span class="n">missing_val</span> <span class="o">=</span> <span class="n">field_var</span><span class="o">.</span><span class="n">missing_value</span>
-    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-        <span class="n">missing_val</span> <span class="o">=</span> <span class="o">-</span><span class="mf">9999999790214767953607394487959552.000000</span>
+    <span class="k">elif</span> <span class="s1">&#39;_FillValue&#39;</span> <span class="ow">in</span> <span class="n">field_var</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">():</span>
+        <span class="n">missing_val</span> <span class="o">=</span> <span class="n">field_var</span><span class="o">.</span><span class="n">_FillValue</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">missing_val</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="n">dim_vals</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">extra_dim_index</span> <span class="o">=</span> <span class="mi">0</span>
@@ -1984,7 +1986,8 @@
     <span class="n">field</span> <span class="o">=</span> <span class="n">read_field_with_dims</span><span class="p">(</span><span class="n">field_var</span><span class="p">,</span> <span class="n">dim_vals</span><span class="p">,</span> <span class="n">temp_shape</span><span class="p">,</span> <span class="n">outType</span><span class="p">,</span>
                                  <span class="n">index_arrays</span><span class="p">)</span>
 
-    <span class="n">field</span><span class="p">[</span><span class="n">field</span> <span class="o">==</span> <span class="n">missing_val</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
+    <span class="k">if</span> <span class="n">missing_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">field</span><span class="p">[</span><span class="n">field</span> <span class="o">==</span> <span class="n">missing_val</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="k">return</span> <span class="n">sign</span><span class="o">*</span><span class="n">field</span>  <span class="c1"># }}}</span>
 

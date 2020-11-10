@@ -189,12 +189,14 @@
 <span class="kn">from</span> <span class="nn">rasterio.features</span> <span class="kn">import</span> <span class="n">rasterize</span>
 <span class="kn">from</span> <span class="nn">affine</span> <span class="kn">import</span> <span class="n">Affine</span>
 <span class="kn">import</span> <span class="nn">shapely.geometry</span>
+<span class="kn">import</span> <span class="nn">shapely.ops</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">from</span> <span class="nn">geometric_features.plot</span> <span class="kn">import</span> <span class="n">subdivide_geom</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.util</span> <span class="kn">import</span> <span class="n">lonlat2xyz</span>
 
 
 <div class="viewcode-block" id="signed_distance_from_geojson"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson">[docs]</a><span class="k">def</span> <span class="nf">signed_distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
-                                 <span class="n">max_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                                 <span class="n">max_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the distance for each point on a lon/lat grid from the closest point</span>
 <span class="sd">    on the boundary of the geojson regions.</span>
@@ -203,15 +205,23 @@
 <span class="sd">    ----------</span>
 <span class="sd">    fc : geometrics_features.FeatureCollection</span>
 <span class="sd">        The regions to be rasterized</span>
+
 <span class="sd">    lon_grd : numpy.ndarray</span>
-<span class="sd">        A 1D array of evenly spaced longitude values</span>
+<span class="sd">        A 1D array of longitude values</span>
+
 <span class="sd">    lat_grd : numpy.ndarray</span>
-<span class="sd">        A 1D array of evenly spaced latitude values</span>
+<span class="sd">        A 1D array of latitude values</span>
+
 <span class="sd">    earth_radius : float</span>
 <span class="sd">        Earth radius in meters</span>
+
 <span class="sd">    max_length : float, optional</span>
 <span class="sd">        The maximum distance (in degrees) between points on the boundary of the</span>
 <span class="sd">        geojson region.  If the boundary is too coarse, it will be subdivided.</span>
+
+<span class="sd">    epsilon : float, optional</span>
+<span class="sd">        A small amount to expand each shape by to make sure lon/lat points on</span>
+<span class="sd">        the domain boundary are within shapes that touch the domain boundary.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -219,16 +229,21 @@
 <span class="sd">       A 2D field of distances (negative inside the region, positive outside)</span>
 <span class="sd">       to the shape boundary</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">distance</span> <span class="o">=</span> <span class="n">distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
-                                     <span class="n">nn_search</span><span class="o">=</span><span class="s1">&#39;flann&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="n">max_length</span><span class="p">)</span>
+    <span class="n">shapes</span> <span class="o">=</span> <span class="n">_subdivide_shapes</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">max_length</span><span class="p">)</span>
 
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">)</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
+                                     <span class="n">nn_search</span><span class="o">=</span><span class="s1">&#39;flann&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="n">max_length</span><span class="p">,</span>
+                                     <span class="n">shapes</span><span class="o">=</span><span class="n">shapes</span><span class="p">)</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">shapes</span><span class="o">=</span><span class="n">shapes</span><span class="p">,</span>
+                             <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">)</span>
 
     <span class="n">signed_distance</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">mask</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">distance</span>
     <span class="k">return</span> <span class="n">signed_distance</span></div>
 
 
-<div class="viewcode-block" id="mask_from_geojson"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.mask_from_geojson.html#mpas_tools.mesh.creation.signed_distance.mask_from_geojson">[docs]</a><span class="k">def</span> <span class="nf">mask_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">):</span>
+<div class="viewcode-block" id="mask_from_geojson"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.mask_from_geojson.html#mpas_tools.mesh.creation.signed_distance.mask_from_geojson">[docs]</a><span class="k">def</span> <span class="nf">mask_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shapes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Make a rasterized mask on a lon/lat grid from shapes (geojson multipolygon</span>
 <span class="sd">    data).</span>
@@ -237,10 +252,24 @@
 <span class="sd">    ----------</span>
 <span class="sd">    fc : geometrics_features.FeatureCollection</span>
 <span class="sd">        The regions to be rasterized</span>
+
 <span class="sd">    lon_grd : numpy.ndarray</span>
-<span class="sd">        A 1D array of evenly spaced longitude values</span>
+<span class="sd">        A 1D array of longitude values</span>
+
 <span class="sd">    lat_grd : numpy.ndarray</span>
-<span class="sd">        A 1D array of evenly spaced latitude values</span>
+<span class="sd">        A 1D array of latitude values</span>
+
+<span class="sd">    max_length : float, optional</span>
+<span class="sd">        The maximum distance (in degrees) between points on the boundary of the</span>
+<span class="sd">        geojson region.  If the boundary is too coarse, it will be subdivided.</span>
+
+<span class="sd">    shapes : list of shapely.geometry, optional</span>
+<span class="sd">        A list of shapes that have already been extracted from fc and possibly</span>
+<span class="sd">        subdivided</span>
+
+<span class="sd">    epsilon : float, optional</span>
+<span class="sd">        A small amount to expand each shape by to make sure lon/lat points on</span>
+<span class="sd">        the domain boundary are within shapes that touch the domain boundary.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -251,34 +280,41 @@
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mask from geojson&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-----------------&quot;</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">shapes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">shapes</span> <span class="o">=</span> <span class="n">_subdivide_shapes</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">max_length</span><span class="p">)</span>
+
     <span class="n">nlon</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lon_grd</span><span class="p">)</span>
     <span class="n">nlat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lat_grd</span><span class="p">)</span>
 
-    <span class="n">dlon</span> <span class="o">=</span> <span class="p">(</span><span class="n">lon_grd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lon_grd</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">nlon</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">dlat</span> <span class="o">=</span> <span class="p">(</span><span class="n">lat_grd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lat_grd</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">nlat</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">uniform</span> <span class="o">=</span> <span class="p">(</span><span class="n">_is_uniform</span><span class="p">(</span><span class="n">lon_grd</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">)</span> <span class="ow">and</span>
+               <span class="n">_is_uniform</span><span class="p">(</span><span class="n">lat_grd</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="n">epsilon</span><span class="p">))</span>
 
-    <span class="n">transform</span> <span class="o">=</span> <span class="n">Affine</span><span class="p">(</span><span class="n">dlon</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                       <span class="mf">0.0</span><span class="p">,</span> <span class="n">dlat</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">uniform</span><span class="p">:</span>
+        <span class="n">dlon</span> <span class="o">=</span> <span class="p">(</span><span class="n">lon_grd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lon_grd</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">nlon</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">dlat</span> <span class="o">=</span> <span class="p">(</span><span class="n">lat_grd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">lat_grd</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="p">(</span><span class="n">nlat</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">shapes</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
-        <span class="c1"># a list of feature geometries and mask values (always 1.0)</span>
-        <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+        <span class="c1"># raserio works with pixels, and we want the lon/lat points to be at the</span>
+        <span class="c1"># centers of the pixels so the origin (the lower left of the first pixel) is</span>
+        <span class="c1"># half a pixel offset from the first lon/lat point</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">Affine</span><span class="p">(</span><span class="n">dlon</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">dlon</span><span class="p">,</span>
+                           <span class="mf">0.</span><span class="p">,</span> <span class="n">dlat</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">dlat</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">shapes</span> <span class="o">=</span> <span class="n">_shapes_to_pixel_cooords</span><span class="p">(</span><span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">shapes</span><span class="p">)</span>
+        <span class="n">transform</span> <span class="o">=</span> <span class="n">Affine</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span>
+                           <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+
+    <span class="n">raster_shapes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
         <span class="c1"># expand a bit to make sure we hit the edges of the domain</span>
-        <span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">dlat</span><span class="p">)</span>
-        <span class="n">shapes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">mapping</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">))</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">epsilon</span><span class="p">)</span>
+        <span class="n">raster_shapes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">mapping</span><span class="p">(</span><span class="n">shape</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">))</span>
 
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">rasterize</span><span class="p">(</span><span class="n">shapes</span><span class="p">,</span> <span class="n">out_shape</span><span class="o">=</span><span class="p">(</span><span class="n">nlat</span><span class="p">,</span> <span class="n">nlon</span><span class="p">),</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">lon_grd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="o">-</span><span class="mf">180.</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-3</span> <span class="ow">and</span> \
-            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">lon_grd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="mf">180.</span><span class="p">))</span> <span class="o">&lt;</span> <span class="mf">1e-3</span><span class="p">:</span>
-        <span class="c1"># the extra column at the periodic boundary needs to be copied</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  fixing periodic boundary&#39;</span><span class="p">)</span>
-        <span class="n">mask</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">rasterize</span><span class="p">(</span><span class="n">raster_shapes</span><span class="p">,</span> <span class="n">out_shape</span><span class="o">=</span><span class="p">(</span><span class="n">nlat</span><span class="p">,</span> <span class="n">nlon</span><span class="p">),</span> <span class="n">transform</span><span class="o">=</span><span class="n">transform</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">mask</span></div>
 
 
-<div class="viewcode-block" id="distance_from_geojson"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.distance_from_geojson">[docs]</a><span class="k">def</span> <span class="nf">distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span> <span class="n">nn_search</span><span class="p">,</span>
-                          <span class="n">max_length</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="distance_from_geojson"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.distance_from_geojson">[docs]</a><span class="k">def</span> <span class="nf">distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span> <span class="n">nn_search</span><span class="o">=</span><span class="s1">&#39;flann&#39;</span><span class="p">,</span>
+                          <span class="n">max_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">shapes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># {{{</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the distance for each point on a lon/lat grid from the closest point</span>
@@ -288,17 +324,26 @@
 <span class="sd">    ----------</span>
 <span class="sd">    fc : geometrics_features.FeatureCollection</span>
 <span class="sd">        The regions to be rasterized</span>
+
 <span class="sd">    lon_grd : numpy.ndarray</span>
-<span class="sd">        A 1D array of evenly spaced longitude values</span>
+<span class="sd">        A 1D array of longitude values</span>
+
 <span class="sd">    lat_grd : numpy.ndarray</span>
-<span class="sd">        A 1D array of evenly spaced latitude values</span>
+<span class="sd">        A 1D array of latitude values</span>
+
 <span class="sd">    earth_radius : float</span>
 <span class="sd">        Earth radius in meters</span>
-<span class="sd">    nn_search: {&#39;kdtree&#39;, &#39;flann&#39;}</span>
+
+<span class="sd">    nn_search: {&#39;kdtree&#39;, &#39;flann&#39;}, optional</span>
 <span class="sd">        The method used to find the nearest point on the shape boundary</span>
+
 <span class="sd">    max_length : float, optional</span>
 <span class="sd">        The maximum distance (in degrees) between points on the boundary of the</span>
 <span class="sd">        geojson region.  If the boundary is too coarse, it will be subdivided.</span>
+
+<span class="sd">    shapes : list of shapely.geometry, optional</span>
+<span class="sd">        A list of shapes that have already been extracted from fc and possibly</span>
+<span class="sd">        subdivided</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -308,17 +353,15 @@
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Distance from geojson&quot;</span><span class="p">)</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---------------------&quot;</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="n">shapes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">shapes</span> <span class="o">=</span> <span class="n">_subdivide_shapes</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">max_length</span><span class="p">)</span>
+
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Finding region boundaries&quot;</span><span class="p">)</span>
     <span class="n">boundary_lon</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">boundary_lat</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
         <span class="c1"># get the boundary of each shape</span>
-        <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">boundary</span>
-        <span class="k">if</span> <span class="n">max_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># subdivide the shape if it&#39;s too coarse</span>
-            <span class="n">geom_type</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">geom_type</span>
-            <span class="n">shape</span> <span class="o">=</span> <span class="n">subdivide_geom</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">geom_type</span><span class="p">,</span> <span class="n">max_length</span><span class="p">)</span>
-        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">xy</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">xy</span>
         <span class="n">boundary_lon</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">boundary_lat</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
@@ -379,6 +422,53 @@
     <span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">Lon_grd</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">distance</span></div>
+
+
+<span class="k">def</span> <span class="nf">_subdivide_shapes</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">max_length</span><span class="p">):</span>
+
+    <span class="n">shapes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+        <span class="c1"># get the boundary of each shape</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">max_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># subdivide the shape if it&#39;s too coarse</span>
+            <span class="n">geom_type</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">geom_type</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">subdivide_geom</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">geom_type</span><span class="p">,</span> <span class="n">max_length</span><span class="p">)</span>
+        <span class="n">shapes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">shapes</span>
+
+
+<span class="k">def</span> <span class="nf">_is_uniform</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">vector</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">vector</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">d</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_shapes_to_pixel_cooords</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
+    <span class="n">intx</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_interpx</span><span class="p">,</span> <span class="n">lon</span><span class="p">)</span>
+    <span class="n">inty</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_interpy</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
+    <span class="n">new_shapes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">intx</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">inty</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="n">new_shapes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_shapes</span>
+
+
+<span class="k">def</span> <span class="nf">_interpx</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="n">nlon</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+    <span class="n">lon_pixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nlon</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lon_pixels</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+
+
+<span class="k">def</span> <span class="nf">_interpy</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="n">nlat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+    <span class="n">lat_pixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nlat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lat_pixels</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+
 </pre></div>
 
            </div>

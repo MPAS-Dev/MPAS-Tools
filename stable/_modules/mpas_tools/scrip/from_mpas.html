@@ -220,7 +220,7 @@
     <span class="n">lonCell</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lonCell&#39;</span><span class="p">][:]</span>
     <span class="n">latVertex</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;latVertex&#39;</span><span class="p">][:]</span>
     <span class="n">lonVertex</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lonVertex&#39;</span><span class="p">][:]</span>
-    <span class="n">verticesOnCell</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;verticesOnCell&#39;</span><span class="p">][:]</span>
+    <span class="n">verticesOnCell</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;verticesOnCell&#39;</span><span class="p">][:]</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">nEdgesOnCell</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;nEdgesOnCell&#39;</span><span class="p">][:]</span>
     <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">])</span>
     <span class="n">maxVertices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;maxEdges&#39;</span><span class="p">])</span>
@@ -275,30 +275,28 @@
     <span class="n">grid_dims</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">nCells</span>
 
     <span class="c1"># grid corners:</span>
-    <span class="c1"># It is WAYYY faster to fill in the array entry-by-entry in memory than to</span>
-    <span class="c1"># disk.</span>
     <span class="n">grid_corner_lon_local</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxVertices</span><span class="p">))</span>
     <span class="n">grid_corner_lat_local</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxVertices</span><span class="p">))</span>
-    <span class="k">for</span> <span class="n">iCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nCells</span><span class="p">):</span>
-        <span class="n">vertexMax</span> <span class="o">=</span> <span class="n">nEdgesOnCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span>
-        <span class="n">grid_corner_lat_local</span><span class="p">[</span><span class="n">iCell</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">vertexMax</span><span class="p">]</span> <span class="o">=</span> \
-            <span class="n">latVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">vertexMax</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">grid_corner_lon_local</span><span class="p">[</span><span class="n">iCell</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">vertexMax</span><span class="p">]</span> <span class="o">=</span> \
-            <span class="n">lonVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">vertexMax</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="k">if</span> <span class="n">vertexMax</span> <span class="o">&lt;</span> <span class="n">maxVertices</span><span class="p">:</span>
-            <span class="c1"># repeat the last vertex location for any remaining, unused vertex</span>
-            <span class="c1"># indices</span>
-            <span class="n">grid_corner_lat_local</span><span class="p">[</span><span class="n">iCell</span><span class="p">,</span> <span class="n">vertexMax</span><span class="p">:]</span> <span class="o">=</span> \
-                <span class="n">latVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">,</span> <span class="n">vertexMax</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
-            <span class="n">grid_corner_lon_local</span><span class="p">[</span><span class="n">iCell</span><span class="p">,</span> <span class="n">vertexMax</span><span class="p">:]</span> <span class="o">=</span> \
-                <span class="n">lonVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">,</span> <span class="n">vertexMax</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">cellIndices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nCells</span><span class="p">)</span>
+    <span class="n">lastValidVertex</span> <span class="o">=</span> <span class="n">verticesOnCell</span><span class="p">[</span><span class="n">cellIndices</span><span class="p">,</span> <span class="n">nEdgesOnCell</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">iVertex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxVertices</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">iVertex</span> <span class="o">&lt;</span> <span class="n">nEdgesOnCell</span>
+        <span class="n">grid_corner_lat_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">latVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]]</span>
+        <span class="n">grid_corner_lon_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">lonVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]]</span>
 
-            <span class="k">if</span> <span class="n">useLandIceMask</span><span class="p">:</span>
-                <span class="c1"># If useLandIceMask are enabled, mask out ocean under land ice.</span>
-                <span class="n">grid_imask</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">landIceMask</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">iCell</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># If landiceMasks are not enabled, don&#39;t mask anything out.</span>
-                <span class="n">grid_imask</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">iVertex</span> <span class="o">&gt;=</span> <span class="n">nEdgesOnCell</span>
+        <span class="n">grid_corner_lat_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> <span class="n">latVertex</span><span class="p">[</span><span class="n">lastValidVertex</span><span class="p">[</span><span class="n">mask</span><span class="p">]]</span>
+        <span class="n">grid_corner_lon_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> <span class="n">lonVertex</span><span class="p">[</span><span class="n">lastValidVertex</span><span class="p">[</span><span class="n">mask</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="n">useLandIceMask</span><span class="p">:</span>
+        <span class="c1"># If useLandIceMask are enabled, mask out ocean under land ice.</span>
+        <span class="n">grid_imask</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">landIceMask</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># If landiceMasks are not enabled, don&#39;t mask anything out.</span>
+        <span class="n">grid_imask</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">1</span>
+
     <span class="n">grid_corner_lat</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">grid_corner_lat_local</span><span class="p">[:]</span>
     <span class="n">grid_corner_lon</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">grid_corner_lon_local</span><span class="p">[:]</span>
 

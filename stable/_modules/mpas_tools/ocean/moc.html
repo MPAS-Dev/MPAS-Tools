@@ -204,6 +204,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds features defining the ocean basins and southern transects used in</span>
 <span class="sd">    computing the meridional overturning circulation (MOC)</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    gf : ``GeometricFeatures``</span>
@@ -247,17 +248,19 @@
                                               <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">mask_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasks</span><span class="p">,</span> <span class="n">mask_filename</span><span class="p">)</span>
+        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasks</span><span class="p">,</span> <span class="n">mask_filename</span><span class="p">,</span> <span class="n">char_dim_name</span><span class="o">=</span><span class="s1">&#39;StrLen&#39;</span><span class="p">)</span>
 
     <span class="n">dsMasksAndTransects</span> <span class="o">=</span> <span class="n">add_moc_southern_boundary_transects</span><span class="p">(</span><span class="n">dsMasks</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span>
                                                               <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
-    <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasksAndTransects</span><span class="p">,</span> <span class="n">mask_and_transect_filename</span><span class="p">)</span></div>
+    <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasksAndTransects</span><span class="p">,</span> <span class="n">mask_and_transect_filename</span><span class="p">,</span>
+                 <span class="n">char_dim_name</span><span class="o">=</span><span class="s1">&#39;StrLen&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="build_moc_basins"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.moc.build_moc_basins.html#mpas_tools.ocean.moc.build_moc_basins">[docs]</a><span class="k">def</span> <span class="nf">build_moc_basins</span><span class="p">(</span><span class="n">gf</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds features defining the ocean basins used in computing the meridional</span>
 <span class="sd">    overturning circulation (MOC)</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    gf : ``GeometricFeatures``</span>
@@ -609,13 +612,16 @@
 <span class="k">def</span> <span class="nf">_remove_small_polygons</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">minArea</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A helper function to remove small polygons from a feature collection</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    fc : ``FeatureCollection``</span>
 <span class="sd">        The feature collection to remove polygons from</span>
+
 <span class="sd">    minArea : float</span>
 <span class="sd">        The minimum area (in square degrees) below which polygons should be</span>
 <span class="sd">        removed</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    fcOut : ``FeatureCollection``</span>

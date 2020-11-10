@@ -219,18 +219,20 @@
 <h1>mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson<a class="headerlink" href="#mpas-tools-mesh-creation-signed-distance-signed-distance-from-geojson" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt id="mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson">
-<code class="sig-prename descclassname">mpas_tools.mesh.creation.signed_distance.</code><code class="sig-name descname">signed_distance_from_geojson</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fc</span></em>, <em class="sig-param"><span class="n">lon_grd</span></em>, <em class="sig-param"><span class="n">lat_grd</span></em>, <em class="sig-param"><span class="n">earth_radius</span></em>, <em class="sig-param"><span class="n">max_length</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/signed_distance.html#signed_distance_from_geojson"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mpas_tools.mesh.creation.signed_distance.</code><code class="sig-name descname">signed_distance_from_geojson</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">fc</span></em>, <em class="sig-param"><span class="n">lon_grd</span></em>, <em class="sig-param"><span class="n">lat_grd</span></em>, <em class="sig-param"><span class="n">earth_radius</span></em>, <em class="sig-param"><span class="n">max_length</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">epsilon</span><span class="o">=</span><span class="default_value">1e-10</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/signed_distance.html#signed_distance_from_geojson"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the distance for each point on a lon/lat grid from the closest point
 on the boundary of the geojson regions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fc</strong> (<em>geometrics_features.FeatureCollection</em>) – The regions to be rasterized</p></li>
-<li><p><strong>lon_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – A 1D array of evenly spaced longitude values</p></li>
-<li><p><strong>lat_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – A 1D array of evenly spaced latitude values</p></li>
+<li><p><strong>lon_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – A 1D array of longitude values</p></li>
+<li><p><strong>lat_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – A 1D array of latitude values</p></li>
 <li><p><strong>earth_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Earth radius in meters</p></li>
 <li><p><strong>max_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – The maximum distance (in degrees) between points on the boundary of the
 geojson region.  If the boundary is too coarse, it will be subdivided.</p></li>
+<li><p><strong>epsilon</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – A small amount to expand each shape by to make sure lon/lat points on
+the domain boundary are within shapes that touch the domain boundary.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

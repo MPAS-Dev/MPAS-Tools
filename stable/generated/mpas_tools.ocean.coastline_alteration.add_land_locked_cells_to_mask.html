@@ -135,6 +135,11 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates.html">mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_coarse_coast.html">mpas_tools.ocean.coastal_tools.plot_coarse_coast</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_region_box.html">mpas_tools.ocean.coastal_tools.plot_region_box</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.add_depth.html">mpas_tools.ocean.depth.add_depth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.add_zmid.html">mpas_tools.ocean.depth.add_zmid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.write_time_varying_zmid.html">mpas_tools.ocean.depth.write_time_varying_zmid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_depth.html">mpas_tools.ocean.depth.compute_depth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_zmid.html">mpas_tools.ocean.depth.compute_zmid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_bathymetry.inject_bathymetry.html">mpas_tools.ocean.inject_bathymetry.inject_bathymetry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html">mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
@@ -232,14 +237,14 @@ are counted as land cells.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsMask</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>) – A land-mask data set</p></li>
-<li><p><strong>dsMesh</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>) – MPAS Mesh data set</p></li>
+<li><p><strong>dsMask</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.16.2.dev3)"><em>xarray.Dataset</em></a>) – A land-mask data set</p></li>
+<li><p><strong>dsMesh</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.16.2.dev3)"><em>xarray.Dataset</em></a>) – MPAS Mesh data set</p></li>
 <li><p><strong>latitude_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – Minimum latitude, in degrees, for transect widening</p></li>
 <li><p><strong>nSweeps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – Maximum number of sweeps to search for land-locked cells</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>dsMask</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>) – A copy of the land-mask data set with land-locked cells added to the
+<dd class="field-even"><p><strong>dsMask</strong> (<em>xarray.Dataset</em>) – A copy of the land-mask data set with land-locked cells added to the
 mask for the first region</p>
 </dd>
 </dl>

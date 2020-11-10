@@ -220,18 +220,21 @@
 <dl class="py function">
 <dt id="mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat">
 <code class="sig-prename descclassname">mpas_tools.mesh.creation.mesh_definition_tools.</code><code class="sig-name descname">mergeCellWidthVsLat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">cellWidthInSouth</span></em>, <em class="sig-param"><span class="n">cellWidthInNorth</span></em>, <em class="sig-param"><span class="n">latTransition</span></em>, <em class="sig-param"><span class="n">latWidthTransition</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/mesh_definition_tools.html#mergeCellWidthVsLat"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat" title="Permalink to this definition">¶</a></dt>
-<dd><p>mergeCellWidthVsLat: combine two cell width distributions using a tanh function.
-This is inted as part of the workflow to make an MPAS global mesh.</p>
-<p>Syntax: cellWidthOut = mergeCellWidthVsLat(lat, cellWidthInSouth, cellWidthInNorth, latTransition, latWidthTransition)</p>
-<dl class="simple">
-<dt>Inputs:</dt><dd><p>lat - vector of length n, with entries between -90 and 90, degrees
-cellWidthInSouth - vector of length n, first distribution
-cellWidthInNorth - vector of length n, second distribution</p>
+<dd><p>Combine two cell width distributions using a <code class="docutils literal notranslate"><span class="pre">tanh</span></code> function. This is
+intended as part of the workflow to make an MPAS global mesh.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lat</strong> (<em>ndarray</em>) – vector of length n, with entries between -90 and 90, degrees</p></li>
+<li><p><strong>cellWidthInSouth</strong> (<em>ndarray</em>) – vector of length n, first distribution</p></li>
+<li><p><strong>cellWidthInNorth</strong> (<em>ndarray</em>) – vector of length n, second distribution</p></li>
+<li><p><strong>latTransition</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – lat to change from <code class="docutils literal notranslate"><span class="pre">cellWidthInSouth</span></code> to <code class="docutils literal notranslate"><span class="pre">cellWidthInNorth</span></code> in
+degrees</p></li>
+<li><p><strong>latWidthTransition</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – width of lat transition in degrees</p></li>
+</ul>
 </dd>
-<dt>Optional inputs:</dt><dd><p>latTransition = 0 # lat to change from cellWidthInSouth to cellWidthInNorth, degrees
-latWidthTransition = 0 # width of lat transition, degrees</p>
-</dd>
-<dt>Outputs:</dt><dd><p>cellWidthOut - vector of length n, entries are cell width as a function of lat</p>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>cellWidthOut</strong> (<em>ndarray</em>) – vector of length n, entries are cell width as a function of lat</p>
 </dd>
 </dl>
 </dd></dl>

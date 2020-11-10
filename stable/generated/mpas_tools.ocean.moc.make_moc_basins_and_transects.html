@@ -135,6 +135,11 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates.html">mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_coarse_coast.html">mpas_tools.ocean.coastal_tools.plot_coarse_coast</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_region_box.html">mpas_tools.ocean.coastal_tools.plot_region_box</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.add_depth.html">mpas_tools.ocean.depth.add_depth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.add_zmid.html">mpas_tools.ocean.depth.add_zmid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.write_time_varying_zmid.html">mpas_tools.ocean.depth.write_time_varying_zmid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_depth.html">mpas_tools.ocean.depth.compute_depth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_zmid.html">mpas_tools.ocean.depth.compute_zmid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_bathymetry.inject_bathymetry.html">mpas_tools.ocean.inject_bathymetry.inject_bathymetry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html">mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
@@ -228,26 +233,22 @@
 <dt id="mpas_tools.ocean.moc.make_moc_basins_and_transects">
 <code class="sig-prename descclassname">mpas_tools.ocean.moc.</code><code class="sig-name descname">make_moc_basins_and_transects</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">gf</span></em>, <em class="sig-param"><span class="n">mesh_filename</span></em>, <em class="sig-param"><span class="n">mask_and_transect_filename</span></em>, <em class="sig-param"><span class="n">geojson_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">mask_filename</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dir</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/moc.html#make_moc_basins_and_transects"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.ocean.moc.make_moc_basins_and_transects" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds features defining the ocean basins and southern transects used in
-computing the meridional overturning circulation (MOC)
-:param gf: An object that knows how to download and read geometric featuers
-:type gf: <code class="docutils literal notranslate"><span class="pre">GeometricFeatures</span></code>
-:param mesh_filename: A file with MPAS mesh information
-:type mesh_filename: str
-:param mask_and_transect_filename: A file to write the MOC region masks and southern-boundary transects to
-:type mask_and_transect_filename: str
-:param geojson_filename: A file to write MOC regions to
-:type geojson_filename: str, optional
-:param mask_filename: A file to write MOC region masks to
-:type mask_filename: str, optional
-:param logger: A logger for the output if not stdout
-:type logger: <code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, optional
-:param dir: A directory in which a temporary directory will be added with files</p>
-<blockquote>
-<div><p>produced during conversion and then deleted upon completion.</p>
-</div></blockquote>
+computing the meridional overturning circulation (MOC)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p><strong>fc</strong> (<code class="docutils literal notranslate"><span class="pre">FeatureCollection</span></code>) – The new feature collection</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gf</strong> (<code class="docutils literal notranslate"><span class="pre">GeometricFeatures</span></code>) – An object that knows how to download and read geometric featuers</p></li>
+<li><p><strong>mesh_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A file with MPAS mesh information</p></li>
+<li><p><strong>mask_and_transect_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A file to write the MOC region masks and southern-boundary transects to</p></li>
+<li><p><strong>geojson_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – A file to write MOC regions to</p></li>
+<li><p><strong>mask_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – A file to write MOC region masks to</p></li>
+<li><p><strong>logger</strong> (<code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, optional) – A logger for the output if not stdout</p></li>
+<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – A directory in which a temporary directory will be added with files
+produced during conversion and then deleted upon completion.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>fc</strong> (<code class="docutils literal notranslate"><span class="pre">FeatureCollection</span></code>) – The new feature collection</p>
 </dd>
 </dl>
 </dd></dl>

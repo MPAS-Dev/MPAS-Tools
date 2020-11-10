@@ -179,13 +179,7 @@
            <div itemprop="articleBody">
             
   <h1>Source code for mpas_tools.mesh.creation.mpas_to_triangle</h1><div class="highlight"><pre>
-<span></span><span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">Script to convert from MPAS netCDF format to the Triangle format:</span>
-<span class="sd">https://www.cs.cmu.edu/~quake/triangle.node.html</span>
-<span class="sd">https://www.cs.cmu.edu/~quake/triangle.ele.html</span>
-
-<span class="sd">Only works for planar meshes.</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span></span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
@@ -195,8 +189,23 @@
 
 
 <div class="viewcode-block" id="mpas_to_triangle"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle.html#mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle">[docs]</a><span class="k">def</span> <span class="nf">mpas_to_triangle</span><span class="p">(</span><span class="n">mpasfile</span><span class="p">,</span> <span class="n">trifile</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Script to convert from MPAS netCDF format to the Triangle format:</span>
+<span class="sd">    https://www.cs.cmu.edu/~quake/triangle.node.html</span>
+<span class="sd">    https://www.cs.cmu.edu/~quake/triangle.ele.html</span>
 
-    <span class="n">fin</span> <span class="o">=</span> <span class="n">NetCDFFile</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">mpasfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mpasfile : str</span>
+<span class="sd">        The path to an MPAS mesh in NetCDF format</span>
+
+<span class="sd">    trifile : str</span>
+<span class="sd">        The prefix for the Triangle output files.  Files with extensions</span>
+<span class="sd">        ``.node`` and ``.ele`` will be produced.</span>
+
+<span class="sd">    Only works for planar meshes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fin</span> <span class="o">=</span> <span class="n">NetCDFFile</span><span class="p">(</span><span class="n">mpasfile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">fin</span><span class="o">.</span><span class="n">on_a_sphere</span> <span class="o">==</span> <span class="s2">&quot;YES&quot;</span><span class="p">:</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">abort</span><span class="p">(</span><span class="s2">&quot;ERROR: This script only works for planar meshes!&quot;</span><span class="p">)</span>
 
@@ -213,7 +222,7 @@
     <span class="n">ConV</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;cellsOnVertex&#39;</span><span class="p">][:]</span>
 
     <span class="c1"># create node file</span>
-    <span class="n">fnode</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">trifile</span> <span class="o">+</span> <span class="s2">&quot;.node&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+    <span class="n">fnode</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">trifile</span> <span class="o">+</span> <span class="s2">&quot;.node&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
     <span class="c1"># write node file header:   First line: &lt;# of vertices&gt; &lt;dimension (must</span>
     <span class="c1"># be 2)&gt; &lt;# of attributes&gt; &lt;# of boundary markers (0 or 1)&gt;</span>
     <span class="n">fnode</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:d}</span><span class="s2"> 2 0 1</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nCells</span><span class="p">))</span>
@@ -229,11 +238,11 @@
                 <span class="n">xCell</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
                 <span class="n">yCell</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
                 <span class="n">isBdy</span><span class="p">))</span>
-    <span class="n">fnode</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# Generated from MPAS file: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">mpasfile</span><span class="p">))</span>
+    <span class="n">fnode</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# Generated from MPAS file: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mpasfile</span><span class="p">))</span>
     <span class="n">fnode</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># create ele file</span>
-    <span class="n">fele</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">trifile</span> <span class="o">+</span> <span class="s2">&quot;.ele&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+    <span class="n">fele</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">trifile</span> <span class="o">+</span> <span class="s2">&quot;.ele&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
 
     <span class="c1"># calculate number of non-degenerate triangles</span>
     <span class="n">numtri</span> <span class="o">=</span> <span class="mi">0</span>
@@ -252,7 +261,7 @@
             <span class="n">cnt</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">fele</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{:d}</span><span class="s2"> </span><span class="si">{:d}</span><span class="s2"> </span><span class="si">{:d}</span><span class="s2"> </span><span class="si">{:d}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                 <span class="n">cnt</span><span class="p">,</span> <span class="n">ConV</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">ConV</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">ConV</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]))</span>
-    <span class="n">fele</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# Generated from MPAS file: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">mpasfile</span><span class="p">))</span>
+    <span class="n">fele</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;# Generated from MPAS file: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mpasfile</span><span class="p">))</span>
     <span class="n">fele</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="n">fin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>

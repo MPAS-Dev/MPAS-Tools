@@ -180,22 +180,15 @@
             
   <h1>Source code for mpas_tools.mesh.creation.mesh_definition_tools</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">name: mesh_definition_tools</span>
-
-<span class="sd">These functions are tools used to define the cellWidth variable on</span>
-<span class="sd">regular lat/lon grids.  The cellWidth variable is a jigsaw input that</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">These functions are tools used to define the ``cellWidth`` variable on</span>
+<span class="sd">regular lat/lon grids.  The ``cellWidth`` variable is a ``jigsaw`` input that</span>
 <span class="sd">defines the mesh.</span>
-<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-
-<span class="c1">##########################################################################</span>
-<span class="c1"># Functions</span>
-<span class="c1">##########################################################################</span>
 
 
 <div class="viewcode-block" id="mergeCellWidthVsLat"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat">[docs]</a><span class="k">def</span> <span class="nf">mergeCellWidthVsLat</span><span class="p">(</span>
@@ -204,27 +197,33 @@
         <span class="n">cellWidthInNorth</span><span class="p">,</span>
         <span class="n">latTransition</span><span class="p">,</span>
         <span class="n">latWidthTransition</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    mergeCellWidthVsLat: combine two cell width distributions using a tanh function.</span>
-<span class="sd">    This is inted as part of the workflow to make an MPAS global mesh.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Combine two cell width distributions using a ``tanh`` function. This is</span>
+<span class="sd">    intended as part of the workflow to make an MPAS global mesh.</span>
 
-<span class="sd">    Syntax: cellWidthOut = mergeCellWidthVsLat(lat, cellWidthInSouth, cellWidthInNorth, latTransition, latWidthTransition)</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lat : ndarray</span>
+<span class="sd">        vector of length n, with entries between -90 and 90, degrees</span>
 
-<span class="sd">    Inputs:</span>
-<span class="sd">       lat - vector of length n, with entries between -90 and 90, degrees</span>
-<span class="sd">       cellWidthInSouth - vector of length n, first distribution</span>
-<span class="sd">       cellWidthInNorth - vector of length n, second distribution</span>
+<span class="sd">    cellWidthInSouth : ndarray</span>
+<span class="sd">        vector of length n, first distribution</span>
 
-<span class="sd">    Optional inputs:</span>
-<span class="sd">       latTransition = 0 # lat to change from cellWidthInSouth to cellWidthInNorth, degrees</span>
-<span class="sd">       latWidthTransition = 0 # width of lat transition, degrees</span>
+<span class="sd">    cellWidthInNorth : ndarray</span>
+<span class="sd">        vector of length n, second distribution</span>
 
-<span class="sd">    Outputs:</span>
-<span class="sd">       cellWidthOut - vector of length n, entries are cell width as a function of lat</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="c1"># Assign defaults</span>
-    <span class="c1"># latTransition = 0 # lat to change from cellWidthInSouth to cellWidthInNorth, degrees</span>
-    <span class="c1"># latWidthTransition = 0 # width of lat transition, degrees</span>
+<span class="sd">    latTransition : float</span>
+<span class="sd">        lat to change from ``cellWidthInSouth`` to ``cellWidthInNorth`` in</span>
+<span class="sd">        degrees</span>
+
+<span class="sd">    latWidthTransition : float</span>
+<span class="sd">        width of lat transition in degrees</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cellWidthOut : ndarray</span>
+<span class="sd">        vector of length n, entries are cell width as a function of lat</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">cellWidthOut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">latWidthTransition</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -253,7 +252,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    lat : numpy.ndarray</span>
+<span class="sd">    lat : ndarray</span>
 <span class="sd">       vector of length n, with entries between -90 and 90, degrees</span>
 
 <span class="sd">    cellWidthEq : float, optional</span>
@@ -282,8 +281,7 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-
-<span class="sd">    cellWidthOut : numpy.ndarray</span>
+<span class="sd">    cellWidthOut : ndarray</span>
 <span class="sd">         1D array of same length as ``lat`` with entries that are cell width as</span>
 <span class="sd">         a function of lat</span>
 
@@ -315,23 +313,31 @@
 
 
 <div class="viewcode-block" id="RRS_CellWidthVsLat"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat">[docs]</a><span class="k">def</span> <span class="nf">RRS_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">cellWidthEq</span><span class="p">,</span> <span class="n">cellWidthPole</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    RRS_CellWidthVsLat - Create Rossby Radius Scaling as a function of lat.</span>
-<span class="sd">    This is inted as part of the workflow to make an MPAS global mesh.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create Rossby Radius Scaling as a function of lat.  This is intended  as</span>
+<span class="sd">    part of the workflow to make an MPAS global mesh.</span>
 
-<span class="sd">    Syntax: cellWidthOut = RRS_CellWidthVsLat(lat, cellWidthEq, cellWidthPole)</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lat : ndarray</span>
+<span class="sd">       vector of length n, with entries between -90 and 90, degrees</span>
 
-<span class="sd">    Inputs:</span>
-<span class="sd">       lat - vector of length n, with entries between -90 and 90, degrees</span>
-<span class="sd">       cellWidthEq - Cell width at the equator, km</span>
-<span class="sd">       cellWidthPole - Cell width at the poles, km</span>
+<span class="sd">    cellWidthEq : float, optional</span>
+<span class="sd">       Cell width in km at the equator</span>
 
-<span class="sd">    Outputs:</span>
-<span class="sd">       RRS_CellWidth - vector of length n, entries are cell width as a function of lat</span>
+<span class="sd">    cellWidthPole : float, optional</span>
+<span class="sd">       Cell width in km at the poles</span>
 
-<span class="sd">    Example:</span>
-<span class="sd">       RRS18to6 = RRS_CellWidthVsLat(lat,18,6)</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cellWidthOut : ndarray</span>
+<span class="sd">         1D array of same length as ``lat`` with entries that are cell width as</span>
+<span class="sd">         a function of lat</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; RRS18to6 = EC_CellWidthVsLat(lat, 18., 6.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># ratio between high and low resolution</span>
     <span class="n">gamma</span> <span class="o">=</span> <span class="p">(</span><span class="n">cellWidthPole</span> <span class="o">/</span> <span class="n">cellWidthEq</span><span class="p">)</span><span class="o">**</span><span class="mf">4.0</span>
@@ -343,20 +349,29 @@
 
 
 <div class="viewcode-block" id="AtlanticPacificGrid"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid.html#mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid">[docs]</a><span class="k">def</span> <span class="nf">AtlanticPacificGrid</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">cellWidthInAtlantic</span><span class="p">,</span> <span class="n">cellWidthInPacific</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    AtlanticPacificGrid: combine two cell width distributions using a tanh function.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Combine two cell width distributions using a ``tanh`` function.</span>
 
-<span class="sd">    Inputs:</span>
-<span class="sd">      lon - vector of length m, with entries between -180, 180, degrees</span>
-<span class="sd">      lat - vector of length n, with entries between -90, 90, degrees</span>
-<span class="sd">      cellWidthInAtlantic - vector of length n, cell width in Atlantic as a function of lon, km</span>
-<span class="sd">      cellWidthInPacific - vector of length n, cell width in Pacific as a function of lon, km</span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lat : ndarray</span>
+<span class="sd">       vector of length n, with entries between -90 and 90, degrees</span>
 
-<span class="sd">    Optional inputs:</span>
+<span class="sd">    lon : ndarray</span>
+<span class="sd">       vector of length m, with entries between -180, 180, degrees</span>
 
-<span class="sd">    Outputs:</span>
-<span class="sd">      cellWidthOut - m by n array, grid cell width on globe, km</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    cellWidthInAtlantic : float, optional</span>
+<span class="sd">       vector of length n, cell width in Atlantic as a function of lon, km</span>
+
+<span class="sd">    cellWidthInPacific : float, optional</span>
+<span class="sd">       vector of length n, cell width in Pacific as a function of lon, km</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cellWidthOut : ndarray</span>
+<span class="sd">         m by n array, grid cell width on globe, km</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cellWidthOut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">lat</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">lon</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lat</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
@@ -376,8 +391,6 @@
                 <span class="k">if</span> <span class="p">(</span><span class="n">lon</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">60.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">lon</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">20.0</span><span class="p">):</span>
                     <span class="n">cellWidthOut</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cellWidthInAtlantic</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">cellWidthOut</span></div>
-
-<span class="c1">##############################################################</span>
 </pre></div>
 
            </div>

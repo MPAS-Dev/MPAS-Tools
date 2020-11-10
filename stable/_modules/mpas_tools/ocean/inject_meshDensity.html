@@ -202,6 +202,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a ``meshDensity`` field into an MPAS mesh.  The mesh density is defined</span>
 <span class="sd">    as:</span>
+
 <span class="sd">      meshDensity = (minCellWidth / cellWidth)**4</span>
 
 <span class="sd">    Parameters</span>
@@ -214,10 +215,6 @@
 
 <span class="sd">    on_sphere : bool, optional</span>
 <span class="sd">        Whether the mesh is spherical (as opposed to planar)</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Read cell width field from nc file regular grid...&#39;</span><span class="p">)</span>
     <span class="n">ds</span> <span class="o">=</span> <span class="n">nc4</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
@@ -239,6 +236,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a ``meshDensity`` field into a spherical MPAS mesh.  The mesh density is</span>
 <span class="sd">    defined as:</span>
+
 <span class="sd">      meshDensity = (minCellWidth / cellWidth)**4</span>
 
 <span class="sd">    Parameters</span>
@@ -284,6 +282,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a ``meshDensity`` field into a planar MPAS mesh.  The mesh density is</span>
 <span class="sd">    defined as:</span>
+
 <span class="sd">      meshDensity = (minCellWidth / cellWidth)**4</span>
 
 <span class="sd">    Parameters</span>

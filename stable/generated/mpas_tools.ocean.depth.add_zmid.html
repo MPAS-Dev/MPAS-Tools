@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>mpas_tools.ocean.coastal_tools &mdash; mpas_tools stable documentation</title>
+  <title>mpas_tools.ocean.depth.add_zmid &mdash; mpas_tools stable documentation</title>
   
 
   
@@ -36,8 +36,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.ocean.coastal_tools.coastal_refined_mesh" href="mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html" />
-    <link rel="prev" title="mpas_tools.ocean.build_mesh.build_planar_mesh" href="mpas_tools.ocean.build_mesh.build_planar_mesh.html" /> 
+    <link rel="next" title="mpas_tools.ocean.depth.write_time_varying_zmid" href="mpas_tools.ocean.depth.write_time_varying_zmid.html" />
+    <link rel="prev" title="mpas_tools.ocean.depth.add_depth" href="mpas_tools.ocean.depth.add_depth.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -121,7 +121,7 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.build_mesh.html">mpas_tools.ocean.build_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.build_mesh.build_spherical_mesh.html">mpas_tools.ocean.build_mesh.build_spherical_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.build_mesh.build_planar_mesh.html">mpas_tools.ocean.build_mesh.build_planar_mesh</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.html">mpas_tools.ocean.coastal_tools</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html">mpas_tools.ocean.coastal_tools.coastal_refined_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.create_background_mesh.html">mpas_tools.ocean.coastal_tools.create_background_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.extract_coastlines.html">mpas_tools.ocean.coastal_tools.extract_coastlines</a></li>
@@ -136,7 +136,7 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_coarse_coast.html">mpas_tools.ocean.coastal_tools.plot_coarse_coast</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_region_box.html">mpas_tools.ocean.coastal_tools.plot_region_box</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.add_depth.html">mpas_tools.ocean.depth.add_depth</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.add_zmid.html">mpas_tools.ocean.depth.add_zmid</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.depth.add_zmid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.write_time_varying_zmid.html">mpas_tools.ocean.depth.write_time_varying_zmid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_depth.html">mpas_tools.ocean.depth.compute_depth</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_zmid.html">mpas_tools.ocean.depth.compute_zmid</a></li>
@@ -208,13 +208,13 @@
         
           <li><a href="../api.html">API reference</a> &raquo;</li>
         
-      <li>mpas_tools.ocean.coastal_tools</li>
+      <li>mpas_tools.ocean.depth.add_zmid</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/generated/mpas_tools.ocean.coastal_tools.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/generated/mpas_tools.ocean.depth.add_zmid.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -227,62 +227,25 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="module-mpas_tools.ocean.coastal_tools">
-<span id="mpas-tools-ocean-coastal-tools"></span><h1>mpas_tools.ocean.coastal_tools<a class="headerlink" href="#module-mpas_tools.ocean.coastal_tools" title="Permalink to this headline">¶</a></h1>
-<p>name: coastal_tools
-authors: Steven Brus</p>
-<p>last modified: 07/09/2018</p>
-<p class="rubric">Functions</p>
-<table class="longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
-<tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.CPP_projection.html#mpas_tools.ocean.coastal_tools.CPP_projection" title="mpas_tools.ocean.coastal_tools.CPP_projection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">CPP_projection</span></code></a>(lon, lat, origin)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html#mpas_tools.ocean.coastal_tools.coastal_refined_mesh" title="mpas_tools.ocean.coastal_tools.coastal_refined_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastal_refined_mesh</span></code></a>(params[, cell_width, …])</p></td>
-<td><p>Optionally create a background field of cell widths, then add a region of refined resolution to the cell widths.</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.compute_cell_width.html#mpas_tools.ocean.coastal_tools.compute_cell_width" title="mpas_tools.ocean.coastal_tools.compute_cell_width"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_cell_width</span></code></a>(D, cell_width, lon, lat, …)</p></td>
-<td><p>Blend cell widths from the input field with the new resolution in the refined region determined by the distance to the coastline contour.</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.create_background_mesh.html#mpas_tools.ocean.coastal_tools.create_background_mesh" title="mpas_tools.ocean.coastal_tools.create_background_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_background_mesh</span></code></a>(grd_box, ddeg, …[, …])</p></td>
-<td><p>Create a background field of cell widths</p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.distance_to_coast.html#mpas_tools.ocean.coastal_tools.distance_to_coast" title="mpas_tools.ocean.coastal_tools.distance_to_coast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distance_to_coast</span></code></a>(coastlines, lon_grd, …)</p></td>
-<td><p>Extracts a set of coastline contours</p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.extract_coastlines.html#mpas_tools.ocean.coastal_tools.extract_coastlines" title="mpas_tools.ocean.coastal_tools.extract_coastlines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_coastlines</span></code></a>(nc_file, nc_vars, region_box)</p></td>
-<td><p>Extracts a set of coastline contours</p></td>
-</tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">flag_wrap</span></code>(box)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates.html#mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates" title="mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_convex_hull_coordinates</span></code></a>(box)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_data_inside_box.html#mpas_tools.ocean.coastal_tools.get_data_inside_box" title="mpas_tools.ocean.coastal_tools.get_data_inside_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_data_inside_box</span></code></a>(lon, lat, data, box[, idx])</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_indices_inside_quad.html#mpas_tools.ocean.coastal_tools.get_indices_inside_quad" title="mpas_tools.ocean.coastal_tools.get_indices_inside_quad"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_indices_inside_quad</span></code></a>(lon, lat, box[, grid])</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_coarse_coast.html#mpas_tools.ocean.coastal_tools.plot_coarse_coast" title="mpas_tools.ocean.coastal_tools.plot_coarse_coast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_coarse_coast</span></code></a>(ax, plot_box)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_region_box.html#mpas_tools.ocean.coastal_tools.plot_region_box" title="mpas_tools.ocean.coastal_tools.plot_region_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_region_box</span></code></a>(box, color)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.save_matfile.html#mpas_tools.ocean.coastal_tools.save_matfile" title="mpas_tools.ocean.coastal_tools.save_matfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">save_matfile</span></code></a>(cell_width, lon, lat)</p></td>
-<td><p></p></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference internal" href="mpas_tools.ocean.coastal_tools.smooth_coastline.html#mpas_tools.ocean.coastal_tools.smooth_coastline" title="mpas_tools.ocean.coastal_tools.smooth_coastline"><code class="xref py py-obj docutils literal notranslate"><span class="pre">smooth_coastline</span></code></a>(x, y, window)</p></td>
-<td><p></p></td>
-</tr>
-</tbody>
-</table>
+  <div class="section" id="mpas-tools-ocean-depth-add-zmid">
+<h1>mpas_tools.ocean.depth.add_zmid<a class="headerlink" href="#mpas-tools-ocean-depth-add-zmid" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="mpas_tools.ocean.depth.add_zmid">
+<code class="sig-prename descclassname">mpas_tools.ocean.depth.</code><code class="sig-name descname">add_zmid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">inFileName</span></em>, <em class="sig-param"><span class="n">outFileName</span></em>, <em class="sig-param"><span class="n">coordFileName</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/depth.html#add_zmid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.ocean.depth.add_zmid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>inFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – An input MPAS-Ocean file that <code class="docutils literal notranslate"><span class="pre">zMid</span></code> should be added to, used for
+coords if another file is not provided via <code class="docutils literal notranslate"><span class="pre">coordFileName</span></code>.</p></li>
+<li><p><strong>outFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – An output MPAS-Ocean file with <code class="docutils literal notranslate"><span class="pre">zMid</span></code> added</p></li>
+<li><p><strong>coordFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – An MPAS-Ocean file with <code class="docutils literal notranslate"><span class="pre">bottomDepth</span></code>, <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> and
+<code class="docutils literal notranslate"><span class="pre">layerThickness</span></code> but not <code class="docutils literal notranslate"><span class="pre">zMid</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 
 
@@ -293,10 +256,10 @@ authors: Steven Brus</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.coastal_tools.coastal_refined_mesh" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="mpas_tools.ocean.depth.write_time_varying_zmid.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.depth.write_time_varying_zmid" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="mpas_tools.ocean.build_mesh.build_planar_mesh.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.build_mesh.build_planar_mesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="mpas_tools.ocean.depth.add_depth.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.depth.add_depth" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

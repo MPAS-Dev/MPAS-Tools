@@ -178,6 +178,11 @@
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates.html">mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.coastal_tools.plot_coarse_coast.html">mpas_tools.ocean.coastal_tools.plot_coarse_coast</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.coastal_tools.plot_region_box.html">mpas_tools.ocean.coastal_tools.plot_region_box</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.depth.add_depth.html">mpas_tools.ocean.depth.add_depth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.depth.add_zmid.html">mpas_tools.ocean.depth.add_zmid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.depth.write_time_varying_zmid.html">mpas_tools.ocean.depth.write_time_varying_zmid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.depth.compute_depth.html">mpas_tools.ocean.depth.compute_depth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.depth.compute_zmid.html">mpas_tools.ocean.depth.compute_zmid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.inject_bathymetry.inject_bathymetry.html">mpas_tools.ocean.inject_bathymetry.inject_bathymetry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html">mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
@@ -287,7 +292,7 @@ the documentation.</p>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.planar_hex.make_planar_hex_mesh.html#mpas_tools.planar_hex.make_planar_hex_mesh" title="mpas_tools.planar_hex.make_planar_hex_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_planar_hex_mesh</span></code></a>(nx, ny, dc, …[, …])</p></td>
-<td><p>Builds an MPAS periodic, planar hexagonal mesh with the requested dimensions, optionally saving it to a file, and returs it as an <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>.</p></td>
+<td><p>Builds an MPAS periodic, planar hexagonal mesh with the requested dimensions, optionally saving it to a file, and returns it as an <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -313,22 +318,22 @@ the documentation.</p>
 <td><p>Converts mesh data defined in triangle format to NetCDF</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.mesh_definition_tools.html#module-mpas_tools.mesh.creation.mesh_definition_tools" title="mpas_tools.mesh.creation.mesh_definition_tools"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mesh_definition_tools</span></code></a></p></td>
-<td><p>name: mesh_definition_tools</p></td>
+<td><p>These functions are tools used to define the <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code> variable on regular lat/lon grids.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat" title="mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mesh_definition_tools.mergeCellWidthVsLat</span></code></a>(…)</p></td>
-<td><p>mergeCellWidthVsLat: combine two cell width distributions using a tanh function.</p></td>
+<td><p>Combine two cell width distributions using a <code class="docutils literal notranslate"><span class="pre">tanh</span></code> function.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat" title="mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mesh_definition_tools.EC_CellWidthVsLat</span></code></a>(lat)</p></td>
 <td><p>Create Eddy Closure spacing as a function of lat.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat" title="mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mesh_definition_tools.RRS_CellWidthVsLat</span></code></a>(…)</p></td>
-<td><p>RRS_CellWidthVsLat - Create Rossby Radius Scaling as a function of lat.</p></td>
+<td><p>Create Rossby Radius Scaling as a function of lat.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid.html#mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid" title="mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mesh_definition_tools.AtlanticPacificGrid</span></code></a>(…)</p></td>
-<td><p>AtlanticPacificGrid: combine two cell width distributions using a tanh function.</p></td>
+<td><p>Combine two cell width distributions using a <code class="docutils literal notranslate"><span class="pre">tanh</span></code> function.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle.html#mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle" title="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mpas_to_triangle.mpas_to_triangle</span></code></a>(mpasfile, …)</p></td>
-<td><p></p></td>
+<td><p>Script to convert from MPAS netCDF format to the Triangle format: <a class="reference external" href="https://www.cs.cmu.edu/~quake/triangle.node.html">https://www.cs.cmu.edu/~quake/triangle.node.html</a> <a class="reference external" href="https://www.cs.cmu.edu/~quake/triangle.ele.html">https://www.cs.cmu.edu/~quake/triangle.ele.html</a></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.signed_distance.html#module-mpas_tools.mesh.creation.signed_distance" title="mpas_tools.mesh.creation.signed_distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">signed_distance</span></code></a></p></td>
 <td><p></p></td>
@@ -336,7 +341,7 @@ the documentation.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson" title="mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">signed_distance.signed_distance_from_geojson</span></code></a>(fc, …)</p></td>
 <td><p>Get the distance for each point on a lon/lat grid from the closest point on the boundary of the geojson regions.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.signed_distance.mask_from_geojson.html#mpas_tools.mesh.creation.signed_distance.mask_from_geojson" title="mpas_tools.mesh.creation.signed_distance.mask_from_geojson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">signed_distance.mask_from_geojson</span></code></a>(fc, …)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.signed_distance.mask_from_geojson.html#mpas_tools.mesh.creation.signed_distance.mask_from_geojson" title="mpas_tools.mesh.creation.signed_distance.mask_from_geojson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">signed_distance.mask_from_geojson</span></code></a>(fc, …[, …])</p></td>
 <td><p>Make a rasterized mask on a lon/lat grid from shapes (geojson multipolygon data).</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.signed_distance.distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.distance_from_geojson" title="mpas_tools.mesh.creation.signed_distance.distance_from_geojson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">signed_distance.distance_from_geojson</span></code></a>(fc, …)</p></td>
@@ -396,7 +401,7 @@ the documentation.</p>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.translate.translate.html#mpas_tools.translate.translate" title="mpas_tools.translate.translate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">translate</span></code></a>(mesh[, xOffset, yOffset])</p></td>
-<td><p>Translates the coordinate system of the planar MPAS mesh by an arbirary shift in x and/or y</p></td>
+<td><p>Translates the coordinate system of the planar MPAS mesh by an arbitrary shift in x and/or y</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.translate.center.html#mpas_tools.translate.center" title="mpas_tools.translate.center"><code class="xref py py-obj docutils literal notranslate"><span class="pre">center</span></code></a>(mesh)</p></td>
 <td><p>Translates the coordinate system of the planar MPAS mesh by shifting the origin to the center of the domain</p></td>
@@ -412,8 +417,8 @@ the documentation.</p>
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.io.write_netcdf.html#mpas_tools.io.write_netcdf" title="mpas_tools.io.write_netcdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_netcdf</span></code></a>(ds, fileName[, fillValues, format])</p></td>
-<td><p>Write an xarray Dataset with NetCDF4 fill values where needed</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.io.write_netcdf.html#mpas_tools.io.write_netcdf" title="mpas_tools.io.write_netcdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_netcdf</span></code></a>(ds, fileName[, fillValues, …])</p></td>
+<td><p>Write an xarray.Dataset to a file with NetCDF4 fill values and the given name of the string dimension.</p></td>
 </tr>
 </tbody>
 </table>
@@ -470,20 +475,10 @@ the documentation.</p>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastline_alteration.add_critical_land_blockages.html#mpas_tools.ocean.coastline_alteration.add_critical_land_blockages" title="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastline_alteration.add_critical_land_blockages</span></code></a>(…)</p></td>
-<td><p><dl class="field-list simple">
-<dt class="field-odd">param dsMask</dt>
-<dd class="field-odd"><p>The mask to which critical blockages should be added</p>
-</dd>
-</dl>
-</p></td>
+<td><p>Add the masks associated with one or more transects to the land mask</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html#mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks" title="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastline_alteration.widen_transect_edge_masks</span></code></a>(…)</p></td>
-<td><p><dl class="field-list simple">
-<dt class="field-odd">param dsMask</dt>
-<dd class="field-odd"><p>The mask to which critical blockages should be added</p>
-</dd>
-</dl>
-</p></td>
+<td><p>Alter critical passages at polar latitudes to be at least two cells wide, to avoid sea ice blockage</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask.html#mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask" title="mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastline_alteration.add_land_locked_cells_to_mask</span></code></a>(…)</p></td>
 <td><p>Find ocean cells that are land-locked, and alter the cell mask so that they are counted as land cells.</p></td>
@@ -492,10 +487,10 @@ the documentation.</p>
 <td><p></p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.moc.make_moc_basins_and_transects.html#mpas_tools.ocean.moc.make_moc_basins_and_transects" title="mpas_tools.ocean.moc.make_moc_basins_and_transects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">moc.make_moc_basins_and_transects</span></code></a>(gf, …[, …])</p></td>
-<td><p>Builds features defining the ocean basins and southern transects used in computing the meridional overturning circulation (MOC) :param gf: An object that knows how to download and read geometric featuers :type gf: <code class="docutils literal notranslate"><span class="pre">GeometricFeatures</span></code> :param mesh_filename: A file with MPAS mesh information :type mesh_filename: str :param mask_and_transect_filename: A file to write the MOC region masks and southern-boundary transects to :type mask_and_transect_filename: str :param geojson_filename: A file to write MOC regions to :type geojson_filename: str, optional :param mask_filename: A file to write MOC region masks to :type mask_filename: str, optional :param logger: A logger for the output if not stdout :type logger: <code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, optional :param dir: A directory in which a temporary directory will be added with files             produced during conversion and then deleted upon completion. :type dir: str, optional.</p></td>
+<td><p>Builds features defining the ocean basins and southern transects used in computing the meridional overturning circulation (MOC)</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.moc.build_moc_basins.html#mpas_tools.ocean.moc.build_moc_basins" title="mpas_tools.ocean.moc.build_moc_basins"><code class="xref py py-obj docutils literal notranslate"><span class="pre">moc.build_moc_basins</span></code></a>(gf[, logger])</p></td>
-<td><p>Builds features defining the ocean basins used in computing the meridional overturning circulation (MOC) :param gf: An object that knows how to download and read geometric featuers :type gf: <code class="docutils literal notranslate"><span class="pre">GeometricFeatures</span></code> :param logger: A logger for the output if not stdout :type logger: <code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, optional</p></td>
+<td><p>Builds features defining the ocean basins used in computing the meridional overturning circulation (MOC)</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html#mpas_tools.ocean.moc.add_moc_southern_boundary_transects" title="mpas_tools.ocean.moc.add_moc_southern_boundary_transects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">moc.add_moc_southern_boundary_transects</span></code></a>(…)</p></td>
 <td><p><dl class="field-list simple">
@@ -518,19 +513,19 @@ the documentation.</p>
 <td><p>name: coastal_tools authors: Steven Brus</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html#mpas_tools.ocean.coastal_tools.coastal_refined_mesh" title="mpas_tools.ocean.coastal_tools.coastal_refined_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastal_tools.coastal_refined_mesh</span></code></a>(params[, …])</p></td>
-<td><p></p></td>
+<td><p>Optionally create a background field of cell widths, then add a region of refined resolution to the cell widths.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastal_tools.create_background_mesh.html#mpas_tools.ocean.coastal_tools.create_background_mesh" title="mpas_tools.ocean.coastal_tools.create_background_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastal_tools.create_background_mesh</span></code></a>(…[, …])</p></td>
-<td><p></p></td>
+<td><p>Create a background field of cell widths</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastal_tools.extract_coastlines.html#mpas_tools.ocean.coastal_tools.extract_coastlines" title="mpas_tools.ocean.coastal_tools.extract_coastlines"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastal_tools.extract_coastlines</span></code></a>(nc_file, …)</p></td>
-<td><p></p></td>
+<td><p>Extracts a set of coastline contours</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastal_tools.distance_to_coast.html#mpas_tools.ocean.coastal_tools.distance_to_coast" title="mpas_tools.ocean.coastal_tools.distance_to_coast"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastal_tools.distance_to_coast</span></code></a>(coastlines, …)</p></td>
-<td><p></p></td>
+<td><p>Extracts a set of coastline contours</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastal_tools.compute_cell_width.html#mpas_tools.ocean.coastal_tools.compute_cell_width" title="mpas_tools.ocean.coastal_tools.compute_cell_width"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastal_tools.compute_cell_width</span></code></a>(D, …[, …])</p></td>
-<td><p></p></td>
+<td><p>Blend cell widths from the input field with the new resolution in the refined region determined by the distance to the coastline contour.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastal_tools.save_matfile.html#mpas_tools.ocean.coastal_tools.save_matfile" title="mpas_tools.ocean.coastal_tools.save_matfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastal_tools.save_matfile</span></code></a>(cell_width, lon, lat)</p></td>
 <td><p></p></td>
@@ -556,6 +551,21 @@ the documentation.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastal_tools.plot_region_box.html#mpas_tools.ocean.coastal_tools.plot_region_box" title="mpas_tools.ocean.coastal_tools.plot_region_box"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastal_tools.plot_region_box</span></code></a>(box, color)</p></td>
 <td><p></p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.depth.add_depth.html#mpas_tools.ocean.depth.add_depth" title="mpas_tools.ocean.depth.add_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">depth.add_depth</span></code></a>(inFileName, outFileName[, …])</p></td>
+<td><p>Add a 1D depth coordinate to an MPAS-Ocean file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid" title="mpas_tools.ocean.depth.add_zmid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">depth.add_zmid</span></code></a>(inFileName, outFileName[, …])</p></td>
+<td><p>Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.depth.write_time_varying_zmid.html#mpas_tools.ocean.depth.write_time_varying_zmid" title="mpas_tools.ocean.depth.write_time_varying_zmid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">depth.write_time_varying_zmid</span></code></a>(inFileName, …)</p></td>
+<td><p>Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.depth.compute_depth.html#mpas_tools.ocean.depth.compute_depth" title="mpas_tools.ocean.depth.compute_depth"><code class="xref py py-obj docutils literal notranslate"><span class="pre">depth.compute_depth</span></code></a>(refBottomDepth)</p></td>
+<td><p>Computes depth and depth bounds given refBottomDepth</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid" title="mpas_tools.ocean.depth.compute_zmid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">depth.compute_zmid</span></code></a>(bottomDepth, …)</p></td>
+<td><p>Computes zMid given data arrays for bottomDepth, maxLevelCell and layerThickness</p></td>
+</tr>
 </tbody>
 </table>
 <table class="longtable docutils align-default">
@@ -576,13 +586,13 @@ the documentation.</p>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html#mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file" title="mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inject_meshDensity_from_file</span></code></a>(cw_filename, …)</p></td>
-<td><p>Add a <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> field into an MPAS mesh. The mesh density is defined as:   meshDensity = (minCellWidth / cellWidth)**4.</p></td>
+<td><p>Add a <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> field into an MPAS mesh.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html#mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity" title="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inject_spherical_meshDensity</span></code></a>(cellWidth, lon, …)</p></td>
-<td><p>Add a <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> field into a spherical MPAS mesh. The mesh density is defined as:   meshDensity = (minCellWidth / cellWidth)**4.</p></td>
+<td><p>Add a <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> field into a spherical MPAS mesh.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html#mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity" title="mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inject_planar_meshDensity</span></code></a>(cellWidth, x, y, …)</p></td>
-<td><p>Add a <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> field into a planar MPAS mesh. The mesh density is defined as:   meshDensity = (minCellWidth / cellWidth)**4.</p></td>
+<td><p>Add a <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> field into a planar MPAS mesh.</p></td>
 </tr>
 </tbody>
 </table>
@@ -607,7 +617,7 @@ the documentation.</p>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.viz.paraview_extractor.extract_vtk.html#mpas_tools.viz.paraview_extractor.extract_vtk" title="mpas_tools.viz.paraview_extractor.extract_vtk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_vtk</span></code></a>(filename_pattern[, …])</p></td>
-<td><p>Extract fields from a time series of NetCDF files as VTK files for plotting in paraview.</p></td>
+<td><p>Extract fields from a time series of NetCDF files as VTK files for plotting in ParaView.</p></td>
 </tr>
 </tbody>
 </table>

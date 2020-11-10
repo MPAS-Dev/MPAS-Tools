@@ -192,13 +192,13 @@
 
 
 <div class="viewcode-block" id="translate"><a class="viewcode-back" href="../../generated/mpas_tools.translate.translate.html#mpas_tools.translate.translate">[docs]</a><span class="k">def</span> <span class="nf">translate</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">    Translates the coordinate system of the planar MPAS mesh by an arbirary</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Translates the coordinate system of the planar MPAS mesh by an arbitrary</span>
 <span class="sd">    shift in x and/or y</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    mesh : ``xarray.Dataset``</span>
+<span class="sd">    mesh : xarray.Dataset</span>
 <span class="sd">        A planar mesh to translate</span>
 
 <span class="sd">    xOffset : float, optional</span>
@@ -207,7 +207,7 @@
 <span class="sd">    yOffset : float, optional</span>
 <span class="sd">        user-specified shift in the y-direction</span>
 
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">mesh</span><span class="o">.</span><span class="n">xCell</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">xOffset</span>
     <span class="n">mesh</span><span class="o">.</span><span class="n">yCell</span><span class="p">[:]</span> <span class="o">+=</span> <span class="n">yOffset</span>
@@ -218,20 +218,20 @@
 
 
 <div class="viewcode-block" id="center_on_mesh"><a class="viewcode-back" href="../../generated/mpas_tools.translate.center_on_mesh.html#mpas_tools.translate.center_on_mesh">[docs]</a><span class="k">def</span> <span class="nf">center_on_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">otherMesh</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates the coordinate system of the planar MPAS mesh by shifting the</span>
 <span class="sd">    origin to the center of the domain described in a separate mesh</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    mesh : ``xarray.Dataset``</span>
+<span class="sd">    mesh : xarray.Dataset</span>
 <span class="sd">        A planar mesh to translate</span>
 
-<span class="sd">    otherMesh : ``xarray.Dataset``</span>
+<span class="sd">    otherMesh : xarray.Dataset</span>
 <span class="sd">        Another planar mesh whose center will become the center of this mesh.</span>
 <span class="sd">        Uses xCell,yCell or, if those fields do not exist, will secondly try</span>
 <span class="sd">        x1,y1 fields</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">mpasXcenter</span><span class="p">,</span> <span class="n">mpasYcenter</span> <span class="o">=</span> <span class="n">get_center</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
 
@@ -248,24 +248,24 @@
 
 
 <div class="viewcode-block" id="center"><a class="viewcode-back" href="../../generated/mpas_tools.translate.center.html#mpas_tools.translate.center">[docs]</a><span class="k">def</span> <span class="nf">center</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates the coordinate system of the planar MPAS mesh by shifting the</span>
 <span class="sd">    origin to the center of the domain</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    mesh : ``xarray.Dataset``</span>
+<span class="sd">    mesh : xarray.Dataset</span>
 <span class="sd">        A planar mesh to translate</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">mpasXcenter</span><span class="p">,</span> <span class="n">mpasYcenter</span> <span class="o">=</span> <span class="n">get_center</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
 
     <span class="n">translate</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="o">-</span><span class="n">mpasXcenter</span><span class="p">,</span> <span class="o">-</span><span class="n">mpasYcenter</span><span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">get_center</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">xVar</span><span class="o">=</span><span class="s1">&#39;xCell&#39;</span><span class="p">,</span> <span class="n">yVar</span><span class="o">=</span><span class="s1">&#39;yCell&#39;</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+    <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find the center of the mesh</span>
-<span class="sd">    &#39;&#39;&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">xCenter</span> <span class="o">=</span> <span class="p">(</span><span class="n">mesh</span><span class="p">[</span><span class="n">xVar</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">mesh</span><span class="p">[</span><span class="n">xVar</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">*</span> <span class="mf">0.5</span>
     <span class="n">yCenter</span> <span class="o">=</span> <span class="p">(</span><span class="n">mesh</span><span class="p">[</span><span class="n">yVar</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">()</span> <span class="o">+</span> <span class="n">mesh</span><span class="p">[</span><span class="n">yVar</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">())</span> <span class="o">*</span> <span class="mf">0.5</span>

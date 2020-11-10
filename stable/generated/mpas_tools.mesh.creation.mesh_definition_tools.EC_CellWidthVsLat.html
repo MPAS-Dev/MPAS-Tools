@@ -225,7 +225,7 @@ of the workflow to make an MPAS global mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – vector of length n, with entries between -90 and 90, degrees</p></li>
+<li><p><strong>lat</strong> (<em>ndarray</em>) – vector of length n, with entries between -90 and 90, degrees</p></li>
 <li><p><strong>cellWidthEq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at the equator</p></li>
 <li><p><strong>cellWidthMidLat</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at mid latitudes</p></li>
 <li><p><strong>cellWidthPole</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at the poles</p></li>
@@ -237,7 +237,7 @@ of the workflow to make an MPAS global mesh.</p>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>cellWidthOut</strong> (<em>numpy.ndarray</em>) – 1D array of same length as <code class="docutils literal notranslate"><span class="pre">lat</span></code> with entries that are cell width as
+<dd class="field-even"><p><strong>cellWidthOut</strong> (<em>ndarray</em>) – 1D array of same length as <code class="docutils literal notranslate"><span class="pre">lat</span></code> with entries that are cell width as
 a function of lat</p>
 </dd>
 </dl>
