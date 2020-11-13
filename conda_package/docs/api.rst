@@ -178,6 +178,17 @@ Ocean Tools
    inject_preserve_floodplain
 
 
+.. currentmodule:: mpas_tools.ocean.transects
+
+.. autosummary::
+   :toctree: generated/
+
+   find_transect_levels_and_weights
+   interp_mpas_to_transect_triangles
+   interp_mpas_to_transect_triangle_nodes
+   interp_transect_grid_to_transect_triangle_nodes
+   get_outline_segments
+
 Visualization
 =============
 
@@ -194,6 +205,16 @@ Visualization
    :toctree: generated/
 
    mesh_to_triangles
+
+.. currentmodule:: mpas_tools.viz.transects
+
+.. autosummary::
+   :toctree: generated/
+
+   make_triangle_tree
+   find_transect_cells_and_weights
+   subdivide_great_circle
+   cartesian_to_great_circle_distance
 
 
 .. currentmodule:: mpas_tools.viz.colormaps

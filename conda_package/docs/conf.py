@@ -38,6 +38,8 @@ napoleon_use_rtype = False
 # Otherwise, the Attributes parameter list looks different from the Parameters
 # list
 napoleon_use_ivar = True
+# Make sure multiple variable on the same line show up right
+napoleon_use_param = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
