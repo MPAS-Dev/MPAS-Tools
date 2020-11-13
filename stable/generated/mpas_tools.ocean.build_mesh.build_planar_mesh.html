@@ -145,6 +145,11 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.find_transect_levels_and_weights.html">mpas_tools.ocean.transects.find_transect_levels_and_weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_mpas_to_transect_triangles.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.get_outline_segments.html">mpas_tools.ocean.transects.get_outline_segments</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
@@ -237,18 +242,17 @@
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cellWidth</strong> (<em>ndarray</em>) – m x n array of cell width in km</p></li>
-<li><p><strong>x</strong> (<em>ndarray</em>) – arrays defining planar coordinates in meters</p></li>
-<li><p><strong>y</strong> (<em>ndarray</em>) – arrays defining planar coordinates in meters</p></li>
+<li><p><strong>x, y</strong> (<em>ndarray</em>) – arrays defining planar coordinates in meters</p></li>
 <li><p><strong>geom_points</strong> (<em>ndarray</em>) – list of point coordinates for bounding polygon for the planar mesh</p></li>
 <li><p><strong>geom_edges</strong> (<em>ndarray</em>) – list of edges between points in <code class="docutils literal notranslate"><span class="pre">geom_points</span></code> that define the
 bounding polygon</p></li>
-<li><p><strong>out_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The file name of the resulting MPAS mesh</p></li>
-<li><p><strong>vtk_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the directory where mesh data will be extracted for viewing
+<li><p><strong>out_filename</strong> (<em>str, optional</em>) – The file name of the resulting MPAS mesh</p></li>
+<li><p><strong>vtk_dir</strong> (<em>str, optional</em>) – The name of the directory where mesh data will be extracted for viewing
 in ParaVeiw.</p></li>
-<li><p><strong>preserve_floodplain</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether a flood plain (bathymetry above z = 0) should  be preserved in
+<li><p><strong>preserve_floodplain</strong> (<em>bool, optional</em>) – Whether a flood plain (bathymetry above z = 0) should  be preserved in
 the mesh</p></li>
-<li><p><strong>floodplain_elevation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – The elevation in meters to which the flood plain is preserved</p></li>
-<li><p><strong>do_inject_bathymetry</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether one of the default bathymetry datasets, <code class="docutils literal notranslate"><span class="pre">earth_relief_15s.nc</span></code>
+<li><p><strong>floodplain_elevation</strong> (<em>float, optional</em>) – The elevation in meters to which the flood plain is preserved</p></li>
+<li><p><strong>do_inject_bathymetry</strong> (<em>bool, optional</em>) – Whether one of the default bathymetry datasets, <code class="docutils literal notranslate"><span class="pre">earth_relief_15s.nc</span></code>
 or <code class="docutils literal notranslate"><span class="pre">topo.msh</span></code>, should be added to the MPAS mesh</p></li>
 </ul>
 </dd>

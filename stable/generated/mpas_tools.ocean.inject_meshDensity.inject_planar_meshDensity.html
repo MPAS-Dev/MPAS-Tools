@@ -145,6 +145,11 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.find_transect_levels_and_weights.html">mpas_tools.ocean.transects.find_transect_levels_and_weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_mpas_to_transect_triangles.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.get_outline_segments.html">mpas_tools.ocean.transects.get_outline_segments</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
@@ -241,9 +246,8 @@ defined as:</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cellWidth</strong> (<em>ndarray</em>) – m x n array of cell width in km</p></li>
-<li><p><strong>x</strong> (<em>ndarray</em>) – Planar coordinates in meters</p></li>
-<li><p><strong>y</strong> (<em>ndarray</em>) – Planar coordinates in meters</p></li>
-<li><p><strong>mesh_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The mesh file to add <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> to</p></li>
+<li><p><strong>x, y</strong> (<em>ndarray</em>) – Planar coordinates in meters</p></li>
+<li><p><strong>mesh_filename</strong> (<em>str</em>) – The mesh file to add <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> to</p></li>
 </ul>
 </dd>
 </dl>

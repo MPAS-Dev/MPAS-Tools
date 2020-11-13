@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.viz.colormaps.register_sci_viz_colormaps" href="mpas_tools.viz.colormaps.register_sci_viz_colormaps.html" />
+    <link rel="next" title="mpas_tools.viz.transects.make_triangle_tree" href="mpas_tools.viz.transects.make_triangle_tree.html" />
     <link rel="prev" title="mpas_tools.viz.paraview_extractor.extract_vtk" href="mpas_tools.viz.paraview_extractor.extract_vtk.html" /> 
 </head>
 
@@ -113,6 +113,10 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#visualization">Visualization</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.paraview_extractor.extract_vtk.html">mpas_tools.viz.paraview_extractor.extract_vtk</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.viz.mesh_to_triangles.mesh_to_triangles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.transects.make_triangle_tree.html">mpas_tools.viz.transects.make_triangle_tree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.transects.find_transect_cells_and_weights.html">mpas_tools.viz.transects.find_transect_cells_and_weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.transects.subdivide_great_circle.html">mpas_tools.viz.transects.subdivide_great_circle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.transects.cartesian_to_great_circle_distance.html">mpas_tools.viz.transects.cartesian_to_great_circle_distance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.colormaps.register_sci_viz_colormaps.html">mpas_tools.viz.colormaps.register_sci_viz_colormaps</a></li>
 </ul>
 </li>
@@ -205,8 +209,8 @@ connecting pairs of adjacent vertices to cell centers.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsMesh</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.16.2.dev3)"><em>xarray.Dataset</em></a>) – An MPAS mesh</p></li>
-<li><p><strong>periodicCopy</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to make a periodic copy of triangles that cross -180/180 degrees
+<li><p><strong>dsMesh</strong> (<em>xarray.Dataset</em>) – An MPAS mesh</p></li>
+<li><p><strong>periodicCopy</strong> (<em>bool, optional</em>) – Whether to make a periodic copy of triangles that cross -180/180 degrees
 longitude.  This is helpful when plotting triangles in a lon/lat space.</p></li>
 </ul>
 </dd>
@@ -236,7 +240,7 @@ counterclockwise winding.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="mpas_tools.viz.colormaps.register_sci_viz_colormaps.html" class="btn btn-neutral float-right" title="mpas_tools.viz.colormaps.register_sci_viz_colormaps" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="mpas_tools.viz.transects.make_triangle_tree.html" class="btn btn-neutral float-right" title="mpas_tools.viz.transects.make_triangle_tree" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="mpas_tools.viz.paraview_extractor.extract_vtk.html" class="btn btn-neutral float-left" title="mpas_tools.viz.paraview_extractor.extract_vtk" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

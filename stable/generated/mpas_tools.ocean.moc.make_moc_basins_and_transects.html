@@ -145,6 +145,11 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.find_transect_levels_and_weights.html">mpas_tools.ocean.transects.find_transect_levels_and_weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_mpas_to_transect_triangles.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.get_outline_segments.html">mpas_tools.ocean.transects.get_outline_segments</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
@@ -238,12 +243,12 @@ computing the meridional overturning circulation (MOC)</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>gf</strong> (<code class="docutils literal notranslate"><span class="pre">GeometricFeatures</span></code>) – An object that knows how to download and read geometric featuers</p></li>
-<li><p><strong>mesh_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A file with MPAS mesh information</p></li>
-<li><p><strong>mask_and_transect_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A file to write the MOC region masks and southern-boundary transects to</p></li>
-<li><p><strong>geojson_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – A file to write MOC regions to</p></li>
-<li><p><strong>mask_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – A file to write MOC region masks to</p></li>
+<li><p><strong>mesh_filename</strong> (<em>str</em>) – A file with MPAS mesh information</p></li>
+<li><p><strong>mask_and_transect_filename</strong> (<em>str</em>) – A file to write the MOC region masks and southern-boundary transects to</p></li>
+<li><p><strong>geojson_filename</strong> (<em>str, optional</em>) – A file to write MOC regions to</p></li>
+<li><p><strong>mask_filename</strong> (<em>str, optional</em>) – A file to write MOC region masks to</p></li>
 <li><p><strong>logger</strong> (<code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, optional) – A logger for the output if not stdout</p></li>
-<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – A directory in which a temporary directory will be added with files
+<li><p><strong>dir</strong> (<em>str, optional</em>) – A directory in which a temporary directory will be added with files
 produced during conversion and then deleted upon completion.</p></li>
 </ul>
 </dd>

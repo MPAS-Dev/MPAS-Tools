@@ -226,17 +226,16 @@ dimensions, optionally saving it to a file, and returns it as an
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>nx</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a>) – The number of cells in the x direction</p></li>
+<li><p><strong>nx</strong> (<em>int</em>) – The number of cells in the x direction</p></li>
 <li><p><strong>ny</strong> (<em>even int</em>) – The number of cells in the y direction (must be an even number for
 periodicity to work out)</p></li>
-<li><p><strong>dc</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The distance in meters between adjacent cell centers.</p></li>
-<li><p><strong>nonperiodic_x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – is the mesh non-periodic in x and y directions?</p></li>
-<li><p><strong>nonperiodic_y</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a>) – is the mesh non-periodic in x and y directions?</p></li>
-<li><p><strong>outFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The name of a file to save the mesh to.  The mesh is not saved to a
+<li><p><strong>dc</strong> (<em>float</em>) – The distance in meters between adjacent cell centers.</p></li>
+<li><p><strong>nonperiodic_x, nonperiodic_y</strong> (<em>bool</em>) – is the mesh non-periodic in x and y directions?</p></li>
+<li><p><strong>outFileName</strong> (<em>str, optional</em>) – The name of a file to save the mesh to.  The mesh is not saved to a
 file if no file name is supplied.</p></li>
-<li><p><strong>compareWithFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The name of a grid file to compare with to see if they are identical,
+<li><p><strong>compareWithFileName</strong> (<em>str, optional</em>) – The name of a grid file to compare with to see if they are identical,
 used for testing purposes</p></li>
-<li><p><strong>format</strong> (<em>{'NETCDF4'</em><em>, </em><em>'NETCDF4_CLASSIC'</em><em>, </em><em>'NETCDF3_64BIT'</em><em>, </em><em>'NETCDF3_CLASSIC'}</em><em>, </em><em>optional</em>) – The NetCDF format to use for output</p></li>
+<li><p><strong>format</strong> (<em>{‘NETCDF4’, ‘NETCDF4_CLASSIC’, ‘NETCDF3_64BIT’, ‘NETCDF3_CLASSIC’}, optional</em>) – The NetCDF format to use for output</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

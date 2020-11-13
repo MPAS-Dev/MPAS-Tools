@@ -145,6 +145,11 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.find_transect_levels_and_weights.html">mpas_tools.ocean.transects.find_transect_levels_and_weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_mpas_to_transect_triangles.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.get_outline_segments.html">mpas_tools.ocean.transects.get_outline_segments</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
@@ -236,12 +241,12 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>inFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – An input MPAS-Ocean file with some form of <code class="docutils literal notranslate"><span class="pre">layerThickness</span></code>, and also
+<li><p><strong>inFileName</strong> (<em>str</em>) – An input MPAS-Ocean file with some form of <code class="docutils literal notranslate"><span class="pre">layerThickness</span></code>, and also
 <code class="docutils literal notranslate"><span class="pre">bottomDepth</span></code> and <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> if no <code class="docutils literal notranslate"><span class="pre">coordFileName</span></code>
 is provided.</p></li>
-<li><p><strong>outFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – An output MPAS-Ocean file with <code class="docutils literal notranslate"><span class="pre">zMid</span></code> for each time in the input file</p></li>
-<li><p><strong>coordFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – An MPAS-Ocean file with <code class="docutils literal notranslate"><span class="pre">bottomDepth</span></code> and <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code></p></li>
-<li><p><strong>prefix</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – A prefix on <code class="docutils literal notranslate"><span class="pre">layerThickness</span></code> (in) and <code class="docutils literal notranslate"><span class="pre">zMid</span></code> (out), such as
+<li><p><strong>outFileName</strong> (<em>str</em>) – An output MPAS-Ocean file with <code class="docutils literal notranslate"><span class="pre">zMid</span></code> for each time in the input file</p></li>
+<li><p><strong>coordFileName</strong> (<em>str, optional</em>) – An MPAS-Ocean file with <code class="docutils literal notranslate"><span class="pre">bottomDepth</span></code> and <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code></p></li>
+<li><p><strong>prefix</strong> (<em>str, optional</em>) – A prefix on <code class="docutils literal notranslate"><span class="pre">layerThickness</span></code> (in) and <code class="docutils literal notranslate"><span class="pre">zMid</span></code> (out), such as
 <code class="docutils literal notranslate"><span class="pre">timeMonthly_avg_</span></code></p></li>
 </ul>
 </dd>

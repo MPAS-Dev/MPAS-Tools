@@ -226,13 +226,13 @@ on the boundary of the geojson regions.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fc</strong> (<em>geometrics_features.FeatureCollection</em>) – The regions to be rasterized</p></li>
-<li><p><strong>lon_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – A 1D array of longitude values</p></li>
-<li><p><strong>lat_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.19)"><em>numpy.ndarray</em></a>) – A 1D array of latitude values</p></li>
-<li><p><strong>earth_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Earth radius in meters</p></li>
-<li><p><strong>nn_search</strong> (<em>{'kdtree'</em><em>, </em><em>'flann'}</em><em>, </em><em>optional</em>) – The method used to find the nearest point on the shape boundary</p></li>
-<li><p><strong>max_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – The maximum distance (in degrees) between points on the boundary of the
+<li><p><strong>lon_grd</strong> (<em>numpy.ndarray</em>) – A 1D array of longitude values</p></li>
+<li><p><strong>lat_grd</strong> (<em>numpy.ndarray</em>) – A 1D array of latitude values</p></li>
+<li><p><strong>earth_radius</strong> (<em>float</em>) – Earth radius in meters</p></li>
+<li><p><strong>nn_search</strong> (<em>{‘kdtree’, ‘flann’}, optional</em>) – The method used to find the nearest point on the shape boundary</p></li>
+<li><p><strong>max_length</strong> (<em>float, optional</em>) – The maximum distance (in degrees) between points on the boundary of the
 geojson region.  If the boundary is too coarse, it will be subdivided.</p></li>
-<li><p><strong>shapes</strong> (<em>list of shapely.geometry</em><em>, </em><em>optional</em>) – A list of shapes that have already been extracted from fc and possibly
+<li><p><strong>shapes</strong> (<em>list of shapely.geometry, optional</em>) – A list of shapes that have already been extracted from fc and possibly
 subdivided</p></li>
 </ul>
 </dd>

@@ -188,11 +188,20 @@
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.find_transect_levels_and_weights.html">mpas_tools.ocean.transects.find_transect_levels_and_weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangles.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.get_outline_segments.html">mpas_tools.ocean.transects.get_outline_segments</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.paraview_extractor.extract_vtk.html">mpas_tools.viz.paraview_extractor.extract_vtk</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html">mpas_tools.viz.mesh_to_triangles.mesh_to_triangles</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.transects.make_triangle_tree.html">mpas_tools.viz.transects.make_triangle_tree</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.transects.find_transect_cells_and_weights.html">mpas_tools.viz.transects.find_transect_cells_and_weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.transects.subdivide_great_circle.html">mpas_tools.viz.transects.subdivide_great_circle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.transects.cartesian_to_great_circle_distance.html">mpas_tools.viz.transects.cartesian_to_great_circle_distance</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.colormaps.register_sci_viz_colormaps.html">mpas_tools.viz.colormaps.register_sci_viz_colormaps</a></li>
 </ul>
 </li>
@@ -494,8 +503,10 @@ the documentation.</p>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html#mpas_tools.ocean.moc.add_moc_southern_boundary_transects" title="mpas_tools.ocean.moc.add_moc_southern_boundary_transects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">moc.add_moc_southern_boundary_transects</span></code></a>(…)</p></td>
 <td><p><dl class="field-list simple">
-<dt class="field-odd">param dsMask</dt>
-<dd class="field-odd"><p>Region masks defining MOC basins</p>
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dsMask</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>) – Region masks defining MOC basins</p></li>
+</ul>
 </dd>
 </dl>
 </p></td>
@@ -607,6 +618,29 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.transects.find_transect_levels_and_weights.html#mpas_tools.ocean.transects.find_transect_levels_and_weights" title="mpas_tools.ocean.transects.find_transect_levels_and_weights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_transect_levels_and_weights</span></code></a>(dsTransect, …)</p></td>
+<td><p>Construct a vertical coordinate for a transect produced by <code class="docutils literal notranslate"><span class="pre">mpas_tools.viz.transects.find_transect_cells_and_weights()</span></code>, then break each resulting quadrilateral into 2 triangles that can later be visualized with functions like <code class="docutils literal notranslate"><span class="pre">tripcolor</span></code> and <code class="docutils literal notranslate"><span class="pre">tricontourf</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangles.html#mpas_tools.ocean.transects.interp_mpas_to_transect_triangles" title="mpas_tools.ocean.transects.interp_mpas_to_transect_triangles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interp_mpas_to_transect_triangles</span></code></a>(…)</p></td>
+<td><p>Interpolate a 3D (<code class="docutils literal notranslate"><span class="pre">nCells</span></code> by <code class="docutils literal notranslate"><span class="pre">nVertLevels</span></code>) MPAS-Ocean DataArray to transect nodes with constant values in each MPAS cell</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html#mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes" title="mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interp_mpas_to_transect_triangle_nodes</span></code></a>(…)</p></td>
+<td><p>Interpolate a 3D (<code class="docutils literal notranslate"><span class="pre">nCells</span></code> by <code class="docutils literal notranslate"><span class="pre">nVertLevels</span></code>) MPAS-Ocean DataArray to transect nodes, linearly interpolating fields between the closest neighboring cells</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html#mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes" title="mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interp_transect_grid_to_transect_triangle_nodes</span></code></a>(…)</p></td>
+<td><p>Interpolate a DataArray on the original transect grid to triangle nodes on the MPAS-Ocean transect.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.transects.get_outline_segments.html#mpas_tools.ocean.transects.get_outline_segments" title="mpas_tools.ocean.transects.get_outline_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_outline_segments</span></code></a>(dsTransectTriangles[, …])</p></td>
+<td><p>Get a set of line segments that outline the given transect</p></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="visualization">
 <h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this headline">¶</a></h2>
@@ -629,6 +663,26 @@ the documentation.</p>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html#mpas_tools.viz.mesh_to_triangles.mesh_to_triangles" title="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mesh_to_triangles</span></code></a>(dsMesh[, periodicCopy])</p></td>
 <td><p>Construct a dataset in which each MPAS cell is divided into the triangles connecting pairs of adjacent vertices to cell centers.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.viz.transects.make_triangle_tree.html#mpas_tools.viz.transects.make_triangle_tree" title="mpas_tools.viz.transects.make_triangle_tree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_triangle_tree</span></code></a>(dsTris)</p></td>
+<td><p>Make a KD-Tree for finding triangle edges that are near enough to transect segments that they might intersect</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.viz.transects.find_transect_cells_and_weights.html#mpas_tools.viz.transects.find_transect_cells_and_weights" title="mpas_tools.viz.transects.find_transect_cells_and_weights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_transect_cells_and_weights</span></code></a>(lonTransect, …)</p></td>
+<td><p>Find “nodes” where the transect intersects the edges of the triangles that make up MPAS cells.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.viz.transects.subdivide_great_circle.html#mpas_tools.viz.transects.subdivide_great_circle" title="mpas_tools.viz.transects.subdivide_great_circle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdivide_great_circle</span></code></a>(x, y, z, maxRes, …)</p></td>
+<td><p>Subdivide each segment of the transect so the horizontal resolution approximately matches the requested resolution</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.viz.transects.cartesian_to_great_circle_distance.html#mpas_tools.viz.transects.cartesian_to_great_circle_distance" title="mpas_tools.viz.transects.cartesian_to_great_circle_distance"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cartesian_to_great_circle_distance</span></code></a>(x, y, z, …)</p></td>
+<td><p>Cartesian transect points to great-circle distance</p></td>
 </tr>
 </tbody>
 </table>
