@@ -498,7 +498,6 @@
         <span class="n">coastlines</span><span class="p">,</span>
         <span class="n">lon_grd</span><span class="p">,</span>
         <span class="n">lat_grd</span><span class="p">,</span>
-        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;origin&quot;</span><span class="p">],</span>
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;nn_search&quot;</span><span class="p">],</span>
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;smooth_coastline&quot;</span><span class="p">],</span>
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_option&quot;</span><span class="p">],</span>
@@ -517,8 +516,6 @@
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;restrict_box&quot;</span><span class="p">],</span>
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_option&quot;</span><span class="p">],</span>
         <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_box&quot;</span><span class="p">],</span>
-        <span class="n">lon_grd</span><span class="p">,</span>
-        <span class="n">lat_grd</span><span class="p">,</span>
         <span class="n">coastlines</span><span class="p">,</span>
         <span class="n">call_count</span><span class="p">)</span>
 
@@ -790,8 +787,8 @@
 <span class="c1">##############################################################</span>
 
 
-<div class="viewcode-block" id="distance_to_coast"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.distance_to_coast.html#mpas_tools.ocean.coastal_tools.distance_to_coast">[docs]</a><span class="k">def</span> <span class="nf">distance_to_coast</span><span class="p">(</span><span class="n">coastlines</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">origin</span><span class="p">,</span> <span class="n">nn_search</span><span class="p">,</span>
-                      <span class="n">smooth_window</span><span class="p">,</span> <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="distance_to_coast"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.distance_to_coast.html#mpas_tools.ocean.coastal_tools.distance_to_coast">[docs]</a><span class="k">def</span> <span class="nf">distance_to_coast</span><span class="p">(</span><span class="n">coastlines</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">nn_search</span><span class="p">,</span> <span class="n">smooth_window</span><span class="p">,</span>
+                      <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># {{{</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extracts a set of coastline contours</span>
@@ -807,9 +804,6 @@
 
 <span class="sd">    lat_grd : ndarray</span>
 <span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
-
-<span class="sd">    origin : ndarray</span>
-<span class="sd">        A lon/lat point defining the origin, not currently used by the code</span>
 
 <span class="sd">    nn_search : {&#39;kdtree&#39;, &#39;flann&#39;}</span>
 <span class="sd">        The algorithm to use for the nearest neightbor search.  &#39;flann&#39; is</span>
@@ -921,8 +915,7 @@
 
 <div class="viewcode-block" id="compute_cell_width"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.compute_cell_width.html#mpas_tools.ocean.coastal_tools.compute_cell_width">[docs]</a><span class="k">def</span> <span class="nf">compute_cell_width</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">dx_min</span><span class="p">,</span> <span class="n">trans_start</span><span class="p">,</span>
                        <span class="n">trans_width</span><span class="p">,</span> <span class="n">restrict_box</span><span class="p">,</span> <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                       <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">lon_grd</span><span class="o">=</span><span class="p">[],</span> <span class="n">lat_grd</span><span class="o">=</span><span class="p">[],</span> <span class="n">coastlines</span><span class="o">=</span><span class="p">[],</span>
-                       <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># {{{</span>
+                       <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">coastlines</span><span class="o">=</span><span class="p">[],</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># {{{</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Blend cell widths from the input field with the new resolution in the</span>
 <span class="sd">    refined region determined by the distance to the coastline contour.</span>
@@ -967,14 +960,6 @@
 
 <span class="sd">    plot_box : list of float, optional</span>
 <span class="sd">        The extent of the plot if ``plot_option=True``</span>
-
-<span class="sd">    lon_grd : ndarray</span>
-<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180 used</span>
-<span class="sd">        in plotting if ``plot_option=True`` (the same as ``lon``)</span>
-
-<span class="sd">    lat_grd : ndarray</span>
-<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90 used</span>
-<span class="sd">        in plotting if ``plot_option=True`` (the same as ``lat``)</span>
 
 <span class="sd">    coastlines : ndarray</span>
 <span class="sd">        An n x 2 array of (longitude, latitude) points along the coastline</span>
@@ -1035,7 +1020,7 @@
 
         <span class="c1"># Find coordinates and data inside plotting box</span>
         <span class="n">lon_plot</span><span class="p">,</span> <span class="n">lat_plot</span><span class="p">,</span> <span class="n">cell_width_plot</span> <span class="o">=</span> <span class="n">get_data_inside_box</span><span class="p">(</span>
-            <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">cell_width</span> <span class="o">/</span> <span class="n">km</span><span class="p">,</span> <span class="n">plot_box</span><span class="p">)</span>
+            <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">cell_width</span> <span class="o">/</span> <span class="n">km</span><span class="p">,</span> <span class="n">plot_box</span><span class="p">)</span>
 
         <span class="c1"># Plot cell width</span>
         <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
