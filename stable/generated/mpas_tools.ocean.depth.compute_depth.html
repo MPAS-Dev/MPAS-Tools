@@ -240,13 +240,13 @@
 <dd><p>Computes depth and depth bounds given refBottomDepth</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>refBottomDepth</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code>) – the depth of the bottom of each vertical layer in the initial state
+<dd class="field-odd"><p><strong>refBottomDepth</strong> (<em>xarray.DataArray</em>) – the depth of the bottom of each vertical layer in the initial state
 (perfect z-level coordinate)</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>depth</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code>) – the vertical coordinate defining the middle of each layer</p></li>
-<li><p><strong>depth_bnds</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code>) – the vertical coordinate defining the top and bottom of each layer</p></li>
+<li><p><strong>depth</strong> (<em>numpy.ndarray</em>) – the vertical coordinate defining the middle of each layer</p></li>
+<li><p><strong>depth_bnds</strong> (<em>numpy.ndarray</em>) – the vertical coordinate defining the top and bottom of each layer</p></li>
 </ul>
 </p>
 </dd>

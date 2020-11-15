@@ -236,19 +236,20 @@
 <h1>mpas_tools.ocean.depth.compute_zmid<a class="headerlink" href="#mpas-tools-ocean-depth-compute-zmid" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt id="mpas_tools.ocean.depth.compute_zmid">
-<code class="sig-prename descclassname">mpas_tools.ocean.depth.</code><code class="sig-name descname">compute_zmid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bottomDepth</span></em>, <em class="sig-param"><span class="n">maxLevelCell</span></em>, <em class="sig-param"><span class="n">layerThickness</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/depth.html#compute_zmid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.ocean.depth.compute_zmid" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mpas_tools.ocean.depth.</code><code class="sig-name descname">compute_zmid</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">bottomDepth</span></em>, <em class="sig-param"><span class="n">maxLevelCell</span></em>, <em class="sig-param"><span class="n">layerThickness</span></em>, <em class="sig-param"><span class="n">depth_dim</span><span class="o">=</span><span class="default_value">'nVertLevels'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/depth.html#compute_zmid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.ocean.depth.compute_zmid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes zMid given data arrays for bottomDepth, maxLevelCell and
 layerThickness</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>bottomDepth</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code>) – the depth of the ocean bottom (positive)</p></li>
-<li><p><strong>maxLevelCell</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code>) – the 1-based vertical index of the bottom of the ocean</p></li>
-<li><p><strong>layerThickness</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code>) – the thickness of MPAS-Ocean layers (possibly as a function of time)</p></li>
+<li><p><strong>bottomDepth</strong> (<em>xarray.DataArray</em>) – the depth of the ocean bottom (positive)</p></li>
+<li><p><strong>maxLevelCell</strong> (<em>xarray.DataArray</em>) – the 1-based vertical index of the bottom of the ocean</p></li>
+<li><p><strong>layerThickness</strong> (<em>xarray.DataArray</em>) – the thickness of MPAS-Ocean layers (possibly as a function of time)</p></li>
+<li><p><strong>depth_dim</strong> (<em>str, optional</em>) – the name of the vertical dimension</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>zMid</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.DataArray</span></code>) – the vertical coordinate defining the middle of each layer, masked below
+<dd class="field-even"><p><strong>zMid</strong> (<em>xarray.DataArray</em>) – the vertical coordinate defining the middle of each layer, masked below
 the bathymetry</p>
 </dd>
 </dl>
