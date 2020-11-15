@@ -14,16 +14,16 @@ def compute_depth(refBottomDepth):
 
     Parameters
     ----------
-    refBottomDepth : ``xarray.DataArray``
+    refBottomDepth : xarray.DataArray
         the depth of the bottom of each vertical layer in the initial state
         (perfect z-level coordinate)
 
     Returns
     -------
-    depth : ``xarray.DataArray``
+    depth : numpy.ndarray
         the vertical coordinate defining the middle of each layer
 
-    depth_bnds : ``xarray.DataArray``
+    depth_bnds : numpy.ndarray
         the vertical coordinate defining the top and bottom of each layer
     """
     # Authors
@@ -42,25 +42,29 @@ def compute_depth(refBottomDepth):
     return depth, depth_bnds
 
 
-def compute_zmid(bottomDepth, maxLevelCell, layerThickness):
+def compute_zmid(bottomDepth, maxLevelCell, layerThickness,
+                 depth_dim='nVertLevels'):
     """
     Computes zMid given data arrays for bottomDepth, maxLevelCell and
     layerThickness
 
     Parameters
     ----------
-    bottomDepth : ``xarray.DataArray``
+    bottomDepth : xarray.DataArray
         the depth of the ocean bottom (positive)
 
-    maxLevelCell : ``xarray.DataArray``
+    maxLevelCell : xarray.DataArray
         the 1-based vertical index of the bottom of the ocean
 
-    layerThickness : ``xarray.DataArray``
+    layerThickness : xarray.DataArray
         the thickness of MPAS-Ocean layers (possibly as a function of time)
+
+    depth_dim : str, optional
+        the name of the vertical dimension
 
     Returns
     -------
-    zMid : ``xarray.DataArray``
+    zMid : xarray.DataArray
         the vertical coordinate defining the middle of each layer, masked below
         the bathymetry
     """
@@ -68,16 +72,16 @@ def compute_zmid(bottomDepth, maxLevelCell, layerThickness):
     # -------
     # Xylar Asay-Davis
 
-    nDepth = layerThickness.sizes['depth']
+    nDepth = layerThickness.sizes[depth_dim]
 
     vertIndex = \
-        xarray.DataArray.from_dict({'dims': ('depth',),
+        xarray.DataArray.from_dict({'dims': (depth_dim,),
                                     'data': numpy.arange(nDepth)})
 
     layerThickness = layerThickness.where(vertIndex < maxLevelCell)
 
-    thicknessSum = layerThickness.sum(dim='depth')
-    thicknessCumSum = layerThickness.cumsum(dim='depth')
+    thicknessSum = layerThickness.sum(dim=depth_dim)
+    thicknessCumSum = layerThickness.cumsum(dim=depth_dim)
     zSurface = -bottomDepth+thicknessSum
 
     zLayerBot = zSurface - thicknessCumSum
@@ -85,7 +89,7 @@ def compute_zmid(bottomDepth, maxLevelCell, layerThickness):
     zMid = zLayerBot + 0.5*layerThickness
 
     zMid = zMid.where(vertIndex < maxLevelCell)
-    zMid = zMid.transpose('Time', 'nCells', 'depth')
+    zMid = zMid.transpose('Time', 'nCells', depth_dim)
 
     return zMid
 
@@ -201,7 +205,8 @@ def add_zmid(inFileName, outFileName, coordFileName=None):
 
         ds.coords['zMid'] = compute_zmid(dsCoord.bottomDepth,
                                          dsCoord.maxLevelCell,
-                                         dsCoord.layerThickness)
+                                         dsCoord.layerThickness,
+                                         depth_dim='depth')
         fillValue = netCDF4.default_fillvals['f8']
         ds.coords['zMid'] = ds.zMid.where(ds.zMid.notnull(), other=fillValue)
         ds.zMid.attrs['units'] = 'meters'
@@ -283,7 +288,7 @@ def write_time_varying_zmid(inFileName, outFileName, coordFileName=None,
     layerThickness = dsIn[inVarName]
 
     zMid = compute_zmid(dsCoord.bottomDepth, dsCoord.maxLevelCell,
-                        layerThickness)
+                        layerThickness, depth_dim='depth')
 
     dsOut = xarray.Dataset()
     dsOut[outVarName] = zMid
