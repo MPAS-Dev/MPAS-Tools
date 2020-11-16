@@ -33,9 +33,38 @@ The command-line approach for generating the same mesh would be:
 .. code-block:: none
 
     $ planar_hex --nx=10 --ny=20 --dc=1000. \
-         --outFileName='periodic_mesh_10x20_1km.nc
+         --outFileName=periodic_mesh_10x20_1km.nc
 
 In this case, the resulting mesh is written to a file.
+
+The default is to make a periodic mesh (awkwardly, it's "not non-periodic"). If
+you want a mesh that is not periodic in one or both directions, you first need
+to create a mesh and then cull the cells along the periodic boundary.  It
+doesn't hurt to run the mesh converter as well, just to be sure the mesh
+conforms correctly to the MPAS mesh specification:
+
+.. code-block:: python
+
+    from mpas_tools.planar_hex import make_planar_hex_mesh
+    from mpas_tools.mesh.conversion import cull, convert
+
+    dsMesh = make_planar_hex_mesh(nx=10, ny=20, dc=1000., nonperiodic_x=True,
+                                  nonperiodic_y=True)
+
+    dsMesh = cull(dsMesh)
+    dsMesh = convert(dsMesh)
+
+On the command line, this looks like:
+
+.. code-block:: none
+
+    $ planar_hex --nx=10 --ny=20 --dc=1000. --npx --npy \
+         --outFileName=mesh_to_cull.nc
+
+    $ MpasCellCuller.x mesh_to_cull.nc culled_mesh.nc
+
+    $ MpasMeshConverter.x culled_mesh.nc nonperiodic_mesh_10x20_1km.nc
+
 
 Building a JIGSAW Mesh
 ======================

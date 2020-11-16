@@ -220,10 +220,34 @@ cells in size with 1-km resolution.  The mesh is not save to a file in this
 example but is instead returned as an <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> object.</p>
 <p>The command-line approach for generating the same mesh would be:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ planar_hex --nx=10 --ny=20 --dc=1000. \
-     --outFileName=&#39;periodic_mesh_10x20_1km.nc
+     --outFileName=periodic_mesh_10x20_1km.nc
 </pre></div>
 </div>
 <p>In this case, the resulting mesh is written to a file.</p>
+<p>The default is to make a periodic mesh (awkwardly, it’s “not non-periodic”). If
+you want a mesh that is not periodic in one or both directions, you first need
+to create a mesh and then cull the cells along the periodic boundary.  It
+doesn’t hurt to run the mesh converter as well, just to be sure the mesh
+conforms correctly to the MPAS mesh specification:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.conversion</span> <span class="kn">import</span> <span class="n">cull</span><span class="p">,</span> <span class="n">convert</span>
+
+<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                              <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">cull</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">)</span>
+<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>On the command line, this looks like:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ planar_hex --nx=10 --ny=20 --dc=1000. --npx --npy \
+     --outFileName=mesh_to_cull.nc
+
+$ MpasCellCuller.x mesh_to_cull.nc culled_mesh.nc
+
+$ MpasMeshConverter.x culled_mesh.nc nonperiodic_mesh_10x20_1km.nc
+</pre></div>
+</div>
 </div>
 <div class="section" id="building-a-jigsaw-mesh">
 <h2>Building a JIGSAW Mesh<a class="headerlink" href="#building-a-jigsaw-mesh" title="Permalink to this headline">¶</a></h2>
