@@ -186,11 +186,26 @@
 <span id="cime-mod"></span><h1>CIME Constants<a class="headerlink" href="#cime-constants" title="Permalink to this headline">¶</a></h1>
 <p>The module <a class="reference internal" href="generated/mpas_tools.cime.constants.html#module-mpas_tools.cime.constants" title="mpas_tools.cime.constants"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.cime.constants</span></code></a> contains constants that are in
 sync with <a class="reference external" href="https://github.com/ESMCI/cime">CIME</a>, which provides infrastructure
-and utilities for Earth System Models such at E3SM.  Currently, the only
-constant being synched with CIME is the radius of the Earth.  Constants are
-checked against their values on CIME’s master branch during tests of the
-conda build.  See
+and utilities for Earth System Models such at E3SM.  Currently, we sync only
+those constants given numerical values in CIME, not those that are derivied
+from other constants.  Constants are checked against their values on CIME’s
+master branch during tests of the conda build.  See
 <a class="reference internal" href="generated/mpas_tools.tests.test_cime_constants.test_cime_constants.html#mpas_tools.tests.test_cime_constants.test_cime_constants" title="mpas_tools.tests.test_cime_constants.test_cime_constants"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.tests.test_cime_constants.test_cime_constants()</span></code></a>.</p>
+<p>Some of the constants most likely to be useful in MPAS-Tools, COMPASS and other
+related projects are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CDAY</span></code> - sec in calendar day (s)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_REARTH</span></code> - radius of Earth (m)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_G</span></code> - acceleration of gravity (m/s^2)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_RHOFW</span></code> - density of fresh water (kg/m^3)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_RHOSW</span></code> - density of sea water (kg/m^3)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_RHOICE</span></code> - density of ice (kg/m^3)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CPFW</span></code> - specific heat of fresh water (J/kg/K)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CPSW</span></code> - specific heat of sea water (J/kg/K)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_CPICE</span></code> - specific heat of fresh ice (J/kg/K)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_LATICE</span></code> - latent heat of fusion (J/kg)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">SHR_CONST_LATVAP</span></code> - latent heat of evaporation (J/kg)</p></li>
+</ul>
 </div>
 
 
