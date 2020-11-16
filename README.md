@@ -1,6 +1,6 @@
 # MPAS Tools
 
-[![Build Status](https://dev.azure.com/MPAS-Dev/MPAS-Tools%20testing/_apis/build/status/MPAS-Dev.MPAS-Tools?branchName=temp)](https://dev.azure.com/MPAS-Dev/MPAS-Tools%20testing/_build/latest?definitionId=4&branchName=temp)
+[![Build Status](https://dev.azure.com/MPAS-Dev/MPAS-Tools%20testing/_apis/build/status/MPAS-Dev.MPAS-Tools?branchName=master)](https://dev.azure.com/MPAS-Dev/MPAS-Tools%20testing/_build/latest?definitionId=4&branchName=master)
 
 This repository houses all MPAS related tools. These include compiled tools,
 and scripts with a variety of purposes. Tools should be sorted into larger
