@@ -46,7 +46,7 @@ requirements:
     - scipy
     - xarray
     - dask
-    - geometric_features
+    - geometric_features >=0.1.12
     - pyevtk
     - future
     - jigsaw >=0.9.12
