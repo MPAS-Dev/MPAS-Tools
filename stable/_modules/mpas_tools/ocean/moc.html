@@ -186,10 +186,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">import</span> <span class="nn">shapely.ops</span>
-<span class="kn">import</span> <span class="nn">shapely.geometry</span>
-<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">GeometricFeatures</span><span class="p">,</span> <span class="n">FeatureCollection</span>
+<span class="kn">from</span> <span class="nn">geometric_features.aggregation.ocean</span> <span class="kn">import</span> <span class="n">moc</span>
 
 <span class="kn">import</span> <span class="nn">mpas_tools.mesh.conversion</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
@@ -207,8 +204,8 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    gf : ``GeometricFeatures``</span>
-<span class="sd">        An object that knows how to download and read geometric featuers</span>
+<span class="sd">    gf : geometric_features.GeometricFeatures</span>
+<span class="sd">        An object that knows how to download and read geometric features</span>
 
 <span class="sd">    mesh_filename : str</span>
 <span class="sd">        A file with MPAS mesh information</span>
@@ -231,14 +228,14 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    fc : ``FeatureCollection``</span>
+<span class="sd">    fc : geometric_features.FeatureCollection</span>
 <span class="sd">        The new feature collection</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Authors</span>
     <span class="c1"># -------</span>
     <span class="c1"># Xylar Asay-Davis</span>
 
-    <span class="n">fcMOC</span> <span class="o">=</span> <span class="n">build_moc_basins</span><span class="p">(</span><span class="n">gf</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
+    <span class="n">fcMOC</span> <span class="o">=</span> <span class="n">moc</span><span class="p">(</span><span class="n">gf</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">geojson_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">fcMOC</span><span class="o">.</span><span class="n">to_geojson</span><span class="p">(</span><span class="n">geojson_filename</span><span class="p">)</span>
@@ -254,82 +251,6 @@
                                                               <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasksAndTransects</span><span class="p">,</span> <span class="n">mask_and_transect_filename</span><span class="p">,</span>
                  <span class="n">char_dim_name</span><span class="o">=</span><span class="s1">&#39;StrLen&#39;</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="build_moc_basins"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.moc.build_moc_basins.html#mpas_tools.ocean.moc.build_moc_basins">[docs]</a><span class="k">def</span> <span class="nf">build_moc_basins</span><span class="p">(</span><span class="n">gf</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Builds features defining the ocean basins used in computing the meridional</span>
-<span class="sd">    overturning circulation (MOC)</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    gf : ``GeometricFeatures``</span>
-<span class="sd">        An object that knows how to download and read geometric featuers</span>
-
-<span class="sd">    logger : ``logging.Logger``, optional</span>
-<span class="sd">        A logger for the output if not stdout</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    fc : ``FeatureCollection``</span>
-<span class="sd">        The new feature collection</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Authors</span>
-    <span class="c1"># -------</span>
-    <span class="c1"># Xylar Asay-Davis</span>
-
-    <span class="n">useStdout</span> <span class="o">=</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">useStdout</span><span class="p">:</span>
-        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">))</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-
-    <span class="n">MOCSubBasins</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Atlantic&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Atlantic&#39;</span><span class="p">,</span> <span class="s1">&#39;Mediterranean&#39;</span><span class="p">],</span>
-                    <span class="s1">&#39;IndoPacific&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Pacific&#39;</span><span class="p">,</span> <span class="s1">&#39;Indian&#39;</span><span class="p">],</span>
-                    <span class="s1">&#39;Pacific&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Pacific&#39;</span><span class="p">],</span>
-                    <span class="s1">&#39;Indian&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;Indian&#39;</span><span class="p">]}</span>
-
-    <span class="n">MOCSouthernBoundary</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Atlantic&#39;</span><span class="p">:</span> <span class="s1">&#39;34S&#39;</span><span class="p">,</span>
-                           <span class="s1">&#39;IndoPacific&#39;</span><span class="p">:</span> <span class="s1">&#39;34S&#39;</span><span class="p">,</span>
-                           <span class="s1">&#39;Pacific&#39;</span><span class="p">:</span> <span class="s1">&#39;6S&#39;</span><span class="p">,</span>
-                           <span class="s1">&#39;Indian&#39;</span><span class="p">:</span> <span class="s1">&#39;6S&#39;</span><span class="p">}</span>
-
-    <span class="n">fc</span> <span class="o">=</span> <span class="n">FeatureCollection</span><span class="p">()</span>
-    <span class="n">fc</span><span class="o">.</span><span class="n">set_group_name</span><span class="p">(</span><span class="n">groupName</span><span class="o">=</span><span class="s1">&#39;MOCBasinRegionsGroup&#39;</span><span class="p">)</span>
-
-    <span class="c1"># build MOC basins from regions with the appropriate tags</span>
-    <span class="k">for</span> <span class="n">basinName</span> <span class="ow">in</span> <span class="n">MOCSubBasins</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> MOC&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">basinName</span><span class="p">))</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * merging features&#39;</span><span class="p">)</span>
-        <span class="n">tags</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_Basin&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">basin</span><span class="p">)</span> <span class="k">for</span> <span class="n">basin</span> <span class="ow">in</span>
-                <span class="n">MOCSubBasins</span><span class="p">[</span><span class="n">basinName</span><span class="p">]]</span>
-
-        <span class="n">fcBasin</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">componentName</span><span class="o">=</span><span class="s1">&#39;ocean&#39;</span><span class="p">,</span> <span class="n">objectType</span><span class="o">=</span><span class="s1">&#39;region&#39;</span><span class="p">,</span>
-                          <span class="n">tags</span><span class="o">=</span><span class="n">tags</span><span class="p">,</span> <span class="n">allTags</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * combining features&#39;</span><span class="p">)</span>
-        <span class="n">fcBasin</span> <span class="o">=</span> <span class="n">fcBasin</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">featureName</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_MOC&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">basinName</span><span class="p">))</span>
-
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * masking out features south of MOC region&#39;</span><span class="p">)</span>
-        <span class="n">maskName</span> <span class="o">=</span> <span class="s1">&#39;MOC mask </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">MOCSouthernBoundary</span><span class="p">[</span><span class="n">basinName</span><span class="p">])</span>
-        <span class="n">fcMask</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">componentName</span><span class="o">=</span><span class="s1">&#39;ocean&#39;</span><span class="p">,</span> <span class="n">objectType</span><span class="o">=</span><span class="s1">&#39;region&#39;</span><span class="p">,</span>
-                         <span class="n">featureNames</span><span class="o">=</span><span class="p">[</span><span class="n">maskName</span><span class="p">])</span>
-        <span class="c1"># mask out the region covered by the mask</span>
-        <span class="n">fcBasin</span> <span class="o">=</span> <span class="n">fcBasin</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">fcMask</span><span class="p">)</span>
-
-        <span class="c1"># remove various small polygons that are not part of the main MOC</span>
-        <span class="c1"># basin shapes.  Most are tiny but one below Australia is about 20</span>
-        <span class="c1"># deg^2, so make the threshold 100 deg^2 to be on the safe side.</span>
-        <span class="n">fcBasin</span> <span class="o">=</span> <span class="n">_remove_small_polygons</span><span class="p">(</span><span class="n">fcBasin</span><span class="p">,</span> <span class="n">minArea</span><span class="o">=</span><span class="mf">100.</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
-
-        <span class="c1"># add this basin to the full feature collection</span>
-        <span class="n">fc</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">fcBasin</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">useStdout</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">handlers</span> <span class="o">=</span> <span class="p">[]</span>
-
-    <span class="k">return</span> <span class="n">fc</span></div>
 
 
 <div class="viewcode-block" id="add_moc_southern_boundary_transects"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html#mpas_tools.ocean.moc.add_moc_southern_boundary_transects">[docs]</a><span class="k">def</span> <span class="nf">add_moc_southern_boundary_transects</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -374,10 +295,12 @@
 
 
 <span class="k">def</span> <span class="nf">_extract_southern_boundary</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mocMask</span><span class="p">,</span> <span class="n">latBuffer</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
-    <span class="c1"># Extrcts the southern boundary of each region mask in mocMask.  Mesh info</span>
-    <span class="c1"># is taken from mesh.  latBuffer is a number of radians above the southern-</span>
-    <span class="c1"># most point that should be considered to definitely be in the southern</span>
-    <span class="c1"># boundary.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts the southern boundary of each region mask in mocMask.  Mesh info</span>
+<span class="sd">    is taken from mesh.  latBuffer is a number of radians above the southern-</span>
+<span class="sd">    most point that should be considered to definitely be in the southern</span>
+<span class="sd">    boundary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">nCells</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span>
     <span class="n">nEdges</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span>
@@ -491,9 +414,11 @@
 
 <span class="k">def</span> <span class="nf">_add_transects_to_moc</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mocMask</span><span class="p">,</span> <span class="n">southernBoundaryEdges</span><span class="p">,</span>
                           <span class="n">southernBoiundaryEdgeSigns</span><span class="p">,</span> <span class="n">southernBoundaryVertices</span><span class="p">):</span>
-    <span class="c1"># Creates transect fields in mocMask from the edges, edge signs and</span>
-    <span class="c1"># vertices defining the southern boundaries.  Mesh info (nEdges and</span>
-    <span class="c1"># nVertices) is taken from the mesh file.</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates transect fields in mocMask from the edges, edge signs and</span>
+<span class="sd">    vertices defining the southern boundaries.  Mesh info (nEdges and</span>
+<span class="sd">    nVertices) is taken from the mesh file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">nTransects</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">southernBoundaryEdges</span><span class="p">)</span>
 
@@ -562,16 +487,18 @@
 
 <span class="k">def</span> <span class="nf">_get_edge_sequence_on_boundary</span><span class="p">(</span><span class="n">startEdge</span><span class="p">,</span> <span class="n">edgeSign</span><span class="p">,</span> <span class="n">edgesOnVertex</span><span class="p">,</span>
                                    <span class="n">verticesOnEdge</span><span class="p">):</span>
-    <span class="c1"># Follows the boundary from a starting edge to produce a sequence of</span>
-    <span class="c1"># edges that form a closed loop.</span>
-    <span class="c1">#</span>
-    <span class="c1"># startEdge is an edge on the boundary that will be both the start and</span>
-    <span class="c1"># end of the loop.</span>
-    <span class="c1">#</span>
-    <span class="c1"># isBoundaryEdge is a mask that indicates which edges are on the</span>
-    <span class="c1"># boundary</span>
-    <span class="c1">#</span>
-    <span class="c1"># returns lists of edges, edge signs and vertices</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Follows the boundary from a starting edge to produce a sequence of</span>
+<span class="sd">    edges that form a closed loop.</span>
+
+<span class="sd">    startEdge is an edge on the boundary that will be both the start and</span>
+<span class="sd">    end of the loop.</span>
+
+<span class="sd">    isBoundaryEdge is a mask that indicates which edges are on the</span>
+<span class="sd">    boundary</span>
+
+<span class="sd">    returns lists of edges, edge signs and vertices</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">iEdge</span> <span class="o">=</span> <span class="n">startEdge</span>
     <span class="n">edgeSequence</span> <span class="o">=</span> <span class="p">[]</span>
@@ -607,67 +534,6 @@
     <span class="n">vertexSequence</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vertexSequence</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">edgeSequence</span><span class="p">,</span> <span class="n">edgeSequenceSigns</span><span class="p">,</span> <span class="n">vertexSequence</span>
-
-
-<span class="k">def</span> <span class="nf">_remove_small_polygons</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">minArea</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A helper function to remove small polygons from a feature collection</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    fc : ``FeatureCollection``</span>
-<span class="sd">        The feature collection to remove polygons from</span>
-
-<span class="sd">    minArea : float</span>
-<span class="sd">        The minimum area (in square degrees) below which polygons should be</span>
-<span class="sd">        removed</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    fcOut : ``FeatureCollection``</span>
-<span class="sd">        The new feature collection with small polygons removed</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Authors</span>
-    <span class="c1"># -------</span>
-    <span class="c1"># Xylar Asay-Davis</span>
-
-    <span class="n">fcOut</span> <span class="o">=</span> <span class="n">FeatureCollection</span><span class="p">()</span>
-
-    <span class="n">removedCount</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
-        <span class="n">geom</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span>
-        <span class="n">add</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="n">geom</span><span class="p">[</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Polygon&#39;</span><span class="p">,</span> <span class="s1">&#39;MultiPolygon&#39;</span><span class="p">]:</span>
-            <span class="c1"># no area to check, so just add it</span>
-            <span class="n">fcOut</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">feature</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">featureShape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">featureShape</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="s1">&#39;Polygon&#39;</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">featureShape</span><span class="o">.</span><span class="n">area</span> <span class="o">&gt;</span> <span class="n">minArea</span><span class="p">:</span>
-                    <span class="n">add</span> <span class="o">=</span> <span class="kc">True</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">removedCount</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># a MultiPolygon</span>
-                <span class="n">outPolygons</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">polygon</span> <span class="ow">in</span> <span class="n">featureShape</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">polygon</span><span class="o">.</span><span class="n">area</span> <span class="o">&gt;</span> <span class="n">minArea</span><span class="p">:</span>
-                        <span class="n">outPolygons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">polygon</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">removedCount</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">outPolygons</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">outShape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">cascaded_union</span><span class="p">(</span><span class="n">outPolygons</span><span class="p">)</span>
-                    <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">mapping</span><span class="p">(</span><span class="n">outShape</span><span class="p">)</span>
-                    <span class="n">add</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="n">add</span><span class="p">:</span>
-            <span class="n">fcOut</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">feature</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> has been removed.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]))</span>
-
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39; * Removed </span><span class="si">{}</span><span class="s1"> small polygons&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">removedCount</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">fcOut</span>
 </pre></div>
 
            </div>

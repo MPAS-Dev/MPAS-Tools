@@ -36,7 +36,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.ocean.moc.build_moc_basins" href="mpas_tools.ocean.moc.build_moc_basins.html" />
+    <link rel="next" title="mpas_tools.ocean.moc.add_moc_southern_boundary_transects" href="mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html" />
     <link rel="prev" title="mpas_tools.ocean.moc" href="mpas_tools.ocean.moc.html" /> 
 </head>
 
@@ -116,7 +116,6 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask.html">mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.html">mpas_tools.ocean.moc</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.moc.make_moc_basins_and_transects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.build_moc_basins.html">mpas_tools.ocean.moc.build_moc_basins</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html">mpas_tools.ocean.moc.add_moc_southern_boundary_transects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.build_mesh.html">mpas_tools.ocean.build_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.build_mesh.build_spherical_mesh.html">mpas_tools.ocean.build_mesh.build_spherical_mesh</a></li>
@@ -242,7 +241,7 @@ computing the meridional overturning circulation (MOC)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>gf</strong> (<code class="docutils literal notranslate"><span class="pre">GeometricFeatures</span></code>) – An object that knows how to download and read geometric featuers</p></li>
+<li><p><strong>gf</strong> (<em>geometric_features.GeometricFeatures</em>) – An object that knows how to download and read geometric features</p></li>
 <li><p><strong>mesh_filename</strong> (<em>str</em>) – A file with MPAS mesh information</p></li>
 <li><p><strong>mask_and_transect_filename</strong> (<em>str</em>) – A file to write the MOC region masks and southern-boundary transects to</p></li>
 <li><p><strong>geojson_filename</strong> (<em>str, optional</em>) – A file to write MOC regions to</p></li>
@@ -253,7 +252,7 @@ produced during conversion and then deleted upon completion.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>fc</strong> (<code class="docutils literal notranslate"><span class="pre">FeatureCollection</span></code>) – The new feature collection</p>
+<dd class="field-even"><p><strong>fc</strong> (<em>geometric_features.FeatureCollection</em>) – The new feature collection</p>
 </dd>
 </dl>
 </dd></dl>
@@ -268,7 +267,7 @@ produced during conversion and then deleted upon completion.</p></li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="mpas_tools.ocean.moc.build_moc_basins.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.moc.build_moc_basins" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.moc.add_moc_southern_boundary_transects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="mpas_tools.ocean.moc.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.moc" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

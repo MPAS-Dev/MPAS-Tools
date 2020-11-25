@@ -14,7 +14,6 @@
    .. autosummary::
    
       add_moc_southern_boundary_transects
-      build_moc_basins
       make_moc_basins_and_transects
    
    
