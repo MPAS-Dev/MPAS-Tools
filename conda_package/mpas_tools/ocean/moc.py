@@ -5,10 +5,7 @@ import xarray
 import numpy
 import logging
 import sys
-import copy
-import shapely.ops
-import shapely.geometry
-from geometric_features import GeometricFeatures, FeatureCollection
+from geometric_features.aggregation.ocean import moc
 
 import mpas_tools.mesh.conversion
 from mpas_tools.io import write_netcdf
@@ -26,8 +23,8 @@ def make_moc_basins_and_transects(gf, mesh_filename,
 
     Parameters
     ----------
-    gf : ``GeometricFeatures``
-        An object that knows how to download and read geometric featuers
+    gf : geometric_features.GeometricFeatures
+        An object that knows how to download and read geometric features
 
     mesh_filename : str
         A file with MPAS mesh information
@@ -50,14 +47,14 @@ def make_moc_basins_and_transects(gf, mesh_filename,
 
     Returns
     -------
-    fc : ``FeatureCollection``
+    fc : geometric_features.FeatureCollection
         The new feature collection
     """
     # Authors
     # -------
     # Xylar Asay-Davis
 
-    fcMOC = build_moc_basins(gf, logger)
+    fcMOC = moc(gf)
 
     if geojson_filename is not None:
         fcMOC.to_geojson(geojson_filename)
@@ -73,82 +70,6 @@ def make_moc_basins_and_transects(gf, mesh_filename,
                                                               logger=logger)
     write_netcdf(dsMasksAndTransects, mask_and_transect_filename,
                  char_dim_name='StrLen')
-
-
-def build_moc_basins(gf, logger=None):
-    """
-    Builds features defining the ocean basins used in computing the meridional
-    overturning circulation (MOC)
-
-    Parameters
-    ----------
-    gf : ``GeometricFeatures``
-        An object that knows how to download and read geometric featuers
-
-    logger : ``logging.Logger``, optional
-        A logger for the output if not stdout
-
-    Returns
-    -------
-    fc : ``FeatureCollection``
-        The new feature collection
-    """
-    # Authors
-    # -------
-    # Xylar Asay-Davis
-
-    useStdout = logger is None
-    if useStdout:
-        logger = logging.getLogger()
-        logger.addHandler(logging.StreamHandler(sys.stdout))
-        logger.setLevel(logging.INFO)
-
-    MOCSubBasins = {'Atlantic': ['Atlantic', 'Mediterranean'],
-                    'IndoPacific': ['Pacific', 'Indian'],
-                    'Pacific': ['Pacific'],
-                    'Indian': ['Indian']}
-
-    MOCSouthernBoundary = {'Atlantic': '34S',
-                           'IndoPacific': '34S',
-                           'Pacific': '6S',
-                           'Indian': '6S'}
-
-    fc = FeatureCollection()
-    fc.set_group_name(groupName='MOCBasinRegionsGroup')
-
-    # build MOC basins from regions with the appropriate tags
-    for basinName in MOCSubBasins:
-        logger.info('{} MOC'.format(basinName))
-
-        logger.info(' * merging features')
-        tags = ['{}_Basin'.format(basin) for basin in
-                MOCSubBasins[basinName]]
-
-        fcBasin = gf.read(componentName='ocean', objectType='region',
-                          tags=tags, allTags=False)
-
-        logger.info(' * combining features')
-        fcBasin = fcBasin.combine(featureName='{}_MOC'.format(basinName))
-
-        logger.info(' * masking out features south of MOC region')
-        maskName = 'MOC mask {}'.format(MOCSouthernBoundary[basinName])
-        fcMask = gf.read(componentName='ocean', objectType='region',
-                         featureNames=[maskName])
-        # mask out the region covered by the mask
-        fcBasin = fcBasin.difference(fcMask)
-
-        # remove various small polygons that are not part of the main MOC
-        # basin shapes.  Most are tiny but one below Australia is about 20
-        # deg^2, so make the threshold 100 deg^2 to be on the safe side.
-        fcBasin = _remove_small_polygons(fcBasin, minArea=100., logger=logger)
-
-        # add this basin to the full feature collection
-        fc.merge(fcBasin)
-
-    if useStdout:
-        logger.handlers = []
-
-    return fc
 
 
 def add_moc_southern_boundary_transects(dsMask, dsMesh, logger=None):
@@ -193,10 +114,12 @@ def add_moc_southern_boundary_transects(dsMask, dsMesh, logger=None):
 
 
 def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
-    # Extrcts the southern boundary of each region mask in mocMask.  Mesh info
-    # is taken from mesh.  latBuffer is a number of radians above the southern-
-    # most point that should be considered to definitely be in the southern
-    # boundary.
+    """
+    Extracts the southern boundary of each region mask in mocMask.  Mesh info
+    is taken from mesh.  latBuffer is a number of radians above the southern-
+    most point that should be considered to definitely be in the southern
+    boundary.
+    """
 
     nCells = mesh.dims['nCells']
     nEdges = mesh.dims['nEdges']
@@ -310,9 +233,11 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
 
 def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
                           southernBoiundaryEdgeSigns, southernBoundaryVertices):
-    # Creates transect fields in mocMask from the edges, edge signs and
-    # vertices defining the southern boundaries.  Mesh info (nEdges and
-    # nVertices) is taken from the mesh file.
+    """
+    Creates transect fields in mocMask from the edges, edge signs and
+    vertices defining the southern boundaries.  Mesh info (nEdges and
+    nVertices) is taken from the mesh file.
+    """
 
     nTransects = len(southernBoundaryEdges)
 
@@ -381,16 +306,18 @@ def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
 
 def _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
                                    verticesOnEdge):
-    # Follows the boundary from a starting edge to produce a sequence of
-    # edges that form a closed loop.
-    #
-    # startEdge is an edge on the boundary that will be both the start and
-    # end of the loop.
-    #
-    # isBoundaryEdge is a mask that indicates which edges are on the
-    # boundary
-    #
-    # returns lists of edges, edge signs and vertices
+    """
+    Follows the boundary from a starting edge to produce a sequence of
+    edges that form a closed loop.
+
+    startEdge is an edge on the boundary that will be both the start and
+    end of the loop.
+
+    isBoundaryEdge is a mask that indicates which edges are on the
+    boundary
+
+    returns lists of edges, edge signs and vertices
+    """
 
     iEdge = startEdge
     edgeSequence = []
@@ -426,64 +353,3 @@ def _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
     vertexSequence = numpy.array(vertexSequence)
 
     return edgeSequence, edgeSequenceSigns, vertexSequence
-
-
-def _remove_small_polygons(fc, minArea, logger):
-    """
-    A helper function to remove small polygons from a feature collection
-
-    Parameters
-    ----------
-    fc : ``FeatureCollection``
-        The feature collection to remove polygons from
-
-    minArea : float
-        The minimum area (in square degrees) below which polygons should be
-        removed
-
-    Returns
-    -------
-    fcOut : ``FeatureCollection``
-        The new feature collection with small polygons removed
-    """
-    # Authors
-    # -------
-    # Xylar Asay-Davis
-
-    fcOut = FeatureCollection()
-
-    removedCount = 0
-    for feature in fc.features:
-        geom = feature['geometry']
-        add = False
-        if geom['type'] not in ['Polygon', 'MultiPolygon']:
-            # no area to check, so just add it
-            fcOut.add_feature(copy.deepcopy(feature))
-        else:
-            featureShape = shapely.geometry.shape(geom)
-            if featureShape.type == 'Polygon':
-                if featureShape.area > minArea:
-                    add = True
-                else:
-                    removedCount += 1
-            else:
-                # a MultiPolygon
-                outPolygons = []
-                for polygon in featureShape:
-                    if polygon.area > minArea:
-                        outPolygons.append(polygon)
-                    else:
-                        removedCount += 1
-                if len(outPolygons) > 0:
-                    outShape = shapely.ops.cascaded_union(outPolygons)
-                    feature['geometry'] = shapely.geometry.mapping(outShape)
-                    add = True
-        if add:
-            fcOut.add_feature(copy.deepcopy(feature))
-        else:
-            logger.info("{} has been removed.".format(
-                feature['properties']['name']))
-
-    logger.info(' * Removed {} small polygons'.format(removedCount))
-
-    return fcOut
