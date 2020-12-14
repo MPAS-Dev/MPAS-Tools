@@ -182,7 +182,7 @@ for var_name in var_names:
                     bedTopographyOrig = np.copy(dataset.variables['bedTopography'][0,cellID_array-1])
                     surfaceTopographyOrig = thicknessOrig + bedTopographyOrig
                     dataset.variables['bedTopography'][0,cellID_array-1] = surfaceTopographyOrig - data_exo_layer * 1000.0
-            elif var_name == "temperature":            
+            elif var_name == "temperature":
                 albanyTemperature[cellID_array-1, nVert] = data_exo_layer #interpolate onto MPAS mesh in interpolateTemperature
             elif var_name == "surfaceTemperature":
                 dataset.variables[var_name][0,cellID_array-1] = data_exo_layer
@@ -198,7 +198,7 @@ for var_name in var_names:
             # layers.
             albany_layers = np.arange(0, nVert_max)
             MPAS_layers = np.arange(1, nVert_max) - 0.5 # MPAS and albany temperature layers are staggered
-            temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)             
+            temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)
             dataset.variables["temperature"][0,:,:] = temperatureInterpolant(MPAS_layers)
             
             # Add reasonable (non-zero) temperatures outside of ice mask. Make this a linear
