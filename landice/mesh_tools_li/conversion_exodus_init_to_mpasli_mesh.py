@@ -41,9 +41,9 @@ options, args = parser.parse_args()
 SEACAS_path = os.getenv('SEACAS')
 if SEACAS_path == None:
    #sys.path.append('/home/tzhang/Apps/seacas/lib')
-   #sys.path.append('/Users/trevorhillebrand/Documents/mpas/seacas/lib/')
+   sys.path.append('/Users/trevorhillebrand/Documents/mpas/seacas/lib/')
    #sys.path.append('/Users/mhoffman/software/seacas/install/lib')
-   sys.path.append('/usr/projects/climate/SHARED_CLIMATE/software/badger/trilinos/2018-12-19/gcc-6.4.0/openmpi-2.1.2/lib')  # path on LANL Badger/Grizzly
+   #sys.path.append('/usr/projects/climate/SHARED_CLIMATE/software/badger/trilinos/2018-12-19/gcc-6.4.0/openmpi-2.1.2/lib')  # path on LANL Badger/Grizzly
 else:
    sys.path.append(SEACAS_path+'/lib')
 
@@ -182,7 +182,8 @@ for var_name in var_names:
                     bedTopographyOrig = np.copy(dataset.variables['bedTopography'][0,cellID_array-1])
                     surfaceTopographyOrig = thicknessOrig + bedTopographyOrig
                     dataset.variables['bedTopography'][0,cellID_array-1] = surfaceTopographyOrig - data_exo_layer * 1000.0
-            elif var_name == "temperature":
+            elif var_name == "temperature":            
+ 
                 albanyTemperature[cellID_array-1, nVert] = data_exo_layer #interpolate onto MPAS mesh in interpolateTemperature
             elif var_name == "surfaceTemperature":
                 dataset.variables[var_name][0,cellID_array-1] = data_exo_layer
@@ -198,8 +199,19 @@ for var_name in var_names:
             # layers.
             albany_layers = np.arange(0, nVert_max)
             MPAS_layers = np.arange(1, nVert_max) - 0.5 # MPAS and albany temperature layers are staggered
-            temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)
+            temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)             
             dataset.variables["temperature"][0,:,:] = temperatureInterpolant(MPAS_layers)
+            
+            # Add reasonable (non-zero) temperatures outside of ice mask. Make this a linear
+            # interpolation between min(273.15, surfaceAirTemperature) at the surface and 268.15K at the bed.
+            surfaceAirTemperature = dataset.variables["surfaceAirTemperature"][0,:]
+            surfaceAirTemperature[surfaceAirTemperature > 273.15] = 273.15
+            
+            for nLayer in np.arange(0, dataset.dimensions["nVertLevels"].size):
+                tempInterpCells = dataset.variables["temperature"][0,:,nLayer] == 0.0
+                dataset.variables["temperature"][0,tempInterpCells,nLayer] = (1 - np.sum(dataset.variables["layerThicknessFractions"][0:nLayer+1])) * \
+                                surfaceAirTemperature[tempInterpCells] + np.sum(dataset.variables["layerThicknessFractions"][0:nLayer+1]) * 268.15 
+                                
             print('\nTemperature interpolation complete')
 
         # Extrapolate and smooth beta and stiffnessFactor fields
