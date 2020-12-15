@@ -200,6 +200,17 @@ for var_name in var_names:
             MPAS_layers = np.arange(1, nVert_max) - 0.5 # MPAS and albany temperature layers are staggered
             temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)
             dataset.variables["temperature"][0,:,:] = temperatureInterpolant(MPAS_layers)
+            
+            # Add reasonable (non-zero) temperatures outside of ice mask. Make this a linear
+            # interpolation between min(273.15, surfaceAirTemperature) at the surface and 268.15K at the bed.
+            surfaceAirTemperature = dataset.variables["surfaceAirTemperature"][0,:]
+            surfaceAirTemperature[surfaceAirTemperature > 273.15] = 273.15
+            
+            for nLayer in np.arange(0, dataset.dimensions["nVertLevels"].size):
+                tempInterpCells = dataset.variables["temperature"][0,:,nLayer] == 0.0
+                dataset.variables["temperature"][0,tempInterpCells,nLayer] = (1 - np.sum(dataset.variables["layerThicknessFractions"][0:nLayer+1])) * \
+                                surfaceAirTemperature[tempInterpCells] + np.sum(dataset.variables["layerThicknessFractions"][0:nLayer+1]) * 268.15 
+                                
             print('\nTemperature interpolation complete')
 
         # Extrapolate and smooth beta and stiffnessFactor fields
