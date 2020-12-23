@@ -54,6 +54,11 @@ def write_netcdf(ds, fileName, fillValues=netCDF4.default_fillvals,
 
     update_history(ds)
 
+    if 'Time' in ds.dims:
+        # make sure the Time dimension is unlimited because MPAS has trouble
+        # reading Time otherwise
+        ds.encoding['unlimited_dims'] = {'Time'}
+
     ds.to_netcdf(fileName, encoding=encodingDict, format=format)
 
 
