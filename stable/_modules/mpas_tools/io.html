@@ -29,7 +29,6 @@
         <script src="../../_static/jquery.js"></script>
         <script src="../../_static/underscore.js"></script>
         <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
@@ -234,6 +233,11 @@
             <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;char_dim_name&#39;</span><span class="p">:</span> <span class="n">char_dim_name</span><span class="p">}</span>
 
     <span class="n">update_history</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="c1"># make sure the Time dimension is unlimited because MPAS has trouble</span>
+        <span class="c1"># reading Time otherwise</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">encoding</span><span class="p">[</span><span class="s1">&#39;unlimited_dims&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Time&#39;</span><span class="p">}</span>
 
     <span class="n">ds</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encodingDict</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">)</span></div>
 
