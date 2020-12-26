@@ -1,0 +1,291 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>mpas_tools.io.write_netcdf &mdash; mpas_tools 0.1.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mpas_tools.scrip.from_mpas.scrip_from_mpas" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html" />
+    <link rel="prev" title="mpas_tools.translate.center_on_mesh" href="mpas_tools.translate.center_on_mesh.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home" alt="Documentation Home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-creation">Mesh creation</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../api.html#mesh-conversion">Mesh conversion</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.convert.html">mpas_tools.mesh.conversion.convert</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.cull.html">mpas_tools.mesh.conversion.cull</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.mask.html">mpas_tools.mesh.conversion.mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.translate.html">mpas_tools.translate.translate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center.html">mpas_tools.translate.center</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center_on_mesh.html">mpas_tools.translate.center_on_mesh</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.io.write_netcdf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#inerpolation">Inerpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../api.html">API reference</a> &raquo;</li>
+        
+      <li>mpas_tools.io.write_netcdf</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/generated/mpas_tools.io.write_netcdf.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="mpas-tools-io-write-netcdf">
+<h1>mpas_tools.io.write_netcdf<a class="headerlink" href="#mpas-tools-io-write-netcdf" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt id="mpas_tools.io.write_netcdf">
+<code class="sig-prename descclassname">mpas_tools.io.</code><code class="sig-name descname">write_netcdf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ds</span></em>, <em class="sig-param"><span class="n">fileName</span></em>, <em class="sig-param"><span class="n">fillValues</span><span class="o">=</span><span class="default_value">{'S1': '\x00', 'f4': 9.969209968386869e+36, 'f8': 9.969209968386869e+36, 'i1': - 127, 'i2': - 32767, 'i4': - 2147483647, 'i8': - 9223372036854775806, 'u1': 255, 'u2': 65535, 'u4': 4294967295, 'u8': 18446744073709551614}</span></em>, <em class="sig-param"><span class="n">format</span><span class="o">=</span><span class="default_value">'NETCDF3_64BIT'</span></em>, <em class="sig-param"><span class="n">char_dim_name</span><span class="o">=</span><span class="default_value">'StrLen'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/io.html#write_netcdf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.io.write_netcdf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write an xarray.Dataset to a file with NetCDF4 fill values and the given
+name of the string dimension.  Also adds the time and command-line to the
+history attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ds</strong> (<em>xarray.Dataset</em>) – The dataset to save</p></li>
+<li><p><strong>fileName</strong> (<em>str</em>) – The path for the NetCDF file to write</p></li>
+<li><p><strong>fillValues</strong> (<em>dict, optional</em>) – A dictionary of fill values for different NetCDF types</p></li>
+<li><p><strong>format</strong> (<em>{‘NETCDF4’, ‘NETCDF4_CLASSIC’, ‘NETCDF3_64BIT’,</em>) –       ‘NETCDF3_CLASSIC’}, optional
+The NetCDF file format to use</p></li>
+<li><p><strong>char_dim_name</strong> (<em>str, optional</em>) – The name of the dimension used for character strings, or None to let
+xarray figure this out.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html" class="btn btn-neutral float-right" title="mpas_tools.scrip.from_mpas.scrip_from_mpas" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mpas_tools.translate.center_on_mesh.html" class="btn btn-neutral float-left" title="mpas_tools.translate.center_on_mesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
