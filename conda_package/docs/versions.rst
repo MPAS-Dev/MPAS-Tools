@@ -12,6 +12,7 @@ Documentation    On GitHub
 `v0.0.13`_        `0.0.13`_
 `v0.0.14`_        `0.0.14`_
 `v0.0.15`_        `0.0.15`_
+`v0.1.0`_         `0.1.0`_
 ================ ===============
 
 .. _`stable`: ../stable/index.html
@@ -26,3 +27,5 @@ Documentation    On GitHub
 .. _`0.0.14`: https://github.com/MPAS-Dev/MPAS-Analysis/tree/0.0.14
 .. _`v0.0.15`: ../0.0.15/index.html
 .. _`0.0.15`: https://github.com/MPAS-Dev/MPAS-Analysis/tree/0.0.15
+.. _`v0.1.0`: ../0.1.0/index.html
+.. _`0.1.0`: https://github.com/MPAS-Dev/MPAS-Analysis/tree/0.1.0
