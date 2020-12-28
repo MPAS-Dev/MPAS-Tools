@@ -12,11 +12,12 @@ from mpas_tools.io import write_netcdf
 from mpas_tools.mesh.creation.jigsaw_driver import jigsaw_driver
 from mpas_tools.mesh.creation.jigsaw_to_netcdf import jigsaw_to_netcdf
 from mpas_tools.viz.colormaps import register_sci_viz_colormaps
+from mpas_tools.logging import LoggingContext
 
 
 def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
                          out_filename='base_mesh.nc', plot_cellWidth=True,
-                         dir='./'):
+                         dir='./', logger=None):
     """
     Build an MPAS mesh using JIGSAW with the given cell sizes as a function of
     latitude and longitude.
@@ -43,64 +44,70 @@ def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
         The file name of the resulting MPAS mesh
 
     plot_cellWidth : bool, optional
-        Whether to produce a plot of ``cellWidth``. If so, it will be written to
-        ``cellWidthGlobal.png``.
+        Whether to produce a plot of ``cellWidth``. If so, it will be written
+        to ``cellWidthGlobal.png``.
 
     dir : str, optional
         A directory in which a temporary directory will be added with files
         produced during mesh conversion and then deleted upon completion.
+
+    logger : logging.Logger, optional
+        A logger for the output if not stdout
     """
 
-    da = xarray.DataArray(cellWidth,
-                          dims=['lat', 'lon'],
-                          coords={'lat': lat, 'lon': lon},
-                          name='cellWidth')
-    cw_filename = 'cellWidthVsLatLon.nc'
-    da.to_netcdf(cw_filename)
-    if plot_cellWidth:
-        register_sci_viz_colormaps()
-        fig = plt.figure(figsize=[16.0, 8.0])
-        ax = plt.axes(projection=ccrs.PlateCarree())
-        ax.set_global()
-        im = ax.imshow(cellWidth, origin='lower',
-                       transform=ccrs.PlateCarree(),
-                       extent=[-180, 180, -90, 90], cmap='3Wbgy5',
-                       zorder=0)
-        ax.add_feature(cartopy.feature.LAND, edgecolor='black', zorder=1)
-        gl = ax.gridlines(
-            crs=ccrs.PlateCarree(),
-            draw_labels=True,
-            linewidth=1,
-            color='gray',
-            alpha=0.5,
-            linestyle='-', zorder=2)
-        gl.top_labels = False
-        gl.right_labels = False
-        plt.title(
-            'Grid cell size, km, min: {:.1f} max: {:.1f}'.format(
-            cellWidth.min(),cellWidth.max()))
-        plt.colorbar(im, shrink=.60)
-        fig.canvas.draw()
-        plt.tight_layout()
-        plt.savefig('cellWidthGlobal.png', bbox_inches='tight')
-        plt.close()
+    with LoggingContext(__name__, logger=logger) as logger:
 
-    print('Step 1. Generate mesh with JIGSAW')
-    jigsaw_driver(cellWidth, lon, lat, on_sphere=True,
-                  earth_radius=earth_radius)
+        da = xarray.DataArray(cellWidth,
+                              dims=['lat', 'lon'],
+                              coords={'lat': lat, 'lon': lon},
+                              name='cellWidth')
+        cw_filename = 'cellWidthVsLatLon.nc'
+        da.to_netcdf(cw_filename)
+        if plot_cellWidth:
+            register_sci_viz_colormaps()
+            fig = plt.figure(figsize=[16.0, 8.0])
+            ax = plt.axes(projection=ccrs.PlateCarree())
+            ax.set_global()
+            im = ax.imshow(cellWidth, origin='lower',
+                           transform=ccrs.PlateCarree(),
+                           extent=[-180, 180, -90, 90], cmap='3Wbgy5',
+                           zorder=0)
+            ax.add_feature(cartopy.feature.LAND, edgecolor='black', zorder=1)
+            gl = ax.gridlines(
+                crs=ccrs.PlateCarree(),
+                draw_labels=True,
+                linewidth=1,
+                color='gray',
+                alpha=0.5,
+                linestyle='-', zorder=2)
+            gl.top_labels = False
+            gl.right_labels = False
+            plt.title(
+                'Grid cell size, km, min: {:.1f} max: {:.1f}'.format(
+                    cellWidth.min(),cellWidth.max()))
+            plt.colorbar(im, shrink=.60)
+            fig.canvas.draw()
+            plt.tight_layout()
+            plt.savefig('cellWidthGlobal.png', bbox_inches='tight')
+            plt.close()
 
-    print('Step 2. Convert triangles from jigsaw format to netcdf')
-    jigsaw_to_netcdf(msh_filename='mesh-MESH.msh',
-                     output_name='mesh_triangles.nc', on_sphere=True,
-                     sphere_radius=earth_radius)
+        logger.info('Step 1. Generate mesh with JIGSAW')
+        jigsaw_driver(cellWidth, lon, lat, on_sphere=True,
+                      earth_radius=earth_radius, logger=logger)
 
-    print('Step 3. Convert from triangles to MPAS mesh')
-    write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc'), dir=dir),
-                 out_filename)
+        logger.info('Step 2. Convert triangles from jigsaw format to netcdf')
+        jigsaw_to_netcdf(msh_filename='mesh-MESH.msh',
+                         output_name='mesh_triangles.nc', on_sphere=True,
+                         sphere_radius=earth_radius)
+
+        logger.info('Step 3. Convert from triangles to MPAS mesh')
+        write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc'), dir=dir,
+                             logger=logger),
+                     out_filename)
 
 
 def build_planar_mesh(cellWidth, x, y, geom_points, geom_edges,
-                      out_filename='base_mesh.nc'):
+                      out_filename='base_mesh.nc', logger=None):
     """
     Build a planar MPAS mesh
 
@@ -121,28 +128,31 @@ def build_planar_mesh(cellWidth, x, y, geom_points, geom_edges,
 
     out_filename : str, optional
         The file name of the resulting MPAS mesh
+
+    logger : logging.Logger, optional
+        A logger for the output if not stdout
     """
-    da = xarray.DataArray(cellWidth,
-                          dims=['y', 'x'],
-                          coords={'y': y, 'x': x},
-                          name='cellWidth')
-    cw_filename = 'cellWidthVsXY.nc'
-    da.to_netcdf(cw_filename)
 
-    print('Step 1. Generate mesh with JIGSAW')
-    jigsaw_driver(
-        cellWidth,
-        x,
-        y,
-        on_sphere=False,
-        geom_points=geom_points,
-        geom_edges=geom_edges)
+    with LoggingContext(__name__, logger=logger) as logger:
 
-    print('Step 2. Convert triangles from jigsaw format to netcdf')
-    jigsaw_to_netcdf(msh_filename='mesh-MESH.msh',
-                     output_name='mesh_triangles.nc', on_sphere=False)
+        da = xarray.DataArray(cellWidth,
+                              dims=['y', 'x'],
+                              coords={'y': y, 'x': x},
+                              name='cellWidth')
+        cw_filename = 'cellWidthVsXY.nc'
+        da.to_netcdf(cw_filename)
 
-    print('Step 3. Convert from triangles to MPAS mesh')
-    write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc')),
-                 out_filename)
+        logger.info('Step 1. Generate mesh with JIGSAW')
+        jigsaw_driver(cellWidth, x, y, on_sphere=False,
+                      geom_points=geom_points, geom_edges=geom_edges,
+                      logger=logger)
+
+        logger.info('Step 2. Convert triangles from jigsaw format to netcdf')
+        jigsaw_to_netcdf(msh_filename='mesh-MESH.msh',
+                         output_name='mesh_triangles.nc', on_sphere=False)
+
+        logger.info('Step 3. Convert from triangles to MPAS mesh')
+        write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc'),
+                             logger=logger),
+                     out_filename)
 
