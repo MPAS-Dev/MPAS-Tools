@@ -3,11 +3,14 @@ from __future__ import absolute_import, division, print_function, \
 
 import numpy
 import jigsawpy
+from jigsawpy.savejig import savejig
+
+from mpas_tools.logging import check_call
 
 
 def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0e3,
-                  geom_points=None, geom_edges=None):
-    '''
+                  geom_points=None, geom_edges=None, logger=None):
+    """
     A function for building a jigsaw mesh
 
     Parameters
@@ -31,7 +34,9 @@ def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0e3,
     geom_edges : ndarray, optional
         list of edges between points in geom_points that define the bounding polygon
 
-    '''
+    logger : logging.Logger, optional
+        A logger for the output if not stdout
+    """
     # Authors
     # -------
     # Mark Petersen, Phillip Wolfram, Xylar Asay-Davis
@@ -65,12 +70,9 @@ def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0e3,
        geom.mshID = 'EUCLIDEAN-MESH'
        geom.vert2 = geom_points
        geom.edge2 = geom_edges
-       #geom.edge2.index = geom_edges
-       print (geom_points)
     jigsawpy.savemsh(opts.geom_file, geom)
 
     # build mesh via JIGSAW!
-    mesh = jigsawpy.jigsaw_msh_t()
     opts.hfun_scal = 'absolute'
     opts.hfun_hmax = float("inf")
     opts.hfun_hmin = 0.0
@@ -78,4 +80,5 @@ def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0e3,
     opts.optm_qlim = 0.9375
     opts.verbosity = +1
 
-    jigsawpy.cmd.jigsaw(opts)
+    savejig(opts.jcfg_file, opts)
+    check_call(['jigsaw', opts.jcfg_file], logger=logger)
