@@ -91,12 +91,7 @@ from geometric_features import FeatureCollection
 import logging
 from io import StringIO
 
-try:
-    from progressbar import ProgressBar, Percentage, Bar, ETA
-    use_progress_bar = True
-except ImportError:
-    use_progress_bar = False
-
+from progressbar import ProgressBar, Percentage, Bar, ETA
 from mpas_tools.conversion import mask, cull
 from mpas_tools.io import write_netcdf
 
@@ -106,7 +101,8 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
                 combine=False, append=False, out_dir='vtk_files', xtime='xtime',
                 lonlat=False, time=None, ignore_time=False, topo_dim=None,
                 topo_cell_index=None, include_mesh_vars=False,
-                fc_region_mask=None, temp_dir='./culled_region'):
+                fc_region_mask=None, temp_dir='./culled_region',
+                use_progress_bar=True):
     """
     Extract fields from a time series of NetCDF files as VTK files for plotting
     in ParaView.
@@ -196,72 +192,75 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
     filename_pattern : str
         MPAS Filename pattern
 
-    variable_list: list of str, optional
+    variable_list : list of str, optional
         List of variables to extract ('all' for all variables, 'allOnCells'
         for all variables on cells, etc.)"
 
-    dimension_list: list of str, optional
+    dimension_list : list of str, optional
         A list of dimensions and associated indices
 
-    mesh_filename: str, optional
+    mesh_filename : str, optional
         MPAS Mesh filename. By default, the first file matching
         ``filename_pattern`` will be used
 
-    blocking: int, optional
+    blocking : int, optional
         Size of blocks when reading MPAS file
 
-    output_32bit: bool, optional
+    output_32bit : bool, optional
         Whether the vtk files will be written using 32bit floats
 
-    combine: bool, optional
+    combine : bool, optional
         Whether time-independent fields are written to each file along with
         time-dependent fields
 
-    append: bool, optional
+    append : bool, optional
         Whether only vtp files that do not already exist are written out
 
-    out_dir: str, optional
+    out_dir : str, optional
         The output directory
 
-    xtime: str, optional"
+    xtime : str, optional"
         The name of the xtime variable or 'none' to extract Time dim without
         xtime
 
-    lonlat: bool, optional
+    lonlat : bool, optional
         Whether the resulting points are in lon-lat space, not Cartesian
 
-    time: str, optional
+    time : str, optional
         Indices for the time dimension
 
-    ignore_time: bool, optional
+    ignore_time : bool, optional
         Whether to ignore the Time dimension if it exists for files with a Time
         dimension but no xtime variable (e.g. mesh file)
 
-    topo_dim: str, optional
+    topo_dim : str, optional
         Dimension and range for topography dimension
 
-    topo_cell_index: str, optional
+    topo_cell_index : str, optional
         Index array indicating the bottom of the domain (default is the
         topo_dim-1 for all cells)
 
-    include_mesh_vars: bool, optional
+    include_mesh_vars : bool, optional
         Whether to include mesh variables as well as time-series variables
         in the extraction
 
-    fc_region_mask: geometric_features.FeatureCollection, optional
+    fc_region_mask : geometric_features.FeatureCollection, optional
         A feature collection used to define a mask.  The MPAS data is culled to
         lie within the mask before conversion to VTK proceeds
 
-    temp_dir: str, optional
+    temp_dir : str, optional
         If fc_region_mask is supplied, a temporary directory where the culled
         mesh and time series files are stored
+
+    use_progress_bar : bool, optional
+        Whether to display progress bars (problematic in logging to a file)
     """
 
     if ignore_time:
         xtime = None
 
     (time_indices, time_file_names) = setup_time_indices(
-        filename_pattern, xtime)
+        filename_pattern, xtime, use_progress_bar)
 
     if time is not None:
         time_indices, time_file_names = \
@@ -275,7 +274,8 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
     if fc_region_mask is not None:
         mesh_filename, time_file_names = _cull_files(
             fc_region_mask, temp_dir, mesh_filename, time_file_names,
-            separate_mesh_file, variable_list, include_mesh_vars, xtime)
+            separate_mesh_file, variable_list, include_mesh_vars, xtime,
+            use_progress_bar)
         separate_mesh_file = True
 
     # Setting dimension values:
@@ -318,7 +318,7 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
         else:
             (vertices, connectivity, offsets, valid_mask, cell_to_point_map,
              boundary_mask) = build_topo_point_and_polygon_lists(
-                     mesh_file, output_32bit, lonlat)
+                     mesh_file, output_32bit, lonlat, use_progress_bar)
 
         if not separate_mesh_file:
             mesh_file.close()
@@ -328,7 +328,7 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
                                 out_dir, blocking, all_dim_vals,
                                 'nCells', cellVars, vertices, connectivity,
                                 offsets, valid_mask, output_32bit,
-                                combine, append, xtime,
+                                combine, append, xtime, use_progress_bar,
                                 topo_dim=topo_dim,
                                 topo_cell_indices=topo_cell_indices,
                                 cell_to_point_map=cell_to_point_map,
@@ -355,7 +355,7 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
                                 out_dir, blocking, all_dim_vals,
                                 'nVertices', vertexVars, vertices,
                                 connectivity, offsets, valid_mask, output_32bit,
-                                combine, append, xtime)
+                                combine, append, xtime, use_progress_bar)
 
         if separate_mesh_file:
             mesh_file.close()
@@ -379,17 +379,13 @@ def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
                                 out_dir, blocking, all_dim_vals,
                                 'nEdges', edgeVars, vertices, connectivity,
                                 offsets, valid_mask, output_32bit,
-                                combine, append, xtime)
+                                combine, append, xtime, use_progress_bar)
 
         if separate_mesh_file:
             mesh_file.close()
 
 
 def main():
-    if use_progress_bar:
-        print(" -- Using progress bars --")
-    else:
-        print(" -- Progress bars are not available--")
     parser = \
         argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawTextHelpFormatter)
@@ -501,8 +497,9 @@ def build_field_time_series(local_time_indices, file_names, mesh_file,
                             out_dir, blocking, all_dim_vals, blockDimName,
                             variable_list, vertices, connectivity, offsets,
                             valid_mask, output_32bit, combine_output, append,
-                            xtimeName, topo_dim=None, topo_cell_indices=None,
-                            cell_to_point_map=None, boundary_mask=None):  # {{{
+                            xtimeName, use_progress_bar, topo_dim=None,
+                            topo_cell_indices=None, cell_to_point_map=None,
+                            boundary_mask=None):  # {{{
 
     if len(variable_list) == 0:
         return
@@ -804,7 +801,7 @@ def get_var(variable_name, mesh_file, time_series_file):  # {{{
         return time_series_file.variables[variable_name]  # }}}
 
 
-def setup_time_indices(fn_pattern, xtimeName):  # {{{
+def setup_time_indices(fn_pattern, xtimeName, use_progress_bar):  # {{{
     """
     This function finds a list of NetCDF files containing time-dependent
     MPAS data and extracts the time indices in each file.  The routine
@@ -1357,7 +1354,8 @@ def write_vtp_header(path, prefix, active_var_index, var_indices,
     return vtkFile  # }}}
 
 
-def build_topo_point_and_polygon_lists(nc_file, output_32bit, lonlat):  # {{{
+def build_topo_point_and_polygon_lists(nc_file, output_32bit, lonlat,
+                                       use_progress_bar):  # {{{
 
     if output_32bit:
         dtype = 'f4'
@@ -2096,7 +2094,8 @@ def _add_var(variables, var_name, inc_dims, variable_names, exc_dims=None):
 
 
 def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
-    separate_mesh_file, variable_list, include_mesh_vars, xtime):
+                separate_mesh_file, variable_list, include_mesh_vars, xtime,
+                use_progress_bar):
 
     mesh_vars = [
         'areaCell', 'cellsOnCell', 'edgesOnCell', 'indexToCellID',
