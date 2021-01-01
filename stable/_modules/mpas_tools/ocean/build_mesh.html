@@ -181,20 +181,24 @@
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation</span> <span class="kn">import</span> <span class="n">build_spherical_mesh</span> <span class="k">as</span> <span class="n">create_spherical_mesh</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation</span> <span class="kn">import</span> <span class="n">build_spherical_mesh</span> <span class="k">as</span> \
+    <span class="n">create_spherical_mesh</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation</span> <span class="kn">import</span> <span class="n">build_planar_mesh</span> <span class="k">as</span> <span class="n">create_planar_mesh</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.ocean.inject_bathymetry</span> <span class="kn">import</span> <span class="n">inject_bathymetry</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.ocean.inject_meshDensity</span> <span class="kn">import</span> <span class="n">inject_spherical_meshDensity</span><span class="p">,</span> \
     <span class="n">inject_planar_meshDensity</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.ocean.inject_preserve_floodplain</span> <span class="kn">import</span> <span class="n">inject_preserve_floodplain</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.ocean.inject_preserve_floodplain</span> <span class="kn">import</span> \
+    <span class="n">inject_preserve_floodplain</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.logging</span> <span class="kn">import</span> <span class="n">LoggingContext</span>
 
 
 <div class="viewcode-block" id="build_spherical_mesh"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.build_mesh.build_spherical_mesh.html#mpas_tools.ocean.build_mesh.build_spherical_mesh">[docs]</a><span class="k">def</span> <span class="nf">build_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span>
                          <span class="n">plot_cellWidth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="o">=</span><span class="s1">&#39;base_mesh_vtk&#39;</span><span class="p">,</span>
                          <span class="n">preserve_floodplain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">floodplain_elevation</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
-                         <span class="n">do_inject_bathymetry</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                         <span class="n">do_inject_bathymetry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">use_progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build an MPAS mesh using JIGSAW with the given cell sizes as a function of</span>
 <span class="sd">    latitude and longitude</span>
@@ -218,8 +222,8 @@
 <span class="sd">        The file name of the resulting MPAS mesh</span>
 
 <span class="sd">    plot_cellWidth : bool, optional</span>
-<span class="sd">        Whether to produce a plot of ``cellWidth``. If so, it will be written to</span>
-<span class="sd">        ``cellWidthGlobal.png``.</span>
+<span class="sd">        Whether to produce a plot of ``cellWidth``. If so, it will be written</span>
+<span class="sd">        to ``cellWidthGlobal.png``.</span>
 
 <span class="sd">    vtk_dir : str, optional</span>
 <span class="sd">        The name of the directory where mesh data will be extracted for viewing</span>
@@ -235,26 +239,35 @@
 <span class="sd">    do_inject_bathymetry : bool, optional</span>
 <span class="sd">        Whether one of the default bathymetry datasets, ``earth_relief_15s.nc``</span>
 <span class="sd">        or ``topo.msh``, should be added to the MPAS mesh</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger for the output if not stdout</span>
+
+<span class="sd">    use_progress_bar : bool, optional</span>
+<span class="sd">        Whether to display progress bars (problematic in logging to a file)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="c1"># from https://github.com/E3SM-Project/E3SM/blob/master/cime/src/share/util/shr_const_mod.F90#L20</span>
-    <span class="n">earth_radius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
+    <span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
 
-    <span class="n">create_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>  <span class="n">out_filename</span><span class="p">,</span>
-                          <span class="n">plot_cellWidth</span><span class="p">)</span>
+        <span class="n">earth_radius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 4. Inject meshDensity into the mesh file&#39;</span><span class="p">)</span>
-    <span class="n">inject_spherical_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span>
-                                 <span class="n">mesh_filename</span><span class="o">=</span><span class="n">out_filename</span><span class="p">)</span>
+        <span class="n">create_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>  <span class="n">out_filename</span><span class="p">,</span>
+                              <span class="n">plot_cellWidth</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
 
-    <span class="n">_shared_steps</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="p">,</span> <span class="n">preserve_floodplain</span><span class="p">,</span>
-                  <span class="n">floodplain_elevation</span><span class="p">,</span> <span class="n">do_inject_bathymetry</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 4. Inject meshDensity into the mesh file&#39;</span><span class="p">)</span>
+        <span class="n">inject_spherical_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span>
+                                     <span class="n">mesh_filename</span><span class="o">=</span><span class="n">out_filename</span><span class="p">)</span>
+
+        <span class="n">_shared_steps</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="p">,</span> <span class="n">preserve_floodplain</span><span class="p">,</span>
+                      <span class="n">floodplain_elevation</span><span class="p">,</span> <span class="n">do_inject_bathymetry</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span>
+                      <span class="n">use_progress_bar</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="build_planar_mesh"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.build_mesh.build_planar_mesh.html#mpas_tools.ocean.build_mesh.build_planar_mesh">[docs]</a><span class="k">def</span> <span class="nf">build_planar_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span><span class="p">,</span>
                       <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="o">=</span><span class="s1">&#39;base_mesh_vtk&#39;</span><span class="p">,</span>
                       <span class="n">preserve_floodplain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">floodplain_elevation</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
-                      <span class="n">do_inject_bathymetry</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+                      <span class="n">do_inject_bathymetry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">use_progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build a planar MPAS mesh</span>
 
@@ -290,39 +303,52 @@
 <span class="sd">    do_inject_bathymetry : bool, optional</span>
 <span class="sd">        Whether one of the default bathymetry datasets, ``earth_relief_15s.nc``</span>
 <span class="sd">        or ``topo.msh``, should be added to the MPAS mesh</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger for the output if not stdout</span>
+
+<span class="sd">    use_progress_bar : bool, optional</span>
+<span class="sd">        Whether to display progress bars (problematic in logging to a file)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">create_planar_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 4. Inject meshDensity into the mesh file&#39;</span><span class="p">)</span>
-    <span class="n">inject_planar_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="n">out_filename</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
 
-    <span class="n">_shared_steps</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="p">,</span> <span class="n">preserve_floodplain</span><span class="p">,</span>
-                  <span class="n">floodplain_elevation</span><span class="p">,</span> <span class="n">do_inject_bathymetry</span><span class="p">)</span></div>
+        <span class="n">create_planar_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span><span class="p">,</span>
+                           <span class="n">out_filename</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 4. Inject meshDensity into the mesh file&#39;</span><span class="p">)</span>
+        <span class="n">inject_planar_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="n">out_filename</span><span class="p">)</span>
+
+        <span class="n">_shared_steps</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="p">,</span> <span class="n">preserve_floodplain</span><span class="p">,</span>
+                      <span class="n">floodplain_elevation</span><span class="p">,</span> <span class="n">do_inject_bathymetry</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span>
+                      <span class="n">use_progress_bar</span><span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">_shared_steps</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="p">,</span> <span class="n">preserve_floodplain</span><span class="p">,</span>
-                  <span class="n">floodplain_elevation</span><span class="p">,</span> <span class="n">do_inject_bathymetry</span><span class="p">):</span>
+                  <span class="n">floodplain_elevation</span><span class="p">,</span> <span class="n">do_inject_bathymetry</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span>
+                  <span class="n">use_progress_bar</span><span class="p">):</span>
     <span class="n">step</span> <span class="o">=</span> <span class="mi">5</span>
 
     <span class="k">if</span> <span class="n">do_inject_bathymetry</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step </span><span class="si">{}</span><span class="s1">. Injecting bathymetry&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step </span><span class="si">{}</span><span class="s1">. Injecting bathymetry&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">))</span>
         <span class="n">inject_bathymetry</span><span class="p">(</span><span class="n">mesh_file</span><span class="o">=</span><span class="n">out_filename</span><span class="p">)</span>
         <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
 
     <span class="k">if</span> <span class="n">preserve_floodplain</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step </span><span class="si">{}</span><span class="s1">. Injecting flag to preserve floodplain&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step </span><span class="si">{}</span><span class="s1">. Injecting flag to preserve floodplain&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">step</span><span class="p">))</span>
         <span class="n">inject_preserve_floodplain</span><span class="p">(</span><span class="n">mesh_file</span><span class="o">=</span><span class="n">out_filename</span><span class="p">,</span>
                                    <span class="n">floodplain_elevation</span><span class="o">=</span><span class="n">floodplain_elevation</span><span class="p">)</span>
         <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step </span><span class="si">{}</span><span class="s1">. Create vtk file for visualization&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step </span><span class="si">{}</span><span class="s1">. Create vtk file for visualization&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">))</span>
     <span class="n">extract_vtk</span><span class="p">(</span><span class="n">ignore_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lonlat</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;maxEdges=&#39;</span><span class="p">],</span>
                 <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;allOnCells&#39;</span><span class="p">],</span> <span class="n">filename_pattern</span><span class="o">=</span><span class="n">out_filename</span><span class="p">,</span>
-                <span class="n">out_dir</span><span class="o">=</span><span class="n">vtk_dir</span><span class="p">)</span>
+                <span class="n">out_dir</span><span class="o">=</span><span class="n">vtk_dir</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="o">=</span><span class="n">use_progress_bar</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;***********************************************&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;**    The global mesh file is </span><span class="si">{}</span><span class="s2">   **&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">out_filename</span><span class="p">))</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;***********************************************&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;***********************************************&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;**    The global mesh file is </span><span class="si">{}</span><span class="s2">   **&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">out_filename</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;***********************************************&quot;</span><span class="p">)</span>
 </pre></div>
 
            </div>

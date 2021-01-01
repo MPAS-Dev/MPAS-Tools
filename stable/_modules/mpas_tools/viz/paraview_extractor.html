@@ -271,12 +271,7 @@
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
 
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">progressbar</span> <span class="kn">import</span> <span class="n">ProgressBar</span><span class="p">,</span> <span class="n">Percentage</span><span class="p">,</span> <span class="n">Bar</span><span class="p">,</span> <span class="n">ETA</span>
-    <span class="n">use_progress_bar</span> <span class="o">=</span> <span class="kc">True</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="n">use_progress_bar</span> <span class="o">=</span> <span class="kc">False</span>
-
+<span class="kn">from</span> <span class="nn">progressbar</span> <span class="kn">import</span> <span class="n">ProgressBar</span><span class="p">,</span> <span class="n">Percentage</span><span class="p">,</span> <span class="n">Bar</span><span class="p">,</span> <span class="n">ETA</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.conversion</span> <span class="kn">import</span> <span class="n">mask</span><span class="p">,</span> <span class="n">cull</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
 
@@ -286,7 +281,8 @@
                 <span class="n">combine</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime&#39;</span><span class="p">,</span>
                 <span class="n">lonlat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">topo_dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">topo_cell_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">fc_region_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">temp_dir</span><span class="o">=</span><span class="s1">&#39;./culled_region&#39;</span><span class="p">):</span>
+                <span class="n">fc_region_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">temp_dir</span><span class="o">=</span><span class="s1">&#39;./culled_region&#39;</span><span class="p">,</span>
+                <span class="n">use_progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extract fields from a time series of NetCDF files as VTK files for plotting</span>
 <span class="sd">    in ParaView.</span>
@@ -376,72 +372,75 @@
 <span class="sd">    filename_pattern : str</span>
 <span class="sd">        MPAS Filename pattern</span>
 
-<span class="sd">    variable_list: list of str, optional</span>
+<span class="sd">    variable_list : list of str, optional</span>
 <span class="sd">        List of variables to extract (&#39;all&#39; for all variables, &#39;allOnCells&#39;</span>
 <span class="sd">        for all variables on cells, etc.)&quot;</span>
 
-<span class="sd">    dimension_list: list of str, optional</span>
+<span class="sd">    dimension_list : list of str, optional</span>
 <span class="sd">        A list of dimensions and associated indices</span>
 
-<span class="sd">    mesh_filename: str, optional</span>
+<span class="sd">    mesh_filename : str, optional</span>
 <span class="sd">        MPAS Mesh filename. By default, the first file matching</span>
 <span class="sd">        ``filename_pattern`` will be used</span>
 
-<span class="sd">    blocking: int, optional</span>
+<span class="sd">    blocking : int, optional</span>
 <span class="sd">        Size of blocks when reading MPAS file</span>
 
-<span class="sd">    output_32bit: bool, optional</span>
+<span class="sd">    output_32bit : bool, optional</span>
 <span class="sd">        Whether the vtk files will be written using 32bit floats</span>
 
-<span class="sd">    combine: bool, optional</span>
+<span class="sd">    combine : bool, optional</span>
 <span class="sd">        Whether time-independent fields are written to each file along with</span>
 <span class="sd">        time-dependent fields</span>
 
-<span class="sd">    append: bool, optional</span>
+<span class="sd">    append : bool, optional</span>
 <span class="sd">        Whether only vtp files that do not already exist are written out</span>
 
-<span class="sd">    out_dir: str, optional</span>
+<span class="sd">    out_dir : str, optional</span>
 <span class="sd">        The output directory</span>
 
-<span class="sd">    xtime: str, optional&quot;</span>
+<span class="sd">    xtime : str, optional&quot;</span>
 <span class="sd">        The name of the xtime variable or &#39;none&#39; to extract Time dim without</span>
 <span class="sd">        xtime</span>
 
-<span class="sd">    lonlat: bool, optional</span>
+<span class="sd">    lonlat : bool, optional</span>
 <span class="sd">        Whether the resulting points are in lon-lat space, not Cartesian</span>
 
-<span class="sd">    time: str, optional</span>
+<span class="sd">    time : str, optional</span>
 <span class="sd">        Indices for the time dimension</span>
 
-<span class="sd">    ignore_time: bool, optional</span>
+<span class="sd">    ignore_time : bool, optional</span>
 <span class="sd">        Whether to ignore the Time dimension if it exists for files with a Time</span>
 <span class="sd">        dimension but no xtime variable (e.g. mesh file)</span>
 
-<span class="sd">    topo_dim: str, optional</span>
+<span class="sd">    topo_dim : str, optional</span>
 <span class="sd">        Dimension and range for topography dimension</span>
 
-<span class="sd">    topo_cell_index: str, optional</span>
+<span class="sd">    topo_cell_index : str, optional</span>
 <span class="sd">        Index array indicating the bottom of the domain (default is the</span>
 <span class="sd">        topo_dim-1 for all cells)</span>
 
-<span class="sd">    include_mesh_vars: bool, optional</span>
+<span class="sd">    include_mesh_vars : bool, optional</span>
 <span class="sd">        Whether to include mesh variables as well as time-series variables</span>
 <span class="sd">        in the extraction</span>
 
-<span class="sd">    fc_region_mask: geometric_features.FeatureCollection, optional</span>
+<span class="sd">    fc_region_mask : geometric_features.FeatureCollection, optional</span>
 <span class="sd">        A feature collection used to define a mask.  The MPAS data is culled to</span>
 <span class="sd">        lie within the mask before conversion to VTK proceeds</span>
 
-<span class="sd">    temp_dir: str, optional</span>
+<span class="sd">    temp_dir : str, optional</span>
 <span class="sd">        If fc_region_mask is supplied, a temporary directory where the culled</span>
 <span class="sd">        mesh and time series files are stored</span>
+
+<span class="sd">    use_progress_bar : bool, optional</span>
+<span class="sd">        Whether to display progress bars (problematic in logging to a file)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">ignore_time</span><span class="p">:</span>
         <span class="n">xtime</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="p">(</span><span class="n">time_indices</span><span class="p">,</span> <span class="n">time_file_names</span><span class="p">)</span> <span class="o">=</span> <span class="n">setup_time_indices</span><span class="p">(</span>
-        <span class="n">filename_pattern</span><span class="p">,</span> <span class="n">xtime</span><span class="p">)</span>
+        <span class="n">filename_pattern</span><span class="p">,</span> <span class="n">xtime</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">time_indices</span><span class="p">,</span> <span class="n">time_file_names</span> <span class="o">=</span> \
@@ -455,7 +454,8 @@
     <span class="k">if</span> <span class="n">fc_region_mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">mesh_filename</span><span class="p">,</span> <span class="n">time_file_names</span> <span class="o">=</span> <span class="n">_cull_files</span><span class="p">(</span>
             <span class="n">fc_region_mask</span><span class="p">,</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">,</span> <span class="n">time_file_names</span><span class="p">,</span>
-            <span class="n">separate_mesh_file</span><span class="p">,</span> <span class="n">variable_list</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="p">,</span> <span class="n">xtime</span><span class="p">)</span>
+            <span class="n">separate_mesh_file</span><span class="p">,</span> <span class="n">variable_list</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="p">,</span> <span class="n">xtime</span><span class="p">,</span>
+            <span class="n">use_progress_bar</span><span class="p">)</span>
         <span class="n">separate_mesh_file</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="c1"># Setting dimension values:</span>
@@ -498,7 +498,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">connectivity</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">valid_mask</span><span class="p">,</span> <span class="n">cell_to_point_map</span><span class="p">,</span>
              <span class="n">boundary_mask</span><span class="p">)</span> <span class="o">=</span> <span class="n">build_topo_point_and_polygon_lists</span><span class="p">(</span>
-                     <span class="n">mesh_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">)</span>
+                     <span class="n">mesh_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">separate_mesh_file</span><span class="p">:</span>
             <span class="n">mesh_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -508,7 +508,7 @@
                                 <span class="n">out_dir</span><span class="p">,</span> <span class="n">blocking</span><span class="p">,</span> <span class="n">all_dim_vals</span><span class="p">,</span>
                                 <span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="n">cellVars</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">connectivity</span><span class="p">,</span>
                                 <span class="n">offsets</span><span class="p">,</span> <span class="n">valid_mask</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span>
-                                <span class="n">combine</span><span class="p">,</span> <span class="n">append</span><span class="p">,</span> <span class="n">xtime</span><span class="p">,</span>
+                                <span class="n">combine</span><span class="p">,</span> <span class="n">append</span><span class="p">,</span> <span class="n">xtime</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="p">,</span>
                                 <span class="n">topo_dim</span><span class="o">=</span><span class="n">topo_dim</span><span class="p">,</span>
                                 <span class="n">topo_cell_indices</span><span class="o">=</span><span class="n">topo_cell_indices</span><span class="p">,</span>
                                 <span class="n">cell_to_point_map</span><span class="o">=</span><span class="n">cell_to_point_map</span><span class="p">,</span>
@@ -535,7 +535,7 @@
                                 <span class="n">out_dir</span><span class="p">,</span> <span class="n">blocking</span><span class="p">,</span> <span class="n">all_dim_vals</span><span class="p">,</span>
                                 <span class="s1">&#39;nVertices&#39;</span><span class="p">,</span> <span class="n">vertexVars</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span>
                                 <span class="n">connectivity</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">valid_mask</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span>
-                                <span class="n">combine</span><span class="p">,</span> <span class="n">append</span><span class="p">,</span> <span class="n">xtime</span><span class="p">)</span>
+                                <span class="n">combine</span><span class="p">,</span> <span class="n">append</span><span class="p">,</span> <span class="n">xtime</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">separate_mesh_file</span><span class="p">:</span>
             <span class="n">mesh_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -559,17 +559,13 @@
                                 <span class="n">out_dir</span><span class="p">,</span> <span class="n">blocking</span><span class="p">,</span> <span class="n">all_dim_vals</span><span class="p">,</span>
                                 <span class="s1">&#39;nEdges&#39;</span><span class="p">,</span> <span class="n">edgeVars</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">connectivity</span><span class="p">,</span>
                                 <span class="n">offsets</span><span class="p">,</span> <span class="n">valid_mask</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span>
-                                <span class="n">combine</span><span class="p">,</span> <span class="n">append</span><span class="p">,</span> <span class="n">xtime</span><span class="p">)</span>
+                                <span class="n">combine</span><span class="p">,</span> <span class="n">append</span><span class="p">,</span> <span class="n">xtime</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">separate_mesh_file</span><span class="p">:</span>
             <span class="n">mesh_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
 
 <span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
-    <span class="k">if</span> <span class="n">use_progress_bar</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -- Using progress bars --&quot;</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -- Progress bars are not available--&quot;</span><span class="p">)</span>
     <span class="n">parser</span> <span class="o">=</span> \
         <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span>
                                 <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
@@ -681,8 +677,9 @@
                             <span class="n">out_dir</span><span class="p">,</span> <span class="n">blocking</span><span class="p">,</span> <span class="n">all_dim_vals</span><span class="p">,</span> <span class="n">blockDimName</span><span class="p">,</span>
                             <span class="n">variable_list</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">connectivity</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span>
                             <span class="n">valid_mask</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">combine_output</span><span class="p">,</span> <span class="n">append</span><span class="p">,</span>
-                            <span class="n">xtimeName</span><span class="p">,</span> <span class="n">topo_dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">topo_cell_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                            <span class="n">cell_to_point_map</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">boundary_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># {{{</span>
+                            <span class="n">xtimeName</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="p">,</span> <span class="n">topo_dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">topo_cell_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cell_to_point_map</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                            <span class="n">boundary_mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># {{{</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">variable_list</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span>
@@ -984,7 +981,7 @@
         <span class="k">return</span> <span class="n">time_series_file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">setup_time_indices</span><span class="p">(</span><span class="n">fn_pattern</span><span class="p">,</span> <span class="n">xtimeName</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span> <span class="nf">setup_time_indices</span><span class="p">(</span><span class="n">fn_pattern</span><span class="p">,</span> <span class="n">xtimeName</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="p">):</span>  <span class="c1"># {{{</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function finds a list of NetCDF files containing time-dependent</span>
 <span class="sd">    MPAS data and extracts the time indices in each file.  The routine</span>
@@ -1537,7 +1534,8 @@
     <span class="k">return</span> <span class="n">vtkFile</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">build_topo_point_and_polygon_lists</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span> <span class="nf">build_topo_point_and_polygon_lists</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">,</span>
+                                       <span class="n">use_progress_bar</span><span class="p">):</span>  <span class="c1"># {{{</span>
 
     <span class="k">if</span> <span class="n">output_32bit</span><span class="p">:</span>
         <span class="n">dtype</span> <span class="o">=</span> <span class="s1">&#39;f4&#39;</span>
@@ -2276,7 +2274,8 @@
 
 
 <span class="k">def</span> <span class="nf">_cull_files</span><span class="p">(</span><span class="n">fc_region_mask</span><span class="p">,</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">,</span> <span class="n">time_file_names</span><span class="p">,</span>
-    <span class="n">separate_mesh_file</span><span class="p">,</span> <span class="n">variable_list</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="p">,</span> <span class="n">xtime</span><span class="p">):</span>
+                <span class="n">separate_mesh_file</span><span class="p">,</span> <span class="n">variable_list</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="p">,</span> <span class="n">xtime</span><span class="p">,</span>
+                <span class="n">use_progress_bar</span><span class="p">):</span>
 
     <span class="n">mesh_vars</span> <span class="o">=</span> <span class="p">[</span>
         <span class="s1">&#39;areaCell&#39;</span><span class="p">,</span> <span class="s1">&#39;cellsOnCell&#39;</span><span class="p">,</span> <span class="s1">&#39;edgesOnCell&#39;</span><span class="p">,</span> <span class="s1">&#39;indexToCellID&#39;</span><span class="p">,</span>

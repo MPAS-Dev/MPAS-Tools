@@ -218,7 +218,7 @@
 <h1>mpas_tools.mesh.creation.build_mesh.build_spherical_mesh<a class="headerlink" href="#mpas-tools-mesh-creation-build-mesh-build-spherical-mesh" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
 <dt id="mpas_tools.mesh.creation.build_mesh.build_spherical_mesh">
-<code class="sig-prename descclassname">mpas_tools.mesh.creation.build_mesh.</code><code class="sig-name descname">build_spherical_mesh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cellWidth</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">earth_radius</span></em>, <em class="sig-param"><span class="n">out_filename</span><span class="o">=</span><span class="default_value">'base_mesh.nc'</span></em>, <em class="sig-param"><span class="n">plot_cellWidth</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">dir</span><span class="o">=</span><span class="default_value">'./'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/build_mesh.html#build_spherical_mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.mesh.creation.build_mesh.build_spherical_mesh" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">mpas_tools.mesh.creation.build_mesh.</code><code class="sig-name descname">build_spherical_mesh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cellWidth</span></em>, <em class="sig-param"><span class="n">lon</span></em>, <em class="sig-param"><span class="n">lat</span></em>, <em class="sig-param"><span class="n">earth_radius</span></em>, <em class="sig-param"><span class="n">out_filename</span><span class="o">=</span><span class="default_value">'base_mesh.nc'</span></em>, <em class="sig-param"><span class="n">plot_cellWidth</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">dir</span><span class="o">=</span><span class="default_value">'./'</span></em>, <em class="sig-param"><span class="n">logger</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/build_mesh.html#build_spherical_mesh"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.mesh.creation.build_mesh.build_spherical_mesh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build an MPAS mesh using JIGSAW with the given cell sizes as a function of
 latitude and longitude.</p>
 <p>The result is a mesh file stored in <code class="docutils literal notranslate"><span class="pre">out_filename</span></code> as well as several
@@ -232,10 +232,11 @@ intermediate files: <code class="docutils literal notranslate"><span class="pre"
 <li><p><strong>lat</strong> (<em>ndarray</em>) – longitude in degrees (length m and between -90 and 90)</p></li>
 <li><p><strong>earth_radius</strong> (<em>float</em>) – Earth radius in meters</p></li>
 <li><p><strong>out_filename</strong> (<em>str, optional</em>) – The file name of the resulting MPAS mesh</p></li>
-<li><p><strong>plot_cellWidth</strong> (<em>bool, optional</em>) – Whether to produce a plot of <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code>. If so, it will be written to
-<code class="docutils literal notranslate"><span class="pre">cellWidthGlobal.png</span></code>.</p></li>
+<li><p><strong>plot_cellWidth</strong> (<em>bool, optional</em>) – Whether to produce a plot of <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code>. If so, it will be written
+to <code class="docutils literal notranslate"><span class="pre">cellWidthGlobal.png</span></code>.</p></li>
 <li><p><strong>dir</strong> (<em>str, optional</em>) – A directory in which a temporary directory will be added with files
 produced during mesh conversion and then deleted upon completion.</p></li>
+<li><p><strong>logger</strong> (<em>logging.Logger, optional</em>) – A logger for the output if not stdout</p></li>
 </ul>
 </dd>
 </dl>

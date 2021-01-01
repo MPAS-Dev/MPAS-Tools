@@ -192,11 +192,12 @@
 <span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.jigsaw_driver</span> <span class="kn">import</span> <span class="n">jigsaw_driver</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.jigsaw_to_netcdf</span> <span class="kn">import</span> <span class="n">jigsaw_to_netcdf</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.viz.colormaps</span> <span class="kn">import</span> <span class="n">register_sci_viz_colormaps</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.logging</span> <span class="kn">import</span> <span class="n">LoggingContext</span>
 
 
 <div class="viewcode-block" id="build_spherical_mesh"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.build_mesh.build_spherical_mesh.html#mpas_tools.mesh.creation.build_mesh.build_spherical_mesh">[docs]</a><span class="k">def</span> <span class="nf">build_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
                          <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span> <span class="n">plot_cellWidth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">):</span>
+                         <span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build an MPAS mesh using JIGSAW with the given cell sizes as a function of</span>
 <span class="sd">    latitude and longitude.</span>
@@ -223,64 +224,70 @@
 <span class="sd">        The file name of the resulting MPAS mesh</span>
 
 <span class="sd">    plot_cellWidth : bool, optional</span>
-<span class="sd">        Whether to produce a plot of ``cellWidth``. If so, it will be written to</span>
-<span class="sd">        ``cellWidthGlobal.png``.</span>
+<span class="sd">        Whether to produce a plot of ``cellWidth``. If so, it will be written</span>
+<span class="sd">        to ``cellWidthGlobal.png``.</span>
 
 <span class="sd">    dir : str, optional</span>
 <span class="sd">        A directory in which a temporary directory will be added with files</span>
 <span class="sd">        produced during mesh conversion and then deleted upon completion.</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger for the output if not stdout</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">da</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span>
-                          <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">],</span>
-                          <span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">},</span>
-                          <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cellWidth&#39;</span><span class="p">)</span>
-    <span class="n">cw_filename</span> <span class="o">=</span> <span class="s1">&#39;cellWidthVsLatLon.nc&#39;</span>
-    <span class="n">da</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">plot_cellWidth</span><span class="p">:</span>
-        <span class="n">register_sci_viz_colormaps</span><span class="p">()</span>
-        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mf">16.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">])</span>
-        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">set_global</span><span class="p">()</span>
-        <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span>
-                       <span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">(),</span>
-                       <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;3Wbgy5&#39;</span><span class="p">,</span>
-                       <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="n">cartopy</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">LAND</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-        <span class="n">gl</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">gridlines</span><span class="p">(</span>
-            <span class="n">crs</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">(),</span>
-            <span class="n">draw_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-            <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-            <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
-            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
-            <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-        <span class="n">gl</span><span class="o">.</span><span class="n">top_labels</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">gl</span><span class="o">.</span><span class="n">right_labels</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span>
-            <span class="s1">&#39;Grid cell size, km, min: </span><span class="si">{:.1f}</span><span class="s1"> max: </span><span class="si">{:.1f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">cellWidth</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">cellWidth</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">shrink</span><span class="o">=.</span><span class="mi">60</span><span class="p">)</span>
-        <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;cellWidthGlobal.png&#39;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 1. Generate mesh with JIGSAW&#39;</span><span class="p">)</span>
-    <span class="n">jigsaw_driver</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                  <span class="n">earth_radius</span><span class="o">=</span><span class="n">earth_radius</span><span class="p">)</span>
+        <span class="n">da</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span>
+                              <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">],</span>
+                              <span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">},</span>
+                              <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cellWidth&#39;</span><span class="p">)</span>
+        <span class="n">cw_filename</span> <span class="o">=</span> <span class="s1">&#39;cellWidthVsLatLon.nc&#39;</span>
+        <span class="n">da</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">plot_cellWidth</span><span class="p">:</span>
+            <span class="n">register_sci_viz_colormaps</span><span class="p">()</span>
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">[</span><span class="mf">16.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">])</span>
+            <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">axes</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_global</span><span class="p">()</span>
+            <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span>
+                           <span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">(),</span>
+                           <span class="n">extent</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;3Wbgy5&#39;</span><span class="p">,</span>
+                           <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="n">cartopy</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">LAND</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">gl</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">gridlines</span><span class="p">(</span>
+                <span class="n">crs</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">(),</span>
+                <span class="n">draw_labels</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+            <span class="n">gl</span><span class="o">.</span><span class="n">top_labels</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">gl</span><span class="o">.</span><span class="n">right_labels</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span>
+                <span class="s1">&#39;Grid cell size, km, min: </span><span class="si">{:.1f}</span><span class="s1"> max: </span><span class="si">{:.1f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                    <span class="n">cellWidth</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span><span class="n">cellWidth</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">shrink</span><span class="o">=.</span><span class="mi">60</span><span class="p">)</span>
+            <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;cellWidthGlobal.png&#39;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 2. Convert triangles from jigsaw format to netcdf&#39;</span><span class="p">)</span>
-    <span class="n">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">msh_filename</span><span class="o">=</span><span class="s1">&#39;mesh-MESH.msh&#39;</span><span class="p">,</span>
-                     <span class="n">output_name</span><span class="o">=</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                     <span class="n">sphere_radius</span><span class="o">=</span><span class="n">earth_radius</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 1. Generate mesh with JIGSAW&#39;</span><span class="p">)</span>
+        <span class="n">jigsaw_driver</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">earth_radius</span><span class="o">=</span><span class="n">earth_radius</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 3. Convert from triangles to MPAS mesh&#39;</span><span class="p">)</span>
-    <span class="n">write_netcdf</span><span class="p">(</span><span class="n">convert</span><span class="p">(</span><span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">),</span>
-                 <span class="n">out_filename</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 2. Convert triangles from jigsaw format to netcdf&#39;</span><span class="p">)</span>
+        <span class="n">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">msh_filename</span><span class="o">=</span><span class="s1">&#39;mesh-MESH.msh&#39;</span><span class="p">,</span>
+                         <span class="n">output_name</span><span class="o">=</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">sphere_radius</span><span class="o">=</span><span class="n">earth_radius</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 3. Convert from triangles to MPAS mesh&#39;</span><span class="p">)</span>
+        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">convert</span><span class="p">(</span><span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">,</span>
+                             <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">),</span>
+                     <span class="n">out_filename</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="build_planar_mesh"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.build_mesh.build_planar_mesh.html#mpas_tools.mesh.creation.build_mesh.build_planar_mesh">[docs]</a><span class="k">def</span> <span class="nf">build_planar_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span><span class="p">,</span>
-                      <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">):</span>
+                      <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build a planar MPAS mesh</span>
 
@@ -301,30 +308,33 @@
 
 <span class="sd">    out_filename : str, optional</span>
 <span class="sd">        The file name of the resulting MPAS mesh</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger for the output if not stdout</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">da</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span>
-                          <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">],</span>
-                          <span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">},</span>
-                          <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cellWidth&#39;</span><span class="p">)</span>
-    <span class="n">cw_filename</span> <span class="o">=</span> <span class="s1">&#39;cellWidthVsXY.nc&#39;</span>
-    <span class="n">da</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 1. Generate mesh with JIGSAW&#39;</span><span class="p">)</span>
-    <span class="n">jigsaw_driver</span><span class="p">(</span>
-        <span class="n">cellWidth</span><span class="p">,</span>
-        <span class="n">x</span><span class="p">,</span>
-        <span class="n">y</span><span class="p">,</span>
-        <span class="n">on_sphere</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">geom_points</span><span class="o">=</span><span class="n">geom_points</span><span class="p">,</span>
-        <span class="n">geom_edges</span><span class="o">=</span><span class="n">geom_edges</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 2. Convert triangles from jigsaw format to netcdf&#39;</span><span class="p">)</span>
-    <span class="n">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">msh_filename</span><span class="o">=</span><span class="s1">&#39;mesh-MESH.msh&#39;</span><span class="p">,</span>
-                     <span class="n">output_name</span><span class="o">=</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">da</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span>
+                              <span class="n">dims</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">],</span>
+                              <span class="n">coords</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="n">y</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">},</span>
+                              <span class="n">name</span><span class="o">=</span><span class="s1">&#39;cellWidth&#39;</span><span class="p">)</span>
+        <span class="n">cw_filename</span> <span class="o">=</span> <span class="s1">&#39;cellWidthVsXY.nc&#39;</span>
+        <span class="n">da</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Step 3. Convert from triangles to MPAS mesh&#39;</span><span class="p">)</span>
-    <span class="n">write_netcdf</span><span class="p">(</span><span class="n">convert</span><span class="p">(</span><span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">)),</span>
-                 <span class="n">out_filename</span><span class="p">)</span></div>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 1. Generate mesh with JIGSAW&#39;</span><span class="p">)</span>
+        <span class="n">jigsaw_driver</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">geom_points</span><span class="o">=</span><span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span><span class="o">=</span><span class="n">geom_edges</span><span class="p">,</span>
+                      <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 2. Convert triangles from jigsaw format to netcdf&#39;</span><span class="p">)</span>
+        <span class="n">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">msh_filename</span><span class="o">=</span><span class="s1">&#39;mesh-MESH.msh&#39;</span><span class="p">,</span>
+                         <span class="n">output_name</span><span class="o">=</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 3. Convert from triangles to MPAS mesh&#39;</span><span class="p">)</span>
+        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">convert</span><span class="p">(</span><span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">),</span>
+                             <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">),</span>
+                     <span class="n">out_filename</span><span class="p">)</span></div>
 
 </pre></div>
 
