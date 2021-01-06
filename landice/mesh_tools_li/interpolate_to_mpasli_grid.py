@@ -221,16 +221,22 @@ def interpolate_field(MPASfieldName):
        if 'time' in inputFile.variables[InputFieldName].dimensions:
            InputField = inputFile.variables[InputFieldName][timelev,:,:]
        else:
+           if timelev>0:
+              sys.exit("Error: --timestart and/or --timeend were specified but the required time dimension of 'time' was not found in the source file.")
            InputField = inputFile.variables[InputFieldName][:,:]
     elif filetype=='mpas':
        if 'Time' in inputFile.variables[InputFieldName].dimensions:
            InputField = inputFile.variables[InputFieldName][timelev,:]
        else:
+           if timelev>0:
+              sys.exit("Error: --timestart and/or --timeend were specified but the required time dimension of 'Time' was not found in the source file.")
            InputField = inputFile.variables[InputFieldName][:]
     elif filetype=='other':
        if 'time' in inputFile.variables[InputFieldName].dimensions:
            InputField = inputFile.variables[InputFieldName][timelev,:,:]
        else:
+           if timelev>0:
+              sys.exit("Error: --timestart and/or --timeend were specified but the required time dimension of 'time' was not found in the source file.")
            InputField = inputFile.variables[InputFieldName][:,:]
 
     print('  Input field  {} min/max: {} {}'.format(InputFieldName, InputField.min(), InputField.max()))
@@ -282,6 +288,8 @@ def interpolate_field_with_layers(MPASfieldName):
        if 'time' in inputFile.variables[InputFieldName].dimensions:
            InputField = inputFile.variables[InputFieldName][timelev,:,:,:]
        else:
+           if timelev>0:
+              sys.exit("Error: --timestart and/or --timeend were specified but the required time dimension of 'time' was not found in the source file.")
            InputField = inputFile.variables[InputFieldName][:,:,:]
        inputVerticalDimSize = InputField.shape[0] # vertical index is the first (since we've eliminated time already)
        layerFieldName = inputFile.variables[InputFieldName].dimensions[1] # second dimension is the vertical one - get the name of it
@@ -290,6 +298,8 @@ def interpolate_field_with_layers(MPASfieldName):
        if 'Time' in inputFile.variables[InputFieldName].dimensions:
            InputField = inputFile.variables[InputFieldName][timelev,:,:]
        else:
+           if timelev>0:
+              sys.exit("Error: --timestart and/or --timeend were specified but the required time dimension of 'Time' was not found in the source file.")
            InputField = inputFile.variables[InputFieldName][:,:]
        inputVerticalDimSize = InputField.shape[1] # vertical index is the second (since we've eliminated time already)
        layerThicknessFractions = inputFile.variables['layerThicknessFractions'][:]
