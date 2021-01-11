@@ -28,7 +28,7 @@ from datetime import datetime
 parser = OptionParser(description='Convert data from exodus file to MPAS mesh. WARNING: Change the SEACAS library dir to your own path! A simple usage example: conversion_exodus_init_to_mpasli_mesh.py -e antarctica.exo -o target.nc -a ./mpas_cellID.ascii -v beta')
 parser.add_option("-e", "--exo", dest="exo_file", help="the exo input file")
 parser.add_option("-a", "--ascii", dest="id_file", help="the ascii global id input file")
-parser.add_option("-o", "--out", dest="nc_file", help="the mpas input/output file")
+parser.add_option("-o", "--out", dest="nc_file", help="the mpas file to write to")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable(s) you want to convert from an exodus file. May be 'all', a single variable, or multiple variables comma-separated (no spaces)")
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
@@ -64,11 +64,15 @@ mpas_exodus_var_dic = {"beta":"basal_friction_log", "thickness":"ice_thickness",
 ice_density = 910.0
 ocean_density = 1028.0
 
+if not options.nc_file:
+   sys.exit("ERROR: an MPAS file for writing to was not specified with --out or -o.")
 dataset = Dataset(options.nc_file, 'r+')
 xCell = dataset.variables['xCell'][:]
 yCell = dataset.variables['yCell'][:]
 nCells = dataset.dimensions['nCells'].size
 
+if not options.exo_file:
+   sys.exit("ERROR: an Albany optimization exodus file was not specified with --exo or -e.")
 exo = exodus(options.exo_file)
 
 stride = np.array(exo.get_global_variable_values('stride'))
@@ -94,9 +98,11 @@ for glob_var_name in exo.get_global_variable_names():
 exo_layer_thick = np.flip(np.reshape(np.array(exo_layer_thick), [len(exo_layer_thick),]))
 mpas_layer_thick = np.ma.filled(dataset.variables['layerThicknessFractions'][:])
 if mpas_layer_thick.any() != exo_layer_thick.any():
-    sys.exit("Albany layer_thickness_ratio does not match MPAS layerThicknessFractions! Aborting")
+    sys.exit("ERROR: Albany layer_thickness_ratio does not match MPAS layerThicknessFractions! Aborting")
 
 # Read cellID_array from ascii file
+if not options.id_file:
+   sys.exit("ERROR: Cell ID file was not specified with --ascii or -a")
 print("Reading global id file {}".format(options.id_file))
 cellID = np.loadtxt(options.id_file,dtype='i')
 cellID_array = cellID[1::]
@@ -124,6 +130,7 @@ for var_name in var_names:
         smooth_iter_num = 0
         extrapolation = None
 
+    print("\n---------------")
     if mpas_exodus_var_dic[var_name] in exo.get_node_variable_names() and var_name in dataset.variables.keys():
         exo_var_name = mpas_exodus_var_dic[var_name]
         data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))
@@ -140,7 +147,7 @@ for var_name in var_names:
         albanyTemperature = np.zeros((nCells, nVert_max)) #initialize albanyTemperature array to fill in below
         dataset.variables[var_name][:] = 0 # Fill variable with zeros in order to ensure proper values in void
 
-        print("\nBegin {} conversion".format(var_name))
+        print("Begin {} conversion".format(var_name))
         # loop through nVertLevels (or nVertInterfaces) and convert variables from Albany to MPAS units
         for nVert in np.arange(0, nVert_max):
             print('Converting layer/level {} of {}'.format(nVert+1, nVert_max))
@@ -247,7 +254,7 @@ for var_name in var_names:
             # 5) Update mask
             # 6) go to step 1)
 
-            print("\nStart {} extrapolation using {} method!".format(var_name, extrapolation))
+            print("\nStart {} extrapolation using {} method".format(var_name, extrapolation))
             while np.count_nonzero(keepCellMask) != nCells:
 
                 keepCellMask = np.copy(keepCellMaskNew)
@@ -280,7 +287,7 @@ for var_name in var_names:
                         elif extrapolation == 'min':
                             varValue[iCell] = np.min(var_adj)
                         else:
-                            sys.exit("wrong extrapolation scheme! Set option x as idw or min!")
+                            sys.exit("ERROR: wrong extrapolation scheme! Set option x as idw or min!")
 
                         keepCellMaskNew[iCell] = 1
 
@@ -290,7 +297,7 @@ for var_name in var_names:
             # Smoothing
             iter_num = 0
             varValue = dataset.variables[var_name][0,:] # get variable array value so we can work from memory and not disk
-            print("\nStart {} smoothing!".format(var_name))
+            print("\nStart {} smoothing".format(var_name))
             while iter_num < int(smooth_iter_num):
                 print("\nSmoothing iteration {} of {}".format(iter_num+1,  smooth_iter_num))
                 searchCells = np.where(keepCellMaskOrig==0)[0]
@@ -322,14 +329,14 @@ for var_name in var_names:
                     elif extrapolation == 'min':
                         var_interp = min(var_adj)
                     else:
-                        sys.exit("Smoothing is only for beta and stiffness for now. Set option i to 0 to disable smoothing!")
+                        sys.exit("ERROR: Smoothing is only for beta and stiffness for now. Set option i to 0 to disable smoothing!")
                     varValue[iCell] = var_interp
 
                 iter_num = iter_num + 1
             dataset.variables[var_name][0,:] = varValue # Put updated array back into file.
 
             if iter_num == 0:
-                print("\nNo smoothing! Iter number is 0!")
+                print("\nNo smoothing. Iter number is 0.")
 
             print("\n{} extrapolation and smoothing finished!".format(var_name))
 
