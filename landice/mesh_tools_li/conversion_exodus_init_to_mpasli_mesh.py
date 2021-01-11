@@ -206,8 +206,11 @@ for var_name in var_names:
             elif var_name == "uReconstructX" or var_name == "uReconstructY":
                 dataset.variables[var_name][0,cellID_array-1, nVert] = data_exo_layer / (60. * 60. * 24 * 365)
             elif var_name == "thickness":
+                print("WARNING: thickness conversion is still experimental!  Carefully check results before using.")
+                # We have to be careful to not change MPAS geometry in the extended layer of cells - only touch it where the MPAS file already had nonzero thickness
+                thkMask = dataset.variables[var_name][0,cellID_array-1] > 1.0
+                dataset.variables[var_name][0,cellID_array-1] = data_exo_layer * 1000.0 * thkMask
                 # change bedTopography also when we change thickness, if that field exists
-                dataset.variables[var_name][0,cellID_array-1] = data_exo_layer * 1000.0
                 if 'bedTopography' in dataset.variables.keys():
                     thicknessOrig = np.copy(dataset.variables[var_name][0,cellID_array-1])
                     bedTopographyOrig = np.copy(dataset.variables['bedTopography'][0,cellID_array-1])
