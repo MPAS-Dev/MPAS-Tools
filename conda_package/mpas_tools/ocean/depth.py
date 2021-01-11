@@ -111,7 +111,7 @@ def add_depth(inFileName, outFileName, coordFileName=None):
         An MPAS-Ocean file with ``refBottomDepth``
     """
 
-    if coordFileName is not None:
+    if coordFileName is None:
         coordFileName = inFileName
 
     ds = xarray.open_dataset(inFileName, mask_and_scale=False)
