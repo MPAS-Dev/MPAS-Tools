@@ -29,7 +29,7 @@ parser = OptionParser(description='Convert data from exodus file to MPAS mesh. W
 parser.add_option("-e", "--exo", dest="exo_file", help="the exo input file")
 parser.add_option("-a", "--ascii", dest="id_file", help="the ascii global id input file")
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas file to write to")
-parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable(s) you want to convert from an exodus file. May be 'all', a single variable, or multiple variables comma-separated (no spaces)")
+parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable(s) you want to convert from an exodus file. May be a single variable or multiple variables comma-separated (no spaces)")
 parser.add_option("--dynamics", dest="dynamics", action="store_true", help="Use to convert ice dynamics fields: beta, stiffnessFactor, uReconstructX/Y.  If stiffnessFactor was not included in the optimzation, it will be skipped.")
 parser.add_option("--thermal", dest="thermal", action="store_true", help="Use to convert thermal fields: temperature, surfaceTemperature, basalTemperature.  Only use when the Albany optimization included the thermal solution.")
 parser.add_option("--geometry", dest="geometry", action="store_true", help="Use to convert geometry fields: thickness and corresponding adjustment to bedTopography.  Only use when the Albany optimization included adjustment to the ice thickness.")
@@ -128,10 +128,7 @@ if options.geometry:
 
 if len(var_names)>0 and options.var_name:
     sys.exit("ERROR: Specifying one or more of --dynamics --thermal --geometry and also specifying variables through --variable is not supported.")
-if options.var_name == "all":
-    for mpas_name in mpas_exodus_var_dic:
-        var_names.append(mpas_name)
-elif options.var_name:
+if options.var_name:
     var_names = options.var_name.split(',') #parse variable names into a list
 
 if len(var_names) == 0:
@@ -156,6 +153,8 @@ for var_name in var_names:
         extrapolation = None
 
     print("\n---------------")
+    if not var_name in mpas_exodus_var_dic:
+        sys.exit("ERROR: variable '{}' not supported by this script.  Supported variables are: {}".format(var_name, mpas_exodus_var_dic.keys()))
     if mpas_exodus_var_dic[var_name] in exo.get_node_variable_names() and var_name in dataset.variables.keys():
         exo_var_name = mpas_exodus_var_dic[var_name]
         data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))
