@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.creation.jigsaw\_to\_netcdf.jigsaw\_to\_netcdf
+===============================================================
+
+.. currentmodule:: mpas_tools.mesh.creation.jigsaw_to_netcdf
+
+.. autofunction:: jigsaw_to_netcdf

@@ -1,0 +1,32 @@
+﻿mpas\_tools.mesh.creation.mesh\_definition\_tools
+=================================================
+
+.. automodule:: mpas_tools.mesh.creation.mesh_definition_tools
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      AtlanticPacificGrid
+      EC_CellWidthVsLat
+      RRS_CellWidthVsLat
+      mergeCellWidthVsLat
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
