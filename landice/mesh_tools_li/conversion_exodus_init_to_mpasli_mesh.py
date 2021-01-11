@@ -30,6 +30,9 @@ parser.add_option("-e", "--exo", dest="exo_file", help="the exo input file")
 parser.add_option("-a", "--ascii", dest="id_file", help="the ascii global id input file")
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas file to write to")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable(s) you want to convert from an exodus file. May be 'all', a single variable, or multiple variables comma-separated (no spaces)")
+parser.add_option("--dynamics", dest="dynamics", action="store_true", help="Use to convert ice dynamics fields: beta, stiffnessFactor, uReconstructX/Y.  If stiffnessFactor was not included in the optimzation, it will be skipped.")
+parser.add_option("--thermal", dest="thermal", action="store_true", help="Use to convert thermal fields: temperature, surfaceTemperature, basalTemperature.  Only use when the Albany optimization included the thermal solution.")
+parser.add_option("--geometry", dest="geometry", action="store_true", help="Use to convert geometry fields: thickness and corresponding adjustment to bedTopography.  Only use when the Albany optimization included adjustment to the ice thickness.")
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
         option.help += (" " if option.help else "") + "[default: %default]"
@@ -52,14 +55,15 @@ from exodus import exodus
 # Map and copy Exodus data to MPAS data
 
 # Create dictionary of variables that are supported by the script
-mpas_exodus_var_dic = {"beta":"basal_friction_log", "thickness":"ice_thickness",\
+mpas_exodus_var_dic = {"beta":"basal_friction_log",
                        "stiffnessFactor":"stiffening_factor", \
+                       "uReconstructX":"solution_1", \
+                       "uReconstructY":"solution_2", \
+                       "temperature":"temperature", \
                        "basalTemperature":"temperature", \
                        "surfaceTemperature":"temperature", \
-                       "temperature":"temperature", \
+                       "thickness":"ice_thickness"}
                        #"surfaceAirTemperature":"surface_air_temperature", \ #use with caution!
-                       "uReconstructX":"solution_1", \
-                       "uReconstructY":"solution_2"}
 # A mapping between mpas and exodus file. Add one if you need to manipulate a different variable!
 ice_density = 910.0
 ocean_density = 1028.0
@@ -110,11 +114,32 @@ cellID_array = cellID[1::]
 
 # Parse variable names from options
 var_names = []
+if options.dynamics:
+    var_names.append("beta")
+    var_names.append("stiffnessFactor")
+    var_names.append("uReconstructX")
+    var_names.append("uReconstructY")
+if options.thermal:
+    var_names.append("temperature")
+    var_names.append("surfaceTemperature")
+    var_names.append("basalTemperature")
+if options.geometry:
+    var_names.append("thickness")
+
+if len(var_names)>0 and options.var_name:
+    sys.exit("ERROR: Specifying one or more of --dynamics --thermal --geometry and also specifying variables through --variable is not supported.")
 if options.var_name == "all":
     for mpas_name in mpas_exodus_var_dic:
         var_names.append(mpas_name)
-else:
+elif options.var_name:
     var_names = options.var_name.split(',') #parse variable names into a list
+
+if len(var_names) == 0:
+   sys.exit("ERROR: No variables for conversion were specified.  Specify variables with --dynamics --thermal --geometry or --variable.")
+
+print("\nVariables to convert: ", *var_names)
+vars_converted = []
+vars_not_converted = []
 
 # Loop through the variables, convert from Albany to MPAS, interpolate temperature
 # from Albany to MPAS vertical layers, extrapolate and smooth beta and stiffnessFactor
@@ -338,11 +363,16 @@ for var_name in var_names:
             if iter_num == 0:
                 print("\nNo smoothing. Iter number is 0.")
 
-            print("\n{} extrapolation and smoothing finished!".format(var_name))
+            print("\n{} extrapolation and smoothing finished".format(var_name))
+        vars_converted.append(var_name)
 
     else:
-        print("\nNo equivalent of variable {} found".format(var_name))
+        print("WARNING: No equivalent of variable {} found".format(var_name))
+        vars_not_converted.append(var_name)
+    print("---------------\n")
 
+print("\nVariables successfully converted: ", *vars_converted)
+print("Variables not converted: ", *vars_not_converted)
 print("\nConversion, extrapolation, and smoothing complete. Enjoy!")
 
 # === Clean-up =============
