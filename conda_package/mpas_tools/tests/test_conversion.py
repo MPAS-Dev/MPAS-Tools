@@ -19,9 +19,6 @@ def test_conversion():
     dsCulled = cull(dsIn=dsMesh, dsMask=dsMask)
     write_netcdf(dsCulled, 'culled_mesh.nc')
 
-    dsMask = xarray.open_dataset(
-        'mesh_tools/mesh_conversion_tools/test/land_mask_final.nc')
-
     fcMask = read_feature_collection(
         'mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson')
     dsMask = mask(dsMesh=dsMesh, fcMask=fcMask)

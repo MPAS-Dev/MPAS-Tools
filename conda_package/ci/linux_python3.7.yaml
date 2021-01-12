@@ -3,7 +3,7 @@ channel_sources:
 cxx_compiler:
 - gxx
 cxx_compiler_version:
-- '7'
+- '9'
 hdf5:
 - 1.10.6
 libnetcdf:
