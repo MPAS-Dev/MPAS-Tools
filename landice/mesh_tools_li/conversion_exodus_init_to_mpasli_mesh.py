@@ -198,7 +198,6 @@ for var_name in var_names:
                 y_exo_layer = y_exo[nVert_albany*stride:(nVert_albany+1)*stride]
                 layer_num = len(data_exo)//node_num
             else:
-            else:
                 sys.exit("Invalid ordering in Exodus file.  Ordering must be 0 or 1.")
 
             node_num_layer = len(x_exo_layer)
