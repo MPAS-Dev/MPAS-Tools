@@ -274,7 +274,10 @@
     <span class="n">zMid</span> <span class="o">=</span> <span class="n">zLayerBot</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">layerThickness</span>
 
     <span class="n">zMid</span> <span class="o">=</span> <span class="n">zMid</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">vertIndex</span> <span class="o">&lt;</span> <span class="n">maxLevelCell</span><span class="p">)</span>
-    <span class="n">zMid</span> <span class="o">=</span> <span class="n">zMid</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="n">depth_dim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">zMid</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">zMid</span> <span class="o">=</span> <span class="n">zMid</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="n">depth_dim</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">zMid</span> <span class="o">=</span> <span class="n">zMid</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="n">depth_dim</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">zMid</span></div>
 
@@ -387,6 +390,8 @@
         <span class="c1"># dsCoord doesn&#39;t have masking disabled because we want it for zMid</span>
         <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">coordFileName</span><span class="p">)</span>
         <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
+        <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
         <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;zMid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute_zmid</span><span class="p">(</span><span class="n">dsCoord</span><span class="o">.</span><span class="n">bottomDepth</span><span class="p">,</span>
                                          <span class="n">dsCoord</span><span class="o">.</span><span class="n">maxLevelCell</span><span class="p">,</span>
@@ -439,7 +444,7 @@
 
 
 <div class="viewcode-block" id="write_time_varying_zmid"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.write_time_varying_zmid.html#mpas_tools.ocean.depth.write_time_varying_zmid">[docs]</a><span class="k">def</span> <span class="nf">write_time_varying_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                            <span class="n">prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                            <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</span>
 
