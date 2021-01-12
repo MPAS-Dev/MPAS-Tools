@@ -89,7 +89,10 @@ def compute_zmid(bottomDepth, maxLevelCell, layerThickness,
     zMid = zLayerBot + 0.5*layerThickness
 
     zMid = zMid.where(vertIndex < maxLevelCell)
-    zMid = zMid.transpose('Time', 'nCells', depth_dim)
+    if 'Time' in zMid.dims:
+        zMid = zMid.transpose('Time', 'nCells', depth_dim)
+    else:
+        zMid = zMid.transpose('nCells', depth_dim)
 
     return zMid
 
@@ -202,6 +205,8 @@ def add_zmid(inFileName, outFileName, coordFileName=None):
         # dsCoord doesn't have masking disabled because we want it for zMid
         dsCoord = xarray.open_dataset(coordFileName)
         dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
+        if 'Time' in dsCoord.dims:
+            dsCoord = dsCoord.isel(Time=0)
 
         ds.coords['zMid'] = compute_zmid(dsCoord.bottomDepth,
                                          dsCoord.maxLevelCell,
@@ -254,7 +259,7 @@ def main_add_zmid():
 
 
 def write_time_varying_zmid(inFileName, outFileName, coordFileName=None,
-                            prefix=None):
+                            prefix=''):
     """
     Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.
 
