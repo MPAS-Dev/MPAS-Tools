@@ -296,7 +296,7 @@
 <span class="sd">        An MPAS-Ocean file with ``refBottomDepth``</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">if</span> <span class="n">coordFileName</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">coordFileName</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">coordFileName</span> <span class="o">=</span> <span class="n">inFileName</span>
 
     <span class="n">ds</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">mask_and_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
