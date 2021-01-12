@@ -48,7 +48,6 @@ requirements:
     - dask
     - geometric_features >=0.1.12
     - pyevtk
-    - future
     - jigsaw >=0.9.12
     - jigsawpy >=0.2.1
     - pyflann
@@ -58,6 +57,9 @@ requirements:
     - rasterio
     - affine
     - pyproj
+    - matplotlib-base
+    - shapely
+    - progressbar2
 
 test:
   requires:
