@@ -167,7 +167,7 @@ for var_name in var_names:
                 nVert_max = np.shape(dataset.variables[var_name])[2]
         else:
             nVert_max = 1
-        
+
         albanyTemperature = np.zeros((nCells, nVert_max)) #initialize albanyTemperature array to fill in below
         dataset.variables[var_name][:] = 0 # Fill variable with zeros in order to ensure proper values in void
 
@@ -175,7 +175,7 @@ for var_name in var_names:
         # loop through nVertLevels (or nVertInterfaces) and convert variables from Albany to MPAS units
         for nVert in np.arange(0, nVert_max):
             print('Converting layer/level {} of {}'.format(nVert+1, nVert_max))
-            
+
             #Albany has inverted layer/level ordering relative to MPAS.
             if var_name == "surfaceTemperature":
                 nVert_albany = int(stride)-1
@@ -236,17 +236,17 @@ for var_name in var_names:
             MPAS_layers = np.arange(1, nVert_max) - 0.5 # MPAS and albany temperature layers are staggered
             temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)
             dataset.variables["temperature"][0,:,:] = temperatureInterpolant(MPAS_layers)
-            
+
             # Add reasonable (non-zero) temperatures outside of ice mask. Make this a linear
             # interpolation between min(273.15, surfaceAirTemperature) at the surface and 268.15K at the bed.
             surfaceAirTemperature = dataset.variables["surfaceAirTemperature"][0,:]
             surfaceAirTemperature[surfaceAirTemperature > 273.15] = 273.15
-            
+
             for nLayer in np.arange(0, dataset.dimensions["nVertLevels"].size):
                 tempInterpCells = dataset.variables["temperature"][0,:,nLayer] == 0.0
                 dataset.variables["temperature"][0,tempInterpCells,nLayer] = (1 - np.sum(dataset.variables["layerThicknessFractions"][0:nLayer+1])) * \
                                 surfaceAirTemperature[tempInterpCells] + np.sum(dataset.variables["layerThicknessFractions"][0:nLayer+1]) * 268.15 
-                                
+
             print('\nTemperature interpolation complete')
 
         # Extrapolate and smooth beta and stiffnessFactor fields
