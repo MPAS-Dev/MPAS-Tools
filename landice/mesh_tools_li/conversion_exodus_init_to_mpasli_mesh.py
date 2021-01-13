@@ -178,7 +178,9 @@ for var_name in var_names:
 
             #Albany has inverted layer/level ordering relative to MPAS.
             if var_name == "surfaceTemperature":
-                nVert_albany = int(stride)-1
+                nVert_albany = nVert_max - 1
+            elif var_name == "basalTemperature":
+                nVert_albany = 0  # This not needed, because it will be 0 for basalTemperature, but adding this case to make that assumption explicit
             else:
                 nVert_albany = nVert_max - nVert - 1
 
