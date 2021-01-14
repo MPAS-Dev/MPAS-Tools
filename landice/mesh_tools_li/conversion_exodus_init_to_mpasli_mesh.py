@@ -385,6 +385,7 @@ print("\nConversion, extrapolation, and smoothing complete. Enjoy!")
 
 # Update history attribute of netCDF file
 thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
+thiscommand = thiscommand+";  Variables successfully converted from Exodus to MPAS: " + ",".join(vars_converted)
 if hasattr(dataset, 'history'):
    newhist = '\n'.join([thiscommand, getattr(dataset, 'history')])
 else:
