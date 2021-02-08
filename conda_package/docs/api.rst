@@ -189,6 +189,17 @@ Ocean Tools
    interp_transect_grid_to_transect_triangle_nodes
    get_outline_segments
 
+Logging
+=======
+
+.. currentmodule:: mpas_tools.logging
+
+.. autosummary::
+   :toctree: generated/
+
+   check_call
+   LoggingContext
+
 Visualization
 =============
 
