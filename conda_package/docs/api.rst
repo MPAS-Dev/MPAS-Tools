@@ -126,7 +126,6 @@ Ocean Tools
 
    moc
    moc.make_moc_basins_and_transects
-   moc.build_moc_basins
    moc.add_moc_southern_boundary_transects
 
    build_mesh
@@ -188,6 +187,17 @@ Ocean Tools
    interp_mpas_to_transect_triangle_nodes
    interp_transect_grid_to_transect_triangle_nodes
    get_outline_segments
+
+Logging
+=======
+
+.. currentmodule:: mpas_tools.logging
+
+.. autosummary::
+   :toctree: generated/
+
+   check_call
+   LoggingContext
 
 Visualization
 =============
