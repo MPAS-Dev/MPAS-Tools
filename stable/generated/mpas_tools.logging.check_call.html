@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>mpas_tools.viz.mesh_to_triangles.mesh_to_triangles &mdash; mpas_tools stable documentation</title>
+  <title>mpas_tools.logging.check_call &mdash; mpas_tools stable documentation</title>
   
 
   
@@ -38,8 +38,8 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.viz.transects.make_triangle_tree" href="mpas_tools.viz.transects.make_triangle_tree.html" />
-    <link rel="prev" title="mpas_tools.viz.paraview_extractor.extract_vtk" href="mpas_tools.viz.paraview_extractor.extract_vtk.html" /> 
+    <link rel="next" title="mpas_tools.logging.LoggingContext" href="mpas_tools.logging.LoggingContext.html" />
+    <link rel="prev" title="mpas_tools.ocean.transects.get_outline_segments" href="mpas_tools.ocean.transects.get_outline_segments.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -113,17 +113,12 @@
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
-<li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="../api.html#visualization">Visualization</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.paraview_extractor.extract_vtk.html">mpas_tools.viz.paraview_extractor.extract_vtk</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.viz.mesh_to_triangles.mesh_to_triangles</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.transects.make_triangle_tree.html">mpas_tools.viz.transects.make_triangle_tree</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.transects.find_transect_cells_and_weights.html">mpas_tools.viz.transects.find_transect_cells_and_weights</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.transects.subdivide_great_circle.html">mpas_tools.viz.transects.subdivide_great_circle</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.transects.cartesian_to_great_circle_distance.html">mpas_tools.viz.transects.cartesian_to_great_circle_distance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.colormaps.register_sci_viz_colormaps.html">mpas_tools.viz.colormaps.register_sci_viz_colormaps</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#logging">Logging</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.logging.check_call</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.logging.LoggingContext.html">mpas_tools.logging.LoggingContext</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
 </li>
@@ -186,13 +181,13 @@
         
           <li><a href="../api.html">API reference</a> &raquo;</li>
         
-      <li>mpas_tools.viz.mesh_to_triangles.mesh_to_triangles</li>
+      <li>mpas_tools.logging.check_call</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/generated/mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/generated/mpas_tools.logging.check_call.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -205,33 +200,21 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="mpas-tools-viz-mesh-to-triangles-mesh-to-triangles">
-<h1>mpas_tools.viz.mesh_to_triangles.mesh_to_triangles<a class="headerlink" href="#mpas-tools-viz-mesh-to-triangles-mesh-to-triangles" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="mpas-tools-logging-check-call">
+<h1>mpas_tools.logging.check_call<a class="headerlink" href="#mpas-tools-logging-check-call" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles">
-<code class="sig-prename descclassname">mpas_tools.viz.mesh_to_triangles.</code><code class="sig-name descname">mesh_to_triangles</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dsMesh</span></em>, <em class="sig-param"><span class="n">periodicCopy</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/viz/mesh_to_triangles.html#mesh_to_triangles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.viz.mesh_to_triangles.mesh_to_triangles" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a dataset in which each MPAS cell is divided into the triangles
-connecting pairs of adjacent vertices to cell centers.</p>
+<dt id="mpas_tools.logging.check_call">
+<code class="sig-prename descclassname">mpas_tools.logging.</code><code class="sig-name descname">check_call</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">args</span></em>, <em class="sig-param"><span class="n">logger</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/logging.html#check_call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#mpas_tools.logging.check_call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Call the given subprocess with logging to the given logger.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsMesh</strong> (<em>xarray.Dataset</em>) – An MPAS mesh</p></li>
-<li><p><strong>periodicCopy</strong> (<em>bool, optional</em>) – Whether to make a periodic copy of triangles that cross -180/180 degrees
-longitude.  This is helpful when plotting triangles in a lon/lat space.</p></li>
+<li><p><strong>args</strong> (<em>list</em>) – A list of argument to the subprocess</p></li>
+<li><p><strong>logger</strong> (<em>logging.Logger</em>) – The logger to write output to</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>dsTris</strong> (<em>xarray.Dataset</em>) – A dataset that defines triangles connecting pairs of adjacent vertices
-to cell centers as well as the cell index that each triangle is in and
-cell indices and weights for interpolating data defined at cell centers
-to triangle nodes.  <code class="docutils literal notranslate"><span class="pre">dsTris</span></code> includes variables <code class="docutils literal notranslate"><span class="pre">triCellIndices</span></code>,
-the cell that each triangle is part of; <code class="docutils literal notranslate"><span class="pre">nodeCellIndices</span></code> and
-<code class="docutils literal notranslate"><span class="pre">nodeCellWeights</span></code>, the indices and weights used to interpolate from
-MPAS cell centers to triangle nodes; Cartesian coordinates <code class="docutils literal notranslate"><span class="pre">xNode</span></code>,
-<code class="docutils literal notranslate"><span class="pre">yNode</span></code>, and <code class="docutils literal notranslate"><span class="pre">zNode</span></code>; and <code class="docutils literal notranslate"><span class="pre">lonNode`</span></code> and <code class="docutils literal notranslate"><span class="pre">latNode</span></code> in radians.
-<code class="docutils literal notranslate"><span class="pre">lonNode</span></code> is guaranteed to be within 180 degrees of the cell center
-corresponding to <code class="docutils literal notranslate"><span class="pre">triCellIndices</span></code>.  Nodes always have a
-counterclockwise winding.</p>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.CalledProcessError" title="(in Python v3.9)"><strong>subprocess.CalledProcessError</strong></a> – If the given subprocess exists with nonzero status</p>
 </dd>
 </dl>
 </dd></dl>
@@ -244,8 +227,8 @@ counterclockwise winding.</p>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="mpas_tools.viz.transects.make_triangle_tree.html" class="btn btn-neutral float-right" title="mpas_tools.viz.transects.make_triangle_tree" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="mpas_tools.viz.paraview_extractor.extract_vtk.html" class="btn btn-neutral float-left" title="mpas_tools.viz.paraview_extractor.extract_vtk" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.logging.LoggingContext.html" class="btn btn-neutral float-right" title="mpas_tools.logging.LoggingContext" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mpas_tools.ocean.transects.get_outline_segments.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.transects.get_outline_segments" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

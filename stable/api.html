@@ -94,6 +94,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -194,6 +195,11 @@
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.get_outline_segments.html">mpas_tools.ocean.transects.get_outline_segments</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.logging.check_call.html">mpas_tools.logging.check_call</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.logging.LoggingContext.html">mpas_tools.logging.LoggingContext</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a><ul>
@@ -638,6 +644,23 @@ the documentation.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.transects.get_outline_segments.html#mpas_tools.ocean.transects.get_outline_segments" title="mpas_tools.ocean.transects.get_outline_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_outline_segments</span></code></a>(dsTransectTriangles[, …])</p></td>
 <td><p>Get a set of line segments that outline the given transect</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="logging">
+<h2>Logging<a class="headerlink" href="#logging" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.logging.check_call.html#mpas_tools.logging.check_call" title="mpas_tools.logging.check_call"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_call</span></code></a>(args, logger)</p></td>
+<td><p>Call the given subprocess with logging to the given logger.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.logging.LoggingContext.html#mpas_tools.logging.LoggingContext" title="mpas_tools.logging.LoggingContext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoggingContext</span></code></a>(name[, logger, log_filename])</p></td>
+<td><p>A context manager for creating a logger or using an existing logger</p></td>
 </tr>
 </tbody>
 </table>
