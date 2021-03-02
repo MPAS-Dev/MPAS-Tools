@@ -2159,6 +2159,7 @@ int buildAngleEdge(){/*{{{*/
 
 			normal = cell_loc2 - cell_loc1;
 			angleEdge.at(iEdge) = acos( x_axis.dot(normal) / (x_axis.magnitude() * normal.magnitude()));
+			if (cell_loc2.y < cell_loc1.y) angleEdge.at(iEdge) = 2.0 * M_PI - angleEdge.at(iEdge);
 		} else {
 
 			np = pntFromLatLon(edges.at(iEdge).getLat()+0.05, edges.at(iEdge).getLon());
