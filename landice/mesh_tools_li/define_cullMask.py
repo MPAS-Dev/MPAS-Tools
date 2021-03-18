@@ -94,7 +94,12 @@ elif maskmethod == 'numCells':
     ind = np.nonzero(keepCellMask == 0)[0]
     for i in range(len(ind)):
        iCell = ind[i]
-       keepCellMaskNew[iCell] = keepCellMask[cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1].max() # if any neighbor has a value of 1, then 1 will get assigned to iCell.
+       neighbors = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
+       keep=False
+       for n in neighbors:
+           if n >= 0:
+              if keepCellMask[n] == 1:
+                  keepCellMaskNew[iCell] = 1
     keepCellMask = np.copy(keepCellMaskNew)  # after we've looped over all cells assign the new mask to the variable we need (either for another loop around the domain or to write out)
     print('  Num of cells to keep: {}'.format(sum(keepCellMask)))
 
