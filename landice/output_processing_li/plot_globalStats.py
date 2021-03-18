@@ -21,7 +21,10 @@ parser.add_option("-1", dest="file1inName", help="input filename", default="glob
 parser.add_option("-2", dest="file2inName", help="input filename", metavar="FILENAME")
 parser.add_option("-3", dest="file3inName", help="input filename", metavar="FILENAME")
 parser.add_option("-4", dest="file4inName", help="input filename", metavar="FILENAME")
-parser.add_option("-u", dest="units", help="units for mass/volume: m3, kg, Gt", default="m3", metavar="FILENAME")
+parser.add_option("-5", dest="file5inName", help="input filename", metavar="FILENAME")
+parser.add_option("-6", dest="file6inName", help="input filename", metavar="FILENAME")
+parser.add_option("-7", dest="file7inName", help="input filename", metavar="FILENAME")
+parser.add_option("-u", dest="units", help="units for mass/volume: m3, kg, Gt", default="Gt", metavar="FILENAME")
 options, args = parser.parse_args()
 
 print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
@@ -102,6 +105,7 @@ def plotStat(fname):
 
     f = Dataset(fname,'r')
     yr = f.variables['daysSinceStart'][:]/365.0
+    print(yr.max())
 
     vol = f.variables['totalIceVolume'][:]
     if options.units == "m3":
@@ -166,6 +170,15 @@ if(options.file3inName):
 
 if(options.file4inName):
    plotStat(options.file4inName)
+
+if(options.file5inName):
+   plotStat(options.file5inName)
+
+if(options.file6inName):
+   plotStat(options.file6inName)
+
+if(options.file7inName):
+   plotStat(options.file7inName)
 
 axCalvFlux.legend(loc='best', prop={'size': 6})
 
