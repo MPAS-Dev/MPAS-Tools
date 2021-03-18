@@ -563,8 +563,8 @@ elif filetype == 'mpas':
     print('==================')
 
 
-if filetype=='mpas' and not args.interpType == 'd':
-   sys.exit("ERROR: Input files with MPAS format are only supported with the barycentric interpolation method ('d')")
+if filetype=='mpas' and args.interpType == 'b':
+   sys.exit("ERROR: Bilinear interpolation not supported for input files of MPAS format.")
 
 #----------------------------
 # Setup Delaunay/barycentric interpolation weights if needed
@@ -693,6 +693,12 @@ elif filetype=='mpas':
      fieldInfo['basalFrictionFlux'] =    {'InputName':'basalFrictionFlux', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['uReconstructX'] = {'InputName':'uReconstructX', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':True}
      fieldInfo['uReconstructY'] = {'InputName':'uReconstructY', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':True}
+
+     fieldInfo['ismip6shelfMelt_basin'] = {'InputName':'ismip6shelfMelt_basin', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['ismip6shelfMelt_deltaT'] = {'InputName':'ismip6shelfMelt_deltaT', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+
+     fieldInfo['stiffnessFactor'] = {'InputName':'stiffnessFactor', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['effectivePressure'] = {'InputName':'effectivePressure', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
 
 # Used by Trevor
 #     fieldInfo['sfcMassBalUncertainty'] = {'InputName':'smb_std_vector', 'scalefactor':910.0/(3600.0*24.0*365.0)/1000.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
