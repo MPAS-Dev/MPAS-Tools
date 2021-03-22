@@ -119,8 +119,8 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
     buffer = numpy.maximum(numpy.amax(dsMesh.dvEdge.values),
                            numpy.amax(dsMesh.dcEdge.values))
 
-    x, y, z = _lon_lat_to_cartesian(lonTransect, latTransect, earth_radius,
-                                    degrees)
+    x, y, z = lon_lat_to_cartesian(lonTransect, latTransect, earth_radius,
+                                   degrees)
 
     nNodes = dsTris.sizes['nNodes']
     nodeCellWeights = dsTris.nodeCellWeights.values
@@ -265,8 +265,8 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
         _update_start_end_triangles(tris, nodes, interpCells, cellWeights,
                                     dNode, xOut, yOut, zOut, dStart, x, y, z)
 
-    lonOut, latOut = _cartesian_to_lon_lat(xOut, yOut, zOut, earth_radius,
-                                           degrees)
+    lonOut, latOut = cartesian_to_lon_lat(xOut, yOut, zOut, earth_radius,
+                                          degrees)
 
     nSegments = len(xOut)//2
     nBounds = 2
@@ -879,8 +879,7 @@ def _update_start_end_triangles(tris, nodes, interpCells, cellWeights, dNode,
     return dNode, xOut, yOut, zOut, tris, nodes, interpCells, cellWeights
 
 
-
-def _lon_lat_to_cartesian(lon, lat, earth_radius, degrees):
+def lon_lat_to_cartesian(lon, lat, earth_radius, degrees):
     """Convert from lon/lat to Cartesian x, y, z"""
 
     if degrees:
@@ -892,7 +891,7 @@ def _lon_lat_to_cartesian(lon, lat, earth_radius, degrees):
     return x, y, z
 
 
-def _cartesian_to_lon_lat(x, y, z, earth_radius, degrees):
+def cartesian_to_lon_lat(x, y, z, earth_radius, degrees):
     """Convert from  Cartesian x, y, z to lon/lat"""
     lon = numpy.arctan2(y, x)
     lat = numpy.arcsin(z/earth_radius)
