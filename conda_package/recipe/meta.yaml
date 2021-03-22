@@ -39,32 +39,33 @@ requirements:
 
   run:
     - python
-    - netcdf4
-    - hdf5
-    - libnetcdf
-    - numpy
-    - scipy
-    - xarray
+    - affine
+    - cartopy
     - dask
     - geometric_features >=0.1.12
-    - pyevtk
+    - hdf5
     - jigsaw >=0.9.12
     - jigsawpy >=0.2.1
-    - pyflann
-    - scikit-image
-    - cartopy
-    - pyamg
-    - rasterio
-    - affine
-    - pyproj
+    - libnetcdf
     - matplotlib-base
-    - shapely
+    - netcdf4
+    - numpy
     - progressbar2
+    - pyamg
+    - pyevtk
+    - pyflann
+    - pyproj
+    - rasterio
+    - scikit-image
+    - scipy
+    - shapely
+    - xarray
 
 test:
   requires:
     - pytest
     - requests
+    - pip
   source_files:
     - mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
     - mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
@@ -77,6 +78,7 @@ test:
     - mpas_tools.viz
     - mpas_tools.conversion
   commands:
+    - pip check
     - planar_hex --nx=10 --ny=20 --dc=1000. --outFileName='periodic_mesh_10x20_1km.nc'
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -x 1000. -y 2000.
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -c
