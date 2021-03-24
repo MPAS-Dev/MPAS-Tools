@@ -24,6 +24,10 @@ build:
     - ocean_add_depth = mpas_tools.ocean.depth:main_add_depth
     - ocean_add_zmid = mpas_tools.ocean.depth:main_add_zmid
     - ocean_write_time_varying_zmid = mpas_tools.ocean.depth:main_write_time_varying_zmid
+    - compute_mpas_region_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_region_masks
+    - compute_mpas_transect_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_transect_masks
+    - compute_mpas_flood_fill_mask = mpas_tools.mesh.mask:entry_point_compute_mpas_flood_fill_mask
+    - compute_lon_lat_region_masks = mpas_tools.mesh.mask:entry_point_compute_lon_lat_region_masks
 
 requirements:
   build:
@@ -78,7 +82,6 @@ test:
     - mpas_tools.viz
     - mpas_tools.conversion
   commands:
-    - pip check
     - planar_hex --nx=10 --ny=20 --dc=1000. --outFileName='periodic_mesh_10x20_1km.nc'
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -x 1000. -y 2000.
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -c
@@ -113,6 +116,11 @@ test:
     - triangle_to_netcdf --help
     - jigsaw_to_netcdf --help
     - scrip_from_mpas --help
+    - compute_mpas_region_masks --help
+    - compute_mpas_transect_masks --help
+    - compute_mpas_flood_fill_mask --help
+    - compute_lon_lat_region_masks --help
+    - pip check
 
 about:
   home: https://github.com/MPAS-Dev/MPAS-Tools/
