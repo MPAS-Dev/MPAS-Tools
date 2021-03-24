@@ -53,6 +53,15 @@ Mesh conversion
    cull
    mask
 
+.. currentmodule:: mpas_tools.mesh.mask
+
+.. autosummary::
+   :toctree: generated/
+
+   compute_mpas_region_masks
+   compute_mpas_transect_masks
+   compute_mpas_flood_fill_mask
+
 .. currentmodule:: mpas_tools.merge_grids
 
 .. autosummary::
@@ -76,6 +85,15 @@ Mesh conversion
    center
    center_on_mesh
 
+.. currentmodule:: mpas_tools.scrip.from_mpas
+
+.. autosummary::
+   :toctree: generated/
+
+   scrip_from_mpas
+
+I/O
+---
 
 .. currentmodule:: mpas_tools.io
 
@@ -84,15 +102,18 @@ Mesh conversion
 
    write_netcdf
 
-.. currentmodule:: mpas_tools.scrip.from_mpas
+Parallelism
+-----------
+
+.. currentmodule:: mpas_tools.parallel
 
 .. autosummary::
    :toctree: generated/
 
-   scrip_from_mpas
+   create_pool
 
-Inerpolation
-------------
+Interpolation
+-------------
 
 .. currentmodule:: mpas_tools.mesh.interpolation
 
@@ -147,11 +168,11 @@ Ocean Tools
    coastal_tools.plot_coarse_coast
    coastal_tools.plot_region_box
 
-    depth.add_depth
-    depth.add_zmid
-    depth.write_time_varying_zmid
-    depth.compute_depth
-    depth.compute_zmid
+   depth.add_depth
+   depth.add_zmid
+   depth.write_time_varying_zmid
+   depth.compute_depth
+   depth.compute_zmid
 
 .. currentmodule:: mpas_tools.ocean.inject_bathymetry
 
