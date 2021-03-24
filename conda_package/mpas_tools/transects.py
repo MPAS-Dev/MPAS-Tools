@@ -667,9 +667,12 @@ def subdivide_great_circle(x, y, z, maxRes, earthRadius):
     delta = numpy.array(delta)
     outIndices = numpy.array(outIndices)
 
-    denom = 1./numpy.sin(delta)
-    a = denom*numpy.sin((1.-frac)*delta)
-    b = denom*numpy.sin(frac*delta)
+    a = numpy.ones(delta.shape)
+    b = numpy.zeros(delta.shape)
+    mask = delta > 0.
+    denom = 1./numpy.sin(delta[mask])
+    a[mask] = denom*numpy.sin((1.-frac[mask])*delta[mask])
+    b[mask] = denom*numpy.sin(frac[mask]*delta[mask])
 
     xOut = a*x[outIndices] + b*x[outIndices+1]
     yOut = a*y[outIndices] + b*y[outIndices+1]
