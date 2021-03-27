@@ -61,6 +61,7 @@ Mesh conversion
    compute_mpas_region_masks
    compute_mpas_transect_masks
    compute_mpas_flood_fill_mask
+   compute_lon_lat_region_masks
 
 .. currentmodule:: mpas_tools.merge_grids
 
@@ -220,6 +221,24 @@ Logging
    check_call
    LoggingContext
 
+Transects
+=========
+
+.. currentmodule:: mpas_tools.transects
+
+.. autosummary::
+   :toctree: generated/
+
+   subdivide_great_circle
+   cartesian_to_great_circle_distance
+   subdivide_planar
+   lon_lat_to_cartesian
+   cartesian_to_lon_lat
+   angular_distance
+   intersects
+   intersection
+
+
 Visualization
 =============
 
@@ -244,9 +263,7 @@ Visualization
 
    make_triangle_tree
    find_transect_cells_and_weights
-   subdivide_great_circle
-   cartesian_to_great_circle_distance
-
+   find_planar_transect_cells_and_weights
 
 .. currentmodule:: mpas_tools.viz.colormaps
 
