@@ -38,7 +38,7 @@
     
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.viz.paraview_extractor.extract_vtk" href="mpas_tools.viz.paraview_extractor.extract_vtk.html" />
+    <link rel="next" title="mpas_tools.transects.subdivide_great_circle" href="mpas_tools.transects.subdivide_great_circle.html" />
     <link rel="prev" title="mpas_tools.logging.check_call" href="mpas_tools.logging.check_call.html" /> 
 </head>
 
@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -118,6 +119,7 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.logging.LoggingContext</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -220,11 +222,11 @@ attribute</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<em>str</em>) – A unique name for the logger (e.g. <code class="docutils literal notranslate"><span class="pre">__name__</span></code> of the calling
+<li><p><strong>name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – A unique name for the logger (e.g. <code class="docutils literal notranslate"><span class="pre">__name__</span></code> of the calling
 module)</p></li>
-<li><p><strong>logger</strong> (<em>logging.Logger, optional</em>) – An existing logger that sends output to a log file or stdout/stderr
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.9)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – An existing logger that sends output to a log file or stdout/stderr
 to be used in this context</p></li>
-<li><p><strong>log_filename</strong> (<em>str, optional</em>) – The name of a file where output should be written.  If none is
+<li><p><strong>log_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The name of a file where output should be written.  If none is
 supplied, output goes to stdout/stderr</p></li>
 </ul>
 </dd>
@@ -253,7 +255,7 @@ supplied, output goes to stdout/stderr</p></li>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="mpas_tools.viz.paraview_extractor.extract_vtk.html" class="btn btn-neutral float-right" title="mpas_tools.viz.paraview_extractor.extract_vtk" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mpas_tools.transects.subdivide_great_circle.html" class="btn btn-neutral float-right" title="mpas_tools.transects.subdivide_great_circle" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="mpas_tools.logging.check_call.html" class="btn btn-neutral float-left" title="mpas_tools.logging.check_call" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

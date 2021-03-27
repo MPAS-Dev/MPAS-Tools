@@ -205,6 +205,291 @@ Here is the full usage of ``MpasMaskCreator.x``:
             as latitude and longitude are recomputed internally from Cartesian coordinates.
             Whether this flag is passed in or not, any longitudes written are in the 0-360 range.
 
+.. _py_mask_creation:
+
+Mask Creation with Python Multiprocessing
+=========================================
+
+The Mask Creator is a serial code, and the algorithms it uses to find points in
+a region or cells, edges and vertices along a transect are not particularly
+efficient or sophisticated.
+
+To provide better efficiency and to enable more sophisticated algorithms (now
+and in the future), a set of related python functions has been developed to
+provide much (but not all) of the functionality of the C++ Mask Creator
+described above.
+
+Computing MPAS Region Masks
+---------------------------
+
+The function :py:func:`mpas_tools.mesh.mask.compute_mpas_region_masks()`
+or the ``compute_mpas_region_masks`` command-line tool can
+be used to create region masks on cells, edges and/or vertices given an MPAS
+mesh :py:class:`xarray.Dataset` ``dsMesh`` and a
+:py:class:`geometric_features.FeatureCollection` ``fcMask`` containing regions.
+The resulting masks, in the variable ``regionCellMasks``, are 1 where the center
+of the polygon corresponding to the cell, edge or vertex (see the
+`MPAS Mesh Specification <https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf>`_)
+are inside the given region and 0 where they are outside.  This function is
+far more useful if the user provides a :py:class:`multiprocessing.Pool` in the
+``pool`` argument.  ``pool`` should be created at the beginning of the calling
+code (when memory usage is small), possibly with
+:py:func:`mpas_tools.parallel.create_pool()`, and terminated
+(:py:meth:`multiprocessing.Pool.terminate`) before the code has finished.
+The same pool can be used in multiple calls to this and the other Python-based
+masking functions.  If ``pool = None`` (the default), the masks are computed in
+serial, which will likely be frustratingly slow.
+
+The ``chunkSize`` argument can be used to control how much work (how many cells,
+edges or vertices) each process computes on at one time.  A very small
+``chunkSize`` will incur a high overhead, while a very large ``chunkSize`` will
+lead to poor load balancing and infrequent progress updates (if
+``showProgress = True``).  The default ``chunkSize`` of 1000 seems to perform
+well across a wide variety of mesh sizes and processor counts.
+
+It is a good idea to provide a ``logger`` (see :ref:`logging`) to get some
+output as the mask creation is progressing.
+
+For efficiency, large shapes (e.g. the global coastline) are divided into
+smaller "tiles".  This subdivision is controlled with ``subdivisionThreshold``,
+which should be set to a minimum size in degrees (latitude or longitude).  If
+a shape is larger than this, it will be divided into tiles.  The underlying
+algorithm first check bounding boxes of the resulting shapes against points
+before performing the more time-consuming step of determining if the point is
+inside the shape.  The default value of 30 degrees performs much better than
+no subdivision for large shapes (again, such as the global coastline), but
+alternative values have not yet been explored.
+
+The resulting variables are:
+
+  - ``regionCellMasks(nCells, nRegions)`` - a cell mask (1 for inside and 0 for
+    outside the region) for each region
+  - ``regionEdgeMasks(nEdges, nRegions)`` - an edge mask for each region
+  - ``regionVertexMasks(nVertices, nRegions)`` - a vertex mask for each region
+  - ``regionNames(nRegions, string64)`` - the names of the regions
+
+NetCDF fill values are used for invalid mask values, so ``nCellsInRegion``,
+etc. are not produced.
+
+The command-line tool takes the following arguments:
+
+.. code-block::
+
+    $ compute_mpas_region_masks --help
+    usage: compute_mpas_region_masks [-h] -m MESH_FILE_NAME -g GEOJSON_FILE_NAME
+                                     -o MASK_FILE_NAME
+                                     [-t MASK_TYPES [MASK_TYPES ...]]
+                                     [-c CHUNK_SIZE] [--show_progress]
+                                     [-s SUBDIVISION]
+                                     [--process_count PROCESS_COUNT]
+                                     [--multiprocessing_method MULTIPROCESSING_METHOD]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -m MESH_FILE_NAME, --mesh_file_name MESH_FILE_NAME
+                            An MPAS mesh file
+      -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
+                            An Geojson file containing mask regions
+      -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
+                            An output MPAS region masks file
+      -t MASK_TYPES [MASK_TYPES ...], --mask_types MASK_TYPES [MASK_TYPES ...]
+                            Which type(s) of masks to make: cell, edge or vertex.
+                            Default is cell and vertex.
+      -c CHUNK_SIZE, --chunk_size CHUNK_SIZE
+                            The number of cells, vertices or edges that are
+                            processed in one operation
+      --show_progress       Whether to show a progress bar
+      -s SUBDIVISION, --subdivision SUBDIVISION
+                            A threshold in degrees (lon or lat) above which the
+                            mask region will be subdivided into smaller polygons
+                            for faster intersection checking
+      --process_count PROCESS_COUNT
+                            The number of processes to use to compute masks. The
+                            default is to use all available cores
+      --multiprocessing_method MULTIPROCESSING_METHOD
+                            The multiprocessing method use for python mask
+                            creation ('fork', 'spawn' or 'forkserver')
+
+
+Computing Transect Masks
+------------------------
+
+The function :py:func:`mpas_tools.mesh.mask.compute_mpas_transect_masks()`
+and the ``compute_mpas_transect_masks`` command-line tool
+are similar to the function for computing region masks.  The function takes a
+:py:class:`geometric_features.FeatureCollection` ``fcMask`` that is made up of
+transects, rather than regions.  One mask is produced for each feature in the
+collection, indicating where the transect
+intersects the cell, edge or vertex polygons (see the
+`MPAS Mesh Specification <https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf>`_).
+
+The arguments ``logger``, ``pool``, ``chunkSize`` and ``showProgress`` are the
+same as for region-mask creation above.
+
+The argument ``subdivisionResolution`` is a length in meters, above which
+segments of the transect are subdivided to provide a better representation of
+the spherical path in longitude/latitude space.  The default value of 10 km is
+typically good enough to capture distortion at typical MPAS mesh resolutions.
+
+The algorithm perform intersections in longitude/latitude space using the
+``shapely`` library.  Because ``shapely`` is designed for 2D shapes in a
+Cartesian plane, it is not designed for spherical coordinates.  Care has been
+taken to handle periodicity at the dateline (antimeridian) but there may be
+issues with MPAS mesh polygons containing the north or south pole.  If a user
+needs to handle a transect that is very close to the pole, it is likely worth
+contacting the developers to request modifications to the code to support this
+case.
+
+The resulting variables are:
+
+  - ``transectCellMasks(nCells, nTransects)`` - a cell mask (1 if the transect
+    intersects the cell and 0 if not) for each transect
+  - ``transectEdgeMasks(nEdges, nTransects)`` - an edge mask for each transect
+  - ``transectVertexMasks(nVertices, nTransects)`` - a vertex mask for each
+    transect
+  - ``transectNames(nTransects, string64)`` - the names of the transects
+
+We don't currently provide cell, edge or vertex indices (e.g.
+``transectCellGlobalIDs``) for the cells along a transect or the edge sign as
+part of the dataset produced by this function.  This is, in part, because the
+algorithm doesn't keep track of the relative order of points along a transect.
+This could be updated in the future if there is sufficient demand.
+
+.. note::
+
+    While the default ``subdivisionResolution`` is 10 km for
+    :py:func:`mpas_tools.mesh.mask.compute_mpas_transect_masks()`, the default
+    behavior in the command-line tool ``compute_mpas_transect_masks`` is no
+    subdivision because there is otherwise not a good way to specify at the
+    command line that no subdivision is desired.  Typically, users will want
+    to request subdivision with something like ``-s 10e3``
+
+The command-line tool takes the following arguments:
+
+.. code-block::
+
+    $ compute_mpas_transect_masks --help
+    usage: compute_mpas_transect_masks [-h] -m MESH_FILE_NAME -g GEOJSON_FILE_NAME
+                                       -o MASK_FILE_NAME
+                                       [-t MASK_TYPES [MASK_TYPES ...]]
+                                       [-c CHUNK_SIZE] [--show_progress]
+                                       [-s SUBDIVISION]
+                                       [--process_count PROCESS_COUNT]
+                                       [--multiprocessing_method MULTIPROCESSING_METHOD]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -m MESH_FILE_NAME, --mesh_file_name MESH_FILE_NAME
+                            An MPAS mesh file
+      -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
+                            An Geojson file containing transects
+      -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
+                            An output MPAS transect masks file
+      -t MASK_TYPES [MASK_TYPES ...], --mask_types MASK_TYPES [MASK_TYPES ...]
+                            Which type(s) of masks to make: cell, edge or vertex.
+                            Default is cell, edge and vertex.
+      -c CHUNK_SIZE, --chunk_size CHUNK_SIZE
+                            The number of cells, vertices or edges that are
+                            processed in one operation
+      --show_progress       Whether to show a progress bar
+      -s SUBDIVISION, --subdivision SUBDIVISION
+                            The maximum resolution (in meters) of segments in a
+                            transect. If a transect is too coarse, it will be
+                            subdivided. Default is no subdivision.
+      --process_count PROCESS_COUNT
+                            The number of processes to use to compute masks. The
+                            default is to use all available cores
+      --multiprocessing_method MULTIPROCESSING_METHOD
+                            The multiprocessing method use for python mask
+                            creation ('fork', 'spawn' or 'forkserver')
+
+
+Computing a Flood-fill Mask
+---------------------------
+
+The function :py:func:`mpas_tools.mesh.mask.compute_mpas_flood_fill_mask()`
+and the command-line tool ``compute_mpas_flood_fill_mask``
+fill in a mask, starting with the ocean points closest to the seed points
+given in :py:class:`geometric_features.FeatureCollection` ``fcSeed``.  This
+algorithm runs in serial, and will be more efficient the more seed points
+are provided and the more widely scattered over the ocean they are.
+
+The resulting dataset contains a single variable:
+
+  - ``cellSeedMask(nCells)`` - a cell mask that is 1 where the flood fill
+    (following ``cellsOnCell``) propagated starting from the seed points and 0
+    elsewhere
+
+The command-line tool takes the following arguments:
+
+.. code-block::
+
+    $ compute_mpas_flood_fill_mask --help
+    usage: compute_mpas_flood_fill_mask [-h] -m MESH_FILE_NAME -g
+                                        GEOJSON_FILE_NAME -o MASK_FILE_NAME
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -m MESH_FILE_NAME, --mesh_file_name MESH_FILE_NAME
+                            An MPAS mesh file
+      -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
+                            An Geojson file containing points at which to start
+                            the flood fill
+      -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
+                            An output MPAS region masks file
+
+
+Computing Lon/Lat Region Masks
+------------------------------
+
+The function :py:func:`mpas_tools.mesh.mask.compute_lon_lat_region_masks()`
+or the ``compute_lon_lat_region_masks`` command-line tool compute region masks
+on a longitude/latitude grid but are otherwise functionally very similar to
+the corresponding tools for compute MPAS region masks. The major difference is
+that 1D arrays of longitude and latitude are provided instead of an MPAS mesh
+dataset.  There is no argument equivalent to the mask type for MPAS meshes.
+Instead, mask values are given at each point on the 2D longitude/latitude grid.
+All other arguments serve the same purpose as for the MPAS region mask creation
+described above.
+
+The command-line tool takes the following arguments:
+
+.. code-block::
+
+    $ compute_lon_lat_region_masks --help
+    usage: compute_lon_lat_region_masks [-h] -i GRID_FILE_NAME [--lon LON]
+                                        [--lat LAT] -g GEOJSON_FILE_NAME -o
+                                        MASK_FILE_NAME [-c CHUNK_SIZE]
+                                        [--show_progress] [-s SUBDIVISION]
+                                        [--process_count PROCESS_COUNT]
+                                        [--multiprocessing_method MULTIPROCESSING_METHOD]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -i GRID_FILE_NAME, --grid_file_name GRID_FILE_NAME
+                            An input lon/lat grid file
+      --lon LON             The name of the longitude coordinate
+      --lat LAT             The name of the latitude coordinate
+      -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
+                            An Geojson file containing mask regions
+      -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
+                            An output MPAS region masks file
+      -c CHUNK_SIZE, --chunk_size CHUNK_SIZE
+                            The number of grid points that are processed in one
+                            operation
+      --show_progress       Whether to show a progress bar
+      -s SUBDIVISION, --subdivision SUBDIVISION
+                            A threshold in degrees (lon or lat) above which the
+                            mask region will be subdivided into smaller polygons
+                            for faster intersection checking
+      --process_count PROCESS_COUNT
+                            The number of processes to use to compute masks. The
+                            default is to use all available cores
+      --multiprocessing_method MULTIPROCESSING_METHOD
+                            The multiprocessing method use for python mask
+                            creation ('fork', 'spawn' or 'forkserver')
+
+
 .. _merge_split:
 
 Merging and Splitting
@@ -419,6 +704,7 @@ The functionality of all three of these functions is also available via the
                             0.0]
       -c                    shift so origin is at center of domain [default:
                             False]
+
 
 Converting Between Mesh Formats
 ===============================

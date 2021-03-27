@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -117,21 +118,27 @@
 <li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.mesh.conversion.convert</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.cull.html">mpas_tools.mesh.conversion.cull</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.mask.html">mpas_tools.mesh.conversion.mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_region_masks.html">mpas_tools.mesh.mask.compute_mpas_region_masks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_transect_masks.html">mpas_tools.mesh.mask.compute_mpas_transect_masks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html">mpas_tools.mesh.mask.compute_mpas_flood_fill_mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_lon_lat_region_masks.html">mpas_tools.mesh.mask.compute_lon_lat_region_masks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.translate.html">mpas_tools.translate.translate</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center.html">mpas_tools.translate.center</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center_on_mesh.html">mpas_tools.translate.center_on_mesh</a></li>
-<li class="toctree-l4"><a class="reference internal" href="mpas_tools.io.write_netcdf.html">mpas_tools.io.write_netcdf</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../api.html#inerpolation">Inerpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#i-o">I/O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#interpolation">Interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -225,17 +232,17 @@ mesh that is fully compliant with the MPAS mesh specification.
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsIn</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>) – A data set to convert</p></li>
-<li><p><strong>graphInfoFileName</strong> (<em>str, optional</em>) – A file path (relative or absolute) where the graph file (typically
+<li><p><strong>dsIn</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – A data set to convert</p></li>
+<li><p><strong>graphInfoFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – A file path (relative or absolute) where the graph file (typically
 <code class="docutils literal notranslate"><span class="pre">graph.info</span></code> should be written out.  By default, <code class="docutils literal notranslate"><span class="pre">graph.info</span></code> is
 not saved.</p></li>
-<li><p><strong>logger</strong> (<code class="docutils literal notranslate"><span class="pre">logging.Logger</span></code>, optional) – A logger for the output if not stdout</p></li>
-<li><p><strong>dir</strong> (<em>str, optional</em>) – A directory in which a temporary directory will be added with files
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.9)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
+<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – A directory in which a temporary directory will be added with files
 produced during conversion and then deleted upon completion.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>dsOut</strong> (<code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>) – The MPAS mesh</p>
+<dd class="field-even"><p><strong>dsOut</strong> (<em>xarray.Dataset</em>) – The MPAS mesh</p>
 </dd>
 </dl>
 </dd></dl>

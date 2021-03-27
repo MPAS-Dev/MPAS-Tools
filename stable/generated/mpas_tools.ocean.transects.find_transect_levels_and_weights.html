@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -155,6 +156,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -252,12 +254,12 @@ interpolated to the nodes of the transect.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsTransect</strong> (<em>xarray.Dataset</em>) – A dataset that defines nodes of the transect, the results of calling
+<li><p><strong>dsTransect</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines nodes of the transect, the results of calling
 <code class="docutils literal notranslate"><span class="pre">find_transect_cells_and_weights()</span></code></p></li>
-<li><p><strong>layerThickness</strong> (<em>xarray.DataArray</em>) – layer thicknesses on the MPAS mesh</p></li>
-<li><p><strong>bottomDepth</strong> (<em>xarray.DataArray</em>) – the (positive down) depth of the seafloor on the MPAS mesh</p></li>
-<li><p><strong>maxLevelCell</strong> (<em>xarray.DataArray</em>) – the vertical zero-based index of the bathymetry on the MPAS mesh</p></li>
-<li><p><strong>zTransect</strong> (<em>xarray.DataArray, optional</em>) – the z coordinate of the transect (1D or 2D).  If 2D, it must have the
+<li><p><strong>layerThickness</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a>) – layer thicknesses on the MPAS mesh</p></li>
+<li><p><strong>bottomDepth</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a>) – the (positive down) depth of the seafloor on the MPAS mesh</p></li>
+<li><p><strong>maxLevelCell</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a>) – the vertical zero-based index of the bathymetry on the MPAS mesh</p></li>
+<li><p><strong>zTransect</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a><em>, </em><em>optional</em>) – the z coordinate of the transect (1D or 2D).  If 2D, it must have the
 same along-transect dimension as the lon and lat passed to
 <code class="docutils literal notranslate"><span class="pre">find_transect_cells_and_weights()</span></code></p></li>
 </ul>

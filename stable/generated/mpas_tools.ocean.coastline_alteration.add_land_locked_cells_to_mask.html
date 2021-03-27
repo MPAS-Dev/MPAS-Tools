@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -155,6 +156,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -247,10 +249,10 @@ are counted as land cells.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsMask</strong> (<em>xarray.Dataset</em>) – A land-mask data set</p></li>
-<li><p><strong>dsMesh</strong> (<em>xarray.Dataset</em>) – MPAS Mesh data set</p></li>
-<li><p><strong>latitude_threshold</strong> (<em>float, optional</em>) – Minimum latitude, in degrees, for transect widening</p></li>
-<li><p><strong>nSweeps</strong> (<em>int, optional</em>) – Maximum number of sweeps to search for land-locked cells</p></li>
+<li><p><strong>dsMask</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – A land-mask data set</p></li>
+<li><p><strong>dsMesh</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – MPAS Mesh data set</p></li>
+<li><p><strong>latitude_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – Minimum latitude, in degrees, for transect widening</p></li>
+<li><p><strong>nSweeps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – Maximum number of sweeps to search for land-locked cells</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

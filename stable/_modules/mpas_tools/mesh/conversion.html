@@ -93,6 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -201,7 +202,7 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    dsIn : ``xarray.Dataset``</span>
+<span class="sd">    dsIn : xarray.Dataset</span>
 <span class="sd">        A data set to convert</span>
 
 <span class="sd">    graphInfoFileName : str, optional</span>
@@ -209,7 +210,7 @@
 <span class="sd">        ``graph.info`` should be written out.  By default, ``graph.info`` is</span>
 <span class="sd">        not saved.</span>
 
-<span class="sd">    logger : ``logging.Logger``, optional</span>
+<span class="sd">    logger : logging.Logger, optional</span>
 <span class="sd">        A logger for the output if not stdout</span>
 
 <span class="sd">    dir : str, optional</span>
@@ -218,7 +219,7 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    dsOut : ``xarray.Dataset``</span>
+<span class="sd">    dsOut : xarray.Dataset</span>
 <span class="sd">        The MPAS mesh</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="nb">dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -262,19 +263,19 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    dsIn : ``xarray.Dataset``</span>
+<span class="sd">    dsIn : xarray.Dataset</span>
 <span class="sd">        A data set to cull, possibly with a ``cullCell`` field set to one where</span>
 <span class="sd">        cells should be removed</span>
 
-<span class="sd">    dsMask : ``xarray.Dataset`` or list, optional</span>
+<span class="sd">    dsMask : xarray.Dataset or list, optional</span>
 <span class="sd">        A data set (or data sets) with region masks that are 1 where cells</span>
 <span class="sd">        should be culled</span>
 
-<span class="sd">    dsInverse : ``xarray.Dataset`` or list, optional</span>
+<span class="sd">    dsInverse : xarray.Dataset or list, optional</span>
 <span class="sd">        A data set (or data sets) with region masks that are 0 where cells</span>
 <span class="sd">        should be culled</span>
 
-<span class="sd">    dsPreserve : ``xarray.Dataset`` or list, optional</span>
+<span class="sd">    dsPreserve : xarray.Dataset or list, optional</span>
 <span class="sd">        A data set (or data sets) with region masks that are 1 where cells</span>
 <span class="sd">        should *not* be culled</span>
 
@@ -283,7 +284,7 @@
 <span class="sd">        ``culled_graph.info`` should be written out.  By default,</span>
 <span class="sd">        ``culled_graph.info`` is not saved.</span>
 
-<span class="sd">    logger : ``logging.Logger``, optional</span>
+<span class="sd">    logger : logging.Logger, optional</span>
 <span class="sd">        A logger for the output if not stdout</span>
 
 <span class="sd">    dir : str, optional</span>
@@ -292,7 +293,7 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    dsOut : ``xarray.Dataset``</span>
+<span class="sd">    dsOut : xarray.Dataset</span>
 <span class="sd">        The culled mesh</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -351,25 +352,24 @@
     <span class="k">return</span> <span class="n">dsOut</span></div>
 
 
-<div class="viewcode-block" id="mask"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask">[docs]</a><span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fcSeed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">positiveLon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-         <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="mask"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask">[docs]</a><span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fcSeed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use ``MpasMaskCreator.x`` to create a set of region masks either from</span>
-<span class="sd">    mask feature collecitons or from seed points to be used to flood fill</span>
+<span class="sd">    mask feature collections or from seed points to be used to flood fill</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    dsMesh : ``xarray.Dataset``, optional</span>
+<span class="sd">    dsMesh : xarray.Dataset, optional</span>
 <span class="sd">        An MPAS mesh on which the masks should be created</span>
 
-<span class="sd">    fcMask : ``geometric_features.FeatureCollection``, optional</span>
+<span class="sd">    fcMask : geometric_features.FeatureCollection, optional</span>
 <span class="sd">        A feature collection containing features to use to create the mask</span>
 
-<span class="sd">    fcSeed : ``geometric_features.FeatureCollection``, optional</span>
+<span class="sd">    fcSeed : geometric_features.FeatureCollection, optional</span>
 <span class="sd">        A feature collection with points to use a seeds for a flood fill that</span>
 <span class="sd">        will create a mask of all cells connected to the seed points</span>
 
-<span class="sd">    logger : ``logging.Logger``, optional</span>
+<span class="sd">    logger : logging.Logger, optional</span>
 <span class="sd">        A logger for the output if not stdout</span>
 
 <span class="sd">    dir : str, optional</span>
@@ -378,7 +378,7 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    dsMask : ``xarray.Dataset``</span>
+<span class="sd">    dsMask : xarray.Dataset</span>
 <span class="sd">        The masks</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -400,9 +400,6 @@
             <span class="n">fileName</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/seed.geojson&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tempdir</span><span class="p">)</span>
             <span class="n">fcSeed</span><span class="o">.</span><span class="n">to_geojson</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
             <span class="n">args</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="n">fileName</span><span class="p">])</span>
-
-        <span class="k">if</span> <span class="n">positiveLon</span><span class="p">:</span>
-            <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;--positive_lon&#39;</span><span class="p">)</span>
 
         <span class="n">_call_subprocess</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
 

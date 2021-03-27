@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -155,6 +156,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -247,10 +249,10 @@ layerThickness</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>bottomDepth</strong> (<em>xarray.DataArray</em>) – the depth of the ocean bottom (positive)</p></li>
-<li><p><strong>maxLevelCell</strong> (<em>xarray.DataArray</em>) – the 1-based vertical index of the bottom of the ocean</p></li>
-<li><p><strong>layerThickness</strong> (<em>xarray.DataArray</em>) – the thickness of MPAS-Ocean layers (possibly as a function of time)</p></li>
-<li><p><strong>depth_dim</strong> (<em>str, optional</em>) – the name of the vertical dimension</p></li>
+<li><p><strong>bottomDepth</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a>) – the depth of the ocean bottom (positive)</p></li>
+<li><p><strong>maxLevelCell</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a>) – the 1-based vertical index of the bottom of the ocean</p></li>
+<li><p><strong>layerThickness</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a>) – the thickness of MPAS-Ocean layers (possibly as a function of time)</p></li>
+<li><p><strong>depth_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – the name of the vertical dimension</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

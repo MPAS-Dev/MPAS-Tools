@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -117,21 +118,27 @@
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.convert.html">mpas_tools.mesh.conversion.convert</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.cull.html">mpas_tools.mesh.conversion.cull</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.mask.html">mpas_tools.mesh.conversion.mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_region_masks.html">mpas_tools.mesh.mask.compute_mpas_region_masks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_transect_masks.html">mpas_tools.mesh.mask.compute_mpas_transect_masks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html">mpas_tools.mesh.mask.compute_mpas_flood_fill_mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_lon_lat_region_masks.html">mpas_tools.mesh.mask.compute_lon_lat_region_masks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.translate.translate</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center.html">mpas_tools.translate.center</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center_on_mesh.html">mpas_tools.translate.center_on_mesh</a></li>
-<li class="toctree-l4"><a class="reference internal" href="mpas_tools.io.write_netcdf.html">mpas_tools.io.write_netcdf</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../api.html#inerpolation">Inerpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#i-o">I/O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#interpolation">Interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -224,9 +231,9 @@ shift in x and/or y</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>mesh</strong> (<em>xarray.Dataset</em>) – A planar mesh to translate</p></li>
-<li><p><strong>xOffset</strong> (<em>float, optional</em>) – user-specified shift in the x-direction</p></li>
-<li><p><strong>yOffset</strong> (<em>float, optional</em>) – user-specified shift in the y-direction</p></li>
+<li><p><strong>mesh</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – A planar mesh to translate</p></li>
+<li><p><strong>xOffset</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – user-specified shift in the x-direction</p></li>
+<li><p><strong>yOffset</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – user-specified shift in the y-direction</p></li>
 </ul>
 </dd>
 </dl>

@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -155,6 +156,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -253,23 +255,23 @@ to the closest point in the (smoothed) coastline contour returned from
 <li><p><strong>cell_width</strong> (<em>ndarray</em>) – A len(lat) x len(lon) array of cell widths in meters</p></li>
 <li><p><strong>lon</strong> (<em>ndarray</em>) – A 1D array of longitudes in degrees in the range from -180 to 180</p></li>
 <li><p><strong>lat</strong> (<em>ndarray</em>) – A 1D array of latitudes in degrees in the range from -90 to 90</p></li>
-<li><p><strong>dx_min</strong> (<em>float</em>) – The resolution in meters of the new refined region.</p></li>
-<li><p><strong>trans_start</strong> (<em>float</em>) – The approximate value of <code class="docutils literal notranslate"><span class="pre">D</span></code> in meters at which the transition in
+<li><p><strong>dx_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The resolution in meters of the new refined region.</p></li>
+<li><p><strong>trans_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The approximate value of <code class="docutils literal notranslate"><span class="pre">D</span></code> in meters at which the transition in
 resolution should start</p></li>
-<li><p><strong>trans_width</strong> (<em>float</em>) – The approximate width in meters over which the transition in resolution
+<li><p><strong>trans_width</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The approximate width in meters over which the transition in resolution
 should take place</p></li>
 <li><p><strong>restrict_box</strong> (<em>dict of lists of ndarrays</em>) – A region of made up of quadrilaterals to <code class="docutils literal notranslate"><span class="pre">include</span></code> and <code class="docutils literal notranslate"><span class="pre">exclude</span></code>
 that defines where resolution may be altered.  Outside of the
 <code class="docutils literal notranslate"><span class="pre">restrict_box</span></code>, the resolution remains unchanged.</p></li>
-<li><p><strong>plot_option</strong> (<em>bool, optional</em>) – Whether to plot the resulting coastline points and the plot to files
+<li><p><strong>plot_option</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to plot the resulting coastline points and the plot to files
 named <code class="docutils literal notranslate"><span class="pre">cell_width###.png</span></code> and <code class="docutils literal notranslate"><span class="pre">trans_func###.png`</span></code>, where <code class="docutils literal notranslate"><span class="pre">###</span></code>
 is given by <code class="docutils literal notranslate"><span class="pre">call</span></code> and is meant to indicate how many times this
 function has been called during mesh creation.</p></li>
-<li><p><strong>plot_box</strong> (<em>list of float, optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
+<li><p><strong>plot_box</strong> (<em>list of float</em><em>, </em><em>optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
 <li><p><strong>coastlines</strong> (<em>ndarray</em>) – An n x 2 array of (longitude, latitude) points along the coastline
 contours returned from <code class="docutils literal notranslate"><span class="pre">extract_coastlines()</span></code> used in plotting if
 <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
-<li><p><strong>call</strong> (<em>int, optional</em>) – The number of times the function has been called, used to give the
+<li><p><strong>call</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The number of times the function has been called, used to give the
 plot a unique name.</p></li>
 </ul>
 </dd>

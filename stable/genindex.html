@@ -93,6 +93,7 @@
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -203,6 +204,7 @@
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
+ | <a href="#V"><strong>V</strong></a>
  | <a href="#W"><strong>W</strong></a>
  
 </div>
@@ -210,7 +212,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.logging.LoggingContext.html#mpas_tools.logging.LoggingContext.__init__">__init__() (mpas_tools.logging.LoggingContext method)</a>
+
+      <ul>
+        <li><a href="generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector.__init__">(mpas_tools.transects.Vector method)</a>
 </li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -228,6 +234,8 @@
       <li><a href="generated/mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html#mpas_tools.ocean.moc.add_moc_southern_boundary_transects">add_moc_southern_boundary_transects() (in module mpas_tools.ocean.moc)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid">add_zmid() (in module mpas_tools.ocean.depth)</a>
+</li>
+      <li><a href="generated/mpas_tools.transects.angular_distance.html#mpas_tools.transects.angular_distance">angular_distance() (in module mpas_tools.transects)</a>
 </li>
       <li><a href="generated/mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid.html#mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid">AtlanticPacificGrid() (in module mpas_tools.mesh.creation.mesh_definition_tools)</a>
 </li>
@@ -257,7 +265,9 @@
 <h2 id="C">C</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="generated/mpas_tools.viz.transects.cartesian_to_great_circle_distance.html#mpas_tools.viz.transects.cartesian_to_great_circle_distance">cartesian_to_great_circle_distance() (in module mpas_tools.viz.transects)</a>
+      <li><a href="generated/mpas_tools.transects.cartesian_to_great_circle_distance.html#mpas_tools.transects.cartesian_to_great_circle_distance">cartesian_to_great_circle_distance() (in module mpas_tools.transects)</a>
+</li>
+      <li><a href="generated/mpas_tools.transects.cartesian_to_lon_lat.html#mpas_tools.transects.cartesian_to_lon_lat">cartesian_to_lon_lat() (in module mpas_tools.transects)</a>
 </li>
       <li><a href="generated/mpas_tools.translate.center.html#mpas_tools.translate.center">center() (in module mpas_tools.translate)</a>
 </li>
@@ -269,9 +279,17 @@
 </li>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.compute_cell_width.html#mpas_tools.ocean.coastal_tools.compute_cell_width">compute_cell_width() (in module mpas_tools.ocean.coastal_tools)</a>
 </li>
+      <li><a href="generated/mpas_tools.ocean.depth.compute_depth.html#mpas_tools.ocean.depth.compute_depth">compute_depth() (in module mpas_tools.ocean.depth)</a>
+</li>
+      <li><a href="generated/mpas_tools.mesh.mask.compute_lon_lat_region_masks.html#mpas_tools.mesh.mask.compute_lon_lat_region_masks">compute_lon_lat_region_masks() (in module mpas_tools.mesh.mask)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="generated/mpas_tools.ocean.depth.compute_depth.html#mpas_tools.ocean.depth.compute_depth">compute_depth() (in module mpas_tools.ocean.depth)</a>
+      <li><a href="generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask">compute_mpas_flood_fill_mask() (in module mpas_tools.mesh.mask)</a>
+</li>
+      <li><a href="generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks">compute_mpas_region_masks() (in module mpas_tools.mesh.mask)</a>
+</li>
+      <li><a href="generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks">compute_mpas_transect_masks() (in module mpas_tools.mesh.mask)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid">compute_zmid() (in module mpas_tools.ocean.depth)</a>
 </li>
@@ -280,6 +298,8 @@
       <li><a href="generated/mpas_tools.ocean.coastal_tools.CPP_projection.html#mpas_tools.ocean.coastal_tools.CPP_projection">CPP_projection() (in module mpas_tools.ocean.coastal_tools)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.create_background_mesh.html#mpas_tools.ocean.coastal_tools.create_background_mesh">create_background_mesh() (in module mpas_tools.ocean.coastal_tools)</a>
+</li>
+      <li><a href="generated/mpas_tools.parallel.create_pool.html#mpas_tools.parallel.create_pool">create_pool() (in module mpas_tools.parallel)</a>
 </li>
       <li><a href="generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull">cull() (in module mpas_tools.mesh.conversion)</a>
 </li>
@@ -315,10 +335,12 @@
 <h2 id="F">F</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="generated/mpas_tools.viz.transects.find_transect_cells_and_weights.html#mpas_tools.viz.transects.find_transect_cells_and_weights">find_transect_cells_and_weights() (in module mpas_tools.viz.transects)</a>
+      <li><a href="generated/mpas_tools.viz.transects.find_planar_transect_cells_and_weights.html#mpas_tools.viz.transects.find_planar_transect_cells_and_weights">find_planar_transect_cells_and_weights() (in module mpas_tools.viz.transects)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/mpas_tools.viz.transects.find_transect_cells_and_weights.html#mpas_tools.viz.transects.find_transect_cells_and_weights">find_transect_cells_and_weights() (in module mpas_tools.viz.transects)</a>
+</li>
       <li><a href="generated/mpas_tools.ocean.transects.find_transect_levels_and_weights.html#mpas_tools.ocean.transects.find_transect_levels_and_weights">find_transect_levels_and_weights() (in module mpas_tools.ocean.transects)</a>
 </li>
   </ul></td>
@@ -351,10 +373,10 @@
 </li>
       <li><a href="generated/mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html#mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain">inject_preserve_floodplain() (in module mpas_tools.ocean.inject_preserve_floodplain)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html#mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity">inject_spherical_meshDensity() (in module mpas_tools.ocean.inject_meshDensity)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.mesh.interpolation.interp_bilin.html#mpas_tools.mesh.interpolation.interp_bilin">interp_bilin() (in module mpas_tools.mesh.interpolation)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html#mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes">interp_mpas_to_transect_triangle_nodes() (in module mpas_tools.ocean.transects)</a>
@@ -362,6 +384,10 @@
       <li><a href="generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangles.html#mpas_tools.ocean.transects.interp_mpas_to_transect_triangles">interp_mpas_to_transect_triangles() (in module mpas_tools.ocean.transects)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html#mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes">interp_transect_grid_to_transect_triangle_nodes() (in module mpas_tools.ocean.transects)</a>
+</li>
+      <li><a href="generated/mpas_tools.transects.intersection.html#mpas_tools.transects.intersection">intersection() (in module mpas_tools.transects)</a>
+</li>
+      <li><a href="generated/mpas_tools.transects.intersects.html#mpas_tools.transects.intersects">intersects() (in module mpas_tools.transects)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -382,6 +408,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.logging.LoggingContext.html#mpas_tools.logging.LoggingContext">LoggingContext (class in mpas_tools.logging)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/mpas_tools.transects.lon_lat_to_cartesian.html#mpas_tools.transects.lon_lat_to_cartesian">lon_lat_to_cartesian() (in module mpas_tools.transects)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -528,7 +558,9 @@
 </li>
       <li><a href="generated/mpas_tools.split_grids.split_grids.html#mpas_tools.split_grids.split_grids">split_grids() (in module mpas_tools.split_grids)</a>
 </li>
-      <li><a href="generated/mpas_tools.viz.transects.subdivide_great_circle.html#mpas_tools.viz.transects.subdivide_great_circle">subdivide_great_circle() (in module mpas_tools.viz.transects)</a>
+      <li><a href="generated/mpas_tools.transects.subdivide_great_circle.html#mpas_tools.transects.subdivide_great_circle">subdivide_great_circle() (in module mpas_tools.transects)</a>
+</li>
+      <li><a href="generated/mpas_tools.transects.subdivide_planar.html#mpas_tools.transects.subdivide_planar">subdivide_planar() (in module mpas_tools.transects)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -543,6 +575,14 @@
       <li><a href="generated/mpas_tools.translate.translate.html#mpas_tools.translate.translate">translate() (in module mpas_tools.translate)</a>
 </li>
       <li><a href="generated/mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf.html#mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf">triangle_to_netcdf() (in module mpas_tools.mesh.creation.triangle_to_netcdf)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="V">V</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector">Vector (class in mpas_tools.transects)</a>
 </li>
   </ul></td>
 </tr></table>

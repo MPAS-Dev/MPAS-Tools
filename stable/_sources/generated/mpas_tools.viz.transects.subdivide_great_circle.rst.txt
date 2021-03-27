@@ -1,6 +1,0 @@
-﻿mpas\_tools.viz.transects.subdivide\_great\_circle
-==================================================
-
-.. currentmodule:: mpas_tools.viz.transects
-
-.. autofunction:: subdivide_great_circle

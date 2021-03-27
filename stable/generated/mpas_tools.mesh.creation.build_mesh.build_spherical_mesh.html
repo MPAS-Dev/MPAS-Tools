@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -133,12 +134,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-conversion">Mesh conversion</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api.html#inerpolation">Inerpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#i-o">I/O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#interpolation">Interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -237,13 +241,13 @@ intermediate files: <code class="docutils literal notranslate"><span class="pre"
 <li><p><strong>cellWidth</strong> (<em>ndarray</em>) – m x n array of cell width in km</p></li>
 <li><p><strong>lon</strong> (<em>ndarray</em>) – longitude in degrees (length n and between -180 and 180)</p></li>
 <li><p><strong>lat</strong> (<em>ndarray</em>) – longitude in degrees (length m and between -90 and 90)</p></li>
-<li><p><strong>earth_radius</strong> (<em>float</em>) – Earth radius in meters</p></li>
-<li><p><strong>out_filename</strong> (<em>str, optional</em>) – The file name of the resulting MPAS mesh</p></li>
-<li><p><strong>plot_cellWidth</strong> (<em>bool, optional</em>) – Whether to produce a plot of <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code>. If so, it will be written
+<li><p><strong>earth_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Earth radius in meters</p></li>
+<li><p><strong>out_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The file name of the resulting MPAS mesh</p></li>
+<li><p><strong>plot_cellWidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to produce a plot of <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code>. If so, it will be written
 to <code class="docutils literal notranslate"><span class="pre">cellWidthGlobal.png</span></code>.</p></li>
-<li><p><strong>dir</strong> (<em>str, optional</em>) – A directory in which a temporary directory will be added with files
+<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – A directory in which a temporary directory will be added with files
 produced during mesh conversion and then deleted upon completion.</p></li>
-<li><p><strong>logger</strong> (<em>logging.Logger, optional</em>) – A logger for the output if not stdout</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.9)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
 </ul>
 </dd>
 </dl>

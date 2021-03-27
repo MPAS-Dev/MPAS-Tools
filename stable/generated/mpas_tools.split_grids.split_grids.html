@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -117,21 +118,27 @@
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.convert.html">mpas_tools.mesh.conversion.convert</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.cull.html">mpas_tools.mesh.conversion.cull</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.mask.html">mpas_tools.mesh.conversion.mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_region_masks.html">mpas_tools.mesh.mask.compute_mpas_region_masks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_transect_masks.html">mpas_tools.mesh.mask.compute_mpas_transect_masks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html">mpas_tools.mesh.mask.compute_mpas_flood_fill_mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_lon_lat_region_masks.html">mpas_tools.mesh.mask.compute_lon_lat_region_masks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.split_grids.split_grids</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.translate.html">mpas_tools.translate.translate</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center.html">mpas_tools.translate.center</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center_on_mesh.html">mpas_tools.translate.center_on_mesh</a></li>
-<li class="toctree-l4"><a class="reference internal" href="mpas_tools.io.write_netcdf.html">mpas_tools.io.write_netcdf</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="../api.html#inerpolation">Inerpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#i-o">I/O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#interpolation">Interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -231,19 +238,19 @@ should generally not be required as this information sould have been saved in
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>infile</strong> (<em>str</em>) – The file name for the mesh to split</p></li>
-<li><p><strong>outfile1</strong> (<em>str</em>) – The file name for the first split mesh</p></li>
-<li><p><strong>outfile2</strong> (<em>str</em>) – The file name for the second split mesh</p></li>
-<li><p><strong>nCells</strong> (<em>int, optional</em>) – The number of cells in the first mesh (default: the value specified in
+<li><p><strong>infile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The file name for the mesh to split</p></li>
+<li><p><strong>outfile1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The file name for the first split mesh</p></li>
+<li><p><strong>outfile2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a>) – The file name for the second split mesh</p></li>
+<li><p><strong>nCells</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The number of cells in the first mesh (default: the value specified in
 infile global attribute merge_point)</p></li>
-<li><p><strong>nEdges</strong> (<em>int, optional</em>) – The number of edges in the first mesh (default: the value specified in
+<li><p><strong>nEdges</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The number of edges in the first mesh (default: the value specified in
 infile global attribute merge_point</p></li>
-<li><p><strong>nVertices</strong> (<em>int, optional</em>) – The number of vertices in the first mesh (default: the value specified in
+<li><p><strong>nVertices</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The number of vertices in the first mesh (default: the value specified in
 infile global attribute merge_point</p></li>
-<li><p><strong>maxEdges</strong> (<em>list[int, int], optional</em>) – A list of the number of max edges (int) in each mesh (default: the value
+<li><p><strong>maxEdges</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.9)"><em>list</em></a><em>[</em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>]</em><em>, </em><em>optional</em>) – A list of the number of max edges (int) in each mesh (default: the value
 specified in infile global attribute merge_point OR will use infile
 maxEdges dimension and assume same for both)</p></li>
-<li><p><strong>runner</strong> (<em>str, optional</em>) – The command to write into the global history attribute of the outfile</p></li>
+<li><p><strong>runner</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.9)"><em>str</em></a><em>, </em><em>optional</em>) – The command to write into the global history attribute of the outfile</p></li>
 </ul>
 </dd>
 </dl>

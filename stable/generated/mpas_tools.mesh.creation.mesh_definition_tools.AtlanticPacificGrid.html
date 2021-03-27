@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -133,12 +134,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-conversion">Mesh conversion</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api.html#inerpolation">Inerpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#i-o">I/O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#interpolation">Interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -232,8 +236,8 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>lat</strong> (<em>ndarray</em>) – vector of length n, with entries between -90 and 90, degrees</p></li>
 <li><p><strong>lon</strong> (<em>ndarray</em>) – vector of length m, with entries between -180, 180, degrees</p></li>
-<li><p><strong>cellWidthInAtlantic</strong> (<em>float, optional</em>) – vector of length n, cell width in Atlantic as a function of lon, km</p></li>
-<li><p><strong>cellWidthInPacific</strong> (<em>float, optional</em>) – vector of length n, cell width in Pacific as a function of lon, km</p></li>
+<li><p><strong>cellWidthInAtlantic</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – vector of length n, cell width in Atlantic as a function of lon, km</p></li>
+<li><p><strong>cellWidthInPacific</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – vector of length n, cell width in Pacific as a function of lon, km</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

@@ -1,6 +1,0 @@
-﻿mpas\_tools.viz.transects.cartesian\_to\_great\_circle\_distance
-================================================================
-
-.. currentmodule:: mpas_tools.viz.transects
-
-.. autofunction:: cartesian_to_great_circle_distance

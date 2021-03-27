@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -155,6 +156,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -247,13 +249,13 @@ refined resolution to the cell widths.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>params</strong> (<em>dict</em>) – A dictionary of parameters determining how the mesh is constructed.
+<li><p><strong>params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.9)"><em>dict</em></a>) – A dictionary of parameters determining how the mesh is constructed.
 See <code class="docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastal_tools.default_params</span></code>.</p></li>
-<li><p><strong>cell_width</strong> (<em>ndarray, optional</em>) – A 2D array of cell widths in meters.  If none is provided, one a base
+<li><p><strong>cell_width</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – A 2D array of cell widths in meters.  If none is provided, one a base
 <code class="docutils literal notranslate"><span class="pre">cell_width</span></code> field constructed using parameter values from <code class="docutils literal notranslate"><span class="pre">params</span></code>
 to call <code class="docutils literal notranslate"><span class="pre">create_background_mesh</span></code>.</p></li>
-<li><p><strong>lon_grd</strong> (<em>ndarray, optional</em>) – A 1D array of longitudes in degrees in the range from -180 to 180</p></li>
-<li><p><strong>lat_grd</strong> (<em>ndarray, optional</em>) – A 1D array of latitudes in degrees in the range from -90 to 90</p></li>
+<li><p><strong>lon_grd</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – A 1D array of longitudes in degrees in the range from -180 to 180</p></li>
+<li><p><strong>lat_grd</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – A 1D array of latitudes in degrees in the range from -90 to 90</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

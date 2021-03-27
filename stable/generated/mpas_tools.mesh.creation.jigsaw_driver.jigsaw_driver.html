@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -133,12 +134,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-conversion">Mesh conversion</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api.html#inerpolation">Inerpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#i-o">I/O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#interpolation">Interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -231,13 +235,15 @@
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cellWidth</strong> (<em>ndarray</em>) – The size of each cell in the resulting mesh as a function of space</p></li>
-<li><p><strong>x, y</strong> (<em>ndarray</em>) – The x and y coordinates of each point in the cellWidth array (lon and
+<li><p><strong>x</strong> (<em>ndarray</em>) – The x and y coordinates of each point in the cellWidth array (lon and
 lat for spherical mesh)</p></li>
-<li><p><strong>on_sphere</strong> (<em>logical, optional</em>) – Whether this mesh is spherical or planar</p></li>
-<li><p><strong>earth_radius</strong> (<em>float, optional</em>) – Earth radius in meters</p></li>
-<li><p><strong>geom_points</strong> (<em>ndarray, optional</em>) – list of point coordinates for bounding polygon for planar mesh</p></li>
-<li><p><strong>geom_edges</strong> (<em>ndarray, optional</em>) – list of edges between points in geom_points that define the bounding polygon</p></li>
-<li><p><strong>logger</strong> (<em>logging.Logger, optional</em>) – A logger for the output if not stdout</p></li>
+<li><p><strong>y</strong> (<em>ndarray</em>) – The x and y coordinates of each point in the cellWidth array (lon and
+lat for spherical mesh)</p></li>
+<li><p><strong>on_sphere</strong> (<em>logical</em><em>, </em><em>optional</em>) – Whether this mesh is spherical or planar</p></li>
+<li><p><strong>earth_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – Earth radius in meters</p></li>
+<li><p><strong>geom_points</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – list of point coordinates for bounding polygon for planar mesh</p></li>
+<li><p><strong>geom_edges</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – list of edges between points in geom_points that define the bounding polygon</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.9)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
 </ul>
 </dd>
 </dl>

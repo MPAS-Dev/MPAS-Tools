@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -133,12 +134,15 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-conversion">Mesh conversion</a></li>
-<li class="toctree-l3"><a class="reference internal" href="../api.html#inerpolation">Inerpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#i-o">I/O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#interpolation">Interpolation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -232,12 +236,12 @@ on the boundary of the geojson regions.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fc</strong> (<em>geometrics_features.FeatureCollection</em>) – The regions to be rasterized</p></li>
-<li><p><strong>lon_grd</strong> (<em>numpy.ndarray</em>) – A 1D array of longitude values</p></li>
-<li><p><strong>lat_grd</strong> (<em>numpy.ndarray</em>) – A 1D array of latitude values</p></li>
-<li><p><strong>earth_radius</strong> (<em>float</em>) – Earth radius in meters</p></li>
-<li><p><strong>max_length</strong> (<em>float, optional</em>) – The maximum distance (in degrees) between points on the boundary of the
+<li><p><strong>lon_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – A 1D array of longitude values</p></li>
+<li><p><strong>lat_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.20)"><em>numpy.ndarray</em></a>) – A 1D array of latitude values</p></li>
+<li><p><strong>earth_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – Earth radius in meters</p></li>
+<li><p><strong>max_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – The maximum distance (in degrees) between points on the boundary of the
 geojson region.  If the boundary is too coarse, it will be subdivided.</p></li>
-<li><p><strong>epsilon</strong> (<em>float, optional</em>) – A small amount to expand each shape by to make sure lon/lat points on
+<li><p><strong>epsilon</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – A small amount to expand each shape by to make sure lon/lat points on
 the domain boundary are within shapes that touch the domain boundary.</p></li>
 </ul>
 </dd>

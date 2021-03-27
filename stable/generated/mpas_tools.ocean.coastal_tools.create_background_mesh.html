@@ -95,6 +95,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Ocean Tools</span></p>
@@ -155,6 +156,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -248,22 +250,22 @@
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>grd_box</strong> (<em>list of float</em>) – A list of 4 floats defining the bounds (min lon, max lon, min lat, max
 lat) of the grid</p></li>
-<li><p><strong>ddeg</strong> (<em>float</em>) – The resolution of the mesh in degrees</p></li>
-<li><p><strong>mesh_type</strong> (<em>{‘QU’, ‘EC’, ‘RRS’}</em>) – The type of mesh: quasi-uniform (QU), Eddy-closure (EC) or Rossby-radius
+<li><p><strong>ddeg</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The resolution of the mesh in degrees</p></li>
+<li><p><strong>mesh_type</strong> (<em>{'QU'</em><em>, </em><em>'EC'</em><em>, </em><em>'RRS'}</em>) – The type of mesh: quasi-uniform (QU), Eddy-closure (EC) or Rossby-radius
 scaling (RRS)</p></li>
-<li><p><strong>dx_min</strong> (<em>float</em>) – The resolution in meters of a QU mesh or the minimum resolution of of
+<li><p><strong>dx_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The resolution in meters of a QU mesh or the minimum resolution of of
 an RRS mesh. This parameter is ignored for EC meshes and the default
 function arguments to <code class="docutils literal notranslate"><span class="pre">EC_CellWidthVsLat()</span></code> are used instead.</p></li>
-<li><p><strong>dx_max</strong> (<em>float</em>) – The maximum resolution in meters of of an RRS mesh. This parameter is
+<li><p><strong>dx_max</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a>) – The maximum resolution in meters of of an RRS mesh. This parameter is
 ignored for QU meshes and EC meshes.  For EC meshes, the default
 function arguments are used instead.</p></li>
-<li><p><strong>plot_option</strong> (<em>bool, optional</em>) – Whether to plot the resulting cell width and save it to files
+<li><p><strong>plot_option</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to plot the resulting cell width and save it to files
 named <code class="docutils literal notranslate"><span class="pre">bckgrnd_grid_cell_width_vs_lat###.png</span></code> and
 <code class="docutils literal notranslate"><span class="pre">bckgnd_grid_cell_width###.png</span></code>, where <code class="docutils literal notranslate"><span class="pre">###</span></code> is given by
 <code class="docutils literal notranslate"><span class="pre">call</span></code> and is meant to indicate how many times this function has been
 called during mesh creation.</p></li>
-<li><p><strong>plot_box</strong> (<em>list of float, optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
-<li><p><strong>call</strong> (<em>int, optional</em>) – The number of times the function has been called, used to give the
+<li><p><strong>plot_box</strong> (<em>list of float</em><em>, </em><em>optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
+<li><p><strong>call</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The number of times the function has been called, used to give the
 plot a unique name.</p></li>
 </ul>
 </dd>
