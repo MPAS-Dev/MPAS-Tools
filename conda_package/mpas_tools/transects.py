@@ -774,6 +774,28 @@ def subdivide_planar(x, y, maxRes):
     return xOut, yOut, dIn, dOut
 
 
+def lon_lat_to_cartesian(lon, lat, earth_radius, degrees):
+    """Convert from lon/lat to Cartesian x, y, z"""
+
+    if degrees:
+        lon = numpy.deg2rad(lon)
+        lat = numpy.deg2rad(lat)
+    x = earth_radius * numpy.cos(lat) * numpy.cos(lon)
+    y = earth_radius * numpy.cos(lat) * numpy.sin(lon)
+    z = earth_radius * numpy.sin(lat)
+    return x, y, z
+
+
+def cartesian_to_lon_lat(x, y, z, earth_radius, degrees):
+    """Convert from  Cartesian x, y, z to lon/lat"""
+    lon = numpy.arctan2(y, x)
+    lat = numpy.arcsin(z/earth_radius)
+    if degrees:
+        lon = numpy.rad2deg(lon)
+        lat = numpy.rad2deg(lat)
+    return lon, lat
+
+
 def _sort_intersections(dNode, tris, nodes, xOut, yOut, zOut, interpCells,
                         cellWeights, epsilon):
     """ sort nodes by distance """
@@ -880,28 +902,6 @@ def _update_start_end_triangles(tris, nodes, interpCells, cellWeights, dNode,
     tris = tris[0::2]
 
     return dNode, xOut, yOut, zOut, tris, nodes, interpCells, cellWeights
-
-
-def lon_lat_to_cartesian(lon, lat, earth_radius, degrees):
-    """Convert from lon/lat to Cartesian x, y, z"""
-
-    if degrees:
-        lon = numpy.deg2rad(lon)
-        lat = numpy.deg2rad(lat)
-    x = earth_radius * numpy.cos(lat) * numpy.cos(lon)
-    y = earth_radius * numpy.cos(lat) * numpy.sin(lon)
-    z = earth_radius * numpy.sin(lat)
-    return x, y, z
-
-
-def cartesian_to_lon_lat(x, y, z, earth_radius, degrees):
-    """Convert from  Cartesian x, y, z to lon/lat"""
-    lon = numpy.arctan2(y, x)
-    lat = numpy.arcsin(z/earth_radius)
-    if degrees:
-        lon = numpy.rad2deg(lon)
-        lat = numpy.rad2deg(lat)
-    return lon, lat
 
 
 def _angular_distance(x=None, y=None, z=None, first=None, second=None):
