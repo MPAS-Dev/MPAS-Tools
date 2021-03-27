@@ -27,6 +27,8 @@ analyzing simulations, and in other MPAS-related workflows.
 
    logging
 
+   transects
+
    visualization
 
 .. toctree::

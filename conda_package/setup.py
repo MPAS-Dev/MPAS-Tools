@@ -5,6 +5,25 @@ import re
 from setuptools import setup, find_packages
 import shutil
 
+
+install_requires = [
+    'affine',
+    'cartopy',
+    'dask',
+    'matplotlib',
+    'netcdf4',
+    'numpy',
+    'progressbar2',
+    'pyamg',
+    'pyevtk',
+    'flann',
+    'pyproj',
+    'rasterio',
+    'scikit-image',
+    'scipy',
+    'shapely',
+    'xarray']
+
 here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'mpas_tools', '__init__.py')) as f:
     init_file = f.read()
@@ -40,7 +59,7 @@ setup(name='mpas_tools',
           'Programming Language :: Python :: 3.9',
           'Topic :: Scientific/Engineering',
       ],
-      packages=find_packages(),
+      packages=find_packages(include=['mpas_tools', 'mpas_tools.*']),
       package_data={'mpas_tools.viz': ['SciVisColorColormaps/*.xml']},
       scripts=['mesh_tools/mesh_conversion_tools/mark_horns_for_culling.py',
                'mesh_tools/planar_grid_transformations/set_lat_lon_fields_in_planar_grid.py',
@@ -54,7 +73,7 @@ setup(name='mpas_tools',
                'ocean/coastline_alteration/add_critical_land_blockages_to_mask.py',
                'ocean/moc_southern_boundary_extractor/moc_southern_boundary_extractor.py',
                'visualization/paraview_vtk_field_extractor/paraview_vtk_field_extractor.py'],
-      install_requires=['numpy', 'xarray', 'netCDF4', 'pyevtk'],
+      install_requires=install_requires,
       entry_points={'console_scripts':
                     ['planar_hex = mpas_tools.planar_hex:main',
                      'translate_planar_grid = mpas_tools.translate:main',
@@ -68,4 +87,8 @@ setup(name='mpas_tools',
                      'mpas_to_triangle = mpas_tools.mesh.creation.mpas_to_triangle:main',
                      'triangle_to_netcdf = mpas_tools.mesh.creation.triangle_to_netcdf:main',
                      'jigsaw_to_netcdf = mpas_tools.mesh.creation.jigsaw_to_netcdf:main',
-                     'scrip_from_mpas = mpas_tools.scrip.from_mpas:main']})
+                     'scrip_from_mpas = mpas_tools.scrip.from_mpas:main',
+                     'compute_mpas_region_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_region_masks',
+                     'compute_mpas_transect_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_transect_masks',
+                     'compute_mpas_flood_fill_mask = mpas_tools.mesh.mask:entry_point_compute_mpas_flood_fill_mask',
+                     'compute_lon_lat_region_masks = mpas_tools.mesh.mask:entry_point_compute_lon_lat_region_masks']})

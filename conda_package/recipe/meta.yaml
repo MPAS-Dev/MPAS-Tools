@@ -24,6 +24,10 @@ build:
     - ocean_add_depth = mpas_tools.ocean.depth:main_add_depth
     - ocean_add_zmid = mpas_tools.ocean.depth:main_add_zmid
     - ocean_write_time_varying_zmid = mpas_tools.ocean.depth:main_write_time_varying_zmid
+    - compute_mpas_region_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_region_masks
+    - compute_mpas_transect_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_transect_masks
+    - compute_mpas_flood_fill_mask = mpas_tools.mesh.mask:entry_point_compute_mpas_flood_fill_mask
+    - compute_lon_lat_region_masks = mpas_tools.mesh.mask:entry_point_compute_lon_lat_region_masks
 
 requirements:
   build:
@@ -39,32 +43,33 @@ requirements:
 
   run:
     - python
-    - netcdf4
-    - hdf5
-    - libnetcdf
-    - numpy
-    - scipy
-    - xarray
+    - affine
+    - cartopy
     - dask
     - geometric_features >=0.1.12
-    - pyevtk
+    - hdf5
     - jigsaw >=0.9.12
     - jigsawpy >=0.2.1
-    - pyflann
-    - scikit-image
-    - cartopy
-    - pyamg
-    - rasterio
-    - affine
-    - pyproj
+    - libnetcdf
     - matplotlib-base
-    - shapely
+    - netcdf4
+    - numpy
     - progressbar2
+    - pyamg
+    - pyevtk
+    - pyflann
+    - pyproj
+    - rasterio
+    - scikit-image
+    - scipy
+    - shapely
+    - xarray
 
 test:
   requires:
     - pytest
     - requests
+    - pip
   source_files:
     - mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
     - mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
@@ -111,6 +116,11 @@ test:
     - triangle_to_netcdf --help
     - jigsaw_to_netcdf --help
     - scrip_from_mpas --help
+    - compute_mpas_region_masks --help
+    - compute_mpas_transect_masks --help
+    - compute_mpas_flood_fill_mask --help
+    - compute_lon_lat_region_masks --help
+    - pip check
 
 about:
   home: https://github.com/MPAS-Dev/MPAS-Tools/

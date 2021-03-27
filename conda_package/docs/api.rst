@@ -53,6 +53,16 @@ Mesh conversion
    cull
    mask
 
+.. currentmodule:: mpas_tools.mesh.mask
+
+.. autosummary::
+   :toctree: generated/
+
+   compute_mpas_region_masks
+   compute_mpas_transect_masks
+   compute_mpas_flood_fill_mask
+   compute_lon_lat_region_masks
+
 .. currentmodule:: mpas_tools.merge_grids
 
 .. autosummary::
@@ -76,6 +86,15 @@ Mesh conversion
    center
    center_on_mesh
 
+.. currentmodule:: mpas_tools.scrip.from_mpas
+
+.. autosummary::
+   :toctree: generated/
+
+   scrip_from_mpas
+
+I/O
+---
 
 .. currentmodule:: mpas_tools.io
 
@@ -84,15 +103,18 @@ Mesh conversion
 
    write_netcdf
 
-.. currentmodule:: mpas_tools.scrip.from_mpas
+Parallelism
+-----------
+
+.. currentmodule:: mpas_tools.parallel
 
 .. autosummary::
    :toctree: generated/
 
-   scrip_from_mpas
+   create_pool
 
-Inerpolation
-------------
+Interpolation
+-------------
 
 .. currentmodule:: mpas_tools.mesh.interpolation
 
@@ -147,11 +169,11 @@ Ocean Tools
    coastal_tools.plot_coarse_coast
    coastal_tools.plot_region_box
 
-    depth.add_depth
-    depth.add_zmid
-    depth.write_time_varying_zmid
-    depth.compute_depth
-    depth.compute_zmid
+   depth.add_depth
+   depth.add_zmid
+   depth.write_time_varying_zmid
+   depth.compute_depth
+   depth.compute_zmid
 
 .. currentmodule:: mpas_tools.ocean.inject_bathymetry
 
@@ -199,6 +221,25 @@ Logging
    check_call
    LoggingContext
 
+Transects
+=========
+
+.. currentmodule:: mpas_tools.transects
+
+.. autosummary::
+   :toctree: generated/
+
+   subdivide_great_circle
+   cartesian_to_great_circle_distance
+   subdivide_planar
+   lon_lat_to_cartesian
+   cartesian_to_lon_lat
+   angular_distance
+   intersects
+   intersection
+   Vector
+
+
 Visualization
 =============
 
@@ -223,9 +264,7 @@ Visualization
 
    make_triangle_tree
    find_transect_cells_and_weights
-   subdivide_great_circle
-   cartesian_to_great_circle_distance
-
+   find_planar_transect_cells_and_weights
 
 .. currentmodule:: mpas_tools.viz.colormaps
 
