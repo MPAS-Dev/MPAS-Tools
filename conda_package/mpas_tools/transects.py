@@ -200,7 +200,7 @@ def angular_distance(x=None, y=None, z=None, first=None, second=None):
     Parameters
     ----------
     x, y, z : numpy.array, optional
-        The cartsian coordinates of a transect, where the number of segments
+        The Cartsian coordinates of a transect, where the number of segments
         is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length and
         all must be present if ``first`` and ``second`` are not provided.
 
@@ -232,18 +232,19 @@ def intersects(a1, a2, b1, b2):
 
     Parameters
     ----------
-    a1, a2, b1, b2 : Vector
+    a1, a2, b1, b2 : mpas_tools.transects.Vector
         Cartesian coordinates of the end points of two great circle arcs.
         The types of the attributes ``x``, ``y``, and ``z`` must either be
         ``numpy.arrays`` of identical size for all 4 vectors (in which case
         intersections are found element-wise), or scalars for
-        at least one of either the ``a``s or the ``b``s.
+        at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.
 
     Returns
     -------
     intersect : numpy.array
-        A boolean array of the same size as the ``a``s or the ``b``s, whichever
-        is greater, indicating if the particular pair of arcs intersects
+        A boolean array of the same size as ``a1`` and ``a2`` or ``b1`` and
+        ``b2``, whichever is greater, indicating if the particular pair of arcs
+        intersects
     """
     return numpy.logical_and(_straddles(a1, a2, b1, b2),
                              _straddles(b1, b2, a1, a2))
@@ -254,20 +255,20 @@ def intersection(a1, a2, b1, b2):
     Based on https://stackoverflow.com/a/26669130/7728169
     Find the intersection point between great circle arc from ``a1`` to ``a2``
     and from ``b1`` to ``b2``.  The arcs should have already have been found
-    to intersect by calling ``_intersects()``
+    to intersect by calling ``intersects()``
 
     Parameters
     ----------
-    a1, a2, b1, b2 : Vector
+    a1, a2, b1, b2 : mpas_tools.transects.Vector
         Cartesian coordinates of the end points of two great circle arcs.
         The types of the attributes ``x``, ``y``, and ``z`` must either be
         ``numpy.arrays`` of identical size for all 4 vectors (in which case
         intersections are found element-wise), or scalars for
-        at least one of either the ``a``s or the ``b``s.
+        at least one of either the ``a1`` and ``a2`` or ``b1`` and ``b2``.
 
     Returns
     -------
-    points : Vector
+    points : mpas_tools.transects.Vector
         An array of Cartesian points *on the unit sphere* indicating where the
         arcs intersect
     """

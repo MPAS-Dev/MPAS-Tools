@@ -237,6 +237,7 @@ Transects
    angular_distance
    intersects
    intersection
+   Vector
 
 
 Visualization
