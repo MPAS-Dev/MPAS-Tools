@@ -1,3 +1,4 @@
+from __future__ import print_function
 from netCDF4 import Dataset
 import numpy as np
 import argparse
@@ -7,7 +8,7 @@ import argparse
 def make_regions_file(filenameIcePresent, filenameMesh, regionType, varname, limit, filenameOut):
 
     # load ice presence
-    print filenameIcePresent
+    print(filenameIcePresent)
     fileIcePresent = Dataset(filenameIcePresent,"r")
 
     icePresence = fileIcePresent.variables[varname][:]
