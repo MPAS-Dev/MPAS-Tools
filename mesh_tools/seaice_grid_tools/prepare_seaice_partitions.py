@@ -35,7 +35,7 @@ if (not os.path.exists("fix_regrid_output.exe")):
 
 inputFile  = args.outputDir + "/icePresent_regrid.nc"
 outputFile = args.outputDir + "/icePresent_regrid_modify.nc"
-subprocess.call(["fix_regrid_output.exe", inputFile, args.meshFilenameDst, outputFile])
+subprocess.call(["./fix_regrid_output.exe", inputFile, args.meshFilenameDst, outputFile])
 
 
 # 3) create variable icePresenceExtended
