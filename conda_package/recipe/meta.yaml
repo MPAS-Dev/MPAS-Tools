@@ -59,6 +59,7 @@ requirements:
     - pyevtk
     - pyflann
     - pyproj
+    - python-igraph
     - rasterio
     - scikit-image
     - scipy

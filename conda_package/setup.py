@@ -18,6 +18,7 @@ install_requires = [
     'pyevtk',
     'flann',
     'pyproj',
+    'python-igraph',
     'rasterio',
     'scikit-image',
     'scipy',
