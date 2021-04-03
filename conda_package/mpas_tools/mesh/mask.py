@@ -8,6 +8,7 @@ from shapely.strtree import STRtree
 import progressbar
 from functools import partial
 import argparse
+from igraph import Graph
 
 from geometric_features import read_feature_collection
 
@@ -187,8 +188,8 @@ def entry_point_compute_mpas_region_masks():
 def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
                                 maskTypes=('cell', 'edge', 'vertex'),
                                 logger=None, pool=None, chunkSize=1000,
-                                showProgress=False,
-                                subdivisionResolution=10e3):
+                                showProgress=False, subdivisionResolution=10e3,
+                                addEdgeSign=False):
     """
     Use shapely and processes to create a set of masks from a feature
     collection made up of transects (line strings)
@@ -230,6 +231,10 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
         transect is too coarse, it will be subdivided.  Pass ``None`` for no
         subdivision.
 
+    addEdgeSign : bool, optional
+        Whether to add the ``edgeSign`` variable, which requires significant
+        extra computation
+
     Returns
     -------
     dsMask : xarray.Dataset
@@ -251,18 +256,27 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
 
         polygons, nPolygons, duplicatePolygons = \
             _get_polygons(dsMesh, maskType)
-        transectNames, masks, properties, nChar = _compute_transect_masks(
-            fcMask, polygons, logger, pool, chunkSize, showProgress,
-            subdivisionResolution, earthRadius)
+        transectNames, masks, properties, nChar, shapes = \
+            _compute_transect_masks(fcMask, polygons, logger, pool, chunkSize,
+                                    showProgress, subdivisionResolution,
+                                    earthRadius)
 
         if logger is not None:
-            logger.info('  Adding masks to dataset...')
+            if addEdgeSign and maskType == 'edge':
+                logger.info('  Adding masks and edge signs to dataset...')
+            else:
+                logger.info('  Adding masks to dataset...')
         nTransects = len(transectNames)
         # create a new data array for masks
         masksVarName = 'transect{}Masks'.format(suffix)
         dsMasks[masksVarName] = \
             ((dim, 'nTransects'),
              numpy.zeros((nPolygons, nTransects), dtype=int))
+
+        if addEdgeSign and maskType == 'edge':
+            dsMasks['transectEdgeMaskSigns'] = \
+                ((dim, 'nTransects'),
+                 numpy.zeros((nPolygons, nTransects), dtype=int))
 
         for index in range(nTransects):
             maskAndDuplicates = masks[index]
@@ -272,6 +286,11 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
                 numpy.logical_or(mask[duplicatePolygons],
                                  maskAndDuplicates[nPolygons:])
             dsMasks[masksVarName][:, index] = numpy.array(mask, dtype=int)
+
+            if addEdgeSign and maskType == 'edge':
+                print(transectNames[index])
+                dsMasks['transectEdgeMaskSigns'][:, index] = \
+                    _compute_edge_sign(dsMesh, mask, shapes[index])
 
         if 'transectNames' not in dsMasks:
             # create a new data array for mask names
@@ -329,6 +348,10 @@ def entry_point_compute_mpas_transect_masks():
         default='forkserver',
         help="The multiprocessing method use for python mask creation "
              "('fork', 'spawn' or 'forkserver')")
+    parser.add_argument("--add_edge_sign", dest="add_edge_sign",
+                        action="store_true",
+                        help="Whether to add the transectEdgeMaskSigns "
+                             "variable")
     args = parser.parse_args()
 
     dsMesh = xr.open_dataset(args.mesh_file_name, decode_cf=False,
@@ -348,7 +371,8 @@ def entry_point_compute_mpas_transect_masks():
             dsMesh=dsMesh, fcMask=fcMask, earthRadius=earth_radius,
             maskTypes=args.mask_types, logger=logger, pool=pool,
             chunkSize=args.chunk_size, showProgress=args.show_progress,
-            subdivisionResolution=args.subdivision)
+            subdivisionResolution=args.subdivision,
+            addEdgeSign=args.add_edge_sign)
 
     write_netcdf(dsMasks, args.mask_file_name)
 
@@ -771,6 +795,7 @@ def _compute_transect_masks(fcMask, polygons, logger, pool, chunkSize,
     transectNames, properties = _get_region_names_and_properties(fcMask)
 
     masks = []
+    shapes = []
 
     nChar = 0
     for feature in fcMask.features:
@@ -814,8 +839,9 @@ def _compute_transect_masks(fcMask, polygons, logger, pool, chunkSize,
         nChar = max(nChar, len(name))
 
         masks.append(mask)
+        shapes.append(shape)
 
-    return transectNames, masks, properties, nChar
+    return transectNames, masks, properties, nChar, shapes
 
 
 def _intersects(shape, polygons):
@@ -989,3 +1015,109 @@ def _flood_fill_mask(mask, cellsOnCell):
             break
 
     return mask
+
+
+def _compute_edge_sign(dsMesh, edgeMask, shape):
+    """ Compute the edge sign along a transect """
+
+    edge_indices = numpy.flatnonzero(edgeMask)
+    voe = dsMesh.verticesOnEdge.isel(nEdges=edge_indices).values - 1
+
+    lon = numpy.rad2deg(dsMesh.lonVertex.values[voe])
+    lon = numpy.mod(lon + 180., 360.) - 180.
+    lat = numpy.rad2deg(dsMesh.latVertex.values[voe])
+
+    lonEdge = numpy.rad2deg(dsMesh.lonEdge.values[edge_indices])
+    lonEdge = numpy.mod(lonEdge + 180., 360.) - 180.
+
+    lon, lat, duplicate_edges = \
+        _copy_dateline_lon_lat_vertices(lon, lat, lonEdge)
+
+    nEdges = dsMesh.sizes['nEdges']
+    nVertices = dsMesh.sizes['nVertices']
+
+    # give periodic copies unique edge and vertex indices
+    edge_indices = numpy.append(edge_indices,
+                                edge_indices[duplicate_edges] + nEdges)
+
+    voe = numpy.append(voe, voe[duplicate_edges, :] + nVertices, axis=0)
+
+    unique_vertices = numpy.unique(voe.ravel())
+
+    local_voe = numpy.zeros(voe.shape, dtype=int)
+    distance = []
+    unique_lon = []
+    unique_lat = []
+    for local_v, v in enumerate(unique_vertices):
+        local_mask = voe == v
+
+        x = lon[local_mask][0]
+        y = lat[local_mask][0]
+        distance.append(shape.project(shapely.geometry.Point(x, y)))
+        unique_lon.append(x)
+        unique_lat.append(y)
+
+        local_voe[local_mask] = local_v
+
+    graph = Graph(n=len(unique_vertices),
+                  edges=zip(local_voe[:, 0], local_voe[:, 1]))
+    graph.vs['distance'] = distance
+    graph.vs['lon'] = unique_lon
+    graph.vs['lat'] = unique_lat
+    graph.vs['vertices'] = numpy.arange(len(unique_vertices))
+    graph.es['edges'] = edge_indices
+    graph.es['vertices'] = [(v0, v1) for v0, v1 in zip(voe[:, 0], voe[:, 1])]
+
+    edgeSign = numpy.zeros(edgeMask.shape, dtype=int)
+
+    clusters = graph.clusters()
+    for cluster_index in range(len(clusters)):
+        cluster = clusters.subgraph(cluster_index)
+        distance = cluster.vs['distance']
+        if len(cluster.es) == 1:
+            edges = cluster.es.select(0)
+            edge = edges[0]
+            if edge.source_vertex['distance'] < edge.target_vertex['distance']:
+                sign = [1]
+            else:
+                sign = [-1]
+        else:
+            start = numpy.argmin(distance)
+            end = numpy.argmax(distance)
+            indices = \
+                cluster.get_shortest_paths(v=start, to=end, output='epath')[0]
+            edges = cluster.es.select(indices)
+            if len(edges) == 1:
+                edge = edges[0]
+                if edge.source_vertex['distance'] < \
+                        edge.target_vertex['distance']:
+                    sign = [1]
+                else:
+                    sign = [-1]
+            else:
+                verts = numpy.array(edges['vertices'])
+                sign = numpy.zeros(len(indices), dtype=int)
+                for index in range(len(indices)-1):
+                    if verts[index, 1] in verts[index+1, :]:
+                        sign[index] = 1
+                    elif verts[index, 0] in verts[index+1, :]:
+                        sign[index] = -1
+                    else:
+                        raise ValueError('could not find vertex '
+                                         '{}'.format(index))
+
+                if verts[-1, 0] in verts[-2, :]:
+                    sign[-1] = 1
+                elif verts[-1, 1] in verts[-2, :]:
+                    sign[-1] = -1
+                else:
+                    raise ValueError('could not find vertex -1')
+
+        sign = numpy.array(sign)
+        edge_indices = numpy.array(edges['edges'])
+        valid = numpy.array(edge_indices) < nEdges
+        edgeSign[edge_indices[valid]] = sign[valid]
+        duplicate = numpy.logical_not(valid)
+        edgeSign[edge_indices[duplicate] - nEdges] = sign[duplicate]
+
+    return edgeSign
