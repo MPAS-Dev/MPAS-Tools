@@ -187,10 +187,11 @@ def entry_point_compute_mpas_region_masks():
 def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
                                 maskTypes=('cell', 'edge', 'vertex'),
                                 logger=None, pool=None, chunkSize=1000,
-                                showProgress=False, subdivisionResolution=10e3):
+                                showProgress=False,
+                                subdivisionResolution=10e3):
     """
-    Use shapely and processes to create a set of masks from a feature collection
-    made up of transects (line strings)
+    Use shapely and processes to create a set of masks from a feature
+    collection made up of transects (line strings)
 
     Parameters
     ----------
@@ -248,7 +249,8 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
         if logger is not None:
             logger.info('  Computing {} masks:'.format(maskType))
 
-        polygons, nPolygons, duplicatePolygons = _get_polygons(dsMesh, maskType)
+        polygons, nPolygons, duplicatePolygons = \
+            _get_polygons(dsMesh, maskType)
         transectNames, masks, properties, nChar = _compute_transect_masks(
             fcMask, polygons, logger, pool, chunkSize, showProgress,
             subdivisionResolution, earthRadius)
@@ -273,9 +275,9 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
 
         if 'transectNames' not in dsMasks:
             # create a new data array for mask names
-            dsMasks['transectNames'] = (('nTransects',),
-                                        numpy.zeros((nTransects,),
-                                                    dtype='|S{}'.format(nChar)))
+            dsMasks['transectNames'] = \
+                (('nTransects',), numpy.zeros((nTransects,),
+                                              dtype='|S{}'.format(nChar)))
 
             for index in range(nTransects):
                 dsMasks['transectNames'][index] = transectNames[index]
@@ -435,8 +437,8 @@ def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
                                  chunkSize=1000, showProgress=False,
                                  subdivisionThreshold=30.):
     """
-    Use shapely and processes to create a set of masks from a feature collection
-    made up of regions (polygons) on a tensor lon/lat grid
+    Use shapely and processes to create a set of masks from a feature
+    collection made up of regions (polygons) on a tensor lon/lat grid
 
     Parameters
     ----------
@@ -649,8 +651,8 @@ def _compute_mask_from_shapes(shapes1, shapes2, func, pool, chunkSize,
     return mask
 
 
-def _compute_region_masks(fcMask, points, logger, pool, chunkSize, showProgress,
-                          threshold):
+def _compute_region_masks(fcMask, points, logger, pool, chunkSize,
+                          showProgress, threshold):
     """
     Build a region mask file from the given mesh and geojson file defining
     a set of regions.
