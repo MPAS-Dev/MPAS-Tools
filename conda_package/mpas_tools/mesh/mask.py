@@ -915,14 +915,14 @@ def _copy_dateline_lon_lat_vertices(lonVertex, latVertex, lonCenter):
 
     # which polygons have vertices that are out of range to the west?
     outOfRange = lonDiff < -180.
-    duplicatePolygonsEast = numpy.any(outOfRange, axis=1)
+    duplicatePolygonsEast = numpy.flatnonzero(numpy.any(outOfRange, axis=1))
     lonVertex[outOfRange] += 360.
     lonVertexToAdd = lonVertex[duplicatePolygonsEast, :] - 360.
     latVertexToAdd = latVertex[duplicatePolygonsEast, :]
 
     # which polygons have vertices that are out of range to the east?
     outOfRange = lonDiff >= 180.
-    duplicatePolygonsWest = numpy.any(outOfRange, axis=1)
+    duplicatePolygonsWest = numpy.flatnonzero(numpy.any(outOfRange, axis=1))
     lonVertex[outOfRange] -= 360.
     lonVertexToAdd = numpy.append(lonVertexToAdd,
                                   lonVertex[duplicatePolygonsWest, :] + 360.,
@@ -934,8 +934,8 @@ def _copy_dateline_lon_lat_vertices(lonVertex, latVertex, lonCenter):
     lonVertex = numpy.append(lonVertex, lonVertexToAdd, axis=0)
     latVertex = numpy.append(latVertex, latVertexToAdd, axis=0)
 
-    duplicatePolygons = numpy.logical_or(duplicatePolygonsEast,
-                                         duplicatePolygonsWest)
+    duplicatePolygons = numpy.append(duplicatePolygonsEast,
+                                     duplicatePolygonsWest)
 
     # TODO: we still need to do something about cells that contain the poles
 
