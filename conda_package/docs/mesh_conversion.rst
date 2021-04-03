@@ -350,10 +350,13 @@ The resulting variables are:
   - ``transectNames(nTransects, string64)`` - the names of the transects
 
 We don't currently provide cell, edge or vertex indices (e.g.
-``transectCellGlobalIDs``) for the cells along a transect or the edge sign as
-part of the dataset produced by this function.  This is, in part, because the
-algorithm doesn't keep track of the relative order of points along a transect.
-This could be updated in the future if there is sufficient demand.
+``transectCellGlobalIDs``) for path along a transect.  This is, in part,
+because the algorithm doesn't keep track of the relative order of points along
+a transect. This could be updated in the future if there is sufficient demand.
+
+The edge sign (``transectEdgeMaskSigns``) is computed only if
+``addEdgeSign=True``, since this takes extra time to compute and isn't always
+needed.
 
 .. note::
 
@@ -402,6 +405,7 @@ The command-line tool takes the following arguments:
       --multiprocessing_method MULTIPROCESSING_METHOD
                             The multiprocessing method use for python mask
                             creation ('fork', 'spawn' or 'forkserver')
+      --add_edge_sign       Whether to add the transectEdgeMaskSigns variable
 
 
 Computing a Flood-fill Mask
