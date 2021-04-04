@@ -98,13 +98,13 @@ def add_moc_southern_boundary_transects(dsMask, dsMesh, logger=None):
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(logging.INFO)
 
-    southernBoundaryEdges, southernBoiundaryEdgeSigns, \
+    southernBoundaryEdges, southernBoundaryEdgeSigns, \
         southernBoundaryVertices = \
         _extract_southern_boundary(dsMesh, dsMask, latBuffer=3.*numpy.pi/180.,
                                    logger=logger)
 
     _add_transects_to_moc(dsMesh, dsMask, southernBoundaryEdges,
-                          southernBoiundaryEdgeSigns,
+                          southernBoundaryEdgeSigns,
                           southernBoundaryVertices)
 
     if useStdout:
@@ -138,7 +138,7 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
                                            cellsOnEdge < nCells)
 
     southernBoundaryEdges = []
-    southernBoiundaryEdgeSigns = []
+    southernBoundaryEdgeSigns = []
     southernBoundaryVertices = []
 
     for iRegion in range(nRegions):
@@ -203,7 +203,7 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
         if len(startIndices) == 0:
             # the whole sequence is the southern boundary
             southernBoundaryEdges.append(edgeSequence)
-            southernBoiundaryEdgeSigns.append(edgeSequenceSigns)
+            southernBoundaryEdgeSigns.append(edgeSequenceSigns)
             southernBoundaryVertices.append(vertexSequence)
             continue
 
@@ -218,7 +218,7 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
         indices = numpy.mod(indices, len(edgeSequence))
 
         southernBoundaryEdges.append(edgeSequence[indices])
-        southernBoiundaryEdgeSigns.append(edgeSequenceSigns[indices])
+        southernBoundaryEdgeSigns.append(edgeSequenceSigns[indices])
 
         # we want one extra vertex in the vertex sequence
         indices = numpy.arange(endIndices[longest],
@@ -227,8 +227,8 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
 
         southernBoundaryVertices.append(vertexSequence[indices])
 
-    return (southernBoundaryEdges, southernBoiundaryEdgeSigns,
-            southernBoundaryVertices)
+    return southernBoundaryEdges, southernBoundaryEdgeSigns, \
+        southernBoundaryVertices
 
 
 def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
@@ -293,15 +293,18 @@ def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
     mocMask['transectNames'] = mocMask.regionNames.rename(
         {'nRegions': 'nTransects'})
 
-    mocMask['nTransectsInGroup'] = mocMask.nRegionsInGroup.rename(
-        {'nRegionGroups': 'nTransectGroups'})
+    if 'nRegionsInGroup' in mocMask:
+        mocMask['nTransectsInGroup'] = mocMask.nRegionsInGroup.rename(
+            {'nRegionGroups': 'nTransectGroups'})
 
-    mocMask['transectsInGroup'] = mocMask.regionsInGroup.rename(
-        {'nRegionGroups': 'nTransectGroups',
-         'maxRegionsInGroup': 'maxTransectsInGroup'})
+    if 'regionsInGroup' in mocMask:
+        mocMask['transectsInGroup'] = mocMask.regionsInGroup.rename(
+            {'nRegionGroups': 'nTransectGroups',
+             'maxRegionsInGroup': 'maxTransectsInGroup'})
 
-    mocMask['transectGroupNames'] = mocMask.regionGroupNames.rename(
-        {'nRegionGroups': 'nTransectGroups'})
+    if 'regionGroupNames' in mocMask:
+        mocMask['transectGroupNames'] = mocMask.regionGroupNames.rename(
+            {'nRegionGroups': 'nTransectGroups'})
 
 
 def _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
