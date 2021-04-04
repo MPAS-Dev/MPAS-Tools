@@ -1,0 +1,299 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mpas_tools.mesh.creation.signed_distance &mdash; mpas_tools 0.4.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson" href="mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson.html" />
+    <link rel="prev" title="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle" href="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+</ul>
+<p><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p><span class="caption-text">Developer's Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="../api.html#mesh-creation">Mesh creation</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.planar_hex.make_planar_hex_mesh.html">mpas_tools.planar_hex.make_planar_hex_mesh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.build_mesh.html">mpas_tools.mesh.creation.build_mesh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.build_mesh.build_spherical_mesh.html">mpas_tools.mesh.creation.build_mesh.build_spherical_mesh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.build_mesh.build_planar_mesh.html">mpas_tools.mesh.creation.build_mesh.build_planar_mesh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver.html">mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html">mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.html">mpas_tools.mesh.creation.mesh_definition_tools</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat.html">mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat.html">mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat.html">mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid.html">mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle.html">mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.mesh.creation.signed_distance</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson.html">mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.signed_distance.mask_from_geojson.html">mpas_tools.mesh.creation.signed_distance.mask_from_geojson</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.signed_distance.distance_from_geojson.html">mpas_tools.mesh.creation.signed_distance.distance_from_geojson</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf.html">mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-conversion">Mesh conversion</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#i-o">I/O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#interpolation">Interpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
+</ul>
+</li>
+</ul>
+<p><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<p><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../api.html">API reference</a> &raquo;</li>
+        
+      <li>mpas_tools.mesh.creation.signed_distance</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/generated/mpas_tools.mesh.creation.signed_distance.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <section id="module-mpas_tools.mesh.creation.signed_distance">
+<span id="mpas-tools-mesh-creation-signed-distance"></span><h1>mpas_tools.mesh.creation.signed_distance<a class="headerlink" href="#module-mpas_tools.mesh.creation.signed_distance" title="Permalink to this headline">¶</a></h1>
+<p class="rubric">Functions</p>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="mpas_tools.mesh.creation.signed_distance.distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.distance_from_geojson" title="mpas_tools.mesh.creation.signed_distance.distance_from_geojson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">distance_from_geojson</span></code></a>(fc, lon_grd, lat_grd, …)</p></td>
+<td><p>Get the distance for each point on a lon/lat grid from the closest point on the boundary of the geojson regions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="mpas_tools.mesh.creation.signed_distance.mask_from_geojson.html#mpas_tools.mesh.creation.signed_distance.mask_from_geojson" title="mpas_tools.mesh.creation.signed_distance.mask_from_geojson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask_from_geojson</span></code></a>(fc, lon_grd, lat_grd[, …])</p></td>
+<td><p>Make a rasterized mask on a lon/lat grid from shapes (geojson multipolygon data).</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson" title="mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson"><code class="xref py py-obj docutils literal notranslate"><span class="pre">signed_distance_from_geojson</span></code></a>(fc, lon_grd, …)</p></td>
+<td><p>Get the distance for each point on a lon/lat grid from the closest point on the boundary of the geojson regions.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson.html" class="btn btn-neutral float-right" title="mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle.html" class="btn btn-neutral float-left" title="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
