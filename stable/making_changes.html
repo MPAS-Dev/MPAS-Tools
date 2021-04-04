@@ -4,7 +4,8 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
+  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Making Changes to mpas_tools &mdash; mpas_tools stable documentation</title>
@@ -88,7 +89,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">User's Guide</span></p>
+              <p><span class="caption-text">User's Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
@@ -98,7 +99,7 @@
 <li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Ocean Tools</span></p>
+<p><span class="caption-text">Ocean Tools</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ocean/coastal_tools.html">Coastal Tools</a></li>
@@ -106,7 +107,7 @@
 <li class="toctree-l1"><a class="reference internal" href="ocean/moc.html">Meridional Overturning Circulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ocean/depth.html">Adding a Depth Coordinate</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer's Guide</span></p>
+<p><span class="caption-text">Developer's Guide</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Making Changes to mpas_tools</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#entry-points">Entry Points</a></li>
@@ -117,12 +118,12 @@
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Authors</span></p>
+<p><span class="caption-text">Authors</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Main Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Versions</span></p>
+<p><span class="caption-text">Versions</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="versions.html">Versions</a></li>
 </ul>
@@ -192,14 +193,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="making-changes-to-mpas-tools">
+  <section id="making-changes-to-mpas-tools">
 <span id="dev-making-changes"></span><h1>Making Changes to mpas_tools<a class="headerlink" href="#making-changes-to-mpas-tools" title="Permalink to this headline">¶</a></h1>
 <p>New python functions and modules (<code class="docutils literal notranslate"><span class="pre">.py</span></code> files) can be added within the
 <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools</span></code>.  These will automatically be part of the
 <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> package.  New directories with python modules should include an
 <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file (which can be empty) to indicate that they are also part of
 the package.</p>
-<div class="section" id="entry-points">
+<section id="entry-points">
 <h2>Entry Points<a class="headerlink" href="#entry-points" title="Permalink to this headline">¶</a></h2>
 <p>The best way to add new “scripts” to the package is to add a function without
 any arguments somewhere in the package, and then to add it as an “entry point”
@@ -239,8 +240,8 @@ in the module <code class="docutils literal notranslate"><span class="pre">mpas_
 <p>As you can see, the function pointed to by the entry point can used to parse
 command-line arguments, just as a “normal” python script would do</p>
 <p>By convention, entry points do not typically include the <code class="docutils literal notranslate"><span class="pre">.py</span></code> extension.</p>
-</div>
-<div class="section" id="dependencies">
+</section>
+<section id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
 <p>If you changes introduce new dependencies, these need to be added to the recipe
 for the conda package in <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code></p>
@@ -256,8 +257,8 @@ for the conda package in <code class="docutils literal notranslate"><span class=
 </div>
 <p>These requirements <em>must</em> be on the <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code> anaconda channel.  If you
 need help with this, please contact the developers.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

@@ -86,7 +86,7 @@
               
             
             
-              <p class="caption"><span class="caption-text">User's Guide</span></p>
+              <p><span class="caption-text">User's Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
@@ -96,7 +96,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Ocean Tools</span></p>
+<p><span class="caption-text">Ocean Tools</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastal_tools.html">Coastal Tools</a></li>
@@ -104,19 +104,19 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Developer's Guide</span></p>
+<p><span class="caption-text">Developer's Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Authors</span></p>
+<p><span class="caption-text">Authors</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
 </ul>
-<p class="caption"><span class="caption-text">Versions</span></p>
+<p><span class="caption-text">Versions</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../versions.html">Versions</a></li>
 </ul>
@@ -374,10 +374,11 @@
 <div class="viewcode-block" id="compute_mpas_transect_masks"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks">[docs]</a><span class="k">def</span> <span class="nf">compute_mpas_transect_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">,</span>
                                 <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">),</span>
                                 <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                                <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionResolution</span><span class="o">=</span><span class="mf">10e3</span><span class="p">):</span>
+                                <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                <span class="n">subdivisionResolution</span><span class="o">=</span><span class="mf">10e3</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Use shapely and processes to create a set of masks from a feature collection</span>
-<span class="sd">    made up of transects (line strings)</span>
+<span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
+<span class="sd">    collection made up of transects (line strings)</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -435,7 +436,8 @@
         <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Computing </span><span class="si">{}</span><span class="s1"> masks:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">maskType</span><span class="p">))</span>
 
-        <span class="n">polygons</span><span class="p">,</span> <span class="n">nPolygons</span><span class="p">,</span> <span class="n">duplicatePolygons</span> <span class="o">=</span> <span class="n">_get_polygons</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">maskType</span><span class="p">)</span>
+        <span class="n">polygons</span><span class="p">,</span> <span class="n">nPolygons</span><span class="p">,</span> <span class="n">duplicatePolygons</span> <span class="o">=</span> \
+            <span class="n">_get_polygons</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">maskType</span><span class="p">)</span>
         <span class="n">transectNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">nChar</span> <span class="o">=</span> <span class="n">_compute_transect_masks</span><span class="p">(</span>
             <span class="n">fcMask</span><span class="p">,</span> <span class="n">polygons</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span> <span class="n">showProgress</span><span class="p">,</span>
             <span class="n">subdivisionResolution</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">)</span>
@@ -460,9 +462,9 @@
 
         <span class="k">if</span> <span class="s1">&#39;transectNames&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dsMasks</span><span class="p">:</span>
             <span class="c1"># create a new data array for mask names</span>
-            <span class="n">dsMasks</span><span class="p">[</span><span class="s1">&#39;transectNames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nTransects&#39;</span><span class="p">,),</span>
-                                        <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nTransects</span><span class="p">,),</span>
-                                                    <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;|S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nChar</span><span class="p">)))</span>
+            <span class="n">dsMasks</span><span class="p">[</span><span class="s1">&#39;transectNames&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="p">((</span><span class="s1">&#39;nTransects&#39;</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nTransects</span><span class="p">,),</span>
+                                              <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;|S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nChar</span><span class="p">)))</span>
 
             <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nTransects</span><span class="p">):</span>
                 <span class="n">dsMasks</span><span class="p">[</span><span class="s1">&#39;transectNames&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">transectNames</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
@@ -622,8 +624,8 @@
                                  <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                  <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Use shapely and processes to create a set of masks from a feature collection</span>
-<span class="sd">    made up of regions (polygons) on a tensor lon/lat grid</span>
+<span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
+<span class="sd">    collection made up of regions (polygons) on a tensor lon/lat grid</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -836,8 +838,8 @@
     <span class="k">return</span> <span class="n">mask</span>
 
 
-<span class="k">def</span> <span class="nf">_compute_region_masks</span><span class="p">(</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span> <span class="n">showProgress</span><span class="p">,</span>
-                          <span class="n">threshold</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_compute_region_masks</span><span class="p">(</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
+                          <span class="n">showProgress</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build a region mask file from the given mesh and geojson file defining</span>
 <span class="sd">    a set of regions.</span>
@@ -1100,14 +1102,14 @@
 
     <span class="c1"># which polygons have vertices that are out of range to the west?</span>
     <span class="n">outOfRange</span> <span class="o">=</span> <span class="n">lonDiff</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">180.</span>
-    <span class="n">duplicatePolygonsEast</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">outOfRange</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">duplicatePolygonsEast</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">outOfRange</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">lonVertex</span><span class="p">[</span><span class="n">outOfRange</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">360.</span>
     <span class="n">lonVertexToAdd</span> <span class="o">=</span> <span class="n">lonVertex</span><span class="p">[</span><span class="n">duplicatePolygonsEast</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="mf">360.</span>
     <span class="n">latVertexToAdd</span> <span class="o">=</span> <span class="n">latVertex</span><span class="p">[</span><span class="n">duplicatePolygonsEast</span><span class="p">,</span> <span class="p">:]</span>
 
     <span class="c1"># which polygons have vertices that are out of range to the east?</span>
     <span class="n">outOfRange</span> <span class="o">=</span> <span class="n">lonDiff</span> <span class="o">&gt;=</span> <span class="mf">180.</span>
-    <span class="n">duplicatePolygonsWest</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">outOfRange</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">duplicatePolygonsWest</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">outOfRange</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
     <span class="n">lonVertex</span><span class="p">[</span><span class="n">outOfRange</span><span class="p">]</span> <span class="o">-=</span> <span class="mf">360.</span>
     <span class="n">lonVertexToAdd</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lonVertexToAdd</span><span class="p">,</span>
                                   <span class="n">lonVertex</span><span class="p">[</span><span class="n">duplicatePolygonsWest</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="mf">360.</span><span class="p">,</span>
@@ -1119,8 +1121,8 @@
     <span class="n">lonVertex</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lonVertex</span><span class="p">,</span> <span class="n">lonVertexToAdd</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">latVertex</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">latVertex</span><span class="p">,</span> <span class="n">latVertexToAdd</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-    <span class="n">duplicatePolygons</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">duplicatePolygonsEast</span><span class="p">,</span>
-                                         <span class="n">duplicatePolygonsWest</span><span class="p">)</span>
+    <span class="n">duplicatePolygons</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">duplicatePolygonsEast</span><span class="p">,</span>
+                                     <span class="n">duplicatePolygonsWest</span><span class="p">)</span>
 
     <span class="c1"># TODO: we still need to do something about cells that contain the poles</span>
 
