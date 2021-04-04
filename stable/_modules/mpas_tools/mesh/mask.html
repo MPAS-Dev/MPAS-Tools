@@ -195,6 +195,7 @@
 <span class="kn">import</span> <span class="nn">progressbar</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
 <span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">from</span> <span class="nn">igraph</span> <span class="kn">import</span> <span class="n">Graph</span>
 
 <span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">read_feature_collection</span>
 
@@ -374,8 +375,8 @@
 <div class="viewcode-block" id="compute_mpas_transect_masks"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks">[docs]</a><span class="k">def</span> <span class="nf">compute_mpas_transect_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">,</span>
                                 <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">),</span>
                                 <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
-                                <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                <span class="n">subdivisionResolution</span><span class="o">=</span><span class="mf">10e3</span><span class="p">):</span>
+                                <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionResolution</span><span class="o">=</span><span class="mf">10e3</span><span class="p">,</span>
+                                <span class="n">addEdgeSign</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
 <span class="sd">    collection made up of transects (line strings)</span>
@@ -417,6 +418,10 @@
 <span class="sd">        transect is too coarse, it will be subdivided.  Pass ``None`` for no</span>
 <span class="sd">        subdivision.</span>
 
+<span class="sd">    addEdgeSign : bool, optional</span>
+<span class="sd">        Whether to add the ``edgeSign`` variable, which requires significant</span>
+<span class="sd">        extra computation</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dsMask : xarray.Dataset</span>
@@ -438,18 +443,27 @@
 
         <span class="n">polygons</span><span class="p">,</span> <span class="n">nPolygons</span><span class="p">,</span> <span class="n">duplicatePolygons</span> <span class="o">=</span> \
             <span class="n">_get_polygons</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">maskType</span><span class="p">)</span>
-        <span class="n">transectNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">nChar</span> <span class="o">=</span> <span class="n">_compute_transect_masks</span><span class="p">(</span>
-            <span class="n">fcMask</span><span class="p">,</span> <span class="n">polygons</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span> <span class="n">showProgress</span><span class="p">,</span>
-            <span class="n">subdivisionResolution</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">)</span>
+        <span class="n">transectNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">nChar</span><span class="p">,</span> <span class="n">shapes</span> <span class="o">=</span> \
+            <span class="n">_compute_transect_masks</span><span class="p">(</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">polygons</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
+                                    <span class="n">showProgress</span><span class="p">,</span> <span class="n">subdivisionResolution</span><span class="p">,</span>
+                                    <span class="n">earthRadius</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Adding masks to dataset...&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">addEdgeSign</span> <span class="ow">and</span> <span class="n">maskType</span> <span class="o">==</span> <span class="s1">&#39;edge&#39;</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Adding masks and edge signs to dataset...&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Adding masks to dataset...&#39;</span><span class="p">)</span>
         <span class="n">nTransects</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">transectNames</span><span class="p">)</span>
         <span class="c1"># create a new data array for masks</span>
         <span class="n">masksVarName</span> <span class="o">=</span> <span class="s1">&#39;transect</span><span class="si">{}</span><span class="s1">Masks&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">)</span>
         <span class="n">dsMasks</span><span class="p">[</span><span class="n">masksVarName</span><span class="p">]</span> <span class="o">=</span> \
             <span class="p">((</span><span class="n">dim</span><span class="p">,</span> <span class="s1">&#39;nTransects&#39;</span><span class="p">),</span>
              <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nPolygons</span><span class="p">,</span> <span class="n">nTransects</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">addEdgeSign</span> <span class="ow">and</span> <span class="n">maskType</span> <span class="o">==</span> <span class="s1">&#39;edge&#39;</span><span class="p">:</span>
+            <span class="n">dsMasks</span><span class="p">[</span><span class="s1">&#39;transectEdgeMaskSigns&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                <span class="p">((</span><span class="n">dim</span><span class="p">,</span> <span class="s1">&#39;nTransects&#39;</span><span class="p">),</span>
+                 <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nPolygons</span><span class="p">,</span> <span class="n">nTransects</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
 
         <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nTransects</span><span class="p">):</span>
             <span class="n">maskAndDuplicates</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
@@ -459,6 +473,11 @@
                 <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">mask</span><span class="p">[</span><span class="n">duplicatePolygons</span><span class="p">],</span>
                                  <span class="n">maskAndDuplicates</span><span class="p">[</span><span class="n">nPolygons</span><span class="p">:])</span>
             <span class="n">dsMasks</span><span class="p">[</span><span class="n">masksVarName</span><span class="p">][:,</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">addEdgeSign</span> <span class="ow">and</span> <span class="n">maskType</span> <span class="o">==</span> <span class="s1">&#39;edge&#39;</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">transectNames</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+                <span class="n">dsMasks</span><span class="p">[</span><span class="s1">&#39;transectEdgeMaskSigns&#39;</span><span class="p">][:,</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">_compute_edge_sign</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span> <span class="n">shapes</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
 
         <span class="k">if</span> <span class="s1">&#39;transectNames&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dsMasks</span><span class="p">:</span>
             <span class="c1"># create a new data array for mask names</span>
@@ -516,6 +535,10 @@
         <span class="n">default</span><span class="o">=</span><span class="s1">&#39;forkserver&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The multiprocessing method use for python mask creation &quot;</span>
              <span class="s2">&quot;(&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--add_edge_sign&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;add_edge_sign&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Whether to add the transectEdgeMaskSigns &quot;</span>
+                             <span class="s2">&quot;variable&quot;</span><span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
     <span class="n">dsMesh</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">mesh_file_name</span><span class="p">,</span> <span class="n">decode_cf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -535,7 +558,8 @@
             <span class="n">dsMesh</span><span class="o">=</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">earthRadius</span><span class="o">=</span><span class="n">earth_radius</span><span class="p">,</span>
             <span class="n">maskTypes</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">mask_types</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span>
             <span class="n">chunkSize</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">chunk_size</span><span class="p">,</span> <span class="n">showProgress</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">show_progress</span><span class="p">,</span>
-            <span class="n">subdivisionResolution</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">subdivision</span><span class="p">)</span>
+            <span class="n">subdivisionResolution</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">subdivision</span><span class="p">,</span>
+            <span class="n">addEdgeSign</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">add_edge_sign</span><span class="p">)</span>
 
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasks</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">)</span>
 
@@ -958,6 +982,7 @@
     <span class="n">transectNames</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="n">_get_region_names_and_properties</span><span class="p">(</span><span class="n">fcMask</span><span class="p">)</span>
 
     <span class="n">masks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">shapes</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="n">nChar</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fcMask</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
@@ -1001,8 +1026,9 @@
         <span class="n">nChar</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">nChar</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">))</span>
 
         <span class="n">masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+        <span class="n">shapes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">transectNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">nChar</span>
+    <span class="k">return</span> <span class="n">transectNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">nChar</span><span class="p">,</span> <span class="n">shapes</span>
 
 
 <span class="k">def</span> <span class="nf">_intersects</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">polygons</span><span class="p">):</span>
@@ -1176,6 +1202,112 @@
             <span class="k">break</span>
 
     <span class="k">return</span> <span class="n">mask</span>
+
+
+<span class="k">def</span> <span class="nf">_compute_edge_sign</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">edgeMask</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Compute the edge sign along a transect &quot;&quot;&quot;</span>
+
+    <span class="n">edge_indices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">edgeMask</span><span class="p">)</span>
+    <span class="n">voe</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">verticesOnEdge</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nEdges</span><span class="o">=</span><span class="n">edge_indices</span><span class="p">)</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dsMesh</span><span class="o">.</span><span class="n">lonVertex</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">voe</span><span class="p">])</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">lon</span> <span class="o">+</span> <span class="mf">180.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span> <span class="o">-</span> <span class="mf">180.</span>
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dsMesh</span><span class="o">.</span><span class="n">latVertex</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">voe</span><span class="p">])</span>
+
+    <span class="n">lonEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dsMesh</span><span class="o">.</span><span class="n">lonEdge</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">edge_indices</span><span class="p">])</span>
+    <span class="n">lonEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">lonEdge</span> <span class="o">+</span> <span class="mf">180.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span> <span class="o">-</span> <span class="mf">180.</span>
+
+    <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">duplicate_edges</span> <span class="o">=</span> \
+        <span class="n">_copy_dateline_lon_lat_vertices</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lonEdge</span><span class="p">)</span>
+
+    <span class="n">nEdges</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span>
+    <span class="n">nVertices</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertices&#39;</span><span class="p">]</span>
+
+    <span class="c1"># give periodic copies unique edge and vertex indices</span>
+    <span class="n">edge_indices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edge_indices</span><span class="p">,</span>
+                                <span class="n">edge_indices</span><span class="p">[</span><span class="n">duplicate_edges</span><span class="p">]</span> <span class="o">+</span> <span class="n">nEdges</span><span class="p">)</span>
+
+    <span class="n">voe</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">voe</span><span class="p">,</span> <span class="n">voe</span><span class="p">[</span><span class="n">duplicate_edges</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="n">nVertices</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">unique_vertices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">voe</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+
+    <span class="n">local_voe</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">voe</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">unique_lon</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">unique_lat</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">local_v</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">unique_vertices</span><span class="p">):</span>
+        <span class="n">local_mask</span> <span class="o">=</span> <span class="n">voe</span> <span class="o">==</span> <span class="n">v</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">lon</span><span class="p">[</span><span class="n">local_mask</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">lat</span><span class="p">[</span><span class="n">local_mask</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">distance</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shape</span><span class="o">.</span><span class="n">project</span><span class="p">(</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)))</span>
+        <span class="n">unique_lon</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">unique_lat</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="n">local_voe</span><span class="p">[</span><span class="n">local_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">local_v</span>
+
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_vertices</span><span class="p">),</span>
+                  <span class="n">edges</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="n">local_voe</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">local_voe</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">vs</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">distance</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">vs</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unique_lon</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">vs</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unique_lat</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">vs</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_vertices</span><span class="p">))</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">es</span><span class="p">[</span><span class="s1">&#39;edges&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">edge_indices</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">es</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[(</span><span class="n">v0</span><span class="p">,</span> <span class="n">v1</span><span class="p">)</span> <span class="k">for</span> <span class="n">v0</span><span class="p">,</span> <span class="n">v1</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">voe</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">voe</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])]</span>
+
+    <span class="n">edgeSign</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">edgeMask</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="n">clusters</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">clusters</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">cluster_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">clusters</span><span class="p">)):</span>
+        <span class="n">cluster</span> <span class="o">=</span> <span class="n">clusters</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">cluster_index</span><span class="p">)</span>
+        <span class="n">distance</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">vs</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cluster</span><span class="o">.</span><span class="n">es</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">es</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">edge</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">edge</span><span class="o">.</span><span class="n">source_vertex</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">edge</span><span class="o">.</span><span class="n">target_vertex</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">start</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+            <span class="n">end</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">distance</span><span class="p">)</span>
+            <span class="n">indices</span> <span class="o">=</span> \
+                <span class="n">cluster</span><span class="o">.</span><span class="n">get_shortest_paths</span><span class="p">(</span><span class="n">v</span><span class="o">=</span><span class="n">start</span><span class="p">,</span> <span class="n">to</span><span class="o">=</span><span class="n">end</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;epath&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">edges</span> <span class="o">=</span> <span class="n">cluster</span><span class="o">.</span><span class="n">es</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">edge</span> <span class="o">=</span> <span class="n">edges</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">edge</span><span class="o">.</span><span class="n">source_vertex</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span> <span class="o">&lt;</span> \
+                        <span class="n">edge</span><span class="o">.</span><span class="n">target_vertex</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]:</span>
+                    <span class="n">sign</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">sign</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">verts</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">])</span>
+                <span class="n">sign</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indices</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">verts</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">verts</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]:</span>
+                        <span class="n">sign</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">elif</span> <span class="n">verts</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">verts</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]:</span>
+                        <span class="n">sign</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;could not find vertex &#39;</span>
+                                         <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">index</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">verts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">verts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]:</span>
+                    <span class="n">sign</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">verts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">verts</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]:</span>
+                    <span class="n">sign</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;could not find vertex -1&#39;</span><span class="p">)</span>
+
+        <span class="n">sign</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sign</span><span class="p">)</span>
+        <span class="n">edge_indices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edges</span><span class="p">[</span><span class="s1">&#39;edges&#39;</span><span class="p">])</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edge_indices</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">nEdges</span>
+        <span class="n">edgeSign</span><span class="p">[</span><span class="n">edge_indices</span><span class="p">[</span><span class="n">valid</span><span class="p">]]</span> <span class="o">=</span> <span class="n">sign</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+        <span class="n">duplicate</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span>
+        <span class="n">edgeSign</span><span class="p">[</span><span class="n">edge_indices</span><span class="p">[</span><span class="n">duplicate</span><span class="p">]</span> <span class="o">-</span> <span class="n">nEdges</span><span class="p">]</span> <span class="o">=</span> <span class="n">sign</span><span class="p">[</span><span class="n">duplicate</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">edgeSign</span>
 </pre></div>
 
            </div>

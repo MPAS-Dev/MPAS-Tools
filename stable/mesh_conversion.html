@@ -510,10 +510,12 @@ transect</p></li>
 </ul>
 </div></blockquote>
 <p>We don’t currently provide cell, edge or vertex indices (e.g.
-<code class="docutils literal notranslate"><span class="pre">transectCellGlobalIDs</span></code>) for the cells along a transect or the edge sign as
-part of the dataset produced by this function.  This is, in part, because the
-algorithm doesn’t keep track of the relative order of points along a transect.
-This could be updated in the future if there is sufficient demand.</p>
+<code class="docutils literal notranslate"><span class="pre">transectCellGlobalIDs</span></code>) for path along a transect.  This is, in part,
+because the algorithm doesn’t keep track of the relative order of points along
+a transect. This could be updated in the future if there is sufficient demand.</p>
+<p>The edge sign (<code class="docutils literal notranslate"><span class="pre">transectEdgeMaskSigns</span></code>) is computed only if
+<code class="docutils literal notranslate"><span class="pre">addEdgeSign=True</span></code>, since this takes extra time to compute and isn’t always
+needed.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>While the default <code class="docutils literal notranslate"><span class="pre">subdivisionResolution</span></code> is 10 km for
@@ -558,6 +560,7 @@ optional arguments:
   --multiprocessing_method MULTIPROCESSING_METHOD
                         The multiprocessing method use for python mask
                         creation (&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)
+  --add_edge_sign       Whether to add the transectEdgeMaskSigns variable
 </pre></div>
 </div>
 </section>
