@@ -551,32 +551,6 @@ def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
     return dsMasks
 
 
-def _get_region_names_and_properties(fc):
-    regionNames = []
-    for feature in fc.features:
-        name = feature['properties']['name']
-        regionNames.append(name)
-
-    propertyNames = set()
-    for feature in fc.features:
-        for propertyName in feature['properties']:
-            if propertyName not in ['name', 'author', 'tags', 'component',
-                                    'object']:
-                propertyNames.add(propertyName)
-
-    properties = {}
-    for propertyName in propertyNames:
-        properties[propertyName] = []
-        for feature in fc.features:
-            if propertyName in feature['properties']:
-                propertyVal = feature['properties'][propertyName]
-                properties[propertyName].append(propertyVal)
-            else:
-                properties[propertyName].append('')
-
-    return regionNames, properties
-
-
 def entry_point_compute_lon_lat_region_masks():
     """ Entry point for ``compute_lon_lat_region_masks()``"""
 
@@ -673,6 +647,32 @@ def _compute_mask_from_shapes(shapes1, shapes2, func, pool, chunkSize,
         if showProgress:
             bar.finish()
     return mask
+
+
+def _get_region_names_and_properties(fc):
+    regionNames = []
+    for feature in fc.features:
+        name = feature['properties']['name']
+        regionNames.append(name)
+
+    propertyNames = set()
+    for feature in fc.features:
+        for propertyName in feature['properties']:
+            if propertyName not in ['name', 'author', 'tags', 'component',
+                                    'object']:
+                propertyNames.add(propertyName)
+
+    properties = {}
+    for propertyName in propertyNames:
+        properties[propertyName] = []
+        for feature in fc.features:
+            if propertyName in feature['properties']:
+                propertyVal = feature['properties'][propertyName]
+                properties[propertyName].append(propertyVal)
+            else:
+                properties[propertyName].append('')
+
+    return regionNames, properties
 
 
 def _compute_region_masks(fcMask, points, logger, pool, chunkSize,
