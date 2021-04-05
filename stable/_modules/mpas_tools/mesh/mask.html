@@ -738,32 +738,6 @@
     <span class="k">return</span> <span class="n">dsMasks</span></div>
 
 
-<span class="k">def</span> <span class="nf">_get_region_names_and_properties</span><span class="p">(</span><span class="n">fc</span><span class="p">):</span>
-    <span class="n">regionNames</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-        <span class="n">regionNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-
-    <span class="n">propertyNames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">propertyName</span> <span class="ow">in</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]:</span>
-            <span class="k">if</span> <span class="n">propertyName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;author&#39;</span><span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="s1">&#39;component&#39;</span><span class="p">,</span>
-                                    <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
-                <span class="n">propertyNames</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">propertyName</span><span class="p">)</span>
-
-    <span class="n">properties</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="k">for</span> <span class="n">propertyName</span> <span class="ow">in</span> <span class="n">propertyNames</span><span class="p">:</span>
-        <span class="n">properties</span><span class="p">[</span><span class="n">propertyName</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">propertyName</span> <span class="ow">in</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]:</span>
-                <span class="n">propertyVal</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="n">propertyName</span><span class="p">]</span>
-                <span class="n">properties</span><span class="p">[</span><span class="n">propertyName</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">propertyVal</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">properties</span><span class="p">[</span><span class="n">propertyName</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">regionNames</span><span class="p">,</span> <span class="n">properties</span>
-
-
 <span class="k">def</span> <span class="nf">entry_point_compute_lon_lat_region_masks</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot; Entry point for ``compute_lon_lat_region_masks()``&quot;&quot;&quot;</span>
 
@@ -823,6 +797,164 @@
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasks</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">)</span>
 
 
+<span class="k">def</span> <span class="nf">compute_projection_grid_region_masks</span><span class="p">(</span>
+        <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+        <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.</span><span class="p">,</span> <span class="n">xdim</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">ydim</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
+<span class="sd">    collection made up of regions (polygons) on a projection grid such as</span>
+<span class="sd">    a polar-stereographic grid.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lon : numpy.ndarray</span>
+<span class="sd">        A 2D array of longitudes in degrees between -180 and 180</span>
+
+<span class="sd">    lat : numpy.ndarray</span>
+<span class="sd">        A 2D array of latitudes in degrees between -90 and 90</span>
+
+<span class="sd">    fcMask : geometric_features.FeatureCollection</span>
+<span class="sd">        A feature collection containing features to use to create the mask</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger for the output if not stdout</span>
+
+<span class="sd">    pool : multiprocessing.Pool, optional</span>
+<span class="sd">        A pool for performing multiprocessing</span>
+
+<span class="sd">    chunkSize : int, optional</span>
+<span class="sd">        The number of cells, vertices or edges that are processed in one</span>
+<span class="sd">        operation.  Experimentation has shown that 1000 is a reasonable</span>
+<span class="sd">        compromise between dividing the work into sufficient subtasks to</span>
+<span class="sd">        distribute the load and having sufficient work for each thread.</span>
+
+<span class="sd">    showProgress : bool, optional</span>
+<span class="sd">        Whether to show a progress bar</span>
+
+<span class="sd">    subdivisionThreshold : float, optional</span>
+<span class="sd">        A threshold in degrees (lon or lat) above which the mask region will</span>
+<span class="sd">        be subdivided into smaller polygons for faster intersection checking</span>
+
+<span class="sd">    xdim : str, optional</span>
+<span class="sd">        The name of the x dimension</span>
+
+<span class="sd">    ydim : str, optional</span>
+<span class="sd">        The name of the y dimension</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dsMask : xarray.Dataset</span>
+<span class="sd">        The masks</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dsMasks</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+
+    <span class="c1"># make sure -180 &lt;= lon &lt; 180</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">lon</span> <span class="o">+</span> <span class="mf">180.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span> <span class="o">-</span> <span class="mf">180.</span>
+
+    <span class="n">ny</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="n">lon</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c1"># create shapely geometry for lon and lat</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span>
+              <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">lat</span><span class="o">.</span><span class="n">ravel</span><span class="p">())]</span>
+    <span class="n">regionNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">nChar</span> <span class="o">=</span> <span class="n">_compute_region_masks</span><span class="p">(</span>
+        <span class="n">fcMask</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span> <span class="n">showProgress</span><span class="p">,</span>
+        <span class="n">subdivisionThreshold</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Adding masks to dataset...&#39;</span><span class="p">)</span>
+    <span class="n">nRegions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">regionNames</span><span class="p">)</span>
+    <span class="c1"># create a new data array for masks</span>
+    <span class="n">masksVarName</span> <span class="o">=</span> <span class="s1">&#39;regionMasks&#39;</span>
+    <span class="n">dsMasks</span><span class="p">[</span><span class="n">masksVarName</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="p">((</span><span class="n">ydim</span><span class="p">,</span> <span class="n">xdim</span><span class="p">,</span> <span class="s1">&#39;nRegions&#39;</span><span class="p">),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">,</span> <span class="n">nRegions</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRegions</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">masks</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">dsMasks</span><span class="p">[</span><span class="n">masksVarName</span><span class="p">][:,</span> <span class="p">:,</span> <span class="n">index</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">ny</span><span class="p">,</span> <span class="n">nx</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># create a new data array for mask names</span>
+    <span class="n">dsMasks</span><span class="p">[</span><span class="s1">&#39;regionNames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nRegions&#39;</span><span class="p">,),</span>
+                              <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nRegions</span><span class="p">,),</span>
+                                          <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;|S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nChar</span><span class="p">)))</span>
+
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRegions</span><span class="p">):</span>
+        <span class="n">dsMasks</span><span class="p">[</span><span class="s1">&#39;regionNames&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">regionNames</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">propertyName</span> <span class="ow">in</span> <span class="n">properties</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">propertyName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dsMasks</span><span class="p">:</span>
+            <span class="n">dsMasks</span><span class="p">[</span><span class="n">propertyName</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nRegions&#39;</span><span class="p">,),</span>
+                                     <span class="n">properties</span><span class="p">[</span><span class="n">propertyName</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Done.&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dsMasks</span>
+
+
+<span class="k">def</span> <span class="nf">entry_point_compute_projection_grid_region_masks</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot; Entry point for ``compute_projection_grid_region_masks()``&quot;&quot;&quot;</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="s2">&quot;--grid_file_name&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;grid_file_name&quot;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An input lon/lat grid file&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--lon&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;lon&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the 2D longitude coordinate&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--lat&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The name of the 2D latitude coordinate&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-g&quot;</span><span class="p">,</span> <span class="s2">&quot;--geojson_file_name&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;geojson_file_name&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An Geojson file containing mask regions&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--mask_file_name&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;mask_file_name&quot;</span><span class="p">,</span>
+                        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An output MPAS region masks file&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--chunk_size&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;chunk_size&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The number of grid points that are &quot;</span>
+                             <span class="s2">&quot;processed in one operation&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--show_progress&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;show_progress&quot;</span><span class="p">,</span>
+                        <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Whether to show a progress bar&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-s&quot;</span><span class="p">,</span> <span class="s2">&quot;--subdivision&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;subdivision&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+                        <span class="n">default</span><span class="o">=</span><span class="mf">30.</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;A threshold in degrees (lon or lat) above which &quot;</span>
+                             <span class="s2">&quot;the mask region will be subdivided into smaller &quot;</span>
+                             <span class="s2">&quot;polygons for faster intersection checking&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--process_count&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;process_count&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The number of processes to use to compute masks.  The &quot;</span>
+             <span class="s2">&quot;default is to use all available cores&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s2">&quot;--multiprocessing_method&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;multiprocessing_method&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;forkserver&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The multiprocessing method use for python mask creation &quot;</span>
+             <span class="s2">&quot;(&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)&quot;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">dsGrid</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">grid_file_name</span><span class="p">,</span> <span class="n">decode_cf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                             <span class="n">decode_times</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">dsGrid</span><span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">lon</span><span class="p">]</span>
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">dsGrid</span><span class="p">[</span><span class="n">args</span><span class="o">.</span><span class="n">lat</span><span class="p">]</span>
+
+    <span class="n">ydim</span><span class="p">,</span> <span class="n">xdim</span> <span class="o">=</span> <span class="n">lon</span><span class="o">.</span><span class="n">dims</span>
+
+    <span class="n">fcMask</span> <span class="o">=</span> <span class="n">read_feature_collection</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">geojson_file_name</span><span class="p">)</span>
+
+    <span class="n">pool</span> <span class="o">=</span> <span class="n">create_pool</span><span class="p">(</span><span class="n">process_count</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">process_count</span><span class="p">,</span>
+                       <span class="n">method</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">multiprocessing_method</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="s1">&#39;compute_lon_lat_region_masks&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">dsMasks</span> <span class="o">=</span> <span class="n">compute_projection_grid_region_masks</span><span class="p">(</span>
+            <span class="n">lon</span><span class="o">=</span><span class="n">lon</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">lat</span><span class="o">=</span><span class="n">lat</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
+            <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">chunk_size</span><span class="p">,</span>
+            <span class="n">showProgress</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">show_progress</span><span class="p">,</span>
+            <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">subdivision</span><span class="p">,</span> <span class="n">xdim</span><span class="o">=</span><span class="n">xdim</span><span class="p">,</span> <span class="n">ydim</span><span class="o">=</span><span class="n">ydim</span><span class="p">)</span>
+
+    <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasks</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">)</span>
+
+
 <span class="k">def</span> <span class="nf">_compute_mask_from_shapes</span><span class="p">(</span><span class="n">shapes1</span><span class="p">,</span> <span class="n">shapes2</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
                               <span class="n">showProgress</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -860,6 +992,32 @@
         <span class="k">if</span> <span class="n">showProgress</span><span class="p">:</span>
             <span class="n">bar</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">mask</span>
+
+
+<span class="k">def</span> <span class="nf">_get_region_names_and_properties</span><span class="p">(</span><span class="n">fc</span><span class="p">):</span>
+    <span class="n">regionNames</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">regionNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="n">propertyNames</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">propertyName</span> <span class="ow">in</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">propertyName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;author&#39;</span><span class="p">,</span> <span class="s1">&#39;tags&#39;</span><span class="p">,</span> <span class="s1">&#39;component&#39;</span><span class="p">,</span>
+                                    <span class="s1">&#39;object&#39;</span><span class="p">]:</span>
+                <span class="n">propertyNames</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">propertyName</span><span class="p">)</span>
+
+    <span class="n">properties</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">propertyName</span> <span class="ow">in</span> <span class="n">propertyNames</span><span class="p">:</span>
+        <span class="n">properties</span><span class="p">[</span><span class="n">propertyName</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">propertyName</span> <span class="ow">in</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">]:</span>
+                <span class="n">propertyVal</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="n">propertyName</span><span class="p">]</span>
+                <span class="n">properties</span><span class="p">[</span><span class="n">propertyName</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">propertyVal</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">properties</span><span class="p">[</span><span class="n">propertyName</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">regionNames</span><span class="p">,</span> <span class="n">properties</span>
 
 
 <span class="k">def</span> <span class="nf">_compute_region_masks</span><span class="p">(</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
@@ -901,7 +1059,7 @@
     <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
         <span class="n">pointsToCheck</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
         <span class="n">indicesInShape</span> <span class="o">=</span> <span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="nb">id</span><span class="p">(</span><span class="n">point</span><span class="p">)]</span> <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">pointsToCheck</span> <span class="k">if</span>
-                          <span class="n">shape</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">point</span><span class="p">)]</span>
+                          <span class="p">(</span><span class="n">shape</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="n">point</span><span class="p">)</span> <span class="ow">or</span> <span class="n">shape</span><span class="o">.</span><span class="n">intersects</span><span class="p">(</span><span class="n">point</span><span class="p">))]</span>
         <span class="n">mask</span><span class="p">[</span><span class="n">indicesInShape</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">return</span> <span class="n">mask</span>
 
