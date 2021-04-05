@@ -872,7 +872,7 @@ def _contains(shapes, points):
     for shape in shapes:
         pointsToCheck = tree.query(shape)
         indicesInShape = [indices[id(point)] for point in pointsToCheck if
-                          shape.contains(point)]
+                          (shape.contains(point) or shape.intersects(point))]
         mask[indicesInShape] = True
     return mask
 
