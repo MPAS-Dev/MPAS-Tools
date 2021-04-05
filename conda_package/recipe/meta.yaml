@@ -28,6 +28,7 @@ build:
     - compute_mpas_transect_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_transect_masks
     - compute_mpas_flood_fill_mask = mpas_tools.mesh.mask:entry_point_compute_mpas_flood_fill_mask
     - compute_lon_lat_region_masks = mpas_tools.mesh.mask:entry_point_compute_lon_lat_region_masks
+    - compute_projection_region_masks = mpas_tools.mesh.mask:entry_point_compute_projection_grid_region_masks
 
 requirements:
   build:
@@ -121,6 +122,7 @@ test:
     - compute_mpas_transect_masks --help
     - compute_mpas_flood_fill_mask --help
     - compute_lon_lat_region_masks --help
+    - compute_projection_region_masks --help
     - pip check
 
 about:
