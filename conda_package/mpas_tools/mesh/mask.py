@@ -551,32 +551,6 @@ def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
     return dsMasks
 
 
-def _get_region_names_and_properties(fc):
-    regionNames = []
-    for feature in fc.features:
-        name = feature['properties']['name']
-        regionNames.append(name)
-
-    propertyNames = set()
-    for feature in fc.features:
-        for propertyName in feature['properties']:
-            if propertyName not in ['name', 'author', 'tags', 'component',
-                                    'object']:
-                propertyNames.add(propertyName)
-
-    properties = {}
-    for propertyName in propertyNames:
-        properties[propertyName] = []
-        for feature in fc.features:
-            if propertyName in feature['properties']:
-                propertyVal = feature['properties'][propertyName]
-                properties[propertyName].append(propertyVal)
-            else:
-                properties[propertyName].append('')
-
-    return regionNames, properties
-
-
 def entry_point_compute_lon_lat_region_masks():
     """ Entry point for ``compute_lon_lat_region_masks()``"""
 
@@ -636,6 +610,164 @@ def entry_point_compute_lon_lat_region_masks():
     write_netcdf(dsMasks, args.mask_file_name)
 
 
+def compute_projection_grid_region_masks(
+        lon, lat, fcMask, logger=None, pool=None, chunkSize=1000,
+        showProgress=False, subdivisionThreshold=30., xdim='x', ydim='y'):
+    """
+    Use shapely and processes to create a set of masks from a feature
+    collection made up of regions (polygons) on a projection grid such as
+    a polar-stereographic grid.
+
+    Parameters
+    ----------
+    lon : numpy.ndarray
+        A 2D array of longitudes in degrees between -180 and 180
+
+    lat : numpy.ndarray
+        A 2D array of latitudes in degrees between -90 and 90
+
+    fcMask : geometric_features.FeatureCollection
+        A feature collection containing features to use to create the mask
+
+    logger : logging.Logger, optional
+        A logger for the output if not stdout
+
+    pool : multiprocessing.Pool, optional
+        A pool for performing multiprocessing
+
+    chunkSize : int, optional
+        The number of cells, vertices or edges that are processed in one
+        operation.  Experimentation has shown that 1000 is a reasonable
+        compromise between dividing the work into sufficient subtasks to
+        distribute the load and having sufficient work for each thread.
+
+    showProgress : bool, optional
+        Whether to show a progress bar
+
+    subdivisionThreshold : float, optional
+        A threshold in degrees (lon or lat) above which the mask region will
+        be subdivided into smaller polygons for faster intersection checking
+
+    xdim : str, optional
+        The name of the x dimension
+
+    ydim : str, optional
+        The name of the y dimension
+
+    Returns
+    -------
+    dsMask : xarray.Dataset
+        The masks
+
+    """
+
+    dsMasks = xr.Dataset()
+
+    # make sure -180 <= lon < 180
+    lon = numpy.mod(lon + 180., 360.) - 180.
+
+    ny, nx = lon.shape
+
+    # create shapely geometry for lon and lat
+    points = [shapely.geometry.Point(x, y) for x, y in
+              zip(lon.ravel(), lat.ravel())]
+    regionNames, masks, properties, nChar = _compute_region_masks(
+        fcMask, points, logger, pool, chunkSize, showProgress,
+        subdivisionThreshold)
+
+    if logger is not None:
+        logger.info('  Adding masks to dataset...')
+    nRegions = len(regionNames)
+    # create a new data array for masks
+    masksVarName = 'regionMasks'
+    dsMasks[masksVarName] = \
+        ((ydim, xdim, 'nRegions'), numpy.zeros((ny, nx, nRegions), dtype=int))
+
+    for index in range(nRegions):
+        mask = masks[index]
+        dsMasks[masksVarName][:, :, index] = \
+            numpy.array(mask.reshape((ny, nx)), dtype=int)
+
+    # create a new data array for mask names
+    dsMasks['regionNames'] = (('nRegions',),
+                              numpy.zeros((nRegions,),
+                                          dtype='|S{}'.format(nChar)))
+
+    for index in range(nRegions):
+        dsMasks['regionNames'][index] = regionNames[index]
+
+    for propertyName in properties:
+        if propertyName not in dsMasks:
+            dsMasks[propertyName] = (('nRegions',),
+                                     properties[propertyName])
+    if logger is not None:
+        logger.info('  Done.')
+
+    return dsMasks
+
+
+def entry_point_compute_projection_grid_region_masks():
+    """ Entry point for ``compute_projection_grid_region_masks()``"""
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-i", "--grid_file_name", dest="grid_file_name",
+                        type=str, required=True,
+                        help="An input lon/lat grid file")
+    parser.add_argument("--lon", dest="lon", default="lon", type=str,
+                        help="The name of the 2D longitude coordinate")
+    parser.add_argument("--lat", dest="lat", default="lat", type=str,
+                        help="The name of the 2D latitude coordinate")
+    parser.add_argument("-g", "--geojson_file_name",
+                        dest="geojson_file_name", type=str, required=True,
+                        help="An Geojson file containing mask regions")
+    parser.add_argument("-o", "--mask_file_name", dest="mask_file_name",
+                        type=str, required=True,
+                        help="An output MPAS region masks file")
+    parser.add_argument("-c", "--chunk_size", dest="chunk_size", type=int,
+                        default=1000,
+                        help="The number of grid points that are "
+                             "processed in one operation")
+    parser.add_argument("--show_progress", dest="show_progress",
+                        action="store_true",
+                        help="Whether to show a progress bar")
+    parser.add_argument("-s", "--subdivision", dest="subdivision", type=float,
+                        default=30.,
+                        help="A threshold in degrees (lon or lat) above which "
+                             "the mask region will be subdivided into smaller "
+                             "polygons for faster intersection checking")
+    parser.add_argument(
+        "--process_count", required=False, dest="process_count", type=int,
+        help="The number of processes to use to compute masks.  The "
+             "default is to use all available cores")
+    parser.add_argument(
+        "--multiprocessing_method", dest="multiprocessing_method",
+        default='forkserver',
+        help="The multiprocessing method use for python mask creation "
+             "('fork', 'spawn' or 'forkserver')")
+    args = parser.parse_args()
+
+    dsGrid = xr.open_dataset(args.grid_file_name, decode_cf=False,
+                             decode_times=False)
+    lon = dsGrid[args.lon]
+    lat = dsGrid[args.lat]
+
+    ydim, xdim = lon.dims
+
+    fcMask = read_feature_collection(args.geojson_file_name)
+
+    pool = create_pool(process_count=args.process_count,
+                       method=args.multiprocessing_method)
+
+    with LoggingContext('compute_lon_lat_region_masks') as logger:
+        dsMasks = compute_projection_grid_region_masks(
+            lon=lon.values, lat=lat.values, fcMask=fcMask, logger=logger,
+            pool=pool, chunkSize=args.chunk_size,
+            showProgress=args.show_progress,
+            subdivisionThreshold=args.subdivision, xdim=xdim, ydim=ydim)
+
+    write_netcdf(dsMasks, args.mask_file_name)
+
+
 def _compute_mask_from_shapes(shapes1, shapes2, func, pool, chunkSize,
                               showProgress):
     """
@@ -673,6 +805,32 @@ def _compute_mask_from_shapes(shapes1, shapes2, func, pool, chunkSize,
         if showProgress:
             bar.finish()
     return mask
+
+
+def _get_region_names_and_properties(fc):
+    regionNames = []
+    for feature in fc.features:
+        name = feature['properties']['name']
+        regionNames.append(name)
+
+    propertyNames = set()
+    for feature in fc.features:
+        for propertyName in feature['properties']:
+            if propertyName not in ['name', 'author', 'tags', 'component',
+                                    'object']:
+                propertyNames.add(propertyName)
+
+    properties = {}
+    for propertyName in propertyNames:
+        properties[propertyName] = []
+        for feature in fc.features:
+            if propertyName in feature['properties']:
+                propertyVal = feature['properties'][propertyName]
+                properties[propertyName].append(propertyVal)
+            else:
+                properties[propertyName].append('')
+
+    return regionNames, properties
 
 
 def _compute_region_masks(fcMask, points, logger, pool, chunkSize,
@@ -714,7 +872,7 @@ def _contains(shapes, points):
     for shape in shapes:
         pointsToCheck = tree.query(shape)
         indicesInShape = [indices[id(point)] for point in pointsToCheck if
-                          shape.contains(point)]
+                          (shape.contains(point) or shape.intersects(point))]
         mask[indicesInShape] = True
     return mask
 
