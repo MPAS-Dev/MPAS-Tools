@@ -480,18 +480,37 @@
     <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectNames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionNames</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
         <span class="p">{</span><span class="s1">&#39;nRegions&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransects&#39;</span><span class="p">})</span>
 
-    <span class="k">if</span> <span class="s1">&#39;nRegionsInGroup&#39;</span> <span class="ow">in</span> <span class="n">mocMask</span><span class="p">:</span>
-        <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;nTransectsInGroup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">nRegionsInGroup</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-            <span class="p">{</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransectGroups&#39;</span><span class="p">})</span>
+    <span class="k">if</span> <span class="s1">&#39;nRegionsInGroup&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mocMask</span><span class="p">:</span>
+        <span class="n">nRegions</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nRegions&#39;</span><span class="p">]</span>
+        <span class="n">nRegionGroups</span> <span class="o">=</span> <span class="mi">2</span>
+        <span class="n">nRegionsInGroup</span> <span class="o">=</span> <span class="n">nRegions</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nRegionGroups</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">regionsInGroup</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nRegionGroups</span><span class="p">,</span> <span class="n">nRegions</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">regionGroupNames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MOCBasinRegionsGroup&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">]</span>
+        <span class="n">nChar</span> <span class="o">=</span> <span class="mi">64</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRegionGroups</span><span class="p">):</span>
+            <span class="n">regionsInGroup</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nRegions</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="s1">&#39;regionsInGroup&#39;</span> <span class="ow">in</span> <span class="n">mocMask</span><span class="p">:</span>
-        <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectsInGroup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionsInGroup</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-            <span class="p">{</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransectGroups&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;maxRegionsInGroup&#39;</span><span class="p">:</span> <span class="s1">&#39;maxTransectsInGroup&#39;</span><span class="p">})</span>
+        <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;nRegionsInGroup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">,),</span> <span class="n">nRegionsInGroup</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="s1">&#39;regionGroupNames&#39;</span> <span class="ow">in</span> <span class="n">mocMask</span><span class="p">:</span>
-        <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectGroupNames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionGroupNames</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-            <span class="p">{</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransectGroups&#39;</span><span class="p">})</span>
+        <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;regionsInGroup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">,</span> <span class="s1">&#39;maxRegionsInGroup&#39;</span><span class="p">),</span>
+                                     <span class="n">regionsInGroup</span><span class="p">)</span>
+
+        <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;regionGroupNames&#39;</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="p">((</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nRegionGroups</span><span class="p">,),</span>
+                                             <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;|S</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nChar</span><span class="p">)))</span>
+
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRegionGroups</span><span class="p">):</span>
+            <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;regionGroupNames&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">regionGroupNames</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;nTransectsInGroup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">nRegionsInGroup</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransectGroups&#39;</span><span class="p">})</span>
+
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectsInGroup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionsInGroup</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransectGroups&#39;</span><span class="p">,</span>
+         <span class="s1">&#39;maxRegionsInGroup&#39;</span><span class="p">:</span> <span class="s1">&#39;maxTransectsInGroup&#39;</span><span class="p">})</span>
+
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectGroupNames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionGroupNames</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransectGroups&#39;</span><span class="p">})</span>
 
 
 <span class="k">def</span> <span class="nf">_get_edge_sequence_on_boundary</span><span class="p">(</span><span class="n">startEdge</span><span class="p">,</span> <span class="n">edgeSign</span><span class="p">,</span> <span class="n">edgesOnVertex</span><span class="p">,</span>
