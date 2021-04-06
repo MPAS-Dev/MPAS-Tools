@@ -293,18 +293,37 @@ def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
     mocMask['transectNames'] = mocMask.regionNames.rename(
         {'nRegions': 'nTransects'})
 
-    if 'nRegionsInGroup' in mocMask:
-        mocMask['nTransectsInGroup'] = mocMask.nRegionsInGroup.rename(
-            {'nRegionGroups': 'nTransectGroups'})
+    if 'nRegionsInGroup' not in mocMask:
+        nRegions = mocMask.sizes['nRegions']
+        nRegionGroups = 2
+        nRegionsInGroup = nRegions*numpy.ones(nRegionGroups, dtype=int)
+        regionsInGroup = numpy.zeros((nRegionGroups, nRegions), dtype=int)
+        regionGroupNames = ['MOCBasinRegionsGroup', 'all']
+        nChar = 64
+        for index in range(nRegionGroups):
+            regionsInGroup[index, :] = numpy.arange(1, nRegions+1)
 
-    if 'regionsInGroup' in mocMask:
-        mocMask['transectsInGroup'] = mocMask.regionsInGroup.rename(
-            {'nRegionGroups': 'nTransectGroups',
-             'maxRegionsInGroup': 'maxTransectsInGroup'})
+        mocMask['nRegionsInGroup'] = (('nRegionGroups',), nRegionsInGroup)
 
-    if 'regionGroupNames' in mocMask:
-        mocMask['transectGroupNames'] = mocMask.regionGroupNames.rename(
-            {'nRegionGroups': 'nTransectGroups'})
+        mocMask['regionsInGroup'] = (('nRegionGroups', 'maxRegionsInGroup'),
+                                     regionsInGroup)
+
+        mocMask['regionGroupNames'] = \
+            (('nRegionGroups',), numpy.zeros((nRegionGroups,),
+                                             dtype='|S{}'.format(nChar)))
+
+        for index in range(nRegionGroups):
+            mocMask['regionGroupNames'][index] = regionGroupNames[index]
+
+    mocMask['nTransectsInGroup'] = mocMask.nRegionsInGroup.rename(
+        {'nRegionGroups': 'nTransectGroups'})
+
+    mocMask['transectsInGroup'] = mocMask.regionsInGroup.rename(
+        {'nRegionGroups': 'nTransectGroups',
+         'maxRegionsInGroup': 'maxTransectsInGroup'})
+
+    mocMask['transectGroupNames'] = mocMask.regionGroupNames.rename(
+        {'nRegionGroups': 'nTransectGroups'})
 
 
 def _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
