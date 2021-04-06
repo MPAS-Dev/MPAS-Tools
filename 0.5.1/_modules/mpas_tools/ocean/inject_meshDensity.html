@@ -1,0 +1,373 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mpas_tools.ocean.inject_meshDensity &mdash; mpas_tools 0.5.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.5.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
+</ul>
+<p><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+</ul>
+<p><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
+</ul>
+<p><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>mpas_tools.ocean.inject_meshDensity</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for mpas_tools.ocean.inject_meshDensity</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># Simple script to inject mesh density onto a mesh</span>
+<span class="c1"># example usage:</span>
+<span class="c1">#   ./inject_meshDensity.py cellWidthVsLatLon.nc base_mesh.nc</span>
+<span class="c1"># where:</span>
+<span class="c1">#   cellWidthVsLatLon.nc is a netcdf file with cellWidth</span>
+<span class="c1">#   base_mesh.nc is the mpas netcdf file where meshDensity is added</span>
+<span class="c1"># Mark Petersen, 7/24/2018</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
+    <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">netCDF4</span> <span class="k">as</span> <span class="nn">nc4</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.interpolation</span> <span class="kn">import</span> <span class="n">interp_bilin</span>
+
+
+<div class="viewcode-block" id="inject_meshDensity_from_file"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html#mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file">[docs]</a><span class="k">def</span> <span class="nf">inject_meshDensity_from_file</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a ``meshDensity`` field into an MPAS mesh.  The mesh density is defined</span>
+<span class="sd">    as:</span>
+
+<span class="sd">      meshDensity = (minCellWidth / cellWidth)**4</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cw_filename : str</span>
+<span class="sd">        The file name to read ``cellWidth`` and coordinates from</span>
+
+<span class="sd">    mesh_filename : str</span>
+<span class="sd">        The mesh file to add ``meshDensity`` to</span>
+
+<span class="sd">    on_sphere : bool, optional</span>
+<span class="sd">        Whether the mesh is spherical (as opposed to planar)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Read cell width field from nc file regular grid...&#39;</span><span class="p">)</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">nc4</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">cellWidth</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;cellWidth&#39;</span><span class="p">][:]</span>
+    <span class="k">if</span> <span class="n">on_sphere</span><span class="p">:</span>
+        <span class="n">lon</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">][:]</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">][:]</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">inject_spherical_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">][:]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">][:]</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">inject_spherical_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="inject_spherical_meshDensity"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html#mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity">[docs]</a><span class="k">def</span> <span class="nf">inject_spherical_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a ``meshDensity`` field into a spherical MPAS mesh.  The mesh density is</span>
+<span class="sd">    defined as:</span>
+
+<span class="sd">      meshDensity = (minCellWidth / cellWidth)**4</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cellWidth : ndarray</span>
+<span class="sd">        m x n array of cell width in km</span>
+
+<span class="sd">    lon : ndarray</span>
+<span class="sd">        longitude in degrees (length n and between -180 and 180)</span>
+
+<span class="sd">    lat : ndarray</span>
+<span class="sd">        longitude in degrees (length m and between -90 and 90)</span>
+
+<span class="sd">    mesh_filename : str</span>
+<span class="sd">        The mesh file to add ``meshDensity`` to</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">minCellWidth</span> <span class="o">=</span> <span class="n">cellWidth</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">meshDensityVsXY</span> <span class="o">=</span> <span class="p">(</span><span class="n">minCellWidth</span> <span class="o">/</span> <span class="n">cellWidth</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  minimum cell width in grid definition: </span><span class="si">{0:.0f}</span><span class="s1"> km&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">minCellWidth</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  maximum cell width in grid definition: </span><span class="si">{0:.0f}</span><span class="s1"> km&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">cellWidth</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Open unstructured MPAS mesh file...&#39;</span><span class="p">)</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">nc4</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">mesh_filename</span><span class="p">,</span> <span class="s1">&#39;r+&#39;</span><span class="p">)</span>
+    <span class="n">meshDensity</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;meshDensity&#39;</span><span class="p">]</span>
+    <span class="n">lonCell</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lonCell&#39;</span><span class="p">][:]</span>
+    <span class="n">latCell</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;latCell&#39;</span><span class="p">][:]</span>
+
+    <span class="n">lonCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">lonCell</span><span class="p">)</span> <span class="o">+</span> <span class="mf">180.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span> <span class="o">-</span> <span class="mf">180.</span>
+    <span class="n">latCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">latCell</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Interpolating and writing meshDensity...&#39;</span><span class="p">)</span>
+    <span class="n">mpasMeshDensity</span> <span class="o">=</span> <span class="n">interp_bilin</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">meshDensityVsXY</span><span class="p">,</span> <span class="n">lonCell</span><span class="p">,</span> <span class="n">latCell</span><span class="p">)</span>
+
+    <span class="n">meshDensity</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mpasMeshDensity</span>
+
+    <span class="n">ds</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="inject_planar_meshDensity"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html#mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity">[docs]</a><span class="k">def</span> <span class="nf">inject_planar_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a ``meshDensity`` field into a planar MPAS mesh.  The mesh density is</span>
+<span class="sd">    defined as:</span>
+
+<span class="sd">      meshDensity = (minCellWidth / cellWidth)**4</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cellWidth : ndarray</span>
+<span class="sd">        m x n array of cell width in km</span>
+
+<span class="sd">    x, y : ndarray</span>
+<span class="sd">        Planar coordinates in meters</span>
+
+<span class="sd">    mesh_filename : str</span>
+<span class="sd">        The mesh file to add ``meshDensity`` to</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">minCellWidth</span> <span class="o">=</span> <span class="n">cellWidth</span><span class="o">.</span><span class="n">min</span><span class="p">()</span>
+    <span class="n">meshDensityVsXY</span> <span class="o">=</span> <span class="p">(</span><span class="n">minCellWidth</span> <span class="o">/</span> <span class="n">cellWidth</span><span class="p">)</span><span class="o">**</span><span class="mi">4</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  minimum cell width in grid definition: </span><span class="si">{0:.0f}</span><span class="s1"> km&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">minCellWidth</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;  maximum cell width in grid definition: </span><span class="si">{0:.0f}</span><span class="s1"> km&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cellWidth</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Open unstructured MPAS mesh file...&#39;</span><span class="p">)</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">nc4</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">mesh_filename</span><span class="p">,</span> <span class="s1">&#39;r+&#39;</span><span class="p">)</span>
+    <span class="n">meshDensity</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;meshDensity&#39;</span><span class="p">]</span>
+    <span class="n">xCell</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;xCell&#39;</span><span class="p">][:]</span>
+    <span class="n">yCell</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;xCell&#39;</span><span class="p">][:]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Interpolating and writing meshDensity...&#39;</span><span class="p">)</span>
+    <span class="n">mpasMeshDensity</span> <span class="o">=</span> <span class="n">interp_bilin</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">meshDensityVsXY</span><span class="p">,</span> <span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">)</span>
+
+    <span class="n">meshDensity</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mpasMeshDensity</span>
+
+    <span class="n">ds</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+
+    <span class="n">inject_meshDensity_from_file</span><span class="p">(</span><span class="n">cw_filename</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                                 <span class="n">mesh_filename</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
