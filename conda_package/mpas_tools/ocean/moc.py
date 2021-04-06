@@ -290,15 +290,13 @@ def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
     mocMask['transectVertexGlobalIDs'] = \
         (('nTransects', 'maxVerticesInTransect'), transectVertexGlobalIDs)
 
-    mocMask['transectNames'] = mocMask.regionNames.rename(
-        {'nRegions': 'nTransects'})
-
     if 'nRegionsInGroup' not in mocMask:
         nRegions = mocMask.sizes['nRegions']
         nRegionGroups = 2
         nRegionsInGroup = nRegions*numpy.ones(nRegionGroups, dtype=int)
         regionsInGroup = numpy.zeros((nRegionGroups, nRegions), dtype=int)
         regionGroupNames = ['MOCBasinRegionsGroup', 'all']
+        regionNames = mocMask.regionNames.values
         nChar = 64
         for index in range(nRegionGroups):
             regionsInGroup[index, :] = numpy.arange(1, nRegions+1)
@@ -314,6 +312,17 @@ def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
 
         for index in range(nRegionGroups):
             mocMask['regionGroupNames'][index] = regionGroupNames[index]
+
+        # we need to make sure the region names use the same string length
+        mocMask['regionNames'] = \
+            (('nRegions',), numpy.zeros((nRegions,),
+                                        dtype='|S{}'.format(nChar)))
+
+        for index in range(nRegions):
+            mocMask['regionNames'][index] = regionNames[index]
+
+    mocMask['transectNames'] = mocMask.regionNames.rename(
+        {'nRegions': 'nTransects'})
 
     mocMask['nTransectsInGroup'] = mocMask.nRegionsInGroup.rename(
         {'nRegionGroups': 'nTransectGroups'})
