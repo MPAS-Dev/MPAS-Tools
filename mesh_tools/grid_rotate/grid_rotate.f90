@@ -19,8 +19,8 @@ program grid_rotate
 
 
   ! filename and newFilename are provided as command-line argument arguments 
-  call getarg(1,filename)
-  call getarg(2,newFilename)
+  call get_command_argument(1, filename)
+  call get_command_argument(2, newFilename)
 
   pii = 2.*asin(1.0)
   omega = 2.0*pii / 86400.0
