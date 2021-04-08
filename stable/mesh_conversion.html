@@ -4,8 +4,7 @@
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  <meta name="generator" content="Docutils 0.17: http://docutils.sourceforge.net/" />
-
+  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
   <title>Mesh Conversion &mdash; mpas_tools stable documentation</title>
@@ -89,7 +88,7 @@
               
             
             
-              <p><span class="caption-text">User's Guide</span></p>
+              <p class="caption"><span class="caption-text">User's Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Mesh Conversion</a><ul>
@@ -120,7 +119,7 @@
 <li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 </ul>
-<p><span class="caption-text">Ocean Tools</span></p>
+<p class="caption"><span class="caption-text">Ocean Tools</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ocean/coastal_tools.html">Coastal Tools</a></li>
@@ -128,19 +127,19 @@
 <li class="toctree-l1"><a class="reference internal" href="ocean/moc.html">Meridional Overturning Circulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ocean/depth.html">Adding a Depth Coordinate</a></li>
 </ul>
-<p><span class="caption-text">Developer's Guide</span></p>
+<p class="caption"><span class="caption-text">Developer's Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
 </ul>
-<p><span class="caption-text">Authors</span></p>
+<p class="caption"><span class="caption-text">Authors</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Main Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
 </ul>
-<p><span class="caption-text">Versions</span></p>
+<p class="caption"><span class="caption-text">Versions</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="versions.html">Versions</a></li>
 </ul>
@@ -210,9 +209,9 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <section id="mesh-conversion">
+  <div class="section" id="mesh-conversion">
 <span id="id1"></span><h1>Mesh Conversion<a class="headerlink" href="#mesh-conversion" title="Permalink to this headline">¶</a></h1>
-<section id="mesh-converter">
+<div class="section" id="mesh-converter">
 <span id="id2"></span><h2>Mesh Converter<a class="headerlink" href="#mesh-converter" title="Permalink to this headline">¶</a></h2>
 <p>The command-line tool <code class="docutils literal notranslate"><span class="pre">MpasMeshConverter.x</span></code> and the corresponding wrapper
 function <a class="reference internal" href="generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert" title="mpas_tools.mesh.conversion.convert"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.conversion.convert()</span></code></a> are used to convert a
@@ -285,8 +284,8 @@ default when the python <code class="docutils literal notranslate"><span class="
 the <code class="docutils literal notranslate"><span class="pre">graphInfoFileName</span></code> argument.  The python function also takes a <code class="docutils literal notranslate"><span class="pre">logger</span></code>
 that can be used to capture the output that would otherwise go to the screen
 via <code class="docutils literal notranslate"><span class="pre">stdout</span></code> and <code class="docutils literal notranslate"><span class="pre">stderr</span></code>.</p>
-</section>
-<section id="cell-culler">
+</div>
+<div class="section" id="cell-culler">
 <span id="id3"></span><h2>Cell Culler<a class="headerlink" href="#cell-culler" title="Permalink to this headline">¶</a></h2>
 <p>The command-line tool <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code> and the corresponding wrapper
 function <a class="reference internal" href="generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull" title="mpas_tools.mesh.conversion.cull"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.conversion.cull()</span></code></a> are used to cull cells from
@@ -353,8 +352,8 @@ are to be removed).</p>
             <span class="n">cellMapBackward</span><span class="o">.</span><span class="n">txt</span><span class="o">.</span>
 </pre></div>
 </div>
-</section>
-<section id="mask-creator">
+</div>
+<div class="section" id="mask-creator">
 <span id="id4"></span><h2>Mask Creator<a class="headerlink" href="#mask-creator" title="Permalink to this headline">¶</a></h2>
 <p>The command-line tool <code class="docutils literal notranslate"><span class="pre">MpasMaskCreator.x</span></code> and the corresponding wrapper
 function <a class="reference internal" href="generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask" title="mpas_tools.mesh.conversion.mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.conversion.mask()</span></code></a> are used to create a set of
@@ -378,8 +377,8 @@ fill a contiguous block of cells.</p>
         <span class="n">Whether</span> <span class="n">this</span> <span class="n">flag</span> <span class="ow">is</span> <span class="n">passed</span> <span class="ow">in</span> <span class="ow">or</span> <span class="ow">not</span><span class="p">,</span> <span class="nb">any</span> <span class="n">longitudes</span> <span class="n">written</span> <span class="n">are</span> <span class="ow">in</span> <span class="n">the</span> <span class="mi">0</span><span class="o">-</span><span class="mi">360</span> <span class="nb">range</span><span class="o">.</span>
 </pre></div>
 </div>
-</section>
-<section id="mask-creation-with-python-multiprocessing">
+</div>
+<div class="section" id="mask-creation-with-python-multiprocessing">
 <span id="py-mask-creation"></span><h2>Mask Creation with Python Multiprocessing<a class="headerlink" href="#mask-creation-with-python-multiprocessing" title="Permalink to this headline">¶</a></h2>
 <p>The Mask Creator is a serial code, and the algorithms it uses to find points in
 a region or cells, edges and vertices along a transect are not particularly
@@ -388,7 +387,7 @@ efficient or sophisticated.</p>
 and in the future), a set of related python functions has been developed to
 provide much (but not all) of the functionality of the C++ Mask Creator
 described above.</p>
-<section id="computing-mpas-region-masks">
+<div class="section" id="computing-mpas-region-masks">
 <h3>Computing MPAS Region Masks<a class="headerlink" href="#computing-mpas-region-masks" title="Permalink to this headline">¶</a></h3>
 <p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks" title="mpas_tools.mesh.mask.compute_mpas_region_masks"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_region_masks()</span></code></a>
 or the <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code> command-line tool can
@@ -473,8 +472,8 @@ optional arguments:
                         creation (&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)
 </pre></div>
 </div>
-</section>
-<section id="computing-transect-masks">
+</div>
+<div class="section" id="computing-transect-masks">
 <h3>Computing Transect Masks<a class="headerlink" href="#computing-transect-masks" title="Permalink to this headline">¶</a></h3>
 <p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks" title="mpas_tools.mesh.mask.compute_mpas_transect_masks"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_transect_masks()</span></code></a>
 and the <code class="docutils literal notranslate"><span class="pre">compute_mpas_transect_masks</span></code> command-line tool
@@ -563,8 +562,8 @@ optional arguments:
   --add_edge_sign       Whether to add the transectEdgeMaskSigns variable
 </pre></div>
 </div>
-</section>
-<section id="computing-a-flood-fill-mask">
+</div>
+<div class="section" id="computing-a-flood-fill-mask">
 <h3>Computing a Flood-fill Mask<a class="headerlink" href="#computing-a-flood-fill-mask" title="Permalink to this headline">¶</a></h3>
 <p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask" title="mpas_tools.mesh.mask.compute_mpas_flood_fill_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_flood_fill_mask()</span></code></a>
 and the command-line tool <code class="docutils literal notranslate"><span class="pre">compute_mpas_flood_fill_mask</span></code>
@@ -596,8 +595,8 @@ optional arguments:
                         An output MPAS region masks file
 </pre></div>
 </div>
-</section>
-<section id="computing-lon-lat-region-masks">
+</div>
+<div class="section" id="computing-lon-lat-region-masks">
 <h3>Computing Lon/Lat Region Masks<a class="headerlink" href="#computing-lon-lat-region-masks" title="Permalink to this headline">¶</a></h3>
 <p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_lon_lat_region_masks.html#mpas_tools.mesh.mask.compute_lon_lat_region_masks" title="mpas_tools.mesh.mask.compute_lon_lat_region_masks"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_lon_lat_region_masks()</span></code></a>
 or the <code class="docutils literal notranslate"><span class="pre">compute_lon_lat_region_masks</span></code> command-line tool compute region masks
@@ -643,9 +642,9 @@ optional arguments:
                         creation (&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)
 </pre></div>
 </div>
-</section>
-</section>
-<section id="merging-and-splitting">
+</div>
+</div>
+<div class="section" id="merging-and-splitting">
 <span id="merge-split"></span><h2>Merging and Splitting<a class="headerlink" href="#merging-and-splitting" title="Permalink to this headline">¶</a></h2>
 <p>In order to support running
 <a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Model/tree/landice/develop">MPAS-Albany Land Ice (MALI)</a>
@@ -756,8 +755,8 @@ optional arguments:
                               OR: will use MESHFILE maxEdges dimension and assume same for both)
 </pre></div>
 </div>
-</section>
-<section id="translation">
+</div>
+<div class="section" id="translation">
 <span id="mesh-translation"></span><h2>Translation<a class="headerlink" href="#translation" title="Permalink to this headline">¶</a></h2>
 <p>A planar mesh can be translated in x, y or both by calling
 <a class="reference internal" href="generated/mpas_tools.translate.translate.html#mpas_tools.translate.translate" title="mpas_tools.translate.translate"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.translate.translate()</span></code></a>:</p>
@@ -833,10 +832,10 @@ Options:
                         False]
 </pre></div>
 </div>
-</section>
-<section id="converting-between-mesh-formats">
+</div>
+<div class="section" id="converting-between-mesh-formats">
 <h2>Converting Between Mesh Formats<a class="headerlink" href="#converting-between-mesh-formats" title="Permalink to this headline">¶</a></h2>
-<section id="msh-to-mpas-netcdf">
+<div class="section" id="msh-to-mpas-netcdf">
 <h3>MSH to MPAS NetCDF<a class="headerlink" href="#msh-to-mpas-netcdf" title="Permalink to this headline">¶</a></h3>
 <p><code class="docutils literal notranslate"><span class="pre">jigsawpy</span></code> produces meshes in <code class="docutils literal notranslate"><span class="pre">.msh</span></code> format that need to be converted to
 <a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a> files for use by MPAS
@@ -846,8 +845,8 @@ command-line utility <code class="docutils literal notranslate"><span class="pre
 <p>In addition to the input <code class="docutils literal notranslate"><span class="pre">.msh</span></code> and output <code class="docutils literal notranslate"><span class="pre">.nc</span></code> files, the user must
 specify whether this is a spherical or planar mesh and, if it is spherical,
 provide the radius of the Earth in meters.</p>
-</section>
-<section id="triangle-to-mpas-netcdf">
+</div>
+<div class="section" id="triangle-to-mpas-netcdf">
 <h3>Triangle to MPAS NetCDF<a class="headerlink" href="#triangle-to-mpas-netcdf" title="Permalink to this headline">¶</a></h3>
 <p>Meshes in <a class="reference external" href="https://www.cs.cmu.edu/~quake/triangle.html">Triangle</a> format
 can be converted to MPAS NetCDF format using
@@ -855,16 +854,16 @@ can be converted to MPAS NetCDF format using
 the <code class="docutils literal notranslate"><span class="pre">triangle_to_netcdf</span></code> command-line tool.</p>
 <p>The user supplies the names of input <code class="docutils literal notranslate"><span class="pre">.node</span></code> and <code class="docutils literal notranslate"><span class="pre">.ele</span></code> files and the
 name of an output MPAS mesh file.</p>
-</section>
-<section id="mpas-netcdf-to-triangle">
+</div>
+<div class="section" id="mpas-netcdf-to-triangle">
 <h3>MPAS NetCDF to Triangle<a class="headerlink" href="#mpas-netcdf-to-triangle" title="Permalink to this headline">¶</a></h3>
 <p>MPAS meshes in NetCDF format can be converted to <code class="docutils literal notranslate"><span class="pre">Triangle</span></code> format using
 <a class="reference internal" href="generated/mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle.html#mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle" title="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle()</span></code></a> or
 the <code class="docutils literal notranslate"><span class="pre">mpas_to_triangle</span></code> command-line tool.</p>
 <p>The user supplies the name of an input MPAS mesh file and the output prefix
 for the resulting Triangle <code class="docutils literal notranslate"><span class="pre">.node</span></code> and <code class="docutils literal notranslate"><span class="pre">.ele</span></code> files.</p>
-</section>
-<section id="mpas-netcdf-to-scrip">
+</div>
+<div class="section" id="mpas-netcdf-to-scrip">
 <h3>MPAS NetCDF to SCRIP<a class="headerlink" href="#mpas-netcdf-to-scrip" title="Permalink to this headline">¶</a></h3>
 <p>The function <a class="reference internal" href="generated/mpas_tools.scrip.from_mpas.scrip_from_mpas.html#mpas_tools.scrip.from_mpas.scrip_from_mpas" title="mpas_tools.scrip.from_mpas.scrip_from_mpas"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.scrip.from_mpas.scrip_from_mpas()</span></code></a> can be
 used to convert an MPAS mesh file in NetCDF format to
@@ -888,9 +887,9 @@ Options:
                         used.
 </pre></div>
 </div>
-</section>
-</section>
-</section>
+</div>
+</div>
+</div>
 
 
            </div>
