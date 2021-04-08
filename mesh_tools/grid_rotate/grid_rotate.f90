@@ -19,8 +19,8 @@ program grid_rotate
 
 
   ! filename and newFilename are provided as command-line argument arguments 
-  call getarg(1,filename)
-  call getarg(2,newFilename)
+  call get_command_argument(1, filename)
+  call get_command_argument(2, newFilename)
 
   pii = 2.*asin(1.0)
   omega = 2.0*pii / 86400.0
@@ -99,14 +99,14 @@ contains
 
       ! Copy original file to output file
       copyCmd = "cp " // trim(filename) // " " // trim(newFilename)
-      copyStat = system(copyCmd)
+      call execute_command_line(copyCmd, exitstat=copyStat)
       if(copyStat /= 0) then
          return                 ! If `cp` fails, let it report its error and exit
       end if
 
       ! Make sure the output file is writeable
       copyCmd = "chmod u+w " // trim(newFilename)
-      call system(copyCmd)
+      call execute_command_line(copyCmd)
 
       ierr = nf_open(newFilename, NF_WRITE, ncid)
       if(ierr /= 0) then
