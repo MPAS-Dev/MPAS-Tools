@@ -20,7 +20,7 @@ import numpy as np
 from optparse import OptionParser
 
 
-print "== Gathering information.  (Invoke with --help for more details. All arguments are optional)"
+print("== Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser()
 parser.description = "This script takes an MPAS grid file and marks the edge rows and columns for culling, e.g., to remove periodicity."
 parser.add_option("-f", "--file", dest="inFile", help="MPAS grid file name used as input.", default="grid.nc", metavar="FILENAME")
@@ -32,7 +32,7 @@ for option in parser.option_list:
         option.help += (" " if option.help else "") + "[default: %default]"
 options, args = parser.parse_args()
 
-print '' # make a space in stdout before further output
+print('') # make a space in stdout before further output
 
 
 # ===============================================
@@ -53,20 +53,20 @@ cullCell_local = np.zeros( (nCells,) )
 
 # For a periodic hex, the upper and lower rows need to be marked
 if not options.keepy:
-    print 'y-periodic cells marked for culling'
+    print('y-periodic cells marked for culling')
     cullCell_local[np.nonzero(yCell == yCell.min())] = 1
     cullCell_local[np.nonzero(yCell == yCell.max())] = 1
 
 if options.extray:
    if options.keepy:
-      print "--remove_extra_y cannot be used with --keepy.  --remove_extra_y will be ignored."
+      print("--remove_extra_y cannot be used with --keepy.  --remove_extra_y will be ignored.")
    else:
-      print "An extra row along the north will be marked for culling to leave an odd number of row."
+      print("An extra row along the north will be marked for culling to leave an odd number of row.")
       cullCell_local[np.nonzero(yCell == np.unique(yCell[:])[-2])] = 1  # second to north row
 
-# For a periodidic hex the leftmost and rightmost *TWO* columns need to be marked
+# For a periodic hex the leftmost and rightmost *TWO* columns need to be marked
 if not options.keepx:
-    print 'x-periodic cells marked for culling'
+    print('x-periodic cells marked for culling')
     unique_Xs=np.array(sorted(list(set(xCell[:]))))
     cullCell_local[np.nonzero(xCell == unique_Xs[0])] = 1
     cullCell_local[np.nonzero(xCell == unique_Xs[1])] = 1
@@ -76,4 +76,4 @@ if not options.keepx:
 cullCell[:] = cullCell_local
 
 fin.close()
-print "Marking complete.  Don't forget to run MpasCellCuller!"
+print("Marking complete.  Don't forget to run MpasCellCuller!")
