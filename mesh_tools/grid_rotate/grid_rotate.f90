@@ -99,14 +99,14 @@ contains
 
       ! Copy original file to output file
       copyCmd = "cp " // trim(filename) // " " // trim(newFilename)
-      copyStat = system(copyCmd)
+      call execute_command_line(copyCmd, exitstat=copyStat)
       if(copyStat /= 0) then
          return                 ! If `cp` fails, let it report its error and exit
       end if
 
       ! Make sure the output file is writeable
       copyCmd = "chmod u+w " // trim(newFilename)
-      call system(copyCmd)
+      call execute_command_line(copyCmd)
 
       ierr = nf_open(newFilename, NF_WRITE, ncid)
       if(ierr /= 0) then
