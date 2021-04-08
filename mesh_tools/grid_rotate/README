@@ -23,12 +23,17 @@ I. OVERVIEW
 II. BUILDING THE CODE
 
    This standalone consists of the files: grid_rotate.f90, namelist.input, and
-   Makefile
+   Makefile .
 
    Building requires NetCDF and a Fortran compiler.
 
-   Update the Makefile to use your preferred compiler and make certain the
-   environment variable NETCDF points to your installation of NetCDF; make
+   Before building, ensure that the directory containing the 'nc-config' utility
+   is in your $PATH; this directory is usually in bin/ subdirectory of your
+   NetCDF installation root directory. The 'nc-config' utility is part of most
+   modern NetCDF installations, and if you do not have nc-config, it will be
+   necessary to manually set the name of your Fortran compiler, as well as the
+   library paths, in the Makefile; specifically, the following variables must be
+   manually set: FC, FCINCLUDES, and FCLIBS.
 
 
 III.  RUNNING THE CODE
@@ -66,7 +71,7 @@ III.  RUNNING THE CODE
    the following nameslist settings will work:
 
 &input
-     config_original_latitude_degrees = 0
+   config_original_latitude_degrees = 0
    config_original_longitude_degrees = 0
 
    config_new_latitude_degrees = 0
