@@ -13,6 +13,7 @@ all neighboring cells and mark for culling any cell pairs that have
 distances greater than, say, half of the range in x/y values of the entire mesh.
 """
 
+from __future__ import print_function
 import sys
 import netCDF4
 import numpy as np
@@ -20,7 +21,8 @@ import numpy as np
 from optparse import OptionParser
 
 
-print("== Gathering information.  (Invoke with --help for more details. All arguments are optional)")
+print("== running mark_periodic_boundaries_for_culling.py")
+print("   Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser()
 parser.description = "This script takes an MPAS grid file and marks the edge rows and columns for culling, e.g., to remove periodicity."
 parser.add_option("-f", "--file", dest="inFile", help="MPAS grid file name used as input.", default="grid.nc", metavar="FILENAME")
