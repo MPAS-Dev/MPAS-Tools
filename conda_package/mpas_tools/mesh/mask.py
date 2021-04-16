@@ -1031,8 +1031,15 @@ def _get_polygons(dsMesh, maskType):
     elif maskType == 'vertex':
         # polygons are cells on vertex
         vertexIndices = dsMesh.cellsOnVertex.values - 1
-        valid = numpy.amax(vertexIndices >= 0, axis=1)
-        vertexIndices = vertexIndices[valid, :]
+        maxVertices = vertexIndices.shape[1]
+        firstValid = vertexIndices[:, 0]
+        for iVertex in range(1, maxVertices):
+            mask = firstValid < 0
+            firstValid[mask] = vertexIndices[mask, iVertex]
+        assert(numpy.all(firstValid >= 0))
+        for iVertex in range(maxVertices):
+            mask = vertexIndices[:, iVertex] < 0
+            vertexIndices[mask, iVertex] = firstValid[mask]
         lonVertex = dsMesh.lonCell.values
         latVertex = dsMesh.latCell.values
         lonCenter = dsMesh.lonVertex.values
