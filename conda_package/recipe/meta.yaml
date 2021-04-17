@@ -36,7 +36,9 @@ requirements:
     - cmake
   host:
     - python
+    - hdf5
     - hdf5 * nompi_*
+    - libnetcdf
     - libnetcdf * nompi_*
     - setuptools
     - netcdf4
