@@ -1,0 +1,35 @@
+name: mpas_tools_dev
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  # Base
+  - python 3.8
+  - affine
+  - cartopy
+  - dask
+  - geometric_features >=0.1.12
+  - hdf5
+  - jigsaw >=0.9.12
+  - jigsawpy >=0.2.1
+  - libnetcdf
+  - matplotlib-base
+  - netcdf4
+  - numpy
+  - progressbar2
+  - pyamg
+  - pyevtk
+  - pyflann
+  - pyproj
+  - python-igraph
+  - rasterio
+  - scikit-image
+  - scipy
+  - shapely
+  - xarray
+  # Development
+  - pip
+  # Documentation
+  - sphinx
+  - mock
+  - sphinx_rtd_theme

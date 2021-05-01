@@ -63,21 +63,73 @@ By convention, entry points do not typically include the ``.py`` extension.
 Dependencies
 ============
 
-If you changes introduce new dependencies, these need to be added to the recipe
-for the conda package in ``conda_package/recipe/meta.yaml``
+If you changes introduce new dependencies, these need to be added to both
+the recipe for the conda package in ``conda_package/recipe/meta.yaml`` and
+to the yaml file describing the development environment,
+``conda_package/dev_environment.yaml``.
 
-Add these changes to the end of the ``run`` section of ``requirements``:
+In ``meta.yaml``, add these changes in alphabetical order to the ``run``
+section of ``requirements``:
 
-.. code-block::
+.. code-block:: yaml
 
   requirements:
   ...
     run:
       - python
-      - netcdf4
-      ...
       - affine
+      ...
 
 These requirements *must* be on the ``conda-forge`` anaconda channel.  If you
 need help with this, please contact the developers.
 
+Add the new dependencies in alphabetical order to ``dev_environment.yaml``
+under the ``#Base`` comment:
+
+.. code-block:: yaml
+
+    ...
+    dependencies:
+      # Base
+      - python 3.8
+      - affine
+      ...
+
+Updating the Version
+====================
+
+Before a release of the package, the version of ``mpas_tools`` needs to be
+updated in 3 places.  First, in ``conda_package/mpas_tools/__init__.py``:
+
+.. code-block:: python
+
+  __version_info__ = (0, 6, 0)
+  __version__ = '.'.join(str(vi) for vi in __version_info__)
+
+Increment ``__version_info__`` (major, minor or micro version, depending on
+what makes sense).
+
+Second, the version in the conda recipe (``conda_package/recipe/meta.yaml``)
+needs to match:
+
+.. code-block::
+
+  {% set name = "mpas_tools" %}
+  {% set version = "0.6.0" %}
+
+Third, Add the new version to the :ref:`versions` in the documentation.
+
+.. code-block::
+
+    `v0.6.0`_         `0.6.0`_
+    ================ ===============
+
+    ...
+
+    .. _`v0.6.0`: ../0.6.0/index.html
+    .. _`0.6.0`: https://github.com/MPAS-Dev/MPAS-Analysis/tree/0.6.0
+
+
+The new links won't be valid until a new release is made and Azure Pipelines
+has generated the associated documentation.  Eventually, it should be possible
+to do this automatically but that has not yet been implemented.
