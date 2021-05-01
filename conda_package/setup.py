@@ -93,4 +93,5 @@ setup(name='mpas_tools',
                      'compute_mpas_transect_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_transect_masks',
                      'compute_mpas_flood_fill_mask = mpas_tools.mesh.mask:entry_point_compute_mpas_flood_fill_mask',
                      'compute_lon_lat_region_masks = mpas_tools.mesh.mask:entry_point_compute_lon_lat_region_masks',
-                     'compute_projection_region_masks = mpas_tools.mesh.mask:entry_point_compute_projection_region_masks']})
+                     'compute_projection_region_masks = mpas_tools.mesh.mask:entry_point_compute_projection_region_masks',
+                     'make_graph_file = mpas_tools.parallel:make_graph_file_entry_point']})
