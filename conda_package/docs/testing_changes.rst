@@ -27,7 +27,7 @@ make them in your branch), run:
 .. code-block:: bash
 
     cd conda_package
-    conda env create -f ./dev_environment.yaml
+    conda env create -y -n mpas_tools_dev --file dev-spec.txt
     conda activate mpas_tools_dev
     python -m pip install -e .
 
