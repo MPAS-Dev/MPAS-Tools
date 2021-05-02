@@ -210,7 +210,7 @@ conda config --set channel_priority strict
 it will be used out of the repo directly (i.e. it will notice changes as you
 make them in your branch), run:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> conda_package
-conda env create -f ./dev_environment.yaml
+conda env create -y -n mpas_tools_dev --file dev-spec.txt
 conda activate mpas_tools_dev
 python -m pip install -e .
 </pre></div>
