@@ -95,14 +95,14 @@ def mask_from_geojson(fc, lon_grd, lat_grd):
 
     points = np.vstack([Lon.ravel(), Lat.ravel()]).T
 
-    in_shape, on_shape = inpoly2(points, nodes, edges)
+    in_shape, _ = inpoly2(points, nodes, edges)
 
-    mask = np.logical_or(in_shape, on_shape).reshape(Lon.shape)
+    mask = in_shape.reshape(Lon.shape)
     return mask
 
 
-def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search='flann',
-                          max_length=None):
+def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
+                          nn_search='flann', max_length=None):
     # {{{
     """
     Get the distance for each point on a lon/lat grid from the closest point
@@ -182,8 +182,8 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius, nn_search='flann',
         raise ValueError('Bad nn_search: expected kdtree or flann, got '
                          '{}'.format(nn_search))
 
-    # Convert  backgound grid coordinates to x,y,z and put in a nx_grd x 3 array
-    # for kd-tree query
+    # Convert background grid coordinates to x,y,z and put in a nx_grd x 3
+    # array for kd-tree query
     Lon_grd, Lat_grd = np.meshgrid(lon_grd, lat_grd)
     X_grd, Y_grd, Z_grd = lonlat2xyz(Lon_grd, Lat_grd, earth_radius)
     pts = np.vstack([X_grd.ravel(), Y_grd.ravel(), Z_grd.ravel()]).T
@@ -251,6 +251,7 @@ def _interpy(lat, x, y):
     lat_pixels = np.arange(nlat, dtype=float)
     y = np.interp(y, lat, lat_pixels)
     return x, y
+
 
 def _add_poly(poly, edges, nodes):
     node_count = len(nodes)
