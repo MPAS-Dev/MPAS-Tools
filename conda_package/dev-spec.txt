@@ -3,11 +3,11 @@
 
 # Base
 python>=3.6
-affine
 cartopy
 dask
 geometric_features>=0.1.12
 hdf5
+inpoly
 jigsaw>=0.9.12
 jigsawpy>=0.2.1
 libnetcdf
@@ -20,7 +20,6 @@ pyevtk
 pyflann
 pyproj
 python-igraph
-rasterio
 scikit-image
 scipy
 shapely
