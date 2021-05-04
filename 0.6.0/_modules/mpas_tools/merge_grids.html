@@ -1,0 +1,473 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>mpas_tools.merge_grids &mdash; mpas_tools 0.6.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> mpas_tools
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API reference</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../versions.html">Versions</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mpas_tools</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>mpas_tools.merge_grids</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for mpas_tools.merge_grids</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Tool to merge 2 MPAS non-contiguous meshes together into a single file</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">argparse</span>
+
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+
+<span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">Dataset</span>
+
+
+<span class="k">def</span> <span class="nf">parse_args</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span>
+                                     <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;infile1&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;FILENAME1&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;File name for first mesh to merge&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;infile2&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;FILENAME2&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;File name for second mesh to merge&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;outfile&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;merged_mesh.nc&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;FILENAME&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The merged mesh file&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="merge_grids"><a class="viewcode-back" href="../../generated/mpas_tools.merge_grids.merge_grids.html#mpas_tools.merge_grids.merge_grids">[docs]</a><span class="k">def</span> <span class="nf">merge_grids</span><span class="p">(</span><span class="n">infile1</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">infile2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">runner</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Merges two MPAS non-contiguous meshes together into a single file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    infile1 : str</span>
+<span class="sd">        The file name for the first mesh to merge</span>
+
+<span class="sd">    infile2 : str</span>
+<span class="sd">        The file name for the second mesh to merge</span>
+
+<span class="sd">    outfile : str</span>
+<span class="sd">        The file name for the first mesh to merge</span>
+
+<span class="sd">    runner : str, optional</span>
+<span class="sd">        The command to write into the global history attribute of the outfile</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%a</span><span class="s2"> %b </span><span class="si">%d</span><span class="s2"> %H:%M:%S %Y&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">runner</span><span class="p">:</span>
+        <span class="n">runner</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">.merge_grids(infile1=</span><span class="si">{}</span><span class="s1">, infile2=</span><span class="si">{}</span><span class="s1">, outfile=</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="n">infile1</span><span class="p">,</span> <span class="n">infile2</span><span class="p">,</span> <span class="n">outfile</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Opening files to merge:</span><span class="se">\n</span><span class="s1">    </span><span class="si">{}</span><span class="se">\n</span><span class="s1">    </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">infile1</span><span class="p">,</span> <span class="n">infile2</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Creating the merged mesh file: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">outfile</span><span class="p">))</span>
+    <span class="k">with</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">infile1</span><span class="p">)</span> <span class="k">as</span> <span class="n">nc_in1</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">infile2</span><span class="p">)</span> <span class="k">as</span> <span class="n">nc_in2</span><span class="p">,</span> \
+            <span class="n">Dataset</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;NETCDF3_CLASSIC&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">mesh</span><span class="p">:</span>
+        <span class="n">nCells1</span> <span class="o">=</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">nEdges1</span> <span class="o">=</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">nVertices1</span> <span class="o">=</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;nVertices&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="n">nCells2</span> <span class="o">=</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">nEdges2</span> <span class="o">=</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+        <span class="n">nVertices2</span> <span class="o">=</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;nVertices&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+
+        <span class="k">if</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;vertexDegree&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;vertexDegree&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ERROR: The two files have different lengths of the &quot;</span>
+                             <span class="s2">&quot;vertexDegree dimension.&quot;</span><span class="p">)</span>
+
+        <span class="n">mesh</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="n">nCells1</span> <span class="o">+</span> <span class="n">nCells2</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;nEdges&#39;</span><span class="p">,</span> <span class="n">nEdges1</span> <span class="o">+</span> <span class="n">nEdges2</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,</span> <span class="n">nVertices1</span> <span class="o">+</span> <span class="n">nVertices2</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;TWO&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;vertexDegree&#39;</span><span class="p">,</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;vertexDegree&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;StrLen&#39;</span> <span class="ow">in</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+            <span class="n">mesh</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;StrLen&#39;</span><span class="p">,</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;StrLen&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">maxEdges</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;maxEdges&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;maxEdges&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;maxEdges&#39;</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;maxEdges2&#39;</span><span class="p">,</span> <span class="n">maxEdges</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">optionalDims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLevels&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertInterfaces&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">optionalDims</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span> <span class="ow">and</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">dim</span><span class="p">])</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nc_in2</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">dim</span><span class="p">]):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ERROR: The two files have different lengths &quot;</span>
+                                     <span class="s2">&quot;of the </span><span class="si">{}</span><span class="s2"> dimension.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dim</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">dim</span> <span class="o">==</span> <span class="s1">&#39;Time&#39;</span><span class="p">:</span>
+                    <span class="n">mesh</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># make unlimited dimension</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mesh</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">dim</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Merging variable:&#39;</span><span class="p">)</span>
+        <span class="n">vars1</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nc_in1</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+        <span class="n">vars2</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">nc_in2</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span>
+        <span class="c1"># only copy variables common to both files</span>
+        <span class="k">for</span> <span class="n">varname</span> <span class="ow">in</span> <span class="p">(</span><span class="n">vars1</span> <span class="o">&amp;</span> <span class="n">vars2</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;    </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">varname</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span><span class="o">.</span><span class="n">dimensions</span> \
+                    <span class="o">!=</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ERROR: Variable </span><span class="si">{}</span><span class="s2"> has different dimensions in &quot;</span>
+                                 <span class="s2">&quot;the two files.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">varname</span><span class="p">))</span>
+
+            <span class="n">theVar</span> <span class="o">=</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varname</span><span class="p">]</span>
+            <span class="n">newVar</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="n">varname</span><span class="p">,</span> <span class="n">theVar</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">theVar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+            <span class="c1"># (Assuming here that nCells, nEdges, and nVertices are never both in a variable)</span>
+            <span class="c1"># now assign value</span>
+            <span class="k">if</span> <span class="s1">&#39;nCells&#39;</span> <span class="ow">in</span> <span class="n">theVar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="n">tup1</span> <span class="o">=</span> <span class="p">()</span>
+                <span class="n">tup2</span> <span class="o">=</span> <span class="p">()</span>
+                <span class="n">tupMerge</span> <span class="o">=</span> <span class="p">()</span>
+                <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">theVar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">theVar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;nCells&#39;</span><span class="p">:</span>
+                        <span class="n">tup1</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells1</span><span class="p">),)</span>
+                        <span class="n">tup2</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells2</span><span class="p">),)</span>
+                        <span class="n">tupMerge</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">nCells1</span><span class="p">,</span> <span class="n">nCells1</span> <span class="o">+</span> <span class="n">nCells2</span><span class="p">),)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tup1</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span>
+                        <span class="n">tup2</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span>
+                        <span class="n">tupMerge</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">tup1</span><span class="p">]</span> <span class="o">=</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varname</span><span class="p">][</span><span class="n">tup1</span><span class="p">]</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">tupMerge</span><span class="p">]</span> <span class="o">=</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varname</span><span class="p">][</span><span class="n">tup2</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="s1">&#39;nEdges&#39;</span> <span class="ow">in</span> <span class="n">theVar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="n">tup1</span> <span class="o">=</span> <span class="p">()</span>
+                <span class="n">tup2</span> <span class="o">=</span> <span class="p">()</span>
+                <span class="n">tupMerge</span> <span class="o">=</span> <span class="p">()</span>
+                <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">theVar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">theVar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;nEdges&#39;</span><span class="p">:</span>
+                        <span class="n">tup1</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nEdges1</span><span class="p">),)</span>
+                        <span class="n">tup2</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nEdges2</span><span class="p">),)</span>
+                        <span class="n">tupMerge</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">nEdges1</span><span class="p">,</span> <span class="n">nEdges1</span> <span class="o">+</span> <span class="n">nEdges2</span><span class="p">),)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tup1</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span>
+                        <span class="n">tup2</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span>
+                        <span class="n">tupMerge</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">tup1</span><span class="p">]</span> <span class="o">=</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varname</span><span class="p">][</span><span class="n">tup1</span><span class="p">]</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">tupMerge</span><span class="p">]</span> <span class="o">=</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varname</span><span class="p">][</span><span class="n">tup2</span><span class="p">]</span>
+            <span class="k">elif</span> <span class="s1">&#39;nVertices&#39;</span> <span class="ow">in</span> <span class="n">theVar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="n">tup1</span> <span class="o">=</span> <span class="p">()</span>
+                <span class="n">tup2</span> <span class="o">=</span> <span class="p">()</span>
+                <span class="n">tupMerge</span> <span class="o">=</span> <span class="p">()</span>
+                <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">theVar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)):</span>
+                    <span class="k">if</span> <span class="n">theVar</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="n">ind</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;nVertices&#39;</span><span class="p">:</span>
+                        <span class="n">tup1</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nVertices1</span><span class="p">),)</span>
+                        <span class="n">tup2</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nVertices2</span><span class="p">),)</span>
+                        <span class="n">tupMerge</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="n">nVertices1</span><span class="p">,</span> <span class="n">nVertices1</span> <span class="o">+</span> <span class="n">nVertices2</span><span class="p">),)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">tup1</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span>
+                        <span class="n">tup2</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span>
+                        <span class="n">tupMerge</span> <span class="o">+=</span> <span class="p">(</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),)</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">tup1</span><span class="p">]</span> <span class="o">=</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varname</span><span class="p">][</span><span class="n">tup1</span><span class="p">]</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">tupMerge</span><span class="p">]</span> <span class="o">=</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varname</span><span class="p">][</span><span class="n">tup2</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># just take file 1&#39;s version</span>
+                <span class="n">newVar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">theVar</span><span class="p">[:]</span>
+
+            <span class="c1"># Indexes need adjusting:</span>
+            <span class="k">if</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;indexToCellID&quot;</span><span class="p">:</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nCells1</span><span class="p">:]</span> <span class="o">+=</span> <span class="n">nCells1</span>
+            <span class="k">elif</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;indexToEdgeID&quot;</span><span class="p">:</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nEdges1</span><span class="p">:]</span> <span class="o">+=</span> <span class="n">nEdges1</span>
+            <span class="k">elif</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;indexToVertexID&quot;</span><span class="p">:</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nVertices1</span><span class="p">:]</span> <span class="o">+=</span> <span class="n">nVertices1</span>
+            <span class="k">elif</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;cellsOnEdge&quot;</span><span class="p">:</span>
+                <span class="n">part2</span> <span class="o">=</span> <span class="n">newVar</span><span class="p">[</span><span class="n">nEdges1</span><span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">part2</span><span class="p">[</span><span class="n">part2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">nCells1</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nEdges1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">part2</span>
+            <span class="k">elif</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;edgesOnCell&quot;</span><span class="p">:</span>
+                <span class="n">part2</span> <span class="o">=</span> <span class="n">newVar</span><span class="p">[</span><span class="n">nCells1</span><span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">part2</span><span class="p">[</span><span class="n">part2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">nEdges1</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nCells1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">part2</span>
+            <span class="k">elif</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;edgesOnEdge&quot;</span><span class="p">:</span>
+                <span class="n">part2</span> <span class="o">=</span> <span class="n">newVar</span><span class="p">[</span><span class="n">nEdges1</span><span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">part2</span><span class="p">[</span><span class="n">part2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">nEdges1</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nEdges1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">part2</span>
+            <span class="k">elif</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;cellsOnCell&quot;</span><span class="p">:</span>
+                <span class="n">part2</span> <span class="o">=</span> <span class="n">newVar</span><span class="p">[</span><span class="n">nCells1</span><span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">part2</span><span class="p">[</span><span class="n">part2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">nCells1</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nCells1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">part2</span>
+            <span class="k">elif</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;verticesOnCell&quot;</span><span class="p">:</span>
+                <span class="n">part2</span> <span class="o">=</span> <span class="n">newVar</span><span class="p">[</span><span class="n">nCells1</span><span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">part2</span><span class="p">[</span><span class="n">part2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">nVertices1</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nCells1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">part2</span>
+            <span class="k">elif</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;verticesOnEdge&quot;</span><span class="p">:</span>
+                <span class="n">part2</span> <span class="o">=</span> <span class="n">newVar</span><span class="p">[</span><span class="n">nEdges1</span><span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">part2</span><span class="p">[</span><span class="n">part2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">nVertices1</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nEdges1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">part2</span>
+            <span class="k">elif</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;edgesOnVertex&quot;</span><span class="p">:</span>
+                <span class="n">part2</span> <span class="o">=</span> <span class="n">newVar</span><span class="p">[</span><span class="n">nVertices1</span><span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">part2</span><span class="p">[</span><span class="n">part2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">nEdges1</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nVertices1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">part2</span>
+            <span class="k">elif</span> <span class="n">varname</span> <span class="o">==</span> <span class="s2">&quot;cellsOnVertex&quot;</span><span class="p">:</span>
+                <span class="n">part2</span> <span class="o">=</span> <span class="n">newVar</span><span class="p">[</span><span class="n">nVertices1</span><span class="p">:,</span> <span class="p">:]</span>
+                <span class="n">part2</span><span class="p">[</span><span class="n">part2</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="n">nCells1</span>
+                <span class="n">newVar</span><span class="p">[</span><span class="n">nVertices1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">part2</span>
+
+        <span class="n">attrToCopy</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;on_a_sphere&quot;</span><span class="p">,</span> <span class="s2">&quot;sphere_radius&quot;</span><span class="p">,</span> <span class="s2">&quot;is_periodic&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrToCopy</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">()</span> <span class="ow">and</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">ncattrs</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">getncattr</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span> <span class="o">==</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">getncattr</span><span class="p">(</span><span class="n">attr</span><span class="p">):</span>
+                    <span class="n">mesh</span><span class="o">.</span><span class="n">setncattr</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">getncattr</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;Warning: Value for &#39;</span><span class="si">{0}</span><span class="s2">&#39; global attribute differs between &quot;</span>
+                        <span class="s2">&quot;input files. &#39;</span><span class="si">{0}</span><span class="s2">&#39; being skipped.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: &#39;</span><span class="si">{0}</span><span class="s2">&#39; global attribute not present in both input &quot;</span>
+                      <span class="s2">&quot;files. &#39;</span><span class="si">{0}</span><span class="s2">&#39; being skipped.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">attr</span><span class="p">))</span>
+
+        <span class="c1"># Add merge info to allow exact splitting later</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">merge_point</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span><span class="s1">&#39;nCells&#39;</span><span class="p">:</span> <span class="n">nCells1</span><span class="p">,</span>
+                                       <span class="s1">&#39;nEdges&#39;</span><span class="p">:</span> <span class="n">nEdges1</span><span class="p">,</span>
+                                       <span class="s1">&#39;nVertices&#39;</span><span class="p">:</span> <span class="n">nVertices1</span><span class="p">,</span>
+                                       <span class="s1">&#39;maxEdges1&#39;</span><span class="p">:</span> <span class="n">nc_in1</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;maxEdges&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+                                       <span class="s1">&#39;maxEdges2&#39;</span><span class="p">:</span> <span class="n">nc_in2</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;maxEdges&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+                                       <span class="p">})</span>
+
+        <span class="n">run_command</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">: </span><span class="si">{}</span><span class="s2"> </span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">now</span><span class="p">,</span> <span class="n">runner</span><span class="p">)</span>
+        <span class="n">mesh</span><span class="o">.</span><span class="n">history</span> <span class="o">=</span> <span class="n">maybe_encode</span><span class="p">(</span><span class="n">run_command</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Merge complete! Output file: </span><span class="si">{}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">outfile</span><span class="p">))</span></div>
+
+
+<span class="c1"># NOTE: Python 2 and 3 string fun conflicting with NC_CHAR vs NC_STRING, see:</span>
+<span class="c1">#       https://github.com/Unidata/netcdf4-python/issues/529</span>
+<span class="k">def</span> <span class="nf">maybe_encode</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;ascii&#39;</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">string</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">UnicodeEncodeError</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">string</span>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">arguments</span> <span class="o">=</span> <span class="n">parse_args</span><span class="p">()</span>
+    <span class="n">arguments</span><span class="o">.</span><span class="n">runner</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:])</span>
+    <span class="n">merge_grids</span><span class="p">(</span><span class="o">**</span><span class="nb">vars</span><span class="p">(</span><span class="n">arguments</span><span class="p">))</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
