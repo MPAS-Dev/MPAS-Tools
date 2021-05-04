@@ -7,9 +7,9 @@ import shutil
 
 
 install_requires = [
-    'affine',
     'cartopy',
     'dask',
+    'inpoly',
     'matplotlib',
     'netcdf4',
     'numpy',
@@ -19,7 +19,6 @@ install_requires = [
     'flann',
     'pyproj',
     'python-igraph',
-    'rasterio',
     'scikit-image',
     'scipy',
     'shapely',
