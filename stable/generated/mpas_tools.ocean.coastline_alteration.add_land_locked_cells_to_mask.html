@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -242,15 +245,15 @@
   <div class="section" id="mpas-tools-ocean-coastline-alteration-add-land-locked-cells-to-mask">
 <h1>mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask<a class="headerlink" href="#mpas-tools-ocean-coastline-alteration-add-land-locked-cells-to-mask" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask">
-<code class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.coastline_alteration.</span></code><code class="sig-name descname"><span class="pre">add_land_locked_cells_to_mask</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsMask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsMesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latitude_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">43.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nSweeps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/coastline_alteration.html#add_land_locked_cells_to_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.coastline_alteration.</span></span><span class="sig-name descname"><span class="pre">add_land_locked_cells_to_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsMask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsMesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latitude_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">43.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nSweeps</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/coastline_alteration.html#add_land_locked_cells_to_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find ocean cells that are land-locked, and alter the cell mask so that they
 are counted as land cells.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsMask</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – A land-mask data set</p></li>
-<li><p><strong>dsMesh</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – MPAS Mesh data set</p></li>
+<li><p><strong>dsMask</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.18.3.dev0)"><em>xarray.Dataset</em></a>) – A land-mask data set</p></li>
+<li><p><strong>dsMesh</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.18.3.dev0)"><em>xarray.Dataset</em></a>) – MPAS Mesh data set</p></li>
 <li><p><strong>latitude_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.9)"><em>float</em></a><em>, </em><em>optional</em>) – Minimum latitude, in degrees, for transect widening</p></li>
 <li><p><strong>nSweeps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – Maximum number of sweeps to search for land-locked cells</p></li>
 </ul>

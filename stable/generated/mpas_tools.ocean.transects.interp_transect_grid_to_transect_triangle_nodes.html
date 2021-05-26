@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -242,16 +245,16 @@
   <div class="section" id="mpas-tools-ocean-transects-interp-transect-grid-to-transect-triangle-nodes">
 <h1>mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes<a class="headerlink" href="#mpas-tools-ocean-transects-interp-transect-grid-to-transect-triangle-nodes" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes">
-<code class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.transects.</span></code><code class="sig-name descname"><span class="pre">interp_transect_grid_to_transect_triangle_nodes</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsTransectTriangles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">da</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/transects.html#interp_transect_grid_to_transect_triangle_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.transects.</span></span><span class="sig-name descname"><span class="pre">interp_transect_grid_to_transect_triangle_nodes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsTransectTriangles</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">da</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/transects.html#interp_transect_grid_to_transect_triangle_nodes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes" title="Permalink to this definition">¶</a></dt>
 <dd><p>Interpolate a DataArray on the original transect grid to triangle nodes on
 the MPAS-Ocean transect.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsTransectTriangles</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines triangles making up an MPAS-Ocean transect, the
+<li><p><strong>dsTransectTriangles</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.18.3.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines triangles making up an MPAS-Ocean transect, the
 results of calling <code class="docutils literal notranslate"><span class="pre">find_transect_levels_and_weights()</span></code></p></li>
-<li><p><strong>da</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a>) – An field on the original triangle mesh</p></li>
+<li><p><strong>da</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.18.3.dev0)"><em>xarray.DataArray</em></a>) – An field on the original triangle mesh</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -242,8 +245,8 @@
   <div class="section" id="mpas-tools-ocean-transects-find-transect-levels-and-weights">
 <h1>mpas_tools.ocean.transects.find_transect_levels_and_weights<a class="headerlink" href="#mpas-tools-ocean-transects-find-transect-levels-and-weights" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="mpas_tools.ocean.transects.find_transect_levels_and_weights">
-<code class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.transects.</span></code><code class="sig-name descname"><span class="pre">find_transect_levels_and_weights</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsTransect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layerThickness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottomDepth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxLevelCell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zTransect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/transects.html#find_transect_levels_and_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.transects.find_transect_levels_and_weights" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mpas_tools.ocean.transects.find_transect_levels_and_weights">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.transects.</span></span><span class="sig-name descname"><span class="pre">find_transect_levels_and_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsTransect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">layerThickness</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bottomDepth</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxLevelCell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zTransect</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/transects.html#find_transect_levels_and_weights"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.transects.find_transect_levels_and_weights" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct a vertical coordinate for a transect produced by
 <code class="docutils literal notranslate"><span class="pre">mpas_tools.viz.transects.find_transect_cells_and_weights()</span></code>, then break
 each resulting quadrilateral into 2 triangles that can later be visualized
@@ -254,12 +257,12 @@ interpolated to the nodes of the transect.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsTransect</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines nodes of the transect, the results of calling
+<li><p><strong>dsTransect</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.18.3.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines nodes of the transect, the results of calling
 <code class="docutils literal notranslate"><span class="pre">find_transect_cells_and_weights()</span></code></p></li>
-<li><p><strong>layerThickness</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a>) – layer thicknesses on the MPAS mesh</p></li>
-<li><p><strong>bottomDepth</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a>) – the (positive down) depth of the seafloor on the MPAS mesh</p></li>
-<li><p><strong>maxLevelCell</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a>) – the vertical zero-based index of the bathymetry on the MPAS mesh</p></li>
-<li><p><strong>zTransect</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.17.1.dev0)"><em>xarray.DataArray</em></a><em>, </em><em>optional</em>) – the z coordinate of the transect (1D or 2D).  If 2D, it must have the
+<li><p><strong>layerThickness</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.18.3.dev0)"><em>xarray.DataArray</em></a>) – layer thicknesses on the MPAS mesh</p></li>
+<li><p><strong>bottomDepth</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.18.3.dev0)"><em>xarray.DataArray</em></a>) – the (positive down) depth of the seafloor on the MPAS mesh</p></li>
+<li><p><strong>maxLevelCell</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.18.3.dev0)"><em>xarray.DataArray</em></a>) – the vertical zero-based index of the bathymetry on the MPAS mesh</p></li>
+<li><p><strong>zTransect</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.18.3.dev0)"><em>xarray.DataArray</em></a><em>, </em><em>optional</em>) – the z coordinate of the transect (1D or 2D).  If 2D, it must have the
 same along-transect dimension as the lon and lat passed to
 <code class="docutils literal notranslate"><span class="pre">find_transect_cells_and_weights()</span></code></p></li>
 </ul>

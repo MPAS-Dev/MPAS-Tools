@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -242,14 +245,14 @@
   <div class="section" id="mpas-tools-ocean-coastline-alteration-add-critical-land-blockages">
 <h1>mpas_tools.ocean.coastline_alteration.add_critical_land_blockages<a class="headerlink" href="#mpas-tools-ocean-coastline-alteration-add-critical-land-blockages" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages">
-<code class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.coastline_alteration.</span></code><code class="sig-name descname"><span class="pre">add_critical_land_blockages</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsMask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsBlockages</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/coastline_alteration.html#add_critical_land_blockages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.coastline_alteration.add_critical_land_blockages" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.coastline_alteration.</span></span><span class="sig-name descname"><span class="pre">add_critical_land_blockages</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsMask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsBlockages</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/coastline_alteration.html#add_critical_land_blockages"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.coastline_alteration.add_critical_land_blockages" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add the masks associated with one or more transects to the land mask</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsMask</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – The mask to which critical blockages should be added</p></li>
-<li><p><strong>dsBlockages</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.17.1.dev0)"><em>xarray.Dataset</em></a>) – The transect masks defining critical land regions that should block
+<li><p><strong>dsMask</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.18.3.dev0)"><em>xarray.Dataset</em></a>) – The mask to which critical blockages should be added</p></li>
+<li><p><strong>dsBlockages</strong> (<a class="reference external" href="http://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.18.3.dev0)"><em>xarray.Dataset</em></a>) – The transect masks defining critical land regions that should block
 ocean flow (e.g. the Antarctic Peninsula)</p></li>
 </ul>
 </dd>

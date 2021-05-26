@@ -13,6 +13,8 @@
   
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
 
   
   
@@ -29,6 +31,7 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
         <script src="../_static/doctools.js"></script>
@@ -228,8 +231,8 @@
   <div class="section" id="mpas-tools-planar-hex-make-planar-hex-mesh">
 <h1>mpas_tools.planar_hex.make_planar_hex_mesh<a class="headerlink" href="#mpas-tools-planar-hex-make-planar-hex-mesh" title="Permalink to this headline">¶</a></h1>
 <dl class="py function">
-<dt id="mpas_tools.planar_hex.make_planar_hex_mesh">
-<code class="sig-prename descclassname"><span class="pre">mpas_tools.planar_hex.</span></code><code class="sig-name descname"><span class="pre">make_planar_hex_mesh</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonperiodic_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonperiodic_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outFileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compareWithFileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NETCDF3_64BIT'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/planar_hex.html#make_planar_hex_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.planar_hex.make_planar_hex_mesh" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="mpas_tools.planar_hex.make_planar_hex_mesh">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.planar_hex.</span></span><span class="sig-name descname"><span class="pre">make_planar_hex_mesh</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">nx</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ny</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonperiodic_x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonperiodic_y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outFileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compareWithFileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'NETCDF3_64BIT'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/planar_hex.html#make_planar_hex_mesh"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.planar_hex.make_planar_hex_mesh" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds an MPAS periodic, planar hexagonal mesh with the requested
 dimensions, optionally saving it to a file, and returns it as an
 <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>.</p>
