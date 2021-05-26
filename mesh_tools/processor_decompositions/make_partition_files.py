@@ -1,18 +1,12 @@
-#!/usr/bin/python
-import sys, os, glob, shutil, numpy, math
+#!/usr/bin/env python
+from __future__ import print_function
 
+import os
+import numpy as np
 import subprocess
-
-from collections import defaultdict
-
-from netCDF4 import *
-from netCDF4 import Dataset as NetCDFFile
-from pylab import *
-
-import matplotlib
-import matplotlib.pyplot as plt
-
 from optparse import OptionParser
+from collections import defaultdict
+from netCDF4 import Dataset as NetCDFFile
 
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="filename", help="Path to grid file", metavar="FILE")
@@ -36,7 +30,7 @@ if not options.num_blocks:
 	parser.error("Number of blocks is required.")
 
 if not options.weight_field:
-	print "Weight field missing. Defaulting to unweighted graphs."
+	print("Weight field missing. Defaulting to unweighted graphs.")
 	weighted_parts = False
 else:
 	weighted_parts = True
@@ -55,11 +49,13 @@ nEdges = len(grid.dimensions['nEdges'])
 nEdgesOnCell = grid.variables['nEdgesOnCell'][:]
 cellsOnCell = grid.variables['cellsOnCell'][:] - 1
 if weighted_parts:
-	try:
-		weights = grid.variables[options.weight_field][:]
-	except:
-		print options.weight_field, ' not found in file. Defaulting to un-weighted partitions.'
-		weighted_parts = False
+	if options.weight_field not in grid.variables:
+		raise ValueError('Weight field {} not found in file.'.format(
+			options.weight_field))
+	weights = grid.variables[options.weight_field][:]
+else:
+	weights = None
+
 grid.close()
 
 num_blocks = 0
@@ -79,6 +75,8 @@ graph.write('%s %s\n'%(nCells, nEdges))
 if weighted_parts:
 	wgraph = open('weighted.graph.info', 'w+')
 	wgraph.write('%s %s 010\n'%(nCells, nEdges))
+else:
+	wgraph = None
 
 for i in np.arange(0, nCells):
 	if weighted_parts:
@@ -197,5 +195,5 @@ if proc_decomp:
 
 	block_location.close()
 
-	print 'Interior blocks: ', interior_blocks
-	print 'Exterior blocks: ', exterior_blocks
+	print('Interior blocks: {}'.format(interior_blocks))
+	print('Exterior blocks: {}'.format(exterior_blocks))
