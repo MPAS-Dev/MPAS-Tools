@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from __future__ import print_function
+from __future__ import print_function, division
 
 import os
 import numpy as np
@@ -68,7 +68,7 @@ for i in np.arange(0, nCells):
 		if cellsOnCell[i][j] != -1:
 			nEdges = nEdges + 1
 
-nEdges = nEdges/2
+nEdges = nEdges//2
 
 graph = open('graph.info', 'w+')
 graph.write('%s %s\n'%(nCells, nEdges))
@@ -154,7 +154,7 @@ if proc_decomp:
 	del blocksOnBlock[0]
 
 	block_graph = open('block.graph.info', 'w+')
-	block_graph.write('%s %s\n'%(int(num_blocks), int(nEdges/2)))
+	block_graph.write('%s %s\n'%(int(num_blocks), int(nEdges//2)))
 	for i in np.arange(1, num_blocks+1):
 		for block in blocksOnBlock[i]:
 			block_graph.write('%s '%int(block))
