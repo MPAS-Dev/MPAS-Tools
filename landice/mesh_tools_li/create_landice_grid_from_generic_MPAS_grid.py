@@ -23,6 +23,7 @@ parser.add_option("-o", "--out", dest="fileoutName", help="output filename.  Def
 parser.add_option("-l", "--level", dest="levels", help="Number of vertical levels to use in the output file.  Defaults to the number in the input file", metavar="FILENAME")
 parser.add_option("-v", "--vert", dest="vertMethod", help="Method of vertical layer spacing: uniform, glimmer.  Glimmer spacing follows Eq. 35 of Rutt, I. C., M. Hagdorn, N. R. J. Hulton, and A. J. Payne (2009), The Glimmer community ice sheet model, J. Geophys. Res., 114, F02004, doi:10.1029/2008JF001015", default='glimmer', metavar="FILENAME")
 parser.add_option("--beta", dest="beta", action="store_true", help="Use this flag to include the field 'beta' in the resulting file.")
+parser.add_option("--mu", dest="mu", action="store_true", help="Use this flag to include the field 'muFriction' in the resulting file.")
 parser.add_option("--effecpress", dest="effecpress", action="store_true", help="Use this flag to include the field 'effectivePressure' in the resulting file.")
 parser.add_option("--diri", dest="dirichlet", action="store_true", help="Use this flag to include the fields 'dirichletVelocityMask', 'uReconstructX', 'uReconstructY' needed for specifying Dirichlet velocity boundary conditions in the resulting file.")
 parser.add_option("--thermal", dest="thermal", action="store_true", help="Use this flag to include the fields 'temperature', 'surfaceAirTemperature', 'basalHeatFlux' needed for specifying thermal initial conditions in the resulting file.")
@@ -204,9 +205,14 @@ if options.beta:
    newvar[:] = 1.0e8  # Give a default beta that won't have much sliding.
    print('Added optional variable: beta')
 
+if options.mu:
+   newvar = fileout.createVariable('muFriction', datatype, ('Time', 'nCells'))
+   newvar[:] = 1.0e8  # Give a default mu that won't have much sliding.
+   print('Added optional variable: muFriction')
+
 if options.effecpress:
    newvar = fileout.createVariable('effectivePressure', datatype, ('Time', 'nCells'))
-   newvar[:] = 1.0e8  # Give a default effective pressure that won't have much sliding.
+   newvar[:] = 1.0  # Give a default effective pressure of 1.0 so that, for the linear sliding law, beta = mu*effecpress = mu.
    print('Added optional variable: effectivePressure')
 
 if options.dirichlet:
