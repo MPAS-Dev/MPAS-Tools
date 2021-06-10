@@ -40,13 +40,13 @@ namelist_default_*.xml file that is output indicating where the values in the
 pre-existing namelist_defaults file differ from those in the MPAS Registry file.
 This is useful when the defaults used for ACME differ from those used in standalone
 MPAS, and the ACME defaults should be preserved.  This information alerts the operator
-to these diferences and allows the conflicts to be manually resolved.
+to these differences and allows the conflicts to be manually resolved.
 
 """
 from __future__ import print_function
-import collections
 import argparse
 import xml.etree.ElementTree as ET
+
 
 def write_definition_file(registry):#{{{
 	nl_defin_filename = "namelist_definitions.xml"
@@ -280,16 +280,10 @@ if not args.defaults:
 else:
 	use_defaults = True
 
-try:
-	registry_tree = ET.parse(args.registry)
-except:
-	parser.error('%s does not exist or is not parsable. Exiting.\nSometimes blank lines at the beginning of the file break the parser.'%args.registry)
+registry_tree = ET.parse(args.registry)
 
 if use_defaults:
-	try:
-		defaults_tree = ET.parse(args.defaults)
-	except:
-		parser.error('%s does not exist or is not parsable. Exiting.\nSometimes blank lines at the beginning of the file break the parser.'%args.defaults)
+	defaults_tree = ET.parse(args.defaults)
 
 	defaults = defaults_tree.getroot()
 else:
