@@ -1,0 +1,22 @@
+﻿mpas\_tools.transects.Vector
+============================
+
+.. currentmodule:: mpas_tools.transects
+
+.. autoclass:: Vector
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~Vector.__init__
+   
+   
+
+   
+   
+   
