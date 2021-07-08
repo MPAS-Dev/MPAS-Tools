@@ -2,19 +2,19 @@ from mpas_tools.cime.constants import constants
 import requests
 
 
-def test_cime_constants(cime_tag='master'):
+def test_cime_constants(e3sm_tag='master'):
     """
     Parse relevant constants from CIME
 
     Parameters
     ----------
-    cime_tag : str, optional
-        The CIME tag to download constants from
+    e3sm_tag : str, optional
+        The E3SM tag to download constants from
     """
 
     resp = requests.get(
-        'https://raw.githubusercontent.com/ESMCI/cime/{}/src/share'
-        '/util/shr_const_mod.F90'.format(cime_tag))
+        'https://raw.githubusercontent.com/E3SM-Project/E3SM/{}/share/util/'
+        'shr_const_mod.F90'.format(e3sm_tag))
 
     text = resp.text
 
