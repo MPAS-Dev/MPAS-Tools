@@ -192,19 +192,19 @@
 <span class="kn">import</span> <span class="nn">requests</span>
 
 
-<div class="viewcode-block" id="test_cime_constants"><a class="viewcode-back" href="../../../generated/mpas_tools.tests.test_cime_constants.test_cime_constants.html#mpas_tools.tests.test_cime_constants.test_cime_constants">[docs]</a><span class="k">def</span> <span class="nf">test_cime_constants</span><span class="p">(</span><span class="n">cime_tag</span><span class="o">=</span><span class="s1">&#39;master&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="test_cime_constants"><a class="viewcode-back" href="../../../generated/mpas_tools.tests.test_cime_constants.test_cime_constants.html#mpas_tools.tests.test_cime_constants.test_cime_constants">[docs]</a><span class="k">def</span> <span class="nf">test_cime_constants</span><span class="p">(</span><span class="n">e3sm_tag</span><span class="o">=</span><span class="s1">&#39;master&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parse relevant constants from CIME</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    cime_tag : str, optional</span>
-<span class="sd">        The CIME tag to download constants from</span>
+<span class="sd">    e3sm_tag : str, optional</span>
+<span class="sd">        The E3SM tag to download constants from</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-        <span class="s1">&#39;https://raw.githubusercontent.com/ESMCI/cime/</span><span class="si">{}</span><span class="s1">/src/share&#39;</span>
-        <span class="s1">&#39;/util/shr_const_mod.F90&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cime_tag</span><span class="p">))</span>
+        <span class="s1">&#39;https://raw.githubusercontent.com/E3SM-Project/E3SM/</span><span class="si">{}</span><span class="s1">/share/util/&#39;</span>
+        <span class="s1">&#39;shr_const_mod.F90&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e3sm_tag</span><span class="p">))</span>
 
     <span class="n">text</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">text</span>
 
