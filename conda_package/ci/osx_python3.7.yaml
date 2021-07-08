@@ -7,7 +7,7 @@ cxx_compiler_version:
 hdf5:
 - 1.10.6
 libnetcdf:
-- 4.7.4
+- 4.8.0
 pin_run_as_build:
   python:
     min_pin: x.x
