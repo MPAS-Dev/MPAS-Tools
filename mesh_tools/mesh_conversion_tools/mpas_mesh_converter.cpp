@@ -3067,6 +3067,9 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
 	// Build and write kiteAreasOnVertex
 	// TODO: Fix kite area for quads?
 	tmp_arr = new double[nVertices*vertexDegree];
+	for(i = 0; i < nVertices*vertexDegree; i++){
+	    tmp_arr[i] = 0.0;
+	}
 	i = 0;
 	count = 0;
 	for(vec_dbl_itr = kiteAreasOnVertex.begin(); vec_dbl_itr != kiteAreasOnVertex.end(); ++vec_dbl_itr){
