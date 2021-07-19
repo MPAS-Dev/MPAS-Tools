@@ -165,6 +165,6 @@ while i >= nprocs_min:
     figurenamepath = "figures_performance/" + resolution_name + '_' + \
         machine_long_name + '_' + str(nprocs_max) + "_" + timenow + ".png"
     plt.savefig(figurenamepath)
-    i = int( i / 2 )
+    i = i // 2
     j = j - 1
 fw.close()
