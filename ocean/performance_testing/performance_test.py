@@ -111,8 +111,8 @@ while i >= nprocs_min:
     sum = 0
 
     # Generate the log and graph files
-    subprocess.check_call(['./metis', 'graph.info', str(i)])
-    print "metis" + str(i) + "completed"
+    subprocess.check_call(['gpmetis', 'graph.info', str(i)])
+    print("gpmetis" + str(i) + "completed")
 
     for sample in range(nsamples_per_procnum):
         subprocess.check_call(
@@ -125,7 +125,7 @@ while i >= nprocs_min:
                 '--cpu_bind=verbose,core',
                 '--distribution=plane=%s' % plane_size,
                 './ocean_model']
-        print "running", ' '.join(args)
+        print("running", ' '.join(args))
         subprocess.check_call(args)
 
         # Search for time integration and write to a file
@@ -165,6 +165,6 @@ while i >= nprocs_min:
     figurenamepath = "figures_performance/" + resolution_name + '_' + \
         machine_long_name + '_' + str(nprocs_max) + "_" + timenow + ".png"
     plt.savefig(figurenamepath)
-    i = i / 2
+    i = int( i / 2 )
     j = j - 1
 fw.close()
