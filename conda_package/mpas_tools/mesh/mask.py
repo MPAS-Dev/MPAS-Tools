@@ -163,6 +163,10 @@ def entry_point_compute_mpas_region_masks():
         default='forkserver',
         help="The multiprocessing method use for python mask creation "
              "('fork', 'spawn' or 'forkserver')")
+    parser.add_argument("--format", dest="format", type=str,
+                        help="NetCDF file format")
+    parser.add_argument("--engine", dest="engine", type=str,
+                        help="NetCDF output engine")
     args = parser.parse_args()
 
     dsMesh = xr.open_dataset(args.mesh_file_name, decode_cf=False,
@@ -182,7 +186,8 @@ def entry_point_compute_mpas_region_masks():
             showProgress=args.show_progress,
             subdivisionThreshold=args.subdivision)
 
-    write_netcdf(dsMasks, args.mask_file_name)
+    write_netcdf(dsMasks, args.mask_file_name, format=args.format,
+                 engine=args.engine)
 
 
 def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
@@ -352,6 +357,10 @@ def entry_point_compute_mpas_transect_masks():
                         action="store_true",
                         help="Whether to add the transectEdgeMaskSigns "
                              "variable")
+    parser.add_argument("--format", dest="format", type=str,
+                        help="NetCDF file format")
+    parser.add_argument("--engine", dest="engine", type=str,
+                        help="NetCDF output engine")
     args = parser.parse_args()
 
     dsMesh = xr.open_dataset(args.mesh_file_name, decode_cf=False,
@@ -374,7 +383,8 @@ def entry_point_compute_mpas_transect_masks():
             subdivisionResolution=args.subdivision,
             addEdgeSign=args.add_edge_sign)
 
-    write_netcdf(dsMasks, args.mask_file_name)
+    write_netcdf(dsMasks, args.mask_file_name, format=args.format,
+                 engine=args.engine)
 
 
 def compute_mpas_flood_fill_mask(dsMesh, fcSeed, logger=None):
@@ -444,6 +454,10 @@ def entry_point_compute_mpas_flood_fill_mask():
     parser.add_argument("-o", "--mask_file_name", dest="mask_file_name",
                         type=str, required=True,
                         help="An output MPAS region masks file")
+    parser.add_argument("--format", dest="format", type=str,
+                        help="NetCDF file format")
+    parser.add_argument("--engine", dest="engine", type=str,
+                        help="NetCDF output engine")
     args = parser.parse_args()
 
     dsMesh = xr.open_dataset(args.mesh_file_name, decode_cf=False,
@@ -454,7 +468,8 @@ def entry_point_compute_mpas_flood_fill_mask():
         dsMasks = compute_mpas_flood_fill_mask(
             dsMesh=dsMesh, fcSeed=fcSeed, logger=logger)
 
-    write_netcdf(dsMasks, args.mask_file_name)
+    write_netcdf(dsMasks, args.mask_file_name, format=args.format,
+                 engine=args.engine)
 
 
 def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
@@ -589,6 +604,10 @@ def entry_point_compute_lon_lat_region_masks():
         default='forkserver',
         help="The multiprocessing method use for python mask creation "
              "('fork', 'spawn' or 'forkserver')")
+    parser.add_argument("--format", dest="format", type=str,
+                        help="NetCDF file format")
+    parser.add_argument("--engine", dest="engine", type=str,
+                        help="NetCDF output engine")
     args = parser.parse_args()
 
     dsGrid = xr.open_dataset(args.grid_file_name, decode_cf=False,
@@ -607,7 +626,8 @@ def entry_point_compute_lon_lat_region_masks():
             chunkSize=args.chunk_size, showProgress=args.show_progress,
             subdivisionThreshold=args.subdivision)
 
-    write_netcdf(dsMasks, args.mask_file_name)
+    write_netcdf(dsMasks, args.mask_file_name, format=args.format,
+                 engine=args.engine)
 
 
 def compute_projection_grid_region_masks(
@@ -744,6 +764,10 @@ def entry_point_compute_projection_grid_region_masks():
         default='forkserver',
         help="The multiprocessing method use for python mask creation "
              "('fork', 'spawn' or 'forkserver')")
+    parser.add_argument("--format", dest="format", type=str,
+                        help="NetCDF file format")
+    parser.add_argument("--engine", dest="engine", type=str,
+                        help="NetCDF output engine")
     args = parser.parse_args()
 
     dsGrid = xr.open_dataset(args.grid_file_name, decode_cf=False,
@@ -765,7 +789,8 @@ def entry_point_compute_projection_grid_region_masks():
             showProgress=args.show_progress,
             subdivisionThreshold=args.subdivision, xdim=xdim, ydim=ydim)
 
-    write_netcdf(dsMasks, args.mask_file_name)
+    write_netcdf(dsMasks, args.mask_file_name, format=args.format,
+                 engine=args.engine)
 
 
 def _compute_mask_from_shapes(shapes1, shapes2, func, pool, chunkSize,
