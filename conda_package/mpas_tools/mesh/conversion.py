@@ -46,15 +46,11 @@ def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
         if graphInfoFileName is not None:
             graphInfoFileName = os.path.abspath(graphInfoFileName)
 
-        # go into the directory of the output file so the graph.info file ends
-        # up in the same place
-        owd = os.getcwd()
         outDir = os.path.dirname(outFileName)
-        os.chdir(outDir)
+
         _call_subprocess(['MpasMeshConverter.x', inFileName, outFileName],
                          logger)
-        os.chdir(owd)
-
+        
         dsOut = xarray.open_dataset(outFileName)
         dsOut.load()
 
@@ -143,18 +139,13 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
                 write_netcdf(ds, fileName)
                 args.extend(['-p', fileName])
 
-        # go into the directory of the output file so the graph.info file ends
-        # up in the same place
-
         if graphInfoFileName is not None:
             graphInfoFileName = os.path.abspath(graphInfoFileName)
 
-        owd = os.getcwd()
         outDir = os.path.dirname(outFileName)
-        os.chdir(outDir)
-        _call_subprocess(args, logger)
-        os.chdir(owd)
 
+        _call_subprocess(args, logger)
+        
         dsOut = xarray.open_dataset(outFileName)
         dsOut.load()
 
