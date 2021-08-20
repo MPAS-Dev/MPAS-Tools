@@ -98,9 +98,9 @@ int main ( int argc, char *argv[] ) {
 	int error;
 	string out_name = "culled_mesh.nc";
 	string in_name = "mesh.nc";
-    string out_path = "";
-    string out_file = "";
-    string out_fext = "";
+	string out_path = "";
+	string out_file = "";
+	string out_fext = "";
 	vector<string> mask_names;
 	vector<int> mask_ops;
 
@@ -189,7 +189,7 @@ int main ( int argc, char *argv[] ) {
 		return 1;
 	}
 
-    file_part(out_name, out_path, out_file, out_fext);
+	file_part(out_name, out_path, out_file, out_fext);
 
 	srand(time(NULL));
 

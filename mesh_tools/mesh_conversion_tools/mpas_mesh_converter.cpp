@@ -121,9 +121,9 @@ int main ( int argc, char *argv[] ) {
 	int error;
 	string out_name = "mesh.nc";
 	string in_name = "grid.nc";
-    string out_path = "";
-    string out_file = "";
-    string out_fext = "";
+	string out_path = "";
+	string out_file = "";
+	string out_fext = "";
 
 	cout << endl << endl;
 	cout << "************************************************************" << endl;
@@ -171,7 +171,7 @@ int main ( int argc, char *argv[] ) {
 		return 1;
 	}
 
-    file_part(out_name, out_path, out_file, out_fext);
+	file_part(out_name, out_path, out_file, out_fext);
 
 	srand(time(NULL));
 
