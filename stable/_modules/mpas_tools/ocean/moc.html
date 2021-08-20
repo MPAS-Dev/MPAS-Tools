@@ -326,6 +326,8 @@
 
     <span class="n">cellsOnEdgeInRange</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">cellsOnEdge</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span>
                                            <span class="n">cellsOnEdge</span> <span class="o">&lt;</span> <span class="n">nCells</span><span class="p">)</span>
+    <span class="c1"># make sure both cells on the dummy edge at the end are out of range</span>
+    <span class="n">cellsOnEdgeInRange</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="n">southernBoundaryEdges</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">southernBoundaryEdgeSigns</span> <span class="o">=</span> <span class="p">[]</span>
