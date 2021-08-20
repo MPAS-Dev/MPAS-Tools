@@ -136,6 +136,8 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
 
     cellsOnEdgeInRange = numpy.logical_and(cellsOnEdge >= 0,
                                            cellsOnEdge < nCells)
+    # make sure both cells on the dummy edge at the end are out of range
+    cellsOnEdgeInRange[-1, :] = False
 
     southernBoundaryEdges = []
     southernBoundaryEdgeSigns = []
