@@ -56,7 +56,7 @@ from exodus import exodus
 
 # Create dictionary of variables that are supported by the script
 mpas_exodus_var_dic = {"beta":"basal_friction_log",
-                       "muFriction":"mu_power_law", \
+                       "muFriction":"mu_log", \
                        "stiffnessFactor":"stiffening_factor", \
                        "uReconstructX":"solution_1", \
                        "uReconstructY":"solution_2", \
@@ -213,7 +213,7 @@ for var_name in var_names:
             if var_name == "beta":
                 dataset.variables[var_name][0,cellID_array-1] = np.exp(data_exo_layer) * 1000.0
             elif var_name == "muFriction":
-                dataset.variables[var_name][0,cellID_array-1] = np.exp(data_exo_layer) / 1000.0
+                dataset.variables[var_name][0,cellID_array-1] = np.exp(data_exo_layer)
             elif var_name == "uReconstructX" or var_name == "uReconstructY":
                 dataset.variables[var_name][0,cellID_array-1, nVert] = data_exo_layer / (60. * 60. * 24 * 365)
             elif var_name == "thickness":
