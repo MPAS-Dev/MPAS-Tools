@@ -274,7 +274,7 @@ for var_name in var_names:
             keepCellMask = np.zeros((nCells,), dtype=np.int8)
 
             # Define region of good data to extrapolate from.  Different methods for different variables
-            if var_name == "beta":
+            if var_name in ["beta", "muFriction"]:
                 keepCellMask[varValue > 0.0] = 1
             # find the mask for grounded ice region
             else:
