@@ -56,6 +56,7 @@ from exodus import exodus
 
 # Create dictionary of variables that are supported by the script
 mpas_exodus_var_dic = {"beta":"basal_friction_log",
+                       "muFriction":"mu_log", \
                        "stiffnessFactor":"stiffening_factor", \
                        "uReconstructX":"solution_1", \
                        "uReconstructY":"solution_2", \
@@ -116,6 +117,7 @@ cellID_array = cellID[1::]
 var_names = []
 if options.dynamics:
     var_names.append("beta")
+    var_names.append("muFriction")
     var_names.append("stiffnessFactor")
     var_names.append("uReconstructX")
     var_names.append("uReconstructY")
@@ -143,6 +145,9 @@ vars_not_converted = []
 for var_name in var_names:
     #set appropriate methods for smoothing and extrapolation
     if var_name == "beta":
+        smooth_iter_num = 0
+        extrapolation = "min"
+    if var_name == "muFriction":
         smooth_iter_num = 0
         extrapolation = "min"
     elif var_name == "stiffnessFactor":
@@ -207,6 +212,8 @@ for var_name in var_names:
 
             if var_name == "beta":
                 dataset.variables[var_name][0,cellID_array-1] = np.exp(data_exo_layer) * 1000.0
+            elif var_name == "muFriction":
+                dataset.variables[var_name][0,cellID_array-1] = np.exp(data_exo_layer)
             elif var_name == "uReconstructX" or var_name == "uReconstructY":
                 dataset.variables[var_name][0,cellID_array-1, nVert] = data_exo_layer / (60. * 60. * 24 * 365)
             elif var_name == "thickness":
@@ -252,7 +259,7 @@ for var_name in var_names:
             print('\nTemperature interpolation complete')
 
         # Extrapolate and smooth beta and stiffnessFactor fields
-        if var_name in ["beta", "stiffnessFactor"]:
+        if var_name in ["beta", "muFriction", "stiffnessFactor"]:
             # Extrapolation
             nCells = len(dataset.dimensions['nCells'])
             thickness = dataset.variables['thickness'][0,:]
@@ -267,7 +274,7 @@ for var_name in var_names:
             keepCellMask = np.zeros((nCells,), dtype=np.int8)
 
             # Define region of good data to extrapolate from.  Different methods for different variables
-            if var_name == "beta":
+            if var_name in ["beta", "muFriction"]:
                 keepCellMask[varValue > 0.0] = 1
             # find the mask for grounded ice region
             else:
