@@ -12,6 +12,8 @@
 
 #include "netcdf_utils.h"
 
+#include "string_utils.h"
+
 #define ID_LEN 10
 
 using namespace std;
@@ -53,10 +55,11 @@ int markEdges();
 int outputGridDimensions(const string outputFilename);
 int outputGridAttributes(const string inputFilename, const string outputFilename);
 int mapAndOutputGridCoordinates(const string inputFilename, const string outputFilename);
-int mapAndOutputCellFields(const string inputFilename, const string outputFilename);
+int mapAndOutputCellFields(const string inputFilename, const string outputPath, 
+                           const string outputFilename);
 int mapAndOutputEdgeFields(const string inputFilename, const string outputFilename);
 int mapAndOutputVertexFields(const string inputFilename, const string outputFilename);
-int outputCellMap();
+int outputCellMap(const string outputPath);
 /*}}}*/
 
 void print_usage(){/*{{{*/
@@ -95,6 +98,9 @@ int main ( int argc, char *argv[] ) {
 	int error;
 	string out_name = "culled_mesh.nc";
 	string in_name = "mesh.nc";
+	string out_path = "";
+	string out_file = "";
+	string out_fext = "";
 	vector<string> mask_names;
 	vector<int> mask_ops;
 
@@ -183,6 +189,8 @@ int main ( int argc, char *argv[] ) {
 		return 1;
 	}
 
+	file_part(out_name, out_path, out_file, out_fext);
+
 	srand(time(NULL));
 
 	cout << "Reading input grid." << endl;
@@ -228,7 +236,7 @@ int main ( int argc, char *argv[] ) {
 	}
 
 	cout << "Mapping and writing cell fields and culled_graph.info" << endl;
-	if(error = mapAndOutputCellFields(in_name, out_name)){
+	if(error = mapAndOutputCellFields(in_name, out_path, out_name)){
 		cout << "Error - " << error << endl;
 		exit(error);
 	}
@@ -247,7 +255,7 @@ int main ( int argc, char *argv[] ) {
 
 	cout << "Outputting cell map" << endl;
 	if (outputMap) {
-		if(error = outputCellMap()){
+		if(error = outputCellMap(out_path)){
 			cout << "Error - " << error << endl;
 			exit(error);
 		}
@@ -256,13 +264,13 @@ int main ( int argc, char *argv[] ) {
 	return 0;
 }
 
-int outputCellMap(){/*{{{*/
+int outputCellMap(const string outputPath){/*{{{*/
 
 	int iCell;
 	ofstream outputfileForward, outputfileBackward;
 
 	// forwards mapping
-	outputfileForward.open("cellMapForward.txt");
+	outputfileForward.open(path_join(outputPath, "cellMapForward.txt"));
 
 	for (iCell=0 ; iCell < nCells ; iCell++) {
 
@@ -290,7 +298,7 @@ int outputCellMap(){/*{{{*/
 
 	}
 
-	outputfileBackward.open("cellMapBackward.txt");
+	outputfileBackward.open(path_join(outputPath, "cellMapBackward.txt"));
 
 	for (iCell=0 ; iCell < nCellsNew ; iCell++) {
 
@@ -948,7 +956,8 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 
 	return 0;
 }/*}}}*/
-int mapAndOutputCellFields( const string inputFilename, const string outputFilename) {/*{{{*/
+int mapAndOutputCellFields( const string inputFilename, const string outputPath, 
+                            const string outputFilename) {/*{{{*/
 	/*****************************************************************
 	 *
 	 * This function maps and writes all of the cell related fields. Including
@@ -1065,7 +1074,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputFilen
 	edgeCount = edgeCount / 2;
 
 	// Build graph.info file
-	ofstream graph("culled_graph.info");
+	ofstream graph(path_join(outputPath, "culled_graph.info"));
 	graph << nCellsNew << " " << edgeCount << endl;
 	for(int iCell = 0; iCell < nCellsNew; iCell++){
 		for(int j = 0; j < nEdgesOnCellNew[iCell]; j++){

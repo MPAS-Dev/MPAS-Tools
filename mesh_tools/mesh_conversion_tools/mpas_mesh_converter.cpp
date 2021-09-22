@@ -16,6 +16,8 @@
 #include "pnt.h"
 #include "edge.h"
 
+#include "string_utils.h"
+
 #define MESH_SPEC 1.0
 #define ID_LEN 10
 
@@ -119,6 +121,9 @@ int main ( int argc, char *argv[] ) {
 	int error;
 	string out_name = "mesh.nc";
 	string in_name = "grid.nc";
+	string out_path = "";
+	string out_file = "";
+	string out_fext = "";
 
 	cout << endl << endl;
 	cout << "************************************************************" << endl;
@@ -166,6 +171,7 @@ int main ( int argc, char *argv[] ) {
 		return 1;
 	}
 
+	file_part(out_name, out_path, out_file, out_fext);
 
 	srand(time(NULL));
 
@@ -272,7 +278,7 @@ int main ( int argc, char *argv[] ) {
 	}
 
 	cout << "Write graph.info file" << endl;
-	if(error = writeGraphFile("graph.info")){
+	if(error = writeGraphFile(path_join(out_path, "graph.info"))){
 		cout << "Error - " << error << endl;
 		exit(error);
 	}
