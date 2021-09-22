@@ -17,7 +17,6 @@ numpy
 progressbar2
 pyamg
 pyevtk
-pyflann
 pyproj
 python-igraph
 scikit-image

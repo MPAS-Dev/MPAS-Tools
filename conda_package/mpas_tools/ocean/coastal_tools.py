@@ -10,11 +10,11 @@ from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
 import numpy as np
-import pyflann
 from skimage import measure
 from netCDF4 import Dataset
 import matplotlib.pyplot as plt
-from scipy import spatial, io
+from scipy.spatial import KDTree
+from scipy.io import savemat
 import timeit
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
@@ -454,7 +454,7 @@ def create_background_mesh(grd_box, ddeg, mesh_type, dx_min, dx_max,  # {{{
 
 
 def extract_coastlines(nc_file, nc_vars, region_box, z_contour=0, n_longest=10,
-                       point_list=None, plot_option=False, plot_box=[],
+                       point_list=None, plot_option=False, plot_box=None,
                        call=None):   # {{{
 
     """
@@ -606,8 +606,9 @@ def extract_coastlines(nc_file, nc_vars, region_box, z_contour=0, n_longest=10,
 ##############################################################
 
 
-def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search, smooth_window,
-                      plot_option=False, plot_box=[], call=None):
+def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search='kdtree',
+                      smooth_window=0, plot_option=False, plot_box=[],
+                      call=None):
     # {{{
     """
     Extracts a set of coastline contours
@@ -624,12 +625,12 @@ def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search, smooth_window,
     lat_grd : ndarray
         A 1D array of latitudes in degrees in the range from -90 to 90
 
-    nn_search : {'kdtree', 'flann'}
+    nn_search : {'kdtree'}, optional
         The algorithm to use for the nearest neightbor search.  'flann' is
         strongly recommended, as it is faster and more memory efficient in our
         testing.
 
-    smooth_window : int
+    smooth_window : int, optional
         The number of adjacent coastline points to average together to smooth
         the coastal contours.  Use ``0`` to indicate no smoothing.
 
@@ -653,6 +654,9 @@ def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search, smooth_window,
         lon/lat grid to the closest point in the (smoothed) coastline contour.
     """
 
+    if nn_search != 'kdtree':
+        raise ValueError(f'nn_search method {nn_search} not available.')
+
     print("Distance to coast")
     print("-----------------")
 
@@ -668,15 +672,7 @@ def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search, smooth_window,
     npts = coast_pts.shape[0]
     coast_pts_xyz = np.zeros((npts,3))
     coast_pts_xyz[:, 0], coast_pts_xyz[:, 1], coast_pts_xyz[:, 2] = lonlat2xyz(coast_pts[:, 0], coast_pts[:, 1])
-    if nn_search == "kdtree":
-        tree = spatial.KDTree(coast_pts_xyz)
-    elif nn_search == "flann":
-        flann = pyflann.FLANN()
-        flann.build_index(
-            coast_pts_xyz,
-            algorithm='kdtree',
-            target_precision=1.0,
-            random_seed=0)
+    tree = KDTree(coast_pts_xyz)
 
     # Convert  backgound grid coordinates to x,y,z and put in a nx_grd x 3 array for kd-tree query
     Lon_grd, Lat_grd = np.meshgrid(lon_grd, lat_grd)
@@ -686,11 +682,7 @@ def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search, smooth_window,
     # Find distances of background grid coordinates to the coast
     print("   Finding distance")
     start = timeit.default_timer()
-    if nn_search == "kdtree":
-        d, idx = tree.query(pts)
-    elif nn_search == "flann":
-        idx, d = flann.nn_index(pts, checks=2000, random_seed=0)
-        d = np.sqrt(d)
+    d, idx = tree.query(pts)
     end = timeit.default_timer()
     print("   Done")
     print("   " + str(end - start) + " seconds")
@@ -886,9 +878,8 @@ def compute_cell_width(D, cell_width, lon, lat, dx_min, trans_start,
 
 def save_matfile(cell_width, lon, lat):
 
-    io.savemat('cellWidthVsLatLon.mat',
-               mdict={
-                   'cellWidth': cell_width,
+    savemat('cellWidthVsLatLon.mat',
+            mdict={'cellWidth': cell_width,
                    'lon': lon,
                    'lat': lat})
 

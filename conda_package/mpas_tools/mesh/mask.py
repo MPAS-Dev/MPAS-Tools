@@ -1,6 +1,6 @@
 import xarray as xr
 import numpy
-import pyflann
+from scipy.spatial import KDTree
 import shapely.geometry
 import shapely.ops
 from shapely.geometry import box, Polygon, MultiPolygon, GeometryCollection
@@ -1164,9 +1164,8 @@ def _compute_seed_mask(fcSeed, lon, lat):
     the resulting mask to 1 there
     """
     points = numpy.vstack((lon, lat)).T
-    flann = pyflann.FLANN()
-    flann.build_index(points, algorithm='kmeans', target_precision=1.0,
-                      random_seed=0)
+
+    tree = KDTree(points)
 
     mask = numpy.zeros(len(lon), dtype=int)
 
@@ -1174,7 +1173,8 @@ def _compute_seed_mask(fcSeed, lon, lat):
     for index, feature in enumerate(fcSeed.features):
         points[index, :] = feature['geometry']['coordinates']
 
-    indices, distances = flann.nn_index(points, checks=2000, random_seed=0)
+    _, indices = tree.query(points)
+
     for index in indices:
         mask[index] = 1
 
