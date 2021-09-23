@@ -608,7 +608,7 @@ def extract_coastlines(nc_file, nc_vars, region_box, z_contour=0, n_longest=10,
 
 def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search='kdtree',
                       smooth_window=0, plot_option=False, plot_box=[],
-                      call=None):
+                      call=None, workers=-1):
     # {{{
     """
     Extracts a set of coastline contours
@@ -647,6 +647,10 @@ def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search='kdtree',
         The number of times the function has been called, used to give the
         plot a unique name.
 
+    workers : int, optional
+        The number of threads used for finding nearest neighbors.  The default
+        is all available threads (``workers=-1``)
+
     Returns
     -------
     D : ndarray
@@ -682,7 +686,7 @@ def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search='kdtree',
     # Find distances of background grid coordinates to the coast
     print("   Finding distance")
     start = timeit.default_timer()
-    d, idx = tree.query(pts)
+    d, idx = tree.query(pts, workers=workers)
     end = timeit.default_timer()
     print("   Done")
     print("   " + str(end - start) + " seconds")

@@ -12,7 +12,7 @@ from mpas_tools.mesh.creation.util import lonlat2xyz
 
 
 def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
-                                 max_length=None):
+                                 max_length=None, workers=-1):
     """
     Get the distance for each point on a lon/lat grid from the closest point
     on the boundary of the geojson regions.
@@ -35,6 +35,10 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
         The maximum distance (in degrees) between points on the boundary of the
         geojson region.  If the boundary is too coarse, it will be subdivided.
 
+    workers : int, optional
+        The number of threads used for finding nearest neighbors.  The default
+        is all available threads (``workers=-1``)
+
     Returns
     -------
     signed_distance : numpy.ndarray
@@ -42,7 +46,8 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
        to the shape boundary
     """
     distance = distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
-                                     nn_search='flann', max_length=max_length)
+                                     nn_search='kdtree', max_length=max_length,
+                                     workers=workers)
 
     mask = mask_from_geojson(fc, lon_grd, lat_grd)
 
@@ -101,7 +106,8 @@ def mask_from_geojson(fc, lon_grd, lat_grd):
 
 
 def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
-                          nn_search='kdtree', max_length=None):
+                          nn_search='kdtree', max_length=None,
+                          workers=-1):
     # {{{
     """
     Get the distance for each point on a lon/lat grid from the closest point
@@ -127,6 +133,10 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
     max_length : float, optional
         The maximum distance (in degrees) between points on the boundary of the
         geojson region.  If the boundary is too coarse, it will be subdivided.
+
+    workers : int, optional
+        The number of threads used for finding nearest neighbors.  The default
+        is all available threads (``workers=-1``)
 
     Returns
     -------
@@ -181,7 +191,7 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
     # Find distances of background grid coordinates to the coast
     print("   Finding distance")
     start = timeit.default_timer()
-    distance, _ = tree.query(pts)
+    distance, _ = tree.query(pts, workers=workers)
     end = timeit.default_timer()
     print("   Done")
     print("   {0:.0f} seconds".format(end-start))
