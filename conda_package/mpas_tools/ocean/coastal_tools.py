@@ -240,7 +240,7 @@ default_params = {
     "plot_box": North_America,
 
     # Options
-    "nn_search": "flann",
+    "nn_search": "kdtree",
     "plot_option": True
 
 }
@@ -626,9 +626,7 @@ def distance_to_coast(coastlines, lon_grd, lat_grd, nn_search='kdtree',
         A 1D array of latitudes in degrees in the range from -90 to 90
 
     nn_search : {'kdtree'}, optional
-        The algorithm to use for the nearest neightbor search.  'flann' is
-        strongly recommended, as it is faster and more memory efficient in our
-        testing.
+        The algorithm to use for the nearest neightbor search.
 
     smooth_window : int, optional
         The number of adjacent coastline points to average together to smooth
