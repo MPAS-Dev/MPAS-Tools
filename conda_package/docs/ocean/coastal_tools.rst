@@ -60,7 +60,7 @@ a starting point for ``params``:
         "plot_box": North_America,
 
         # Options
-        "nn_search": "flann",
+        "nn_search": "kdtree",
         "plot_option": True
 
     }
@@ -116,8 +116,7 @@ Next, the distance to the coastal contours is computed using
 :py:func:`mpas_tools.ocean.coastal_tools.distance_to_coast()` with the
 following values from ``params``:
 
-* ``'nn_search'`` - Whether to use the ``'flann'`` or ``'kdtree'`` algorithm,
-  with the ``'flann'`` strongly recommended.
+* ``'nn_search'`` - currently, only the ``'kdtree'`` algorithm is supported
 * ``'smooth_coastline'`` - The number of neighboring cells along the coastline
   over which to average locations to smooth the coastline
 * ``'plot_option'`` - Whether to plot the distance function.
@@ -254,9 +253,9 @@ A key ingredient in defining resolution in coastal meshes is a field containing
 the distance from each location in the field to the nearest point on the
 coastline.  This distance field ``D`` is computed with
 :py:func:`mpas_tools.ocean.coastal_tools.distance_to_coast()`
-The user can optionally control the search algorithm used via
-``params['nn_search']`` (though ``'flann'``, the default, is highly
-recommended).  They can also decide to smooth the coastline as long as there is
+The user could previouly control the search algorithm used via
+``params['nn_search']`` but ``'kdtree'`` is now the only option.
+They can also decide to smooth the coastline as long as there is
 a single coastline contour---with multiple contours, the current algorithm will
 average the end of one contour with the start fo the next---by specifying an
 integer number of neighbors as ``params['smooth_coastline']``.  The default is

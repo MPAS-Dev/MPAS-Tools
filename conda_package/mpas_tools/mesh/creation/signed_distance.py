@@ -1,6 +1,5 @@
 import numpy as np
-import pyflann
-from scipy import spatial
+from scipy.spatial import KDTree
 import timeit
 import shapely.geometry
 import shapely.ops
@@ -13,7 +12,7 @@ from mpas_tools.mesh.creation.util import lonlat2xyz
 
 
 def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
-                                 max_length=None):
+                                 max_length=None, workers=-1):
     """
     Get the distance for each point on a lon/lat grid from the closest point
     on the boundary of the geojson regions.
@@ -36,6 +35,10 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
         The maximum distance (in degrees) between points on the boundary of the
         geojson region.  If the boundary is too coarse, it will be subdivided.
 
+    workers : int, optional
+        The number of threads used for finding nearest neighbors.  The default
+        is all available threads (``workers=-1``)
+
     Returns
     -------
     signed_distance : numpy.ndarray
@@ -43,7 +46,8 @@ def signed_distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
        to the shape boundary
     """
     distance = distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
-                                     nn_search='flann', max_length=max_length)
+                                     nn_search='kdtree', max_length=max_length,
+                                     workers=workers)
 
     mask = mask_from_geojson(fc, lon_grd, lat_grd)
 
@@ -102,7 +106,8 @@ def mask_from_geojson(fc, lon_grd, lat_grd):
 
 
 def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
-                          nn_search='flann', max_length=None):
+                          nn_search='kdtree', max_length=None,
+                          workers=-1):
     # {{{
     """
     Get the distance for each point on a lon/lat grid from the closest point
@@ -122,18 +127,26 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
     earth_radius : float
         Earth radius in meters
 
-    nn_search: {'kdtree', 'flann'}, optional
+    nn_search: {'kdtree'}, optional
         The method used to find the nearest point on the shape boundary
 
     max_length : float, optional
         The maximum distance (in degrees) between points on the boundary of the
         geojson region.  If the boundary is too coarse, it will be subdivided.
 
+    workers : int, optional
+        The number of threads used for finding nearest neighbors.  The default
+        is all available threads (``workers=-1``)
+
     Returns
     -------
     distance : numpy.ndarray
        A 2D field of distances to the shape boundary
     """
+
+    if nn_search != 'kdtree':
+        raise ValueError(f'nn_search method {nn_search} not available.')
+
     print("Distance from geojson")
     print("---------------------")
 
@@ -167,20 +180,7 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
     boundary_xyz = np.zeros((npoints, 3))
     boundary_xyz[:, 0], boundary_xyz[:, 1], boundary_xyz[:, 2] = \
         lonlat2xyz(boundary_lon, boundary_lat, earth_radius)
-    flann = None
-    tree = None
-    if nn_search == "kdtree":
-        tree = spatial.KDTree(boundary_xyz)
-    elif nn_search == "flann":
-        flann = pyflann.FLANN()
-        flann.build_index(
-            boundary_xyz,
-            algorithm='kdtree',
-            target_precision=1.0,
-            random_seed=0)
-    else:
-        raise ValueError('Bad nn_search: expected kdtree or flann, got '
-                         '{}'.format(nn_search))
+    tree = KDTree(boundary_xyz)
 
     # Convert background grid coordinates to x,y,z and put in a nx_grd x 3
     # array for kd-tree query
@@ -191,12 +191,7 @@ def distance_from_geojson(fc, lon_grd, lat_grd, earth_radius,
     # Find distances of background grid coordinates to the coast
     print("   Finding distance")
     start = timeit.default_timer()
-    distance = None
-    if nn_search == "kdtree":
-        distance, _ = tree.query(pts)
-    elif nn_search == "flann":
-        _, distance = flann.nn_index(pts, checks=2000, random_seed=0)
-        distance = np.sqrt(distance)
+    distance, _ = tree.query(pts, workers=workers)
     end = timeit.default_timer()
     print("   Done")
     print("   {0:.0f} seconds".format(end-start))

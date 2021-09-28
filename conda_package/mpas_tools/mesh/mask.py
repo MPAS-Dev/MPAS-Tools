@@ -1,6 +1,6 @@
 import xarray as xr
 import numpy
-import pyflann
+from scipy.spatial import KDTree
 import shapely.geometry
 import shapely.ops
 from shapely.geometry import box, Polygon, MultiPolygon, GeometryCollection
@@ -387,7 +387,7 @@ def entry_point_compute_mpas_transect_masks():
                  engine=args.engine)
 
 
-def compute_mpas_flood_fill_mask(dsMesh, fcSeed, logger=None):
+def compute_mpas_flood_fill_mask(dsMesh, fcSeed, logger=None, workers=-1):
     """
     Flood fill from the given set of seed points to create a contiguous mask.
     The flood fill operates using cellsOnCell, starting from the cells
@@ -403,6 +403,10 @@ def compute_mpas_flood_fill_mask(dsMesh, fcSeed, logger=None):
 
     logger : logging.Logger, optional
         A logger for the output if not stdout
+
+    workers : int, optional
+        The number of threads used for finding nearest neighbors.  The default
+        is all available threads (``workers=-1``)
 
     Returns
     -------
@@ -422,7 +426,7 @@ def compute_mpas_flood_fill_mask(dsMesh, fcSeed, logger=None):
     if logger is not None:
         logger.info('  Computing flood fill mask on cells:')
 
-    mask = _compute_seed_mask(fcSeed, lon, lat)
+    mask = _compute_seed_mask(fcSeed, lon, lat, workers)
 
     cellsOnCell = dsMesh.cellsOnCell.values - 1
 
@@ -1158,15 +1162,14 @@ def _copy_dateline_lon_lat_vertices(lonVertex, latVertex, lonCenter):
     return lonVertex, latVertex, duplicatePolygons
 
 
-def _compute_seed_mask(fcSeed, lon, lat):
+def _compute_seed_mask(fcSeed, lon, lat, workers):
     """
     Find the cell centers (points) closes to the given seed points and set
     the resulting mask to 1 there
     """
     points = numpy.vstack((lon, lat)).T
-    flann = pyflann.FLANN()
-    flann.build_index(points, algorithm='kmeans', target_precision=1.0,
-                      random_seed=0)
+
+    tree = KDTree(points)
 
     mask = numpy.zeros(len(lon), dtype=int)
 
@@ -1174,7 +1177,8 @@ def _compute_seed_mask(fcSeed, lon, lat):
     for index, feature in enumerate(fcSeed.features):
         points[index, :] = feature['geometry']['coordinates']
 
-    indices, distances = flann.nn_index(points, checks=2000, random_seed=0)
+    _, indices = tree.query(points, workers=workers)
+
     for index in indices:
         mask[index] = 1
 

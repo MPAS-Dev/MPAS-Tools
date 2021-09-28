@@ -16,7 +16,6 @@ install_requires = [
     'progressbar2',
     'pyamg',
     'pyevtk',
-    'flann',
     'pyproj',
     'python-igraph',
     'scikit-image',
