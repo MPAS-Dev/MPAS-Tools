@@ -155,7 +155,7 @@ a starting point for <code class="docutils literal notranslate"><span class="pre
     <span class="s2">&quot;plot_box&quot;</span><span class="p">:</span> <span class="n">North_America</span><span class="p">,</span>
 
     <span class="c1"># Options</span>
-    <span class="s2">&quot;nn_search&quot;</span><span class="p">:</span> <span class="s2">&quot;flann&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nn_search&quot;</span><span class="p">:</span> <span class="s2">&quot;kdtree&quot;</span><span class="p">,</span>
     <span class="s2">&quot;plot_option&quot;</span><span class="p">:</span> <span class="kc">True</span>
 
 <span class="p">}</span>
@@ -210,8 +210,7 @@ longitude and latitude.</p></li>
 <a class="reference internal" href="../generated/mpas_tools.ocean.coastal_tools.distance_to_coast.html#mpas_tools.ocean.coastal_tools.distance_to_coast" title="mpas_tools.ocean.coastal_tools.distance_to_coast"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastal_tools.distance_to_coast()</span></code></a> with the
 following values from <code class="docutils literal notranslate"><span class="pre">params</span></code>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">'nn_search'</span></code> - Whether to use the <code class="docutils literal notranslate"><span class="pre">'flann'</span></code> or <code class="docutils literal notranslate"><span class="pre">'kdtree'</span></code> algorithm,
-with the <code class="docutils literal notranslate"><span class="pre">'flann'</span></code> strongly recommended.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'nn_search'</span></code> - currently, only the <code class="docutils literal notranslate"><span class="pre">'kdtree'</span></code> algorithm is supported</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">'smooth_coastline'</span></code> - The number of neighboring cells along the coastline
 over which to average locations to smooth the coastline</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">'plot_option'</span></code> - Whether to plot the distance function.</p></li>
@@ -335,9 +334,9 @@ to a file.</p>
 the distance from each location in the field to the nearest point on the
 coastline.  This distance field <code class="docutils literal notranslate"><span class="pre">D</span></code> is computed with
 <a class="reference internal" href="../generated/mpas_tools.ocean.coastal_tools.distance_to_coast.html#mpas_tools.ocean.coastal_tools.distance_to_coast" title="mpas_tools.ocean.coastal_tools.distance_to_coast"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastal_tools.distance_to_coast()</span></code></a>
-The user can optionally control the search algorithm used via
-<code class="docutils literal notranslate"><span class="pre">params['nn_search']</span></code> (though <code class="docutils literal notranslate"><span class="pre">'flann'</span></code>, the default, is highly
-recommended).  They can also decide to smooth the coastline as long as there is
+The user could previouly control the search algorithm used via
+<code class="docutils literal notranslate"><span class="pre">params['nn_search']</span></code> but <code class="docutils literal notranslate"><span class="pre">'kdtree'</span></code> is now the only option.
+They can also decide to smooth the coastline as long as there is
 a single coastline contour—with multiple contours, the current algorithm will
 average the end of one contour with the start fo the next—by specifying an
 integer number of neighbors as <code class="docutils literal notranslate"><span class="pre">params['smooth_coastline']</span></code>.  The default is
