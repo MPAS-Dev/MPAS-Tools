@@ -155,14 +155,15 @@ if options.plot:
     # plot some stuff
     #plot a single point
     i=-1
+    plt.figure(1)
     plt.plot(grid_center_lon[i], grid_center_lat[i], 'o')
     plt.plot(grid_corner_lon[i, 0], grid_corner_lat[i, 0], 'kx')
     plt.plot(grid_corner_lon[i, 1], grid_corner_lat[i, 1], 'bx')
     plt.plot(grid_corner_lon[i, 2], grid_corner_lat[i, 2], 'cx')
     plt.plot(grid_corner_lon[i, 3], grid_corner_lat[i, 3], 'gx')
-    plt.show()
 
     #plot all points
+    plt.figure(2)
     plt.plot(grid_center_lon[:], grid_center_lat[:], 'bo')
     plt.plot(grid_corner_lon[:], grid_corner_lat[:], 'g.')
     plt.show()
