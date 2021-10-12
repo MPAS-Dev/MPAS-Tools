@@ -163,16 +163,16 @@ contours returned from <code class="docutils literal notranslate"><span class="p
 <li><p><strong>lon_grd</strong> (<em>ndarray</em>) – A 1D array of longitudes in degrees in the range from -180 to 180</p></li>
 <li><p><strong>lat_grd</strong> (<em>ndarray</em>) – A 1D array of latitudes in degrees in the range from -90 to 90</p></li>
 <li><p><strong>nn_search</strong> (<em>{'kdtree'}</em><em>, </em><em>optional</em>) – The algorithm to use for the nearest neightbor search.</p></li>
-<li><p><strong>smooth_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The number of adjacent coastline points to average together to smooth
+<li><p><strong>smooth_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of adjacent coastline points to average together to smooth
 the coastal contours.  Use <code class="docutils literal notranslate"><span class="pre">0</span></code> to indicate no smoothing.</p></li>
-<li><p><strong>plot_option</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.9)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to plot the resulting coastline points and the plot to a file
+<li><p><strong>plot_option</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to plot the resulting coastline points and the plot to a file
 named <code class="docutils literal notranslate"><span class="pre">bathy_coastlines###.png</span></code>, where <code class="docutils literal notranslate"><span class="pre">###</span></code> is given by
 <code class="docutils literal notranslate"><span class="pre">call</span></code> and is meant to indicate how many times this function has been
 called during mesh creation.</p></li>
 <li><p><strong>plot_box</strong> (<em>list of float</em><em>, </em><em>optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
-<li><p><strong>call</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The number of times the function has been called, used to give the
+<li><p><strong>call</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of times the function has been called, used to give the
 plot a unique name.</p></li>
-<li><p><strong>workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.9)"><em>int</em></a><em>, </em><em>optional</em>) – The number of threads used for finding nearest neighbors.  The default
+<li><p><strong>workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of threads used for finding nearest neighbors.  The default
 is all available threads (<code class="docutils literal notranslate"><span class="pre">workers=-1</span></code>)</p></li>
 </ul>
 </dd>
