@@ -98,6 +98,7 @@ test:
     - mark_horns_for_culling.py --help
     - set_lat_lon_fields_in_planar_grid.py --help
     - create_SCRIP_file_from_MPAS_mesh.py --help
+    - create_SCRIP_file_from_planar_rectangular_grid.py --help
     - create_landice_grid_from_generic_MPAS_grid.py --help
     - define_cullMask.py --help
     - interpolate_to_mpasli_grid.py --help
