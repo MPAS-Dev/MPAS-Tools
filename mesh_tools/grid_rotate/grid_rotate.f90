@@ -85,7 +85,9 @@ contains
       character(220) :: copyCmd
       integer :: copyStat
 
-      call read_namelist(original_latitude_degrees, original_longitude_degrees, new_latitude_degrees, new_longitude_degrees, birdseye_rotation_counter_clockwise_degrees)
+      call read_namelist(original_latitude_degrees, original_longitude_degrees, &
+                         new_latitude_degrees, new_longitude_degrees, &
+                         birdseye_rotation_counter_clockwise_degrees)
 
       if(trim(filename) == "") then
          write(0,*) "Error: no source file was specified"
@@ -229,28 +231,34 @@ contains
       thetaBirdsEye = degreesToRadians(birdseye_rotation_counter_clockwise_degrees)
 
       ! create the unit vector <x0LongitudeAtEquator, y0LongitudeAtEquator, z0LongitudeAtEquator>
-      call convert_lx(x0LongitudeAtEquator, y0LongitudeAtEquator, z0LongitudeAtEquator, 1.0_RKIND, 0.0_RKIND, original_longitude_radians)
+      call convert_lx(x0LongitudeAtEquator, y0LongitudeAtEquator, z0LongitudeAtEquator, 1.0_RKIND, &
+                      0.0_RKIND, original_longitude_radians)
 
       ! create the unit vector <xNew, yNew, zNew>
-      call convert_lx(xNew, yNew, zNew, 1.0_RKIND, new_latitude_radians, new_longitude_radians)
+      call convert_lx(xNew, yNew, zNew, 1.0_RKIND, &
+                      new_latitude_radians, new_longitude_radians)
 
-      ! create the unit vector <uCrossProduct, vCrossProduct, wCrossProduct> by using a right-angle cross-product of two unit vectors in the perpendicular plane
+      ! create the unit vector <uCrossProduct, vCrossProduct, wCrossProduct> by using a right-angle cross-product
+      ! of two unit vectors in the perpendicular plane
       call cross_product(x0LongitudeAtEquator, y0LongitudeAtEquator, z0LongitudeAtEquator, &
                          0.0_RKIND, 0.0_RKIND, 1.0_RKIND, &
                          uCrossProduct, vCrossProduct, wCrossProduct)
 
       do i=1,nCells
-         call executeRotation(xCell(i), yCell(i), zCell(i), thetaLat, thetaLon, thetaBirdsEye, uCrossProduct, vCrossProduct, wCrossProduct, xNew, yNew, zNew)
+         call executeRotation(xCell(i), yCell(i), zCell(i), thetaLat, thetaLon, thetaBirdsEye, &
+                              uCrossProduct, vCrossProduct, wCrossProduct, xNew, yNew, zNew)
          call convert_xl(xCell(i), yCell(i), zCell(i), latCell(i), lonCell(i))
       end do
 
       do i=1,nVertices
-         call executeRotation(xVertex(i), yVertex(i), zVertex(i), thetaLat, thetaLon, thetaBirdsEye, uCrossProduct, vCrossProduct, wCrossProduct, xNew, yNew, zNew)
+         call executeRotation(xVertex(i), yVertex(i), zVertex(i), thetaLat, thetaLon, thetaBirdsEye, &
+                              uCrossProduct, vCrossProduct, wCrossProduct, xNew, yNew, zNew)
          call convert_xl(xVertex(i), yVertex(i), zVertex(i), latVertex(i), lonVertex(i))
       end do
 
       do i=1,nEdges
-         call executeRotation(xEdge(i), yEdge(i), zEdge(i), thetaLat, thetaLon, thetaBirdsEye, uCrossProduct, vCrossProduct, wCrossProduct, xNew, yNew, zNew)
+         call executeRotation(xEdge(i), yEdge(i), zEdge(i), thetaLat, thetaLon, thetaBirdsEye, &
+                              uCrossProduct, vCrossProduct, wCrossProduct, xNew, yNew, zNew)
          call convert_xl(xEdge(i), yEdge(i), zEdge(i), latEdge(i), lonEdge(i))
 
          !compute new angle edge
@@ -347,7 +355,8 @@ contains
    !  <uCrossProduct, vCrossProduct, wCrossProduct> and <xNew,yNew,zNew> must be unit vectors as well
    !
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   subroutine executeRotation(x, y, z, thetaLat, thetaLon, thetaBirdsEye, uCrossProduct, vCrossProduct, wCrossProduct, xNew, yNew, zNew)
+   subroutine executeRotation(x, y, z, thetaLat, thetaLon, thetaBirdsEye, &
+                              uCrossProduct, vCrossProduct, wCrossProduct, xNew, yNew, zNew)
 
       implicit none
 
@@ -357,7 +366,8 @@ contains
          real (kind=RKIND), intent(in) :: xNew, yNew, zNew
          real (kind=RKIND) ::  u, v, w
 
-         ! latitude rotation (rotate around cross product of xyz corresponding to original point's longitude at the equator and the z axis unit vector)
+         ! latitude rotation (rotate around cross product of xyz corresponding to original point's longitude
+         ! at the equator and the z axis unit vector)
          u = uCrossProduct
          v = vCrossProduct
          w = wCrossProduct
@@ -388,7 +398,9 @@ contains
    end function degreesToRadians
 
 
-   subroutine read_namelist(config_original_latitude_degrees, config_original_longitude_degrees, config_new_latitude_degrees, config_new_longitude_degrees, config_birdseye_rotation_counter_clockwise_degrees)
+   subroutine read_namelist(config_original_latitude_degrees, config_original_longitude_degrees, &
+                            config_new_latitude_degrees, config_new_longitude_degrees, &
+                            config_birdseye_rotation_counter_clockwise_degrees)
 
       implicit none
 
