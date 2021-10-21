@@ -1,5 +1,5 @@
 FC = $(shell nc-config --fc)
-FFLAGS = -m64 -O2 -ffree-form -Wall
+FFLAGS = -O3
 FCINCLUDES = $(shell nc-config --fflags)
 FCLIBS = $(shell nc-config --flibs)
 
