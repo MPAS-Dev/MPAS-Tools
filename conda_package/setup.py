@@ -17,7 +17,7 @@ install_requires = [
     'pyamg',
     'pyevtk',
     'pyproj',
-    'python-igraph',
+    'igraph',
     'scikit-image',
     'scipy',
     'shapely',
