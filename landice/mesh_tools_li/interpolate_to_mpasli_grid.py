@@ -651,8 +651,8 @@ if filetype=='cism':
    fieldInfo['thickness'] =     {'InputName':'thk',  'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
    if not args.thicknessOnly:
      fieldInfo['bedTopography'] = {'InputName':'topg', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
-     fieldInfo['sfcMassBal'] =    {'InputName':'smb', 'scalefactor':910.0/(3600.0*24.0*365.0)/1000.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming default CISM density and mm/yr w.e. units for smb
-     fieldInfo['sfcMassBalUncertainty'] =    {'InputName':'smb_std', 'scalefactor':910.0/(3600.0*24.0*365.0)/1000.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming default CISM density and mm/yr w.e. units for smb
+     fieldInfo['sfcMassBal'] =    {'InputName':'smb', 'scalefactor':1.0/(3600.0*24.0*365.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming mm/yr w.e. units for smb
+     fieldInfo['sfcMassBalUncertainty'] =    {'InputName':'smb_std', 'scalefactor':1.0/(3600.0*24.0*365.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming mm/yr w.e. units for smb
      fieldInfo['floatingBasalMassBal'] =    {'InputName':'subm', 'scalefactor':910.0/(3600.0*24.0*365.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming default CISM density
      #fieldInfo['temperature'] =   {'InputName':'temp', 'scalefactor':1.0, 'offset':273.15, 'gridType':'x1', 'vertDim':True}
      fieldInfo['temperature'] =   {'InputName':'tempstag', 'scalefactor':1.0, 'offset':273.15, 'gridType':'x1', 'vertDim':True}  # pick one or the other
