@@ -102,7 +102,7 @@
 <span class="kn">import</span> <span class="nn">subprocess</span>
 
 
-<div class="viewcode-block" id="check_call"><a class="viewcode-back" href="../../generated/mpas_tools.logging.check_call.html#mpas_tools.logging.check_call">[docs]</a><span class="k">def</span> <span class="nf">check_call</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+<div class="viewcode-block" id="check_call"><a class="viewcode-back" href="../../generated/mpas_tools.logging.check_call.html#mpas_tools.logging.check_call">[docs]</a><span class="k">def</span> <span class="nf">check_call</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Call the given subprocess with logging to the given logger.</span>
 
@@ -114,6 +114,9 @@
 <span class="sd">    logger : logging.Logger</span>
 <span class="sd">        The logger to write output to</span>
 
+<span class="sd">    kwargs : dict</span>
+<span class="sd">        Keyword arguments to pass to subprocess.Popen</span>
+
 <span class="sd">    Raises</span>
 <span class="sd">    ------</span>
 <span class="sd">    subprocess.CalledProcessError</span>
@@ -122,7 +125,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
-                               <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span>
+                               <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">stdout</span><span class="p">:</span>
