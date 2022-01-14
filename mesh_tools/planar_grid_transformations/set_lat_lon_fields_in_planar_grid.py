@@ -6,6 +6,7 @@ Take MPAS planar grid and populate the lat/lon fields based on a specified proje
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import sys
+import numpy as np
 import netCDF4
 import pyproj
 from optparse import OptionParser
@@ -83,6 +84,11 @@ print("Input file yCell min/max values:", yCell[:].min(), yCell[:].max())
 lonCell[:], latCell[:] = pyproj.transform(projections[options.projection], projections['latlon'], xCell[:], yCell[:], radians=True)
 lonVertex[:], latVertex[:] = pyproj.transform(projections[options.projection], projections['latlon'], xVertex[:], yVertex[:], radians=True)
 lonEdge[:], latEdge[:] = pyproj.transform(projections[options.projection], projections['latlon'], xEdge[:], yEdge[:], radians=True)
+
+# change the longitude convention to use positive values [0 2pi]
+lonCell = np.mod(lonCell, 2.0*np.pi)
+lonVertex = np.mod(lonVertex, 2.0*np.pi)
+lonEdge = np.mod(lonEdge, 2.0*np.pi)
 
 print("Calculated latCell min/max values (radians):", latCell[:].min(), latCell[:].max())
 print("Calculated lonCell min/max values (radians):", lonCell[:].min(), lonCell[:].max())
