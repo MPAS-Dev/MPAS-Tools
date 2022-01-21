@@ -160,24 +160,24 @@ to the yaml file describing the development environment,
 <code class="docutils literal notranslate"><span class="pre">conda_package/dev_environment.yaml</span></code>.</p>
 <p>In <code class="docutils literal notranslate"><span class="pre">meta.yaml</span></code>, add these changes in alphabetical order to the <code class="docutils literal notranslate"><span class="pre">run</span></code>
 section of <code class="docutils literal notranslate"><span class="pre">requirements</span></code>:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">requirements</span><span class="p">:</span>
-<span class="nn">...</span>
-  <span class="nt">run</span><span class="p">:</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">python</span>
-    <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">affine</span>
-    <span class="l l-Scalar l-Scalar-Plain">...</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">requirements</span><span class="p">:</span><span class="w"></span>
+<span class="nn">...</span><span class="w"></span>
+<span class="w">  </span><span class="nt">run</span><span class="p">:</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python</span><span class="w"></span>
+<span class="w">    </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">affine</span><span class="w"></span>
+<span class="w">    </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
 </pre></div>
 </div>
 <p>These requirements <em>must</em> be on the <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code> anaconda channel.  If you
 need help with this, please contact the developers.</p>
 <p>Add the new dependencies in alphabetical order to <code class="docutils literal notranslate"><span class="pre">dev_environment.yaml</span></code>
 under the <code class="docutils literal notranslate"><span class="pre">#Base</span></code> comment:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">...</span>
-<span class="nt">dependencies</span><span class="p">:</span>
-  <span class="c1"># Base</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">python 3.8</span>
-  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">affine</span>
-  <span class="l l-Scalar l-Scalar-Plain">...</span>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">...</span><span class="w"></span>
+<span class="nt">dependencies</span><span class="p">:</span><span class="w"></span>
+<span class="w">  </span><span class="c1"># Base</span><span class="w"></span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python 3.8</span><span class="w"></span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">affine</span><span class="w"></span>
+<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
 </pre></div>
 </div>
 </section>
