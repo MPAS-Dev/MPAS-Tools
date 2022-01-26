@@ -69,29 +69,36 @@ yVertex = f.variables['yVertex']
 xEdge = f.variables['xEdge']
 yEdge = f.variables['yEdge']
 
-latCell = f.variables['latCell']
-lonCell = f.variables['lonCell']
-latVertex = f.variables['latVertex']
-lonVertex = f.variables['lonVertex']
-latEdge = f.variables['latEdge']
-lonEdge = f.variables['lonEdge']
+latCellVar = f.variables['latCell']
+lonCellVar = f.variables['lonCell']
+latVertexVar = f.variables['latVertex']
+lonVertexVar = f.variables['lonVertex']
+latEdgeVar = f.variables['latEdge']
+lonEdgeVar = f.variables['lonEdge']
 
 print("Input file xCell min/max values:", xCell[:].min(), xCell[:].max())
 print("Input file yCell min/max values:", yCell[:].min(), yCell[:].max())
 
 # populate x,y fields
 # MPAS uses lat/lon in radians, so have pyproj return fields in radians.
-lonCell[:], latCell[:] = pyproj.transform(projections[options.projection], projections['latlon'], xCell[:], yCell[:], radians=True)
-lonVertex[:], latVertex[:] = pyproj.transform(projections[options.projection], projections['latlon'], xVertex[:], yVertex[:], radians=True)
-lonEdge[:], latEdge[:] = pyproj.transform(projections[options.projection], projections['latlon'], xEdge[:], yEdge[:], radians=True)
+lonCell, latCell = pyproj.transform(projections[options.projection], projections['latlon'], xCell[:], yCell[:], radians=True)
+lonVertex, latVertex = pyproj.transform(projections[options.projection], projections['latlon'], xVertex[:], yVertex[:], radians=True)
+lonEdge, latEdge = pyproj.transform(projections[options.projection], projections['latlon'], xEdge[:], yEdge[:], radians=True)
 
 # change the longitude convention to use positive values [0 2pi]
 lonCell = np.mod(lonCell, 2.0*np.pi)
 lonVertex = np.mod(lonVertex, 2.0*np.pi)
 lonEdge = np.mod(lonEdge, 2.0*np.pi)
 
-print("Calculated latCell min/max values (radians):", latCell[:].min(), latCell[:].max())
-print("Calculated lonCell min/max values (radians):", lonCell[:].min(), lonCell[:].max())
+print("Calculated latCell min/max values (radians):", latCell.min(), latCell.max())
+print("Calculated lonCell min/max values (radians):", lonCell.min(), lonCell.max())
+
+latCellVar[:] = latCell
+lonCellVar[:] = lonCell
+latVertexVar[:] = latVertex
+lonVertexVar[:] = lonVertex
+latEdgeVar[:] = latEdge
+lonEdgeVar[:] = lonEdge
 
 # Update history attribute of netCDF file
 thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + " ".join(sys.argv[:])
