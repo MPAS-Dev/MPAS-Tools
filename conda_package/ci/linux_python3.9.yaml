@@ -5,7 +5,7 @@ cxx_compiler:
 cxx_compiler_version:
 - '9'
 hdf5:
-- 1.10.6
+- 1.12.1
 libnetcdf:
 - 4.8.1
 pin_run_as_build:
