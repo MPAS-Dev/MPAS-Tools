@@ -6,7 +6,7 @@ import netCDF4
 import numpy as np
 
 from optparse import OptionParser
-
+from mpas_tools.cime.constants import constants
 
 def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
     """
@@ -47,10 +47,17 @@ def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
     sphereRadius = float(fin.sphere_radius)
     on_a_sphere = str(fin.on_a_sphere)
 
+    # check the longitude convention to use positive values [0 2pi]
+    if np.any(np.logical_or(lonCell < 0, lonCell > 2.0 * np.pi)):
+       raise ValueError("lonCell is not in the desired range (0, 2pi)")
+
+    if np.any(np.logical_or(lonVertex < 0, lonVertex > 2.0 * np.pi)):
+       raise ValueError("lonVertex is not in the desired range (0, 2pi)")
+
     if sphereRadius <= 0:
-        print(" -- WARNING: conservative remapping is NOT possible when "
-              "'sphereRadius' <= 0 because 'grid_area' field will be infinite "
-              "(from division by 0)")
+       sphereRadius =  constants['SHR_CONST_REARTH']
+       print(f" -- WARNING: sphereRadius<0 so setting sphereRadius = "
+             f"{constants['SHR_CONST_REARTH']}")
 
     if on_a_sphere == "NO":
         print(" -- WARNING: 'on_a_sphere' attribute is 'NO', which means that "
