@@ -3,7 +3,7 @@ import logging
 import subprocess
 
 
-def check_call(args, logger, **kwargs):
+def check_call(args, logger, log_command=True, **kwargs):
     """
     Call the given subprocess with logging to the given logger.
 
@@ -15,6 +15,9 @@ def check_call(args, logger, **kwargs):
     logger : logging.Logger
         The logger to write output to
 
+    log_command : bool, optional
+        Whether to write the command that is running ot the logger
+
     kwargs : dict
         Keyword arguments to pass to subprocess.Popen
 
@@ -24,6 +27,9 @@ def check_call(args, logger, **kwargs):
         If the given subprocess exists with nonzero status
 
     """
+
+    if log_command:
+        logger.info(f'Running: {" ".join(args)}')
 
     process = subprocess.Popen(args, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE, **kwargs)
