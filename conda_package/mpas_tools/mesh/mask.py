@@ -955,7 +955,9 @@ def _katana(geometry, threshold, count=0, maxcount=250):
     result = []
     for d in (a, b,):
         c = geometry.intersection(d)
-        if not isinstance(c, GeometryCollection):
+        if isinstance(c, GeometryCollection):
+            c = c.geoms
+        else:
             c = [c]
         for e in c:
             if isinstance(e, (Polygon, MultiPolygon)):
@@ -966,7 +968,7 @@ def _katana(geometry, threshold, count=0, maxcount=250):
     final_result = []
     for g in result:
         if isinstance(g, MultiPolygon):
-            final_result.extend(g)
+            final_result.extend(g.geoms)
         else:
             final_result.append(g)
     return final_result
