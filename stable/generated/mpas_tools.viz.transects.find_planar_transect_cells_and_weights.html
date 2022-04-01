@@ -125,11 +125,11 @@ that make up MPAS cells.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>xTransect</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.21.2.dev0)"><em>xarray.DataArray</em></a>) – The x and y points defining segments making up the transect</p></li>
-<li><p><strong>yTransect</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v0.21.2.dev0)"><em>xarray.DataArray</em></a>) – The x and y points defining segments making up the transect</p></li>
-<li><p><strong>dsTris</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.21.2.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines triangles, the results of calling
+<li><p><strong>xTransect</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.3.1.dev0)"><em>xarray.DataArray</em></a>) – The x and y points defining segments making up the transect</p></li>
+<li><p><strong>yTransect</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.3.1.dev0)"><em>xarray.DataArray</em></a>) – The x and y points defining segments making up the transect</p></li>
+<li><p><strong>dsTris</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.3.1.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines triangles, the results of calling
 <code class="docutils literal notranslate"><span class="pre">mesh_to_triangles()</span></code></p></li>
-<li><p><strong>dsMesh</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v0.21.2.dev0)"><em>xarray.Dataset</em></a>) – A data set with the full MPAS mesh.</p></li>
+<li><p><strong>dsMesh</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.3.1.dev0)"><em>xarray.Dataset</em></a>) – A data set with the full MPAS mesh.</p></li>
 <li><p><strong>tree</strong> (<em>scipy.spatial.cKDTree</em>) – A tree of edge centers from triangles making up an MPAS mesh, the return
 value from <code class="docutils literal notranslate"><span class="pre">make_triangle_tree()</span></code></p></li>
 <li><p><strong>subdivisionRes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><em>optional</em>) – Resolution in m to use to subdivide the transect when looking for
