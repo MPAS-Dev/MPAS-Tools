@@ -7,7 +7,7 @@ import netCDF4
 import numpy as np
 from optparse import OptionParser
 import matplotlib.pyplot as plt
-from pyproj import Transformer, transform, CRS #HH added this line
+from pyproj import Transformer, transform, CRS
 
 # ======== DEFINE PROJECTIONS =============
 # Create empty dictionary to store projection definitions:
