@@ -93,6 +93,31 @@ Mesh conversion
 
    scrip_from_mpas
 
+Config
+------
+
+.. currentmodule:: mpas_tools.config
+
+.. autosummary::
+   :toctree: generated/
+
+   MpasConfigParser
+   MpasConfigParser.add_user_config
+   MpasConfigParser.add_from_file
+   MpasConfigParser.add_from_package
+   MpasConfigParser.get
+   MpasConfigParser.getint
+   MpasConfigParser.getfloat
+   MpasConfigParser.getboolean
+   MpasConfigParser.getlist
+   MpasConfigParser.getexpression
+   MpasConfigParser.has_section
+   MpasConfigParser.has_option
+   MpasConfigParser.set
+   MpasConfigParser.write
+   MpasConfigParser.copy
+   MpasConfigParser.__getitem__
+
 I/O
 ---
 

@@ -25,6 +25,8 @@ analyzing simulations, and in other MPAS-related workflows.
 
    cime
 
+   config
+
    logging
 
    transects
