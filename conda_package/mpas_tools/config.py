@@ -418,7 +418,7 @@ class MpasConfigParser:
             comments = self._parse_comments(fp, filename, comments_before=True)
 
         if user:
-            self._user_config = {filename: config}
+            self._user_config[filename] = config
         else:
             self._configs[filename] = config
         self._comments[filename] = comments
