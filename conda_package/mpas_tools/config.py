@@ -15,6 +15,17 @@ class MpasConfigParser:
     of the source of different config options and allows the "user" config
     options to always take precedence over other config options (even if they
     are added later).
+
+    Attributes
+    ----------
+    combined : {None, configparser.ConfigParser}
+        The combined config options
+
+    combined_comments : {None, dict}
+        The combined comments associated with sections and options
+
+    sources : {None, dict}
+        The source of each section or option
     """
 
     _np_allowed = dict(linspace=np.linspace, xrange=range,
@@ -29,9 +40,9 @@ class MpasConfigParser:
         self._configs = dict()
         self._user_config = dict()
         self._comments = dict()
-        self._combined = None
-        self._combined_comments = None
-        self._sources = None
+        self.combined = None
+        self.combined_comments = None
+        self.sources = None
 
     def add_user_config(self, filename):
         """
@@ -95,9 +106,9 @@ class MpasConfigParser:
         value : str
             The value of the config option
         """
-        if self._combined is None:
-            self._combine()
-        return self._combined.get(section, option)
+        if self.combined is None:
+            self.combine()
+        return self.combined.get(section, option)
 
     def getint(self, section, option):
         """
@@ -116,9 +127,9 @@ class MpasConfigParser:
         value : int
             The value of the config option
         """
-        if self._combined is None:
-            self._combine()
-        return self._combined.getint(section, option)
+        if self.combined is None:
+            self.combine()
+        return self.combined.getint(section, option)
 
     def getfloat(self, section, option):
         """
@@ -137,9 +148,9 @@ class MpasConfigParser:
         value : float
             The value of the config option
         """
-        if self._combined is None:
-            self._combine()
-        return self._combined.getfloat(section, option)
+        if self.combined is None:
+            self.combine()
+        return self.combined.getfloat(section, option)
 
     def getboolean(self, section, option):
         """
@@ -158,9 +169,9 @@ class MpasConfigParser:
         value : bool
             The value of the config option
         """
-        if self._combined is None:
-            self._combine()
-        return self._combined.getboolean(section, option)
+        if self.combined is None:
+            self.combine()
+        return self.combined.getboolean(section, option)
 
     def getlist(self, section, option, dtype=str):
         """
@@ -249,9 +260,9 @@ class MpasConfigParser:
         found : bool
             Whether the option was found in the section
         """
-        if self._combined is None:
-            self._combine()
-        return self._combined.has_section(section)
+        if self.combined is None:
+            self.combine()
+        return self.combined.has_section(section)
 
     def has_option(self, section, option):
         """
@@ -270,9 +281,9 @@ class MpasConfigParser:
         found : bool
             Whether the option was found in the section
         """
-        if self._combined is None:
-            self._combine()
-        return self._combined.has_option(section, option)
+        if self.combined is None:
+            self.combine()
+        return self.combined.has_option(section, option)
 
     def set(self, section, option, value=None, comment=None, user=False):
         """
@@ -312,9 +323,9 @@ class MpasConfigParser:
         if not config.has_section(section):
             config.add_section(section)
         config.set(section, option, value)
-        self._combined = None
-        self._combined_comments = None
-        self._sources = None
+        self.combined = None
+        self.combined_comments = None
+        self.sources = None
         if filename not in self._comments:
             self._comments[filename] = dict()
         if comment is None:
@@ -340,18 +351,18 @@ class MpasConfigParser:
             Whether to include the original comments associated with each
             section or option
         """
-        if self._combined is None:
-            self._combine()
-        for section in self._combined.sections():
-            section_items = self._combined.items(section=section)
-            if include_comments and section in self._combined_comments:
-                fp.write(self._combined_comments[section])
+        if self.combined is None:
+            self.combine()
+        for section in self.combined.sections():
+            section_items = self.combined.items(section=section)
+            if include_comments and section in self.combined_comments:
+                fp.write(self.combined_comments[section])
             fp.write(f'[{section}]\n\n')
             for option, value in section_items:
                 if include_comments:
-                    fp.write(self._combined_comments[(section, option)])
+                    fp.write(self.combined_comments[(section, option)])
                 if include_sources:
-                    source = self._sources[(section, option)]
+                    source = self.sources[(section, option)]
                     fp.write(f'# source: {source}\n')
                 value = str(value).replace('\n', '\n\t')
                 fp.write(f'{option} = {value}\n\n')
@@ -404,9 +415,9 @@ class MpasConfigParser:
         section_proxy : configparser.SectionProxy
             The config options for the given section.
         """
-        if self._combined is None:
-            self._combine()
-        return self._combined[section]
+        if self.combined is None:
+            self.combine()
+        return self.combined[section]
 
     def _add(self, filename, user):
         filename = os.path.abspath(filename)
@@ -422,41 +433,31 @@ class MpasConfigParser:
         else:
             self._configs[filename] = config
         self._comments[filename] = comments
-        self._combined = None
-        self._combined_comments = None
-        self._sources = None
+        self.combined = None
+        self.combined_comments = None
+        self.sources = None
 
-    def _combine(self):
-        self._combined = ConfigParser(interpolation=ExtendedInterpolation())
-        self._sources = dict()
-        self._combined_comments = dict()
+    def combine(self):
+        """
+        Combine the config files into one.  This is normally handled
+        automatically.
+        """
+        self.combined = ConfigParser(interpolation=ExtendedInterpolation())
+        self.sources = dict()
+        self.combined_comments = dict()
         for configs in [self._configs, self._user_config]:
             for source, config in configs.items():
                 for section in config.sections():
                     if section in self._comments[source]:
-                        self._combined_comments[section] = \
+                        self.combined_comments[section] = \
                             self._comments[source][section]
-                    if not self._combined.has_section(section):
-                        self._combined.add_section(section)
+                    if not self.combined.has_section(section):
+                        self.combined.add_section(section)
                     for option, value in config.items(section):
-                        self._sources[(section, option)] = source
-                        self._combined.set(section, option, value)
-                        self._combined_comments[(section, option)] = \
+                        self.sources[(section, option)] = source
+                        self.combined.set(section, option, value)
+                        self.combined_comments[(section, option)] = \
                             self._comments[source][(section, option)]
-        self._ensure_absolute_paths()
-
-    def _ensure_absolute_paths(self):
-        """
-        make sure all paths in the paths, namelists, streams, and executables
-        sections are absolute paths
-        """
-        config = self._combined
-        for section in ['paths', 'namelists', 'streams', 'executables']:
-            if not config.has_section(section):
-                continue
-            for option, value in config.items(section):
-                value = os.path.abspath(value)
-                config.set(section, option, value)
 
     @staticmethod
     def _parse_comments(fp, filename, comments_before=True):
