@@ -43,6 +43,7 @@
 <li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
@@ -107,6 +108,7 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#J"><strong>J</strong></a>
  | <a href="#L"><strong>L</strong></a>
@@ -122,9 +124,13 @@
 <h2 id="_">_</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="generated/mpas_tools.logging.LoggingContext.html#mpas_tools.logging.LoggingContext.__init__">__init__() (mpas_tools.logging.LoggingContext method)</a>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.__getitem__.html#mpas_tools.config.MpasConfigParser.__getitem__">__getitem__() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser.__init__">__init__() (mpas_tools.config.MpasConfigParser method)</a>
 
       <ul>
+        <li><a href="generated/mpas_tools.logging.LoggingContext.html#mpas_tools.logging.LoggingContext.__init__">(mpas_tools.logging.LoggingContext method)</a>
+</li>
         <li><a href="generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector.__init__">(mpas_tools.transects.Vector method)</a>
 </li>
       </ul></li>
@@ -138,11 +144,17 @@
 </li>
       <li><a href="generated/mpas_tools.ocean.depth.add_depth.html#mpas_tools.ocean.depth.add_depth">add_depth() (in module mpas_tools.ocean.depth)</a>
 </li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.add_from_file.html#mpas_tools.config.MpasConfigParser.add_from_file">add_from_file() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.add_from_package.html#mpas_tools.config.MpasConfigParser.add_from_package">add_from_package() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
       <li><a href="generated/mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask.html#mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask">add_land_locked_cells_to_mask() (in module mpas_tools.ocean.coastline_alteration)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html#mpas_tools.ocean.moc.add_moc_southern_boundary_transects">add_moc_southern_boundary_transects() (in module mpas_tools.ocean.moc)</a>
+</li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.add_user_config.html#mpas_tools.config.MpasConfigParser.add_user_config">add_user_config() (mpas_tools.config.MpasConfigParser method)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid">add_zmid() (in module mpas_tools.ocean.depth)</a>
 </li>
@@ -206,6 +218,8 @@
 </li>
       <li><a href="generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert">convert() (in module mpas_tools.mesh.conversion)</a>
 </li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.copy.html#mpas_tools.config.MpasConfigParser.copy">copy() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.CPP_projection.html#mpas_tools.ocean.coastal_tools.CPP_projection">CPP_projection() (in module mpas_tools.ocean.coastal_tools)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.create_background_mesh.html#mpas_tools.ocean.coastal_tools.create_background_mesh">create_background_mesh() (in module mpas_tools.ocean.coastal_tools)</a>
@@ -260,15 +274,39 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.get.html#mpas_tools.config.MpasConfigParser.get">get() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates.html#mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates">get_convex_hull_coordinates() (in module mpas_tools.ocean.coastal_tools)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.get_data_inside_box.html#mpas_tools.ocean.coastal_tools.get_data_inside_box">get_data_inside_box() (in module mpas_tools.ocean.coastal_tools)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.get_indices_inside_quad.html#mpas_tools.ocean.coastal_tools.get_indices_inside_quad">get_indices_inside_quad() (in module mpas_tools.ocean.coastal_tools)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.transects.get_outline_segments.html#mpas_tools.ocean.transects.get_outline_segments">get_outline_segments() (in module mpas_tools.ocean.transects)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.getboolean.html#mpas_tools.config.MpasConfigParser.getboolean">getboolean() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.getexpression.html#mpas_tools.config.MpasConfigParser.getexpression">getexpression() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.getfloat.html#mpas_tools.config.MpasConfigParser.getfloat">getfloat() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.getint.html#mpas_tools.config.MpasConfigParser.getint">getint() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.getlist.html#mpas_tools.config.MpasConfigParser.getlist">getlist() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.has_option.html#mpas_tools.config.MpasConfigParser.has_option">has_option() (mpas_tools.config.MpasConfigParser method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.has_section.html#mpas_tools.config.MpasConfigParser.has_section">has_section() (mpas_tools.config.MpasConfigParser method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -427,6 +465,8 @@
         <li><a href="generated/mpas_tools.ocean.moc.html#module-mpas_tools.ocean.moc">module</a>
 </li>
       </ul></li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser">MpasConfigParser (class in mpas_tools.config)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -460,6 +500,8 @@
       <li><a href="generated/mpas_tools.ocean.coastal_tools.save_matfile.html#mpas_tools.ocean.coastal_tools.save_matfile">save_matfile() (in module mpas_tools.ocean.coastal_tools)</a>
 </li>
       <li><a href="generated/mpas_tools.scrip.from_mpas.scrip_from_mpas.html#mpas_tools.scrip.from_mpas.scrip_from_mpas">scrip_from_mpas() (in module mpas_tools.scrip.from_mpas)</a>
+</li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.set.html#mpas_tools.config.MpasConfigParser.set">set() (mpas_tools.config.MpasConfigParser method)</a>
 </li>
       <li><a href="generated/mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson">signed_distance_from_geojson() (in module mpas_tools.mesh.creation.signed_distance)</a>
 </li>
@@ -502,6 +544,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html#mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks">widen_transect_edge_masks() (in module mpas_tools.ocean.coastline_alteration)</a>
+</li>
+      <li><a href="generated/mpas_tools.config.MpasConfigParser.write.html#mpas_tools.config.MpasConfigParser.write">write() (mpas_tools.config.MpasConfigParser method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
