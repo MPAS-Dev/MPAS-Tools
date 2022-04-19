@@ -649,6 +649,7 @@ fieldInfo = OrderedDict()
 if filetype=='cism':
 
    fieldInfo['thickness'] =     {'InputName':'thk',  'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
+   fieldInfo['iceMask'] =  {'InputName':'iceMask',  'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
    if not args.thicknessOnly:
      fieldInfo['bedTopography'] = {'InputName':'topg', 'scalefactor':1.0, 'offset':0.0, 'gridType':'x1', 'vertDim':False}
      fieldInfo['sfcMassBal'] =    {'InputName':'smb', 'scalefactor':1.0/(3600.0*24.0*365.0), 'offset':0.0, 'gridType':'x1', 'vertDim':False}  # Assuming mm/yr w.e. units for smb
