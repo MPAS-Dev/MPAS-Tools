@@ -9,8 +9,9 @@ def check_call(args, logger, log_command=True, **kwargs):
 
     Parameters
     ----------
-    args : list
-        A list of argument to the subprocess
+    args : list or str
+        A list or string of argument to the subprocess.  If ``args`` is a
+        string, you must pass ``shell=True`` as one of the ``kwargs``.
 
     logger : logging.Logger
         The logger to write output to
@@ -18,7 +19,7 @@ def check_call(args, logger, log_command=True, **kwargs):
     log_command : bool, optional
         Whether to write the command that is running ot the logger
 
-    kwargs : dict
+    **kwargs : dict
         Keyword arguments to pass to subprocess.Popen
 
     Raises
@@ -28,8 +29,12 @@ def check_call(args, logger, log_command=True, **kwargs):
 
     """
 
+    if isinstance(args, str):
+        print_args = args
+    else:
+        print_args = ' '.join(args)
     if log_command:
-        logger.info(f'Running: {" ".join(args)}')
+        logger.info(f'Running: {print_args}')
 
     process = subprocess.Popen(args, stdout=subprocess.PIPE,
                                stderr=subprocess.PIPE, **kwargs)
@@ -46,7 +51,7 @@ def check_call(args, logger, log_command=True, **kwargs):
 
     if process.returncode != 0:
         raise subprocess.CalledProcessError(process.returncode,
-                                            ' '.join(args))
+                                            print_args)
 
 
 class LoggingContext(object):
