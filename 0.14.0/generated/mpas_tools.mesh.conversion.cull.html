@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.mesh.conversion.cull &mdash; mpas_tools 0.14.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mpas_tools.mesh.conversion.mask" href="mpas_tools.mesh.conversion.mask.html" />
+    <link rel="prev" title="mpas_tools.mesh.conversion.convert" href="mpas_tools.mesh.conversion.convert.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="../index.html" class="icon icon-home"> mpas_tools
+          </a>
+              <div class="version">
+                0.14.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-creation">Mesh creation</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="../api.html#mesh-conversion">Mesh conversion</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.convert.html">mpas_tools.mesh.conversion.convert</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.mesh.conversion.cull</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.mask.html">mpas_tools.mesh.conversion.mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_region_masks.html">mpas_tools.mesh.mask.compute_mpas_region_masks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_transect_masks.html">mpas_tools.mesh.mask.compute_mpas_transect_masks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html">mpas_tools.mesh.mask.compute_mpas_flood_fill_mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.mask.compute_lon_lat_region_masks.html">mpas_tools.mesh.mask.compute_lon_lat_region_masks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.translate.html">mpas_tools.translate.translate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center.html">mpas_tools.translate.center</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center_on_mesh.html">mpas_tools.translate.center_on_mesh</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#config">Config</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#i-o">I/O</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#parallelism">Parallelism</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#interpolation">Interpolation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="../api.html#cime-constants">CIME constants</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
+          <li><a href="../api.html">API reference</a> &raquo;</li>
+      <li>mpas_tools.mesh.conversion.cull</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/mpas_tools.mesh.conversion.cull.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="mpas-tools-mesh-conversion-cull">
+<h1>mpas_tools.mesh.conversion.cull<a class="headerlink" href="#mpas-tools-mesh-conversion-cull" title="Permalink to this headline">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="mpas_tools.mesh.conversion.cull">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.conversion.</span></span><span class="sig-name descname"><span class="pre">cull</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsIn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsMask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsInverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsPreserve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graphInfoFileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/conversion.html#cull"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.conversion.cull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Use <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code> to cull cells from a mesh based on the
+<code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field in the input file or DataSet and/or the provided masks.
+<code class="docutils literal notranslate"><span class="pre">cullCell</span></code>, dsMask and dsInverse are merged together so that the final
+mask is the union of these 3.  The preserve mask is then used to determine
+where cells should <em>not</em> be culled.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dsIn</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.3.1.dev0)"><em>xarray.Dataset</em></a>) – A data set to cull, possibly with a <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field set to one where
+cells should be removed</p></li>
+<li><p><strong>dsMask</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.3.1.dev0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 1 where cells
+should be culled</p></li>
+<li><p><strong>dsInverse</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.3.1.dev0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 0 where cells
+should be culled</p></li>
+<li><p><strong>dsPreserve</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.3.1.dev0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 1 where cells
+should <em>not</em> be culled</p></li>
+<li><p><strong>graphInfoFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – A file path (relative or absolute) where the graph file (typically
+<code class="docutils literal notranslate"><span class="pre">culled_graph.info</span></code> should be written out.  By default,
+<code class="docutils literal notranslate"><span class="pre">culled_graph.info</span></code> is not saved.</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.10)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
+<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – A directory in which a temporary directory will be added with files
+produced during cell culling and then deleted upon completion.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>dsOut</strong> (<em>xarray.Dataset</em>) – The culled mesh</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mpas_tools.mesh.conversion.convert.html" class="btn btn-neutral float-left" title="mpas_tools.mesh.conversion.convert" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.mesh.conversion.mask.html" class="btn btn-neutral float-right" title="mpas_tools.mesh.conversion.mask" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
