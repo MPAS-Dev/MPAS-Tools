@@ -46,11 +46,15 @@ if SEACAS_path == None:
    #sys.path.append('/home/tzhang/Apps/seacas/lib')
    #sys.path.append('/Users/trevorhillebrand/Documents/mpas/seacas/lib/')
    #sys.path.append('/Users/mhoffman/software/seacas/install/lib')
-   sys.path.append('/usr/projects/climate/SHARED_CLIMATE/software/badger/trilinos/2018-12-19/gcc-6.4.0/openmpi-2.1.2/lib')  # path on LANL Badger/Grizzly
+   sys.path.append('/global/project/projectdirs/piscees/nightlyCoriCDash/build/TrilinosInstall/lib')  # path on Cori
+   # Note: There is currently not an operational installation on Badger or Grizzly
 else:
    sys.path.append(SEACAS_path+'/lib')
 
-from exodus import exodus
+try:
+    from exodus import exodus
+except ModuleNotFoundError:
+    from exodus3 import exodus
 
 # Map and copy Exodus data to MPAS data
 
@@ -80,8 +84,6 @@ if not options.exo_file:
    sys.exit("ERROR: an Albany optimization exodus file was not specified with --exo or -e.")
 exo = exodus(options.exo_file)
 
-stride = np.array(exo.get_global_variable_values('stride'))
-
 # Get Exodus coordinate arrays
 xyz_exo = exo.get_coords()
 x_exo = np.array(xyz_exo[0]) * 1000.0
@@ -110,8 +112,9 @@ if not options.id_file:
    sys.exit("ERROR: Cell ID file was not specified with --ascii or -a")
 print("Reading global id file {}".format(options.id_file))
 cellID = np.loadtxt(options.id_file,dtype='i')
+# The first number in the file is the total number, which is the same as the stride
 cellID_array = cellID[1::]
-# The first number in the file is the total number. skip it
+stride = cellID[0]  # Get stride from cell id file instead of from exo file
 
 # Parse variable names from options
 var_names = []
