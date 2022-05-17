@@ -47,7 +47,7 @@ if SEACAS_path == None:
    #sys.path.append('/Users/trevorhillebrand/Documents/mpas/seacas/lib/')
    #sys.path.append('/Users/mhoffman/software/seacas/install/lib')
    sys.path.append('/global/project/projectdirs/piscees/nightlyCoriCDash/build/TrilinosInstall/lib')  # path on Cori
-   #sys.path.append('/usr/projects/climate/SHARED_CLIMATE/software/badger/trilinos/2018-12-19/gcc-6.4.0/openmpi-2.1.2/lib')  # path on LANL Badger/Grizzly
+   # Note: There is currently not an operational installation on Badger or Grizzly
 else:
    sys.path.append(SEACAS_path+'/lib')
 
