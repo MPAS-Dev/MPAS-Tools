@@ -107,20 +107,17 @@ ax[0,1].plot(yr, GLflux, label="GL flux")
 GLMigrationflux = -f.variables['groundingLineMigrationFlux'][:]/1.0e12
 ax[0,1].plot(yr, GLMigrationflux, label="GL migration flux")
 
-ax[0,1].plot(yr, SMBg+BMBg+calv+FMF+GLflux+GLMigrationflux, "--", label="total")
+ax[0,1].plot(yr, SMBg+BMBg+calvg+FMFg+GLflux+GLMigrationflux, "--", label="total")
 
 ax[0,1].legend(loc='best', prop={'size': 6})
 
 # --- Figure: cumulative mass change ---
-ax[1,1].set_xlabel('Year')
-ax[1,1].set_ylabel('Cumulative mass change (Gt)')
-
 ax[1,1].plot(yr, volGround - volGround[0], 'k', linewidth=3, label='total mass change')
 ax[1,1].plot(yr, (SMBg*dyr).cumsum(), label="SMB")
 ax[1,1].plot(yr, (BMBg*dyr).cumsum(), label="BMB")
 
-ax[1,1].plot(yr, (calv*dyr).cumsum(), label='calving')
-ax[1,1].plot(yr, (FMF*dyr).cumsum(), label='facemelt')
+ax[1,1].plot(yr, (calvg*dyr).cumsum(), label='calving')
+ax[1,1].plot(yr, (FMFg*dyr).cumsum(), label='facemelt')
 ax[1,1].plot(yr, (GLflux*dyr).cumsum(), label="GL flux")
 ax[1,1].plot(yr, (GLMigrationflux*dyr).cumsum(), label="GL Migration flux")
 ax[1,1].plot(yr, ( (SMBg+BMBg+calvg+FMFg+GLflux+GLMigrationflux) * dyr).cumsum(), "--", label='total budget')
