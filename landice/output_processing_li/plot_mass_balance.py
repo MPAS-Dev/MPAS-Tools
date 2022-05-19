@@ -30,8 +30,7 @@ dyr = np.zeros(yr.shape)
 dyr[1:] = yr[1:]-yr[:-1]
 
 # ---- Figure: mass change rate ---
-fig, ax = plt.subplots(3,3)
-
+fig, ax = plt.subplots(3,3, figsize=(15,12))
 #=====================
 # 1. Total mass budget
 #=====================
@@ -58,7 +57,8 @@ ax[0,0].plot(yr, FMF, label='facemelt')
 
 # Grounding line flux and grounding line migration flux
 # do not come into the global mass budget
-ax[0,0].plot(yr, SMB+BMB+calv+FMF, "--", label="total")
+tot = SMB+BMB+calv+FMF
+ax[0,0].plot(yr, tot, "--", label="total")
 
 ax[0,0].legend(loc='best', prop={'size': 6})
 ax[0,0].set_ylabel('Mass change (Gt)')
@@ -70,14 +70,15 @@ ax[1,0].plot(yr, (BMB*dyr).cumsum(), label="BMB")
 
 ax[1,0].plot(yr, (calv*dyr).cumsum(), label='calving')
 ax[1,0].plot(yr, (FMF*dyr).cumsum(), label='facemelt')
-ax[1,0].plot(yr, ( (SMB+BMB+calv+FMF) * dyr).cumsum(), "--", label='total budget')
+ax[1,0].plot(yr, (tot * dyr).cumsum(), "--", label='total budget')
 
 ax[1,0].legend(loc='best', prop={'size': 6})
 ax[1,0].set_ylabel('Cumulative mass change (Gt)')
 
-ax[2,0].semilogy(yr, np.abs( ( (dvol) - (SMB+BMB+calv+FMF) ) / dvol ) )
-ax[2,0].set_ylabel('fractional error')
-
+ax[2,0].semilogy(yr, np.abs( (tot - dvol ) / dvol ) )
+ax[2,0].set_ylabel('fractional error', color='tab:blue')
+absErrAxTot = ax[2,0].twinx()
+absErrAxTot.plot(yr, tot - dvol, color='tab:orange')
 #========================
 # 2. Grounded mass budget
 #========================
@@ -107,11 +108,13 @@ ax[0,1].plot(yr, GLflux, label="GL flux")
 GLMigrationflux = -f.variables['groundingLineMigrationFlux'][:]/1.0e12
 ax[0,1].plot(yr, GLMigrationflux, label="GL migration flux")
 
-ax[0,1].plot(yr, SMBg+BMBg+calvg+FMFg+GLflux+GLMigrationflux, "--", label="total")
+grndTot = SMBg+calvg+BMBg+FMFg+GLflux+GLMigrationflux
+ax[0,1].plot(yr, grndTot, "--", label="total")
 
 ax[0,1].legend(loc='best', prop={'size': 6})
 
 # --- Figure: cumulative mass change ---
+
 ax[1,1].plot(yr, volGround - volGround[0], 'k', linewidth=3, label='total mass change')
 ax[1,1].plot(yr, (SMBg*dyr).cumsum(), label="SMB")
 ax[1,1].plot(yr, (BMBg*dyr).cumsum(), label="BMB")
@@ -120,13 +123,13 @@ ax[1,1].plot(yr, (calvg*dyr).cumsum(), label='calving')
 ax[1,1].plot(yr, (FMFg*dyr).cumsum(), label='facemelt')
 ax[1,1].plot(yr, (GLflux*dyr).cumsum(), label="GL flux")
 ax[1,1].plot(yr, (GLMigrationflux*dyr).cumsum(), label="GL Migration flux")
-ax[1,1].plot(yr, ( (SMBg+BMBg+calvg+FMFg+GLflux+GLMigrationflux) * dyr).cumsum(), "--", label='total budget')
+ax[1,1].plot(yr, ( (grndTot) * dyr).cumsum(), "--", label='total budget')
 
 ax[1,1].legend(loc='best', prop={'size': 6})
+ax[2,1].semilogy(yr, np.abs( (grndTot - dvolGround)  / dvolGround ) )
 
-ax[2,1].semilogy(yr, np.abs( ( (dvolGround) - (SMBg+BMBg+calvg+FMFg+GLflux+GLMigrationflux) ) / dvolGround ) )
-
-
+absErrAxGrnd = ax[2,1].twinx()
+absErrAxGrnd.plot(yr, grndTot - dvolGround, color='tab:orange')
 #========================
 # 3. Floating mass budget
 #========================
@@ -150,12 +153,12 @@ ax[0,2].plot(yr, calvf, label='calv')
 FMFf = -f.variables['totalFloatingFaceMeltingFlux'][:] / 1.0e12
 ax[0,2].plot(yr, FMFf, label='facemelt')
 
-GLflux = f.variables['groundingLineFlux'][:]/1.0e12
-ax[0,2].plot(yr, GLflux, label="GL flux")
+ax[0,2].plot(yr, -GLflux, label="GL flux")
 
-GLMigrationflux = f.variables['groundingLineMigrationFlux'][:]/1.0e12
-ax[0,2].plot(yr, GLMigrationflux, label="GL migration flux")
-ax[0,2].plot(yr, SMBf+BMBf+calvf+FMFf+GLflux+GLMigrationflux, "--", label="total")
+ax[0,2].plot(yr, -GLMigrationflux, label="GL migration flux")
+
+fltTot = SMBf+BMBf+FMFf+calvf-GLflux-GLMigrationflux
+ax[0,2].plot(yr, fltTot, "--", label="total")
 
 ax[0,2].legend(loc='best', prop={'size': 6})
 
@@ -166,13 +169,17 @@ ax[1,2].plot(yr, (BMBf*dyr).cumsum(), label="BMB")
 
 ax[1,2].plot(yr, (calvf*dyr).cumsum(), label='calving')
 ax[1,2].plot(yr, (FMFf*dyr).cumsum(), label='facemelt')
-ax[1,2].plot(yr, (GLflux*dyr).cumsum(), label="GL flux")
-ax[1,2].plot(yr, (GLMigrationflux*dyr).cumsum(), label="GL Migration flux")
-ax[1,2].plot(yr, ( (SMBf+BMBf+calvf+FMFf+GLflux+GLMigrationflux) * dyr).cumsum(), "--", label='total budget')
+ax[1,2].plot(yr, (-GLflux*dyr).cumsum(), label="GL flux")
+ax[1,2].plot(yr, (-GLMigrationflux*dyr).cumsum(), label="GL Migration flux")
+ax[1,2].plot(yr, (fltTot * dyr).cumsum(), "--", label='total budget')
 
 ax[1,2].legend(loc='best', prop={'size': 6})
 
-ax[2,2].semilogy(yr, np.abs( ( (dvolFloat) - (SMBf+BMBf+calvf+FMFf+GLflux+GLMigrationflux) ) / dvolFloat ) )
+ax[2,2].semilogy(yr, np.abs( (fltTot - dvolFloat) / dvolFloat ) )
+
+absErrAxFlt = ax[2,2].twinx()
+absErrAxFlt.plot(yr, fltTot - dvolFloat, color='tab:orange')
+absErrAxFlt.set_ylabel('Absolute error (Gt; budget - true)', color='tab:orange')
 
 for plotAx in ax.ravel():
     plotAx.grid('on')
@@ -183,5 +190,7 @@ ax[2,2].set_xlabel('yr')
 ax[0,0].set_title('Total budget')
 ax[0,1].set_title('Grounded budget')
 ax[0,2].set_title('Floating budget')
+
+fig.subplots_adjust(wspace=0.5)
 plt.show()
 f.close()
