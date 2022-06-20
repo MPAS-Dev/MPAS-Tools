@@ -13,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -105,14 +106,14 @@
            <div itemprop="articleBody">
              
   <div class="section" id="making-changes-to-mpas-tools">
-<span id="dev-making-changes"></span><h1>Making Changes to mpas_tools<a class="headerlink" href="#making-changes-to-mpas-tools" title="Permalink to this headline">¶</a></h1>
+<span id="dev-making-changes"></span><h1>Making Changes to mpas_tools<a class="headerlink" href="#making-changes-to-mpas-tools" title="Permalink to this heading">¶</a></h1>
 <p>New python functions and modules (<code class="docutils literal notranslate"><span class="pre">.py</span></code> files) can be added within the
 <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools</span></code>.  These will automatically be part of the
 <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> package.  New directories with python modules should include an
 <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file (which can be empty) to indicate that they are also part of
 the package.</p>
 <div class="section" id="entry-points">
-<h2>Entry Points<a class="headerlink" href="#entry-points" title="Permalink to this headline">¶</a></h2>
+<h2>Entry Points<a class="headerlink" href="#entry-points" title="Permalink to this heading">¶</a></h2>
 <p>The best way to add new “scripts” to the package is to add a function without
 any arguments somewhere in the package, and then to add it as an “entry point”
 both in <code class="docutils literal notranslate"><span class="pre">conda_package/setup.py</span></code> and <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code>.</p>
@@ -153,7 +154,7 @@ command-line arguments, just as a “normal” python script would do</p>
 <p>By convention, entry points do not typically include the <code class="docutils literal notranslate"><span class="pre">.py</span></code> extension.</p>
 </div>
 <div class="section" id="dependencies">
-<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading">¶</a></h2>
 <p>If you changes introduce new dependencies, these need to be added to both
 the recipe for the conda package in <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code> and
 to the yaml file describing the development environment,
@@ -182,7 +183,7 @@ under the <code class="docutils literal notranslate"><span class="pre">#Base</sp
 </div>
 </div>
 <div class="section" id="updating-the-version">
-<h2>Updating the Version<a class="headerlink" href="#updating-the-version" title="Permalink to this headline">¶</a></h2>
+<h2>Updating the Version<a class="headerlink" href="#updating-the-version" title="Permalink to this heading">¶</a></h2>
 <p>Before a release of the package, the version of <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> needs to be
 updated in 3 places.  First, in <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/__init__.py</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>

@@ -13,6 +13,7 @@
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
@@ -104,14 +105,14 @@
            <div itemprop="articleBody">
              
   <div class="section" id="transects">
-<span id="id1"></span><h1>Transects<a class="headerlink" href="#transects" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1>Transects<a class="headerlink" href="#transects" title="Permalink to this heading">¶</a></h1>
 <p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.transects</span></code> module contains functions used to define
 transects through MPAS meshes.  These transects can be used to create masks
 of the cells, edges or dual-mesh cells (in some sense “vertices”) that
 intersect the transect.  They can also be used for visualization such as
 plotting vertical cross-sections of MPAS data along the transect.</p>
 <div class="section" id="subdividing-transects">
-<span id="id2"></span><h2>Subdividing transects<a class="headerlink" href="#subdividing-transects" title="Permalink to this headline">¶</a></h2>
+<span id="id2"></span><h2>Subdividing transects<a class="headerlink" href="#subdividing-transects" title="Permalink to this heading">¶</a></h2>
 <p>For both visualization and intersection detection, it is often useful to
 subdivide a transect into smaller segments.  This is performed with the
 function <a class="reference internal" href="generated/mpas_tools.transects.subdivide_great_circle.html#mpas_tools.transects.subdivide_great_circle" title="mpas_tools.transects.subdivide_great_circle"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.transects.subdivide_great_circle()</span></code></a> for spherical
@@ -125,7 +126,7 @@ longitude/latitude coordinates using
 <a class="reference internal" href="generated/mpas_tools.transects.cartesian_to_lon_lat.html#mpas_tools.transects.cartesian_to_lon_lat" title="mpas_tools.transects.cartesian_to_lon_lat"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.transects.cartesian_to_lon_lat()</span></code></a>.</p>
 </div>
 <div class="section" id="low-level-functions">
-<h2>Low-level functions<a class="headerlink" href="#low-level-functions" title="Permalink to this headline">¶</a></h2>
+<h2>Low-level functions<a class="headerlink" href="#low-level-functions" title="Permalink to this heading">¶</a></h2>
 <p>The module also shares some lower-level functions used elsewhere in the
 package.</p>
 <p>The arc length (in radians) along a transect can be found with

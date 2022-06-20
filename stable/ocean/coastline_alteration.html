@@ -13,6 +13,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -105,13 +106,13 @@
            <div itemprop="articleBody">
              
   <div class="section" id="coastline-alteration">
-<span id="ocean-coastline-alteration"></span><h1>Coastline Alteration<a class="headerlink" href="#coastline-alteration" title="Permalink to this headline">¶</a></h1>
+<span id="ocean-coastline-alteration"></span><h1>Coastline Alteration<a class="headerlink" href="#coastline-alteration" title="Permalink to this heading">¶</a></h1>
 <p>The <a class="reference internal" href="../generated/mpas_tools.ocean.coastline_alteration.html#module-mpas_tools.ocean.coastline_alteration" title="mpas_tools.ocean.coastline_alteration"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastline_alteration</span></code></a> module contains several
 functions for modifying the coastline in MPAS cells.  This is accomplished by
 modifying the land mask that indicates which MPAS cells are ocean vs. land
 (or grounded ice).</p>
 <div class="section" id="adding-land-blockages">
-<span id="coastline-land-blockages"></span><h2>Adding Land Blockages<a class="headerlink" href="#adding-land-blockages" title="Permalink to this headline">¶</a></h2>
+<span id="coastline-land-blockages"></span><h2>Adding Land Blockages<a class="headerlink" href="#adding-land-blockages" title="Permalink to this heading">¶</a></h2>
 <p>The function
 <a class="reference internal" href="../generated/mpas_tools.ocean.coastline_alteration.add_critical_land_blockages.html#mpas_tools.ocean.coastline_alteration.add_critical_land_blockages" title="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastline_alteration.add_critical_land_blockages()</span></code></a>
 add the masks associated with one or more transects to the land mask.  This is
@@ -154,7 +155,7 @@ the MPAS mesh.</p>
 </div>
 </div>
 <div class="section" id="masking-land-locked-cells">
-<span id="coastline-mask-land-locked"></span><h2>Masking Land-locked Cells<a class="headerlink" href="#masking-land-locked-cells" title="Permalink to this headline">¶</a></h2>
+<span id="coastline-mask-land-locked"></span><h2>Masking Land-locked Cells<a class="headerlink" href="#masking-land-locked-cells" title="Permalink to this heading">¶</a></h2>
 <p>By default, the land mask produced by the MPAS <a class="reference internal" href="../mesh_conversion.html#mask-creator"><span class="std std-ref">Mask Creator</span></a> can produce
 ocean cells with vertices that are all on the land-ocean boundary.  MPAS-Seaice
 uses a so-called
@@ -201,7 +202,7 @@ land-locked cells.</p>
 </div>
 </div>
 <div class="section" id="widening-transects">
-<span id="coastline-widen-transects"></span><h2>Widening Transects<a class="headerlink" href="#widening-transects" title="Permalink to this headline">¶</a></h2>
+<span id="coastline-widen-transects"></span><h2>Widening Transects<a class="headerlink" href="#widening-transects" title="Permalink to this heading">¶</a></h2>
 <p>Similarly to <a class="reference internal" href="#coastline-mask-land-locked"><span class="std std-ref">Masking Land-locked Cells</span></a>, if critical passages in polar
 regions are too narrow, they can become blocked by sea ice that cannot be
 advected.  Sea-ice flow is not possible unless channels are at least 2 cells

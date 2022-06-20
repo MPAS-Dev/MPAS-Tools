@@ -13,6 +13,7 @@
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
         <script src="../_static/jquery.js"></script>
         <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -133,7 +134,7 @@
            <div itemprop="articleBody">
              
   <div class="section" id="mpas-tools-mesh-conversion-mask">
-<h1>mpas_tools.mesh.conversion.mask<a class="headerlink" href="#mpas-tools-mesh-conversion-mask" title="Permalink to this headline">¶</a></h1>
+<h1>mpas_tools.mesh.conversion.mask<a class="headerlink" href="#mpas-tools-mesh-conversion-mask" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.mesh.conversion.mask">
 <span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.conversion.</span></span><span class="sig-name descname"><span class="pre">mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsMesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcMask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcSeed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/conversion.html#mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.conversion.mask" title="Permalink to this definition">¶</a></dt>
@@ -143,8 +144,8 @@ mask feature collections or from seed points to be used to flood fill</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dsMesh</strong> (<a class="reference external" href="https://xarray.pydata.org/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.3.1.dev0)"><em>xarray.Dataset</em></a><em>, </em><em>optional</em>) – An MPAS mesh on which the masks should be created</p></li>
-<li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v0.5.0)"><em>geometric_features.FeatureCollection</em></a><em>, </em><em>optional</em>) – A feature collection containing features to use to create the mask</p></li>
-<li><p><strong>fcSeed</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v0.5.0)"><em>geometric_features.FeatureCollection</em></a><em>, </em><em>optional</em>) – A feature collection with points to use a seeds for a flood fill that
+<li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v0.6.0)"><em>geometric_features.FeatureCollection</em></a><em>, </em><em>optional</em>) – A feature collection containing features to use to create the mask</p></li>
+<li><p><strong>fcSeed</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v0.6.0)"><em>geometric_features.FeatureCollection</em></a><em>, </em><em>optional</em>) – A feature collection with points to use a seeds for a flood fill that
 will create a mask of all cells connected to the seed points</p></li>
 <li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.10)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
 <li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – A directory in which a temporary directory will be added with files
