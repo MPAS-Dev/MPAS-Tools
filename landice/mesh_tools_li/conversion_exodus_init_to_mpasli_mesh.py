@@ -217,6 +217,8 @@ for var_name in var_names:
                 dataset.variables[var_name][0,cellID_array-1] = np.exp(data_exo_layer) * 1000.0
             elif var_name == "muFriction":
                 dataset.variables[var_name][0,cellID_array-1] = np.exp(data_exo_layer)
+            elif var_name == "stiffnessFactor":
+                dataset.variables[var_name][0,cellID_array-1] = np.exp(data_exo_layer)
             elif var_name == "uReconstructX" or var_name == "uReconstructY":
                 dataset.variables[var_name][0,cellID_array-1, nVert] = data_exo_layer / (60. * 60. * 24 * 365)
             elif var_name == "thickness":
