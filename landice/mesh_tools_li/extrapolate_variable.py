@@ -35,25 +35,26 @@ extrapolation = options.extrapolation
 nCells = len(dataset.dimensions['nCells'])
 if 'thickness' in dataset.variables.keys():
     thickness = dataset.variables['thickness'][0,:]
+    bed = dataset.variables["bedTopography"][0,:]
 cellsOnCell = dataset.variables['cellsOnCell'][:]
 nEdgesOnCell = dataset.variables['nEdgesOnCell'][:]
 xCell = dataset.variables["yCell"][:]
 yCell = dataset.variables["xCell"][:]
 
-
-keepCellMask = np.zeros((nCells,), dtype=np.int8)
-
 # Define region of good data to extrapolate from.  Different methods for different variables
-if var_name == "beta" or var_name == "muFriction":
-    keepCellMask[varValue > 0.0] = 1
+if var_name in ["effectivePressure", "beta", "muFriction"]:
+    groundedMask = (thickness > (-1028.0 / 910.0 * bed))
+    keepCellMask = groundedMask * (varValue > 0.0)
     extrapolation == "min"
-# find the mask for grounded ice region
+elif var_name in ["floatingBasalMassBal"]:
+    floatingMask = (thickness <= (-1028.0 / 910.0 * bed))
+    keepCellMask = floatingMask * (varValue != 0.0)
+    extrapolation == "idw"
 else:
-    keepCellMask[thickness > 0.0] = 1
+    keepCellMask = (thickness > 0.0)
 
 keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that will be used later
 keepCellMaskOrig = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
-
 
 # recursive extrapolation steps:
 # 1) find cell A with mask = 0
