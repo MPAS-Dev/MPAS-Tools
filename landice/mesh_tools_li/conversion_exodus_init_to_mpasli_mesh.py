@@ -150,7 +150,7 @@ for var_name in var_names:
     if var_name == "beta":
         smooth_iter_num = 0
         extrapolation = "min"
-    if var_name == "muFriction":
+    elif var_name == "muFriction":
         smooth_iter_num = 0
         extrapolation = "min"
     elif var_name == "stiffnessFactor":
