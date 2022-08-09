@@ -24,7 +24,6 @@ parser.add_option("-l", "--level", dest="levels", help="Number of vertical level
 parser.add_option("-v", "--vert", dest="vertMethod", help="Method of vertical layer spacing: uniform, glimmer.  Glimmer spacing follows Eq. 35 of Rutt, I. C., M. Hagdorn, N. R. J. Hulton, and A. J. Payne (2009), The Glimmer community ice sheet model, J. Geophys. Res., 114, F02004, doi:10.1029/2008JF001015", default='glimmer', metavar="FILENAME")
 parser.add_option("--beta", dest="beta", action="store_true", help="DEPRECATED")
 parser.add_option("--effecpress", dest="effecpress", action="store_true", help="DEPRECATED")
-parser.add_option("--eigencalving", dest="eigencalving", action="store_true", help="Use this flag to include the field 'eigencalvingParameter' needed for specifying eigencalving parameter in the resulting file.")
 parser.add_option("--diri", dest="dirichlet", action="store_true", help="Use this flag to include the fields 'dirichletVelocityMask', 'uReconstructX', 'uReconstructY' needed for specifying Dirichlet velocity boundary conditions in the resulting file.")
 parser.add_option("--thermal", dest="thermal", action="store_true", help="Use this flag to include the fields 'temperature', 'surfaceAirTemperature', 'basalHeatFlux' needed for specifying thermal initial conditions in the resulting file.")
 parser.add_option("--hydro", dest="hydro", action="store_true", help="Use this flag to include the fields 'waterThickness', 'tillWaterThickness', 'basalMeltInput', 'externalWaterInput', 'frictionAngle', 'waterPressure', 'waterFluxMask' needed for specifying hydro initial conditions in the resulting file.")
@@ -212,10 +211,25 @@ newvar = fileout.createVariable('effectivePressure', datatype, ('Time', 'nCells'
 newvar[:] = 1.0  # Give a default effective pressure of 1.0 so that, for the linear sliding law, beta = mu*effecpress = mu.
 print('Added variable: effectivePressure')
 
-if options.eigencalving:
-   newvar = fileout.createVariable('eigencalvingParameter', datatype, ('Time', 'nCells'))
-   newvar[:] = 3.14e16  # Give default value for eigencalvingParameter
-   print('Added optional eigencalving variable: eigencalvingParameter')
+newvar = fileout.createVariable('stiffnessFactor', datatype, ('Time', 'nCells'))
+newvar[:] = 1.0  # Give default value
+print('Added variable: stiffnessFactor')
+
+newvar = fileout.createVariable('eigencalvingParameter', datatype, ('Time', 'nCells'))
+newvar[:] = 3.14e16  # Give default value for eigencalvingParameter
+print('Added variable: eigencalvingParameter')
+
+newvar = fileout.createVariable('groundedVonMisesThresholdStress', datatype, ('Time', 'nCells'))
+newvar[:] = 1.0e6  # Give default value
+print('Added variable: groundedVonMisesThresholdStress')
+
+newvar = fileout.createVariable('floatingVonMisesThresholdStress', datatype, ('Time', 'nCells'))
+newvar[:] = 1.0e6  # Give default value
+print('Added variable: floatingVonMisesThresholdStress')
+
+newvar = fileout.createVariable('iceMask', datatype, ('Time', 'nCells'))
+newvar[:] = 0
+print('Added variable: iceMask')
 
 if options.dirichlet:
    newvar = fileout.createVariable('dirichletVelocityMask', datatypeInt, ('Time', 'nCells', 'nVertInterfaces'))
