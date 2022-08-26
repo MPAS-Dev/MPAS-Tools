@@ -27,6 +27,16 @@ options, args = parser.parse_args()
 
 print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
 
+# Build string for titles about the runs in use
+runinfo=f'solid={options.file1inName}'
+if options.file2inName:
+    runinfo = f'{runinfo}; dotted={options.file2inName}'
+if options.file3inName:
+    runinfo = f'{runinfo}; dashed={options.file3inName}'
+if options.file4inName:
+    runinfo = f'{runinfo}; dashdot={options.file4inName}'
+
+#xtickSpacing = 20.0
 
 #xtickSpacing = 20.0
 
@@ -100,7 +110,7 @@ if nRegions > nrow*ncol:
 
 # Set up Figure 1: volume stats overview
 fig1, axs1 = plt.subplots(nrow, ncol, figsize=(13, 11), num=1)
-fig1.suptitle('Mass change summary', fontsize=14)
+fig1.suptitle(f'Mass change summary\n{runinfo}', fontsize=9)
 for reg in range(nRegions):
    plt.sca(axs1.flatten()[reg])
    plt.xlabel('Year')
@@ -119,7 +129,7 @@ for reg in range(nRegions):
 
 # Set up Figure 2: grd MB
 fig2, axs2 = plt.subplots(nrow, ncol, figsize=(13, 11), num=2)
-fig2.suptitle('Grounded mass change', fontsize=14)
+fig2.suptitle(f'Grounded mass change\n{runinfo}', fontsize=9)
 for reg in range(nRegions):
    plt.sca(axs2.flatten()[reg])
    plt.xlabel('Year')
@@ -142,7 +152,7 @@ for reg in range(nRegions):
 
 # Set up Figure 3: flt MB
 fig3, axs3 = plt.subplots(nrow, ncol, figsize=(13, 11), num=3)
-fig3.suptitle('Floating mass change', fontsize=14)
+fig3.suptitle(f'Floating mass change\n{runinfo}', fontsize=9)
 for reg in range(nRegions):
    plt.sca(axs3.flatten()[reg])
    plt.xlabel('Year')
@@ -157,7 +167,7 @@ for reg in range(nRegions):
 
 # Set up Figure 3: area change
 fig4, axs4 = plt.subplots(nrow, ncol, figsize=(13, 11), num=4)
-fig4.suptitle('Area change', fontsize=14)
+fig4.suptitle(f'Area change\n{runinfo}', fontsize=9)
 for reg in range(nRegions):
    plt.sca(axs4.flatten()[reg])
    plt.xlabel('Year')
