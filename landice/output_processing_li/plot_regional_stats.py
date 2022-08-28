@@ -346,11 +346,13 @@ def plotStat(fname, sty):
 
     # Fig 4: area change  ---------------
 
-    areaGrd = f.variables['regionalGroundedIceArea'][:]/1000.0**2
     areaTot = f.variables['regionalIceArea'][:]/1000.0**2
+    areaGrd = f.variables['regionalGroundedIceArea'][:]/1000.0**2
+    areaFlt = f.variables['regionalFloatingIceArea'][:]/1000.0**2
     for r in range(nRegions):
         axs4.flatten()[r].plot(yr, areaTot[:,r] - areaTot[0,r], label="total area", linestyle=sty, color='k')
         axs4.flatten()[r].plot(yr, areaGrd[:,r] - areaGrd[0,r], label="grd area", linestyle=sty, color='b')
+        axs4.flatten()[r].plot(yr, areaFlt[:,r] - areaFlt[0,r], label="flt area", linestyle=sty, color='g')
 
     f.close()
 
