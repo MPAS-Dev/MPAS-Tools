@@ -30,7 +30,7 @@ parser.add_option("-e", "--exo", dest="exo_file", help="the exo input file")
 parser.add_option("-a", "--ascii", dest="id_file", help="the ascii global id input file")
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas file to write to")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable(s) you want to convert from an exodus file. May be a single variable or multiple variables comma-separated (no spaces)")
-parser.add_option("--dynamics", dest="dynamics", action="store_true", help="Use to convert ice dynamics fields: beta, stiffnessFactor, uReconstructX/Y.  If stiffnessFactor was not included in the optimzation, it will be skipped.")
+parser.add_option("--dynamics", dest="dynamics", action="store_true", help="Use to convert ice dynamics fields: beta, muFriction, stiffnessFactor, uReconstructX/Y.  If stiffnessFactor was not included in the optimzation, it will be skipped.")
 parser.add_option("--thermal", dest="thermal", action="store_true", help="Use to convert thermal fields: temperature, surfaceTemperature, basalTemperature.  Only use when the Albany optimization included the thermal solution.")
 parser.add_option("--geometry", dest="geometry", action="store_true", help="Use to convert geometry fields: thickness and corresponding adjustment to bedTopography.  Only use when the Albany optimization included adjustment to the ice thickness.")
 for option in parser.option_list:
@@ -154,7 +154,7 @@ for var_name in var_names:
         smooth_iter_num = 0
         extrapolation = "min"
     elif var_name == "stiffnessFactor":
-        smooth_iter_num = 3
+        smooth_iter_num = 0
         extrapolation = "idw"
     else:
         smooth_iter_num = 0
@@ -278,12 +278,7 @@ for var_name in var_names:
 
             keepCellMask = np.zeros((nCells,), dtype=np.int8)
 
-            # Define region of good data to extrapolate from.  Different methods for different variables
-            if var_name in ["beta", "muFriction"]:
-                keepCellMask[varValue > 0.0] = 1
-            # find the mask for grounded ice region
-            else:
-                keepCellMask[thickness > 0.0] = 1
+            keepCellMask[varValue > 0.0] = 1 # Define region to keep as anywhere the optimization returned a value
 
             keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that will be used later
             keepCellMaskOrig = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
