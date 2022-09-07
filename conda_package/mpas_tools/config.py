@@ -364,7 +364,7 @@ class MpasConfigParser:
                 if include_sources:
                     source = self.sources[(section, option)]
                     fp.write(f'# source: {source}\n')
-                value = str(value).replace('\n', '\n\t')
+                value = str(value).replace('\n', '\n\t').replace('$', '$$')
                 fp.write(f'{option} = {value}\n\n')
             fp.write('\n')
 
