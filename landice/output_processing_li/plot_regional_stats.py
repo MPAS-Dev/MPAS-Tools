@@ -150,6 +150,7 @@ for reg in range(nRegions):
        [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
        axs2.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig), color='k', alpha=0.2, label='net obs')
 
+
 # Set up Figure 3: flt MB
 fig3, axs3 = plt.subplots(nrow, ncol, figsize=(13, 11), num=3)
 fig3.suptitle(f'Floating mass change\n{runinfo}', fontsize=9)
@@ -165,7 +166,7 @@ for reg in range(nRegions):
    else:
       axs3.flatten()[reg].sharex(axX)
 
-# Set up Figure 3: area change
+# Set up Figure 4: area change
 fig4, axs4 = plt.subplots(nrow, ncol, figsize=(13, 11), num=4)
 fig4.suptitle(f'Area change\n{runinfo}', fontsize=9)
 for reg in range(nRegions):
@@ -181,6 +182,25 @@ for reg in range(nRegions):
       axs4.flatten()[reg].sharex(axX)
 
 
+# Set up Figure 5
+fig5, axs5 = plt.subplots(2,1, figsize=(13, 11), num=5)
+fig5.suptitle(f'regional contributions\n{runinfo}', fontsize=9)
+mnTot=0.0
+sigTot = 0.0
+for reg in range(nRegions):
+   if rNamesOrig[reg] in ISMIP6basinInfo:
+       [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
+       mnTot += mn
+       sigTot += sig**2
+sigTot = sigTot**0.5
+axs5.flatten()[0].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot), color='k', alpha=0.2, label='net obs')
+plt.sca(axs5.flatten()[0])
+plt.xlabel('Year')
+plt.ylabel('Mass change (Gt)')
+axs5.flatten()[1].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot), color='k', alpha=0.2, label='net obs')
+plt.sca(axs5.flatten()[1])
+plt.xlabel('Year')
+plt.ylabel('VAF mass change (Gt)')
 
 
 
@@ -354,6 +374,21 @@ def plotStat(fname, sty):
         axs4.flatten()[r].plot(yr, areaGrd[:,r] - areaGrd[0,r], label="grd area", linestyle=sty, color='b')
         axs4.flatten()[r].plot(yr, areaFlt[:,r] - areaFlt[0,r], label="flt area", linestyle=sty, color='g')
 
+    # Fig. 5:  select global stats ---------
+    for r in range(nRegions):
+        if rNamesOrig[r] == 'ISMIP6BasinGH':
+           indTG = r
+           break
+    #print(f'TG index={indTG}')
+    axs5.flatten()[0].plot(yr, volGround.sum(axis=1), label='total', color='k', linestyle=sty)
+    volGroundnoTG = np.delete(volGround, indTG, 1)
+    axs5.flatten()[0].plot(yr, volGroundnoTG.sum(axis=1), label='no TG/PIG', color='gray', linestyle=sty)
+    #for r in range(nRegions):
+       #axs5.flatten()[0].plot(yr, VAF[:,r] - VAF[0,r], label=rNames[r], linestyle=sty)
+    axs5.flatten()[1].plot(yr, VAF.sum(axis=1), label='total', color='k', linestyle=sty)
+    VAFnoTG = np.delete(VAF, indTG, 1)
+    axs5.flatten()[1].plot(yr, VAFnoTG.sum(axis=1), label='no TG/PIG', color='gray', linestyle=sty)
+
     f.close()
 
 
@@ -374,6 +409,7 @@ axs1.flatten()[-1].legend(loc='best', prop={'size': 6})
 axs2.flatten()[-1].legend(loc='best', prop={'size': 6})
 axs3.flatten()[-1].legend(loc='best', prop={'size': 6})
 axs4.flatten()[-1].legend(loc='best', prop={'size': 6})
+axs5.flatten()[0].legend(loc='best', prop={'size': 6})
 
 print("Generating plot.")
 fig1.tight_layout()
