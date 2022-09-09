@@ -75,22 +75,22 @@ for r in range(nRegions):
 # Note: May want to switch to input+, net+
 # Note: Some ISMIP6 basins combine multiple Rignot basins.  May want to separate if we update our regions.
 ISMIP6basinInfo = {
-        'ISMIP6BasinAAp': {'name': 'Dronning Maud Land', 'input': [60,9], 'outflow': [60,7], 'net': [0, 11]},
-        'ISMIP6BasinApB': {'name': 'Enderby Land', 'input': [39,5], 'outflow': [40,2], 'net': [-1,5]},
-        'ISMIP6BasinBC': {'name': 'Amery-Lambert', 'input': [73, 10], 'outflow': [77,4], 'net': [-4, 11]},
-        'ISMIP6BasinCCp': {'name': 'Phillipi, Denman', 'input': [81, 13], 'outflow': [87,7], 'net':[-7,15]},
-        'ISMIP6BasinCpD': {'name': 'Totten', 'input': [198,37], 'outflow': [207,13], 'net': [-8,39]},
-        'ISMIP6BasinDDp': {'name': 'Mertz', 'input': [93,14], 'outflow': [94,6], 'net': [-2,16]},
-        'ISMIP6BasinDpE': {'name': 'Victoria Land', 'input': [20,1], 'outflow': [22,3], 'net': [-2,4]},
-        'ISMIP6BasinEF': {'name': 'Ross', 'input': [61+110,(10**2+7**2)**0.5], 'outflow': [49+80,(4**2+2^2)**0.5], 'net': [11+31,(11*2+7**2)**0.5]},
-        'ISMIP6BasinFG': {'name': 'Getz', 'input': [108,28], 'outflow': [128,18], 'net': [-19,33]},
-        'ISMIP6BasinGH': {'name': 'Thwaites/PIG', 'input': [177,25], 'outflow': [237,4], 'net': [-61,26]},
-        'ISMIP6BasinHHp': {'name': 'Bellingshausen', 'input': [51,16], 'outflow': [86,10], 'net': [-35,19]},
-        'ISMIP6BasinHpI': {'name': 'George VI', 'input': [71,21], 'outflow': [78,7], 'net': [-7,23]},
-        'ISMIP6BasinIIpp': {'name': 'Larsen A-C', 'input': [15,5], 'outflow': [20,3], 'net': [-5,6]},
-        'ISMIP6BasinIppJ': {'name': 'Larsen E', 'input': [8,4], 'outflow': [9,2], 'net': [-1,4]},
-        'ISMIP6BasinJK': {'name': 'FRIS', 'input': [93+142, (8**2+11**2)**0.5], 'outflow': [75+145,(4**2+7**2)**0.5], 'net': [18-4,(9**2+13**2)**0.5]},
-        'ISMIP6BasinKA': {'name': 'Brunt-Stancomb', 'input': [42+26,(8**2+7**2)**0.5], 'outflow': [45+28,(4**2+2**2)**0.5], 'net':[-3-1,(9**2+8**2)**0.5]}
+        'ISMIP6BasinAAp': {'name': 'Dronning Maud Land', 'input': [60,9], 'outflow': [60,7], 'net': [0, 11], 'shelfMelt': [57.5]},
+        'ISMIP6BasinApB': {'name': 'Enderby Land', 'input': [39,5], 'outflow': [40,2], 'net': [-1,5], 'shelfMelt': [24.6]},
+        'ISMIP6BasinBC': {'name': 'Amery-Lambert', 'input': [73, 10], 'outflow': [77,4], 'net': [-4, 11], 'shelfMelt': [35.5]},
+        'ISMIP6BasinCCp': {'name': 'Phillipi, Denman', 'input': [81, 13], 'outflow': [87,7], 'net':[-7,15], 'shelfMelt': [107.9]},
+        'ISMIP6BasinCpD': {'name': 'Totten', 'input': [198,37], 'outflow': [207,13], 'net': [-8,39], 'shelfMelt': [102.3]},
+        'ISMIP6BasinDDp': {'name': 'Mertz', 'input': [93,14], 'outflow': [94,6], 'net': [-2,16], 'shelfMelt': [22.8]},
+        'ISMIP6BasinDpE': {'name': 'Victoria Land', 'input': [20,1], 'outflow': [22,3], 'net': [-2,4], 'shelfMelt': [22.9]},
+        'ISMIP6BasinEF': {'name': 'Ross', 'input': [61+110,(10**2+7**2)**0.5], 'outflow': [49+80,(4**2+2^2)**0.5], 'net': [11+31,(11*2+7**2)**0.5], 'shelfMelt': [70.3]},
+        'ISMIP6BasinFG': {'name': 'Getz', 'input': [108,28], 'outflow': [128,18], 'net': [-19,33], 'shelfMelt': [152.9]},
+        'ISMIP6BasinGH': {'name': 'Thwaites/PIG', 'input': [177,25], 'outflow': [237,4], 'net': [-61,26], 'shelfMelt': [290.9]},
+        'ISMIP6BasinHHp': {'name': 'Bellingshausen', 'input': [51,16], 'outflow': [86,10], 'net': [-35,19], 'shelfMelt': [76.3]},
+        'ISMIP6BasinHpI': {'name': 'George VI', 'input': [71,21], 'outflow': [78,7], 'net': [-7,23], 'shelfMelt': [152.3]},
+        'ISMIP6BasinIIpp': {'name': 'Larsen A-C', 'input': [15,5], 'outflow': [20,3], 'net': [-5,6], 'shelfMelt': [32.9]},
+        'ISMIP6BasinIppJ': {'name': 'Larsen E', 'input': [8,4], 'outflow': [9,2], 'net': [-1,4], 'shelfMelt': [4.3]},
+        'ISMIP6BasinJK': {'name': 'FRIS', 'input': [93+142, (8**2+11**2)**0.5], 'outflow': [75+145,(4**2+7**2)**0.5], 'net': [18-4,(9**2+13**2)**0.5], 'shelfMelt': [155.4]},
+        'ISMIP6BasinKA': {'name': 'Brunt-Stancomb', 'input': [42+26,(8**2+7**2)**0.5], 'outflow': [45+28,(4**2+2**2)**0.5], 'net':[-3-1,(9**2+8**2)**0.5], 'shelfMelt': [10.4]}
         }
 
 # Parse region names to more usable names, if available
@@ -203,8 +203,27 @@ plt.xlabel('Year')
 plt.ylabel('VAF mass change (Gt)')
 
 
+# Set up Figure 6: melt rate vs obs
+fig6, axs6 = plt.subplots(nrow, ncol, figsize=(13, 11), num=6)
+fig6.suptitle(f'Ice-shelf melt rate\n{runinfo}', fontsize=9)
+for reg in range(nRegions):
+   plt.sca(axs6.flatten()[reg])
+   plt.xlabel('Year')
+   plt.ylabel('Ice-shelf melt rate (Gt/yr)')
+   #plt.xticks(np.arange(22)*xtickSpacing)
+   plt.grid()
+   axs6.flatten()[reg].set_title(rNames[reg])
+   if reg == 0:
+      axX = axs6.flatten()[reg]
+   else:
+      axs6.flatten()[reg].sharex(axX)
+   if rNamesOrig[reg] in ISMIP6basinInfo:
+       mlt = ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0]
+       axs6.flatten()[reg].plot(yr, np.ones(yr.shape)*(mlt), color='k', label='melt obs')
 
-def plotStat(fname, sty):
+
+
+def plotStat(fname, sty, addToLegend=False):
     print("Reading and plotting file: {}".format(fname))
 
     name = fname
@@ -225,8 +244,9 @@ def plotStat(fname, sty):
        vol = vol * rhoi
     elif options.units == "Gt":
        vol = vol * rhoi / 1.0e12
+    lbl ='total' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs1.flatten()[r].plot(yr, vol[:,r] - vol[0,r], label="total", linestyle=sty, color='k')
+       axs1.flatten()[r].plot(yr, vol[:,r] - vol[0,r], label=lbl, linestyle=sty, color='k')
 
     VAF = f.variables['regionalVolumeAboveFloatation'][:]
     VAF = VAF[:,:] - VAF[0,:]
@@ -236,8 +256,9 @@ def plotStat(fname, sty):
        VAF = VAF * rhoi
     elif options.units == "Gt":
        VAF = VAF * rhoi / 1.0e12
+    lbl ='VAF' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs1.flatten()[r].plot(yr, VAF[:,r] - VAF[0,r], label="VAF", linestyle=sty, color='m')
+       axs1.flatten()[r].plot(yr, VAF[:,r] - VAF[0,r], label=lbl, linestyle=sty, color='m')
 
     volGround = f.variables['regionalGroundedIceVolume'][:]
     volGround = volGround[:,:] - volGround[0,:]
@@ -247,8 +268,9 @@ def plotStat(fname, sty):
        volGround = volGround * rhoi
     elif options.units == "Gt":
        volGround = volGround * rhoi / 1.0e12
+    lbl ='grd' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs1.flatten()[r].plot(yr, volGround[:,r] - volGround[0,r], label="grd", linestyle=sty, color='b')
+       axs1.flatten()[r].plot(yr, volGround[:,r] - volGround[0,r], label=lbl, linestyle=sty, color='b')
 
     volFloat = f.variables['regionalFloatingIceVolume'][:]
     volFloat = volFloat[:,:] - volFloat[0,:]
@@ -258,8 +280,9 @@ def plotStat(fname, sty):
        volFloat = volFloat * rhoi
     elif options.units == "Gt":
        volFloat = volFloat * rhoi / 1.0e12
+    lbl ='flt' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs1.flatten()[r].plot(yr, volFloat[:,r] - volFloat[0,r], label="flt", linestyle=sty, color='g')
+       axs1.flatten()[r].plot(yr, volFloat[:,r] - volFloat[0,r], label=lbl, linestyle=sty, color='g')
 
 
     # Fig 2: Grd MB ------------
@@ -274,8 +297,9 @@ def plotStat(fname, sty):
     elif options.units == "Gt":
        grdSMB = grdSMB / 1.0e12
     cumGrdSMB = np.cumsum(grdSMB*dtnR, axis=0)
+    lbl ='SMB' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs2.flatten()[r].plot(yr, cumGrdSMB[:,r], label="SMB", linestyle=sty, color='b')
+       axs2.flatten()[r].plot(yr, cumGrdSMB[:,r], label=lbl, linestyle=sty, color='b')
 
     GLflux = f.variables['regionalSumGroundingLineFlux'][:]
     if options.units == "m3":
@@ -285,8 +309,9 @@ def plotStat(fname, sty):
     elif options.units == "Gt":
        GLflux = GLflux / 1.0e12
     cumGLflux = np.cumsum(GLflux*dtnR, axis=0)
+    lbl ='GL flux' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs2.flatten()[r].plot(yr, -1.0*cumGLflux[:,r], label="GL flux", linestyle=sty, color='g')
+       axs2.flatten()[r].plot(yr, -1.0*cumGLflux[:,r], label=lbl, linestyle=sty, color='g')
 
     GLMigflux = f.variables['regionalSumGroundingLineMigrationFlux'][:]
     if options.units == "m3":
@@ -296,8 +321,9 @@ def plotStat(fname, sty):
     elif options.units == "Gt":
        GLMigflux = GLMigflux / 1.0e12
     cumGLMigflux = np.cumsum(GLMigflux*dtnR, axis=0)
+    lbl ='GL mig flux' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs2.flatten()[r].plot(yr, -1.0*cumGLMigflux[:,r], label="GL mig flux", linestyle=sty, color='y')
+       axs2.flatten()[r].plot(yr, -1.0*cumGLMigflux[:,r], label=lbl, linestyle=sty, color='y')
 
     # sum of components
     grdSum = grdSMB - GLflux - GLMigflux # note negative sign on two GL terms - they are both positive grounded to floating
@@ -306,13 +332,15 @@ def plotStat(fname, sty):
        axs2.flatten()[r].plot(yr, cumGrdSum[:,r], label="sum", linestyle=sty, color='hotpink', linewidth=0.75)
     grdSum2 = grdSMB - GLflux  # note negative sign on two GL terms - they are both positive grounded to floating
     cumGrdSum2 = np.cumsum(grdSum2*dtnR, axis=0)
+    lbl ='sum, no GLmig' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-        axs2.flatten()[r].plot(yr, cumGrdSum2[:,r], label="sum, no GLmig", linestyle=':', color='hotpink', linewidth=0.75)
+        axs2.flatten()[r].plot(yr, cumGrdSum2[:,r], label=lbl, linestyle=':', color='hotpink', linewidth=0.75)
 
 
     # Fig 3: Flt MB ---------------
+    lbl ='vol chg' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs3.flatten()[r].plot(yr, volFloat[:,r] - volFloat[0,r], label="vol chg", linestyle=sty, color='k', linewidth=2)
+       axs3.flatten()[r].plot(yr, volFloat[:,r] - volFloat[0,r], label=lbl, linestyle=sty, color='k', linewidth=2)
 
     fltSMB = f.variables['regionalSumFloatingSfcMassBal'][:]
     if options.units == "m3":
@@ -322,14 +350,17 @@ def plotStat(fname, sty):
     elif options.units == "Gt":
        fltSMB = fltSMB / 1.0e12
     cumFltSMB = np.cumsum(fltSMB*dtnR, axis=0)
+    lbl = 'SMB' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs3.flatten()[r].plot(yr, cumFltSMB[:,r], label="SMB", linestyle=sty, color='b')
+       axs3.flatten()[r].plot(yr, cumFltSMB[:,r], label=lbl, linestyle=sty, color='b')
 
+    lbl = 'GL flux' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs3.flatten()[r].plot(yr, cumGLflux[:,r], label="GL flux", linestyle=sty, color='g')
+       axs3.flatten()[r].plot(yr, cumGLflux[:,r], label=lbl, linestyle=sty, color='g')
 
+    lbl = 'GL mig flux' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs3.flatten()[r].plot(yr, cumGLMigflux[:,r], label="GL mig flux", linestyle=sty, color='y')
+       axs3.flatten()[r].plot(yr, cumGLMigflux[:,r], label=lbl, linestyle=sty, color='y')
 
     clv = f.variables['regionalSumCalvingFlux'][:]
     if options.units == "m3":
@@ -339,8 +370,9 @@ def plotStat(fname, sty):
     elif options.units == "Gt":
        clv = clv / 1.0e12
     cumClv = np.cumsum(clv*dtnR, axis=0)
+    lbl = 'calving' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs3.flatten()[r].plot(yr, -1.0*cumClv[:,r], label="calving", linestyle=sty, color='m', linewidth=1)
+       axs3.flatten()[r].plot(yr, -1.0*cumClv[:,r], label=lbl, linestyle=sty, color='m', linewidth=1)
 
     BMB = f.variables['regionalSumFloatingBasalMassBal'][:]
     if options.units == "m3":
@@ -350,18 +382,21 @@ def plotStat(fname, sty):
     elif options.units == "Gt":
        BMB = BMB / 1.0e12
     cumBMB = np.cumsum(BMB*dtnR, axis=0)
+    lbl = 'BMB' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs3.flatten()[r].plot(yr, cumBMB[:,r], label="BMB", linestyle=sty, color='r', linewidth=1)
+       axs3.flatten()[r].plot(yr, cumBMB[:,r], label=lbl, linestyle=sty, color='r', linewidth=1)
 
     # sum of components
     fltSum = fltSMB + GLflux + GLMigflux - clv + BMB
     cumFltSum = np.cumsum(fltSum*dtnR, axis=0)
+    lbl = 'sum' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs3.flatten()[r].plot(yr, cumFltSum[:,r], label="sum", linestyle=sty, color='hotpink', linewidth=0.75)
+       axs3.flatten()[r].plot(yr, cumFltSum[:,r], label=lbl, linestyle=sty, color='hotpink', linewidth=0.75)
     fltSum2 = fltSMB + GLflux - clv + BMB
     cumFltSum2 = np.cumsum(fltSum2*dtnR, axis=0)
+    lbl = 'sum, no GLmig' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-        axs3.flatten()[r].plot(yr, cumFltSum2[:,r], label="sum, no GLmig", linestyle=':', color='hotpink', linewidth=0.75)
+        axs3.flatten()[r].plot(yr, cumFltSum2[:,r], label=lbl, linestyle=':', color='hotpink', linewidth=0.75)
 
 
     # Fig 4: area change  ---------------
@@ -370,9 +405,9 @@ def plotStat(fname, sty):
     areaGrd = f.variables['regionalGroundedIceArea'][:]/1000.0**2
     areaFlt = f.variables['regionalFloatingIceArea'][:]/1000.0**2
     for r in range(nRegions):
-        axs4.flatten()[r].plot(yr, areaTot[:,r] - areaTot[0,r], label="total area", linestyle=sty, color='k')
-        axs4.flatten()[r].plot(yr, areaGrd[:,r] - areaGrd[0,r], label="grd area", linestyle=sty, color='b')
-        axs4.flatten()[r].plot(yr, areaFlt[:,r] - areaFlt[0,r], label="flt area", linestyle=sty, color='g')
+        axs4.flatten()[r].plot(yr, areaTot[:,r] - areaTot[0,r], label=("total area" if addToLegend else '_nolegend_'), linestyle=sty, color='k')
+        axs4.flatten()[r].plot(yr, areaGrd[:,r] - areaGrd[0,r], label=("grd area" if addToLegend else '_nolegend_'), linestyle=sty, color='b')
+        axs4.flatten()[r].plot(yr, areaFlt[:,r] - areaFlt[0,r], label=("flt area" if addToLegend else '_nolegend_'), linestyle=sty, color='g')
 
     # Fig. 5:  select global stats ---------
     for r in range(nRegions):
@@ -389,10 +424,15 @@ def plotStat(fname, sty):
     VAFnoTG = np.delete(VAF, indTG, 1)
     axs5.flatten()[1].plot(yr, VAFnoTG.sum(axis=1), label='no TG/PIG', color='gray', linestyle=sty)
 
+    # Fig. 6:  melt rates ---------
+    #BMB = np.where(BMB==0.0, BMB, np.nan*BMB)
+    for r in range(nRegions):
+        axs6.flatten()[r].plot(yr, -BMB[:,r], label=("BMB" if addToLegend else '_nolegend_'), linestyle=sty, color='b')
+
     f.close()
 
 
-plotStat(options.file1inName, sty='-')
+plotStat(options.file1inName, sty='-', addToLegend=True)
 
 
 if(options.file2inName):
@@ -410,11 +450,14 @@ axs2.flatten()[-1].legend(loc='best', prop={'size': 6})
 axs3.flatten()[-1].legend(loc='best', prop={'size': 6})
 axs4.flatten()[-1].legend(loc='best', prop={'size': 6})
 axs5.flatten()[0].legend(loc='best', prop={'size': 6})
+axs6.flatten()[-1].legend(loc='best', prop={'size': 6})
 
 print("Generating plot.")
 fig1.tight_layout()
 fig2.tight_layout()
 fig3.tight_layout()
 fig4.tight_layout()
+fig5.tight_layout()
+fig6.tight_layout()
 plt.show()
 
