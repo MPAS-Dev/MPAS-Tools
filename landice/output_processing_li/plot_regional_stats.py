@@ -197,10 +197,12 @@ axs5.flatten()[0].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot), color='
 plt.sca(axs5.flatten()[0])
 plt.xlabel('Year')
 plt.ylabel('Mass change (Gt)')
+plt.grid()
 axs5.flatten()[1].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot), color='k', alpha=0.2, label='net obs')
 plt.sca(axs5.flatten()[1])
 plt.xlabel('Year')
 plt.ylabel('VAF mass change (Gt)')
+plt.grid()
 
 
 # Set up Figure 6: melt rate vs obs
@@ -286,8 +288,9 @@ def plotStat(fname, sty, addToLegend=False):
 
 
     # Fig 2: Grd MB ------------
+    lbl ='vol chg' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs2.flatten()[r].plot(yr, volGround[:,r] - volGround[0,r], label="vol chg", linestyle=sty, color='k', linewidth=2)
+       axs2.flatten()[r].plot(yr, volGround[:,r] - volGround[0,r], label=lbl, linestyle=sty, color='k', linewidth=2)
 
     grdSMB = f.variables['regionalSumGroundedSfcMassBal'][:]
     if options.units == "m3":
@@ -328,8 +331,9 @@ def plotStat(fname, sty, addToLegend=False):
     # sum of components
     grdSum = grdSMB - GLflux - GLMigflux # note negative sign on two GL terms - they are both positive grounded to floating
     cumGrdSum = np.cumsum(grdSum*dtnR, axis=0)
+    lbl ='sum' if addToLegend else '_nolegend_'
     for r in range(nRegions):
-       axs2.flatten()[r].plot(yr, cumGrdSum[:,r], label="sum", linestyle=sty, color='hotpink', linewidth=0.75)
+       axs2.flatten()[r].plot(yr, cumGrdSum[:,r], label=lbl, linestyle=sty, color='hotpink', linewidth=0.75)
     grdSum2 = grdSMB - GLflux  # note negative sign on two GL terms - they are both positive grounded to floating
     cumGrdSum2 = np.cumsum(grdSum2*dtnR, axis=0)
     lbl ='sum, no GLmig' if addToLegend else '_nolegend_'
@@ -415,14 +419,14 @@ def plotStat(fname, sty, addToLegend=False):
            indTG = r
            break
     #print(f'TG index={indTG}')
-    axs5.flatten()[0].plot(yr, volGround.sum(axis=1), label='total', color='k', linestyle=sty)
+    axs5.flatten()[0].plot(yr, volGround.sum(axis=1), label='total', color='b', linestyle=sty)
     volGroundnoTG = np.delete(volGround, indTG, 1)
-    axs5.flatten()[0].plot(yr, volGroundnoTG.sum(axis=1), label='no TG/PIG', color='gray', linestyle=sty)
+    axs5.flatten()[0].plot(yr, volGroundnoTG.sum(axis=1), label='no TG/PIG', color='c', linestyle=sty)
     #for r in range(nRegions):
        #axs5.flatten()[0].plot(yr, VAF[:,r] - VAF[0,r], label=rNames[r], linestyle=sty)
-    axs5.flatten()[1].plot(yr, VAF.sum(axis=1), label='total', color='k', linestyle=sty)
+    axs5.flatten()[1].plot(yr, VAF.sum(axis=1), label='total', color='b', linestyle=sty)
     VAFnoTG = np.delete(VAF, indTG, 1)
-    axs5.flatten()[1].plot(yr, VAFnoTG.sum(axis=1), label='no TG/PIG', color='gray', linestyle=sty)
+    axs5.flatten()[1].plot(yr, VAFnoTG.sum(axis=1), label='no TG/PIG', color='c', linestyle=sty)
 
     # Fig. 6:  melt rates ---------
     #BMB = np.where(BMB==0.0, BMB, np.nan*BMB)
@@ -445,9 +449,9 @@ if(options.file4inName):
     plotStat(options.file4inName, sty='-.')
 
 
-axs1.flatten()[-1].legend(loc='best', prop={'size': 6})
-axs2.flatten()[-1].legend(loc='best', prop={'size': 6})
-axs3.flatten()[-1].legend(loc='best', prop={'size': 6})
+axs1.flatten()[-1].legend(loc='best', prop={'size': 5})
+axs2.flatten()[-1].legend(loc='best', prop={'size': 5})
+axs3.flatten()[-1].legend(loc='best', prop={'size': 5})
 axs4.flatten()[-1].legend(loc='best', prop={'size': 6})
 axs5.flatten()[0].legend(loc='best', prop={'size': 6})
 axs6.flatten()[-1].legend(loc='best', prop={'size': 6})
