@@ -30,11 +30,11 @@ print("Using ice density of {} kg/m3 if required for unit conversions".format(rh
 # Build string for titles about the runs in use
 runinfo=f'solid={options.file1inName}'
 if options.file2inName:
-    runinfo = f'{runinfo}; dotted={options.file2inName}'
+    runinfo = f'{runinfo}\ndotted={options.file2inName}'
 if options.file3inName:
-    runinfo = f'{runinfo}; dashed={options.file3inName}'
+    runinfo = f'{runinfo}\ndashed={options.file3inName}'
 if options.file4inName:
-    runinfo = f'{runinfo}; dashdot={options.file4inName}'
+    runinfo = f'{runinfo}\ndashdot={options.file4inName}'
 
 #xtickSpacing = 20.0
 
