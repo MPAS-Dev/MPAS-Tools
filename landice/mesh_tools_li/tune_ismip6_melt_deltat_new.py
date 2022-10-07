@@ -30,11 +30,16 @@ import matplotlib.pyplot as plt
 
 # -----------------------
 # --- Set gamma0 here ---
-gamma0 = 14500.0 # MeanAnt
+#gamma0 = 14500.0 # MeanAnt
 #gamma0 = 14500.0 / 3.205158150947664 # MeanAnt with slope factor
 #gamma0 = 14500.0 / 2.385662164153696 # MeanAnt with slope factor
 #gamma0 = 159000.0 # PIGL
 #gamma0 = 2.06e6 #MeanAnt Median with slope
+
+
+gamma0 = 50000.0
+gamma0 = 14500.0
+#gamma0 = 159000.0 # PIGL
 # -----------------------
 # Select range of deltaT values to search through.
 # np.arange(-1.0, 1.5, 0.05) has been wide enough for MeanAnt with and without slope with default gamma0 values,
@@ -42,11 +47,15 @@ gamma0 = 14500.0 # MeanAnt
 # Confirm that the output deltaTs are more than increment away from boundary.
 # Increments of 0.05 seems than fine enough to get a smooth function for interpolating, but use larger increments
 # when testing for faster execution.
-dTs = np.arange(-1.5, 2.5, 0.2)  # MeanAnt
+dTs = np.arange(-0.6, 0.35, 0.05)  # MeanAnt
 dTs = np.arange(-1.5, 2.0, 0.25)  # MeanAnt
 #dTs = np.arange(-0.8, 0., 0.05)  # MeanAnt
 #dTs = np.arange(-1.5, 0.0, 0.05)  # PIGL
 # -----------------------
+k1 = 0.9; k0 = -0.37
+#Kl = 0.75 * meanTF[r] - 0.475
+#Kl = 0.8 * meanTF[r] - 0.24
+#Kl = 1.15 * meanTF[r] - 0.495
 
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
@@ -114,19 +123,23 @@ nCells = len(f.dimensions['nCells'])
 areaCell = f.variables['areaCell'][:]
 xCell = f.variables['xCell'][:]
 yCell = f.variables['yCell'][:]
-if 'shelfBaseSlope' in f.variables:
-    print('USING SLOPE')
-    slope = f.variables['shelfBaseSlope'][1,:]
-    ind = np.nonzero(floatMask==1)[0]
-    meanSlope = (slope[ind] * areaCell[ind]).sum() / areaCell[ind].sum()
-    meanSlopeFactor = ((1.0 + 900.0 * slope[ind]) * areaCell[ind]).sum() / areaCell[ind].sum()
-    meanSlopeFactor2 = (np.exp2(np.log10(np.maximum(1.0e-4,slope[ind]))+4) * areaCell[ind]).sum() / areaCell[ind].sum()
-    print(f"Mean slope = {meanSlope}, mean slope factor = {meanSlopeFactor}")
-    print(f"Mean slope = {meanSlope}, mean slope factor2 = {meanSlopeFactor2}")
-else:
-    slope = np.zeros((nCells,))
+#if 'shelfBaseSlope' in f.variables:
+#    print('USING SLOPE')
+#    slope = f.variables['shelfBaseSlope'][1,:]
+#    ind = np.nonzero(floatMask==1)[0]
+#    meanSlope = (slope[ind] * areaCell[ind]).sum() / areaCell[ind].sum()
+#    meanSlopeFactor = ((1.0 + 900.0 * slope[ind]) * areaCell[ind]).sum() / areaCell[ind].sum()
+#    meanSlopeFactor2 = (np.exp2(np.log10(np.maximum(1.0e-4,slope[ind]))+4) * areaCell[ind]).sum() / areaCell[ind].sum()
+#    print(f"Mean slope = {meanSlope}, mean slope factor = {meanSlopeFactor}")
+#    print(f"Mean slope = {meanSlope}, mean slope factor2 = {meanSlopeFactor2}")
+#else:
+#    slope = np.zeros((nCells,))
 
 def calcMelt(deltaT):
+    if not isinstance(deltaT, np.ndarray):
+        deltaT = np.ones((nCells,)) * deltaT
+    else:
+        print("using spatial deltaT field")
     mean_TF = 0.0
     IS_area = 0.0
     meanSlope = 0.0
@@ -143,7 +156,8 @@ def calcMelt(deltaT):
         meanTF[reg] = (TFdraft[ind]*areaCell[ind]).sum() / areaCell[ind].sum()
         meanTFcell[ind] = meanTF[reg]
 
-    melt = gamma0 * coef * (1.0 + 900.0 * slope) * (TFdraft + deltaT) * np.absolute(meanTFcell + deltaT) # m/yr
+    KL = k1 * meanTFcell + k0
+    melt = gamma0 * coef * (TFdraft + KL + deltaT) * np.absolute(meanTFcell - KL + deltaT) # m/yr
 
     totalMelt = np.zeros((nRegions,))
     for reg in range(nRegions):
@@ -157,10 +171,12 @@ allMelts = np.zeros((len(dTs), nRegions))
 for i, dT in enumerate(dTs):
     print(f"Calculating with dT={dT}")
     melt, allMelts[i,:], TFdraft, meanTF = calcMelt(dT)
-    if False:
-       fig, axs = plt.subplots(1,1, figsize=(9,9), num=i)
-       plt.scatter(xCell, yCell, s=1, c=melt, cmap='jet')
+    if np.absolute(dT-0.0)<0.01:
+       print(f"creating melt map for dT={dT}")
+       fig, axs = plt.subplots(1,1, figsize=(9,9), num=30)
+       plt.scatter(xCell, yCell, s=1, c=np.log10(melt), cmap='jet')
        plt.title(f'dT={dT}')
+       axs.set_aspect('equal', 'box')
        plt.colorbar()
 
 
@@ -169,15 +185,15 @@ regionCells = np.zeros((nCells,), 'i')
 bestdT = np.zeros((nRegions,))
 for reg in range(nRegions):
     bestdT[reg] = np.interp(ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0], allMelts[:,reg], dTs)
-    print(f"{ISMIP6basinInfo[rNamesOrig[reg]]['name']}: {bestdT[reg]}")
+    print(f"{ISMIP6basinInfo[rNamesOrig[reg]]['name']}: Best dT={bestdT[reg]}, mean TF={meanTF[reg]}")
     bestdTCells[regionCellMasks[:,reg]==1] = bestdT[reg]
     regionCells[regionCellMasks[:,reg]==1] = reg+1
-np.save(f'standard_bestdTs_{gamma0}.npy', bestdT)
+np.save(f'localsens_bestdTs_{gamma0}.npy', bestdT)
 
 nrow=4
 ncol=4
 fig4, axs4 = plt.subplots(nrow, ncol, figsize=(13, 11), num=4)
-fig4.suptitle(f'melt sensitivity, gamma={gamma0}')
+fig4.suptitle(f'deltaT melt sensitivity, gamma={gamma0}')
 for reg in range(nRegions):
    plt.sca(axs4.flatten()[reg])
    plt.xlabel('delta T')
@@ -195,7 +211,7 @@ for reg in range(nRegions):
 fig4.tight_layout()
 
 fig5, axs5 = plt.subplots(nrow, ncol, figsize=(13, 11), num=5)
-fig5.suptitle(f'melt sensitivity, gamma={gamma0}')
+fig5.suptitle(f'TF melt sensitivity, gamma={gamma0}')
 for reg in range(nRegions):
    plt.sca(axs5.flatten()[reg])
    plt.xlabel('mean TF')
@@ -211,26 +227,37 @@ for reg in range(nRegions):
    plt.plot(dTs+meanTF[reg], meltHere * np.ones(dTs.shape), 'k-')
    plt.plot(dTs+meanTF[reg] - bestdT[reg], allMelts[:,reg], 'b-')
    plt.plot(meanTF[reg]*np.ones((2,)), [0,meltHere*2.0], 'r--')
-   
-   TFs = dTs+meanTF[reg] #+ bestdTstd[reg]
+
+   TFs = dTs+meanTF[reg] - bestdT[reg]
    ind = np.nonzero(floatMask * regionCellMasks[:,reg])[0]
-   plt.plot(TFs, coef * gamma0 * (TFs**2 + 2.0*bestdT[reg]*TFs + bestdT[reg]**2) * areaCell[ind].sum() * rhoi / 1.0e12, 'm:')
-   
-   np.save(f'standard_allMelts_{gamma0}_{reg}.npy', allMelts)
+   plt.plot(TFs, coef * gamma0 * ((1.0 - k1**2) * TFs**2 + (2.0*bestdT[reg] - 2.0*k1*k0) * TFs + (bestdT[reg]**2 - k0**2)) * areaCell[ind].sum() * rhoi / 1.0e12, 'm:')
+
+   np.save(f'localsens_allMelts_{gamma0}_{reg}.npy', allMelts)
 fig5.tight_layout()
-np.save(f'meanTF.npy', meanTF)
+
+
+melt, allMelts[i,:], TFdraft, meanTF = calcMelt(bestdTCells)
+print(f"creating melt map for best dTs")
+fig, axs = plt.subplots(1,1, figsize=(9,9), num=22)
+plt.scatter(xCell, yCell, s=1, c=np.log10(melt), cmap='jet')
+plt.title(f'best dT')
+axs.set_aspect('equal', 'box')
+plt.colorbar()
 
 
 # write new file
-foutName='basin_and_coeff_gamma0_DeltaT_quadratic_non_local.nc'
+foutName='basin_and_coeff_gamma0_DeltaT_quadratic_non_local_new.nc'
 fout = Dataset(foutName, 'w')
 fout.createDimension('nCells', nCells)
+fout.createDimension('Time', None)
 dTOut = fout.createVariable('ismip6shelfMelt_deltaT', 'd', ('nCells',))
 basinOut = fout.createVariable('ismip6shelfMelt_basin', 'i', ('nCells',))
 gammaOut = fout.createVariable('ismip6shelfMelt_gamma0', 'd')
+BMB = fout.createVariable('melt', 'd', ('Time','nCells',))
 dTOut[:] = bestdTCells
 basinOut[:] = regionCells
 gammaOut[:] = gamma0
+BMB[0,:] = melt
 fout.close()
 
 plt.show()

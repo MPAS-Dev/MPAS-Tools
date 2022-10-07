@@ -28,26 +28,8 @@ from optparse import OptionParser
 import matplotlib.pyplot as plt
 
 
-# -----------------------
-# --- Set gamma0 here ---
-gamma0 = 14500.0 # MeanAnt
-#gamma0 = 14500.0 / 3.205158150947664 # MeanAnt with slope factor
-#gamma0 = 14500.0 / 2.385662164153696 # MeanAnt with slope factor
-#gamma0 = 159000.0 # PIGL
-#gamma0 = 2.06e6 #MeanAnt Median with slope
-# -----------------------
-# Select range of deltaT values to search through.
-# np.arange(-1.0, 1.5, 0.05) has been wide enough for MeanAnt with and without slope with default gamma0 values,
-# but range will be affected by gamma0 and a wider range may be necessary if any optimal deltaTs are outside this range.
-# Confirm that the output deltaTs are more than increment away from boundary.
-# Increments of 0.05 seems than fine enough to get a smooth function for interpolating, but use larger increments
-# when testing for faster execution.
-dTs = np.arange(-1.5, 2.5, 0.2)  # MeanAnt
-dTs = np.arange(-1.5, 2.0, 0.25)  # MeanAnt
-#dTs = np.arange(-0.8, 0., 0.05)  # MeanAnt
-#dTs = np.arange(-1.5, 0.0, 0.05)  # PIGL
-# -----------------------
-
+dT=0.0
+gammas=np.arange(5000.0, 100000.0, 5000.0)
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser(description=__doc__)
@@ -82,17 +64,17 @@ regionCellMasks = fn.variables['regionCellMasks'][:]
 nRegions = len(fn.dimensions['nRegions'])
 # Process region names
 rNamesOrig = list()
-for reg in range(nRegions):
-    thisString = rNamesIn[reg, :].tobytes().decode('utf-8').strip()  # convert from char array to string
+for r in range(nRegions):
+    thisString = rNamesIn[r, :].tobytes().decode('utf-8').strip()  # convert from char array to string
     rNamesOrig.append(''.join(filter(str.isalnum, thisString)))  # this bit removes non-alphanumeric chars
 
 # Parse region names to more usable names, if available
 rNames = [None]*nRegions
-for reg in range(nRegions):
-    if rNamesOrig[reg] in ISMIP6basinInfo:
-        rNames[reg] = ISMIP6basinInfo[rNamesOrig[reg]]['name']
+for r in range(nRegions):
+    if rNamesOrig[r] in ISMIP6basinInfo:
+        rNames[r] = ISMIP6basinInfo[rNamesOrig[r]]['name']
     else:
-        rNames[reg] = rNamesOrig[reg]
+        rNames[r] = rNamesOrig[r]
 
 ff = Dataset(options.fcgFileName, 'r')
 zOcean = ff.variables['ismip6shelfMelt_zOcean'][:]
@@ -120,13 +102,11 @@ if 'shelfBaseSlope' in f.variables:
     ind = np.nonzero(floatMask==1)[0]
     meanSlope = (slope[ind] * areaCell[ind]).sum() / areaCell[ind].sum()
     meanSlopeFactor = ((1.0 + 900.0 * slope[ind]) * areaCell[ind]).sum() / areaCell[ind].sum()
-    meanSlopeFactor2 = (np.exp2(np.log10(np.maximum(1.0e-4,slope[ind]))+4) * areaCell[ind]).sum() / areaCell[ind].sum()
     print(f"Mean slope = {meanSlope}, mean slope factor = {meanSlopeFactor}")
-    print(f"Mean slope = {meanSlope}, mean slope factor2 = {meanSlopeFactor2}")
 else:
     slope = np.zeros((nCells,))
 
-def calcMelt(deltaT):
+def calcMelt(gamma0, deltaT):
     mean_TF = 0.0
     IS_area = 0.0
     meanSlope = 0.0
@@ -138,25 +118,25 @@ def calcMelt(deltaT):
            # 1 -  Linear interpolation of the thermal forcing on the ice draft depth :
            TFdraft[iCell] = np.interp(lowerSurface[iCell], np.flip(zOcean), np.flip(TFocean[iCell,:])) # flip b/c z is ordered from sfc to deep but interp needs to be increasing
     meanTF = np.zeros((nRegions,))
-    for reg in range(nRegions):
-        ind = np.nonzero(floatMask * regionCellMasks[:,reg])[0]
-        meanTF[reg] = (TFdraft[ind]*areaCell[ind]).sum() / areaCell[ind].sum()
-        meanTFcell[ind] = meanTF[reg]
+    for r in range(nRegions):
+        ind = np.nonzero(floatMask * regionCellMasks[:,r])[0]
+        meanTF[r] = (TFdraft[ind]*areaCell[ind]).sum() / areaCell[ind].sum()
+        meanTFcell[ind] = meanTF[r]
 
     melt = gamma0 * coef * (1.0 + 900.0 * slope) * (TFdraft + deltaT) * np.absolute(meanTFcell + deltaT) # m/yr
 
     totalMelt = np.zeros((nRegions,))
-    for reg in range(nRegions):
-        ind = np.nonzero(floatMask * regionCellMasks[:,reg])[0]
-        totalMelt[reg] = (melt[ind]*areaCell[ind]).sum() * rhoi / 1.0e12 #convert to Gt/yr
+    for r in range(nRegions):
+        ind = np.nonzero(floatMask * regionCellMasks[:,r])[0]
+        totalMelt[r] = (melt[ind]*areaCell[ind]).sum() * rhoi / 1.0e12 #convert to Gt/yr
 
     return melt, totalMelt, TFdraft, meanTF
 
-print("Considering dTs", dTs)
-allMelts = np.zeros((len(dTs), nRegions))
-for i, dT in enumerate(dTs):
-    print(f"Calculating with dT={dT}")
-    melt, allMelts[i,:], TFdraft, meanTF = calcMelt(dT)
+print("Considering gammas", gammas)
+allMelts = np.zeros((len(gammas), nRegions))
+for i, gamma in enumerate(gammas):
+    print(f"Calculating with gamma={gamma}")
+    melt, allMelts[i,:], TFdraft, meanTF = calcMelt(gamma, dT)
     if False:
        fig, axs = plt.subplots(1,1, figsize=(9,9), num=i)
        plt.scatter(xCell, yCell, s=1, c=melt, cmap='jet')
@@ -164,73 +144,48 @@ for i, dT in enumerate(dTs):
        plt.colorbar()
 
 
-bestdTCells = np.zeros((nCells,))
+bestgammaCells = np.zeros((nCells,))
 regionCells = np.zeros((nCells,), 'i')
-bestdT = np.zeros((nRegions,))
-for reg in range(nRegions):
-    bestdT[reg] = np.interp(ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0], allMelts[:,reg], dTs)
-    print(f"{ISMIP6basinInfo[rNamesOrig[reg]]['name']}: {bestdT[reg]}")
-    bestdTCells[regionCellMasks[:,reg]==1] = bestdT[reg]
-    regionCells[regionCellMasks[:,reg]==1] = reg+1
-np.save(f'standard_bestdTs_{gamma0}.npy', bestdT)
+bestgamma = np.zeros((nRegions,))
+for r in range(nRegions):
+    bestgamma[r] = np.interp(ISMIP6basinInfo[rNamesOrig[r]]['shelfMelt'][0], allMelts[:,r], gammas)
+    print(f"{ISMIP6basinInfo[rNamesOrig[r]]['name']}: {bestgamma[r]}")
+    bestgammaCells[regionCellMasks[:,r]==1] = bestgamma[r]
+    regionCells[regionCellMasks[:,r]==1] = r+1
 
 nrow=4
 ncol=4
 fig4, axs4 = plt.subplots(nrow, ncol, figsize=(13, 11), num=4)
-fig4.suptitle(f'melt sensitivity, gamma={gamma0}')
+fig4.suptitle(f'melt sensitivity')
 for reg in range(nRegions):
    plt.sca(axs4.flatten()[reg])
-   plt.xlabel('delta T')
+   plt.xlabel('gamma0')
    plt.ylabel('total basin melt (Gt)')
    #plt.xticks(np.arange(22)*xtickSpacing)
    plt.grid()
-   axs4.flatten()[reg].set_title(f'{rNames[reg]}: {bestdT[reg]:.5f}')
+   axs4.flatten()[reg].set_title(f'{rNames[reg]}: {bestgamma[reg]}')
    if reg == 0:
       axX = axs4.flatten()[reg]
    else:
       axs4.flatten()[reg].sharex(axX)
    meltHere = ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0]
-   plt.plot(dTs, meltHere * np.ones(dTs.shape), 'k-')
-   plt.plot(dTs, allMelts[:,reg], 'b-')
+   plt.plot(gammas, meltHere * np.ones(gammas.shape), 'k-')
+   plt.plot(gammas, allMelts[:,reg], 'b-')
 fig4.tight_layout()
 
-fig5, axs5 = plt.subplots(nrow, ncol, figsize=(13, 11), num=5)
-fig5.suptitle(f'melt sensitivity, gamma={gamma0}')
-for reg in range(nRegions):
-   plt.sca(axs5.flatten()[reg])
-   plt.xlabel('mean TF')
-   plt.ylabel('total basin melt (Gt)')
-   #plt.xticks(np.arange(22)*xtickSpacing)
-   plt.grid()
-   axs5.flatten()[reg].set_title(f'{rNames[reg]}: best TF={bestdT[reg]+meanTF[reg]:.3f}')
-   if reg == 0:
-      axX = axs5.flatten()[reg]
-   else:
-      axs5.flatten()[reg].sharex(axX)
-   meltHere = ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0]
-   plt.plot(dTs+meanTF[reg], meltHere * np.ones(dTs.shape), 'k-')
-   plt.plot(dTs+meanTF[reg] - bestdT[reg], allMelts[:,reg], 'b-')
-   plt.plot(meanTF[reg]*np.ones((2,)), [0,meltHere*2.0], 'r--')
-   
-   TFs = dTs+meanTF[reg] #+ bestdTstd[reg]
-   ind = np.nonzero(floatMask * regionCellMasks[:,reg])[0]
-   plt.plot(TFs, coef * gamma0 * (TFs**2 + 2.0*bestdT[reg]*TFs + bestdT[reg]**2) * areaCell[ind].sum() * rhoi / 1.0e12, 'm:')
-   
-   np.save(f'standard_allMelts_{gamma0}_{reg}.npy', allMelts)
-fig5.tight_layout()
-np.save(f'meanTF.npy', meanTF)
-
+fig, axs = plt.subplots(1,1, figsize=(9,9), num=2)
+plt.plot(meanTF, bestgamma, '.')
 
 # write new file
-foutName='basin_and_coeff_gamma0_DeltaT_quadratic_non_local.nc'
-fout = Dataset(foutName, 'w')
-fout.createDimension('nCells', nCells)
-dTOut = fout.createVariable('ismip6shelfMelt_deltaT', 'd', ('nCells',))
-basinOut = fout.createVariable('ismip6shelfMelt_basin', 'i', ('nCells',))
-gammaOut = fout.createVariable('ismip6shelfMelt_gamma0', 'd')
-dTOut[:] = bestdTCells
-basinOut[:] = regionCells
-gammaOut[:] = gamma0
-fout.close()
+#foutName='basin_and_coeff_gamma0_DeltaT_quadratic_non_local.nc'
+#fout = Dataset(foutName, 'w')
+#fout.createDimension('nCells', nCells)
+#dTOut = fout.createVariable('ismip6shelfMelt_deltaT', 'd', ('nCells',))
+#basinOut = fout.createVariable('ismip6shelfMelt_basin', 'i', ('nCells',))
+#gammaOut = fout.createVariable('ismip6shelfMelt_gamma0', 'd')
+#dTOut[:] = bestdTCells
+#basinOut[:] = regionCells
+#gammaOut[:] = gamma0
+#fout.close()
 
 plt.show()
