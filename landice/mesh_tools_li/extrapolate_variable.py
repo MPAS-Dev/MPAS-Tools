@@ -44,8 +44,16 @@ yCell = dataset.variables["xCell"][:]
 # Define region of good data to extrapolate from.  Different methods for different variables
 if var_name in ["effectivePressure", "beta", "muFriction"]:
     groundedMask = (thickness > (-1028.0 / 910.0 * bed))
-    keepCellMask = groundedMask * (varValue > 0.0)
+    keepCellMask = np.copy(groundedMask)
     extrapolation == "min"
+
+    for iCell in range(nCells):
+        for n in range(nEdgesOnCell[iCell]):
+            jCell = cellsOnCell[iCell, n] - 1
+            if (groundedMask[jCell] == 1):
+                keepCellMask[iCell] = 1
+                continue
+    keepCellMask *= (varValue > 0)  # ensure zero muFriction does not get extrapolated
 elif var_name in ["floatingBasalMassBal"]:
     floatingMask = (thickness <= (-1028.0 / 910.0 * bed))
     keepCellMask = floatingMask * (varValue != 0.0)
