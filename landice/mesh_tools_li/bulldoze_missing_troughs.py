@@ -52,10 +52,8 @@ floatMask = ((thickness*910/1028+bedTopography)<0.0)*(thickness>0.0)
 dCell = dcEdge.min()*2.5
 dCell = 8000.0
 print(f"using dCell={dCell}")
-maxWCT = 100.0
-minWCT = 40.0
 
-def smoothTrough(WCT, p1, p2):
+def smoothTrough(WCT, p1, p2, minWCT, maxWCT):
     WCTnew = WCT.copy()
     mask = (WCT<maxWCT) * (floatMask==1) * (xCell>(p1[0]-2*dCell)) * (xCell<(p2[0]+2*dCell)) * (yCell>(p1[1]-2*dCell)) * (yCell<(p2[1]+2*dCell))
     ind = np.nonzero(mask==1)[0]
@@ -102,13 +100,19 @@ def smoothTrough(WCT, p1, p2):
     return WCTnew
 
 
+maxWCT = 300.0
+minWCT = 50.0
 WCTnew = WCT.copy()
 p1=[-1261073.6, 137133.0]; p2=[-1173862.4, 199332.15] # Rutford
-WCTnew = smoothTrough(WCTnew, p1, p2)
+WCTnew = smoothTrough(WCTnew, p1, p2, minWCT, maxWCT)
 p1=[-1315459.94, 202346.75]; p2=[-1257332.3, 291441.3] # Carlson
-WCTnew = smoothTrough(WCTnew, p1, p2)
+WCTnew = smoothTrough(WCTnew, p1, p2, minWCT, maxWCT)
 p1=[-1513787.6, 311996.4]; p2=[-1386639.4, 337107.2] # Evans
-WCTnew = smoothTrough(WCTnew, p1, p2)
+WCTnew = smoothTrough(WCTnew, p1, p2, minWCT, maxWCT)
+p1=[-34186, 1983479]; p2=[-9070, 2047275] # Fimbul
+WCTnew = smoothTrough(WCTnew, p1, p2, minWCT, maxWCT)
+p1=[-1064519, 206317]; p2=[-1055596, 265431] # lil guy
+WCTnew = smoothTrough(WCTnew, p1, p2, 40.0, 150.0)
 
 f.variables['bedTopography'][0,:] = lowerSurface - WCTnew
 
