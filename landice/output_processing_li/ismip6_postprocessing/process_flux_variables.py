@@ -30,8 +30,10 @@ def do_time_avg_flux_vars(input_file, output_file):
     # calculate averaged BMB flux beneath grounded and floating ice
     libmassbffl = basalMassBal * (cellMask[:, :] & 4) / 4
     libmassbfgr = basalMassBal * (1 - (cellMask[:, :] & 4) / 4)
+    iceMask = (cellMask[:, :] & 2) / 2  # grounded: dynamic ice
     dataIn['libmassbffl'] = libmassbffl
     dataIn['libmassbfgr'] = libmassbfgr
+    dataIn['iceMask'] = iceMask
     dataIn.to_netcdf(input_file, mode='a')
 
     # get an array of years that are not duplicative
@@ -68,6 +70,7 @@ def do_time_avg_flux_vars(input_file, output_file):
         sumYearTime = 0
         sumYearBmbfl = 0
         sumYearBmbgr = 0
+        sumIceMask = 0
 
         for i in range(time):
 
@@ -82,6 +85,8 @@ def do_time_avg_flux_vars(input_file, output_file):
                 # sumYearBHF = sumYearBHF + basalHeatFlux[i,:]*deltat[i] # this might not be used because our BHF does not evolve with time
                 sumYearTime = sumYearTime + deltat[i]
 
+                sumIceMask = sumIceMask + iceMask[i,;]
+
         avgYearSmb = sumYearSmb / sumYearTime
         avgYearBmbfl = sumYearBmbfl / sumYearTime
         avgYearBmbgr = sumYearBmbgr / sumYearTime
@@ -89,6 +94,7 @@ def do_time_avg_flux_vars(input_file, output_file):
         # avgYearCF = sumYearCF/sumYearTime
         avgYearGF = sumYearGF / sumYearTime
         # avgYearBHF= sumYearBHF / sumYearTime
+        maxIceMask = (sumIceMask>0) # Get mask for anywhere that had ice during this year
 
         dataOut['sfcMassBalApplied'][j, :] = avgYearSmb
         dataOut['libmassbffl'][j, :] = avgYearBmbfl
@@ -96,6 +102,9 @@ def do_time_avg_flux_vars(input_file, output_file):
         # dataOut['dHdt'][j, :] = avgYearDHdt
         dataOut['fluxAcrossGroundingLine'][j, :] = avgYearGF
         # dataOut['basalHeatFlux'][j, :] = avgYearBHF
+
+        # Generate a mask for ice extent
+        dataOut['iceMask'][j,:] = maxIceMask
 
     dataOut.to_netcdf(output_file, mode='w')
     dataIn.close()
@@ -209,7 +218,6 @@ def translate_GL_and_calving_flux_edge2cell(file_flux_time_avged,
 def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
                               var_units, var_varname,
                               remapped_mali_flux_file,
-                              remapped_mali_state_file,
                               ismip6_grid_file,
                               exp, output_path):
 
@@ -220,7 +228,6 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     var_units: variable units
     var_varname: variable variable name
     remapped_mali_flux_file: mali flux file remapped on the ISMIP6 grid
-    remapped_mali_state_file: malie state file remapped on the ISMIP6 grid
     ismip6_grid_file: original ISMIP6 file
     exp: experiment name
     output_path: output path to which the output files will be saved
@@ -232,10 +239,9 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     var_x = data_ismip6.variables['x'][:]
     var_y = data_ismip6.variables['y'][:]
 
-    data_state = Dataset(remapped_mali_state_file, 'r')
-    var_sftgif = data_state.variables['sftgif'][:, :, :]
     data = Dataset(remapped_mali_flux_file, 'r')
     data.set_auto_mask(False)
+    ice_mask = data.variables['sftgif'][:, :, :]
     var_mali = data.variables[mali_var_name][:,:,:]
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
     timeSteps, latN, lonN = np.shape(var_mali)
@@ -254,10 +260,10 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     timeValues = dataOut.createVariable('time', 'f4', ('time'))
 
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
-    DATE_STR = date.today().strftime("%d-%b-%Y")
+    DATE_STR = daTE.TOday().strftime("%d-%b-%Y")
 
     for i in range(timeSteps):
-        mask = var_sftgif[i, :, :]
+        mask = ice_mask[i, :, :]
         tmp = var_mali[i, :, :]
         tmp[mask == 0] = np.NAN
         dataValues[i, :, :] = tmp
@@ -311,7 +317,6 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'land_ice_surface_specific_mass_balance_flux',
                               'kg m-2 s-1', 'Surface mass balance flux',
                               file_remapped_mali_flux,
-                              file_remapped_mali_state,
                               ismip6_grid_file,
                               exp, output_path)
 
@@ -321,7 +326,6 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath floating ice',
                               file_remapped_mali_flux,
-                              file_remapped_mali_state,
                               ismip6_grid_file,
                               exp, output_path)
 
@@ -331,7 +335,6 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath grounded ice',
                               file_remapped_mali_flux,
-                              file_remapped_mali_state,
                               ismip6_grid_file,
                               exp, output_path)
 
@@ -341,7 +344,6 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
     #                           'm s-1',
     #                           'Ice thickness imbalance',
     #                           file_remapped_mali_flux,
-    #                           file_remapped_mali_state,
     #                           ismip6_grid_file,
     #                           exp, output_path)
 
@@ -351,7 +353,6 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Calving flux',
                               file_remapped_mali_flux,
-                              file_remapped_mali_state,
                               ismip6_grid_file,
                               exp, output_path)
 
@@ -365,6 +366,5 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Grounding line flux',
                               file_remapped_mali_flux,
-                              file_remapped_mali_state,
                               ismip6_grid_file,
                               exp, output_path)

@@ -27,14 +27,14 @@ def main():
                         required=True,
                         help="ISMIP6 experiment name (e.g., exp05")
     parser.add_argument("-i_state", "--input_state", dest="input_file_state",
-                        required=True, help="mpas output state variables")
+                        required=False, help="mpas output state variables")
     parser.add_argument("-i_flux", "--input_flux", dest="input_file_flux",
                         required=False, help="mpas output flux variables")
     parser.add_argument("-i_init", "--input_init", dest="input_file_init",
                         required=True, help="optimized initialized file."
                                             "Needed for grid information")
     parser.add_argument("-g", "--global_stats_file", dest="global_stats_file",
-                        required=True, help="globalStats.nc file")
+                        required=False, help="globalStats.nc file")
     parser.add_argument("-p", "--output_path", dest="output_path",
                         required=False,
                         help="path to which the final output files"
@@ -54,25 +54,27 @@ def main():
 
     args = parser.parse_args()
 
-    # check the mapping method and existence of the mapping file
-    if args.method_remap is None:
-        method_remap = "conserve"
-    else:
-        method_remap = args.method_remap
+    # Only do remapping steps if we have 2d files to process
+    if not args.input_file_state is None or not args.input_file_flux is None:
+        # check the mapping method and existence of the mapping file
+        if args.method_remap is None:
+            method_remap = "conserve"
+        else:
+            method_remap = args.method_remap
 
-    mapping_file = f"map_{args.mali_mesh_name}_to_ismip6_8km_" \
-                   f"{method_remap}.nc"
+        mapping_file = f"map_{args.mali_mesh_name}_to_ismip6_8km_" \
+                       f"{method_remap}.nc"
 
-    # Note: the function 'building_mapping_file' requires the mpas mesh tool
-    # script 'create_SCRIP_file_from_planar_rectangular_grid.py'
-    if not os.path.exists(mapping_file):
-        print(f"Creating new mapping file.")
-        build_mapping_file(args.input_file_init, mapping_file,
-                           args.ismip6_grid_file, method_remap)
-    else:
-        print(f"Mapping file exists.")
-    print(f"Remapping the input data..."
-          f"Mapping method used: {method_remap}")
+        # Note: the function 'building_mapping_file' requires the mpas mesh tool
+        # script 'create_SCRIP_file_from_planar_rectangular_grid.py'
+        if not os.path.exists(mapping_file):
+            print(f"Creating new mapping file.")
+            build_mapping_file(args.input_file_init, mapping_file,
+                               args.ismip6_grid_file, method_remap)
+        else:
+            print(f"Mapping file exists.")
+        print(f"Remapping the input data..."
+              f"Mapping method used: {method_remap}")
 
     # define the path to which the output (processed) files will be saved
     if args.output_path is None:
@@ -81,37 +83,48 @@ def main():
         output_path = args.output_path
     print(f"Using output path: {output_path}")
 
-    # state variables processing part
-    input_file_state = os.path.basename(args.input_file_state)
+    if args.input_file_flux is None:
+        print(" MALI flux file is not provided, thus it will not be processed.")
+    else:
+        print("---Processing flux file---")
+        # state variables processing part
+        input_file_state = os.path.basename(args.input_file_state)
 
-    # process (add and rename) state vars as requested by the ISMIP6 protocol
-    tmp_file = "tmp_state.nc"
-    process_state_vars(input_file_state, tmp_file)
+        # process (add and rename) state vars as requested by the ISMIP6 protocol
+        tmp_file = "tmp_state.nc"
+        process_state_vars(input_file_state, tmp_file)
 
-    # remap data from the MALI unstructured mesh to the ISMIP6 polarstereo grid
-    processed_and_remapped_file_state = f'processed_' \
-                           f'{os.path.basename(args.input_file_state)}'
+        # remap data from the MALI unstructured mesh to the ISMIP6 polarstereo grid
+        processed_and_remapped_file_state = f'processed_and_remapped_' \
+                               f'{os.path.basename(args.input_file_state)}'
 
-    command = ["ncremap",
-               "-i", tmp_file,
-               "-o", processed_and_remapped_file_state,
-               "-m", mapping_file,
-               "-P", "mpas"]
-    check_call(command)
+        command = ["ncremap",
+                   "-i", tmp_file,
+                   "-o", processed_and_remapped_file_state,
+                   "-m", mapping_file,
+                   "-P", "mpas"]
+        check_call(command)
 
-    # write out 2D state output files in the ismip6-required format
-    generate_output_2d_state_vars(processed_and_remapped_file_state, args.ismip6_grid_file,
-                                  args.exp, output_path)
+        # write out 2D state output files in the ismip6-required format
+        generate_output_2d_state_vars(processed_and_remapped_file_state, args.ismip6_grid_file,
+                                      args.exp, output_path)
+
+        os.remove(tmp_file)
+        os.remove(processed_and_remapped_file_state)
 
     # write out 1D output files for both state and flux variables
-    generate_output_1d_vars(args.global_stats_file, args.exp,
-                            output_path)
+    if args.global_stats_file is None:
+        print(" MALI global stats file is not provided, thus it will not be processed.")
+    else:
+        print("---Processing global stats file---")
+        generate_output_1d_vars(args.global_stats_file, args.exp,
+                                output_path)
 
     # process the flux variables if flux output file is given
     if args.input_file_flux is None:
-        print(" output flux is not provided, thus it will not be processed."
-              " Only processed the state variables...")
+        print(" MALI flux file is not provided, thus it will not be processed.")
     else:
+        print("---Processing flux file---")
         # call the function that adds and renames state vars as requested by the
         # ISMIP6 protocol
         input_fname = os.path.basename(args.input_file_flux)
@@ -149,13 +162,10 @@ def main():
                                      args.ismip6_grid_file,
                                      args.exp, output_path)
 
-    # remove the temporary, non-final files
-    os.remove(tmp_file)
-    os.remove(tmp_file1)
-    os.remove(tmp_file2)
-    os.remove(processed_and_remapped_file_state)
-    os.remove(processed_file_flux)
-    os.remove(input_file_copy)
+        os.remove(tmp_file1)
+        os.remove(tmp_file2)
+        os.remove(processed_file_flux)
+        os.remove(input_file_copy)
 
 if __name__ == "__main__":
     main()
