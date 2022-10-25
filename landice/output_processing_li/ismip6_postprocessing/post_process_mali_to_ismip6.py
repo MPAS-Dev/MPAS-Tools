@@ -147,8 +147,7 @@ def main():
         do_time_avg_flux_vars(input_file_copy, tmp_file1)
 
         # translate grounding line and calving fluxes from cell edges to center
-        translate_GL_and_calving_flux_edge2cell(tmp_file1, tmp_file2,
-                                                args.input_file_state)
+        translate_GL_and_calving_flux_edge2cell(tmp_file1, tmp_file2)
 
         # remap data from the MALI unstructured mesh to the ISMIP6 P-S grid
         processed_file_flux = f'processed_' \

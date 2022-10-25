@@ -128,9 +128,9 @@ def do_time_avg_flux_vars(input_file, output_file):
 
     # add in time bounds - not sure how to make xarray do this :(
     fout = Dataset(output_file, 'r+')
-    timeBndsMinVar = fout.createVariable('timeBndsMin', 'd', ('time'))
+    timeBndsMinVar = fout.createVariable('timeBndsMin', 'd', ('Time'))
     timeBndsMinVar[:] = timeBndsMin
-    timeBndsMaxVar = fout.createVariable('timeBndsMax', 'd', ('time'))
+    timeBndsMaxVar = fout.createVariable('timeBndsMax', 'd', ('Time'))
     timeBndsMaxVar[:] = timeBndsMax
     fout.close()
 
@@ -139,8 +139,7 @@ def do_time_avg_flux_vars(input_file, output_file):
 
 
 def translate_GL_and_calving_flux_edge2cell(file_flux_time_avged,
-                                            file_flux_on_cell,
-                                            file_state):
+                                            file_flux_on_cell):
     """
     file_flux_time_avged: time-averaged flux variables in MALI mesh
     (i.e., output file of the function do_time_avg_flux_vars)
@@ -150,11 +149,10 @@ def translate_GL_and_calving_flux_edge2cell(file_flux_time_avged,
     print("Starting translation of GL and calving fluxes")
 
     data = xr.open_dataset(file_flux_time_avged, engine="netcdf4")
-    data_state = xr.open_dataset(file_state, engine="netcdf4")
     nCells = data.dims['nCells']
     time = data.dims['Time']
     nEdgesOnCell = data['nEdgesOnCell'][:].values
-    edgesOnCell = data['edgesOnCell'][:]
+    edgesOnCell = data['edgesOnCell'][:].values
     cellsOnEdge = data['cellsOnEdge'][:].values
     dvEdge = data['dvEdge'][:].values
     areaCell = data['areaCell'][:].values
