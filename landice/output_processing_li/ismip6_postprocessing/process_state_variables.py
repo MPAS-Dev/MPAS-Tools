@@ -70,14 +70,15 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     output_path: output path to which the output files will be saved
     """
 
-    spy = 365.0
-    timeSpan = 1  # HH:check - is something that's needed?
     data_ismip6 = Dataset(ismip6_grid_file, 'r')
     var_x = data_ismip6.variables['x'][:]
     var_y = data_ismip6.variables['y'][:]
 
     data = Dataset(remapped_mali_outputfile, 'r')
     data.set_auto_mask(False)
+    simulationStartTime = data.variables['simulationStartTime'][:].tostring().decode('utf-8').strip().strip('\x00')
+    simulationStartDate = simulationStartTime.split("_")[0]
+    daysSinceStart = data.variables['daysSinceStart'][:]
     var_sftgif = data.variables['sftgif'][:, :, :]
     var_mali = data.variables[mali_var_name][:,:,:]
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
@@ -93,13 +94,11 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     xValues = dataOut.createVariable('x', 'f4', ('x'))
     yValues = dataOut.createVariable('y', 'f4', ('y'))
     timeValues = dataOut.createVariable('time', 'f4', ('time'))
+    timeValues = daysSinceStart
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
     DATE_STR = date.today().strftime("%d-%b-%Y")
 
     for i in range(timeSteps):
-
-        timeValues[i] = i * timeSpan * spy
-
         if not ismip6_var_name == 'sftgif':
             mask = var_sftgif[i, :, :]
             tmp = var_mali[i, :, :]
@@ -116,7 +115,7 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
 
     dataValues.standard_name = var_std_name
     dataValues.units = var_units
-    timeValues.units = 'days since 2015-01-01'
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
@@ -286,17 +285,29 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         output_path = os.getcwd()
 
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
-    DATE_STR = '23-Oct-2022'
+    DATE_STR = date.today().strftime("%d-%b-%Y")
 
     # make a copy of the original globalStats file
     shutil.copy(global_stats_file, "copy_globalStats.nc")
 
     data = Dataset(global_stats_file, 'r+')
     xtime = data.variables['xtime'][:, :]
+    daysSinceStart = data.variables['daysSinceStart'][:]
     dt = data.variables['deltat'][:]
+    simulationStartTime = data.variables['simulationStartTime'][:].tostring().decode('utf-8').strip().strip('\x00')
+    simulationStartDate = simulationStartTime.split("_")[0]
+    if simulationStartDate[5:10] /= '01-01':
+        sys.exit("Error: simulationStartTime for globalStats file is not on Jan. 1.")
+    refYear = int(simulationStartDate[0:4])
+    startYr = refYear + daysSinceStart[0] / 365.0
+    if startYr /= np.round(startYr):
+        sys.exit("Error: start year not an even year in globalStats file.")
+    endYr = refYear + daysSinceStart[-1] / 365.0
+    if endYr /= np.round(endYr):
+        sys.exit("Error: end year not an even year in globalStats file.")
 
     timeSteps = len(xtime)  # total length of data
-    timeSteps_out = len(np.arange(2015, 2301))  # yearly timestep
+    timeSteps_out = len(np.arange(startYr, endYr+1))  # yearly timestep
 
     # read in state variables
     vol = data.variables['totalIceVolume'][:]
@@ -322,6 +333,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     cfx_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
     gfx_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
     dt_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    yr_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
 
     # initialize 1D variables that will store data value on the
     # January 1st of each year
@@ -329,10 +341,13 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     vaf_snapshot = np.zeros(timeSteps_out) * np.nan
     gia_snapshot = np.zeros(timeSteps_out) * np.nan
     fia_snapshot = np.zeros(timeSteps_out) * np.nan
+    days_snapshot = np.zeros(timeSteps_out) * np.nan
     smb_avg = np.zeros(timeSteps_out) * np.nan
     bmb_avg = np.zeros(timeSteps_out) * np.nan
     cfx_avg = np.zeros(timeSteps_out) * np.nan
     gfx_avg = np.zeros(timeSteps_out) * np.nan
+    days_min = np.zeros(timeSteps_out) * np.nan
+    days_max = np.zeros(timeSteps_out) * np.nan
 
     # initialize counter variables
     yearIndex = 0
@@ -352,6 +367,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         bmb_yearly[dataIndex, yearIndex - 1] = bmb[i]
         cfx_yearly[dataIndex, yearIndex - 1] = cfx[i]
         gfx_yearly[dataIndex, yearIndex - 1] = gfx[i]
+        days_yearly[dataIndex, yearIndex - 1] = daysSinceStart[i]
 
         dt_yearly[dataIndex, yearIndex - 1] = dt[i]
 
@@ -363,6 +379,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         vaf_snapshot[i] = vaf_yearly[0, i]
         gia_snapshot[i] = gia_yearly[0, i]
         fia_snapshot[i] = fia_yearly[0, i]
+        days_snapshot[i] = days_yearly[0, ;]
+
         smbi = smb_yearly[:, i]
         bmbi = bmb_yearly[:, i]
         cfxi = cfx_yearly[:, i]
@@ -374,6 +392,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         bmb_avg[i] = np.nansum(bmbi * dti) / np.nansum(dti)
         cfx_avg[i] = np.nansum(cfxi * dti) / np.nansum(dti)
         gfx_avg[i] = np.nansum(gfxi * dti) / np.nansum(dti)
+        days_min[i] = np.minimum(days_yearly[:, i])
+        days_max[i] = np.maximum(days_yearly[:, i])
 
     # -------------- lim ------------------
     data_scalar = Dataset(f'{output_path}/lim_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
@@ -382,8 +402,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timeValues = data_scalar.createVariable('time', 'f4', ('time'))
     for i in range(timeSteps_out):
         limValues[i] = vol_snapshot[i] * 910
-        timeValues[i] = i * 365.0
-    timeValues.units = 'days since 2015-01-01'
+        timeValues[i] = days_snapshot[i]
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
@@ -403,8 +423,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timeValues = data_scalar.createVariable('time', 'f4', ('time'))
     for i in range(timeSteps_out):
         limnswValues[i] = vaf_snapshot[i] * 910
-        timeValues[i] = i * 365.0
-    timeValues.units = 'days since 2015-01-01'
+        timeValues[i] = days_snapshot[i]
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
@@ -424,8 +444,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timeValues = data_scalar.createVariable('time', 'f4', ('time'))
     for i in range(timeSteps_out):
         iareagrValues[i] = gia_snapshot[i]
-        timeValues[i] = i * 365.0
-    timeValues.units = 'days since 2015-01-01'
+        timeValues[i] = days_snapshot[i]
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
@@ -445,8 +465,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timeValues = data_scalar.createVariable('time', 'f4', ('time'))
     for i in range(timeSteps_out):
         iareaflValues[i] = fia_snapshot[i]
-        timeValues[i] = i * 365.0
-    timeValues.units = 'days since 2015-01-01'
+        timeValues[i] = days_snapshot[i]
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
@@ -468,10 +488,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
     for i in range(timeSteps_out):
         tendacabfValues[i] = smb_avg[i] / 31536000.0
-        timeValues[i] = (i + 0.5) * 365.0
-        timebndsValues[i, 0] = i * 365.0
-        timebndsValues[i, 1] = (i + 1) * 365.0
-    timeValues.units = 'days since 2015-01-01'
+        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
+        timebndsValues[i, 0] = days_min[i]
+        timebndsValues[i, 1] = days_max[i]
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
@@ -493,10 +513,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
     for i in range(timeSteps_out):
         tendlibmassbfValues[i] = bmb_avg[i] / 31536000
-        timeValues[i] = (i + 0.5) * 365.0
-        timebndsValues[i, 0] = i * 365.0
-        timebndsValues[i, 1] = (i + 1) * 365.0
-    timeValues.units = 'days since 2015-01-01'
+        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
+        timebndsValues[i, 0] = days_min[i]
+        timebndsValues[i, 1] = days_max[i]
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
@@ -519,10 +539,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
     for i in range(timeSteps_out):
         tendlibmassbfflValues[i] = bmb_avg[i] / 31536000
-        timeValues[i] = (i + 0.5) * 365.0
-        timebndsValues[i, 0] = i * 365.0
-        timebndsValues[i, 1] = (i + 1) * 365.0
-    timeValues.units = 'days since 2015-01-01'
+        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
+        timebndsValues[i, 0] = days_min[i]
+        timebndsValues[i, 1] = days_max[i]
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
@@ -544,10 +564,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
     for i in range(timeSteps_out):
         tendlicalvfValues[i] = -cfx_avg[i] / 31536000
-        timeValues[i] = (i + 0.5) * 365.0
-        timebndsValues[i, 0] = i * 365.0
-        timebndsValues[i, 1] = (i + 1) * 365.0
-    timeValues.units = 'days since 2015-01-01'
+        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
+        timebndsValues[i, 0] = days_min[i]
+        timebndsValues[i, 1] = days_max[i]
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
@@ -572,10 +592,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
     for i in range(timeSteps_out):
         tendligroundfValues[i] = gfx_avg[i] / 31536000
-        timeValues[i] = (i + 0.5) * 365.0
-        timebndsValues[i, 0] = i * 365.0
-        timebndsValues[i, 1] = (i + 1) * 365.0
-    timeValues.units = 'days since 2015-01-01'
+        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
+        timebndsValues[i, 0] = days_min[i]
+        timebndsValues[i, 1] = days_max[i]
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'

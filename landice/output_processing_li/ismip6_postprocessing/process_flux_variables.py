@@ -72,6 +72,8 @@ def do_time_avg_flux_vars(input_file, output_file):
         sumYearBmbgr = 0
         sumIceMask = 0
 
+        timeBndMin = 1.0e36
+        timeBndMax = -1.0e36
         for i in range(time):
 
             yr_current = int(xtime[i].decode("utf-8")[0:4])
@@ -87,6 +89,9 @@ def do_time_avg_flux_vars(input_file, output_file):
 
                 sumIceMask = sumIceMask + iceMask[i,;]
 
+                timeBndsMin = min(daysSinceStart[i], timeBndMin)
+                timeBndsMax = max(daysSinceStart[i], timeBndMax)
+
         avgYearSmb = sumYearSmb / sumYearTime
         avgYearBmbfl = sumYearBmbfl / sumYearTime
         avgYearBmbgr = sumYearBmbgr / sumYearTime
@@ -101,6 +106,8 @@ def do_time_avg_flux_vars(input_file, output_file):
         dataOut['libmassbfgr'][j, :] = avgYearBmbgr
         # dataOut['dHdt'][j, :] = avgYearDHdt
         dataOut['fluxAcrossGroundingLine'][j, :] = avgYearGF
+        dataOut['timeBndsMin'][j, :] = timeBndsMin
+        dataOut['timeBndsMax'][j, :] = timeBndsMax
         # dataOut['basalHeatFlux'][j, :] = avgYearBHF
 
         # Generate a mask for ice extent
@@ -233,8 +240,6 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     output_path: output path to which the output files will be saved
     """
 
-    spy = 365.0
-    timeSpan = 1  # HH:check - is something that's needed?
     data_ismip6 = Dataset(ismip6_grid_file, 'r')
     var_x = data_ismip6.variables['x'][:]
     var_y = data_ismip6.variables['y'][:]
@@ -242,6 +247,11 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     data = Dataset(remapped_mali_flux_file, 'r')
     data.set_auto_mask(False)
     ice_mask = data.variables['sftgif'][:, :, :]
+    simulationStartTime = data.variables['simulationStartTime'][:].tostring().decode('utf-8').strip().strip('\x00')
+    simulationStartDate = simulationStartTime.split("_")[0]
+    daysSinceStart = data.variables['daysSinceStart'][:]
+    timeBndsMin = data.variables['timeBndsMin'][:]
+    timeBndsMax = data.variables['timeBndsMax'][:]
     var_mali = data.variables[mali_var_name][:,:,:]
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
     timeSteps, latN, lonN = np.shape(var_mali)
@@ -260,16 +270,16 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     timeValues = dataOut.createVariable('time', 'f4', ('time'))
 
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
-    DATE_STR = daTE.TOday().strftime("%d-%b-%Y")
+    DATE_STR = date.today().strftime("%d-%b-%Y")
 
     for i in range(timeSteps):
         mask = ice_mask[i, :, :]
         tmp = var_mali[i, :, :]
         tmp[mask == 0] = np.NAN
         dataValues[i, :, :] = tmp
-        timeValues[i] = (i + 0.5) * timeSpan * spy
-        timebndsValues[i, 0] = i * timeSpan * spy
-        timebndsValues[i, 1] = (i + 1) * timeSpan * spy
+        timeValues[i] = (timeBndsMin[i] + timeBndsMax[i]) / 2.0
+        timebndsValues[i, 0] = timeBndsMin[i]
+        timebndsValues[i, 1] = timeBndsMax[i]
 
     for i in range(latN):
         xValues[i] = var_x[i]
@@ -280,7 +290,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     dataValues.standard_name = var_std_name
     dataValues.units = var_units
     timeValues.bounds = 'time_bnds'
-    timeValues.units = 'days since 2015-01-01'
+    timeValues.units = f'days since {simulationStartDate}'
     timeValues.calendar = '365_day'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
