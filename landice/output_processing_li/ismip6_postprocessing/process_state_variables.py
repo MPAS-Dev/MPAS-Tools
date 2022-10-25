@@ -313,26 +313,26 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # initialize empty arrays for with possible maximum dimensions
     # below variables (X_yearly) will store all available data values (column)
     # for each year (row)
-    vol_yearly = np.zeros((timeSteps, timeSteps_out))
-    vaf_yearly = np.zeros((timeSteps, timeSteps_out))
-    gia_yearly = np.zeros((timeSteps, timeSteps_out))
-    fia_yearly = np.zeros((timeSteps, timeSteps_out))
-    smb_yearly = np.zeros((timeSteps, timeSteps_out))
-    bmb_yearly = np.zeros((timeSteps, timeSteps_out))
-    cfx_yearly = np.zeros((timeSteps, timeSteps_out))
-    gfx_yearly = np.zeros((timeSteps, timeSteps_out))
-    dt_yearly = np.zeros((timeSteps, timeSteps_out))
+    vol_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    vaf_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    gia_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    fia_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    smb_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    bmb_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    cfx_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    gfx_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    dt_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
 
     # initialize 1D variables that will store data value on the
     # January 1st of each year
-    vol_snapshot = np.zeros(timeSteps_out)
-    vaf_snapshot = np.zeros(timeSteps_out)
-    gia_snapshot = np.zeros(timeSteps_out)
-    fia_snapshot = np.zeros(timeSteps_out)
-    smb_avg = np.zeros(timeSteps_out)
-    bmb_avg = np.zeros(timeSteps_out)
-    cfx_avg = np.zeros(timeSteps_out)
-    gfx_avg = np.zeros(timeSteps_out)
+    vol_snapshot = np.zeros(timeSteps_out) * np.nan
+    vaf_snapshot = np.zeros(timeSteps_out) * np.nan
+    gia_snapshot = np.zeros(timeSteps_out) * np.nan
+    fia_snapshot = np.zeros(timeSteps_out) * np.nan
+    smb_avg = np.zeros(timeSteps_out) * np.nan
+    bmb_avg = np.zeros(timeSteps_out) * np.nan
+    cfx_avg = np.zeros(timeSteps_out) * np.nan
+    gfx_avg = np.zeros(timeSteps_out) * np.nan
 
     # initialize counter variables
     yearIndex = 0
@@ -367,12 +367,13 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         bmbi = bmb_yearly[:, i]
         cfxi = cfx_yearly[:, i]
         gfxi = gfx_yearly[:, i]
+        dti  = dt_yearly[:, i]
 
         # take the average of the flux variables
-        smb_avg[i] = np.mean(smbi[np.where(smbi != 0)])
-        bmb_avg[i] = np.mean(bmbi[np.where(bmbi != 0)])
-        cfx_avg[i] = np.mean(cfxi[np.where(cfxi != 0)])
-        gfx_avg[i] = np.mean(gfxi[np.where(gfxi != 0)])
+        smb_avg[i] = np.nansum(smbi * dti) / np.nansum(dti)
+        bmb_avg[i] = np.nansum(bmbi * dti) / np.nansum(dti)
+        cfx_avg[i] = np.nansum(cfxi * dti) / np.nansum(dti)
+        gfx_avg[i] = np.nansum(gfxi * dti) / np.nansum(dti)
 
     # -------------- lim ------------------
     data_scalar = Dataset(f'{output_path}/lim_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
@@ -466,7 +467,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     data_scalar.createDimension('bnds', 2)
     timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
     for i in range(timeSteps_out):
-        tendacabfValues[i] = smb_avg[i] / 31536000
+        tendacabfValues[i] = smb_avg[i] / 31536000.0
         timeValues[i] = (i + 0.5) * 365.0
         timebndsValues[i, 0] = i * 365.0
         timebndsValues[i, 1] = (i + 1) * 365.0
