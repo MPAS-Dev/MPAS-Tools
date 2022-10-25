@@ -1,31 +1,25 @@
 """
-# this script has functions that are needed to post-process and write state
-# output variables from ISMIP6 simulations.
-# The input files (i.e., MALI output files) need to have been
-# concatenated to have yearly data, which can be done using 'ncrcat' command
-# before using this script.
+This script has functions that are needed to post-process and write state
+output variables from ISMIP6 simulations.
+The input files (i.e., MALI output files) need to have been
+concatenated to have yearly data, which can be done using 'ncrcat' command
+before using this script.
 """
 
 from netCDF4 import Dataset
 import xarray as xr
 import numpy as np
+from datetime import date
 import shutil
 import os
 
 
-def process_state_vars(inputfile_state, tmp_file, inputfile_temperature=None):
+def process_state_vars(inputfile_state, tmp_file):
     """
     inputfile_state: output file copy from MALI simulations
     tmp_file: temporary file name
     inputfile_temperature: output temperature file from MALI simulations
     """
-
-    if inputfile_temperature is None:
-        print("temperature file is not provided. Reading the output all file")
-        input_temp = xr.open_dataset(inputfile_state, engine="netcdf4")
-    else:
-        input_temp = xr.open_dataset(inputfile_temperature,
-                                     engine="netcdf4")  # this might not be needed if basal and surface temps are already recorded in the output_all.nc file
 
     inputfile_state_vars = xr.open_dataset(inputfile_state, engine="netcdf4")
 
@@ -35,51 +29,29 @@ def process_state_vars(inputfile_state, tmp_file, inputfile_temperature=None):
     nLayer = inputfile_state_vars.dims['nVertLevels']
     nInterface = nLayer + 1  # inputfile_state_vars.dims['nVertInterfaces']
     cellMask = inputfile_state_vars['cellMask'][:, :]
-    basalTemperature = input_temp['basalTemperature'][:, :]
-    # surfaceTemperature = input_temp['surfaceTemperature'][:,:] #this doesnt seem necessary
-    # basalSpeed = inputfile_state_vars['basalSpeed'][:,:] # check: this if this field will be outputted in the final version.
-    betaSolve = inputfile_state_vars['betaSolve'][:, :]  # check: this field only exists in the initial file
+    basalTemperature = input_state_vars['basalTemperature'][:, :]
+    betaSolve = inputfile_state_vars['betaSolve'][:, :]
 
     inputfile_state_vars['litempbotfl'] = basalTemperature * (cellMask[:, :] & 4) / 4
     inputfile_state_vars['litempbotgr'] = basalTemperature * (1 - (cellMask[:, :] & 4) / 4)
 
-    uxbase = inputfile_state_vars['uReconstructX'][:, :, nInterface - 1]
-    uybase = inputfile_state_vars['uReconstructY'][:, :, nInterface - 1]
     uxsurf = inputfile_state_vars['uReconstructX'][:, :, 0]
     uysurf = inputfile_state_vars['uReconstructY'][:, :, 0]
-    xvelmean = inputfile_state_vars['xvelmean'][:, :]
-    yvelmean = inputfile_state_vars['yvelmean'][:, :]
-    interfaceLayer = np.zeros(nInterface)
-    thkLayer = inputfile_state_vars['layerThicknessFractions'][:]
-
-    interfaceLayer[0] = 0.5 * thkLayer[0]
-    for i in range(1, nLayer - 1):
-        interfaceLayer[i] = 0.5 * (thkLayer[i] + thkLayer[i - 1])
-    interfaceLayer[nLayer - 1] = 0.5 * thkLayer[nLayer - 1]
-
-    tmp_ux_mean = inputfile_state_vars['thickness'].copy()
-    tmp_uy_mean = inputfile_state_vars['thickness'].copy()
-    for i in range(nTime):
-        tmp_ux_mean[i, :] = np.sum(inputfile_state_vars['uReconstructX'][i, :, :] * interfaceLayer, axis=1)
-        tmp_uy_mean[i, :] = np.sum(inputfile_state_vars['uReconstructY'][i, :, :] * interfaceLayer, axis=1)
-
-    inputfile_state_vars['uReconstructX_mean'] = xvelmean
-    inputfile_state_vars['uReconstructY_mean'] = yvelmean
+    uxbase = inputfile_state_vars['uReconstructX'][:, :, nInterface - 1]
+    uybase = inputfile_state_vars['uReconstructY'][:, :, nInterface - 1]
     inputfile_state_vars['uReconstructX_sfc'] = uxsurf
     inputfile_state_vars['uReconstructY_sfc'] = uysurf
     inputfile_state_vars['uReconstructX_base'] = uxbase
     inputfile_state_vars['uReconstructY_base'] = uybase
 
-    inputfile_state_vars['sftflf'] = (cellMask[:, :] & 4) / 4 * (cellMask[:, :] & 2) / 2
-    inputfile_state_vars['sftgrf'] = ((cellMask[:, :] * 0 + 1) - (cellMask[:, :] & 4) / 4) * (cellMask[:, :] & 2) / 2
-    inputfile_state_vars['sftgif'] = (cellMask[:, :] & 2) / 2
-    # inputfile_state_vars['strbasemag'] = (betaSolve[:, :] * (basalSpeed) * 365.0 * 24.0 * 3600.0)  # HH: comment out for now until we know what it is. * (cellMask[:,:]*0+1-(cellMask[:,:]&4)/4) * (cellMask[:,:]&2)/2
-    inputfile_state_vars['strbasemag'] = (betaSolve[:, :] * ((uxbase[:, :]) ** 2 + (uybase[:, :]) ** 2 + 1.0e-10) ** (
-        0.5) * 365.0 * 24.0 * 3600.0) * (cellMask[:, :] * 0 + 1 - (cellMask[:, :] & 4) / 4) * (cellMask[:, :] & 2) / 2
+    inputfile_state_vars['sftflf'] = (cellMask[:, :] & 4) / 4 * (cellMask[:, :] & 2) / 2  # floating and dynamic
+    inputfile_state_vars['sftgrf'] = ((cellMask[:, :] * 0 + 1) - (cellMask[:, :] & 4) / 4) * (cellMask[:, :] & 2) / 2  # grounded: not-floating & dynamic
+    inputfile_state_vars['sftgif'] = (cellMask[:, :] & 2) / 2  # grounded: dynamic ice
+    inputfile_state_vars['strbasemag'] = betaSolve[:, :] * ((uxbase[:, :]) ** 2 + (uybase[:, :]) ** 2) **0.5 \
+        * (cellMask[:, :] * 0 + 1 - (cellMask[:, :] & 4) / 4) * (cellMask[:, :] & 2) / 2
 
     inputfile_state_vars.to_netcdf(tmp_file)
     inputfile_state_vars.close()
-    input_temp.close()
 
 
 def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
@@ -122,7 +94,7 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     yValues = dataOut.createVariable('y', 'f4', ('y'))
     timeValues = dataOut.createVariable('time', 'f4', ('time'))
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
-    DATE_STR = '23-Oct-2022'
+    DATE_STR = date.today().strftime("%d-%b-%Y")
 
     for i in range(timeSteps):
 
@@ -156,7 +128,7 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     yValues.long_name = 'y'
     dataOut.AUTHORS = AUTHOR_STR
     dataOut.MODEL = 'MALI (MPAS-Albany Land Ice model)'
-    dataOut.GROUP = 'Los Alamos National Laboratory'
+    dataOut.GROUP = 'Los Alamos National Laboratory, Department of Energy'
     dataOut.VARIABLE = var_varname
     dataOut.DATE = DATE_STR
     dataOut.close()

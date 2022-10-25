@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 """
-# this script processes MALI simulation outputs (both state and flux)
-# in the required format by the ISMIP6 experimental protocol.
-# The input state files (i.e., output files from MALI) need to have been
-# concatenated to have yearly data, which can be done using 'ncrcat' command
-# before using this script.
+This script processes MALI simulation outputs (both state and flux)
+in the required format by the ISMIP6 experimental protocol.
+The input state files (i.e., output files from MALI) need to have been
+concatenated to have yearly data, which can be done using 'ncrcat' command
+before using this script.
 """
 
 import argparse
@@ -30,8 +30,6 @@ def main():
                         required=True, help="mpas output state variables")
     parser.add_argument("-i_flux", "--input_flux", dest="input_file_flux",
                         required=False, help="mpas output flux variables")
-    parser.add_argument("-i_temp", "--input_temp", dest="input_file_temp",
-                        required=False, help="mpas temperature output file")
     parser.add_argument("-i_init", "--input_init", dest="input_file_init",
                         required=True, help="optimized initialized file."
                                             "Needed for grid information")
@@ -68,40 +66,41 @@ def main():
     # Note: the function 'building_mapping_file' requires the mpas mesh tool
     # script 'create_SCRIP_file_from_planar_rectangular_grid.py'
     if not os.path.exists(mapping_file):
+        print(f"Creating new mapping file.")
         build_mapping_file(args.input_file_init, mapping_file,
                            args.ismip6_grid_file, method_remap)
     else:
-        print(f"Mapping file exists. "
-              f"Remapping the input data..."
-              f"Mapping method used: {method_remap}")
+        print(f"Mapping file exists.")
+    print(f"Remapping the input data..."
+          f"Mapping method used: {method_remap}")
 
     # define the path to which the output (processed) files will be saved
     if args.output_path is None:
         output_path = os.getcwd()
-        print(output_path)
     else:
         output_path = args.output_path
-
-    processed_file_state = f'processed_' \
-                           f'{os.path.basename(args.input_file_state)}'
+    print(f"Using output path: {output_path}")
 
     # state variables processing part
     input_file_state = os.path.basename(args.input_file_state)
 
     # process (add and rename) state vars as requested by the ISMIP6 protocol
     tmp_file = "tmp_state.nc"
-    process_state_vars(input_file_state, tmp_file, args.input_file_temp)
+    process_state_vars(input_file_state, tmp_file)
 
     # remap data from the MALI unstructured mesh to the ISMIP6 polarstereo grid
+    processed_and_remapped_file_state = f'processed_' \
+                           f'{os.path.basename(args.input_file_state)}'
+
     command = ["ncremap",
                "-i", tmp_file,
-               "-o", processed_file_state,
+               "-o", processed_and_remapped_file_state,
                "-m", mapping_file,
                "-P", "mpas"]
     check_call(command)
 
     # write out 2D state output files in the ismip6-required format
-    generate_output_2d_state_vars(processed_file_state, args.ismip6_grid_file,
+    generate_output_2d_state_vars(processed_and_remapped_file_state, args.ismip6_grid_file,
                                   args.exp, output_path)
 
     # write out 1D output files for both state and flux variables
@@ -145,7 +144,8 @@ def main():
         check_call(command)
 
         # write out the output files in the ismip6-required format
-        generate_output_2d_flux_vars(processed_file_flux, processed_file_state,
+        generate_output_2d_flux_vars(processed_file_flux,
+                                     processed_and_remapped_file_state,
                                      args.ismip6_grid_file,
                                      args.exp, output_path)
 
@@ -153,7 +153,7 @@ def main():
     os.remove(tmp_file)
     os.remove(tmp_file1)
     os.remove(tmp_file2)
-    os.remove(processed_file_state)
+    os.remove(processed_and_remapped_file_state)
     os.remove(processed_file_flux)
     os.remove(input_file_copy)
 

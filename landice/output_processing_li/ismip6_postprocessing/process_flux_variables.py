@@ -1,11 +1,12 @@
 """
-# this script has functions that are needed to post-process and write flux
-# output variables from ISMIP6 simulations.
+This script has functions that are needed to post-process and write flux
+output variables from ISMIP6 simulations.
 """
 
 from netCDF4 import Dataset
 import xarray as xr
 import numpy as np
+from datetime import date
 from subprocess import check_call
 import os
 
@@ -129,7 +130,6 @@ def translate_GL_and_calving_flux_edge2cell(file_flux_time_avged,
     fluxGLCell_array = np.zeros((time, nCells))
 
     print("=== starting the grounding line flux processing ===")
-    nCells=10
     for i in range(nCells):
         edgeId = edgesOnCell[i, :nEdgesOnCell[i]] - 1
         dvCell = np.sum(fluxGLEdge[:, edgeId], axis=1) * 910.0
@@ -138,67 +138,72 @@ def translate_GL_and_calving_flux_edge2cell(file_flux_time_avged,
     data['fluxAcrossGroundingLineCell'] = (('Time', 'nCells'), fluxGLCell_array)
     print("=== done grounding line processing ===")
 
-    print("===starting the calving flux processing===")
-    rho_i = 910.0
-    h0 = 11.1
+    doCalving = False
+    # Calving processing will eventually be moved online to MALI
+    # Disable for now because we don't want to waste time on this for
+    # fixed calving front runs anyway.
+    if doCalving:
+        print("===starting the calving flux processing===")
+        rho_i = 910.0
+        h0 = 11.1
 
-    # get calving thickness values
-    calvingThickness = data['calvingThickness'][:, :].values
-    assert time == len(deltat)
+        # get calving thickness values
+        calvingThickness = data['calvingThickness'][:, :].values
+        assert time == len(deltat)
 
-    # create and initialize a new data array for calvingFluxArray
-    calvingFluxArray = data['calvingThickness'].copy()
-    calvingFluxArray = calvingFluxArray * 0.0
+        # create and initialize a new data array for calvingFluxArray
+        calvingFluxArray = data['calvingThickness'].copy()
+        calvingFluxArray = calvingFluxArray * 0.0
 
-    # This part seems to have been used to get `edgeMask`
-    # thickness = data_state['thickness'][:, :].values
-    # thicknessRecovered = np.copy(dHdt)
-    # for i in range(time):
-    #     thickness[:] = thickness[:] + dHdt[i, :] * deltat[i]
-    #     thickness[np.where(thickness < 0)] = 0.0
-    #     thicknessRecovered[i, :] = thickness[:]
+        # This part seems to have been used to get `edgeMask`
+        # thickness = data_state['thickness'][:, :].values
+        # thicknessRecovered = np.copy(dHdt)
+        # for i in range(time):
+        #     thickness[:] = thickness[:] + dHdt[i, :] * deltat[i]
+        #     thickness[np.where(thickness < 0)] = 0.0
+        #     thicknessRecovered[i, :] = thickness[:]
 
-    for t in range(time):
+        for t in range(time):
 
-        index_cf = np.where(calvingThickness[t, :] > 0)[0]
-        for i in index_cf:
+            index_cf = np.where(calvingThickness[t, :] > 0)[0]
+            for i in index_cf:
 
-            ne = nEdgesOnCell[i]
-            edgeId = edgesOnCell[i, :nEdgesOnCell[i]] - 1
+                ne = nEdgesOnCell[i]
+                edgeId = edgesOnCell[i, :nEdgesOnCell[i]] - 1
 
-            dvEdgeSum = 0.0
-            for j in range(ne):
-                neighborCellId = cellsOnEdge[edgeId[j], :] - 1
+                dvEdgeSum = 0.0
+                for j in range(ne):
+                    neighborCellId = cellsOnEdge[edgeId[j], :] - 1
 
-                # if ((edgeMask[0, edgeId[j]] & 16) / 16 and (edgeMask[0, edgeId[j]] & 4) / 4):  # uncomment this line and indent L197 once edgeMask is acquired.
-                # 16: dynamic margin & 4: floating
-                dvEdgeSum = dvEdgeSum + dvEdge[edgeId[j]]
+                    # if ((edgeMask[0, edgeId[j]] & 16) / 16 and (edgeMask[0, edgeId[j]] & 4) / 4):  # uncomment this line and indent L197 once edgeMask is acquired.
+                    # 16: dynamic margin & 4: floating
+                    dvEdgeSum = dvEdgeSum + dvEdge[edgeId[j]]
 
-                # below is Tong's script that uses thickness recovered to calculate dvEdgeSum. Tong writes "I haven't tested the below part yet"
-                # else:
-                #    boolArray1 =  ((thicknessRecovered[:,neighborCellId[0]] > h0) | (thicknessRecovered[:,neighborCellId[1]] > h0)) \
-                #            & ~((thicknessRecovered[:,neighborCellId[0]] > h0) & (thicknessRecovered[:,neighborCellId[1]] > h0))
-                #    boolArray2 = (smbApplied[:,neighborCellId[0]] > 0) & (smbApplied[:,neighborCellId[1]] > 0)
-                #    boolArray = boolArray1 & boolArray2
-                #    dvEdgeSum = dvEdgeSum + dvEdge[edgeId[j]]*boolArray
+                    # below is Tong's script that uses thickness recovered to calculate dvEdgeSum. Tong writes "I haven't tested the below part yet"
+                    # else:
+                    #    boolArray1 =  ((thicknessRecovered[:,neighborCellId[0]] > h0) | (thicknessRecovered[:,neighborCellId[1]] > h0)) \
+                    #            & ~((thicknessRecovered[:,neighborCellId[0]] > h0) & (thicknessRecovered[:,neighborCellId[1]] > h0))
+                    #    boolArray2 = (smbApplied[:,neighborCellId[0]] > 0) & (smbApplied[:,neighborCellId[1]] > 0)
+                    #    boolArray = boolArray1 & boolArray2
+                    #    dvEdgeSum = dvEdgeSum + dvEdge[edgeId[j]]*boolArray
 
-            if dvEdgeSum > 0:
-                calvingVelDivideThickness = calvingThickness[t, i] * areaCell[i] / (deltat[t] * (dvEdgeSum + 1e-10))
-                # put 1e-10 here in case of dvEdgeSum = 0, and change the value back to zero in below
-            else:
-                calvingVelDivideThickness = 0.0
-                # unit: m^2/s
+                if dvEdgeSum > 0:
+                    calvingVelDivideThickness = calvingThickness[t, i] * areaCell[i] / (deltat[t] * (dvEdgeSum + 1e-10))
+                    # put 1e-10 here in case of dvEdgeSum = 0, and change the value back to zero in below
+                else:
+                    calvingVelDivideThickness = 0.0
+                    # unit: m^2/s
 
-            calvingFlux = rho_i * calvingVelDivideThickness
-            # unit: kg/m/s
-            calvingFluxArray[t, i] = calvingFlux
+                calvingFlux = rho_i * calvingVelDivideThickness
+                # unit: kg/m/s
+                calvingFluxArray[t, i] = calvingFlux
 
-    data['calvingFlux'] = calvingFluxArray
-    data.to_netcdf(
-        file_flux_on_cell)  # writing out to a netCDF file seems to be needed to save the newly added variable `fluxAcrossGroundingLineCell`.
-    data.close()
+        data['calvingFlux'] = calvingFluxArray
+        data.to_netcdf(
+            file_flux_on_cell)  # writing out to a netCDF file seems to be needed to save the newly added variable `fluxAcrossGroundingLineCell`.
+        data.close()
 
-    print("===done calving flux processing!===")
+        print("===done calving flux processing!===")
 
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
@@ -249,7 +254,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     timeValues = dataOut.createVariable('time', 'f4', ('time'))
 
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
-    DATE_STR = '23-Oct-2022'
+    DATE_STR = date.today().strftime("%d-%b-%Y")
 
     for i in range(timeSteps):
         mask = var_sftgif[i, :, :]
@@ -281,7 +286,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     yValues.long_name = 'y'
     dataOut.AUTHORS = AUTHOR_STR
     dataOut.MODEL = 'MALI (MPAS-Albany Land Ice model)'
-    dataOut.GROUP = 'Los Alamos National Laboratory'
+    dataOut.GROUP = 'Los Alamos National Laboratory, Department of Energy'
     dataOut.VARIABLE = var_varname
     dataOut.DATE = DATE_STR
     dataOut.close()
