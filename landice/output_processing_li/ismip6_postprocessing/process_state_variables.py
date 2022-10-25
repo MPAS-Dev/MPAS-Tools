@@ -29,7 +29,7 @@ def process_state_vars(inputfile_state, tmp_file):
     nLayer = inputfile_state_vars.dims['nVertLevels']
     nInterface = nLayer + 1  # inputfile_state_vars.dims['nVertInterfaces']
     cellMask = inputfile_state_vars['cellMask'][:, :]
-    basalTemperature = input_state_vars['basalTemperature'][:, :]
+    basalTemperature = inputfile_state_vars['basalTemperature'][:, :]
     betaSolve = inputfile_state_vars['betaSolve'][:, :]
 
     inputfile_state_vars['litempbotfl'] = basalTemperature * (cellMask[:, :] & 4) / 4
@@ -94,7 +94,7 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     xValues = dataOut.createVariable('x', 'f4', ('x'))
     yValues = dataOut.createVariable('y', 'f4', ('y'))
     timeValues = dataOut.createVariable('time', 'f4', ('time'))
-    timeValues = daysSinceStart
+    timeValues[:] = daysSinceStart
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
     DATE_STR = date.today().strftime("%d-%b-%Y")
 
@@ -296,14 +296,14 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     dt = data.variables['deltat'][:]
     simulationStartTime = data.variables['simulationStartTime'][:].tostring().decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
-    if simulationStartDate[5:10] /= '01-01':
+    if simulationStartDate[5:10] != '01-01':
         sys.exit("Error: simulationStartTime for globalStats file is not on Jan. 1.")
     refYear = int(simulationStartDate[0:4])
     startYr = refYear + daysSinceStart[0] / 365.0
-    if startYr /= np.round(startYr):
+    if startYr != np.round(startYr):
         sys.exit("Error: start year not an even year in globalStats file.")
     endYr = refYear + daysSinceStart[-1] / 365.0
-    if endYr /= np.round(endYr):
+    if endYr != np.round(endYr):
         sys.exit("Error: end year not an even year in globalStats file.")
 
     timeSteps = len(xtime)  # total length of data
@@ -333,7 +333,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     cfx_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
     gfx_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
     dt_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
-    yr_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    days_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
 
     # initialize 1D variables that will store data value on the
     # January 1st of each year
@@ -379,7 +379,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         vaf_snapshot[i] = vaf_yearly[0, i]
         gia_snapshot[i] = gia_yearly[0, i]
         fia_snapshot[i] = fia_yearly[0, i]
-        days_snapshot[i] = days_yearly[0, ;]
+        days_snapshot[i] = days_yearly[0, i]
 
         smbi = smb_yearly[:, i]
         bmbi = bmb_yearly[:, i]
@@ -392,8 +392,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         bmb_avg[i] = np.nansum(bmbi * dti) / np.nansum(dti)
         cfx_avg[i] = np.nansum(cfxi * dti) / np.nansum(dti)
         gfx_avg[i] = np.nansum(gfxi * dti) / np.nansum(dti)
-        days_min[i] = np.minimum(days_yearly[:, i])
-        days_max[i] = np.maximum(days_yearly[:, i])
+        days_min[i] = days_yearly[:, i].min()
+        days_max[i] = days_yearly[:, i].max()
 
     # -------------- lim ------------------
     data_scalar = Dataset(f'{output_path}/lim_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')

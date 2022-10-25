@@ -82,11 +82,13 @@ def main():
     else:
         output_path = args.output_path
     print(f"Using output path: {output_path}")
+    if not os.path.isdir(output_path):
+        os.makedirs(output_path)
 
-    if args.input_file_flux is None:
-        print(" MALI flux file is not provided, thus it will not be processed.")
+    if args.input_file_state is None:
+        print(" MALI state file is not provided, thus it will not be processed.")
     else:
-        print("---Processing flux file---")
+        print("---Processing state file---")
         # state variables processing part
         input_file_state = os.path.basename(args.input_file_state)
 
@@ -127,11 +129,13 @@ def main():
         print("---Processing flux file---")
         # call the function that adds and renames state vars as requested by the
         # ISMIP6 protocol
+        print(  "copying flux input file")
         input_fname = os.path.basename(args.input_file_flux)
         input_file_copy = f"copy_{input_fname}"
         shutil.copy(args.input_file_flux, input_file_copy)
 
         # append grid cell data to the flux data
+        print(  "appending grid cell data to flux input file")
         command = ["ncks", "-A", "-v",
                    "cellsOnEdge,nEdgesOnCell,edgesOnCell,dvEdge,areaCell",
                    args.input_file_init, input_file_copy]
