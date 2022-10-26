@@ -173,35 +173,35 @@ def generate_output_2d_state_vars(file_remapped_mali_state, ismip6_grid_file,
     # as it does not change with time #Uncomment the function all once basalHeatFlux is outputted in the output stream
     # write_netcdf_2d_state_vars('basalHeatFlux', 'hfgeoubed',
     #                            'upward_geothermal_heat_flux_in_land_ice',
-    #                            'W m^-2', 'Geothermal heat flux',
+    #                            'W m-2', 'Geothermal heat flux',
     #                            file_remapped_mali_state, ismip6_grid_file,
     #                            exp, output_path)
 
     # ----------- xvelsurf ------------------
     write_netcdf_2d_state_vars('uReconstructX_sfc', 'xvelsurf',
                                'land_ice_surface_x_velocity',
-                               'm s^-1', 'Surface velocity in x',
+                               'm s-1', 'Surface velocity in x',
                                file_remapped_mali_state, ismip6_grid_file,
                                exp, output_path)
 
     # -----------yxvelsurf ------------------
     write_netcdf_2d_state_vars('uReconstructY_sfc', 'yvelsurf',
                                'land_ice_surface_y_velocity',
-                               'm s^-1', 'Surface velocity in x',
+                               'm s-1', 'Surface velocity in x',
                                file_remapped_mali_state, ismip6_grid_file,
                                exp, output_path)
 
     # ----------- xvelbase ------------------
     write_netcdf_2d_state_vars('uReconstructX_base', 'xvelbase',
                                'land_ice_basal_x_velocity',
-                               'm s^-1', 'Basal velocity in x',
+                               'm s-1', 'Basal velocity in x',
                                file_remapped_mali_state, ismip6_grid_file,
                                exp, output_path)
 
     # ----------- yvelbase ------------------
     write_netcdf_2d_state_vars('uReconstructY_base', 'yvelbase',
                                'land_ice_basal_y_velocity',
-                               'm s^-1', 'Basal velocity in y',
+                               'm s-1', 'Basal velocity in y',
                                file_remapped_mali_state, ismip6_grid_file,
                                exp, output_path)
 
@@ -212,14 +212,14 @@ def generate_output_2d_state_vars(file_remapped_mali_state, ismip6_grid_file,
     # ----------- xvelmean ------------------
     write_netcdf_2d_state_vars('xvelmean', 'xvelmean',
                                'land_ice_vertical_mean_x_velocity',
-                               'm s^-1', 'Mean velocity in x',
+                               'm s-1', 'Mean velocity in x',
                                file_remapped_mali_state, ismip6_grid_file,
                                exp, output_path)
 
     # ----------- yvelmean ------------------
     write_netcdf_2d_state_vars('yvelmean', 'yvelmean',
                                'land_ice_vertical_mean_y_velocity',
-                               'm s^-1', 'Mean velocity in y',
+                               'm s-1', 'Mean velocity in y',
                                file_remapped_mali_state, ismip6_grid_file,
                                exp, output_path)
 
@@ -609,3 +609,4 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     data_scalar.close()
 
     data.close()
+    os.remove("copy_globalStats.nc")

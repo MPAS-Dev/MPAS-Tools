@@ -38,7 +38,7 @@ def do_time_avg_flux_vars(input_file, output_file):
     dataIn['libmassbfgr'] = libmassbfgr
     dataIn['iceMask'] = iceMask
     print("    saving modified input file")
-    dataIn.to_netcdf(input_file, mode='a')
+    dataIn.to_netcdf(input_file, mode='w')
     print("    finished saving modified input file")
 
     # get an array of years that are not duplicative
@@ -160,7 +160,7 @@ def translate_GL_and_calving_flux_edge2cell(file_flux_time_avged,
     # edgeMask = data['edgeMask'][:, :].values # this needs to be outputted as well. Once commented out, comment out L195 as well, and indent L197
     # dHdt = data['dHdt'][:, :].values # Uncomment this line once the dHdt variable is outputted in the stream and delete the line below
     dHdt = data['calvingThickness'][:, :].values  # delete this line once the dHdt variable is outputted in the stream. This line is used just for now to check the code
-    fluxGLEdge = data['fluxAcrossGroundingLine'][:, :]
+    fluxGLEdge = data['fluxAcrossGroundingLine'].load()
     fluxGLCell_array = np.zeros((time, nCells))
 
     print("=== starting the grounding line flux processing ===")
@@ -233,12 +233,12 @@ def translate_GL_and_calving_flux_edge2cell(file_flux_time_avged,
                 calvingFluxArray[t, i] = calvingFlux
 
         data['calvingFlux'] = calvingFluxArray
-        data.to_netcdf(
-            file_flux_on_cell)  # writing out to a netCDF file seems to be needed to save the newly added variable `fluxAcrossGroundingLineCell`.
-        data.close()
 
         print("===done calving flux processing!===")
 
+    data.to_netcdf(
+    file_flux_on_cell)  # writing out to a netCDF file seems to be needed to save the newly added variable `fluxAcrossGroundingLineCell`.
+    data.close()
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
                               var_units, var_varname,
@@ -265,12 +265,16 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
 
     data = Dataset(remapped_mali_flux_file, 'r')
     data.set_auto_mask(False)
-    ice_mask = data.variables['sftgif'][:, :, :]
+    iceMask = data.variables['iceMask'][:, :, :]
     simulationStartTime = data.variables['simulationStartTime'][:].tostring().decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
     daysSinceStart = data.variables['daysSinceStart'][:]
     timeBndsMin = data.variables['timeBndsMin'][:]
     timeBndsMax = data.variables['timeBndsMax'][:]
+    if not mali_var_name in data.variables:
+        print(f"WARNING: {mali_var_name} not present.  Skipping.")
+        data.close()
+        return
     var_mali = data.variables[mali_var_name][:,:,:]
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
     timeSteps, latN, lonN = np.shape(var_mali)
@@ -292,7 +296,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     DATE_STR = date.today().strftime("%d-%b-%Y")
 
     for i in range(timeSteps):
-        mask = ice_mask[i, :, :]
+        mask = iceMask[i, :, :]
         tmp = var_mali[i, :, :]
         tmp[mask == 0] = np.NAN
         dataValues[i, :, :] = tmp
@@ -325,16 +329,15 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     dataOut.VARIABLE = var_varname
     dataOut.DATE = DATE_STR
     dataOut.close()
+    data.close()
 
 
 def generate_output_2d_flux_vars(file_remapped_mali_flux,
-                                 file_remapped_mali_state,
                                  ismip6_grid_file,
                                  exp, output_path):
     """
     file_remapped_mali_flux: flux output file on mali mesh remapped
     onto the ismip6 grid
-    file_remapped_mali_state: flux output file on mali mesh remapped onto the
     ismip6 grid
     ismip6_grid_file: ismip6 original file
     exp: ISMIP6 experiment name

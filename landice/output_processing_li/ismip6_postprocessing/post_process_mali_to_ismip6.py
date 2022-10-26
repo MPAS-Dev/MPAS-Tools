@@ -54,6 +54,7 @@ def main():
 
     args = parser.parse_args()
 
+    print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
     if not args.input_file_state is None or not args.input_file_flux is None:
         # check the mapping method and existence of the mapping file
@@ -75,6 +76,7 @@ def main():
             print(f"Mapping file exists.")
         print(f"Remapping the input data..."
               f"Mapping method used: {method_remap}")
+    print("---Processing remapping file complete---\n")
 
     # define the path to which the output (processed) files will be saved
     if args.output_path is None:
@@ -88,7 +90,7 @@ def main():
     if args.input_file_state is None:
         print(" MALI state file is not provided, thus it will not be processed.")
     else:
-        print("---Processing state file---")
+        print("\n---Processing state file---")
         # state variables processing part
         input_file_state = os.path.basename(args.input_file_state)
 
@@ -113,20 +115,22 @@ def main():
 
         os.remove(tmp_file)
         os.remove(processed_and_remapped_file_state)
+        print("---Processing state file complete---\n")
 
     # write out 1D output files for both state and flux variables
     if args.global_stats_file is None:
         print(" MALI global stats file is not provided, thus it will not be processed.")
     else:
-        print("---Processing global stats file---")
+        print("\n---Processing global stats file---")
         generate_output_1d_vars(args.global_stats_file, args.exp,
                                 output_path)
+        print("---Processing global stats file complete---\n")
 
     # process the flux variables if flux output file is given
     if args.input_file_flux is None:
         print(" MALI flux file is not provided, thus it will not be processed.")
     else:
-        print("---Processing flux file---")
+        print("\n---Processing flux file---")
         # call the function that adds and renames state vars as requested by the
         # ISMIP6 protocol
         print(  "copying flux input file")
@@ -161,7 +165,6 @@ def main():
 
         # write out the output files in the ismip6-required format
         generate_output_2d_flux_vars(processed_file_flux,
-                                     processed_and_remapped_file_state,
                                      args.ismip6_grid_file,
                                      args.exp, output_path)
 
@@ -169,6 +172,8 @@ def main():
         os.remove(tmp_file2)
         os.remove(processed_file_flux)
         os.remove(input_file_copy)
+        print("---Processing flux file complete---\n")
+    print("---All processing complete---")
 
 if __name__ == "__main__":
     main()

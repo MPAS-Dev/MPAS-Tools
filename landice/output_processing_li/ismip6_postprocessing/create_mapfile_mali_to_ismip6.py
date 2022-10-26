@@ -59,12 +59,13 @@ def build_mapping_file(mali_mesh_file,
 
     # create a MALI mesh scripfile if mapping file does not exist
     # make sure the mali mesh file uses the longitude convention of [0 2pi]
+    # This should already be the case, so don't modify the input file
+    # Leaving this commented out in case it's necessary in some cases
 
-    args = ["set_lat_lon_fields_in_planar_grid.py",
-            "--file", mali_mesh_file,
-            "--proj", ismip6_projection]
-
-    check_call(args)
+    #args = ["set_lat_lon_fields_in_planar_grid.py",
+    #        "--file", mali_mesh_file,
+    #        "--proj", ismip6_projection]
+    #check_call(args)
 
     scrip_from_mpas(mali_mesh_file, mali_scripfile)
 
@@ -73,7 +74,23 @@ def build_mapping_file(mali_mesh_file,
           f"Mapping method used: {method_remap}")
 
     # generate a mapping file using the scrip files
-    args = (["ESMF_RegridWeightGen",
+
+    # On compute node, ESMG regridder needs to be called with srun
+    # On head nodes or local machines it does not.
+    # Here, assuming a compute node has hostname starting with nid,
+    # which is the case on Cori.  Modify as needed for other machines.
+    # Also assuming we can use multiple cores on a compute node.
+    hostname = os.uname()[1]
+    if hostname.startswith('nid'):
+        args = (["srun", "-n", "12", "ESMF_RegridWeightGen",
+             "-s", mali_scripfile,
+             "-d", ismip6_scripfile,
+             "-w", mapping_file,
+             "-m", method_remap,
+             "-i", "-64bit_offset",
+             "--dst_regional", "--src_regional"])
+    else:
+        args = (["ESMF_RegridWeightGen",
              "-s", mali_scripfile,
              "-d", ismip6_scripfile,
              "-w", mapping_file,
