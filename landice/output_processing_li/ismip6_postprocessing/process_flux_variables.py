@@ -17,6 +17,7 @@ def do_time_avg_flux_vars(input_file, output_file):
     output_file: file with time-averaged fluxes
     """
     print("Starting time averaging of flux variables")
+    input_file_tmp = 'flux_input_tmp.nc'
     dataIn = xr.open_dataset(input_file, chunks={'Time': 1})
     time = dataIn.dims['Time']
     xtime = dataIn['xtime'][:].values
@@ -38,7 +39,7 @@ def do_time_avg_flux_vars(input_file, output_file):
     dataIn['libmassbfgr'] = libmassbfgr
     dataIn['iceMask'] = iceMask
     print("    saving modified input file")
-    dataIn.to_netcdf(input_file, mode='w')
+    dataIn.to_netcdf(input_file_tmp, mode='w')
     print("    finished saving modified input file")
 
     # get an array of years that are not duplicative
@@ -58,7 +59,7 @@ def do_time_avg_flux_vars(input_file, output_file):
     ind = len(years) - 1
     command = ["ncks", "-O",
                "-d", f"Time,0,{str(ind)}",
-               input_file,
+               input_file_tmp,
                "tmp.nc"]
 
     check_call(command)
@@ -136,6 +137,7 @@ def do_time_avg_flux_vars(input_file, output_file):
 
     dataOut = dataOut.assign(timeBndsMin=timeBndsMin, timeBndsMax=timeBndsMax)
     os.remove('tmp.nc')
+    os.remove(input_file_tmp)
 
 
 def translate_GL_and_calving_flux_edge2cell(file_flux_time_avged,
