@@ -134,30 +134,16 @@ def main():
         # call the function that adds and renames state vars as requested by the
         # ISMIP6 protocol
         print(  "copying flux input file")
-        input_fname = os.path.basename(args.input_file_flux)
-        input_file_copy = f"copy_{input_fname}"
-        shutil.copy(args.input_file_flux, input_file_copy)
-
-        # append grid cell data to the flux data
-        print(  "appending grid cell data to flux input file")
-        command = ["ncks", "-A", "-v",
-                   "cellsOnEdge,nEdgesOnCell,edgesOnCell,dvEdge,areaCell",
-                   args.input_file_init, input_file_copy]
-        check_call(command)
 
         # take time (yearly) average for the flux variables
         tmp_file1 = "flux_time_avg.nc"
-        tmp_file2 = "flux_on_cell.nc"
-        do_time_avg_flux_vars(input_file_copy, tmp_file1)
-
-        # translate grounding line and calving fluxes from cell edges to center
-        translate_GL_and_calving_flux_edge2cell(tmp_file1, tmp_file2)
+        do_time_avg_flux_vars(args.input_file_flux, tmp_file1)
 
         # remap data from the MALI unstructured mesh to the ISMIP6 P-S grid
         processed_file_flux = f'processed_' \
                               f'{os.path.basename(args.input_file_flux)}'
         command = ["ncremap",
-                   "-i", tmp_file2,
+                   "-i", tmp_file1,
                    "-o", processed_file_flux,
                    "-m", mapping_file,
                    "-P", "mpas"]
@@ -168,10 +154,10 @@ def main():
                                      args.ismip6_grid_file,
                                      args.exp, output_path)
 
-        os.remove(tmp_file1)
-        os.remove(tmp_file2)
-        os.remove(processed_file_flux)
-        os.remove(input_file_copy)
+        cleanUp = True
+        if cleanUp:
+            os.remove(tmp_file1)
+            os.remove(processed_file_flux)
         print("---Processing flux file complete---\n")
     print("---All processing complete---")
 

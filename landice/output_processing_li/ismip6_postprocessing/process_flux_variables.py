@@ -8,7 +8,7 @@ import xarray as xr
 import numpy as np
 from datetime import date
 from subprocess import check_call
-import os
+import os, sys
 
 
 def do_time_avg_flux_vars(input_file, output_file):
@@ -18,18 +18,17 @@ def do_time_avg_flux_vars(input_file, output_file):
     """
     print("Starting time averaging of flux variables")
     input_file_tmp = 'flux_input_tmp.nc'
+    print(input_file)
     dataIn = xr.open_dataset(input_file, chunks={'Time': 1})
     time = dataIn.dims['Time']
     xtime = dataIn['xtime'][:].values
     deltat = dataIn['deltat'][:]
-    daysSinceStart = dataIn['daysSinceStart'][:] / np.timedelta64(1, 'D') # np thinks this should be timedelta type...
-    #print(type(daysSinceStart), daysSinceStart.shape, daysSinceStart)
+    daysSinceStart = dataIn['daysSinceStart'][:] / np.timedelta64(1, 'D') # xarray/np thinks this should be timedelta type...
     cellMask = dataIn['cellMask'][:,:]
     sfcMassBal = dataIn['sfcMassBalApplied'][:, :]
     basalMassBal = dataIn['basalMassBalApplied'][:, :]
-    # basalHeatFlux = dataIn['basalHeatFlux'][:,:] HH: this needs to be outputted in the flux stream. Uncomment once the variable is in the output file. But there's also chance that this will be outputted in the state file
-    # dHdt = dataIn['dHdt'][:,:] HH: this needs to be outputted in the flux stream. Uncomment once the variable is in the output file
-    glFlux = dataIn['fluxAcrossGroundingLine'][:, :]
+    dHdt = dataIn['dHdt'][:,:]
+    glFlux = dataIn['fluxAcrossGroundingLineOnCells'][:, :]
 
     # calculate averaged BMB flux beneath grounded and floating ice
     libmassbffl = basalMassBal * (cellMask[:, :] & 4) / 4
@@ -42,39 +41,42 @@ def do_time_avg_flux_vars(input_file, output_file):
     dataIn.to_netcdf(input_file_tmp, mode='w')
     print("    finished saving modified input file")
 
+
+    # Figure out some timekeeping stuff - using netCDF4 b/c xarray is a nightmare
+    fin = Dataset(input_file, 'r')
+    simulationStartTime = fin.variables['simulationStartTime'][:].tostring().decode('utf-8').strip().strip('\x00')
+    fin.close()
+    simulationStartDate = simulationStartTime.split("_")[0]
+    if simulationStartDate[5:10] != '01-01':
+        sys.exit("Error: simulationStartTime for flux file is not on Jan. 1.")
+    refYear = int(simulationStartDate[0:4])
+    startYr = refYear + np.floor(daysSinceStart[0] / 365.0) # using floor here because we might not have output at jan 1, but we'll definitely have at least one time level per year
+    finalYr = refYear + daysSinceStart[-1] / 365.0
+    if (daysSinceStart[-1] / 365.0 != daysSinceStart[-1] // 365):
+        sys.exit("Error: final time of flux output file is not on Jan. 1.")
+    print(f"simulationStartTime={simulationStartTime}; simulationStartDate={simulationStartDate}; refYear={refYear}")
+    print(f"start year={startYr}; final year={finalYr}")
+
     # get an array of years that are not duplicative
-    years = np.zeros(len(xtime))
-    years[0] = int(xtime[0].decode("utf-8")[0:4])
-    m = 1
-    for n in np.arange(1, len(xtime)):
-        yr_current = int(xtime[n].decode("utf-8")[0:4])
-        if yr_current > years[m - 1]:
-            years[m] = int(xtime[n].decode("utf-8")[0:4])
-            m = m + 1
-    years = np.trim_zeros(years)
+    decYears = refYear + daysSinceStart/365.0
+    #years = np.floor(decYears - 1.0e-10)  # this is the "owning" year; Jan 1 belongs to the previous year, so offset decYears by small amount
+    #years[0] = int(xtime[0].decode("utf-8")[0:4])
+    ##years = np.trim_zeros(years)
+    years = np.arange(startYr, finalYr) # we don't want the final year in the time array as a year to process - it's actually the end point of the previous year
 
-    # create a temporary file to which processed data will be saved with the
-    # right dimension
-    print("    create temporary file for time averaging")
-    ind = len(years) - 1
-    command = ["ncks", "-O",
-               "-d", f"Time,0,{str(ind)}",
-               input_file_tmp,
-               "tmp.nc"]
-
-    check_call(command)
-
-    # reduce the dim to yearTotal/yearInterval, and create the ouput file
-    dataOut = xr.open_dataset('tmp.nc')
     timeBndsMin = np.ones((len(years),)) * 1.0e36
     timeBndsMax = np.ones((len(years),)) * -1.0e36
 
+
     print("    begin looping over years")
     for j in range(len(years)):
-        print(f"     year: {j}")
+        # we want time bounds to span the full year
+        timeBndsMin[j] = (years[j] - refYear) * 365.0
+        timeBndsMax[j] = (years[j]+1.0 - refYear) * 365.0
+        print(f"     year index: {j}, year={years[j]}; timeBindsMin={timeBndsMin[j]}, timeBndsMax={timeBndsMax[j]}")
         sumYearSmb = 0
         sumYearBmb = 0
-        # sumYearDHdt = 0
+        sumYearDHdt = 0
         # sumYearCF = 0
         sumYearGF = 0
         sumYearBHF = 0
@@ -88,44 +90,40 @@ def do_time_avg_flux_vars(input_file, output_file):
         for i in range(time):
 
             yr_current = int(xtime[i].decode("utf-8")[0:4])
-            if yr_current == years[j]:
+            if decYears[i] > years[j] and decYears[i] <= years[j]+1.0:
                 sumYearSmb = sumYearSmb + sfcMassBal[i, :] * deltat[i]
                 sumYearBmbfl = sumYearBmbfl + libmassbffl[i, :] * deltat[i]
                 sumYearBmbgr = sumYearBmbgr + libmassbfgr[i, :] * deltat[i]
-                # sumYearDHdt = sumYearDHdt + dHdt[i, :] * deltat[i]
+                sumYearDHdt = sumYearDHdt + dHdt[i, :] * deltat[i]
                 # sumYearCF = sumYearCF + calvingFlux[i,:]*deltat[i]
                 sumYearGF = sumYearGF + glFlux[i, :] * deltat[i]
-                # sumYearBHF = sumYearBHF + basalHeatFlux[i,:]*deltat[i] # this might not be used because our BHF does not evolve with time
                 sumYearTime = sumYearTime + deltat[i]
 
                 sumIceMask = sumIceMask + iceMask[i,:]
 
-                timeBndsMin[j] = min(daysSinceStart[i], timeBndsMin[j])
-                timeBndsMax[j] = max(daysSinceStart[i], timeBndsMax[j])
+                print(f"         year={years[j]}, xtime={xtime[i]}")
+
 
         avgYearSmb = sumYearSmb / sumYearTime
         avgYearBmbfl = sumYearBmbfl / sumYearTime
         avgYearBmbgr = sumYearBmbgr / sumYearTime
-        # avgYearDHdt = sumYearDHdt / sumYearTime
+        avgYearDHdt = sumYearDHdt / sumYearTime
         # avgYearCF = sumYearCF/sumYearTime
         avgYearGF = sumYearGF / sumYearTime
-        # avgYearBHF= sumYearBHF / sumYearTime
         maxIceMask = (sumIceMask>0) # Get mask for anywhere that had ice during this year
 
-        dataOut['sfcMassBalApplied'][j, :] = avgYearSmb
-        dataOut['libmassbffl'][j, :] = avgYearBmbfl
-        dataOut['libmassbfgr'][j, :] = avgYearBmbgr
-        # dataOut['dHdt'][j, :] = avgYearDHdt
-        dataOut['fluxAcrossGroundingLine'][j, :] = avgYearGF
-        # dataOut['basalHeatFlux'][j, :] = avgYearBHF
+        dataIn['sfcMassBalApplied'][j, :] = avgYearSmb
+        dataIn['libmassbffl'][j, :] = avgYearBmbfl
+        dataIn['libmassbfgr'][j, :] = avgYearBmbgr
+        dataIn['dHdt'][j, :] = avgYearDHdt
+        dataIn['fluxAcrossGroundingLineOnCells'][j, :] = avgYearGF
 
         # Generate a mask for ice extent
-        dataOut['iceMask'][j,:] = maxIceMask
+        dataIn['iceMask'][j,:] = maxIceMask
 
     print("    write time averaged values")
-    dataOut.to_netcdf(output_file, mode='w')
+    dataIn.to_netcdf(output_file, mode='w')
     dataIn.close()
-    dataOut.close()
 
     # add in time bounds - not sure how to make xarray do this :(
     fout = Dataset(output_file, 'r+')
@@ -135,8 +133,6 @@ def do_time_avg_flux_vars(input_file, output_file):
     timeBndsMaxVar[:] = timeBndsMax
     fout.close()
 
-    dataOut = dataOut.assign(timeBndsMin=timeBndsMin, timeBndsMax=timeBndsMax)
-    os.remove('tmp.nc')
     os.remove(input_file_tmp)
 
 
@@ -373,14 +369,14 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               ismip6_grid_file,
                               exp, output_path)
 
-    # ----------- dlithkdt ------------------ # Uncomment the section once dHdt is outputted in the stream
-    # write_netcdf_2d_flux_vars('dHdt', 'dlithkdt',
-    #                           'tendency_of_land_ice_thickness',
-    #                           'm s-1',
-    #                           'Ice thickness imbalance',
-    #                           file_remapped_mali_flux,
-    #                           ismip6_grid_file,
-    #                           exp, output_path)
+    # ----------- dlithkdt ------------------
+    write_netcdf_2d_flux_vars('dHdt', 'dlithkdt',
+                              'tendency_of_land_ice_thickness',
+                              'm s-1',
+                              'Ice thickness imbalance',
+                              file_remapped_mali_flux,
+                              ismip6_grid_file,
+                              exp, output_path)
 
     # ----------- licalvf ------------------
     write_netcdf_2d_flux_vars('calvingFlux', 'licalvf',
@@ -396,7 +392,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
 
 
     # ----------- ligroundf ------------------
-    write_netcdf_2d_flux_vars('fluxAcrossGroundingLineCell', 'ligroundf',
+    write_netcdf_2d_flux_vars('fluxAcrossGroundingLineOnCells', 'ligroundf',
                               'land_ice_specific_mass_flux_at_grounding_line',
                               'kg m-2 s-1',
                               'Grounding line flux',
