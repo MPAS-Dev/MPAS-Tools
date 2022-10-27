@@ -21,7 +21,8 @@ def process_state_vars(inputfile_state, tmp_file):
     inputfile_temperature: output temperature file from MALI simulations
     """
 
-    inputfile_state_vars = xr.open_dataset(inputfile_state, engine="netcdf4")
+    inputfile_state_vars = xr.open_dataset(inputfile_state, engine="netcdf4", decode_cf=False)
+    del inputfile_state_vars.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type and corrupting values after about 250 years
 
     # get the mesh description data
     nCells = inputfile_state_vars.dims['nCells']
