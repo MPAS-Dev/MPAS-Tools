@@ -322,9 +322,11 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     dataValues.units = var_units
     timeValues.bounds = 'time_bnds'
     timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = '365_day'
+    timeValues.calendar = 'noleap'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
+    timebndsValues.units = f'days since {simulationStartDate}'
+    timebndsValues.calendar = 'noleap'
     xValues.units = 'm'
     xValues.standard_name = 'x'
     xValues.long_name = 'x'
