@@ -131,9 +131,6 @@ def main():
         print(" MALI flux file is not provided, thus it will not be processed.")
     else:
         print("\n---Processing flux file---")
-        # call the function that adds and renames state vars as requested by the
-        # ISMIP6 protocol
-        print(  "copying flux input file")
 
         # take time (yearly) average for the flux variables
         tmp_file1 = "flux_time_avg.nc"

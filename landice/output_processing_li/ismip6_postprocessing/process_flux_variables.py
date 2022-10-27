@@ -18,9 +18,11 @@ def do_time_avg_flux_vars(input_file, output_file):
     """
     print("Starting time averaging of flux variables")
     input_file_tmp = 'flux_input_tmp.nc'
-    print(input_file)
-    dataIn = xr.open_dataset(input_file, chunks={'Time': 1})
+    dataIn = xr.open_dataset(input_file, chunks={'Time': 5})
+    #print(dataIn.info)
+    #print(dataIn.data_vars)
     time = dataIn.dims['Time']
+    nCells = dataIn.dims['nCells']
     xtime = dataIn['xtime'][:].values
     deltat = dataIn['deltat'][:]
     daysSinceStart = dataIn['daysSinceStart'][:] / np.timedelta64(1, 'D') # xarray/np thinks this should be timedelta type...
@@ -67,6 +69,12 @@ def do_time_avg_flux_vars(input_file, output_file):
     timeBndsMin = np.ones((len(years),)) * 1.0e36
     timeBndsMax = np.ones((len(years),)) * -1.0e36
 
+    avgSmb = np.zeros((len(years), nCells)) * np.nan
+    avgBmbfl = np.zeros((len(years), nCells)) * np.nan
+    avgBmbgr = np.zeros((len(years), nCells)) * np.nan
+    avgDHdt = np.zeros((len(years), nCells)) * np.nan
+    avgGF = np.zeros((len(years), nCells)) * np.nan
+    maxIceMask = np.zeros((len(years), nCells), dtype=np.int) * np.nan
 
     print("    begin looping over years")
     for j in range(len(years)):
@@ -104,34 +112,37 @@ def do_time_avg_flux_vars(input_file, output_file):
                 print(f"         year={years[j]}, xtime={xtime[i]}")
 
 
-        avgYearSmb = sumYearSmb / sumYearTime
-        avgYearBmbfl = sumYearBmbfl / sumYearTime
-        avgYearBmbgr = sumYearBmbgr / sumYearTime
-        avgYearDHdt = sumYearDHdt / sumYearTime
+        avgSmb[j,:] = sumYearSmb / sumYearTime
+        avgBmbfl[j,:] = sumYearBmbfl / sumYearTime
+        avgBmbgr[j,:] = sumYearBmbgr / sumYearTime
+        avgDHdt[j,:] = sumYearDHdt / sumYearTime
         # avgYearCF = sumYearCF/sumYearTime
-        avgYearGF = sumYearGF / sumYearTime
-        maxIceMask = (sumIceMask>0) # Get mask for anywhere that had ice during this year
+        avgGF[j,:] = sumYearGF / sumYearTime
+        maxIceMask[j,:] = (sumIceMask>0) # Get mask for anywhere that had ice during this year
 
-        dataIn['sfcMassBalApplied'][j, :] = avgYearSmb
-        dataIn['libmassbffl'][j, :] = avgYearBmbfl
-        dataIn['libmassbfgr'][j, :] = avgYearBmbgr
-        dataIn['dHdt'][j, :] = avgYearDHdt
-        dataIn['fluxAcrossGroundingLineOnCells'][j, :] = avgYearGF
-
-        # Generate a mask for ice extent
-        dataIn['iceMask'][j,:] = maxIceMask
 
     print("    write time averaged values")
-    dataIn.to_netcdf(output_file, mode='w')
-    dataIn.close()
 
-    # add in time bounds - not sure how to make xarray do this :(
-    fout = Dataset(output_file, 'r+')
-    timeBndsMinVar = fout.createVariable('timeBndsMin', 'd', ('Time'))
-    timeBndsMinVar[:] = timeBndsMin
-    timeBndsMaxVar = fout.createVariable('timeBndsMax', 'd', ('Time'))
-    timeBndsMaxVar[:] = timeBndsMax
-    fout.close()
+    print(f"avg shape={avgSmb.shape}, time shape={timeBndsMin.shape}")
+    out_data_vars = {
+                     'sfcMassBalApplied': (['Time', 'nCells'], avgSmb),
+                     'libmassbffl':       (['Time', 'nCells'], avgBmbfl),
+                     'libmassbfgr':       (['Time', 'nCells'], avgBmbgr),
+                     'dHdt':              (['Time', 'nCells'], avgDHdt),
+                     'fluxAcrossGroundingLineOnCells': (['Time', 'nCells'], avgGF),
+                     'iceMask':        (['Time', 'nCells'], maxIceMask),
+                     'timeBndsMin': (['Time'], timeBndsMin),
+                     'timeBndsMax': (['Time'], timeBndsMax),
+                     'simulationStartTime': dataIn['simulationStartTime']
+                     }
+    out_coords = {
+                  'Time':   (['Time'], (timeBndsMin+timeBndsMax)/2.0)
+                 }
+
+
+    dataOut = xr.Dataset(data_vars=out_data_vars, coords=out_coords)
+    dataOut.to_netcdf(output_file, mode='w')
+    dataIn.close()
 
     os.remove(input_file_tmp)
 
@@ -266,7 +277,6 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     iceMask = data.variables['iceMask'][:, :, :]
     simulationStartTime = data.variables['simulationStartTime'][:].tostring().decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
-    daysSinceStart = data.variables['daysSinceStart'][:]
     timeBndsMin = data.variables['timeBndsMin'][:]
     timeBndsMax = data.variables['timeBndsMax'][:]
     if not mali_var_name in data.variables:
