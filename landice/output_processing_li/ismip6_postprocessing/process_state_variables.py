@@ -44,10 +44,13 @@ def process_state_vars(inputfile_state, tmp_file):
     inputfile_state_vars['uReconstructX_base'] = uxbase
     inputfile_state_vars['uReconstructY_base'] = uybase
 
+    inputfile_state_vars['upperSurface'] = np.maximum(0.0, inputfile_state_vars['upperSurface'])
+
     inputfile_state_vars['sftflf'] = (cellMask[:, :] & 4) / 4 * (cellMask[:, :] & 2) / 2  # floating and dynamic
     inputfile_state_vars['sftgrf'] = ((cellMask[:, :] * 0 + 1) - (cellMask[:, :] & 4) / 4) * (cellMask[:, :] & 2) / 2  # grounded: not-floating & dynamic
     inputfile_state_vars['sftgif'] = (cellMask[:, :] & 2) / 2  # grounded: dynamic ice
     inputfile_state_vars['strbasemag'] = betaSolve[:, :] * ((uxbase[:, :]) ** 2 + (uybase[:, :]) ** 2) **0.5 \
+        * (3600.0 * 24.0 * 365.0) \
         * (cellMask[:, :] * 0 + 1 - (cellMask[:, :] & 4) / 4) * (cellMask[:, :] & 2) / 2
 
     inputfile_state_vars.to_netcdf(tmp_file)

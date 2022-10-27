@@ -29,7 +29,7 @@ def do_time_avg_flux_vars(input_file, output_file):
     cellMask = dataIn['cellMask'][:,:]
     sfcMassBal = dataIn['sfcMassBalApplied'][:, :]
     basalMassBal = dataIn['basalMassBalApplied'][:, :]
-    dHdt = dataIn['dHdt'][:,:]
+    dHdt = dataIn['dHdt'][:,:] / (3600.0 * 24.0 * 365.0) # convert units to m/s
     glFlux = dataIn['fluxAcrossGroundingLineOnCells'][:, :]
 
     # calculate averaged BMB flux beneath grounded and floating ice
