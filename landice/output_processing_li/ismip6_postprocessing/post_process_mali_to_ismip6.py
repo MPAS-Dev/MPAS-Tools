@@ -91,13 +91,14 @@ def main():
         os.makedirs(output_path)
 
     if args.input_file_state is None:
-        print(" MALI state file is not provided, thus it will not be processed.")
+        print("--- MALI state file is not provided, thus it will not be processed.")
     else:
         print("\n---Processing state file---")
         # state variables processing part
         input_file_state = os.path.basename(args.input_file_state)
 
         # process (add and rename) state vars as requested by the ISMIP6 protocol
+        print("Calculating needed state file adjustments.")
         tmp_file = "tmp_state.nc"
         process_state_vars(input_file_state, tmp_file)
 
@@ -105,6 +106,7 @@ def main():
         processed_and_remapped_file_state = f'processed_and_remapped_' \
                                f'{os.path.basename(args.input_file_state)}'
 
+        print("Remapping state file.")
         command = ["ncremap",
                    "-i", tmp_file,
                    "-o", processed_and_remapped_file_state,
@@ -113,6 +115,7 @@ def main():
         check_call(command)
 
         # write out 2D state output files in the ismip6-required format
+        print("Writing processed and remapped state fields to ISMIP6 file format.")
         generate_output_2d_state_vars(processed_and_remapped_file_state, args.ismip6_grid_file,
                                       args.exp, output_path)
 
@@ -122,7 +125,7 @@ def main():
 
     # write out 1D output files for both state and flux variables
     if args.global_stats_file is None:
-        print(" MALI global stats file is not provided, thus it will not be processed.")
+        print("--- MALI global stats file is not provided, thus it will not be processed.")
     else:
         print("\n---Processing global stats file---")
         generate_output_1d_vars(args.global_stats_file, args.exp,
@@ -131,7 +134,7 @@ def main():
 
     # process the flux variables if flux output file is given
     if args.input_file_flux is None:
-        print(" MALI flux file is not provided, thus it will not be processed.")
+        print("--- MALI flux file is not provided, thus it will not be processed.")
     else:
         print("\n---Processing flux file---")
 

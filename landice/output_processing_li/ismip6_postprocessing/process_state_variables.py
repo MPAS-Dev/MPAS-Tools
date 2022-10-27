@@ -11,7 +11,7 @@ import xarray as xr
 import numpy as np
 from datetime import date
 import shutil
-import os
+import os, sys
 
 
 def process_state_vars(inputfile_state, tmp_file):
@@ -300,8 +300,9 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         sys.exit("Error: simulationStartTime for globalStats file is not on Jan. 1.")
     refYear = int(simulationStartDate[0:4])
     startYr = refYear + daysSinceStart[0] / 365.0
-    if startYr != np.round(startYr):
-        sys.exit("Error: start year not an even year in globalStats file.")
+    # Commenting out this check, because this is ok and expected.  Not removing it in case I'm wrong. :)
+    #if startYr != np.round(startYr):
+    #    sys.exit(f"Error: start year not an even year in globalStats file: {startYr}; simulationStartTime={simulationStartTime}")
     endYr = refYear + daysSinceStart[-1] / 365.0
     if endYr != np.round(endYr):
         sys.exit("Error: end year not an even year in globalStats file.")
