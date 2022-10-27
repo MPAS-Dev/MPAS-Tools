@@ -17,7 +17,6 @@ def do_time_avg_flux_vars(input_file, output_file):
     output_file: file with time-averaged fluxes
     """
     print("Starting time averaging of flux variables")
-    input_file_tmp = 'flux_input_tmp.nc'
     dataIn = xr.open_dataset(input_file, chunks={'Time': 5}, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
     #print(dataIn.info)
     #print(dataIn.data_vars)
@@ -45,10 +44,6 @@ def do_time_avg_flux_vars(input_file, output_file):
     dataIn['libmassbffl'] = libmassbffl
     dataIn['libmassbfgr'] = libmassbfgr
     dataIn['iceMask'] = iceMask
-    #print("    saving modified input file")
-    #dataIn.to_netcdf(input_file_tmp, mode='w')
-    #print("    finished saving modified input file")
-
 
     # Figure out some timekeeping stuff - using netCDF4 b/c xarray is a nightmare
     fin = Dataset(input_file, 'r')
@@ -148,8 +143,6 @@ def do_time_avg_flux_vars(input_file, output_file):
     dataOut = xr.Dataset(data_vars=out_data_vars, coords=out_coords)
     dataOut.to_netcdf(output_file, mode='w')
     dataIn.close()
-
-    os.remove(input_file_tmp)
 
 
 def translate_GL_and_calving_flux_edge2cell(file_flux_time_avged,
