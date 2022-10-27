@@ -30,9 +30,11 @@ def main():
                         required=False, help="mpas output state variables")
     parser.add_argument("-i_flux", "--input_flux", dest="input_file_flux",
                         required=False, help="mpas output flux variables")
-    parser.add_argument("-i_init", "--input_init", dest="input_file_init",
-                        required=True, help="optimized initialized file."
-                                            "Needed for grid information")
+    parser.add_argument("-i_init", "--input_grid", dest="input_file_grid",
+                        required=False, help="MALI file with mesh information"
+                                            "Only used for creating mapping file,"
+                                            "So not required if mapping file already exists"
+                                            "Can be a state or flux output file.")
     parser.add_argument("-g", "--global_stats_file", dest="global_stats_file",
                         required=False, help="globalStats.nc file")
     parser.add_argument("-p", "--output_path", dest="output_path",
@@ -58,24 +60,25 @@ def main():
     # Only do remapping steps if we have 2d files to process
     if not args.input_file_state is None or not args.input_file_flux is None:
         # check the mapping method and existence of the mapping file
-        if args.method_remap is None:
-            method_remap = "conserve"
-        else:
-            method_remap = args.method_remap
-
-        mapping_file = f"map_{args.mali_mesh_name}_to_ismip6_8km_" \
-                       f"{method_remap}.nc"
-
         # Note: the function 'building_mapping_file' requires the mpas mesh tool
         # script 'create_SCRIP_file_from_planar_rectangular_grid.py'
-        if not os.path.exists(mapping_file):
-            print(f"Creating new mapping file.")
-            build_mapping_file(args.input_file_init, mapping_file,
-                               args.ismip6_grid_file, method_remap)
-        else:
+        if os.path.exists(args.mapping_file):
             print(f"Mapping file exists.")
-        print(f"Remapping the input data..."
-              f"Mapping method used: {method_remap}")
+            mapping_file = args.mapping_file
+        else:
+            if args.method_remap is None:
+                method_remap = "conserve"
+            else:
+                method_remap = args.method_remap
+
+            mapping_file = f"map_{args.mali_mesh_name}_to_ismip6_8km_" \
+                           f"{method_remap}.nc"
+
+            print(f"Creating new mapping file."
+                  f"Mapping method used: {method_remap}")
+            build_mapping_file(args.input_file_grid, mapping_file,
+                               args.ismip6_grid_file, method_remap)
+
     print("---Processing remapping file complete---\n")
 
     # define the path to which the output (processed) files will be saved
