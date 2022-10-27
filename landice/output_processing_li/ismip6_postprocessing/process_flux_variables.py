@@ -18,14 +18,20 @@ def do_time_avg_flux_vars(input_file, output_file):
     """
     print("Starting time averaging of flux variables")
     input_file_tmp = 'flux_input_tmp.nc'
-    dataIn = xr.open_dataset(input_file, chunks={'Time': 5})
+    dataIn = xr.open_dataset(input_file, chunks={'Time': 5}, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
     #print(dataIn.info)
     #print(dataIn.data_vars)
     time = dataIn.dims['Time']
     nCells = dataIn.dims['nCells']
-    xtime = dataIn['xtime'][:].values
+    xtimeIn = dataIn['xtime'][:].values
+    #print(xtimeIn)
+    xtime = []
+    for i in range(time):
+        xtime.append(xtimeIn[i].tostring().decode('utf-8').strip().strip('\x00'))
+    #print(xtime)
     deltat = dataIn['deltat'][:]
-    daysSinceStart = dataIn['daysSinceStart'][:] / np.timedelta64(1, 'D') # xarray/np thinks this should be timedelta type...
+    del dataIn.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
+    daysSinceStart = dataIn['daysSinceStart'][:]
     cellMask = dataIn['cellMask'][:,:]
     sfcMassBal = dataIn['sfcMassBalApplied'][:, :]
     basalMassBal = dataIn['basalMassBalApplied'][:, :]
@@ -39,9 +45,9 @@ def do_time_avg_flux_vars(input_file, output_file):
     dataIn['libmassbffl'] = libmassbffl
     dataIn['libmassbfgr'] = libmassbfgr
     dataIn['iceMask'] = iceMask
-    print("    saving modified input file")
-    dataIn.to_netcdf(input_file_tmp, mode='w')
-    print("    finished saving modified input file")
+    #print("    saving modified input file")
+    #dataIn.to_netcdf(input_file_tmp, mode='w')
+    #print("    finished saving modified input file")
 
 
     # Figure out some timekeeping stuff - using netCDF4 b/c xarray is a nightmare
@@ -55,7 +61,7 @@ def do_time_avg_flux_vars(input_file, output_file):
     startYr = refYear + np.floor(daysSinceStart[0] / 365.0) # using floor here because we might not have output at jan 1, but we'll definitely have at least one time level per year
     finalYr = refYear + daysSinceStart[-1] / 365.0
     if (daysSinceStart[-1] / 365.0 != daysSinceStart[-1] // 365):
-        sys.exit("Error: final time of flux output file is not on Jan. 1.")
+        sys.exit(f"Error: final time of flux output file is not on Jan. 1.: daysSinceStart={daysSinceStart[-1]}, xtime={xtime[-1]}" )
     print(f"simulationStartTime={simulationStartTime}; simulationStartDate={simulationStartDate}; refYear={refYear}")
     print(f"start year={startYr}; final year={finalYr}")
 
@@ -97,7 +103,6 @@ def do_time_avg_flux_vars(input_file, output_file):
         timeBndMax = -1.0e36
         for i in range(time):
 
-            yr_current = int(xtime[i].decode("utf-8")[0:4])
             if decYears[i] > years[j] and decYears[i] <= years[j]+1.0:
                 sumYearSmb = sumYearSmb + sfcMassBal[i, :] * deltat[i]
                 sumYearBmbfl = sumYearBmbfl + libmassbffl[i, :] * deltat[i]
@@ -109,7 +114,7 @@ def do_time_avg_flux_vars(input_file, output_file):
 
                 sumIceMask = sumIceMask + iceMask[i,:]
 
-                print(f"         year={years[j]}, xtime={xtime[i]}")
+                print(f"         year={years[j]}, decYears={decYears[i]}, daysSinceStart={daysSinceStart[j]}, xtime={xtime[i]}")
 
 
         avgSmb[j,:] = sumYearSmb / sumYearTime
