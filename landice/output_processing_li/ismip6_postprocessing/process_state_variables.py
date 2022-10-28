@@ -311,6 +311,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         sys.exit("Error: simulationStartTime for globalStats file is not on Jan. 1.")
     refYear = int(simulationStartDate[0:4])
     startYr = refYear + daysSinceStart[0] / 365.0
+
     # Commenting out this check, because this is ok and expected.  Not removing it in case I'm wrong. :)
     #if startYr != np.round(startYr):
     #    sys.exit(f"Error: start year not an even year in globalStats file: {startYr}; simulationStartTime={simulationStartTime}")
@@ -322,6 +323,9 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timeSteps = len(xtime)  # total length of data
     years_out = np.arange(startYr, endYr+1)
     timeSteps_out = len(years_out)  # yearly timestep
+    # adjust timeSteps_out for when year is uneven
+    if not np.issubdtype(startYr, int):
+        timeSteps_out = timeSteps_out - 1
 
     # read in state variables
     vol = data.variables['totalIceVolume'][:]
@@ -363,15 +367,25 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     days_min = np.zeros(timeSteps_out) * np.nan
     days_max = np.zeros(timeSteps_out) * np.nan
 
+    # this is for the state variables
     for i in range(timeSteps_out):
-        ind_snap = np.where(decYears==years_out[i])[0]
+        if not np.issubdtype(years_out[i], int):
+            ind_snap = np.where(decYears==np.ceil(years_out[i]))[0]
+        else:
+            ind_snap = np.where(decYears==years_out[i])[0]
+
         vol_snapshot[i] = vol[ind_snap]
         vaf_snapshot[i] = vaf[ind_snap]
         gia_snapshot[i] = gia[ind_snap]
         fia_snapshot[i] = fia[ind_snap]
         days_snapshot[i] = daysSinceStart[ind_snap]
 
-        ind_avg = np.where(np.logical_and(decYears>years_out[i], decYears<=(years_out[i]+1.0)))[0]
+        if decYears[ind_snap] == endYr:
+            break
+
+    # this is for the flux variables
+    for i in range(timeSteps_out):
+        ind_avg = np.where(np.logical_and(decYears>np.floor(years_out[i]), decYears<=(np.floor(years_out[i])+1.0)))[0]
         smbi = smb[ind_avg]
         bmbi = bmb[ind_avg]
         cfxi = cfx[ind_avg]
@@ -385,6 +399,9 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         gfx_avg[i] = np.nansum(gfxi * dti) / np.nansum(dti)
         days_min[i] = (years_out[i] - refYear) * 365.0
         days_max[i] = (years_out[i]+1.0 - refYear) * 365.0
+
+        if decYears[ind_avg][-1] == endYr:
+            break
 
     # -------------- lim ------------------
     data_scalar = Dataset(f'{output_path}/lim_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
