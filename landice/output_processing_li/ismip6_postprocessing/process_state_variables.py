@@ -317,9 +317,11 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     endYr = refYear + daysSinceStart[-1] / 365.0
     if endYr != np.round(endYr):
         sys.exit("Error: end year not an even year in globalStats file.")
+    decYears = refYear + daysSinceStart/365.0
 
     timeSteps = len(xtime)  # total length of data
-    timeSteps_out = len(np.arange(startYr, endYr+1))  # yearly timestep
+    years_out = np.arange(startYr, endYr+1)
+    timeSteps_out = len(years_out)  # yearly timestep
 
     # read in state variables
     vol = data.variables['totalIceVolume'][:]
@@ -361,51 +363,28 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     days_min = np.zeros(timeSteps_out) * np.nan
     days_max = np.zeros(timeSteps_out) * np.nan
 
-    # initialize counter variables
-    yearIndex = 0
-    yearOld = 0
-    for i in range(timeSteps):
-
-        year = int(xtime[i][0:4].tobytes())
-        if year > yearOld:
-            dataIndex = 0
-            yearIndex = yearIndex + 1
-
-        vol_yearly[dataIndex, yearIndex - 1] = vol[i]
-        vaf_yearly[dataIndex, yearIndex - 1] = vaf[i]
-        gia_yearly[dataIndex, yearIndex - 1] = gia[i]
-        fia_yearly[dataIndex, yearIndex - 1] = fia[i]
-        smb_yearly[dataIndex, yearIndex - 1] = smb[i]
-        bmb_yearly[dataIndex, yearIndex - 1] = bmb[i]
-        cfx_yearly[dataIndex, yearIndex - 1] = cfx[i]
-        gfx_yearly[dataIndex, yearIndex - 1] = gfx[i]
-        days_yearly[dataIndex, yearIndex - 1] = daysSinceStart[i]
-
-        dt_yearly[dataIndex, yearIndex - 1] = dt[i]
-
-        dataIndex = dataIndex + 1
-        yearOld = year
-
     for i in range(timeSteps_out):
-        vol_snapshot[i] = vol_yearly[0, i]
-        vaf_snapshot[i] = vaf_yearly[0, i]
-        gia_snapshot[i] = gia_yearly[0, i]
-        fia_snapshot[i] = fia_yearly[0, i]
-        days_snapshot[i] = days_yearly[0, i]
+        ind_snap = np.where(decYears==years_out[i])[0]
+        vol_snapshot[i] = vol[ind_snap]
+        vaf_snapshot[i] = vaf[ind_snap]
+        gia_snapshot[i] = gia[ind_snap]
+        fia_snapshot[i] = fia[ind_snap]
+        days_snapshot[i] = daysSinceStart[ind_snap]
 
-        smbi = smb_yearly[:, i]
-        bmbi = bmb_yearly[:, i]
-        cfxi = cfx_yearly[:, i]
-        gfxi = gfx_yearly[:, i]
-        dti  = dt_yearly[:, i]
+        ind_avg = np.where(np.logical_and(decYears>years_out[i], decYears<=(years_out[i]+1.0)))[0]
+        smbi = smb[ind_avg]
+        bmbi = bmb[ind_avg]
+        cfxi = cfx[ind_avg]
+        gfxi = gfx[ind_avg]
+        dti  = dt[ind_avg]
 
         # take the average of the flux variables
         smb_avg[i] = np.nansum(smbi * dti) / np.nansum(dti)
         bmb_avg[i] = np.nansum(bmbi * dti) / np.nansum(dti)
         cfx_avg[i] = np.nansum(cfxi * dti) / np.nansum(dti)
         gfx_avg[i] = np.nansum(gfxi * dti) / np.nansum(dti)
-        days_min[i] = np.nanmin(days_yearly[:, i])
-        days_max[i] = np.nanmax(days_yearly[:, i])
+        days_min[i] = (years_out[i] - refYear) * 365.0
+        days_max[i] = (years_out[i]+1.0 - refYear) * 365.0
 
     # -------------- lim ------------------
     data_scalar = Dataset(f'{output_path}/lim_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
