@@ -84,6 +84,8 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     simulationStartDate = simulationStartTime.split("_")[0]
     daysSinceStart = data.variables['daysSinceStart'][:]
     var_sftgif = data.variables['sftgif'][:, :, :]
+    var_sftgrf = data.variables['sftgrf'][:, :, :]
+    var_sftflf = data.variables['sftflf'][:, :, :]
     var_mali = data.variables[mali_var_name][:,:,:]
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
     timeSteps, latN, lonN = np.shape(var_mali)
@@ -103,13 +105,18 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     DATE_STR = date.today().strftime("%d-%b-%Y")
 
     for i in range(timeSteps):
-        if not ismip6_var_name == 'sftgif':
-            mask = var_sftgif[i, :, :]
+        if ismip6_var_name == 'sftgif':
+            dataValues[i, :, :] = var_mali[i, :, :]
+        else:
+            if ismip6_var_name == 'litempbotgr':
+                mask = var_sftgrf[i, :, :]
+            elif ismip6_var_name == 'litempbotfl':
+                mask = var_sftflf[i, :, :]
+            else:
+                mask = var_sftgif[i, :, :]
             tmp = var_mali[i, :, :]
             tmp[mask == 0] = np.NAN
             dataValues[i, :, :] = tmp
-        else:
-            dataValues[i, :, :] = var_mali[i, :, :]
 
     for i in range(latN):
         xValues[i] = var_x[i]
