@@ -33,17 +33,12 @@ def do_time_avg_flux_vars(input_file, output_file):
     daysSinceStart = dataIn['daysSinceStart'][:]
     cellMask = dataIn['cellMask'][:,:]
     sfcMassBal = dataIn['sfcMassBalApplied'][:, :]
-    basalMassBal = dataIn['basalMassBalApplied'][:, :]
+    floatingBasalMassBalApplied = dataIn['floatingBasalMassBalApplied'][:, :]
+    groundedBasalMassBalApplied = dataIn['groundedBasalMassBalApplied'][:, :]
     dHdt = dataIn['dHdt'][:,:] / (3600.0 * 24.0 * 365.0) # convert units to m/s
     glFlux = dataIn['fluxAcrossGroundingLineOnCells'][:, :]
 
-    # calculate averaged BMB flux beneath grounded and floating ice
-    libmassbffl = basalMassBal * (cellMask[:, :] & 4) / 4
-    libmassbfgr = basalMassBal * (1 - (cellMask[:, :] & 4) / 4)
     iceMask = (cellMask[:, :] & 2) / 2  # grounded: dynamic ice
-    dataIn['libmassbffl'] = libmassbffl
-    dataIn['libmassbfgr'] = libmassbfgr
-    dataIn['iceMask'] = iceMask
 
     # Figure out some timekeeping stuff - using netCDF4 b/c xarray is a nightmare
     fin = Dataset(input_file, 'r')
@@ -100,8 +95,8 @@ def do_time_avg_flux_vars(input_file, output_file):
 
             if decYears[i] > years[j] and decYears[i] <= years[j]+1.0:
                 sumYearSmb = sumYearSmb + sfcMassBal[i, :] * deltat[i]
-                sumYearBmbfl = sumYearBmbfl + libmassbffl[i, :] * deltat[i]
-                sumYearBmbgr = sumYearBmbgr + libmassbfgr[i, :] * deltat[i]
+                sumYearBmbfl = sumYearBmbfl + floatingBasalMassBalApplied[i, :] * deltat[i]
+                sumYearBmbgr = sumYearBmbgr + groundedBasalMassBalApplied[i, :] * deltat[i]
                 sumYearDHdt = sumYearDHdt + dHdt[i, :] * deltat[i]
                 # sumYearCF = sumYearCF + calvingFlux[i,:]*deltat[i]
                 sumYearGF = sumYearGF + glFlux[i, :] * deltat[i]
