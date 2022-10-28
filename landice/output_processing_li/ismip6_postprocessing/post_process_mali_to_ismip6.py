@@ -95,12 +95,10 @@ def main():
     else:
         print("\n---Processing state file---")
         # state variables processing part
-        input_file_state = os.path.basename(args.input_file_state)
-
         # process (add and rename) state vars as requested by the ISMIP6 protocol
         print("Calculating needed state file adjustments.")
         tmp_file = "tmp_state.nc"
-        process_state_vars(input_file_state, tmp_file)
+        process_state_vars(args.input_file_state, tmp_file)
 
         # remap data from the MALI unstructured mesh to the ISMIP6 polarstereo grid
         processed_and_remapped_file_state = f'processed_and_remapped_' \
