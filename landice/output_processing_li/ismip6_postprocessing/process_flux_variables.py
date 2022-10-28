@@ -284,14 +284,14 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
                       'w', format='NETCDF4_CLASSIC')
     dataOut.createDimension('time', timeSteps)
     dataOut.createDimension('bnds', 2)
-    timebndsValues = dataOut.createVariable('time_bnds', 'f4', ('time', 'bnds'))
+    timebndsValues = dataOut.createVariable('time_bnds', 'd', ('time', 'bnds'))
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)
-    dataValues = dataOut.createVariable(ismip6_var_name, 'f4',
+    dataValues = dataOut.createVariable(ismip6_var_name, 'd',
                                        ('time', 'y', 'x'), fill_value=np.NAN)
-    xValues = dataOut.createVariable('x', 'f4', ('x'))
-    yValues = dataOut.createVariable('y', 'f4', ('y'))
-    timeValues = dataOut.createVariable('time', 'f4', ('time'))
+    xValues = dataOut.createVariable('x', 'd', ('x'))
+    yValues = dataOut.createVariable('y', 'd', ('y'))
+    timeValues = dataOut.createVariable('time', 'd', ('time'))
 
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
     DATE_STR = date.today().strftime("%d-%b-%Y")

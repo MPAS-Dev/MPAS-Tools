@@ -95,11 +95,11 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     dataOut.createDimension('time', timeSteps)
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)
-    dataValues = dataOut.createVariable(ismip6_var_name, 'f4',
+    dataValues = dataOut.createVariable(ismip6_var_name, 'd',
                                        ('time', 'y', 'x'), fill_value=np.NAN)
-    xValues = dataOut.createVariable('x', 'f4', ('x'))
-    yValues = dataOut.createVariable('y', 'f4', ('y'))
-    timeValues = dataOut.createVariable('time', 'f4', ('time'))
+    xValues = dataOut.createVariable('x', 'd', ('x'))
+    yValues = dataOut.createVariable('y', 'd', ('y'))
+    timeValues = dataOut.createVariable('time', 'd', ('time'))
     timeValues[:] = daysSinceStart
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
     DATE_STR = date.today().strftime("%d-%b-%Y")
@@ -389,8 +389,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # -------------- lim ------------------
     data_scalar = Dataset(f'{output_path}/lim_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', timeSteps_out)
-    limValues = data_scalar.createVariable('lim', 'f4', ('time'))
-    timeValues = data_scalar.createVariable('time', 'f4', ('time'))
+    limValues = data_scalar.createVariable('lim', 'd', ('time'))
+    timeValues = data_scalar.createVariable('time', 'd', ('time'))
     for i in range(timeSteps_out):
         limValues[i] = vol_snapshot[i] * 910
         timeValues[i] = days_snapshot[i]
@@ -410,8 +410,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # -------------- limnsw ------------------
     data_scalar = Dataset(f'{output_path}/limnsw_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', timeSteps_out)
-    limnswValues = data_scalar.createVariable('limnsw', 'f4', ('time'))
-    timeValues = data_scalar.createVariable('time', 'f4', ('time'))
+    limnswValues = data_scalar.createVariable('limnsw', 'd', ('time'))
+    timeValues = data_scalar.createVariable('time', 'd', ('time'))
     for i in range(timeSteps_out):
         limnswValues[i] = vaf_snapshot[i] * 910
         timeValues[i] = days_snapshot[i]
@@ -431,8 +431,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # -------------- iareagr ------------------
     data_scalar = Dataset(f'{output_path}/iareagr_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', timeSteps_out)
-    iareagrValues = data_scalar.createVariable('iareagr', 'f4', ('time'))
-    timeValues = data_scalar.createVariable('time', 'f4', ('time'))
+    iareagrValues = data_scalar.createVariable('iareagr', 'd', ('time'))
+    timeValues = data_scalar.createVariable('time', 'd', ('time'))
     for i in range(timeSteps_out):
         iareagrValues[i] = gia_snapshot[i]
         timeValues[i] = days_snapshot[i]
@@ -452,8 +452,8 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # -------------- iareafl ------------------
     data_scalar = Dataset(f'{output_path}/iareafl_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', timeSteps_out)
-    iareaflValues = data_scalar.createVariable('iareafl', 'f4', ('time'))
-    timeValues = data_scalar.createVariable('time', 'f4', ('time'))
+    iareaflValues = data_scalar.createVariable('iareafl', 'd', ('time'))
+    timeValues = data_scalar.createVariable('time', 'd', ('time'))
     for i in range(timeSteps_out):
         iareaflValues[i] = fia_snapshot[i]
         timeValues[i] = days_snapshot[i]
@@ -473,10 +473,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # -------------- tendacabf: this is a flux var
     data_scalar = Dataset(f'{output_path}/tendacabf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', timeSteps_out)
-    tendacabfValues = data_scalar.createVariable('tendacabf', 'f4', ('time'))
-    timeValues = data_scalar.createVariable('time', 'f4', ('time'))
+    tendacabfValues = data_scalar.createVariable('tendacabf', 'd', ('time'))
+    timeValues = data_scalar.createVariable('time', 'd', ('time'))
     data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
+    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
     for i in range(timeSteps_out):
         tendacabfValues[i] = smb_avg[i] / 31536000.0
         timeValues[i] = (days_min[i] + days_max[i]) / 2.0
@@ -498,10 +498,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # -------------- tendlibmassbf: this is a flux var
     data_scalar = Dataset(f'{output_path}/tendlibmassbf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', timeSteps_out)
-    tendlibmassbfValues = data_scalar.createVariable('tendlibmassbf', 'f4', ('time'))
-    timeValues = data_scalar.createVariable('time', 'f4', ('time'))
+    tendlibmassbfValues = data_scalar.createVariable('tendlibmassbf', 'd', ('time'))
+    timeValues = data_scalar.createVariable('time', 'd', ('time'))
     data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
+    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
     for i in range(timeSteps_out):
         tendlibmassbfValues[i] = bmb_avg[i] / 31536000
         timeValues[i] = (days_min[i] + days_max[i]) / 2.0
@@ -524,10 +524,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     data_scalar = Dataset(f'{output_path}/tendlibmassbffl_AIS_DOE_MALI_{exp}.nc', 'w',
                           format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', timeSteps_out)
-    tendlibmassbfflValues = data_scalar.createVariable('tendlibmassbffl', 'f4', ('time'))
-    timeValues = data_scalar.createVariable('time', 'f4', ('time'))
+    tendlibmassbfflValues = data_scalar.createVariable('tendlibmassbffl', 'd', ('time'))
+    timeValues = data_scalar.createVariable('time', 'd', ('time'))
     data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
+    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
     for i in range(timeSteps_out):
         tendlibmassbfflValues[i] = bmb_avg[i] / 31536000
         timeValues[i] = (days_min[i] + days_max[i]) / 2.0
@@ -549,10 +549,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # -------------- tendlicalvf: this is a flux var
     data_scalar = Dataset(f'{output_path}/tendlicalvf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', timeSteps_out)
-    tendlicalvfValues = data_scalar.createVariable('tendlicalvf', 'f4', ('time'))
-    timeValues = data_scalar.createVariable('time', 'f4', ('time'))
+    tendlicalvfValues = data_scalar.createVariable('tendlicalvf', 'd', ('time'))
+    timeValues = data_scalar.createVariable('time', 'd', ('time'))
     data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
+    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
     for i in range(timeSteps_out):
         tendlicalvfValues[i] = -cfx_avg[i] / 31536000
         timeValues[i] = (days_min[i] + days_max[i]) / 2.0
@@ -577,10 +577,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # -------------- tendligroundf: this is a flux var
     data_scalar = Dataset(f'{output_path}/tendligroundf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', timeSteps_out)
-    tendligroundfValues = data_scalar.createVariable('tendligroundf', 'f4', ('time'))
-    timeValues = data_scalar.createVariable('time', 'f4', ('time'))
+    tendligroundfValues = data_scalar.createVariable('tendligroundf', 'd', ('time'))
+    timeValues = data_scalar.createVariable('time', 'd', ('time'))
     data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'f4', ('time', 'bnds'))
+    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
     for i in range(timeSteps_out):
         tendligroundfValues[i] = gfx_avg[i] / 31536000
         timeValues[i] = (days_min[i] + days_max[i]) / 2.0
