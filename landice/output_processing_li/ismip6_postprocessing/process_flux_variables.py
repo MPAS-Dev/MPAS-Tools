@@ -17,9 +17,10 @@ def do_time_avg_flux_vars(input_file, output_file):
     output_file: file with time-averaged fluxes
     """
     print("Starting time averaging of flux variables")
-    dataIn = xr.open_dataset(input_file, chunks={'Time': 5}, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
-    #print(dataIn.info)
-    #print(dataIn.data_vars)
+    dataIn = xr.open_dataset(input_file, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
+    if 'units' in dataIn.daysSinceStart.attrs:  # make have been removed in a previous step, so check if it exists
+        del dataIn.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
+
     time = dataIn.dims['Time']
     nCells = dataIn.dims['nCells']
     xtimeIn = dataIn['xtime'][:].values
@@ -29,7 +30,6 @@ def do_time_avg_flux_vars(input_file, output_file):
         xtime.append(xtimeIn[i].tostring().decode('utf-8').strip().strip('\x00'))
     #print(xtime)
     deltat = dataIn['deltat'][:]
-    del dataIn.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
     daysSinceStart = dataIn['daysSinceStart'][:]
     cellMask = dataIn['cellMask'][:,:]
     sfcMassBal = dataIn['sfcMassBalApplied'][:, :]
@@ -149,7 +149,8 @@ def translate_calving_flux_edge2cell(file_flux_time_avged,
     """
     print("Starting translation of calving fluxes")
 
-    data = xr.open_dataset(file_flux_time_avged, engine="netcdf4")
+    data = xr.open_dataset(file_flux_time_avged, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
+    del data.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
     nCells = data.dims['nCells']
     time = data.dims['Time']
     nEdgesOnCell = data['nEdgesOnCell'][:].values
@@ -186,7 +187,7 @@ def translate_calving_flux_edge2cell(file_flux_time_avged,
     #     thicknessRecovered[i, :] = thickness[:]
 
     for t in range(time):
-        print(f"    Time: {t} / {time}")
+        print(f"    Time: {t+1} / {time}")
 
         index_cf = np.where(calvingThickness[t, :] > 0)[0]
         for i in index_cf:
