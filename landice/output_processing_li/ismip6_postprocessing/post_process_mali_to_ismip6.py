@@ -16,7 +16,7 @@ from create_mapfile_mali_to_ismip6 import build_mapping_file
 from process_state_variables import generate_output_2d_state_vars, \
      process_state_vars, generate_output_1d_vars
 from process_flux_variables import generate_output_2d_flux_vars, \
-     do_time_avg_flux_vars, translate_GL_and_calving_flux_edge2cell
+     do_time_avg_flux_vars, translate_calving_flux_edge2cell
 
 
 def main():
@@ -136,9 +136,12 @@ def main():
     else:
         print("\n---Processing flux file---")
 
+        print("Translate calving flux")
+        tmp_file_translate = "flux_translated.nc"
+        translate_calving_flux_edge2cell(args.input_file_flux, tmp_file_translate)
         # take time (yearly) average for the flux variables
         tmp_file1 = "flux_time_avg.nc"
-        do_time_avg_flux_vars(args.input_file_flux, tmp_file1)
+        do_time_avg_flux_vars(tmp_file_translate, tmp_file1)
 
         # remap data from the MALI unstructured mesh to the ISMIP6 P-S grid
         processed_file_flux = f'processed_' \
@@ -157,6 +160,7 @@ def main():
 
         cleanUp = True
         if cleanUp:
+            os.remove(tmp_file_translate)
             os.remove(tmp_file1)
             os.remove(processed_file_flux)
         print("---Processing flux file complete---\n")

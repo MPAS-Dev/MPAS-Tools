@@ -37,6 +37,7 @@ def do_time_avg_flux_vars(input_file, output_file):
     groundedBasalMassBalApplied = dataIn['groundedBasalMassBalApplied'][:, :]
     dHdt = dataIn['dHdt'][:,:] / (3600.0 * 24.0 * 365.0) # convert units to m/s
     glFlux = dataIn['fluxAcrossGroundingLineOnCells'][:, :]
+    calvingFlux = dataIn['calvingFlux'][:, :]
 
     iceMask = (cellMask[:, :] & 2) / 2  # grounded: dynamic ice
 
@@ -66,6 +67,7 @@ def do_time_avg_flux_vars(input_file, output_file):
     timeBndsMax = np.ones((len(years),)) * -1.0e36
 
     avgSmb = np.zeros((len(years), nCells)) * np.nan
+    avgCF = np.zeros((len(years), nCells)) * np.nan
     avgBmbfl = np.zeros((len(years), nCells)) * np.nan
     avgBmbgr = np.zeros((len(years), nCells)) * np.nan
     avgDHdt = np.zeros((len(years), nCells)) * np.nan
@@ -81,7 +83,7 @@ def do_time_avg_flux_vars(input_file, output_file):
         sumYearSmb = 0
         sumYearBmb = 0
         sumYearDHdt = 0
-        # sumYearCF = 0
+        sumYearCF = 0
         sumYearGF = 0
         sumYearBHF = 0
         sumYearTime = 0
@@ -98,7 +100,7 @@ def do_time_avg_flux_vars(input_file, output_file):
                 sumYearBmbfl = sumYearBmbfl + floatingBasalMassBalApplied[i, :] * deltat[i]
                 sumYearBmbgr = sumYearBmbgr + groundedBasalMassBalApplied[i, :] * deltat[i]
                 sumYearDHdt = sumYearDHdt + dHdt[i, :] * deltat[i]
-                # sumYearCF = sumYearCF + calvingFlux[i,:]*deltat[i]
+                sumYearCF = sumYearCF + calvingFlux[i,:] * deltat[i]
                 sumYearGF = sumYearGF + glFlux[i, :] * deltat[i]
                 sumYearTime = sumYearTime + deltat[i]
 
@@ -111,7 +113,7 @@ def do_time_avg_flux_vars(input_file, output_file):
         avgBmbfl[j,:] = sumYearBmbfl / sumYearTime
         avgBmbgr[j,:] = sumYearBmbgr / sumYearTime
         avgDHdt[j,:] = sumYearDHdt / sumYearTime
-        # avgYearCF = sumYearCF/sumYearTime
+        avgCF[j,:] = sumYearCF / sumYearTime
         avgGF[j,:] = sumYearGF / sumYearTime
         maxIceMask[j,:] = (sumIceMask>0) # Get mask for anywhere that had ice during this year
 
@@ -125,6 +127,7 @@ def do_time_avg_flux_vars(input_file, output_file):
                      'libmassbfgr':       (['Time', 'nCells'], avgBmbgr),
                      'dHdt':              (['Time', 'nCells'], avgDHdt),
                      'fluxAcrossGroundingLineOnCells': (['Time', 'nCells'], avgGF),
+                     'calvingFlux': (['Time', 'nCells'], avgCF),
                      'iceMask':        (['Time', 'nCells'], maxIceMask),
                      'timeBndsMin': (['Time'], timeBndsMin),
                      'timeBndsMax': (['Time'], timeBndsMax),
@@ -140,106 +143,80 @@ def do_time_avg_flux_vars(input_file, output_file):
     dataIn.close()
 
 
-def translate_GL_and_calving_flux_edge2cell(file_flux_time_avged,
+def translate_calving_flux_edge2cell(file_flux_time_avged,
                                             file_flux_on_cell):
     """
-    file_flux_time_avged: time-averaged flux variables in MALI mesh
-    (i.e., output file of the function do_time_avg_flux_vars)
-    file_flux_on_cell: files with flux variables on the cell centers
-    file_state: MALI state output file
     """
-    print("Starting translation of GL and calving fluxes")
+    print("Starting translation of calving fluxes")
 
     data = xr.open_dataset(file_flux_time_avged, engine="netcdf4")
     nCells = data.dims['nCells']
     time = data.dims['Time']
     nEdgesOnCell = data['nEdgesOnCell'][:].values
     edgesOnCell = data['edgesOnCell'][:].values
-    cellsOnEdge = data['cellsOnEdge'][:].values
+    cellsOnCell = data['cellsOnCell'][:].values
     dvEdge = data['dvEdge'][:].values
     areaCell = data['areaCell'][:].values
     deltat = data['deltat'][:].values
+    thickness = data['thickness'][:].values
     # edgeMask = data['edgeMask'][:, :].values # this needs to be outputted as well. Once commented out, comment out L195 as well, and indent L197
     # dHdt = data['dHdt'][:, :].values # Uncomment this line once the dHdt variable is outputted in the stream and delete the line below
-    dHdt = data['calvingThickness'][:, :].values  # delete this line once the dHdt variable is outputted in the stream. This line is used just for now to check the code
-    fluxGLEdge = data['fluxAcrossGroundingLine'].load()
     fluxGLCell_array = np.zeros((time, nCells))
 
-    print("=== starting the grounding line flux processing ===")
-    for i in range(nCells):
-        edgeId = edgesOnCell[i, :nEdgesOnCell[i]] - 1
-        dvCell = np.sum(fluxGLEdge[:, edgeId], axis=1) * 910.0
-        fluxGLCell_array[:, i] = dvCell
-
-    data['fluxAcrossGroundingLineCell'] = (('Time', 'nCells'), fluxGLCell_array)
-    print("=== done grounding line processing ===")
-
-    doCalving = False
     # Calving processing will eventually be moved online to MALI
     # Disable for now because we don't want to waste time on this for
     # fixed calving front runs anyway.
-    if doCalving:
-        print("===starting the calving flux processing===")
-        rho_i = 910.0
-        h0 = 11.1
+    print("===starting the calving flux processing===")
+    rho_i = 910.0
 
-        # get calving thickness values
-        calvingThickness = data['calvingThickness'][:, :].values
-        assert time == len(deltat)
+    # get calving thickness values
+    calvingThickness = data['calvingThickness'][:, :].values
+    assert time == len(deltat)
 
-        # create and initialize a new data array for calvingFluxArray
-        calvingFluxArray = data['calvingThickness'].copy()
-        calvingFluxArray = calvingFluxArray * 0.0
+    # create and initialize a new data array for calvingFluxArray
+    calvingFluxArray = data['calvingThickness'].copy()
+    calvingFluxArray = calvingFluxArray * 0.0
 
-        # This part seems to have been used to get `edgeMask`
-        # thickness = data_state['thickness'][:, :].values
-        # thicknessRecovered = np.copy(dHdt)
-        # for i in range(time):
-        #     thickness[:] = thickness[:] + dHdt[i, :] * deltat[i]
-        #     thickness[np.where(thickness < 0)] = 0.0
-        #     thicknessRecovered[i, :] = thickness[:]
+    # This part seems to have been used to get `edgeMask`
+    # thickness = data_state['thickness'][:, :].values
+    # thicknessRecovered = np.copy(dHdt)
+    # for i in range(time):
+    #     thickness[:] = thickness[:] + dHdt[i, :] * deltat[i]
+    #     thickness[np.where(thickness < 0)] = 0.0
+    #     thicknessRecovered[i, :] = thickness[:]
 
-        for t in range(time):
+    for t in range(time):
+        print(f"    Time: {t} / {time}")
 
-            index_cf = np.where(calvingThickness[t, :] > 0)[0]
-            for i in index_cf:
+        index_cf = np.where(calvingThickness[t, :] > 0)[0]
+        for i in index_cf:
 
-                ne = nEdgesOnCell[i]
-                edgeId = edgesOnCell[i, :nEdgesOnCell[i]] - 1
+            ne = nEdgesOnCell[i]
+            cliffArea = 0.0
+            for j in range(ne):
+                neighborCellId = cellsOnCell[i, j] - 1
+                neighborEdgeId = edgesOnCell[i, j] - 1
 
-                dvEdgeSum = 0.0
-                for j in range(ne):
-                    neighborCellId = cellsOnEdge[edgeId[j], :] - 1
+                # if ((edgeMask[0, edgeId[j]] & 16) / 16 and (edgeMask[0, edgeId[j]] & 4) / 4):  # uncomment this line and indent L197 once edgeMask is acquired.
+                # 16: dynamic margin & 4: floating
 
-                    # if ((edgeMask[0, edgeId[j]] & 16) / 16 and (edgeMask[0, edgeId[j]] & 4) / 4):  # uncomment this line and indent L197 once edgeMask is acquired.
-                    # 16: dynamic margin & 4: floating
-                    dvEdgeSum = dvEdgeSum + dvEdge[edgeId[j]]
+                # Assuming that where there is calving, there is at least one adjacent cell with ice at the end of the timestep
+                # This assumption will be fine for fixed calving front without melting out of the ice shelf causing retreat
+                # It could potentially fail for a retreating ice shelf.  Throw an error below if so, and deal with handling that
+                # if it occurs.  Eventually, move this to MALI and calculate it consistently.
+                if thickness[t, neighborCellId] > 0:
+                    cliffArea += dvEdge[neighborEdgeId] * thickness[t, neighborCellId]
 
-                    # below is Tong's script that uses thickness recovered to calculate dvEdgeSum. Tong writes "I haven't tested the below part yet"
-                    # else:
-                    #    boolArray1 =  ((thicknessRecovered[:,neighborCellId[0]] > h0) | (thicknessRecovered[:,neighborCellId[1]] > h0)) \
-                    #            & ~((thicknessRecovered[:,neighborCellId[0]] > h0) & (thicknessRecovered[:,neighborCellId[1]] > h0))
-                    #    boolArray2 = (smbApplied[:,neighborCellId[0]] > 0) & (smbApplied[:,neighborCellId[1]] > 0)
-                    #    boolArray = boolArray1 & boolArray2
-                    #    dvEdgeSum = dvEdgeSum + dvEdge[edgeId[j]]*boolArray
+            if cliffArea == 0.0:
+                sys.exit(f"ERROR: cliff area was 0 for cell {i} at time {t}.")
 
-                if dvEdgeSum > 0:
-                    calvingVelDivideThickness = calvingThickness[t, i] * areaCell[i] / (deltat[t] * (dvEdgeSum + 1e-10))
-                    # put 1e-10 here in case of dvEdgeSum = 0, and change the value back to zero in below
-                else:
-                    calvingVelDivideThickness = 0.0
-                    # unit: m^2/s
+            calvingFluxArray[t, i] = calvingThickness[t, i] * areaCell[i] * rho_i  / cliffArea / deltat[t]
 
-                calvingFlux = rho_i * calvingVelDivideThickness
-                # unit: kg/m/s
-                calvingFluxArray[t, i] = calvingFlux
+    data['calvingFlux'] = calvingFluxArray
 
-        data['calvingFlux'] = calvingFluxArray
+    print("===done calving flux processing!===")
 
-        print("===done calving flux processing!===")
-
-    data.to_netcdf(
-    file_flux_on_cell)  # writing out to a netCDF file seems to be needed to save the newly added variable `fluxAcrossGroundingLineCell`.
+    data.to_netcdf(file_flux_on_cell)  # writing out to a netCDF file seems to be needed to save the newly added variable `fluxAcrossGroundingLineCell`.
     data.close()
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
