@@ -16,7 +16,7 @@ from create_mapfile_mali_to_ismip6 import build_mapping_file
 from process_state_variables import generate_output_2d_state_vars, \
      process_state_vars, generate_output_1d_vars
 from process_flux_variables import generate_output_2d_flux_vars, \
-     do_time_avg_flux_vars, translate_calving_flux_edge2cell
+     do_time_avg_flux_vars, convert_calvingThickness_to_licalvf
 
 
 def main():
@@ -138,7 +138,7 @@ def main():
 
         print("Translate calving flux")
         tmp_file_translate = "flux_translated.nc"
-        translate_calving_flux_edge2cell(args.input_file_flux, tmp_file_translate)
+        convert_calvingThickness_to_licalvf(args.input_file_flux, tmp_file_translate)
         # take time (yearly) average for the flux variables
         tmp_file1 = "flux_time_avg.nc"
         do_time_avg_flux_vars(tmp_file_translate, tmp_file1)

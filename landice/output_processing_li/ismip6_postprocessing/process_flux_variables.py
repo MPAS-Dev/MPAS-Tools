@@ -143,15 +143,17 @@ def do_time_avg_flux_vars(input_file, output_file):
     dataIn.close()
 
 
-def translate_calving_flux_edge2cell(file_flux_time_avged,
-                                            file_flux_on_cell):
+def convert_calvingThickness_to_licalvf(file_input,
+                                        file_output):
     """
+    Convert the MALI output field calvingThickness to the ISMIP6 variable
+    licalvf.  This is an approximation that likely is only appropriate for
+    runs using restore_calving.  When evolving calving is introduced, a
+    calculation of licalvf should be added to MALI and this function removed.
     """
-    print("Starting translation of calving fluxes")
 
-    data = xr.open_dataset(file_flux_time_avged, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
+    data = xr.open_dataset(file_input, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
     del data.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
-    nCells = data.dims['nCells']
     time = data.dims['Time']
     nEdgesOnCell = data['nEdgesOnCell'][:].values
     edgesOnCell = data['edgesOnCell'][:].values
@@ -160,31 +162,16 @@ def translate_calving_flux_edge2cell(file_flux_time_avged,
     areaCell = data['areaCell'][:].values
     deltat = data['deltat'][:].values
     thickness = data['thickness'][:].values
-    # edgeMask = data['edgeMask'][:, :].values # this needs to be outputted as well. Once commented out, comment out L195 as well, and indent L197
-    # dHdt = data['dHdt'][:, :].values # Uncomment this line once the dHdt variable is outputted in the stream and delete the line below
-    fluxGLCell_array = np.zeros((time, nCells))
+    calvingThickness = data['calvingThickness'][:, :].values
 
-    # Calving processing will eventually be moved online to MALI
-    # Disable for now because we don't want to waste time on this for
-    # fixed calving front runs anyway.
     print("===starting the calving flux processing===")
     rho_i = 910.0
 
-    # get calving thickness values
-    calvingThickness = data['calvingThickness'][:, :].values
     assert time == len(deltat)
 
     # create and initialize a new data array for calvingFluxArray
     calvingFluxArray = data['calvingThickness'].copy()
     calvingFluxArray = calvingFluxArray * 0.0
-
-    # This part seems to have been used to get `edgeMask`
-    # thickness = data_state['thickness'][:, :].values
-    # thicknessRecovered = np.copy(dHdt)
-    # for i in range(time):
-    #     thickness[:] = thickness[:] + dHdt[i, :] * deltat[i]
-    #     thickness[np.where(thickness < 0)] = 0.0
-    #     thicknessRecovered[i, :] = thickness[:]
 
     for t in range(time):
         print(f"    Time: {t+1} / {time}")
@@ -198,9 +185,6 @@ def translate_calving_flux_edge2cell(file_flux_time_avged,
                 neighborCellId = cellsOnCell[i, j] - 1
                 neighborEdgeId = edgesOnCell[i, j] - 1
 
-                # if ((edgeMask[0, edgeId[j]] & 16) / 16 and (edgeMask[0, edgeId[j]] & 4) / 4):  # uncomment this line and indent L197 once edgeMask is acquired.
-                # 16: dynamic margin & 4: floating
-
                 # Assuming that where there is calving, there is at least one adjacent cell with ice at the end of the timestep
                 # This assumption will be fine for fixed calving front without melting out of the ice shelf causing retreat
                 # It could potentially fail for a retreating ice shelf.  Throw an error below if so, and deal with handling that
@@ -210,6 +194,11 @@ def translate_calving_flux_edge2cell(file_flux_time_avged,
 
             if cliffArea == 0.0:
                 sys.exit(f"ERROR: cliff area was 0 for cell {i} at time {t}.")
+                # If this happens, it means there is some calvingThickness not getting assigned to
+                # a cell that has ice at the end of the timestep.  In that situation, we may want to 
+                # assign it to an ice-free cell.  Or we may want to move it to the nearest cell that
+                # still has ice.  That decision should be made after evaluating the situation.
+                # Moving this calculation to MALI will eliminate guesswork.
 
             calvingFluxArray[t, i] = calvingThickness[t, i] * areaCell[i] * rho_i  / cliffArea / deltat[t]
 
@@ -217,7 +206,7 @@ def translate_calving_flux_edge2cell(file_flux_time_avged,
 
     print("===done calving flux processing!===")
 
-    data.to_netcdf(file_flux_on_cell)  # writing out to a netCDF file seems to be needed to save the newly added variable `fluxAcrossGroundingLineCell`.
+    data.to_netcdf(file_output) # copy of the input file with licalvf added
     data.close()
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
