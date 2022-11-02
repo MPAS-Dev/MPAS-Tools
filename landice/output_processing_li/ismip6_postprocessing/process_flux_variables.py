@@ -143,8 +143,8 @@ def do_time_avg_flux_vars(input_file, output_file):
     dataIn.close()
 
 
-def convert_calvingThickness_to_licalvf(file_input,
-                                        file_output):
+def clean_flux_fields_before_time_averaging(file_input,
+                                            file_output):
     """
     Convert the MALI output field calvingThickness to the ISMIP6 variable
     licalvf.  This is an approximation that likely is only appropriate for
@@ -163,9 +163,34 @@ def convert_calvingThickness_to_licalvf(file_input,
     deltat = data['deltat'][:].values
     thickness = data['thickness'][:].values
     calvingThickness = data['calvingThickness'][:, :].values
+    rho_i = 910.0
+
+    print("===starting cleaning floatingBasalMassBalApplied===")
+    # We've encountered a few enormous BMB values.  Until we solve where that is coming from,
+    # set them to something reasonable.
+    floatingBasalMassBalApplied = data['floatingBasalMassBalApplied'][:, :].values
+    for t in range(1, time):
+        if t%20 == 0:
+            print(f"    Time: {t+1} / {time}")
+        # Set large negative BMB values (1 m/s) to the equivalent of the thickness from the previous time step
+        # (Commented line here picked up too many places)
+        #ind = np.nonzero((-floatingBasalMassBalApplied[t,:]/rho_i*deltat[t] > thickness[t-1,:]) * (thickness[t-1,:]>0.0))[0]
+        ind = np.nonzero(floatingBasalMassBalApplied[t,:]/rho_i < -1.0)[0]
+        if len(ind) > 0:
+            print(f"Fixing {len(ind)} cells with large negative floating BMB values.", ind)
+            floatingBasalMassBalApplied[t, ind] = -thickness[t-1, ind] / deltat[t] * rho_i
+
+        ind = np.nonzero(floatingBasalMassBalApplied[t,:]/rho_i > 1.0)[0]
+        if len(ind) > 0:
+            print(f"Fixing {len(ind)} cells with large positive floating BMB values.", ind)
+            ind2 = np.nonzero(floatingBasalMassBalApplied[t,:]/rho_i <= 1.0)[0]
+            maxGoodBMB = floatingBasalMassBalApplied[t, ind2].max()
+            floatingBasalMassBalApplied[t, ind] = maxGoodBMB
+
+    print("===done cleaning floatingBasalMassBalApplied===")
+
 
     print("===starting the calving flux processing===")
-    rho_i = 910.0
 
     assert time == len(deltat)
 
@@ -174,8 +199,10 @@ def convert_calvingThickness_to_licalvf(file_input,
     calvingFluxArray = calvingFluxArray * 0.0
 
     for t in range(time):
-        print(f"    Time: {t+1} / {time}")
+        if t%20 == 0:
+            print(f"    Time: {t+1} / {time}")
 
+        nBadCells = 0
         index_cf = np.where(calvingThickness[t, :] > 0)[0]
         for i in index_cf:
 
@@ -193,14 +220,20 @@ def convert_calvingThickness_to_licalvf(file_input,
                     cliffArea += dvEdge[neighborEdgeId] * thickness[t, neighborCellId]
 
             if cliffArea == 0.0:
-                sys.exit(f"ERROR: cliff area was 0 for cell {i} at time {t}.")
                 # If this happens, it means there is some calvingThickness not getting assigned to
                 # a cell that has ice at the end of the timestep.  In that situation, we may want to 
                 # assign it to an ice-free cell.  Or we may want to move it to the nearest cell that
                 # still has ice.  That decision should be made after evaluating the situation.
                 # Moving this calculation to MALI will eliminate guesswork.
+                print(f"WARNING: cliff area was 0 for cell {i} at time {t}.")
+                nBadCells += 1
+                #cliffArea = dvEdge[edgesOnCell[i, :ne]-1].sum() * 1000.0 # give some nominal area to avoid divide by 0
+                calvingFluxArray[t, i] = 0.0 # just toss this location
+            else:
+                calvingFluxArray[t, i] = calvingThickness[t, i] * areaCell[i] * rho_i  / cliffArea / deltat[t]
 
-            calvingFluxArray[t, i] = calvingThickness[t, i] * areaCell[i] * rho_i  / cliffArea / deltat[t]
+        if nBadCells > 5:
+            sys.exit(f"ERROR: cliff area was 0 for {nBadCells} cells at time {t}.")
 
     data['calvingFlux'] = calvingFluxArray
 
