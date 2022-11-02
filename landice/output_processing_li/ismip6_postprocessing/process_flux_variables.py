@@ -360,8 +360,16 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               exp, output_path)
 
     # ----------- lifmassbf ------------------
-        # Need to calculated it: ice front melt and calving flux
-
+    # For now, we are not calculating any frontal melting, so lifmassbf=licalvf
+    # We could just copy the licalvf file, but it is simpler/less fragile to
+    # calculate a new lifmassbf file using the same input as licalvf.
+    write_netcdf_2d_flux_vars('calvingFlux', 'lifmassbf',
+                              'land_ice_specific_mass_flux_due_to_calving_and_ice_front_melting',
+                              'kg m-2 s-1',
+                              'Ice front melt and calving flux',
+                              file_remapped_mali_flux,
+                              ismip6_grid_file,
+                              exp, output_path)
 
     # ----------- ligroundf ------------------
     write_netcdf_2d_flux_vars('fluxAcrossGroundingLineOnCells', 'ligroundf',
