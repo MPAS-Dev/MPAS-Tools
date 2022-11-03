@@ -336,6 +336,25 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # read in flux variables over which yearly average will be taken
     smb = data.variables['totalSfcMassBal'][:]
     bmb = data.variables['totalBasalMassBal'][:]
+    # clean out some garbage values we can't account for
+    ind = np.nonzero(bmb>1.0e18)[0]
+    if len(ind) > 0:
+        print(f"WARNING: Found {len(ind)} values of totalBasalMassBal>1.0e18")
+        bmb[ind] = np.nan
+    ind = np.nonzero(bmb<-1.0e18)[0]
+    if len(ind) > 0:
+        print(f"WARNING: Found {len(ind)} values of totalBasalMassBal<-1.0e18")
+        bmb[ind] = np.nan
+    bmbFlt = data.variables['totalFloatingBasalMassBal'][:]
+    # clean out some garbage values we can't account for
+    ind = np.nonzero(bmbFlt>1.0e18)[0]
+    if len(ind) > 0:
+        print(f"WARNING: Found {len(ind)} values of totalFloatingBasalMassBal>1.0e18")
+        bmbFlt[ind] = np.nan
+    ind = np.nonzero(bmbFlt<-1.0e18)[0]
+    if len(ind) > 0:
+        print(f"WARNING: Found {len(ind)} values of totalFloatingBasalMassBal<-1.0e18")
+        bmbFlt[ind] = np.nan
     cfx = data.variables['totalCalvingFlux'][:]
     gfx = data.variables['groundingLineFlux'][:]
 
@@ -348,6 +367,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     fia_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
     smb_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
     bmb_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
+    bmbFlt_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
     cfx_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
     gfx_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
     dt_yearly = np.zeros((timeSteps, timeSteps_out)) * np.nan
@@ -362,6 +382,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     days_snapshot = np.zeros(timeSteps_out) * np.nan
     smb_avg = np.zeros(timeSteps_out) * np.nan
     bmb_avg = np.zeros(timeSteps_out) * np.nan
+    bmbFlt_avg = np.zeros(timeSteps_out) * np.nan
     cfx_avg = np.zeros(timeSteps_out) * np.nan
     gfx_avg = np.zeros(timeSteps_out) * np.nan
     days_min = np.zeros(timeSteps_out) * np.nan
@@ -388,6 +409,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         ind_avg = np.where(np.logical_and(decYears>np.floor(years_out[i]), decYears<=(np.floor(years_out[i])+1.0)))[0]
         smbi = smb[ind_avg]
         bmbi = bmb[ind_avg]
+        bmbFlti = bmbFlt[ind_avg]
         cfxi = cfx[ind_avg]
         gfxi = gfx[ind_avg]
         dti  = dt[ind_avg]
@@ -395,6 +417,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         # take the average of the flux variables
         smb_avg[i] = np.nansum(smbi * dti) / np.nansum(dti)
         bmb_avg[i] = np.nansum(bmbi * dti) / np.nansum(dti)
+        bmbFlt_avg[i] = np.nansum(bmbFlti * dti) / np.nansum(dti)
         cfx_avg[i] = np.nansum(cfxi * dti) / np.nansum(dti)
         gfx_avg[i] = np.nansum(gfxi * dti) / np.nansum(dti)
         days_min[i] = (years_out[i] - refYear) * 365.0
@@ -546,7 +569,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     data_scalar.createDimension('bnds', 2)
     timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
     for i in range(timeSteps_out):
-        tendlibmassbfflValues[i] = bmb_avg[i] / 31536000
+        tendlibmassbfflValues[i] = bmbFlt_avg[i] / 31536000
         timeValues[i] = (days_min[i] + days_max[i]) / 2.0
         timebndsValues[i, 0] = days_min[i]
         timebndsValues[i, 1] = days_max[i]
