@@ -2,7 +2,7 @@
 # $ conda create --name <env> --file <this file>
 
 # Base
-python>=3.7
+python>=3.8
 cartopy
 dask
 geometric_features>=0.1.12
