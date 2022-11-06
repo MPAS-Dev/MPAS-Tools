@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -78,7 +79,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.build_mesh.build_spherical_mesh.html">mpas_tools.ocean.build_mesh.build_spherical_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.build_mesh.build_planar_mesh.html">mpas_tools.ocean.build_mesh.build_planar_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.html">mpas_tools.ocean.coastal_tools</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools.coastal_refined_mesh</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools.coastal_refined_mesh</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.coastal_tools.coastal_refined_mesh"><code class="docutils literal notranslate"><span class="pre">coastal_refined_mesh()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.create_background_mesh.html">mpas_tools.ocean.coastal_tools.create_background_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.extract_coastlines.html">mpas_tools.ocean.coastal_tools.extract_coastlines</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.distance_to_coast.html">mpas_tools.ocean.coastal_tools.distance_to_coast</a></li>
@@ -138,9 +142,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.ocean.coastal_tools.coastal_refined_mesh</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.coastal_tools.coastal_refined_mesh</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.ocean.coastal_tools.coastal_refined_mesh.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -160,7 +164,7 @@ refined resolution to the cell widths.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – A dictionary of parameters determining how the mesh is constructed.
+<li><p><strong>params</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – A dictionary of parameters determining how the mesh is constructed.
 See <code class="docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastal_tools.default_params</span></code>.</p></li>
 <li><p><strong>cell_width</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – A 2D array of cell widths in meters.  If none is provided, one a base
 <code class="docutils literal notranslate"><span class="pre">cell_width</span></code> field constructed using parameter values from <code class="docutils literal notranslate"><span class="pre">params</span></code>

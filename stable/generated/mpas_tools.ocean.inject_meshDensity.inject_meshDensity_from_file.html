@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -97,7 +98,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_depth.html">mpas_tools.ocean.depth.compute_depth</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_zmid.html">mpas_tools.ocean.depth.compute_zmid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_bathymetry.inject_bathymetry.html">mpas_tools.ocean.inject_bathymetry.inject_bathymetry</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file"><code class="docutils literal notranslate"><span class="pre">inject_meshDensity_from_file()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
@@ -138,9 +142,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -163,9 +167,9 @@ as:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>cw_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The file name to read <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code> and coordinates from</p></li>
-<li><p><strong>mesh_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The mesh file to add <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> to</p></li>
-<li><p><strong>on_sphere</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether the mesh is spherical (as opposed to planar)</p></li>
+<li><p><strong>cw_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The file name to read <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code> and coordinates from</p></li>
+<li><p><strong>mesh_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The mesh file to add <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> to</p></li>
+<li><p><strong>on_sphere</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether the mesh is spherical (as opposed to planar)</p></li>
 </ul>
 </dd>
 </dl>

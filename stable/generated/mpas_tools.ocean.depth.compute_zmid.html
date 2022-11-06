@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -95,7 +96,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.add_zmid.html">mpas_tools.ocean.depth.add_zmid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.write_time_varying_zmid.html">mpas_tools.ocean.depth.write_time_varying_zmid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_depth.html">mpas_tools.ocean.depth.compute_depth</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.depth.compute_zmid</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.depth.compute_zmid</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.depth.compute_zmid"><code class="docutils literal notranslate"><span class="pre">compute_zmid()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_bathymetry.inject_bathymetry.html">mpas_tools.ocean.inject_bathymetry.inject_bathymetry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html">mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
@@ -138,9 +142,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.ocean.depth.compute_zmid</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.depth.compute_zmid</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.ocean.depth.compute_zmid.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -160,10 +164,10 @@ layerThickness</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>bottomDepth</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.6.1.dev0)"><em>xarray.DataArray</em></a>) – the depth of the ocean bottom (positive)</p></li>
-<li><p><strong>maxLevelCell</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.6.1.dev0)"><em>xarray.DataArray</em></a>) – the 1-based vertical index of the bottom of the ocean</p></li>
-<li><p><strong>layerThickness</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.6.1.dev0)"><em>xarray.DataArray</em></a>) – the thickness of MPAS-Ocean layers (possibly as a function of time)</p></li>
-<li><p><strong>depth_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – the name of the vertical dimension</p></li>
+<li><p><strong>bottomDepth</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.11.1.dev0)"><em>xarray.DataArray</em></a>) – the depth of the ocean bottom (positive)</p></li>
+<li><p><strong>maxLevelCell</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.11.1.dev0)"><em>xarray.DataArray</em></a>) – the 1-based vertical index of the bottom of the ocean</p></li>
+<li><p><strong>layerThickness</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.11.1.dev0)"><em>xarray.DataArray</em></a>) – the thickness of MPAS-Ocean layers (possibly as a function of time)</p></li>
+<li><p><strong>depth_dim</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – the name of the vertical dimension</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

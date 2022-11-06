@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -70,7 +71,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.html">mpas_tools.ocean.coastline_alteration</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages.html">mpas_tools.ocean.coastline_alteration.add_critical_land_blockages</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html">mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask"><code class="docutils literal notranslate"><span class="pre">add_land_locked_cells_to_mask()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.html">mpas_tools.ocean.moc</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.make_moc_basins_and_transects.html">mpas_tools.ocean.moc.make_moc_basins_and_transects</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html">mpas_tools.ocean.moc.add_moc_southern_boundary_transects</a></li>
@@ -138,9 +142,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -160,10 +164,10 @@ are counted as land cells.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsMask</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.6.1.dev0)"><em>xarray.Dataset</em></a>) – A land-mask data set</p></li>
-<li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.6.1.dev0)"><em>xarray.Dataset</em></a>) – MPAS Mesh data set</p></li>
-<li><p><strong>latitude_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><em>optional</em>) – Minimum latitude, in degrees, for transect widening</p></li>
-<li><p><strong>nSweeps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – Maximum number of sweeps to search for land-locked cells</p></li>
+<li><p><strong>dsMask</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.11.1.dev0)"><em>xarray.Dataset</em></a>) – A land-mask data set</p></li>
+<li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.11.1.dev0)"><em>xarray.Dataset</em></a>) – MPAS Mesh data set</p></li>
+<li><p><strong>latitude_threshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – Minimum latitude, in degrees, for transect widening</p></li>
+<li><p><strong>nSweeps</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – Maximum number of sweeps to search for land-locked cells</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -82,7 +83,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.create_background_mesh.html">mpas_tools.ocean.coastal_tools.create_background_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.extract_coastlines.html">mpas_tools.ocean.coastal_tools.extract_coastlines</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.distance_to_coast.html">mpas_tools.ocean.coastal_tools.distance_to_coast</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools.compute_cell_width</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools.compute_cell_width</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.coastal_tools.compute_cell_width"><code class="docutils literal notranslate"><span class="pre">compute_cell_width()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.save_matfile.html">mpas_tools.ocean.coastal_tools.save_matfile</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.CPP_projection.html">mpas_tools.ocean.coastal_tools.CPP_projection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.smooth_coastline.html">mpas_tools.ocean.coastal_tools.smooth_coastline</a></li>
@@ -138,9 +142,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.ocean.coastal_tools.compute_cell_width</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.coastal_tools.compute_cell_width</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.ocean.coastal_tools.compute_cell_width.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -166,23 +170,23 @@ to the closest point in the (smoothed) coastline contour returned from
 <li><p><strong>cell_width</strong> (<em>ndarray</em>) – A len(lat) x len(lon) array of cell widths in meters</p></li>
 <li><p><strong>lon</strong> (<em>ndarray</em>) – A 1D array of longitudes in degrees in the range from -180 to 180</p></li>
 <li><p><strong>lat</strong> (<em>ndarray</em>) – A 1D array of latitudes in degrees in the range from -90 to 90</p></li>
-<li><p><strong>dx_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – The resolution in meters of the new refined region.</p></li>
-<li><p><strong>trans_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – The approximate value of <code class="docutils literal notranslate"><span class="pre">D</span></code> in meters at which the transition in
+<li><p><strong>dx_min</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – The resolution in meters of the new refined region.</p></li>
+<li><p><strong>trans_start</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – The approximate value of <code class="docutils literal notranslate"><span class="pre">D</span></code> in meters at which the transition in
 resolution should start</p></li>
-<li><p><strong>trans_width</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – The approximate width in meters over which the transition in resolution
+<li><p><strong>trans_width</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – The approximate width in meters over which the transition in resolution
 should take place</p></li>
-<li><p><strong>restrict_box</strong> (<em>dict of lists of ndarrays</em>) – A region of made up of quadrilaterals to <code class="docutils literal notranslate"><span class="pre">include</span></code> and <code class="docutils literal notranslate"><span class="pre">exclude</span></code>
+<li><p><strong>restrict_box</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a><em> of </em><em>lists</em><em> of </em><em>ndarrays</em>) – A region of made up of quadrilaterals to <code class="docutils literal notranslate"><span class="pre">include</span></code> and <code class="docutils literal notranslate"><span class="pre">exclude</span></code>
 that defines where resolution may be altered.  Outside of the
 <code class="docutils literal notranslate"><span class="pre">restrict_box</span></code>, the resolution remains unchanged.</p></li>
-<li><p><strong>plot_option</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to plot the resulting coastline points and the plot to files
+<li><p><strong>plot_option</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to plot the resulting coastline points and the plot to files
 named <code class="docutils literal notranslate"><span class="pre">cell_width###.png</span></code> and <code class="docutils literal notranslate"><span class="pre">trans_func###.png`</span></code>, where <code class="docutils literal notranslate"><span class="pre">###</span></code>
 is given by <code class="docutils literal notranslate"><span class="pre">call</span></code> and is meant to indicate how many times this
 function has been called during mesh creation.</p></li>
-<li><p><strong>plot_box</strong> (<em>list of float</em><em>, </em><em>optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
+<li><p><strong>plot_box</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
 <li><p><strong>coastlines</strong> (<em>ndarray</em>) – An n x 2 array of (longitude, latitude) points along the coastline
 contours returned from <code class="docutils literal notranslate"><span class="pre">extract_coastlines()</span></code> used in plotting if
 <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
-<li><p><strong>call</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of times the function has been called, used to give the
+<li><p><strong>call</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – The number of times the function has been called, used to give the
 plot a unique name.</p></li>
 </ul>
 </dd>

@@ -15,6 +15,7 @@
         <script src="_static/underscore.js"></script>
         <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -94,8 +95,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Making Changes to mpas_tools</li>
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Making Changes to mpas_tools</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/making_changes.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -157,8 +158,8 @@ command-line arguments, just as a “normal” python script would do</p>
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading">¶</a></h2>
 <p>If you changes introduce new dependencies, these need to be added to both
 the recipe for the conda package in <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code> and
-to the yaml file describing the development environment,
-<code class="docutils literal notranslate"><span class="pre">conda_package/dev_environment.yaml</span></code>.</p>
+to the text file describing the development environment,
+<code class="docutils literal notranslate"><span class="pre">conda_package/dev-spec.txt</span></code>.</p>
 <p>In <code class="docutils literal notranslate"><span class="pre">meta.yaml</span></code>, add these changes in alphabetical order to the <code class="docutils literal notranslate"><span class="pre">run</span></code>
 section of <code class="docutils literal notranslate"><span class="pre">requirements</span></code>:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">requirements</span><span class="p">:</span><span class="w"></span>
@@ -171,14 +172,16 @@ section of <code class="docutils literal notranslate"><span class="pre">requirem
 </div>
 <p>These requirements <em>must</em> be on the <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code> anaconda channel.  If you
 need help with this, please contact the developers.</p>
-<p>Add the new dependencies in alphabetical order to <code class="docutils literal notranslate"><span class="pre">dev_environment.yaml</span></code>
-under the <code class="docutils literal notranslate"><span class="pre">#Base</span></code> comment:</p>
-<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nn">...</span><span class="w"></span>
-<span class="nt">dependencies</span><span class="p">:</span><span class="w"></span>
-<span class="w">  </span><span class="c1"># Base</span><span class="w"></span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python 3.8</span><span class="w"></span>
-<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">affine</span><span class="w"></span>
-<span class="w">  </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w"></span>
+<p>Add the new dependencies in alphabetical order to <code class="docutils literal notranslate"><span class="pre">dev-speck.txt</span></code>
+under the <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">Base</span></code> comment:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>...
+# This file may be used to create an environment using:
+# $ conda create --name &lt;env&gt; --file &lt;this file&gt;
+
+# Base
+python&gt;=3.8
+cartopy
+...
 </pre></div>
 </div>
 </div>

@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -121,9 +122,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.mesh.mask.compute_mpas_transect_masks</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.mesh.mask.compute_mpas_transect_masks</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -143,24 +144,24 @@ collection made up of transects (line strings)</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.6.1.dev0)"><em>xarray.Dataset</em></a>) – An MPAS mesh on which the masks should be created</p></li>
+<li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.11.1.dev0)"><em>xarray.Dataset</em></a>) – An MPAS mesh on which the masks should be created</p></li>
 <li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v0.7.0)"><em>geometric_features.FeatureCollection</em></a>) – A feature collection containing features to use to create the mask</p></li>
-<li><p><strong>earthRadius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – The radius of the earth in meters</p></li>
-<li><p><strong>maskTypes</strong> (<em>tuple of {'cell'</em><em>, </em><em>'edge'</em><em>, </em><em>'vertex'}</em><em>, </em><em>optional</em>) – Which type(s) of masks to make.  Masks are created based on whether
+<li><p><strong>earthRadius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – The radius of the earth in meters</p></li>
+<li><p><strong>maskTypes</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.11)"><em>tuple</em></a><em> of </em><em>{'cell'</em><em>, </em><em>'edge'</em><em>, </em><em>'vertex'}</em><em>, </em><em>optional</em>) – Which type(s) of masks to make.  Masks are created based on whether
 the latitude and longitude associated with each of these locations
 (e.g. <code class="docutils literal notranslate"><span class="pre">dsMesh.latCell</span></code> and <code class="docutils literal notranslate"><span class="pre">dsMesh.lonCell</span></code> for <code class="docutils literal notranslate"><span class="pre">'cells'</span></code>) are
 inside or outside of the transects in <code class="docutils literal notranslate"><span class="pre">fcMask</span></code>.</p></li>
-<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.10)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.11)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
 <li><p><strong>pool</strong> (<em>multiprocessing.Pool</em><em>, </em><em>optional</em>) – A pool for performing multiprocessing</p></li>
-<li><p><strong>chunkSize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of cells, vertices or edges that are processed in one
+<li><p><strong>chunkSize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – The number of cells, vertices or edges that are processed in one
 operation.  Experimentation has shown that 1000 is a reasonable
 compromise between dividing the work into sufficient subtasks to
 distribute the load and having sufficient work for each thread.</p></li>
-<li><p><strong>showProgress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to show a progress bar</p></li>
-<li><p><strong>subdivisionResolution</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><em>optional</em>) – The maximum resolution (in meters) of segments in a transect.  If a
+<li><p><strong>showProgress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to show a progress bar</p></li>
+<li><p><strong>subdivisionResolution</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – The maximum resolution (in meters) of segments in a transect.  If a
 transect is too coarse, it will be subdivided.  Pass <code class="docutils literal notranslate"><span class="pre">None</span></code> for no
 subdivision.</p></li>
-<li><p><strong>addEdgeSign</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to add the <code class="docutils literal notranslate"><span class="pre">edgeSign</span></code> variable, which requires significant
+<li><p><strong>addEdgeSign</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to add the <code class="docutils literal notranslate"><span class="pre">edgeSign</span></code> variable, which requires significant
 extra computation</p></li>
 </ul>
 </dd>

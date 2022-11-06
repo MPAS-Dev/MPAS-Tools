@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -68,7 +69,10 @@
 <li class="toctree-l2"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#logging">Logging</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.logging.check_call</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.logging.check_call</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.logging.check_call"><code class="docutils literal notranslate"><span class="pre">check_call()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.logging.LoggingContext.html">mpas_tools.logging.LoggingContext</a></li>
 </ul>
 </li>
@@ -101,9 +105,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.logging.check_call</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.logging.check_call</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.logging.check_call.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -122,15 +126,15 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.10)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – A list or string of argument to the subprocess.  If <code class="docutils literal notranslate"><span class="pre">args</span></code> is a
+<li><p><strong>args</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – A list or string of argument to the subprocess.  If <code class="docutils literal notranslate"><span class="pre">args</span></code> is a
 string, you must pass <code class="docutils literal notranslate"><span class="pre">shell=True</span></code> as one of the <code class="docutils literal notranslate"><span class="pre">kwargs</span></code>.</p></li>
-<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.10)"><em>logging.Logger</em></a>) – The logger to write output to</p></li>
-<li><p><strong>log_command</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to write the command that is running ot the logger</p></li>
-<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.10)"><em>dict</em></a>) – Keyword arguments to pass to subprocess.Popen</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.11)"><em>logging.Logger</em></a>) – The logger to write output to</p></li>
+<li><p><strong>log_command</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to write the command that is running ot the logger</p></li>
+<li><p><strong>**kwargs</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a>) – Keyword arguments to pass to subprocess.Popen</p></li>
 </ul>
 </dd>
 <dt class="field-even">Raises</dt>
-<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.CalledProcessError" title="(in Python v3.10)"><strong>subprocess.CalledProcessError</strong></a> – If the given subprocess exists with nonzero status</p>
+<dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/subprocess.html#subprocess.CalledProcessError" title="(in Python v3.11)"><strong>subprocess.CalledProcessError</strong></a> – If the given subprocess exists with nonzero status</p>
 </dd>
 </dl>
 </dd></dl>

@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -71,7 +72,10 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#transects">Transects</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.subdivide_great_circle.html">mpas_tools.transects.subdivide_great_circle</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.cartesian_to_great_circle_distance.html">mpas_tools.transects.cartesian_to_great_circle_distance</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.transects.subdivide_planar</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.transects.subdivide_planar</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.transects.subdivide_planar"><code class="docutils literal notranslate"><span class="pre">subdivide_planar()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.lon_lat_to_cartesian.html">mpas_tools.transects.lon_lat_to_cartesian</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.cartesian_to_lon_lat.html">mpas_tools.transects.cartesian_to_lon_lat</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.angular_distance.html">mpas_tools.transects.angular_distance</a></li>
@@ -108,9 +112,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.transects.subdivide_planar</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.transects.subdivide_planar</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.transects.subdivide_planar.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -136,7 +140,7 @@ approximately matches the requested resolution</p>
 is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code>.  <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are of the same length.</p></li>
 <li><p><strong>y</strong> (<em>numpy.array</em>) – The planar coordinates of a transect, where the number of segments
 is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code>.  <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are of the same length.</p></li>
-<li><p><strong>maxRes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a>) – The maximum allowed spacing in m after subdivision</p></li>
+<li><p><strong>maxRes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – The maximum allowed spacing in m after subdivision</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>

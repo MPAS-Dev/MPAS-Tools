@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -98,7 +99,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_zmid.html">mpas_tools.ocean.depth.compute_zmid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_bathymetry.inject_bathymetry.html">mpas_tools.ocean.inject_bathymetry.inject_bathymetry</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html">mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity"><code class="docutils literal notranslate"><span class="pre">inject_spherical_meshDensity()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.find_transect_levels_and_weights.html">mpas_tools.ocean.transects.find_transect_levels_and_weights</a></li>
@@ -138,9 +142,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -166,7 +170,7 @@ defined as:</p>
 <li><p><strong>cellWidth</strong> (<em>ndarray</em>) – m x n array of cell width in km</p></li>
 <li><p><strong>lon</strong> (<em>ndarray</em>) – longitude in degrees (length n and between -180 and 180)</p></li>
 <li><p><strong>lat</strong> (<em>ndarray</em>) – longitude in degrees (length m and between -90 and 90)</p></li>
-<li><p><strong>mesh_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – The mesh file to add <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> to</p></li>
+<li><p><strong>mesh_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The mesh file to add <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> to</p></li>
 </ul>
 </dd>
 </dl>

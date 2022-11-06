@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -81,7 +82,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html">mpas_tools.ocean.coastal_tools.coastal_refined_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.create_background_mesh.html">mpas_tools.ocean.coastal_tools.create_background_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.extract_coastlines.html">mpas_tools.ocean.coastal_tools.extract_coastlines</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools.distance_to_coast</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools.distance_to_coast</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.coastal_tools.distance_to_coast"><code class="docutils literal notranslate"><span class="pre">distance_to_coast()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.compute_cell_width.html">mpas_tools.ocean.coastal_tools.compute_cell_width</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.save_matfile.html">mpas_tools.ocean.coastal_tools.save_matfile</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.CPP_projection.html">mpas_tools.ocean.coastal_tools.CPP_projection</a></li>
@@ -138,9 +142,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.ocean.coastal_tools.distance_to_coast</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.coastal_tools.distance_to_coast</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.ocean.coastal_tools.distance_to_coast.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -164,16 +168,16 @@ contours returned from <code class="docutils literal notranslate"><span class="p
 <li><p><strong>lon_grd</strong> (<em>ndarray</em>) – A 1D array of longitudes in degrees in the range from -180 to 180</p></li>
 <li><p><strong>lat_grd</strong> (<em>ndarray</em>) – A 1D array of latitudes in degrees in the range from -90 to 90</p></li>
 <li><p><strong>nn_search</strong> (<em>{'kdtree'}</em><em>, </em><em>optional</em>) – The algorithm to use for the nearest neightbor search.</p></li>
-<li><p><strong>smooth_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of adjacent coastline points to average together to smooth
+<li><p><strong>smooth_window</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – The number of adjacent coastline points to average together to smooth
 the coastal contours.  Use <code class="docutils literal notranslate"><span class="pre">0</span></code> to indicate no smoothing.</p></li>
-<li><p><strong>plot_option</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to plot the resulting coastline points and the plot to a file
+<li><p><strong>plot_option</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to plot the resulting coastline points and the plot to a file
 named <code class="docutils literal notranslate"><span class="pre">bathy_coastlines###.png</span></code>, where <code class="docutils literal notranslate"><span class="pre">###</span></code> is given by
 <code class="docutils literal notranslate"><span class="pre">call</span></code> and is meant to indicate how many times this function has been
 called during mesh creation.</p></li>
-<li><p><strong>plot_box</strong> (<em>list of float</em><em>, </em><em>optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
-<li><p><strong>call</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of times the function has been called, used to give the
+<li><p><strong>plot_box</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
+<li><p><strong>call</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – The number of times the function has been called, used to give the
 plot a unique name.</p></li>
-<li><p><strong>workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of threads used for finding nearest neighbors.  The default
+<li><p><strong>workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – The number of threads used for finding nearest neighbors.  The default
 is all available threads (<code class="docutils literal notranslate"><span class="pre">workers=-1</span></code>)</p></li>
 </ul>
 </dd>

@@ -65,8 +65,8 @@ Dependencies
 
 If you changes introduce new dependencies, these need to be added to both
 the recipe for the conda package in ``conda_package/recipe/meta.yaml`` and
-to the yaml file describing the development environment,
-``conda_package/dev_environment.yaml``.
+to the text file describing the development environment,
+``conda_package/dev-spec.txt``.
 
 In ``meta.yaml``, add these changes in alphabetical order to the ``run``
 section of ``requirements``:
@@ -83,17 +83,19 @@ section of ``requirements``:
 These requirements *must* be on the ``conda-forge`` anaconda channel.  If you
 need help with this, please contact the developers.
 
-Add the new dependencies in alphabetical order to ``dev_environment.yaml``
-under the ``#Base`` comment:
+Add the new dependencies in alphabetical order to ``dev-speck.txt``
+under the ``# Base`` comment:
 
-.. code-block:: yaml
+.. code-block:: none
 
     ...
-    dependencies:
-      # Base
-      - python 3.8
-      - affine
-      ...
+    # This file may be used to create an environment using:
+    # $ conda create --name <env> --file <this file>
+
+    # Base
+    python>=3.8
+    cartopy
+    ...
 
 Updating the Version
 ====================

@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -80,7 +81,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.html">mpas_tools.ocean.coastal_tools</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html">mpas_tools.ocean.coastal_tools.coastal_refined_mesh</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.create_background_mesh.html">mpas_tools.ocean.coastal_tools.create_background_mesh</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools.extract_coastlines</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools.extract_coastlines</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.coastal_tools.extract_coastlines"><code class="docutils literal notranslate"><span class="pre">extract_coastlines()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.distance_to_coast.html">mpas_tools.ocean.coastal_tools.distance_to_coast</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.compute_cell_width.html">mpas_tools.ocean.coastal_tools.compute_cell_width</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.save_matfile.html">mpas_tools.ocean.coastal_tools.save_matfile</a></li>
@@ -138,9 +142,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.ocean.coastal_tools.extract_coastlines</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.coastal_tools.extract_coastlines</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.ocean.coastal_tools.extract_coastlines.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -159,22 +163,22 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>nc_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – A bathymetry dataset on a lon/lat grid in NetCDF format</p></li>
-<li><p><strong>nc_vars</strong> (<em>list of str</em>) – The names of the longitude (nc_vars[0]), latitude (nc_vars[1]) and
+<li><p><strong>nc_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – A bathymetry dataset on a lon/lat grid in NetCDF format</p></li>
+<li><p><strong>nc_vars</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The names of the longitude (nc_vars[0]), latitude (nc_vars[1]) and
 bathymetry (nc_vars[2]) variables.</p></li>
-<li><p><strong>region_box</strong> (<em>dict of list of ndarrays</em>) – A region made up of a list of quadrilaterals to <code class="docutils literal notranslate"><span class="pre">include</span></code> and another
+<li><p><strong>region_box</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.11)"><em>dict</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em> of </em><em>ndarrays</em>) – A region made up of a list of quadrilaterals to <code class="docutils literal notranslate"><span class="pre">include</span></code> and another
 list to <code class="docutils literal notranslate"><span class="pre">exclude</span></code>.  The quadrilaterals are either bounding rectangles
 (min lon, max lon, min lat, max lat) or lists of 4 (lon, lat) points.</p></li>
-<li><p><strong>z_contour</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.10)"><em>float</em></a><em>, </em><em>optional</em>) – The isocontour of the bathymetry dataset to extract</p></li>
-<li><p><strong>n_longest</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The maximum number of contours to keep, after sorting from the longest
+<li><p><strong>z_contour</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – The isocontour of the bathymetry dataset to extract</p></li>
+<li><p><strong>n_longest</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – The maximum number of contours to keep, after sorting from the longest
 to the shortest</p></li>
 <li><p><strong>point_list</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – A list of points to add to the coastline</p></li>
-<li><p><strong>plot_option</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.10)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to plot the resulting coastline points and the plot to a file
+<li><p><strong>plot_option</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to plot the resulting coastline points and the plot to a file
 named <code class="docutils literal notranslate"><span class="pre">bathy_coastlines###.png</span></code>, where <code class="docutils literal notranslate"><span class="pre">###</span></code> is given by
 <code class="docutils literal notranslate"><span class="pre">call</span></code> and is meant to indicate how many times this function has been
 called during mesh creation.</p></li>
-<li><p><strong>plot_box</strong> (<em>list of float</em><em>, </em><em>optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
-<li><p><strong>call</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.10)"><em>int</em></a><em>, </em><em>optional</em>) – The number of times the function has been called, used to give the
+<li><p><strong>plot_box</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – The extent of the plot if <code class="docutils literal notranslate"><span class="pre">plot_option=True</span></code></p></li>
+<li><p><strong>call</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – The number of times the function has been called, used to give the
 plot a unique name.</p></li>
 </ul>
 </dd>

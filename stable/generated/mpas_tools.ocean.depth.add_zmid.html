@@ -15,6 +15,7 @@
         <script src="../_static/underscore.js"></script>
         <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -92,7 +93,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_coarse_coast.html">mpas_tools.ocean.coastal_tools.plot_coarse_coast</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_region_box.html">mpas_tools.ocean.coastal_tools.plot_region_box</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.add_depth.html">mpas_tools.ocean.depth.add_depth</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.depth.add_zmid</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.depth.add_zmid</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.depth.add_zmid"><code class="docutils literal notranslate"><span class="pre">add_zmid()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.write_time_varying_zmid.html">mpas_tools.ocean.depth.write_time_varying_zmid</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_depth.html">mpas_tools.ocean.depth.compute_depth</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_zmid.html">mpas_tools.ocean.depth.compute_zmid</a></li>
@@ -138,9 +142,9 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a> &raquo;</li>
-          <li><a href="../api.html">API reference</a> &raquo;</li>
-      <li>mpas_tools.ocean.depth.add_zmid</li>
+      <li><a href="../index.html" class="icon icon-home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.depth.add_zmid</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/generated/mpas_tools.ocean.depth.add_zmid.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -159,10 +163,10 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>inFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – An input MPAS-Ocean file that <code class="docutils literal notranslate"><span class="pre">zMid</span></code> should be added to, used for
+<li><p><strong>inFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – An input MPAS-Ocean file that <code class="docutils literal notranslate"><span class="pre">zMid</span></code> should be added to, used for
 coords if another file is not provided via <code class="docutils literal notranslate"><span class="pre">coordFileName</span></code>.</p></li>
-<li><p><strong>outFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a>) – An output MPAS-Ocean file with <code class="docutils literal notranslate"><span class="pre">zMid</span></code> added</p></li>
-<li><p><strong>coordFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.10)"><em>str</em></a><em>, </em><em>optional</em>) – An MPAS-Ocean file with <code class="docutils literal notranslate"><span class="pre">bottomDepth</span></code>, <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> and
+<li><p><strong>outFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – An output MPAS-Ocean file with <code class="docutils literal notranslate"><span class="pre">zMid</span></code> added</p></li>
+<li><p><strong>coordFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – An MPAS-Ocean file with <code class="docutils literal notranslate"><span class="pre">bottomDepth</span></code>, <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> and
 <code class="docutils literal notranslate"><span class="pre">layerThickness</span></code> but not <code class="docutils literal notranslate"><span class="pre">zMid</span></code></p></li>
 </ul>
 </dd>
