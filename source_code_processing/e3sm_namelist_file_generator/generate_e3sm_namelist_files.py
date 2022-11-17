@@ -73,7 +73,7 @@ def write_definition_file(registry):#{{{
 	definitions.write('          An abbreviation of the fortran declaration for the variable.\n')
 	definitions.write('      Valid declarations are:\n')
 	definitions.write('\n')
-	definitions.write('          char*n  \n')
+	definitions.write('          char*n\n')
 	definitions.write('          integer\n')
 	definitions.write('          logical\n')
 	definitions.write('          real\n')
@@ -87,7 +87,7 @@ def write_definition_file(registry):#{{{
 	definitions.write('     input_pathname\n')
 	definitions.write('          Only include this attribute to indicate that the variable\n')
 	definitions.write('          contains the pathname of an input dataset that resides in the\n')
-	definitions.write('          CESM inputdata directory tree.  \n')
+	definitions.write('          CESM inputdata directory tree.\n')
 	definitions.write('\n')
 	definitions.write('      The recognized values are "abs" to indicate that an absolute\n')
 	definitions.write('          pathname is required, or "rel:var_name" to indicate that the\n')
@@ -140,7 +140,10 @@ def write_definition_file(registry):#{{{
 			definitions.write("\tcategory=\"%s\" group=\"%s\">\n"%(record_name.strip(), record_name.strip()))
 			definitions.write("%s\n"%(option_description))
 			definitions.write("\n")
-			definitions.write("Valid values: %s\n"%(option_possible_values))
+                        if (len(option_possible_values) > 0):
+                                definitions.write("Valid values: %s\n"%(option_possible_values))
+                        else:
+                                definitions.write("Valid values:\n")
 			definitions.write("Default: Defined in namelist_defaults.xml\n")
 			definitions.write("</entry>\n\n")
 
