@@ -30,11 +30,8 @@ def main():
                         required=False, help="mpas output state variables")
     parser.add_argument("-i_flux", "--input_flux", dest="input_file_flux",
                         required=False, help="mpas output flux variables")
-    parser.add_argument("-i_init", "--input_grid", dest="input_file_grid",
-                        required=False, help="MALI file with mesh information"
-                                            "Only used for creating mapping file,"
-                                            "So not required if mapping file already exists"
-                                            "Can be a state or flux output file.")
+    parser.add_argument("-i_mesh", "--input_mesh", dest="input_file_grid",
+                        required=False, help="MALI file with mesh information")
     parser.add_argument("-g", "--global_stats_file", dest="global_stats_file",
                         required=False, help="globalStats.nc file")
     parser.add_argument("-p", "--output_path", dest="output_path",
@@ -43,7 +40,7 @@ def main():
                              " will be saved")
     parser.add_argument("--mali_mesh_name", dest="mali_mesh_name",
                         required=True,
-                        help="mali mesh name (e.g., AIS_8to30km")
+                        help="mali mesh name (e.g., AIS_8to30km)")
     parser.add_argument("--mapping_file", dest="mapping_file",
                         required=False,
                         help="mapping file name from MALI mesh to ISMIP6 grid")
@@ -138,7 +135,7 @@ def main():
 
         print("Translate calving flux")
         tmp_file_translate = "flux_translated.nc"
-        clean_flux_fields_before_time_averaging(args.input_file_flux, tmp_file_translate)
+        clean_flux_fields_before_time_averaging(args.input_file_flux, args.input_file_grid, tmp_file_translate)
         # take time (yearly) average for the flux variables
         tmp_file1 = "flux_time_avg.nc"
         do_time_avg_flux_vars(tmp_file_translate, tmp_file1)

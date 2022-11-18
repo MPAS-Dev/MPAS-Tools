@@ -143,26 +143,34 @@ def do_time_avg_flux_vars(input_file, output_file):
     dataIn.close()
 
 
-def clean_flux_fields_before_time_averaging(file_input,
+def clean_flux_fields_before_time_averaging(file_input, file_mesh,
                                             file_output):
     """
     Convert the MALI output field calvingThickness to the ISMIP6 variable
-    licalvf.  This is an approximation that likely is only appropriate for
-    runs using restore_calving.  When evolving calving is introduced, a
-    calculation of licalvf should be added to MALI and this function removed.
+    licalvf and apply bounds checking on BMB, where some crazy values occasionally occur.
     """
 
     data = xr.open_dataset(file_input, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
     del data.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
     time = data.dims['Time']
+    nCells = data.dims['nCells']
     nEdgesOnCell = data['nEdgesOnCell'][:].values
     edgesOnCell = data['edgesOnCell'][:].values
     cellsOnCell = data['cellsOnCell'][:].values
     dvEdge = data['dvEdge'][:].values
     areaCell = data['areaCell'][:].values
+    xCell = data['xCell'][:].values
+    yCell = data['yCell'][:].values
     deltat = data['deltat'][:].values
     thickness = data['thickness'][:].values
-    calvingThickness = data['calvingThickness'][:, :].values
+    surfaceSpeed = data['surfaceSpeed'][:].values
+    if 'bedTopography' in data:
+        bedTopography = data['bedTopography'][:].values
+    else:
+        data_mesh = xr.open_dataset(file_mesh)
+        bedTopography = data_mesh['bedTopography'][:].values
+    calvingThicknessFromThreshold = data['calvingThicknessFromThreshold'][:, :].values
+    calvingVelocity = data['calvingVelocity'][:, :].values
     rho_i = 910.0
 
     print("===starting cleaning floatingBasalMassBalApplied===")
@@ -195,47 +203,71 @@ def clean_flux_fields_before_time_averaging(file_input,
     assert time == len(deltat)
 
     # create and initialize a new data array for calvingFluxArray
-    calvingFluxArray = data['calvingThickness'].copy()
-    calvingFluxArray = calvingFluxArray * 0.0
+    calvingFluxArray = data['calvingVelocity'].copy() * 0.0
+    thresholdFlux = data['calvingVelocity'].copy() * 0.0
 
     for t in range(time):
         if t%20 == 0:
             print(f"    Time: {t+1} / {time}")
 
-        nBadCells = 0
-        index_cf = np.where(calvingThickness[t, :] > 0)[0]
-        for i in index_cf:
+        if 'bedTopography' in data:
+            bed = bedTopography[t,:] # have value per time level
+        else:
+            bed = bedTopography[0,:] # just have a single value
 
+        index_cf = np.where((calvingVelocity[t, :] > 0.0) * (bed[:] < 0.0))[0]
+        for i in index_cf:
             ne = nEdgesOnCell[i]
-            cliffArea = 0.0
             for j in range(ne):
                 neighborCellId = cellsOnCell[i, j] - 1
-                neighborEdgeId = edgesOnCell[i, j] - 1
+                # Use this cell if it has a neighbor with zero calvingVelocity that is below sea level
+                if calvingVelocity[t,neighborCellId] == 0.0 and bed[neighborCellId] < 0.0:
+                    calvingFluxArray[t,i] = calvingVelocity[t,i] * rho_i # convert to proper units
+                    continue # no need to keep searching the neighbors of this cell
 
-                # Assuming that where there is calving, there is at least one adjacent cell with ice at the end of the timestep
-                # This assumption will be fine for fixed calving front without melting out of the ice shelf causing retreat
-                # It could potentially fail for a retreating ice shelf.  Throw an error below if so, and deal with handling that
-                # if it occurs.  Eventually, move this to MALI and calculate it consistently.
-                if thickness[t, neighborCellId] > 0:
-                    cliffArea += dvEdge[neighborEdgeId] * thickness[t, neighborCellId]
 
-            if cliffArea == 0.0:
-                # If this happens, it means there is some calvingThickness not getting assigned to
-                # a cell that has ice at the end of the timestep.  In that situation, we may want to 
-                # assign it to an ice-free cell.  Or we may want to move it to the nearest cell that
-                # still has ice.  That decision should be made after evaluating the situation.
-                # Moving this calculation to MALI will eliminate guesswork.
-                print(f"WARNING: cliff area was 0 for cell {i} at time {t}.")
-                nBadCells += 1
-                #cliffArea = dvEdge[edgesOnCell[i, :ne]-1].sum() * 1000.0 # give some nominal area to avoid divide by 0
-                calvingFluxArray[t, i] = 0.0 # just toss this location
-            else:
-                calvingFluxArray[t, i] = calvingThickness[t, i] * areaCell[i] * rho_i  / cliffArea / deltat[t]
-
-        if nBadCells > 5:
-            sys.exit(f"ERROR: cliff area was 0 for {nBadCells} cells at time {t}.")
+        # we may need to add on threshold calving too
+        index_cf = np.where(calvingThicknessFromThreshold[t, :] > 0.0)[0]
+        if len(index_cf>0):
+            thresholdBoundary = np.zeros((nCells,), 'i')
+            thresholdBoundaryAssignedVolume = np.zeros((nCells,))
+            thresholdBoundarySummedThickness = np.zeros((nCells,))
+            thresholdBoundaryContributors = np.zeros((nCells,))
+            thresholdBoundaryLength = np.zeros((nCells,))
+            # First make list of boundary cells calved
+            for i in index_cf:
+                ne = nEdgesOnCell[i]
+                for j in range(ne):
+                    neighborCellId = cellsOnCell[i, j] - 1
+                    if thickness[t,neighborCellId] > 0.0 and bed[neighborCellId] < 0.0 and calvingThicknessFromThreshold[t,neighborCellId] == 0.0:
+                        thresholdBoundary[i] = 1
+                        thresholdBoundaryLength[i] += dvEdge[edgesOnCell[i,j]-1]
+            bdyIndices = np.where(thresholdBoundary == 1)[0]
+            print(f"Found {len(index_cf)} cells with threshold calving at time {t}; {len(bdyIndices)} are boundary cells.")
+            # Now loop over all threshold cells and assign their volume to the nearest boundary cell
+            for i in index_cf:
+                if thresholdBoundary[i] == 1:
+                    ownerIdx = i # often the cell is its own owner, so check before doing the more expensive search
+                else:
+                    ownerIdx = bdyIndices[np.argmin((xCell[i]-xCell[bdyIndices])**2 + (yCell[i]-yCell[bdyIndices])**2)]
+                thresholdBoundaryAssignedVolume[ownerIdx] += calvingThicknessFromThreshold[t,i] * areaCell[i]
+                thresholdBoundarySummedThickness[ownerIdx] += calvingThicknessFromThreshold[t,i]
+                thresholdBoundaryContributors[ownerIdx] += 1
+            #print(thresholdBoundaryAssignedVolume.sum(), (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum())
+            assert np.absolute(thresholdBoundaryAssignedVolume.sum() - (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum()) < 1.0
+            #for i in bdyIndices:
+                #print(f"length={thresholdBoundaryLength[i]}, vol={thresholdBoundaryAssignedVolume[i]}, sumthk={thresholdBoundarySummedThickness[i]}, num={thresholdBoundaryContributors[i]}, meanthk={thresholdBoundarySummedThickness[i]/thresholdBoundaryContributors[i]}")
+            # Finally calculate licalvf for each boundary cell and add to whatever was already there
+            thresholdSpeed = thresholdBoundaryAssignedVolume / \
+                    (thresholdBoundarySummedThickness/thresholdBoundaryContributors * \
+                     thresholdBoundaryLength) / \
+                    deltat[t]    # units of kg / m2 / s
+            # Our estimated threshold speed is really a retreat speed. So to get calving speed, add on the advective speed
+            thresholdFlux[t, bdyIndices] += (thresholdSpeed[bdyIndices] + surfaceSpeed[t,bdyIndices]) * rho_i
+            calvingFluxArray[t,:] += thresholdFlux[t,:]
 
     data['calvingFlux'] = calvingFluxArray
+    data['thresholdFlux'] = thresholdFlux
 
     print("===done calving flux processing!===")
 
