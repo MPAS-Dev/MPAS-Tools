@@ -140,10 +140,10 @@ def write_definition_file(registry):#{{{
 			definitions.write("\tcategory=\"%s\" group=\"%s\">\n"%(record_name.strip(), record_name.strip()))
 			definitions.write("%s\n"%(option_description))
 			definitions.write("\n")
-                        if (len(option_possible_values) > 0):
-                                definitions.write("Valid values: %s\n"%(option_possible_values))
-                        else:
-                                definitions.write("Valid values:\n")
+			if (len(option_possible_values) > 0):
+				definitions.write("Valid values: %s\n"%(option_possible_values))
+			else:
+				definitions.write("Valid values:\n")
 			definitions.write("Default: Defined in namelist_defaults.xml\n")
 			definitions.write("</entry>\n\n")
 
