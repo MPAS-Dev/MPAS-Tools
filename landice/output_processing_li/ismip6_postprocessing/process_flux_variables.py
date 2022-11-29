@@ -166,10 +166,16 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     surfaceSpeed = data['surfaceSpeed'][:].values
     if 'bedTopography' in data:
         bedTopography = data['bedTopography'][:].values
+        print('bedTopography field found; using bedTopography at all time levels.')
     else:
         data_mesh = xr.open_dataset(file_mesh)
         bedTopography = data_mesh['bedTopography'][:].values
-    calvingThicknessFromThreshold = data['calvingThicknessFromThreshold'][:, :].values
+        print('No bedTopography field found; using bedTopography from mesh file.')
+    if 'calvingThicknessFromThreshold' in data:
+        calvingThicknessFromThreshold = data['calvingThicknessFromThreshold'][:, :].values
+    else:
+        print('WARNING: No calvingThicknessFromThreshold field found; ignoring threshold calving.')
+
     calvingVelocity = data['calvingVelocity'][:, :].values
     rho_i = 910.0
 
@@ -227,13 +233,17 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
 
 
         # we may need to add on threshold calving too
-        index_cf = np.where(calvingThicknessFromThreshold[t, :] > 0.0)[0]
-        if len(index_cf>0):
+        if 'calvingThicknessFromThreshold' in data:
+            index_cf = np.where(calvingThicknessFromThreshold[t, :] > 0.0)[0]
+        else:
+            index_cf = []
+        if len(index_cf) > 0:
             thresholdBoundary = np.zeros((nCells,), 'i')
             thresholdBoundaryAssignedVolume = np.zeros((nCells,))
             thresholdBoundarySummedThickness = np.zeros((nCells,))
             thresholdBoundaryContributors = np.zeros((nCells,))
             thresholdBoundaryLength = np.zeros((nCells,))
+            thresholdSpeed = np.zeros((nCells,))
             # First make list of boundary cells calved
             for i in index_cf:
                 ne = nEdgesOnCell[i]
@@ -258,9 +268,9 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
             #for i in bdyIndices:
                 #print(f"length={thresholdBoundaryLength[i]}, vol={thresholdBoundaryAssignedVolume[i]}, sumthk={thresholdBoundarySummedThickness[i]}, num={thresholdBoundaryContributors[i]}, meanthk={thresholdBoundarySummedThickness[i]/thresholdBoundaryContributors[i]}")
             # Finally calculate licalvf for each boundary cell and add to whatever was already there
-            thresholdSpeed = thresholdBoundaryAssignedVolume / \
-                    (thresholdBoundarySummedThickness/thresholdBoundaryContributors * \
-                     thresholdBoundaryLength) / \
+            thresholdSpeed[bdyIndices] = thresholdBoundaryAssignedVolume[bdyIndices] / \
+                    (thresholdBoundarySummedThickness[bdyIndices] / thresholdBoundaryContributors[bdyIndices] * \
+                     thresholdBoundaryLength[bdyIndices]) / \
                     deltat[t]    # units of m/s
             # Our estimated threshold speed is really a retreat speed. So to get calving speed, add on the advective speed
             thresholdFlux[t, bdyIndices] += (thresholdSpeed[bdyIndices] + surfaceSpeed[t,bdyIndices]) * rho_i
