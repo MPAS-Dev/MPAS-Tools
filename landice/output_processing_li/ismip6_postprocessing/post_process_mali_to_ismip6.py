@@ -133,7 +133,7 @@ def main():
     else:
         print("\n---Processing flux file---")
 
-        print("Translate calving flux")
+        print("Adjusting flux fields that need modification before remapping.")
         tmp_file_translate = "flux_translated.nc"
         clean_flux_fields_before_time_averaging(args.input_file_flux, args.input_file_grid, tmp_file_translate)
         # take time (yearly) average for the flux variables

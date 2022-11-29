@@ -261,10 +261,10 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
             thresholdSpeed = thresholdBoundaryAssignedVolume / \
                     (thresholdBoundarySummedThickness/thresholdBoundaryContributors * \
                      thresholdBoundaryLength) / \
-                    deltat[t]    # units of kg / m2 / s
+                    deltat[t]    # units of m/s
             # Our estimated threshold speed is really a retreat speed. So to get calving speed, add on the advective speed
             thresholdFlux[t, bdyIndices] += (thresholdSpeed[bdyIndices] + surfaceSpeed[t,bdyIndices]) * rho_i
-            calvingFluxArray[t,:] += thresholdFlux[t,:]
+            calvingFluxArray[t,bdyIndices] += thresholdFlux[t,bdyIndices]
 
     data['calvingFlux'] = calvingFluxArray
     data['thresholdFlux'] = thresholdFlux
