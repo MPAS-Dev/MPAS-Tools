@@ -102,7 +102,10 @@ for ii, run in enumerate(runs):
     for row in np.arange(0, nRows):
         cbar_axs.append(plt.subplot(gs[run][row,-1]))
         for col in np.arange(0, nCols-1):
-            axs.append(plt.subplot(gs[run][row, col]))
+            if axs == []:
+                axs.append(plt.subplot(gs[run][row, col]))
+            else:
+                axs.append(plt.subplot(gs[run][row, col], sharex=axs[0], sharey=axs[0]))
 
     varPlot[run] = {}  # is a dict of dicts too complicated?
     cbars = []
