@@ -1,29 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Oct 18 15:40:48 2021
+Created on Dec 9, 2022
 
 @author: Trevor Hillebrand, Matthew Hoffman
 """
-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import sys
-import os
 import numpy as np
-import numpy.ma as ma
 from netCDF4 import Dataset
 from optparse import OptionParser
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-from matplotlib.pyplot import cm
 import matplotlib.tri as tri
 import matplotlib.gridspec as gridspec
 from matplotlib.colorbar import Colorbar
 
 
-rhoi = 910.0
-rhosw = 1028.0
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser(description=__doc__)
 parser.add_option("-r", dest="runs", help="path to .nc file or dir containing output.nc file (strings separated by commas; no spaces)", default=None, metavar="FILENAME")
