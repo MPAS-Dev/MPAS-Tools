@@ -108,6 +108,7 @@ for ii, run in enumerate(runs):
             floatMask = (cellMask & floatValue) // floatValue
             dynamicMask = (cellMask & dynamicValue) // dynamicValue
             groundingLineMask = (cellMask & groundingLineValue) // groundingLineValue
+            initialExtentMask = (cellMask & initialExtentValue) // initialExtentValue
         else:
             print(f'cellMask is not present in output file {run}')
         
@@ -115,7 +116,12 @@ for ii, run in enumerate(runs):
         for col, timeLev in enumerate(timeLevs):
             index = row * (nCols - 1) + col
             timeLev = int(timeLev) #these are strings for some reason; make int to index
-            axs[index].tricontour(triang, groundingLineMask[timeLev, :], 
+            # plot initial grounding line position, initial extent, and GL position at t=timeLev
+            axs[index].tricontour(triang, groundingLineMask[0, :],
+                              levels=[0.9999], colors='grey', linestyles='solid')
+            axs[index].tricontour(triang, groundingLineMask[timeLev, :],
+                              levels=[0.9999], colors='white', linestyles='solid')
+            axs[index].tricontour(triang, initialExtentMask[timeLev, :],
                               levels=[0.9999], colors='black', linestyles='solid')
             varPlot[run][variable].append(axs[index].tripcolor(triang, 
                        var_to_plot[timeLev,:], cmap=colormap, shading='flat'))
