@@ -123,8 +123,15 @@ for ii, run in enumerate(runs):
                               levels=[0.9999], colors='white', linestyles='solid')
             axs[index].tricontour(triang, initialExtentMask[timeLev, :],
                               levels=[0.9999], colors='black', linestyles='solid')
-            varPlot[run][variable].append(axs[index].tripcolor(triang, 
-                       var_to_plot[timeLev,:], cmap=colormap, shading='flat'))
+
+            # Plot 2D field at each desired time. Use quantile range of 0.01-0.99 to cut out
+            # outliers. Could improve on this by accounting for areaCell, as currently all cells
+            # are weighted equally in determining vmin and vmax.
+            varPlot[run][variable].append(
+                              axs[index].tripcolor(
+                                  triang, var_to_plot[timeLev,:], cmap=colormap,
+                                  shading='flat', vmin=np.nanquantile(var_to_plot, 0.01),
+                                  vmax=np.nanquantile(var_to_plot, 0.99)))
             axs[index].set_aspect('equal')
             axs[index].set_title(f'year = {yr[timeLev]:0.2f}')
 
