@@ -26,6 +26,8 @@ options, args = parser.parse_args()
 runs = options.runs.split(',') # split run directories into list
 variables = options.variables.split(',')
 timeLevs = options.timeLevels.split(',')  # split time levels into list
+# convert timeLevs to list of ints
+timeLevs = [int(i) for i in timeLevs]
 
 if options.colormaps is not None:
     colormaps = options.colormaps.split(',')
@@ -115,7 +117,6 @@ for ii, run in enumerate(runs):
         # Loop over time levels
         for col, timeLev in enumerate(timeLevs):
             index = row * (nCols - 1) + col
-            timeLev = int(timeLev) #these are strings for some reason; make int to index
             # plot initial grounding line position, initial extent, and GL position at t=timeLev
             axs[index].tricontour(triang, groundingLineMask[0, :],
                               levels=[0.9999], colors='grey', linestyles='solid')
@@ -129,9 +130,9 @@ for ii, run in enumerate(runs):
             # are weighted equally in determining vmin and vmax.
             varPlot[run][variable].append(
                               axs[index].tripcolor(
-                                  triang, var_to_plot[timeLev,:], cmap=colormap,
-                                  shading='flat', vmin=np.nanquantile(var_to_plot, 0.01),
-                                  vmax=np.nanquantile(var_to_plot, 0.99)))
+                                  triang, var_to_plot[timeLev, :], cmap=colormap,
+                                  shading='flat', vmin=np.nanquantile(var_to_plot[timeLevs, :], 0.01),
+                                  vmax=np.nanquantile(var_to_plot[timeLevs, :], 0.99)))
             axs[index].set_aspect('equal')
             axs[index].set_title(f'year = {yr[timeLev]:0.2f}')
 
