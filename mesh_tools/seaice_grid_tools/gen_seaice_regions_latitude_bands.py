@@ -49,9 +49,9 @@ for iRegion in range(1,nRegions-1):
     latitudeMin[iRegion] = latitudes[iRegion-1]
     latitudeMax[iRegion] = latitudes[iRegion]
 
-print "nRegions:     ", nRegions
-print "latitudeMin:  ", latitudeMin
-print "latitudeMax:  ", latitudeMax
+print("nRegions:     ", nRegions)
+print("latitudeMin:  ", latitudeMin)
+print("latitudeMax:  ", latitudeMax)
 
 for iRegion in range(0,nRegions):
     for iCell in range(0,nCells):
