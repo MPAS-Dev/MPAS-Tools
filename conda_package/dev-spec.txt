@@ -21,7 +21,7 @@ pyproj
 python-igraph
 scikit-image
 scipy
-shapely
+shapely>=1.8.0,<2.0.0
 xarray
 
 # Development
