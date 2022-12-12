@@ -33,13 +33,17 @@ build:
 requirements:
   build:
     - {{ compiler('cxx') }}
+    - {{ compiler('fortran') }}
     - cmake
+    - pkgconfig
   host:
     - python
     - hdf5
     - hdf5 * nompi_*
     - libnetcdf
     - libnetcdf * nompi_*
+    - netcdf-fortran
+    - netcdf-fortran * nompi_*
     - setuptools
     - netcdf4
     - openmp  # [osx]
@@ -54,6 +58,7 @@ requirements:
     - jigsaw >=0.9.12
     - jigsawpy >=0.2.1
     - libnetcdf
+    - netcdf-fortran
     - matplotlib-base
     - netcdf4
     - numpy
@@ -99,6 +104,7 @@ test:
     - set_lat_lon_fields_in_planar_grid.py --help
     - create_SCRIP_file_from_MPAS_mesh.py --help
     - create_SCRIP_file_from_planar_rectangular_grid.py --help
+    - fix_regrid_output.exe
     - create_landice_grid_from_generic_MPAS_grid.py --help
     - define_cullMask.py --help
     - interpolate_to_mpasli_grid.py --help
