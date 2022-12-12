@@ -1,10 +1,11 @@
+#!/usr/bin/env python
 from __future__ import print_function
 import argparse
 import os, sys
 import subprocess
 
 # parsing input
-parser = argparse.ArgumentParser(description='Perform prepatory work for making seaice partitions.')
+parser = argparse.ArgumentParser(description='Perform preparatory work for making seaice partitions.')
 
 parser.add_argument('-i', '--inputmesh',  dest="meshFilenameSrc", required=True, help='MPAS mesh file for source regridding mesh.')
 parser.add_argument('-p', '--presence',   dest="filenameData",    required=True, help='Input ice presence file for source mesh.')

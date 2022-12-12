@@ -1,6 +1,7 @@
+#!/usr/bin/env python
 from __future__ import print_function
 import argparse
-import string
+import sys
 
 # parsing input
 parser = argparse.ArgumentParser(description='Create sea-ice partitions.')
@@ -25,7 +26,7 @@ elif (args.nProcs is None and args.nProcsFile is not None):
     nProcsLines = fileNProcs.readlines()
     fileNProcs.close()
     for line in nProcsLines:
-        nProcsArray.append(string.atoi(line))
+        nProcsArray.append(int(line))
 elif (args.nProcs is None and args.nProcsFile is None):
     print("ERROR: Must specify nProcs or nProcsFile")
     sys.exit()
