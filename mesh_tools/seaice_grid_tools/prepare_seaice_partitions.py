@@ -2,6 +2,7 @@
 import argparse
 import os, sys
 import subprocess
+from shutil import which
 
 # parsing input
 parser = argparse.ArgumentParser(description='Perform preparatory work for making seaice partitions.')
@@ -29,13 +30,19 @@ regrid_to_other_mesh(args.meshFilenameSrc, args.filenameData, args.meshFilenameD
 print("fix_regrid_output...")
 
 # check executable exists
-if (not os.path.exists("fix_regrid_output.exe")):
-    print("ERROR: fix_regrid_output.exe does not exist.")
+if which("fix_regrid_output.exe") is not None:
+    # it's in the system path
+    executable = "fix_regrid_output.exe"
+elif  os.path.exists("./fix_regrid_output.exe"):
+    # found in local path
+    executable = "./fix_regrid_output.exe"
+else:
+    print("ERROR: fix_regrid_output.exe could not be found.")
     sys.exit()
 
 inputFile  = args.outputDir + "/icePresent_regrid.nc"
 outputFile = args.outputDir + "/icePresent_regrid_modify.nc"
-subprocess.call(["./fix_regrid_output.exe", inputFile, args.meshFilenameDst, outputFile])
+subprocess.call([executable, inputFile, args.meshFilenameDst, outputFile])
 
 
 # 3) create variable icePresenceExtended
