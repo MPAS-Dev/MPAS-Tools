@@ -1,7 +1,6 @@
 from netCDF4 import Dataset
 import os
 import math
-import sys
 import errno
 import numpy as np
 import subprocess
@@ -126,8 +125,7 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
     else:
         meshToolsDir = mpasCullerLocation
     if (not os.path.exists(meshToolsDir + "/MpasCellCuller.x")):
-        print("ERROR: MpasCellCuller.x does not exist at the requested loaction.")
-        sys.exit()
+        raise FileNotFoundError("MpasCellCuller.x does not exist at the requested location.")
 
     plotFilename = "partition_diag.nc"
 
@@ -183,8 +181,7 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
             subprocess.call([metis, graphFilename, str(nProcs)])
         except OSError as e:
             if e.errno == errno.ENOENT:
-                print("metis program %s not found" %(metis))
-                sys.exit()
+                raise FileNotFoundError("metis program %s not found" %(metis))
             else:
                 print("metis error")
                 raise
@@ -244,8 +241,7 @@ def prepare_partitions():
 
     # Check if output directory exists
     if (not os.path.isdir(args.outputDir)):
-        print("ERROR: Output directory does not exist.")
-        sys.exit()
+        raise FileNotFoundError("ERROR: Output directory does not exist.")
 
     # 1) Regrid the ice presence from the input data mesh to the grid of choice
     print("Regrid to desired mesh...")
@@ -263,8 +259,7 @@ def prepare_partitions():
         # found in local path
         executable = "./fix_regrid_output.exe"
     else:
-        print("ERROR: fix_regrid_output.exe could not be found.")
-        sys.exit()
+        raise FileNotFoundError("fix_regrid_output.exe could not be found.")
 
     inputFile = args.outputDir + "/icePresent_regrid.nc"
     outputFile = args.outputDir + "/icePresent_regrid_modify.nc"
@@ -317,11 +312,9 @@ def create_partitions():
         for line in nProcsLines:
             nProcsArray.append(int(line))
     elif (args.nProcs is None and args.nProcsFile is None):
-        print("ERROR: Must specify nProcs or nProcsFile")
-        sys.exit()
+        raise ValueError("Must specify nProcs or nProcsFile")
     elif (args.nProcs is not None and args.nProcsFile is not None):
-        print("ERROR: Can't specify both nProcs or nProcsFile")
-        sys.exit()
+        raise ValueError("Can't specify both nProcs or nProcsFile")
 
     # create partitions
     regionFilename = args.outputDir + "/regions.nc"

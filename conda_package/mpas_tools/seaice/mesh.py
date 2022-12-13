@@ -1,5 +1,4 @@
 from netCDF4 import Dataset
-import sys
 import numpy as np
 import math
 
@@ -216,8 +215,7 @@ def estimate_missing_cell_latlon(iVertex, iCellOnVertexNeeded, vertexDegree, cel
 
             return lat, lon
 
-    print("Cant find position!")
-    sys.exit()
+    raise ValueError("Can't find position!")
 
 #---------------------------------------------------------------------
 
