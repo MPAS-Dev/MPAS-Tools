@@ -5,7 +5,7 @@ import errno
 import numpy as np
 import subprocess
 import argparse
-from shutil import which
+import shutil
 
 from .regrid import regrid_to_other_mesh
 from .mask import extend_seaice_mask
@@ -35,8 +35,11 @@ def add_cell_cull_array(filename, cullCell):
 def cull_mesh(meshToolsDir, filenameIn, filenameOut, cullCell):
 
     add_cell_cull_array(filenameIn, cullCell)
+    executable = "MpasCellCuller.x"
+    if meshToolsDir is not None:
+        executable = os.path.join(meshToolsDir, executable)
 
-    os.system("%s/MpasCellCuller.x %s %s -c" %(meshToolsDir,filenameIn,filenameOut))
+    subprocess.run([executable, filenameIn, filenameOut, "-c"], check=True)
 
 #-------------------------------------------------------------------
 
@@ -120,12 +123,21 @@ def get_cell_ids_orig(culledFilename, originalFilename):
 def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLocation, outputPrefix, plotting, metis, cullEquatorialRegion):
 
     # arguments
-    if (mpasCullerLocation == None):
-        meshToolsDir = os.path.dirname(os.path.realpath(__file__)) + "/../mesh_conversion_tools/"
-    else:
-        meshToolsDir = mpasCullerLocation
-    if (not os.path.exists(meshToolsDir + "/MpasCellCuller.x")):
-        raise FileNotFoundError("MpasCellCuller.x does not exist at the requested location.")
+    meshToolsDir = mpasCullerLocation
+    if meshToolsDir is None:
+        culler = shutil.which("MpasCellCuller.x")
+        if culler is not None:
+            meshToolsDir = os.path.dirname(culler)
+        else:
+            # no directory was provided and none
+            this_dir = os.path.dirname(os.path.realpath(__file__))
+            meshToolsDir = os.path.abspath(os.path.join(
+                this_dir, "..", "..", "..", "mesh_tools",
+                "mesh_conversion_tools"))
+            culler = os.path.join(meshToolsDir, "MpasCellCuller.x")
+        if not os.path.exists(culler):
+            raise FileNotFoundError(
+                "MpasCellCuller.x does not exist at the requested location.")
 
     plotFilename = "partition_diag.nc"
 
@@ -136,8 +148,8 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
     regionFile.close()
 
     # diagnostics
-    if (plotting):
-        os.system("cp %s %s" %(meshFilename,plotFilename))
+    if plotting:
+        shutil.copyfile(meshFilename, plotFilename)
 
     # load mesh file
     mesh = Dataset(meshFilename,"r")
@@ -159,7 +171,7 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
 
         # create precull file
         tmpFilenamesPrecull = tmp+"_precull.nc"
-        os.system("cp %s %s" %(meshFilename,tmpFilenamesPrecull))
+        shutil.copyfile(meshFilename, tmpFilenamesPrecull)
 
         # make cullCell variable
         cullCell = np.ones(nCells)
@@ -173,7 +185,7 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
         cull_mesh(meshToolsDir, tmpFilenamesPrecull, tmpFilenamesPostcull, cullCell)
 
         # preserve the initial graph file
-        os.system("mv culled_graph.info culled_graph_%i_tmp.info" %(iRegion))
+        os.rename("culled_graph.info", f"culled_graph_{iRegion}_tmp.info")
 
         # partition the culled grid
         try:
@@ -221,7 +233,7 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
         partitionVariable[:] = combinedGraph
         plottingFile.close()
 
-    os.system("rm *tmp*")
+    subprocess.run("rm *tmp*", shell=True)
 
 
 def prepare_partitions():
@@ -252,7 +264,7 @@ def prepare_partitions():
     print("fix_regrid_output...")
 
     # check executable exists
-    if which("fix_regrid_output.exe") is not None:
+    if shutil.which("fix_regrid_output.exe") is not None:
         # it's in the system path
         executable = "fix_regrid_output.exe"
     elif os.path.exists("./fix_regrid_output.exe"):
