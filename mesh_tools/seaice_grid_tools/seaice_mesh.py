@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-from seaice.mesh import make_mpas_scripfile_on_cells
+from mpas_tools.seaice.mesh import make_mpas_scripfile_on_cells
 
 if __name__ == "__main__":
 

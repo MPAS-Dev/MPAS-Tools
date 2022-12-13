@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
 
-from seaice.regions import make_regions_file
+from mpas_tools.seaice.regions import make_regions_file
 
 
 if __name__ == "__main__":

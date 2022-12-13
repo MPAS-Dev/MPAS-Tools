@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
 
-from seaice.partition import gen_seaice_mesh_partition
+from mpas_tools.seaice.partition import gen_seaice_mesh_partition
 
 
 if __name__ == "__main__":

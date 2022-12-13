@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
 
-from seaice.regrid import regrid_to_other_mesh
+from mpas_tools.seaice.regrid import regrid_to_other_mesh
 
 
 if __name__ == "__main__":
