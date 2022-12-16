@@ -20,7 +20,8 @@ parser = OptionParser(description='Convert data from exodus file to MPAS mesh. W
 
 parser.add_option("-f", "--file", dest="nc_file", help="the mpas file to write to")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable(s) you want to extrapolate")
-parser.add_option("-m", "--method", dest="extrapolation", default='min', help="idw or min method of extrapolation")
+parser.add_option("-m", "--method", dest="extrapolation", default='min', help="idw, min, or value method of extrapolation")
+parser.add_option("-s", "--set_value", dest="set_value", default=None, help="value to set variable to outside keepCellMask when using -v value")
 
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
@@ -73,43 +74,46 @@ keepCellMaskOrig = np.copy(keepCellMask)  # make a copy to edit that can be edit
 # 6) go to step 1)
 
 print("\nStart {} extrapolation using {} method".format(var_name, extrapolation))
-while np.count_nonzero(keepCellMask) != nCells:
+if extrapolation == 'value':
+    varValue[np.where(np.logical_not(keepCellMask))] = float(options.set_value)
+else:
+    while np.count_nonzero(keepCellMask) != nCells:
+        keepCellMask = np.copy(keepCellMaskNew)
+        searchCells = np.where(keepCellMask==0)[0]
+        varValueOld = np.copy(varValue)
+    
+        for iCell in searchCells:
+            neighborcellID = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
+            neighborcellID = neighborcellID[neighborcellID>=0] # Important: ignore the phantom "neighbors" that are off the edge of the mesh (0 values in cellsOnCell)
+    
+            mask_for_idx = keepCellMask[neighborcellID] # active cell mask
+            mask_nonzero_idx, = np.nonzero(mask_for_idx)
+    
+            nonzero_id = neighborcellID[mask_nonzero_idx] # id for nonzero beta cells
+            nonzero_num = np.count_nonzero(mask_for_idx)
+    
+            assert len(nonzero_id) == nonzero_num
+    
+            if nonzero_num > 0:
+                x_i = xCell[iCell]
+                y_i = yCell[iCell]
+                x_adj = xCell[nonzero_id]
+                y_adj = yCell[nonzero_id]
+                var_adj = varValueOld[nonzero_id]
+                if extrapolation == 'idw':
+                    ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
+                    assert np.count_nonzero(ds)==len(ds)
+                    var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+                    varValue[iCell] = var_interp
+                elif extrapolation == 'min':
+                    varValue[iCell] = np.min(var_adj)
+                else:
+                    sys.exit("ERROR: wrong extrapolation scheme! Set option m as idw or min!")
+    
+                keepCellMaskNew[iCell] = 1
+    
+        print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
 
-    keepCellMask = np.copy(keepCellMaskNew)
-    searchCells = np.where(keepCellMask==0)[0]
-    varValueOld = np.copy(varValue)
-
-    for iCell in searchCells:
-        neighborcellID = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
-        neighborcellID = neighborcellID[neighborcellID>=0] # Important: ignore the phantom "neighbors" that are off the edge of the mesh (0 values in cellsOnCell)
-
-        mask_for_idx = keepCellMask[neighborcellID] # active cell mask
-        mask_nonzero_idx, = np.nonzero(mask_for_idx)
-
-        nonzero_id = neighborcellID[mask_nonzero_idx] # id for nonzero beta cells
-        nonzero_num = np.count_nonzero(mask_for_idx)
-
-        assert len(nonzero_id) == nonzero_num
-
-        if nonzero_num > 0:
-            x_i = xCell[iCell]
-            y_i = yCell[iCell]
-            x_adj = xCell[nonzero_id]
-            y_adj = yCell[nonzero_id]
-            var_adj = varValueOld[nonzero_id]
-            if extrapolation == 'idw':
-                ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
-                assert np.count_nonzero(ds)==len(ds)
-                var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
-                varValue[iCell] = var_interp
-            elif extrapolation == 'min':
-                varValue[iCell] = np.min(var_adj)
-            else:
-                sys.exit("ERROR: wrong extrapolation scheme! Set option x as idw or min!")
-
-            keepCellMaskNew[iCell] = 1
-
-    print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
 dataset.variables[var_name][0,:] = varValue # Put updated array back into file.
 # === Clean-up =============
 
