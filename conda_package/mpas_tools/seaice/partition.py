@@ -65,7 +65,7 @@ def get_cell_ids(culledFilename, originalFilename):
     originalFile = Dataset(originalFilename,"r")
     nCellsOriginal = len(originalFile.dimensions["nCells"])
 
-    cellid = np.zeros(nCellsCulled, dtype=np.int)
+    cellid = np.zeros(nCellsCulled, dtype=int)
 
     cellMapFile = open("cellMapForward.txt","r")
     cellMapLines = cellMapFile.readlines()
@@ -101,7 +101,7 @@ def get_cell_ids_orig(culledFilename, originalFilename):
     lonCellOriginal = originalFile.variables["lonCell"][:]
     nCellsOriginal = len(originalFile.dimensions["nCells"])
 
-    cellid = np.zeros(nCellsCulled, dtype=np.int)
+    cellid = np.zeros(nCellsCulled, dtype=int)
 
     for iCellCulled in range(0,nCellsCulled):
 
