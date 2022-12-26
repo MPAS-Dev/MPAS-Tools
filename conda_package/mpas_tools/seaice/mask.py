@@ -5,9 +5,8 @@ import math
 from mpas_tools.cime.constants import constants
 
 
-#-------------------------------------------------------------------------------
-
-def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=False):
+def extend_seaice_mask(filenameMesh, filenamePresence, extendDistance,
+                       unitSphere=False):
     """
     Add a field ``icePresenceExtended`` to ``filenamePresence`` if it doesn't
     already exist.  This field is the ``icePresence`` field extended by
@@ -33,7 +32,7 @@ def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=F
 
     # mesh
     print("Load mesh...")
-    fileMesh = Dataset(filenameMesh,"r")
+    fileMesh = Dataset(filenameMesh, "r")
 
     nCells = len(fileMesh.dimensions["nCells"])
 
@@ -50,7 +49,7 @@ def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=F
 
     # presence
     print("Load ice presence...")
-    filePresence = Dataset(filenamePresence,"r")
+    filePresence = Dataset(filenamePresence, "r")
 
     if "icePresenceExtended" in filePresence.variables:
         # we're already done, probably from a previous call
@@ -63,18 +62,18 @@ def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=F
 
     # ice edge cells
     print("Get ice edge cells...")
-    iceEdgeCell = np.zeros(nCells,dtype="i")
+    iceEdgeCell = np.zeros(nCells, dtype="i")
 
-    for iCell in range(0,nCells):
+    for iCell in range(0, nCells):
 
-        #if (iCell % 100000 == 0):
+        # if (iCell % 100000 == 0):
         #    print(iCell, " of ", nCells, " cells...")
 
-        for iCellOnCell in range(0,nEdgesOnCell[iCell]):
+        for iCellOnCell in range(0, nEdgesOnCell[iCell]):
 
-            iCell2 = cellsOnCell[iCell,iCellOnCell]
+            iCell2 = cellsOnCell[iCell, iCellOnCell]
 
-            if (icePresence[iCell] == 1 and icePresence[iCell2] == 0):
+            if icePresence[iCell] == 1 and icePresence[iCell2] == 0:
                 iceEdgeCell[iCell] = 1
 
     # only edge cells
@@ -82,16 +81,15 @@ def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=F
     print("nEdgeCells: ", nEdgeCells)
 
     print("Get edge cell vector...")
-    iCellEdge = np.zeros(nEdgeCells,dtype="i")
+    iCellEdge = np.zeros(nEdgeCells, dtype="i")
 
     iEdgeCell = 0
     for iCell in range(0, nCells):
-        if (iceEdgeCell[iCell] == 1):
+        if iceEdgeCell[iCell] == 1:
             iCellEdge[iEdgeCell] = iCell
             iEdgeCell = iEdgeCell + 1
 
     del iceEdgeCell
-
 
     # get edge positions
     print("Get edge positions...")
@@ -99,7 +97,7 @@ def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=F
     yCellEdgeCell = np.zeros(nEdgeCells)
     zCellEdgeCell = np.zeros(nEdgeCells)
 
-    for iEdgeCell in range(0,nEdgeCells):
+    for iEdgeCell in range(0, nEdgeCells):
         iCell = iCellEdge[iEdgeCell]
         xCellEdgeCell[iEdgeCell] = xCell[iCell]
         yCellEdgeCell[iEdgeCell] = yCell[iCell]
@@ -108,36 +106,41 @@ def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=F
     # find extended mask
     print("Find new extended mask...")
 
-    extendDistance = extendDistance * 1000.0 # convert from km to m
+    extendDistance = extendDistance * 1000.0  # convert from km to m
 
-    if (unitSphere):
+    if unitSphere:
         earthRadius = constants['SHR_CONST_REARTH']
         extendDistance = extendDistance / earthRadius
 
-    distanceLimit = math.pow(extendDistance,2)
+    distanceLimit = math.pow(extendDistance, 2)
 
     icePresenceNew = icePresence.copy()
 
-    if (extendDistance > 0.0):
+    if extendDistance > 0.0:
 
         distances = np.zeros(nEdgeCells)
 
-        for iCell in range(0,nCells):
+        for iCell in range(0, nCells):
 
-            if (iCell % 100000 == 0):
+            if iCell % 100000 == 0:
                 print(iCell, " of ", nCells, " cells...")
 
-            distances = np.multiply((xCell[iCell] - xCellEdgeCell),(xCell[iCell] - xCellEdgeCell)) + \
-                        np.multiply((yCell[iCell] - yCellEdgeCell),(yCell[iCell] - yCellEdgeCell)) + \
-                        np.multiply((zCell[iCell] - zCellEdgeCell),(zCell[iCell] - zCellEdgeCell))
+            distances = np.multiply(
+                (xCell[iCell] - xCellEdgeCell),
+                (xCell[iCell] - xCellEdgeCell)) + np.multiply(
+                (yCell[iCell] - yCellEdgeCell),
+                (yCell[iCell] - yCellEdgeCell)) + np.multiply(
+                (zCell[iCell] - zCellEdgeCell),
+                (zCell[iCell] - zCellEdgeCell))
 
-            if (distances[distances.argmin()] <= distanceLimit):
+            if distances[distances.argmin()] <= distanceLimit:
                 icePresenceNew[iCell] = 1
 
     print("Load ice presence...")
-    filePresence = Dataset(filenamePresence,"a")
+    filePresence = Dataset(filenamePresence, "a")
 
-    icePresenceVar = filePresence.createVariable("icePresenceExtended","d",dimensions=["nCells"])
+    icePresenceVar = filePresence.createVariable(
+        "icePresenceExtended", "d", dimensions=["nCells"])
     icePresenceVar[:] = icePresenceNew[:]
 
     filePresence.close()
