@@ -8,6 +8,39 @@ radiansToDegrees = 180.0 / math.pi
 #---------------------------------------------------------------------
 
 def write_scrip_file(scripFilename, title, nCells, maxEdges, latCell, lonCell, corner_lat, corner_lon, mask=None):
+    """
+    A low-level function for writing a SCRIP file for the given MPAS-Seaice
+    mesh
+
+    Parameters
+    ----------
+    scripFilename : str
+        The name of the resulting SCRIP file
+
+    title : str
+        A string to include as the ``title`` attribute in the SCRIP file
+
+    nCells : int
+        The number of cells in the mesh
+
+    maxEdges : int
+        The maximum number of edges/vertices on a cell in the mesh
+
+    latCell : numpy.ndarray
+        The latitude (in radians) of cell centers
+
+    lonCell : numpy.ndarray
+        The longitude (in radians) of cell centers
+
+    corner_lat : numpy.ndarray
+        The latitude (in radians) of cell vertices
+
+    corner_lon : numpy.ndarray
+        The longitude (in radians) of cell vertices
+
+    mask  : numpy.ndarray, optional
+        A mask of where cells are valid
+    """
 
     # output mesh file
     scripFile = Dataset(scripFilename, "w", format="NETCDF3_CLASSIC")
@@ -46,9 +79,42 @@ def write_scrip_file(scripFilename, title, nCells, maxEdges, latCell, lonCell, c
 #------------------------------------------------------------------------------------
 
 def write_2D_scripfile(filenameScripOut, scripTitle, nColumns, nRows, latsCentre, lonsCentre, latsVertex, lonsVertex, degrees=False):
+    """
+    Write a SCRIP file for the given 2D grid
+
+    Parameters
+    ----------
+    filenameScripOut : str
+        The name of the resulting SCRIP file
+
+    scripTitle : str
+        A string to include as the ``title`` attribute in the SCRIP file
+
+    nColumns : int
+        The number of columns in the grid
+
+    nRows : int
+        The number of rows in the grid
+
+    latsCentre : numpy.ndarray
+        The latitude (in radians) of cell centers
+
+    lonsCentre : numpy.ndarray
+        The longitude (in radians) of cell centers
+
+    latsVertex : numpy.ndarray
+        The latitude (in radians) of cell vertices
+
+    lonsVertex : numpy.ndarray
+        The longitude (in radians) of cell vertices
+
+    degrees  : bool, optional
+        Whether the latitude and longitude variables are in degrees (as opposed
+        to radians)
+    """
 
     if (degrees):
-        scaling = degreesToRadians
+        scaling = np.pi/180.
     else:
         scaling = 1.0
 
@@ -113,6 +179,20 @@ def write_2D_scripfile(filenameScripOut, scripTitle, nColumns, nRows, latsCentre
 #---------------------------------------------------------------------
 
 def make_mpas_scripfile_on_cells(meshFilename, scripFilename, title):
+    """
+    Write a SCRIP file for cel quantities on the given MPAS-Seaice mesh
+
+    Parameters
+    ----------
+    meshFilename : str
+        The name of a file containing the MPAS-Seaice mesh
+
+    scripFilename : str
+        The name of the resulting SCRIP file
+
+    title : str
+        A string to include as the ``title`` attribute in the SCRIP file
+    """
 
     # input mesh data
     meshFile = Dataset(meshFilename, "r")
@@ -154,72 +234,21 @@ def make_mpas_scripfile_on_cells(meshFilename, scripFilename, title):
 
 #---------------------------------------------------------------------
 
-def rotate_about_vector(vectorToRotate, vectorAxis, rotationAngle):
-
-    # http://ksuweb.kennesaw.edu/~plaval//math4490/rotgen.pdf
-
-    r = vectorAxis / np.linalg.norm(vectorAxis)
-
-    C = math.cos(rotationAngle)
-    S = math.sin(rotationAngle)
-    t = 1.0 - C
-
-    rot = np.zeros((3,3))
-
-    rot[0,0] = t * r[0] * r[0] + C
-    rot[0,1] = t * r[0] * r[1] - S * r[2]
-    rot[0,2] = t * r[0] * r[2] + S * r[1]
-
-    rot[1,0] = t * r[0] * r[1] + S * r[2]
-    rot[1,1] = t * r[1] * r[1] + C
-    rot[1,2] = t * r[1] * r[2] - S * r[0]
-
-    rot[2,0] = t * r[0] * r[2] - S * r[1]
-    rot[2,1] = t * r[1] * r[2] + S * r[0]
-    rot[2,2] = t * r[2] * r[2] + C
-
-    # get relative position of missing cell
-    rotatedVector = np.matmul(rot, vectorToRotate)
-
-    return rotatedVector
-
-#---------------------------------------------------------------------
-
-def estimate_missing_cell_latlon(iVertex, iCellOnVertexNeeded, vertexDegree, cellsOnVertex, latCell, lonCell, latVertex, lonVertex):
-
-    # firstly we find a cell on vertex that exists
-    nRotations = 0
-
-    for iCellOnVertex in range(0,vertexDegree):
-
-        iCell = cellsOnVertex[iVertex, wrap_index(iCellOnVertexNeeded - iCellOnVertex - 1, vertexDegree)] - 1
-        nRotations = nRotations + 1
-
-        if (iCell != -1):
-
-            # find relative vector to cell we have which needs to be rotated
-            cellPosition   = get_position_from_lat_lon(latCell  [iCell],   lonCell  [iCell])
-            vertexPosition = get_position_from_lat_lon(latVertex[iVertex], lonVertex[iVertex])
-
-            cellVector = cellPosition - vertexPosition
-
-            # rotate cell vector around vertex vector
-            theta = nRotations * ((2.0 * math.pi) / float(vertexDegree))
-            missingCellVector = rotate_about_vector(cellVector, vertexPosition, theta)
-
-            # get absolute position
-            missingCellPosition = vertexPosition + missingCellVector
-
-            # get missing cell lat, lon
-            lat, lon = get_lat_lon_from_position(missingCellPosition)
-
-            return lat, lon
-
-    raise ValueError("Can't find position!")
-
-#---------------------------------------------------------------------
-
 def make_mpas_scripfile_on_vertices(meshFilename, scripFilename, title):
+    """
+    Write a SCRIP file for vertex quantities on the given MPAS-Seaice mesh
+
+    Parameters
+    ----------
+    meshFilename : str
+        The name of a file containing the MPAS-Seaice mesh
+
+    scripFilename : str
+        The name of the resulting SCRIP file
+
+    title : str
+        A string to include as the ``title`` attribute in the SCRIP file
+    """
 
     # input mesh data
     meshFile = Dataset(meshFilename, "r")
@@ -254,34 +283,89 @@ def make_mpas_scripfile_on_vertices(meshFilename, scripFilename, title):
 
             else:
 
-                corner_lat[iVertex,iCellOnVertex], corner_lon[iVertex,iCellOnVertex] = estimate_missing_cell_latlon(
+                corner_lat[iVertex,iCellOnVertex], corner_lon[iVertex,iCellOnVertex] = _estimate_missing_cell_latlon(
                         iVertex, iCellOnVertex, vertexDegree, cellsOnVertex, latCell, lonCell, latVertex, lonVertex)
 
     # create the scrip file
     write_scrip_file(scripFilename, title, nVertices, vertexDegree, latVertex, lonVertex, corner_lat, corner_lon)
 
+
+#---------------------------------------------------------------------
+# Private functions
 #---------------------------------------------------------------------
 
-def wrap_index(i, n):
+def _rotate_about_vector(vectorToRotate, vectorAxis, rotationAngle):
+    """
+    Rotate the given Cartesian vector around the given axis by the given
+    angle.
+
+    Parameters
+    ----------
+    vectorToRotate : numpy.ndarray
+        The 3-element vector to rotate
+
+    vectorAxis : numpy.ndarray
+        The 3-element axis of rotation
+
+    rotationAngle : float
+        The angle of rotation (in radians)
+
+    Returns
+    -------
+    rotatedVector : numpy.ndarray
+        The rotated vector
+
+    """
+
+    # http://ksuweb.kennesaw.edu/~plaval//math4490/rotgen.pdf
+
+    r = vectorAxis / np.linalg.norm(vectorAxis)
+
+    C = math.cos(rotationAngle)
+    S = math.sin(rotationAngle)
+    t = 1.0 - C
+
+    rot = np.zeros((3,3))
+
+    rot[0,0] = t * r[0] * r[0] + C
+    rot[0,1] = t * r[0] * r[1] - S * r[2]
+    rot[0,2] = t * r[0] * r[2] + S * r[1]
+
+    rot[1,0] = t * r[0] * r[1] + S * r[2]
+    rot[1,1] = t * r[1] * r[1] + C
+    rot[1,2] = t * r[1] * r[2] - S * r[0]
+
+    rot[2,0] = t * r[0] * r[2] - S * r[1]
+    rot[2,1] = t * r[1] * r[2] + S * r[0]
+    rot[2,2] = t * r[2] * r[2] + C
+
+    # get relative position of missing cell
+    rotatedVector = np.matmul(rot, vectorToRotate)
+
+    return rotatedVector
+
+#---------------------------------------------------------------------
+
+def _wrap_index(i, n):
 
     return i % n
 
 #---------------------------------------------------------------------
 
-def rotate_about_vertex(latCell, lonCell, latVertex, lonVertex, angle):
+def _rotate_about_vertex(latCell, lonCell, latVertex, lonVertex, angle):
 
-    vertexPosition = get_position_from_lat_lon(latVertex, lonVertex)
-    cellPosition   = get_position_from_lat_lon(latCell, lonCell)
+    vertexPosition = _get_position_from_lat_lon(latVertex, lonVertex)
+    cellPosition   = _get_position_from_lat_lon(latCell, lonCell)
 
     vertexToCellVector = cellPosition - vertexPosition
 
-    vertexToCellVectorMagnitude = vector_magnitude(vertexToCellVector)
+    vertexToCellVectorMagnitude = _vector_magnitude(vertexToCellVector)
 
-    vertexToCellVectorNormalized = normalize_vector(vertexToCellVector)
+    vertexToCellVectorNormalized = _normalize_vector(vertexToCellVector)
 
-    perpendicularVector = cross_product(vertexPosition, vertexToCellVector)
+    perpendicularVector = _cross_product(vertexPosition, vertexToCellVector)
 
-    perpendicularVectorNormalized = normalize_vector(perpendicularVector)
+    perpendicularVectorNormalized = _normalize_vector(perpendicularVector)
 
     rotatedVectorNormalized = math.cos(angle * degreesToRadians) * vertexToCellVectorNormalized + \
                               math.sin(angle * degreesToRadians) * perpendicularVectorNormalized
@@ -290,13 +374,90 @@ def rotate_about_vertex(latCell, lonCell, latVertex, lonVertex, angle):
 
     newPositionVector = vertexPosition + rotatedVector
 
-    latRotated, lonRotated = get_lat_lon_from_position(newPositionVector)
+    latRotated, lonRotated = _get_lat_lon_from_position(newPositionVector)
 
     return latRotated, lonRotated
 
 #---------------------------------------------------------------------
 
-def get_position_from_lat_lon(lat, lon):
+def _estimate_missing_cell_latlon(iVertex, iCellOnVertexNeeded, vertexDegree, cellsOnVertex, latCell, lonCell, latVertex, lonVertex):
+    """
+    Estimate the latitude and longitude of a "missing" neighbor cell that has
+    been culled from the MPAS-Seaice mesh
+
+    Parameters
+    ----------
+    iVertex : int
+        The index of the vertex with the missing neighbor
+
+    iCellOnVertexNeeded : int
+        The local index on the vertex of the missing cell
+
+    vertexDegree : int
+        The maximum number of cells neighboring each vertex
+
+    cellsOnVertex : numpy.ndarray
+        The indices of cells neighboring each vertex in the mesh
+
+    latCell : numpy.ndarray
+        The latitude (in radians) of cell centers
+
+    lonCell : numpy.ndarray
+        The longitude (in radians) of cell centers
+
+    latVertex : numpy.ndarray
+        The latitude (in radians) of vertices
+
+    lonVertex : numpy.ndarray
+        The longitude (in radians) of vertices
+
+    Returns
+    -------
+    lat : float
+        The approximate latitude of the missing cell center
+
+    lon : float
+        The approximate longitude of the missing cell center
+
+    Raises
+    ------
+    ValueError
+        If no reasonable location for the missing cell can be found
+    """
+
+    # firstly we find a cell on vertex that exists
+    nRotations = 0
+
+    for iCellOnVertex in range(0,vertexDegree):
+
+        iCell = cellsOnVertex[iVertex, _wrap_index(iCellOnVertexNeeded - iCellOnVertex - 1, vertexDegree)] - 1
+        nRotations = nRotations + 1
+
+        if (iCell != -1):
+
+            # find relative vector to cell we have which needs to be rotated
+            cellPosition   = _get_position_from_lat_lon(latCell  [iCell],   lonCell  [iCell])
+            vertexPosition = _get_position_from_lat_lon(latVertex[iVertex], lonVertex[iVertex])
+
+            cellVector = cellPosition - vertexPosition
+
+            # rotate cell vector around vertex vector
+            theta = nRotations * ((2.0 * math.pi) / float(vertexDegree))
+            missingCellVector = _rotate_about_vector(cellVector, vertexPosition, theta)
+
+            # get absolute position
+            missingCellPosition = vertexPosition + missingCellVector
+
+            # get missing cell lat, lon
+            lat, lon = _get_lat_lon_from_position(missingCellPosition)
+
+            return lat, lon
+
+    raise ValueError("Can't find position!")
+
+#---------------------------------------------------------------------
+
+def _get_position_from_lat_lon(lat, lon):
 
     position = np.zeros(3)
 
@@ -308,7 +469,7 @@ def get_position_from_lat_lon(lat, lon):
 
 #---------------------------------------------------------------------
 
-def get_lat_lon_from_position(position):
+def _get_lat_lon_from_position(position):
 
     lat = math.asin(position[2])
     lon = math.atan2(position[1], position[0])
@@ -317,7 +478,7 @@ def get_lat_lon_from_position(position):
 
 #---------------------------------------------------------------------
 
-def vector_magnitude(vector):
+def _vector_magnitude(vector):
 
     magnitude = math.sqrt(math.pow(vector[0],2) + \
                           math.pow(vector[1],2) + \
@@ -327,9 +488,9 @@ def vector_magnitude(vector):
 
 #---------------------------------------------------------------------
 
-def normalize_vector(vector):
+def _normalize_vector(vector):
 
-    magnitude = vector_magnitude(vector)
+    magnitude = _vector_magnitude(vector)
 
     normalizedVector = vector / magnitude
 
@@ -337,7 +498,7 @@ def normalize_vector(vector):
 
 #---------------------------------------------------------------------
 
-def cross_product(u, v):
+def _cross_product(u, v):
 
     cp = np.zeros(3)
 
