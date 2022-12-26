@@ -2,6 +2,9 @@ from netCDF4 import Dataset
 import numpy as np
 import math
 
+from mpas_tools.cime.constants import constants
+
+
 #-------------------------------------------------------------------------------
 
 def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=False):
@@ -83,10 +86,10 @@ def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=F
     # find extended mask
     print("Find new extended mask...")
 
-    earthRadius = 6371229.0
     extendDistance = extendDistance * 1000.0 # convert from km to m
 
     if (unitSphere):
+        earthRadius = constants['SHR_CONST_REARTH']
         extendDistance = extendDistance / earthRadius
 
     distanceLimit = math.pow(extendDistance,2)
