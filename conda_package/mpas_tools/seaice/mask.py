@@ -8,6 +8,28 @@ from mpas_tools.cime.constants import constants
 #-------------------------------------------------------------------------------
 
 def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=False):
+    """
+    Add a field ``icePresenceExtended`` to ``filenamePresence`` if it doesn't
+    already exist.  This field is the ``icePresence`` field extended by
+    a distance of ``extendDistance``.
+
+    Parameters
+    ----------
+    filenameMesh : str
+        The filename of the MPAS-Seaice mesh
+
+    filenamePresence : str
+        A filename for a file containing an ``icePresence`` field to be
+        extended and to which a new ``icePresenceExtended`` will be added
+
+    extendDistance : float
+        The distance in km to expand (no expansion is performed if
+        ``extendDistance=0.0``)
+
+    unitSphere : bool, optional
+        Whether the mesh is provided on the unit sphere, rather than one with
+        the radius of the Earth
+    """
 
     # mesh
     print("Load mesh...")
