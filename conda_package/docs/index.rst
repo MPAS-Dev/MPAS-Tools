@@ -44,6 +44,16 @@ analyzing simulations, and in other MPAS-related workflows.
    ocean/depth
 
 .. toctree::
+   :caption: Sea-ice Tools
+   :maxdepth: 2
+
+   seaice/mask
+   seaice/mesh
+   seaice/partition
+   seaice/regions
+   seaice/regrid
+
+.. toctree::
    :caption: Developer's Guide
    :maxdepth: 2
 
