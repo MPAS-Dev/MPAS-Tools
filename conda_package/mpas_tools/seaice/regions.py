@@ -5,6 +5,32 @@ import numpy as np
 #-------------------------------------------------------------------------------
 
 def make_regions_file(filenameIcePresent, filenameMesh, regionType, varname, limit, filenameOut):
+    """"
+
+    Parameters
+    ----------
+    filenameIcePresent : str
+        A filename for a file containing the field specified in ``varname``
+        that determines where ice may be present
+
+    filenameMesh : str
+        The name of a file containing the MPAS-Seaice mesh
+
+    regionType : {"three_region", "two_region_eq", "three_region_eq", "five_region_eq"}
+        The type of regions to write
+
+    varname : str
+        The name of the variable that determines where ice might be present
+
+    limit : float
+        For ``regionType`` either ``three_region`` or ``five_region_eq``,
+        the  value of the ``varname`` field above which ice is considered to
+        be present.  For other ``regionType`` values, the limit is always 0.5
+        and this parameter is ignored.
+
+    filenameOut : str
+        The NetCDF filename to write the resulting ``region`` field to
+    """
 
     # load ice presence
     print(filenameIcePresent)
