@@ -7,10 +7,78 @@ import hashlib
 
 from .mesh import make_mpas_scripfile_on_cells
 
+#---------------------------------------------------------------------------------
+
+def regrid_to_other_mesh(meshFilenameSrc, filenameData, meshFilenameDst, filenameOut):
+
+    # make scrip files
+    print("Make scrip files...")
+    SCRIPFilenameSrc = "scrip_src_tmp.nc"
+    SCRIPFilenameDst = "scrip_dst_tmp.nc"
+
+    titleSrc = "MPAS grid src"
+    titleDst = "MPAS grid dst"
+
+    make_mpas_scripfile_on_cells(meshFilenameSrc, SCRIPFilenameSrc, titleSrc)
+    make_mpas_scripfile_on_cells(meshFilenameDst, SCRIPFilenameDst, titleDst)
+
+    # generate weights file
+    print("Generate weights...")
+    weightsFilename = os.getcwd() + "/weights_tmp.nc"
+    _generate_weights_file(SCRIPFilenameSrc, SCRIPFilenameDst, weightsFilename, False)
+
+
+    # load output mesh
+    print("Load output mesh...")
+    meshFile = Dataset(meshFilenameDst,"r")
+
+    nCells = len(meshFile.dimensions["nCells"])
+
+    nEdgesOnCell = meshFile.variables["nEdgesOnCell"][:]
+    cellsOnCell = meshFile.variables["cellsOnCell"][:]
+    cellsOnCell[:] = cellsOnCell[:] - 1
+
+    latCell = meshFile.variables["latCell"][:]
+    lonCell = meshFile.variables["lonCell"][:]
+
+    meshFile.close()
+
+    # load data
+    print("Load input data...")
+    fileIn = Dataset(filenameData,"r")
+
+    iceFractionIn = fileIn.variables["iceFraction"][:]
+
+    fileIn.close()
+
+
+
+    # regrid
+    print("Regrid array...")
+    iceFractionOut, iceFractionOutMask = _regrid_mpas_array(weightsFilename, iceFractionIn)
+
+
+
+    # output
+    print("Output...")
+    fileOut = Dataset(filenameOut,"w",format="NETCDF3_CLASSIC")
+
+    fileOut.createDimension("nCells",nCells)
+
+    iceFractionVar = fileOut.createVariable("iceFraction","d",dimensions=["nCells"])
+    iceFractionVar[:] = iceFractionOut[:]
+
+    iceFractionMaskVar = fileOut.createVariable("iceFractionMask","i",dimensions=["nCells"])
+    iceFractionMaskVar[:] = iceFractionOutMask[:]
+
+    fileOut.close()
+
 
 #------------------------------------------------------------------------------------
+# Private functions
+#------------------------------------------------------------------------------------
 
-def get_weights_filename(inputStrings):
+def _get_weights_filename(inputStrings):
 
     hashInput = ""
     for inputString in inputStrings:
@@ -23,7 +91,7 @@ def get_weights_filename(inputStrings):
 
 #------------------------------------------------------------------------------------
 
-def generate_weights_file(SCRIPFilenameSrc, SCRIPFilenameDst, weightsFilename, reuseWeights):
+def _generate_weights_file(SCRIPFilenameSrc, SCRIPFilenameDst, weightsFilename, reuseWeights):
 
     if not reuseWeights or not os.path.isfile(weightsFilename):
 
@@ -37,7 +105,7 @@ def generate_weights_file(SCRIPFilenameSrc, SCRIPFilenameDst, weightsFilename, r
 
 #------------------------------------------------------------------------------------
 
-def load_weights_file(weightsFilename):
+def _load_weights_file(weightsFilename):
 
     weights = {}
 
@@ -59,7 +127,7 @@ def load_weights_file(weightsFilename):
 
 #------------------------------------------------------------------------------------
 
-def regrid_obs_array(obsArray, weights):
+def _regrid_obs_array(obsArray, weights):
 
     n_s      = weights["n_s"]
 
@@ -90,7 +158,7 @@ def regrid_obs_array(obsArray, weights):
 
 #------------------------------------------------------------------------------------
 
-def regrid_mpas_array(weightsFilename, mpasArrayIn):
+def _regrid_mpas_array(weightsFilename, mpasArrayIn):
 
     nMax = 100
 
@@ -117,69 +185,3 @@ def regrid_mpas_array(weightsFilename, mpasArrayIn):
         mpasArrayOutMask[row[i_s]-1] = 1
 
     return mpasArrayOut, mpasArrayOutMask
-
-#---------------------------------------------------------------------------------
-
-def regrid_to_other_mesh(meshFilenameSrc, filenameData, meshFilenameDst, filenameOut):
-
-    # make scrip files
-    print("Make scrip files...")
-    SCRIPFilenameSrc = "scrip_src_tmp.nc"
-    SCRIPFilenameDst = "scrip_dst_tmp.nc"
-
-    titleSrc = "MPAS grid src"
-    titleDst = "MPAS grid dst"
-
-    make_mpas_scripfile_on_cells(meshFilenameSrc, SCRIPFilenameSrc, titleSrc)
-    make_mpas_scripfile_on_cells(meshFilenameDst, SCRIPFilenameDst, titleDst)
-
-    # generate weights file
-    print("Generate weights...")
-    weightsFilename = os.getcwd() + "/weights_tmp.nc"
-    generate_weights_file(SCRIPFilenameSrc, SCRIPFilenameDst, weightsFilename, False)
-
-
-    # load output mesh
-    print("Load output mesh...")
-    meshFile = Dataset(meshFilenameDst,"r")
-
-    nCells = len(meshFile.dimensions["nCells"])
-
-    nEdgesOnCell = meshFile.variables["nEdgesOnCell"][:]
-    cellsOnCell = meshFile.variables["cellsOnCell"][:]
-    cellsOnCell[:] = cellsOnCell[:] - 1
-
-    latCell = meshFile.variables["latCell"][:]
-    lonCell = meshFile.variables["lonCell"][:]
-
-    meshFile.close()
-
-    # load data
-    print("Load input data...")
-    fileIn = Dataset(filenameData,"r")
-
-    iceFractionIn = fileIn.variables["iceFraction"][:]
-
-    fileIn.close()
-
-
-
-    # regrid
-    print("Regrid array...")
-    iceFractionOut, iceFractionOutMask = regrid_mpas_array(weightsFilename, iceFractionIn)
-
-
-
-    # output
-    print("Output...")
-    fileOut = Dataset(filenameOut,"w",format="NETCDF3_CLASSIC")
-
-    fileOut.createDimension("nCells",nCells)
-
-    iceFractionVar = fileOut.createVariable("iceFraction","d",dimensions=["nCells"])
-    iceFractionVar[:] = iceFractionOut[:]
-
-    iceFractionMaskVar = fileOut.createVariable("iceFractionMask","i",dimensions=["nCells"])
-    iceFractionMaskVar[:] = iceFractionOutMask[:]
-
-    fileOut.close()
