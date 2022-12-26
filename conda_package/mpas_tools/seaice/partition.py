@@ -124,7 +124,9 @@ def get_cell_ids_orig(culledFilename, originalFilename):
 
 #-------------------------------------------------------------------
 
-def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLocation, outputPrefix, plotting, metis, cullEquatorialRegion):
+def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcsArray,
+                              mpasCullerLocation, outputPrefix, plotting,
+                              metis, cullEquatorialRegion):
 
     # arguments
     meshToolsDir = mpasCullerLocation
@@ -158,15 +160,9 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
     # load mesh file
     mesh = Dataset(meshFilename,"r")
     nCells = len(mesh.dimensions["nCells"])
-    latCell = mesh.variables["latCell"][:]
     mesh.close()
 
-    if (cullEquatorialRegion):
-        nBlocks = nRegions * nProcs
-    else:
-        nBlocks = nProcs
-
-    combinedGraph = np.zeros(nCells)
+    cellidsInRegion = []
 
     for iRegion in range(0,nRegions):
 
@@ -188,54 +184,71 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
         tmpFilenamesPostcull = tmp+"_postcull.nc"
         cull_mesh(meshToolsDir, tmpFilenamesPrecull, tmpFilenamesPostcull, cullCell)
 
+        # get the cell IDs for this partition
+        cellid = get_cell_ids(tmpFilenamesPostcull, meshFilename)
+        cellidsInRegion.append(cellid)
+
         # preserve the initial graph file
         os.rename("culled_graph.info", f"culled_graph_{iRegion}_tmp.info")
 
-        # partition the culled grid
-        try:
-            graphFilename = "culled_graph_%i_tmp.info" %(iRegion)
-            subprocess.call([metis, graphFilename, str(nProcs)])
-        except OSError as e:
-            if e.errno == errno.ENOENT:
-                raise FileNotFoundError("metis program %s not found" %(metis))
-            else:
-                print("metis error")
-                raise
+    if not isinstance(nProcsArray, (list, tuple, set)):
+        # presumably, it's a single integer
+        nProcsArray = [nProcsArray]
 
-        # get the cell IDs for this partition
-        cellid = get_cell_ids(tmpFilenamesPostcull, meshFilename)
+    for nProcs in nProcsArray:
+        if (cullEquatorialRegion):
+            nBlocks = nRegions * nProcs
+        else:
+            nBlocks = nProcs
 
-        # load this partition
-        graph = load_partition("culled_graph_%i_tmp.info.part.%i" %(iRegion,nProcs))
+        combinedGraph = np.zeros(nCells)
 
-        # add this partition to the combined partition
-        for iCellPartition in range(0,len(graph)):
-            if (cullEquatorialRegion):
-                combinedGraph[cellid[iCellPartition]] = graph[iCellPartition] + nProcs * iRegion
-            else:
-                combinedGraph[cellid[iCellPartition]] = graph[iCellPartition]
+        for iRegion in range(0, nRegions):
 
-    # output the cell partition file
-    cellPartitionFile = open("%s.part.%i" %(outputPrefix,nBlocks), "w")
-    for iCell in range(0,nCells):
-        cellPartitionFile.write("%i\n" %(combinedGraph[iCell]))
-    cellPartitionFile.close()
+            # partition the culled grid
+            try:
+                graphFilename = "culled_graph_%i_tmp.info" %(iRegion)
+                subprocess.call([metis, graphFilename, str(nProcs)])
+            except OSError as e:
+                if e.errno == errno.ENOENT:
+                    raise FileNotFoundError("metis program %s not found" %(metis))
+                else:
+                    print("metis error")
+                    raise
 
-    # output block partition file
-    if (cullEquatorialRegion):
-        blockPartitionFile = open("%s.part.%i" %(outputPrefix,nProcs), "w")
-        for iRegion in range(0,nRegions):
-            for iProc in range(0,nProcs):
-                blockPartitionFile.write("%i\n" %(iProc))
-        blockPartitionFile.close()
+            cellid = cellidsInRegion[iRegion]
+
+            # load this partition
+            graph = load_partition("culled_graph_%i_tmp.info.part.%i" %(iRegion,nProcs))
+
+            # add this partition to the combined partition
+            for iCellPartition in range(0,len(graph)):
+                if (cullEquatorialRegion):
+                    combinedGraph[cellid[iCellPartition]] = graph[iCellPartition] + nProcs * iRegion
+                else:
+                    combinedGraph[cellid[iCellPartition]] = graph[iCellPartition]
+
+        # output the cell partition file
+        cellPartitionFile = open("%s.part.%i" %(outputPrefix,nBlocks), "w")
+        for iCell in range(0,nCells):
+            cellPartitionFile.write("%i\n" %(combinedGraph[iCell]))
+        cellPartitionFile.close()
+
+        # output block partition file
+        if (cullEquatorialRegion):
+            blockPartitionFile = open("%s.part.%i" %(outputPrefix,nProcs), "w")
+            for iRegion in range(0,nRegions):
+                for iProc in range(0,nProcs):
+                    blockPartitionFile.write("%i\n" %(iProc))
+            blockPartitionFile.close()
 
 
-    # diagnostics
-    if (plotting):
-        plottingFile = Dataset(plotFilename,"a")
-        partitionVariable = plottingFile.createVariable("partition_%i" %(nProcs),"i4",("nCells"))
-        partitionVariable[:] = combinedGraph
-        plottingFile.close()
+        # diagnostics
+        if (plotting):
+            plottingFile = Dataset(plotFilename,"a")
+            partitionVariable = plottingFile.createVariable("partition_%i" %(nProcs),"i4",("nCells"))
+            partitionVariable[:] = combinedGraph
+            plottingFile.close()
 
     subprocess.run("rm *tmp*", shell=True)
 
@@ -310,32 +323,32 @@ def create_partitions():
     parser.add_argument('-x', '--plotting', dest="plotting", required=False,
                         help='create diagnostic plotting file of partitions', action='store_true')
     parser.add_argument('-g', '--metis', dest="metis", required=False, help='name of metis utility', default="gpmetis")
-    parser.add_argument('-n', '--nProcs', dest="nProcs", required=False,
-                        help='number of processors to create partition for.', type=int)
+    parser.add_argument('-n', '--nProcs', dest="nProcsArray", nargs='*', required=False,
+                        help='list of the number of processors to create partition for.', type=int)
     parser.add_argument('-f', '--nProcsFile', dest="nProcsFile", required=False,
                         help='number of processors to create partition for.')
 
     args = parser.parse_args()
 
     # number of processors
-    nProcsArray = []
-    if (args.nProcs is not None and args.nProcsFile is None):
-        nProcsArray.append(args.nProcs)
-    elif (args.nProcs is None and args.nProcsFile is not None):
-        fileNProcs = open(args.nProcsFile, "r")
-        nProcsLines = fileNProcs.readlines()
-        fileNProcs.close()
-        for line in nProcsLines:
-            nProcsArray.append(int(line))
-    elif (args.nProcs is None and args.nProcsFile is None):
+    if args.nProcsArray is None and args.nProcsFile is None:
         raise ValueError("Must specify nProcs or nProcsFile")
-    elif (args.nProcs is not None and args.nProcsFile is not None):
+    if args.nProcsArray is not None and args.nProcsFile is not None:
         raise ValueError("Can't specify both nProcs or nProcsFile")
+
+    if args.nProcsFile is not None:
+        with open(args.nProcsFile, "r") as fileNProcs:
+            nProcsLines = fileNProcs.readlines()
+            nProcsArray = [int(line) for line in nProcsLines
+                           if line.split() != '']
+    else:
+        nProcsArray = args.nProcsArray
 
     # create partitions
     regionFilename = args.outputDir + "/regions.nc"
     outputPrefix = args.outputDir + "/" + args.outputPrefix
 
-    for nProcs in nProcsArray:
-        gen_seaice_mesh_partition(args.meshFilename, regionFilename, nProcs, args.mpasCullerLocation, outputPrefix,
-                                  args.plotting, args.metis, False)
+    gen_seaice_mesh_partition(args.meshFilename, regionFilename, nProcsArray,
+                              args.mpasCullerLocation, outputPrefix,
+                              args.plotting, args.metis,
+                              cullEquatorialRegion=False)
