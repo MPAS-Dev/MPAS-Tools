@@ -77,7 +77,11 @@ def get_cell_ids(culledFilename, originalFilename):
         if (iCellOriginal % 1000 == 0):
             print(iCellOriginal, " of ", nCellsOriginal)
 
-        cellMap = int(cellMapLine)
+        try:
+            cellMap = int(cellMapLine)
+        except ValueError:
+            # There are blank lines to skip
+            continue
 
         if (cellMap != -1):
 
