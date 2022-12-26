@@ -304,7 +304,7 @@ def create_partitions():
     parser.add_argument('-p', '--prefix', dest="outputPrefix", required=False,
                         help='prefix for output partition filenames.', default="graph.info")
     parser.add_argument('-x', '--plotting', dest="plotting", required=False,
-                        help='create diagnostic plotting file of partitions', action='store_false')
+                        help='create diagnostic plotting file of partitions', action='store_true')
     parser.add_argument('-g', '--metis', dest="metis", required=False, help='name of metis utility', default="gpmetis")
     parser.add_argument('-n', '--nProcs', dest="nProcs", required=False,
                         help='number of processors to create partition for.', type=int)
