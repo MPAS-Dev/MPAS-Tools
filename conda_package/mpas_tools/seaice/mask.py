@@ -27,6 +27,11 @@ def extend_seaice_mask(filenameMesh,filenamePresence,extendDistance,unitSphere=F
     print("Load ice presence...")
     filePresence = Dataset(filenamePresence,"r")
 
+    if "icePresenceExtended" in filePresence.variables:
+        # we're already done, probably from a previous call
+        filePresence.close()
+        return
+
     icePresence = filePresence.variables["icePresence"][:]
 
     filePresence.close()
