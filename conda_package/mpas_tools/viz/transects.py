@@ -18,7 +18,7 @@ def make_triangle_tree(dsTris):
     ----------
     dsTris : xarray.Dataset
         A dataset that defines triangles, the results of calling
-        ``mesh_to_triangles()``
+        :py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
 
     Returns
     -------
@@ -54,12 +54,15 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
 
     Parameters
     ----------
-    lonTransect, latTransect : xarray.DataArray
-        The latitude and longitude of segments making up the transect
+    lonTransect : xarray.DataArray
+        The longitude of segments making up the transect
+
+    latTransect : xarray.DataArray
+        The latitude of segments making up the transect
 
     dsTris : xarray.Dataset
         A dataset that defines triangles, the results of calling
-        ``mesh_to_triangles()``
+        :py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
 
     dsMesh : xarray.Dataset
         A data set with the full MPAS mesh.
@@ -192,7 +195,7 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
                         zNode[n1IndicesCand])
 
         intersect = intersects(n0Cand, n1Cand, transectv0,
-                                transectv1)
+                               transectv1)
 
         n0Inter = Vector(n0Cand.x[intersect],
                          n0Cand.y[intersect],
@@ -211,12 +214,12 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
                                earth_radius*intersections.z)
 
         angularDistance = angular_distance(first=transectv0,
-                                            second=intersections)
+                                           second=intersections)
 
         dNodeLocal = dStart + earth_radius * angularDistance
 
         dStart += earth_radius*angular_distance(first=transectv0,
-                                                 second=transectv1)
+                                                second=transectv1)
 
         node0Inter = numpy.mod(n0IndicesInter, nNodes)
         node1Inter = numpy.mod(n1IndicesInter, nNodes)
@@ -337,12 +340,15 @@ def find_planar_transect_cells_and_weights(xTransect, yTransect, dsTris, dsMesh,
 
     Parameters
     ----------
-    xTransect, yTransect : xarray.DataArray
-        The x and y points defining segments making up the transect
+    xTransect : xarray.DataArray
+        The x points defining segments making up the transect
+
+    yTransect : xarray.DataArray
+        The y points defining segments making up the transect
 
     dsTris : xarray.Dataset
         A dataset that defines triangles, the results of calling
-        ``mesh_to_triangles()``
+        `:py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
 
     dsMesh : xarray.Dataset
         A data set with the full MPAS mesh.
@@ -478,24 +484,23 @@ def find_planar_transect_cells_and_weights(xTransect, yTransect, dsTris, dsMesh,
 
             edge = LineString([node0, node1])
             if segment.intersects(edge):
-                intersection = segment.intersection(edge)
+                point = segment.intersection(edge)
                 intersectingNodes.append((node0, node1, start, end, edge))
 
-                if isinstance(intersection, LineString):
+                if isinstance(point, LineString):
                     raise ValueError('A triangle edge exactly coincides with a '
                                      'transect segment and I can\'t handle '
                                      'that case.  Try moving the transect a '
                                      'tiny bit.')
-                elif not isinstance(intersection, Point):
-                    raise ValueError('Unexpected intersection type {}'.format(
-                        intersection))
+                elif not isinstance(point, Point):
+                    raise ValueError(f'Unexpected intersection type {point}')
 
-                xIntersection.append(intersection.x)
-                yIntersection.append(intersection.y)
+                xIntersection.append(point.x)
+                yIntersection.append(point.y)
 
-                startToIntersection = LineString([startPoint, intersection])
+                startToIntersection = LineString([startPoint, point])
 
-                weight = (LineString([intersection, node1]).length /
+                weight = (LineString([point, node1]).length /
                           LineString([node0, node1]).length)
 
                 nodeWeights.append(weight)
@@ -662,7 +667,7 @@ def _sort_intersections(dNode, tris, nodes, xOut, yOut, zOut, interpCells,
     indices = sortIndices[indices]
 
     dNode = dNode[indices]
-    xOut= xOut[indices]
+    xOut = xOut[indices]
     yOut = yOut[indices]
     zOut = zOut[indices]
 
