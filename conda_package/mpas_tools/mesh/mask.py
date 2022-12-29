@@ -896,12 +896,9 @@ def _compute_region_masks(fcMask, points, logger, pool, chunkSize,
 
 def _contains(shapes, points):
     tree = STRtree(points)
-    indices = dict((id(point), index) for index, point in enumerate(points))
     mask = numpy.zeros(len(points), dtype=bool)
     for shape in shapes:
-        pointsToCheck = tree.query(shape)
-        indicesInShape = [indices[id(point)] for point in pointsToCheck if
-                          (shape.contains(point) or shape.intersects(point))]
+        indicesInShape = tree.query(shape, predicate='covers')
         mask[indicesInShape] = True
     return mask
 
@@ -1035,12 +1032,8 @@ def _compute_transect_masks(fcMask, polygons, logger, pool, chunkSize,
 
 def _intersects(shape, polygons):
     tree = STRtree(polygons)
-    indices = dict((id(polygon), index) for index, polygon in
-                   enumerate(polygons))
     mask = numpy.zeros(len(polygons), dtype=bool)
-    polygonsToCheck = tree.query(shape)
-    indicesInShape = [indices[id(polygon)] for polygon in polygonsToCheck if
-                      shape.intersects(polygon)]
+    indicesInShape = tree.query(shape, predicate='intersects')
     mask[indicesInShape] = True
     return mask
 
@@ -1266,7 +1259,7 @@ def _compute_edge_sign(dsMesh, edgeMask, shape):
 
     edgeSign = numpy.zeros(edgeMask.shape, dtype=int)
 
-    clusters = graph.clusters()
+    clusters = graph.connected_components()
     for cluster_index in range(len(clusters)):
         cluster = clusters.subgraph(cluster_index)
         distance = cluster.vs['distance']
