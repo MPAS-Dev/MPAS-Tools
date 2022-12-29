@@ -48,7 +48,7 @@ requirements:
     - python
     - cartopy
     - dask
-    - geometric_features >=0.1.12
+    - geometric_features >=1.0.0,<2.0.0
     - hdf5
     - inpoly
     - jigsaw >=0.9.12
@@ -64,7 +64,7 @@ requirements:
     - python-igraph
     - scikit-image
     - scipy
-    - shapely  >=1.8.0,<2.0.0
+    - shapely >=2.0,<3.0
     - xarray
 
 test:
