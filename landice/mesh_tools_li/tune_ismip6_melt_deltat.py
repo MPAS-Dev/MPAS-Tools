@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 '''
 Script to calculate deltat for the ISMIP6 melt param to best match observed melt rates.
-If 'shelfBaseSlope' is included in input file, the calculation will use the form of the
-parameterization that includes slope.  To get this field, run MALI one timestep with
-config_ismip6shelfMelt_use_slope=.true. and shelfBaseSlope in the output stream.  This will
-ensure that the slope is calculated in an identical way to how MALI would do it.
 
 Note that gamma0 is set in the script, as well as the range of deltaT to search over.
 
 The tuned basin-by-basin deltaT values are written to a file called
-'basin_and_coeff_gamma0_DeltaT_quadratic_non_local.nc'. You will want to rename it to
+'basin_and_coeff_gamma0_DeltaT_quadratic_non_local_gammaX.nc'. You will want to rename it to
 avoid clobbering it if the script is rerun.  In addition to saving deltaT, the file also
 include the basin info and gamma0 so it can dropped directly into a streams file to run with.
 
@@ -51,9 +47,10 @@ dTs = np.arange(-1.5, 2.0, 0.25)  # MeanAnt
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser(description=__doc__)
-parser.add_option("-g", dest="fileName", help="input filename that includes ice geometry information. If shelfBaseSlope is included in this file, the script will assume the form of the melt parameterization that includes slope", metavar="FILENAME")
+parser.add_option("-g", dest="fileName", help="input filename that includes ice geometry information.", metavar="FILENAME")
 parser.add_option("-n", dest="fileRegionNames", help="region name filename.", metavar="FILENAME")
 parser.add_option("-o", dest="fcgFileName", help="ocean forcing filename", metavar="FILENAME")
+parser.add_option("-s", "--slope", dest="use_slope", action="store_true", default=False, help="whether to include a slope factor in the melt equation.  If specified, shelfBaseSlope must be in the input file. To get this field, run MALI one timestep with config_ismip6shelfMelt_use_slope=.true. and shelfBaseSlope in the output stream.  This will ensure that the slope is calculated in an identical way to how MALI would do it.")
 options, args = parser.parse_args()
 
 ISMIP6basinInfo = {
@@ -114,7 +111,7 @@ nCells = len(f.dimensions['nCells'])
 areaCell = f.variables['areaCell'][:]
 xCell = f.variables['xCell'][:]
 yCell = f.variables['yCell'][:]
-if 'shelfBaseSlope' in f.variables:
+if options.use_slope:
     print('USING SLOPE')
     slope = f.variables['shelfBaseSlope'][1,:]
     ind = np.nonzero(floatMask==1)[0]
