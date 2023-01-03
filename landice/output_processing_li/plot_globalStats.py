@@ -124,6 +124,8 @@ def plotStat(fname):
 
     f = Dataset(fname,'r')
     yr = f.variables['daysSinceStart'][:]/365.0
+    yr = yr-yr[0]
+    dt = f.variables['deltat'][:]/3.15e7
     print(yr.max())
 
     vol = f.variables['totalIceVolume'][:]

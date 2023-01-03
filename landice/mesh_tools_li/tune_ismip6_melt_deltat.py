@@ -172,7 +172,7 @@ for reg in range(nRegions):
     print(f"{ISMIP6basinInfo[rNamesOrig[reg]]['name']}: {bestdT[reg]}")
     bestdTCells[regionCellMasks[:,reg]==1] = bestdT[reg]
     regionCells[regionCellMasks[:,reg]==1] = reg+1
-np.save(f'standard_bestdTs_{gamma0}.npy', bestdT)
+#np.save(f'standard_bestdTs_{gamma0}.npy', bestdT)
 
 nrow=4
 ncol=4
@@ -216,13 +216,13 @@ for reg in range(nRegions):
    ind = np.nonzero(floatMask * regionCellMasks[:,reg])[0]
    plt.plot(TFs, coef * gamma0 * (TFs**2 + 2.0*bestdT[reg]*TFs + bestdT[reg]**2) * areaCell[ind].sum() * rhoi / 1.0e12, 'm:')
    
-   np.save(f'standard_allMelts_{gamma0}_{reg}.npy', allMelts)
+   #np.save(f'standard_allMelts_{gamma0}_{reg}.npy', allMelts)
 fig5.tight_layout()
-np.save(f'meanTF.npy', meanTF)
+#np.save(f'meanTF.npy', meanTF)
 
 
 # write new file
-foutName='basin_and_coeff_gamma0_DeltaT_quadratic_non_local.nc'
+foutName=f'basin_and_coeff_DeltaT_quadratic_non_local_gamma{int(gamma0)}.nc'
 fout = Dataset(foutName, 'w')
 fout.createDimension('nCells', nCells)
 dTOut = fout.createVariable('ismip6shelfMelt_deltaT', 'd', ('nCells',))

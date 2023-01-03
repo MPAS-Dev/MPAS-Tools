@@ -132,8 +132,10 @@ fig2, axs2 = plt.subplots(nrow, ncol, figsize=(13, 11), num=2)
 fig2.suptitle(f'Grounded mass change\n{runinfo}', fontsize=9)
 for reg in range(nRegions):
    plt.sca(axs2.flatten()[reg])
-   plt.xlabel('Year')
-   plt.ylabel('volume change ({})'.format(massUnit))
+   if reg // nrow == nrow-1:
+      plt.xlabel('Year')
+   if reg % ncol == 0:
+      plt.ylabel('volume change ({})'.format(massUnit))
    #plt.xticks(np.arange(22)*xtickSpacing)
    plt.grid()
    axs2.flatten()[reg].set_title(rNames[reg])
@@ -233,6 +235,7 @@ def plotStat(fname, sty, addToLegend=False):
     f = Dataset(fname,'r')
     yr = f.variables['daysSinceStart'][:]/365.0
     dt = f.variables['deltat'][:]/(3600.0*24.0*365.0) # in yr
+    #yr = yr-yr[0]  # uncomment to align all start dates
     dtnR = np.tile(dt.reshape(len(dt),1), (1,nRegions))  # repeated per region with dim of nt,nRegions
     nRegionsLocal = len(f.dimensions['nRegions'])
     if nRegionsLocal != nRegions:
