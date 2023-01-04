@@ -4,6 +4,15 @@
 Created on Dec 9, 2022
 
 @author: Trevor Hillebrand, Matthew Hoffman
+
+Script to plot snapshot maps of MALI output for an arbitrary number of files,
+variables, and output times. There is no requirement for all output files
+to be on the same mesh. Each output file gets its own figure, each
+variable gets its own row, and each time gets its own column. Three contours
+are automatically plotted, showing intial ice extent (black), initial
+grounding-line position (grey), and grounding-line position at the desired
+time (white).
+
 """
 import numpy as np
 from netCDF4 import Dataset
