@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Transects &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -106,14 +105,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="transects">
+  <div class="section" id="transects">
 <span id="id1"></span><h1>Transects<a class="headerlink" href="#transects" title="Permalink to this heading">¶</a></h1>
 <p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.transects</span></code> module contains functions used to define
 transects through MPAS meshes.  These transects can be used to create masks
 of the cells, edges or dual-mesh cells (in some sense “vertices”) that
 intersect the transect.  They can also be used for visualization such as
 plotting vertical cross-sections of MPAS data along the transect.</p>
-<section id="subdividing-transects">
+<div class="section" id="subdividing-transects">
 <span id="id2"></span><h2>Subdividing transects<a class="headerlink" href="#subdividing-transects" title="Permalink to this heading">¶</a></h2>
 <p>For both visualization and intersection detection, it is often useful to
 subdivide a transect into smaller segments.  This is performed with the
@@ -126,8 +125,8 @@ it is typically necessary to convert to Cartesian coordinates using
 <a class="reference internal" href="generated/mpas_tools.transects.lon_lat_to_cartesian.html#mpas_tools.transects.lon_lat_to_cartesian" title="mpas_tools.transects.lon_lat_to_cartesian"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.transects.lon_lat_to_cartesian()</span></code></a> and then back to
 longitude/latitude coordinates using
 <a class="reference internal" href="generated/mpas_tools.transects.cartesian_to_lon_lat.html#mpas_tools.transects.cartesian_to_lon_lat" title="mpas_tools.transects.cartesian_to_lon_lat"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.transects.cartesian_to_lon_lat()</span></code></a>.</p>
-</section>
-<section id="low-level-functions">
+</div>
+<div class="section" id="low-level-functions">
 <h2>Low-level functions<a class="headerlink" href="#low-level-functions" title="Permalink to this heading">¶</a></h2>
 <p>The module also shares some lower-level functions used elsewhere in the
 package.</p>
@@ -137,8 +136,8 @@ package.</p>
 determine if 2 arcs on the sphere intersect one another and
 <a class="reference internal" href="generated/mpas_tools.transects.intersection.html#mpas_tools.transects.intersection" title="mpas_tools.transects.intersection"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.transects.intersection()</span></code></a> can be used to find the
 intersection point of 2 intersecting arcs.</p>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Making Changes to mpas_tools &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -107,14 +106,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="making-changes-to-mpas-tools">
+  <div class="section" id="making-changes-to-mpas-tools">
 <span id="dev-making-changes"></span><h1>Making Changes to mpas_tools<a class="headerlink" href="#making-changes-to-mpas-tools" title="Permalink to this heading">¶</a></h1>
 <p>New python functions and modules (<code class="docutils literal notranslate"><span class="pre">.py</span></code> files) can be added within the
 <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools</span></code>.  These will automatically be part of the
 <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> package.  New directories with python modules should include an
 <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file (which can be empty) to indicate that they are also part of
 the package.</p>
-<section id="entry-points">
+<div class="section" id="entry-points">
 <h2>Entry Points<a class="headerlink" href="#entry-points" title="Permalink to this heading">¶</a></h2>
 <p>The best way to add new “scripts” to the package is to add a function without
 any arguments somewhere in the package, and then to add it as an “entry point”
@@ -154,8 +153,8 @@ in the module <code class="docutils literal notranslate"><span class="pre">mpas_
 <p>As you can see, the function pointed to by the entry point can used to parse
 command-line arguments, just as a “normal” python script would do</p>
 <p>By convention, entry points do not typically include the <code class="docutils literal notranslate"><span class="pre">.py</span></code> extension.</p>
-</section>
-<section id="dependencies">
+</div>
+<div class="section" id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this heading">¶</a></h2>
 <p>If you changes introduce new dependencies, these need to be added to both
 the recipe for the conda package in <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code> and
@@ -185,8 +184,8 @@ cartopy
 ...
 </pre></div>
 </div>
-</section>
-<section id="updating-the-version">
+</div>
+<div class="section" id="updating-the-version">
 <h2>Updating the Version<a class="headerlink" href="#updating-the-version" title="Permalink to this heading">¶</a></h2>
 <p>Before a release of the package, the version of <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> needs to be
 updated in 3 places.  First, in <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/__init__.py</span></code>:</p>
@@ -215,8 +214,8 @@ needs to match:</p>
 <p>The new links won’t be valid until a new release is made and Azure Pipelines
 has generated the associated documentation.  Eventually, it should be possible
 to do this automatically but that has not yet been implemented.</p>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

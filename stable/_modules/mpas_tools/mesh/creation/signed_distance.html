@@ -325,7 +325,7 @@
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_shapes_to_pixel_cooords</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_shapes_to_pixel_coords</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
     <span class="n">intx</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_interpx</span><span class="p">,</span> <span class="n">lon</span><span class="p">)</span>
     <span class="n">inty</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_interpy</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
     <span class="n">new_shapes</span> <span class="o">=</span> <span class="p">[]</span>

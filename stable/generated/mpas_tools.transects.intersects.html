@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.transects.intersects &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -125,7 +124,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="mpas-tools-transects-intersects">
+  <div class="section" id="mpas-tools-transects-intersects">
 <h1>mpas_tools.transects.intersects<a class="headerlink" href="#mpas-tools-transects-intersects" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.transects.intersects">
@@ -136,37 +135,26 @@ from <code class="docutils literal notranslate"><span class="pre">b1</span></cod
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>a1</strong> (<a class="reference internal" href="mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><em>mpas_tools.transects.Vector</em></a>) – Cartesian coordinates of the end points of two great circle arcs.
+<li><p><strong>a1</strong> (<a class="reference internal" href="mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><em>mpas_tools.transects.Vector</em></a>) – Cartesian coordinates of the end point of a great circle arc.
 The types of the attributes <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code> must either be
 <code class="docutils literal notranslate"><span class="pre">numpy.arrays</span></code> of identical size for all 4 vectors (in which case
 intersections are found element-wise), or scalars for
 at least one of either <code class="docutils literal notranslate"><span class="pre">a1</span></code> and <code class="docutils literal notranslate"><span class="pre">a2</span></code> or <code class="docutils literal notranslate"><span class="pre">b1</span></code> and <code class="docutils literal notranslate"><span class="pre">b2</span></code>.</p></li>
-<li><p><strong>a2</strong> (<a class="reference internal" href="mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><em>mpas_tools.transects.Vector</em></a>) – Cartesian coordinates of the end points of two great circle arcs.
-The types of the attributes <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code> must either be
-<code class="docutils literal notranslate"><span class="pre">numpy.arrays</span></code> of identical size for all 4 vectors (in which case
-intersections are found element-wise), or scalars for
-at least one of either <code class="docutils literal notranslate"><span class="pre">a1</span></code> and <code class="docutils literal notranslate"><span class="pre">a2</span></code> or <code class="docutils literal notranslate"><span class="pre">b1</span></code> and <code class="docutils literal notranslate"><span class="pre">b2</span></code>.</p></li>
-<li><p><strong>b1</strong> (<a class="reference internal" href="mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><em>mpas_tools.transects.Vector</em></a>) – Cartesian coordinates of the end points of two great circle arcs.
-The types of the attributes <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code> must either be
-<code class="docutils literal notranslate"><span class="pre">numpy.arrays</span></code> of identical size for all 4 vectors (in which case
-intersections are found element-wise), or scalars for
-at least one of either <code class="docutils literal notranslate"><span class="pre">a1</span></code> and <code class="docutils literal notranslate"><span class="pre">a2</span></code> or <code class="docutils literal notranslate"><span class="pre">b1</span></code> and <code class="docutils literal notranslate"><span class="pre">b2</span></code>.</p></li>
-<li><p><strong>b2</strong> (<a class="reference internal" href="mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><em>mpas_tools.transects.Vector</em></a>) – Cartesian coordinates of the end points of two great circle arcs.
-The types of the attributes <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code> must either be
-<code class="docutils literal notranslate"><span class="pre">numpy.arrays</span></code> of identical size for all 4 vectors (in which case
-intersections are found element-wise), or scalars for
-at least one of either <code class="docutils literal notranslate"><span class="pre">a1</span></code> and <code class="docutils literal notranslate"><span class="pre">a2</span></code> or <code class="docutils literal notranslate"><span class="pre">b1</span></code> and <code class="docutils literal notranslate"><span class="pre">b2</span></code>.</p></li>
+<li><p><strong>a2</strong> (<a class="reference internal" href="mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><em>mpas_tools.transects.Vector</em></a>) – Cartesian coordinates of the other end point of a great circle arc.</p></li>
+<li><p><strong>b1</strong> (<a class="reference internal" href="mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><em>mpas_tools.transects.Vector</em></a>) – Cartesian coordinates of an end point of a second great circle arc.</p></li>
+<li><p><strong>b2</strong> (<a class="reference internal" href="mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><em>mpas_tools.transects.Vector</em></a>) – Cartesian coordinates of the other end point of the second great circle
+arc.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>intersect</strong> (<em>numpy.array</em>) – A boolean array of the same size as <code class="docutils literal notranslate"><span class="pre">a1</span></code> and <code class="docutils literal notranslate"><span class="pre">a2</span></code> or <code class="docutils literal notranslate"><span class="pre">b1</span></code> and
+<dd class="field-even"><p><strong>intersect</strong> (<em>numpy.ndarray</em>) – A boolean array of the same size as <code class="docutils literal notranslate"><span class="pre">a1</span></code> and <code class="docutils literal notranslate"><span class="pre">a2</span></code> or <code class="docutils literal notranslate"><span class="pre">b1</span></code> and
 <code class="docutils literal notranslate"><span class="pre">b2</span></code>, whichever is greater, indicating if the particular pair of arcs
 intersects</p>
 </dd>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>

@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.viz.transects.find_transect_cells_and_weights &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -122,7 +121,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="mpas-tools-viz-transects-find-transect-cells-and-weights">
+  <div class="section" id="mpas-tools-viz-transects-find-transect-cells-and-weights">
 <h1>mpas_tools.viz.transects.find_transect_cells_and_weights<a class="headerlink" href="#mpas-tools-viz-transects-find-transect-cells-and-weights" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.viz.transects.find_transect_cells_and_weights">
@@ -132,10 +131,10 @@ that make up MPAS cells.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lonTransect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.12.1.dev0)"><em>xarray.DataArray</em></a>) – The latitude and longitude of segments making up the transect</p></li>
-<li><p><strong>latTransect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.12.1.dev0)"><em>xarray.DataArray</em></a>) – The latitude and longitude of segments making up the transect</p></li>
+<li><p><strong>lonTransect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.12.1.dev0)"><em>xarray.DataArray</em></a>) – The longitude of segments making up the transect</p></li>
+<li><p><strong>latTransect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2022.12.1.dev0)"><em>xarray.DataArray</em></a>) – The latitude of segments making up the transect</p></li>
 <li><p><strong>dsTris</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.12.1.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines triangles, the results of calling
-<code class="docutils literal notranslate"><span class="pre">mesh_to_triangles()</span></code></p></li>
+<a href="#id1"><span class="problematic" id="id2">:py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`</span></a></p></li>
 <li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2022.12.1.dev0)"><em>xarray.Dataset</em></a>) – A data set with the full MPAS mesh.</p></li>
 <li><p><strong>tree</strong> (<em>scipy.spatial.cKDTree</em>) – A tree of edge centers from triangles making up an MPAS mesh, the return
 value from <code class="docutils literal notranslate"><span class="pre">make_triangle_tree()</span></code></p></li>
@@ -189,7 +188,7 @@ found by:</p>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>

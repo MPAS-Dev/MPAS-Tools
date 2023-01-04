@@ -120,7 +120,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    dsTris : xarray.Dataset</span>
 <span class="sd">        A dataset that defines triangles, the results of calling</span>
-<span class="sd">        ``mesh_to_triangles()``</span>
+<span class="sd">        :py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -156,12 +156,15 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    lonTransect, latTransect : xarray.DataArray</span>
-<span class="sd">        The latitude and longitude of segments making up the transect</span>
+<span class="sd">    lonTransect : xarray.DataArray</span>
+<span class="sd">        The longitude of segments making up the transect</span>
+
+<span class="sd">    latTransect : xarray.DataArray</span>
+<span class="sd">        The latitude of segments making up the transect</span>
 
 <span class="sd">    dsTris : xarray.Dataset</span>
 <span class="sd">        A dataset that defines triangles, the results of calling</span>
-<span class="sd">        ``mesh_to_triangles()``</span>
+<span class="sd">        :py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`</span>
 
 <span class="sd">    dsMesh : xarray.Dataset</span>
 <span class="sd">        A data set with the full MPAS mesh.</span>
@@ -294,7 +297,7 @@
                         <span class="n">zNode</span><span class="p">[</span><span class="n">n1IndicesCand</span><span class="p">])</span>
 
         <span class="n">intersect</span> <span class="o">=</span> <span class="n">intersects</span><span class="p">(</span><span class="n">n0Cand</span><span class="p">,</span> <span class="n">n1Cand</span><span class="p">,</span> <span class="n">transectv0</span><span class="p">,</span>
-                                <span class="n">transectv1</span><span class="p">)</span>
+                               <span class="n">transectv1</span><span class="p">)</span>
 
         <span class="n">n0Inter</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">n0Cand</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">intersect</span><span class="p">],</span>
                          <span class="n">n0Cand</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">intersect</span><span class="p">],</span>
@@ -313,12 +316,12 @@
                                <span class="n">earth_radius</span><span class="o">*</span><span class="n">intersections</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
 
         <span class="n">angularDistance</span> <span class="o">=</span> <span class="n">angular_distance</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="n">transectv0</span><span class="p">,</span>
-                                            <span class="n">second</span><span class="o">=</span><span class="n">intersections</span><span class="p">)</span>
+                                           <span class="n">second</span><span class="o">=</span><span class="n">intersections</span><span class="p">)</span>
 
         <span class="n">dNodeLocal</span> <span class="o">=</span> <span class="n">dStart</span> <span class="o">+</span> <span class="n">earth_radius</span> <span class="o">*</span> <span class="n">angularDistance</span>
 
         <span class="n">dStart</span> <span class="o">+=</span> <span class="n">earth_radius</span><span class="o">*</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="n">transectv0</span><span class="p">,</span>
-                                                 <span class="n">second</span><span class="o">=</span><span class="n">transectv1</span><span class="p">)</span>
+                                                <span class="n">second</span><span class="o">=</span><span class="n">transectv1</span><span class="p">)</span>
 
         <span class="n">node0Inter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">n0IndicesInter</span><span class="p">,</span> <span class="n">nNodes</span><span class="p">)</span>
         <span class="n">node1Inter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">n1IndicesInter</span><span class="p">,</span> <span class="n">nNodes</span><span class="p">)</span>
@@ -439,12 +442,15 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    xTransect, yTransect : xarray.DataArray</span>
-<span class="sd">        The x and y points defining segments making up the transect</span>
+<span class="sd">    xTransect : xarray.DataArray</span>
+<span class="sd">        The x points defining segments making up the transect</span>
+
+<span class="sd">    yTransect : xarray.DataArray</span>
+<span class="sd">        The y points defining segments making up the transect</span>
 
 <span class="sd">    dsTris : xarray.Dataset</span>
 <span class="sd">        A dataset that defines triangles, the results of calling</span>
-<span class="sd">        ``mesh_to_triangles()``</span>
+<span class="sd">        `:py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`</span>
 
 <span class="sd">    dsMesh : xarray.Dataset</span>
 <span class="sd">        A data set with the full MPAS mesh.</span>
@@ -580,24 +586,23 @@
 
             <span class="n">edge</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">([</span><span class="n">node0</span><span class="p">,</span> <span class="n">node1</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">segment</span><span class="o">.</span><span class="n">intersects</span><span class="p">(</span><span class="n">edge</span><span class="p">):</span>
-                <span class="n">intersection</span> <span class="o">=</span> <span class="n">segment</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
+                <span class="n">point</span> <span class="o">=</span> <span class="n">segment</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">edge</span><span class="p">)</span>
                 <span class="n">intersectingNodes</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">node0</span><span class="p">,</span> <span class="n">node1</span><span class="p">,</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">,</span> <span class="n">edge</span><span class="p">))</span>
 
-                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intersection</span><span class="p">,</span> <span class="n">LineString</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">LineString</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;A triangle edge exactly coincides with a &#39;</span>
                                      <span class="s1">&#39;transect segment and I can</span><span class="se">\&#39;</span><span class="s1">t handle &#39;</span>
                                      <span class="s1">&#39;that case.  Try moving the transect a &#39;</span>
                                      <span class="s1">&#39;tiny bit.&#39;</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">intersection</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
-                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unexpected intersection type </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-                        <span class="n">intersection</span><span class="p">))</span>
+                <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">Point</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unexpected intersection type </span><span class="si">{</span><span class="n">point</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
-                <span class="n">xIntersection</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intersection</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
-                <span class="n">yIntersection</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">intersection</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+                <span class="n">xIntersection</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+                <span class="n">yIntersection</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
 
-                <span class="n">startToIntersection</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">([</span><span class="n">startPoint</span><span class="p">,</span> <span class="n">intersection</span><span class="p">])</span>
+                <span class="n">startToIntersection</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">([</span><span class="n">startPoint</span><span class="p">,</span> <span class="n">point</span><span class="p">])</span>
 
-                <span class="n">weight</span> <span class="o">=</span> <span class="p">(</span><span class="n">LineString</span><span class="p">([</span><span class="n">intersection</span><span class="p">,</span> <span class="n">node1</span><span class="p">])</span><span class="o">.</span><span class="n">length</span> <span class="o">/</span>
+                <span class="n">weight</span> <span class="o">=</span> <span class="p">(</span><span class="n">LineString</span><span class="p">([</span><span class="n">point</span><span class="p">,</span> <span class="n">node1</span><span class="p">])</span><span class="o">.</span><span class="n">length</span> <span class="o">/</span>
                           <span class="n">LineString</span><span class="p">([</span><span class="n">node0</span><span class="p">,</span> <span class="n">node1</span><span class="p">])</span><span class="o">.</span><span class="n">length</span><span class="p">)</span>
 
                 <span class="n">nodeWeights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
@@ -764,7 +769,7 @@
     <span class="n">indices</span> <span class="o">=</span> <span class="n">sortIndices</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
 
     <span class="n">dNode</span> <span class="o">=</span> <span class="n">dNode</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
-    <span class="n">xOut</span><span class="o">=</span> <span class="n">xOut</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
+    <span class="n">xOut</span> <span class="o">=</span> <span class="n">xOut</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
     <span class="n">yOut</span> <span class="o">=</span> <span class="n">yOut</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
     <span class="n">zOut</span> <span class="o">=</span> <span class="n">zOut</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span>
 

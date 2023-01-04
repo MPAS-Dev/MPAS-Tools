@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.transects.subdivide_planar &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -125,7 +124,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="mpas-tools-transects-subdivide-planar">
+  <div class="section" id="mpas-tools-transects-subdivide-planar">
 <h1>mpas_tools.transects.subdivide_planar<a class="headerlink" href="#mpas-tools-transects-subdivide-planar" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.transects.subdivide_planar">
@@ -137,27 +136,28 @@ approximately matches the requested resolution</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>numpy.array</em>) – The planar coordinates of a transect, where the number of segments
-is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code>.  <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are of the same length.</p></li>
-<li><p><strong>y</strong> (<em>numpy.array</em>) – The planar coordinates of a transect, where the number of segments
-is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code>.  <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are of the same length.</p></li>
+<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The planar x coordinate of a transect, where the number of segments
+is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code></p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The planar y coordinates of the transect, the same length as <code class="docutils literal notranslate"><span class="pre">x</span></code></p></li>
 <li><p><strong>maxRes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – The maximum allowed spacing in m after subdivision</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
-<li><p><strong>xOut, yOut</strong> (<em>numpy.array</em>) – The transect subdivided into segments with segment length at most
-<code class="docutils literal notranslate"><span class="pre">maxRes</span></code>.  All the points in <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> are guaranteed to be
+<li><p><strong>xOut</strong> (<em>numpy.ndarray</em>) – The x coordinate of the transect, subdivided into segments with length
+at most <code class="docutils literal notranslate"><span class="pre">maxRes</span></code>.  All the points in <code class="docutils literal notranslate"><span class="pre">x</span></code> are guaranteed to be
 included.</p></li>
-<li><p><strong>dIn</strong> (<em>numpy.array</em>) – The distance along the transect before subdivision</p></li>
-<li><p><strong>dOut</strong> (<em>numpy.array</em>) – The distance along the transect after subdivision</p></li>
+<li><p><strong>yOut</strong> (<em>numpy.ndarray</em>) – The y coordinate of the transect.  All the points in <code class="docutils literal notranslate"><span class="pre">y</span></code> are
+guaranteed to be included.</p></li>
+<li><p><strong>dIn</strong> (<em>numpy.ndarray</em>) – The distance along the transect before subdivision</p></li>
+<li><p><strong>dOut</strong> (<em>numpy.ndarray</em>) – The distance along the transect after subdivision</p></li>
 </ul>
 </p>
 </dd>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>

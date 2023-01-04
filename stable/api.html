@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>API reference &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -250,14 +249,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="api-reference">
+  <div class="section" id="api-reference">
 <h1>API reference<a class="headerlink" href="#api-reference" title="Permalink to this heading">¶</a></h1>
 <p>This page provides an auto-generated summary of the MPAS mesh-tools API. For
 more details and examples, refer to the relevant chapters in the main part of
 the documentation.</p>
-<section id="mpas-mesh-tools">
+<div class="section" id="mpas-mesh-tools">
 <h2>MPAS mesh tools<a class="headerlink" href="#mpas-mesh-tools" title="Permalink to this heading">¶</a></h2>
-<section id="mesh-creation">
+<div class="section" id="mesh-creation">
 <h3>Mesh creation<a class="headerlink" href="#mesh-creation" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -326,8 +325,8 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="mesh-conversion">
+</div>
+<div class="section" id="mesh-conversion">
 <h3>Mesh conversion<a class="headerlink" href="#mesh-conversion" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -416,8 +415,8 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="config">
+</div>
+<div class="section" id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -475,8 +474,8 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="i-o">
+</div>
+<div class="section" id="i-o">
 <h3>I/O<a class="headerlink" href="#i-o" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -489,8 +488,8 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="parallelism">
+</div>
+<div class="section" id="parallelism">
 <h3>Parallelism<a class="headerlink" href="#parallelism" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -503,8 +502,8 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="interpolation">
+</div>
+<div class="section" id="interpolation">
 <h3>Interpolation<a class="headerlink" href="#interpolation" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -517,8 +516,8 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="cime-constants">
+</div>
+<div class="section" id="cime-constants">
 <h3>CIME constants<a class="headerlink" href="#cime-constants" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -531,9 +530,9 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-</section>
-<section id="ocean-tools">
+</div>
+</div>
+<div class="section" id="ocean-tools">
 <h2>Ocean Tools<a class="headerlink" href="#ocean-tools" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -681,7 +680,7 @@ the documentation.</p>
 </colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.transects.find_transect_levels_and_weights.html#mpas_tools.ocean.transects.find_transect_levels_and_weights" title="mpas_tools.ocean.transects.find_transect_levels_and_weights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_transect_levels_and_weights</span></code></a>(dsTransect, ...)</p></td>
-<td><p>Construct a vertical coordinate for a transect produced by <code class="docutils literal notranslate"><span class="pre">mpas_tools.viz.transects.find_transect_cells_and_weights()</span></code>, then break each resulting quadrilateral into 2 triangles that can later be visualized with functions like <code class="docutils literal notranslate"><span class="pre">tripcolor</span></code> and <code class="docutils literal notranslate"><span class="pre">tricontourf</span></code>.</p></td>
+<td><p>Construct a vertical coordinate for a transect produced by <a href="#id1"><span class="problematic" id="id2">:py:fun:`mpas_tools.viz.transects.find_transect_cells_and_weights()`</span></a>, then break each resulting quadrilateral into 2 triangles that can later be visualized with functions like <code class="docutils literal notranslate"><span class="pre">tripcolor</span></code> and <code class="docutils literal notranslate"><span class="pre">tricontourf</span></code>. Also, compute interpolation weights such that observations at points on the original transect and with vertical coordinate <code class="docutils literal notranslate"><span class="pre">transectZ</span></code> can be bilinearly interpolated to the nodes of the transect.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangles.html#mpas_tools.ocean.transects.interp_mpas_to_transect_triangles" title="mpas_tools.ocean.transects.interp_mpas_to_transect_triangles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interp_mpas_to_transect_triangles</span></code></a>(...)</p></td>
 <td><p>Interpolate a 3D (<code class="docutils literal notranslate"><span class="pre">nCells</span></code> by <code class="docutils literal notranslate"><span class="pre">nVertLevels</span></code>) MPAS-Ocean DataArray to transect nodes with constant values in each MPAS cell</p></td>
@@ -697,8 +696,8 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="logging">
+</div>
+<div class="section" id="logging">
 <h2>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -714,8 +713,8 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="transects">
+</div>
+<div class="section" id="transects">
 <h2>Transects<a class="headerlink" href="#transects" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -745,15 +744,15 @@ the documentation.</p>
 <td><p>Based on <a class="reference external" href="https://stackoverflow.com/a/26669130/7728169">https://stackoverflow.com/a/26669130/7728169</a> Determine if the great circle arc from <code class="docutils literal notranslate"><span class="pre">a1</span></code> to <code class="docutils literal notranslate"><span class="pre">a2</span></code> intersects that from <code class="docutils literal notranslate"><span class="pre">b1</span></code> to <code class="docutils literal notranslate"><span class="pre">b2</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.transects.intersection.html#mpas_tools.transects.intersection" title="mpas_tools.transects.intersection"><code class="xref py py-obj docutils literal notranslate"><span class="pre">intersection</span></code></a>(a1, a2, b1, b2)</p></td>
-<td><p>Based on <a class="reference external" href="https://stackoverflow.com/a/26669130/7728169">https://stackoverflow.com/a/26669130/7728169</a> Find the intersection point between great circle arc from <code class="docutils literal notranslate"><span class="pre">a1</span></code> to <code class="docutils literal notranslate"><span class="pre">a2</span></code> and from <code class="docutils literal notranslate"><span class="pre">b1</span></code> to <code class="docutils literal notranslate"><span class="pre">b2</span></code>.</p></td>
+<td><p>Based on <a class="reference external" href="https://stackoverflow.com/a/26669130/7728169">https://stackoverflow.com/a/26669130/7728169</a> Find the intersection point as a unit vector between great circle arc from <code class="docutils literal notranslate"><span class="pre">a1</span></code> to <code class="docutils literal notranslate"><span class="pre">a2</span></code> and from <code class="docutils literal notranslate"><span class="pre">b1</span></code> to <code class="docutils literal notranslate"><span class="pre">b2</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Vector</span></code></a>(x, y, z)</p></td>
 <td><p>A class for representing Cartesian vectors with <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code> components that are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">numpy.array</span></code> objects of identical size.</p></td>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="visualization">
+</div>
+<div class="section" id="visualization">
 <h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -805,8 +804,8 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-<section id="tests">
+</div>
+<div class="section" id="tests">
 <h2>Tests<a class="headerlink" href="#tests" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
 <colgroup>
@@ -819,8 +818,8 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

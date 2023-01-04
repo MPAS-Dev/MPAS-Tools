@@ -108,18 +108,18 @@
                                      <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">zTransect</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Construct a vertical coordinate for a transect produced by</span>
-<span class="sd">    ``mpas_tools.viz.transects.find_transect_cells_and_weights()``, then break</span>
-<span class="sd">    each resulting quadrilateral into 2 triangles that can later be visualized</span>
-<span class="sd">    with functions like ``tripcolor`` and ``tricontourf``.  Also, compute</span>
-<span class="sd">    interpolation weights such that observations at points on the original</span>
-<span class="sd">    transect and with vertical coordinate ``transectZ`` can be bilinearly</span>
-<span class="sd">    interpolated to the nodes of the transect.</span>
+<span class="sd">    :py:fun:`mpas_tools.viz.transects.find_transect_cells_and_weights()`, then</span>
+<span class="sd">    break each resulting quadrilateral into 2 triangles that can later be</span>
+<span class="sd">    visualized with functions like ``tripcolor`` and ``tricontourf``.  Also,</span>
+<span class="sd">    compute interpolation weights such that observations at points on the</span>
+<span class="sd">    original transect and with vertical coordinate ``transectZ`` can be</span>
+<span class="sd">    bilinearly interpolated to the nodes of the transect.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    dsTransect : xarray.Dataset</span>
 <span class="sd">        A dataset that defines nodes of the transect, the results of calling</span>
-<span class="sd">        ``find_transect_cells_and_weights()``</span>
+<span class="sd">        :py:fun:`mpas_tools.viz.transects.find_transect_cells_and_weights()`</span>
 
 <span class="sd">    layerThickness : xarray.DataArray</span>
 <span class="sd">        layer thicknesses on the MPAS mesh</span>
@@ -133,7 +133,7 @@
 <span class="sd">    zTransect : xarray.DataArray, optional</span>
 <span class="sd">        the z coordinate of the transect (1D or 2D).  If 2D, it must have the</span>
 <span class="sd">        same along-transect dimension as the lon and lat passed to</span>
-<span class="sd">        ``find_transect_cells_and_weights()``</span>
+<span class="sd">        :py:fun:`mpas_tools.viz.transects.find_transect_cells_and_weights()`</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>

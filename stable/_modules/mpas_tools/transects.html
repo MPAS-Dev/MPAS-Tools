@@ -114,9 +114,13 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    x, y, z : numpy.array</span>
-<span class="sd">        The Cartesian coordinates of a transect, where the number of segments</span>
+<span class="sd">    x : numpy.ndarray</span>
+<span class="sd">        The Cartesian x coordinate of a transect, where the number of segments</span>
 <span class="sd">        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length.</span>
+<span class="sd">    y : numpy.ndarray</span>
+<span class="sd">        The Cartesian y coordinate of the transect</span>
+<span class="sd">    z : numpy.ndarray</span>
+<span class="sd">        The Cartesian z coordinate of the transect</span>
 
 <span class="sd">    maxRes : float</span>
 <span class="sd">        The maximum allowed spacing in m after subdivision</span>
@@ -126,15 +130,21 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    xOut, yOut, zOut : numpy.array</span>
-<span class="sd">        The transect subdivided into segments with segment length at most</span>
-<span class="sd">        ``maxRes``.  All the points in ``x``, ``y`` and ``z`` are guaranteed</span>
-<span class="sd">        to be included.</span>
+<span class="sd">    xOut : numpy.ndarray</span>
+<span class="sd">        The Cartesian x values of the transect subdivided into segments with</span>
+<span class="sd">        segment length at most ``maxRes``.  All the points in ``x``, ``y`` and</span>
+<span class="sd">        ``z`` are guaranteed to be included.</span>
 
-<span class="sd">    dIn : numpy.array</span>
+<span class="sd">    yOut : numpy.ndarray</span>
+<span class="sd">        The Cartesian y values of the subdivided transect</span>
+
+<span class="sd">    zOut : numpy.ndarray</span>
+<span class="sd">        The Cartesian y values of the subdivided transect</span>
+
+<span class="sd">    dIn : numpy.ndarray</span>
 <span class="sd">        The distance along the transect before subdivision</span>
 
-<span class="sd">    dOut : numpy.array</span>
+<span class="sd">    dOut : numpy.ndarray</span>
 <span class="sd">        The distance along the transect after subdivision</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -187,15 +197,19 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    x, y, z : numpy.array</span>
-<span class="sd">        Cartesian coordinates along a transect</span>
+<span class="sd">    x : numpy.ndarray</span>
+<span class="sd">        The Cartesian x coordinate of a transect</span>
+<span class="sd">    y : numpy.ndarray</span>
+<span class="sd">        The Cartesian y coordinate of the transect</span>
+<span class="sd">    z : numpy.ndarray</span>
+<span class="sd">        The Cartesian z coordinate of the transect</span>
 
 <span class="sd">    earth_radius : float</span>
 <span class="sd">        The radius of the earth</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    distance : numpy.array</span>
+<span class="sd">    distance : numpy.ndarray</span>
 <span class="sd">        The distance along the transect</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">distance</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -219,24 +233,31 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    x, y: numpy.array</span>
-<span class="sd">        The planar coordinates of a transect, where the number of segments</span>
-<span class="sd">        is ``len(x) - 1``.  ``x`` and ``y`` are of the same length.</span>
+<span class="sd">    x : numpy.ndarray</span>
+<span class="sd">        The planar x coordinate of a transect, where the number of segments</span>
+<span class="sd">        is ``len(x) - 1``</span>
+
+<span class="sd">    y : numpy.ndarray</span>
+<span class="sd">        The planar y coordinates of the transect, the same length as ``x``</span>
 
 <span class="sd">    maxRes : float</span>
 <span class="sd">        The maximum allowed spacing in m after subdivision</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    xOut, yOut : numpy.array</span>
-<span class="sd">        The transect subdivided into segments with segment length at most</span>
-<span class="sd">        ``maxRes``.  All the points in ``x`` and ``y`` are guaranteed to be</span>
+<span class="sd">    xOut : numpy.ndarray</span>
+<span class="sd">        The x coordinate of the transect, subdivided into segments with length</span>
+<span class="sd">        at most ``maxRes``.  All the points in ``x`` are guaranteed to be</span>
 <span class="sd">        included.</span>
 
-<span class="sd">    dIn : numpy.array</span>
+<span class="sd">    yOut : numpy.ndarray</span>
+<span class="sd">        The y coordinate of the transect.  All the points in ``y`` are</span>
+<span class="sd">        guaranteed to be included.</span>
+
+<span class="sd">    dIn : numpy.ndarray</span>
 <span class="sd">        The distance along the transect before subdivision</span>
 
-<span class="sd">    dOut : numpy.array</span>
+<span class="sd">    dOut : numpy.ndarray</span>
 <span class="sd">        The distance along the transect after subdivision</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -301,19 +322,28 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    x, y, z : numpy.array, optional</span>
-<span class="sd">        The Cartsian coordinates of a transect, where the number of segments</span>
+<span class="sd">    x : numpy.ndarray, optional</span>
+<span class="sd">        The Cartesian x coordinate of a transect, where the number of segments</span>
 <span class="sd">        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length and</span>
 <span class="sd">        all must be present if ``first`` and ``second`` are not provided.</span>
 
-<span class="sd">    first, second : Vector</span>
-<span class="sd">        The start and end points of each segment of the transect, where the</span>
-<span class="sd">        ``x``, ``y``, and ``z`` attributes of each vector are ``numpy.array``</span>
+<span class="sd">    y : numpy.ndarray, optional</span>
+<span class="sd">        The Cartesian y coordinate of the transect</span>
+
+<span class="sd">    z : numpy.ndarray, optional</span>
+<span class="sd">        The Cartesian z coordinate of the transect</span>
+
+<span class="sd">    first : mpas_tools.transect.Vector, optional</span>
+<span class="sd">        The start points of each segment of the transect, where the</span>
+<span class="sd">        ``x``, ``y``, and ``z`` attributes of each vector are numpy.ndarray</span>
 <span class="sd">        objects.</span>
+
+<span class="sd">    second : mpas_tools.transect.Vector, optional</span>
+<span class="sd">        The end points of each segment of the transect</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    angularDistance : numpy.array</span>
+<span class="sd">    angularDistance : numpy.ndarray</span>
 <span class="sd">        The angular distance (in radians) between segments of the transect.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">second</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -334,16 +364,26 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    a1, a2, b1, b2 : mpas_tools.transects.Vector</span>
-<span class="sd">        Cartesian coordinates of the end points of two great circle arcs.</span>
+<span class="sd">    a1 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the end point of a great circle arc.</span>
 <span class="sd">        The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
 <span class="sd">        ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
 <span class="sd">        intersections are found element-wise), or scalars for</span>
 <span class="sd">        at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.</span>
 
+<span class="sd">    a2 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the other end point of a great circle arc.</span>
+
+<span class="sd">    b1 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of an end point of a second great circle arc.</span>
+
+<span class="sd">    b2 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the other end point of the second great circle</span>
+<span class="sd">        arc.</span>
+
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    intersect : numpy.array</span>
+<span class="sd">    intersect : numpy.ndarray</span>
 <span class="sd">        A boolean array of the same size as ``a1`` and ``a2`` or ``b1`` and</span>
 <span class="sd">        ``b2``, whichever is greater, indicating if the particular pair of arcs</span>
 <span class="sd">        intersects</span>
@@ -355,19 +395,28 @@
 <div class="viewcode-block" id="intersection"><a class="viewcode-back" href="../../generated/mpas_tools.transects.intersection.html#mpas_tools.transects.intersection">[docs]</a><span class="k">def</span> <span class="nf">intersection</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Based on https://stackoverflow.com/a/26669130/7728169</span>
-<span class="sd">    Find the intersection point between great circle arc from ``a1`` to ``a2``</span>
-<span class="sd">    and from ``b1`` to ``b2``.  The arcs should have already have been found</span>
-<span class="sd">    to intersect by calling ``intersects()``</span>
+<span class="sd">    Find the intersection point as a unit vector between great circle arc from</span>
+<span class="sd">    ``a1`` to ``a2`` and from ``b1`` to ``b2``.  The arcs should have already</span>
+<span class="sd">    have been found to intersect by calling ``intersects()``</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    a1, a2, b1, b2 : mpas_tools.transects.Vector</span>
-<span class="sd">        Cartesian coordinates of the end points of two great circle arcs.</span>
+<span class="sd">    a1 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the end point of a great circle arc.</span>
 <span class="sd">        The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
 <span class="sd">        ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
 <span class="sd">        intersections are found element-wise), or scalars for</span>
-<span class="sd">        at least one of either the ``a1`` and ``a2`` or ``b1`` and ``b2``.</span>
+<span class="sd">        at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.</span>
 
+<span class="sd">    a2 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the other end point of a great circle arc.</span>
+
+<span class="sd">    b1 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of an end point of a second great circle arc.</span>
+
+<span class="sd">    b2 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the other end point of the second great circle</span>
+<span class="sd">        arc.</span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    points : mpas_tools.transects.Vector</span>
@@ -409,7 +458,7 @@
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    straddle : numpy.array</span>
+<span class="sd">    straddle : numpy.ndarray</span>
 <span class="sd">        A boolean array of the same size as the ``a``s or the ``b``s, whichever</span>
 <span class="sd">        is greater, indicating if the great circle segment determined by</span>
 <span class="sd">        (a1, a2) straddles the great circle determined by (b1, b2)</span>

@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.transects.angular_distance &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -125,7 +124,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="mpas-tools-transects-angular-distance">
+  <div class="section" id="mpas-tools-transects-angular-distance">
 <h1>mpas_tools.transects.angular_distance<a class="headerlink" href="#mpas-tools-transects-angular-distance" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.transects.angular_distance">
@@ -135,30 +134,24 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) – The Cartsian coordinates of a transect, where the number of segments
+<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a><em>, </em><em>optional</em>) – The Cartesian x coordinate of a transect, where the number of segments
 is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code>.  <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code> are of the same length and
 all must be present if <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">second</span></code> are not provided.</p></li>
-<li><p><strong>y</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) – The Cartsian coordinates of a transect, where the number of segments
-is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code>.  <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code> are of the same length and
-all must be present if <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">second</span></code> are not provided.</p></li>
-<li><p><strong>z</strong> (<em>numpy.array</em><em>, </em><em>optional</em>) – The Cartsian coordinates of a transect, where the number of segments
-is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code>.  <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code> are of the same length and
-all must be present if <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">second</span></code> are not provided.</p></li>
-<li><p><strong>first</strong> (<a class="reference internal" href="mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><em>Vector</em></a>) – The start and end points of each segment of the transect, where the
-<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code> attributes of each vector are <code class="docutils literal notranslate"><span class="pre">numpy.array</span></code>
+<li><p><strong>y</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a><em>, </em><em>optional</em>) – The Cartesian y coordinate of the transect</p></li>
+<li><p><strong>z</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a><em>, </em><em>optional</em>) – The Cartesian z coordinate of the transect</p></li>
+<li><p><strong>first</strong> (<em>mpas_tools.transect.Vector</em><em>, </em><em>optional</em>) – The start points of each segment of the transect, where the
+<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code> attributes of each vector are numpy.ndarray
 objects.</p></li>
-<li><p><strong>second</strong> (<a class="reference internal" href="mpas_tools.transects.Vector.html#mpas_tools.transects.Vector" title="mpas_tools.transects.Vector"><em>Vector</em></a>) – The start and end points of each segment of the transect, where the
-<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code> attributes of each vector are <code class="docutils literal notranslate"><span class="pre">numpy.array</span></code>
-objects.</p></li>
+<li><p><strong>second</strong> (<em>mpas_tools.transect.Vector</em><em>, </em><em>optional</em>) – The end points of each segment of the transect</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>angularDistance</strong> (<em>numpy.array</em>) – The angular distance (in radians) between segments of the transect.</p>
+<dd class="field-even"><p><strong>angularDistance</strong> (<em>numpy.ndarray</em>) – The angular distance (in radians) between segments of the transect.</p>
 </dd>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>
