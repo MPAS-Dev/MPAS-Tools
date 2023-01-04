@@ -72,6 +72,8 @@ for r in range(nRegions):
 # and regional climate modelling. Nature Geosci 1, 106-110 (2008). https://doi.org/10.1038/ngeo102
 # Table 1: Mass balance of Antarctica in gigatonnes (10^12 kg) per year by sector for the year 2000
 # https://www.nature.com/articles/ngeo102/tables/1
+# and
+# Rignot, E., S. Jacobs, J. Mouginot, and B. Scheuchl. 2013. Ice-Shelf Melting Around Antarctica. Science 341 (6143): 266-70. https://doi.org/10.1126/science.1235798.
 # Note: May want to switch to input+, net+
 # Note: Some ISMIP6 basins combine multiple Rignot basins.  May want to separate if we update our regions.
 ISMIP6basinInfo = {

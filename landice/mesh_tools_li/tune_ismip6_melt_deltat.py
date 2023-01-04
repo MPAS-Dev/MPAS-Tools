@@ -7,7 +7,7 @@ Note that gamma0 is set in the script, as well as the range of deltaT to search 
 The tuned basin-by-basin deltaT values are written to a file called
 'basin_and_coeff_gamma0_DeltaT_quadratic_non_local_gammaX.nc'. You will want to rename it to
 avoid clobbering it if the script is rerun.  In addition to saving deltaT, the file also
-include the basin info and gamma0 so it can dropped directly into a streams file to run with.
+includes the basin info and gamma0 so it can dropped directly into a streams file to run with.
 
 For high res meshes, there may be efficiency gains that can be implemented, or the code may
 need to move to Fortran.
@@ -53,6 +53,14 @@ parser.add_option("-o", dest="fcgFileName", help="ocean forcing filename", metav
 parser.add_option("-s", "--slope", dest="use_slope", action="store_true", default=False, help="whether to include a slope factor in the melt equation.  If specified, shelfBaseSlope must be in the input file. To get this field, run MALI one timestep with config_ismip6shelfMelt_use_slope=.true. and shelfBaseSlope in the output stream.  This will ensure that the slope is calculated in an identical way to how MALI would do it.")
 options, args = parser.parse_args()
 
+# Antarctic data from:
+# Rignot, E., Bamber, J., van den Broeke, M. et al. Recent Antarctic ice mass loss from radar interferometry
+# and regional climate modelling. Nature Geosci 1, 106-110 (2008). https://doi.org/10.1038/ngeo102
+# Table 1: Mass balance of Antarctica in gigatonnes (10^12 kg) per year by sector for the year 2000
+# https://www.nature.com/articles/ngeo102/tables/1
+# and
+# Rignot, E., S. Jacobs, J. Mouginot, and B. Scheuchl. 2013. Ice-Shelf Melting Around Antarctica. Science 341 (6143): 266-70. https://doi.org/10.1126/science.1235798.
+# Note: Only basin names and shelfMelt fields used in this script.
 ISMIP6basinInfo = {
         'ISMIP6BasinAAp': {'name': 'Dronning Maud Land', 'input': [60,9], 'outflow': [60,7], 'net': [0, 11], 'shelfMelt': [57.5]},
         'ISMIP6BasinApB': {'name': 'Enderby Land', 'input': [39,5], 'outflow': [40,2], 'net': [-1,5], 'shelfMelt': [24.6]},
@@ -132,7 +140,7 @@ def calcMelt(deltaT):
 
     for iCell in range(nCells):
         if floatMask[iCell] == 1:
-           # 1 -  Linear interpolation of the thermal forcing on the ice draft depth :
+           # Linear interpolation of the thermal forcing on the ice draft depth:
            TFdraft[iCell] = np.interp(lowerSurface[iCell], np.flip(zOcean), np.flip(TFocean[iCell,:])) # flip b/c z is ordered from sfc to deep but interp needs to be increasing
     meanTF = np.zeros((nRegions,))
     for reg in range(nRegions):
@@ -154,13 +162,13 @@ allMelts = np.zeros((len(dTs), nRegions))
 for i, dT in enumerate(dTs):
     print(f"Calculating with dT={dT}")
     melt, allMelts[i,:], TFdraft, meanTF = calcMelt(dT)
-    if False:
+    if False: # Generally don't want to produce a melt map for every dT, but this can be useful for debugging / special cases
        fig, axs = plt.subplots(1,1, figsize=(9,9), num=i)
        plt.scatter(xCell, yCell, s=1, c=melt, cmap='jet')
        plt.title(f'dT={dT}')
        plt.colorbar()
 
-
+# Find dT that results in Rignot et al. (2013) melt rate for each basin
 bestdTCells = np.zeros((nCells,))
 regionCells = np.zeros((nCells,), 'i')
 bestdT = np.zeros((nRegions,))
@@ -168,6 +176,8 @@ for reg in range(nRegions):
     bestdT[reg] = np.interp(ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0], allMelts[:,reg], dTs)
     print(f"{ISMIP6basinInfo[rNamesOrig[reg]]['name']}: {bestdT[reg]}")
     bestdTCells[regionCellMasks[:,reg]==1] = bestdT[reg]
+    # Also write out a region mask.
+    # Note that regionCellMasks has a separate 0/1 mask for each region, whereas the ISMIP6 region mask is a single integer field where each cell is marked with the region to which it belongs.
     regionCells[regionCellMasks[:,reg]==1] = reg+1
 #np.save(f'standard_bestdTs_{gamma0}.npy', bestdT)
 
