@@ -16,7 +16,7 @@ time (white).
 """
 import numpy as np
 from netCDF4 import Dataset
-from optparse import OptionParser
+import argparse
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 import matplotlib.gridspec as gridspec
@@ -24,33 +24,33 @@ from matplotlib.colorbar import Colorbar
 
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
-parser = OptionParser(description=__doc__)
-parser.add_option("-r", dest="runs", help="path to .nc file or dir containing output.nc file (strings separated by commas; no spaces)", default=None, metavar="FILENAME")
-parser.add_option("-t", dest="timeLevels", help="integer time levels at which to plot (int separated by commas; no spaces)", default='-1')
-parser.add_option("-v", dest="variables", help="variable(s) to plot (list separated by commas; no spaces)", default='thickness')
-parser.add_option("-l", dest="log_plot", help="Whether to plot the log10 of each variable (True or False list separated by commas; no spaces)", default=None)
-parser.add_option("-c", dest="colormaps", help="colormaps to use for plotting (list separated by commas, no spaces", default=None)
-parser.add_option("-s", dest="saveNames", help="filename for saving. If empty or None, will plot to screen instead of saving.", default=None, metavar="FILENAME")
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("-r", dest="runs", help="path to .nc file or dir containing output.nc file (strings separated by commas; no spaces)", default=None, metavar="FILENAME")
+parser.add_argument("-t", dest="timeLevels", help="integer time levels at which to plot (int separated by commas; no spaces)", default='-1')
+parser.add_argument("-v", dest="variables", help="variable(s) to plot (list separated by commas; no spaces)", default='thickness')
+parser.add_argument("-l", dest="log_plot", help="Whether to plot the log10 of each variable (True or False list separated by commas; no spaces)", default=None)
+parser.add_argument("-c", dest="colormaps", help="colormaps to use for plotting (list separated by commas, no spaces", default=None)
+parser.add_argument("-s", dest="saveNames", help="filename for saving. If empty or None, will plot to screen instead of saving.", default=None, metavar="FILENAME")
 
-options, args = parser.parse_args()
-runs = options.runs.split(',') # split run directories into list
-variables = options.variables.split(',')
-timeLevs = options.timeLevels.split(',')  # split time levels into list
+args = parser.parse_args()
+runs = args.runs.split(',') # split run directories into list
+variables = args.variables.split(',')
+timeLevs = args.timeLevels.split(',')  # split time levels into list
 # convert timeLevs to list of ints
 timeLevs = [int(i) for i in timeLevs]
 
-if options.log_plot is not None:
-    log_plot = options.log_plot.split(',')
+if args.log_plot is not None:
+    log_plot = args.log_plot.split(',')
 else:
     log_plot = [False] * len(variables)
 
-if options.colormaps is not None:
-    colormaps = options.colormaps.split(',')
+if args.colormaps is not None:
+    colormaps = args.colormaps.split(',')
 else:
     colormaps = ['viridis'] * len(variables)
 
-if options.saveNames is not None:
-    saveNames = options.saveNames.split(',')
+if args.saveNames is not None:
+    saveNames = args.saveNames.split(',')
 
 initialExtentValue = 1
 dynamicValue = 2
@@ -165,7 +165,7 @@ for ii, run in enumerate(runs):
         cbars.append(Colorbar(ax=cbar_ax, mappable=varPlot[run][variable][0], orientation='vertical',
                  label=f'{colorbar_label_prefix}{variable} (${units}$)'))
 
-    if options.saveNames is not None:
+    if args.saveNames is not None:
         figs[run].savefig(saveNames[ii], dpi=400, bbox_inches='tight')
     
     f.close()
