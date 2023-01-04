@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import argparse
 
-from seaice.mask import extend_seaice_mask
+from mpas_tools.seaice.mask import extend_seaice_mask
 
 
 if __name__ == "__main__":

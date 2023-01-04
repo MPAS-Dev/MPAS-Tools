@@ -2,6 +2,7 @@ import os
 from netCDF4 import Dataset
 import numpy as np
 import numpy.ma as ma
+import subprocess
 import hashlib
 
 from .mesh import make_mpas_scripfile_on_cells
@@ -24,12 +25,15 @@ def get_weights_filename(inputStrings):
 
 def generate_weights_file(SCRIPFilenameSrc, SCRIPFilenameDst, weightsFilename, reuseWeights):
 
-    if (not reuseWeights or not os.path.isfile(weightsFilename)):
+    if not reuseWeights or not os.path.isfile(weightsFilename):
 
-        cmd = "ESMF_RegridWeightGen --source %s --destination %s --weight %s --src_regional --dst_regional --ignore_unmapped" \
-          %(SCRIPFilenameSrc, SCRIPFilenameDst, weightsFilename)
-        print(cmd)
-        os.system(cmd)
+        args = ["ESMF_RegridWeightGen",
+                "--source", SCRIPFilenameSrc,
+                "--destination", SCRIPFilenameDst,
+                "--weight", weightsFilename,
+                "--src_regional", "--dst_regional", "--ignore_unmapped"]
+
+        subprocess.run(args, check=True)
 
 #------------------------------------------------------------------------------------
 

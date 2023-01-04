@@ -1,12 +1,11 @@
 from netCDF4 import Dataset
 import os
 import math
-import sys
 import errno
 import numpy as np
 import subprocess
 import argparse
-from shutil import which
+import shutil
 
 from .regrid import regrid_to_other_mesh
 from .mask import extend_seaice_mask
@@ -36,8 +35,11 @@ def add_cell_cull_array(filename, cullCell):
 def cull_mesh(meshToolsDir, filenameIn, filenameOut, cullCell):
 
     add_cell_cull_array(filenameIn, cullCell)
+    executable = "MpasCellCuller.x"
+    if meshToolsDir is not None:
+        executable = os.path.join(meshToolsDir, executable)
 
-    os.system("%s/MpasCellCuller.x %s %s -c" %(meshToolsDir,filenameIn,filenameOut))
+    subprocess.run([executable, filenameIn, filenameOut, "-c"], check=True)
 
 #-------------------------------------------------------------------
 
@@ -63,7 +65,7 @@ def get_cell_ids(culledFilename, originalFilename):
     originalFile = Dataset(originalFilename,"r")
     nCellsOriginal = len(originalFile.dimensions["nCells"])
 
-    cellid = np.zeros(nCellsCulled, dtype=np.int)
+    cellid = np.zeros(nCellsCulled, dtype=int)
 
     cellMapFile = open("cellMapForward.txt","r")
     cellMapLines = cellMapFile.readlines()
@@ -75,7 +77,11 @@ def get_cell_ids(culledFilename, originalFilename):
         if (iCellOriginal % 1000 == 0):
             print(iCellOriginal, " of ", nCellsOriginal)
 
-        cellMap = int(cellMapLine)
+        try:
+            cellMap = int(cellMapLine)
+        except ValueError:
+            # There are blank lines to skip
+            continue
 
         if (cellMap != -1):
 
@@ -99,7 +105,7 @@ def get_cell_ids_orig(culledFilename, originalFilename):
     lonCellOriginal = originalFile.variables["lonCell"][:]
     nCellsOriginal = len(originalFile.dimensions["nCells"])
 
-    cellid = np.zeros(nCellsCulled, dtype=np.int)
+    cellid = np.zeros(nCellsCulled, dtype=int)
 
     for iCellCulled in range(0,nCellsCulled):
 
@@ -118,16 +124,26 @@ def get_cell_ids_orig(culledFilename, originalFilename):
 
 #-------------------------------------------------------------------
 
-def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLocation, outputPrefix, plotting, metis, cullEquatorialRegion):
+def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcsArray,
+                              mpasCullerLocation, outputPrefix, plotting,
+                              metis, cullEquatorialRegion):
 
     # arguments
-    if (mpasCullerLocation == None):
-        meshToolsDir = os.path.dirname(os.path.realpath(__file__)) + "/../mesh_conversion_tools/"
-    else:
-        meshToolsDir = mpasCullerLocation
-    if (not os.path.exists(meshToolsDir + "/MpasCellCuller.x")):
-        print("ERROR: MpasCellCuller.x does not exist at the requested loaction.")
-        sys.exit()
+    meshToolsDir = mpasCullerLocation
+    if meshToolsDir is None:
+        culler = shutil.which("MpasCellCuller.x")
+        if culler is not None:
+            meshToolsDir = os.path.dirname(culler)
+        else:
+            # no directory was provided and none
+            this_dir = os.path.dirname(os.path.realpath(__file__))
+            meshToolsDir = os.path.abspath(os.path.join(
+                this_dir, "..", "..", "..", "mesh_tools",
+                "mesh_conversion_tools"))
+            culler = os.path.join(meshToolsDir, "MpasCellCuller.x")
+        if not os.path.exists(culler):
+            raise FileNotFoundError(
+                "MpasCellCuller.x does not exist at the requested location.")
 
     plotFilename = "partition_diag.nc"
 
@@ -138,21 +154,15 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
     regionFile.close()
 
     # diagnostics
-    if (plotting):
-        os.system("cp %s %s" %(meshFilename,plotFilename))
+    if plotting:
+        shutil.copyfile(meshFilename, plotFilename)
 
     # load mesh file
     mesh = Dataset(meshFilename,"r")
     nCells = len(mesh.dimensions["nCells"])
-    latCell = mesh.variables["latCell"][:]
     mesh.close()
 
-    if (cullEquatorialRegion):
-        nBlocks = nRegions * nProcs
-    else:
-        nBlocks = nProcs
-
-    combinedGraph = np.zeros(nCells)
+    cellidsInRegion = []
 
     for iRegion in range(0,nRegions):
 
@@ -161,7 +171,7 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
 
         # create precull file
         tmpFilenamesPrecull = tmp+"_precull.nc"
-        os.system("cp %s %s" %(meshFilename,tmpFilenamesPrecull))
+        shutil.copyfile(meshFilename, tmpFilenamesPrecull)
 
         # make cullCell variable
         cullCell = np.ones(nCells)
@@ -174,57 +184,73 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcs, mpasCullerLo
         tmpFilenamesPostcull = tmp+"_postcull.nc"
         cull_mesh(meshToolsDir, tmpFilenamesPrecull, tmpFilenamesPostcull, cullCell)
 
-        # preserve the initial graph file
-        os.system("mv culled_graph.info culled_graph_%i_tmp.info" %(iRegion))
-
-        # partition the culled grid
-        try:
-            graphFilename = "culled_graph_%i_tmp.info" %(iRegion)
-            subprocess.call([metis, graphFilename, str(nProcs)])
-        except OSError as e:
-            if e.errno == errno.ENOENT:
-                print("metis program %s not found" %(metis))
-                sys.exit()
-            else:
-                print("metis error")
-                raise
-
         # get the cell IDs for this partition
         cellid = get_cell_ids(tmpFilenamesPostcull, meshFilename)
+        cellidsInRegion.append(cellid)
 
-        # load this partition
-        graph = load_partition("culled_graph_%i_tmp.info.part.%i" %(iRegion,nProcs))
+        # preserve the initial graph file
+        os.rename("culled_graph.info", f"culled_graph_{iRegion}_tmp.info")
 
-        # add this partition to the combined partition
-        for iCellPartition in range(0,len(graph)):
-            if (cullEquatorialRegion):
-                combinedGraph[cellid[iCellPartition]] = graph[iCellPartition] + nProcs * iRegion
-            else:
-                combinedGraph[cellid[iCellPartition]] = graph[iCellPartition]
+    if not isinstance(nProcsArray, (list, tuple, set)):
+        # presumably, it's a single integer
+        nProcsArray = [nProcsArray]
 
-    # output the cell partition file
-    cellPartitionFile = open("%s.part.%i" %(outputPrefix,nBlocks), "w")
-    for iCell in range(0,nCells):
-        cellPartitionFile.write("%i\n" %(combinedGraph[iCell]))
-    cellPartitionFile.close()
+    for nProcs in nProcsArray:
+        if (cullEquatorialRegion):
+            nBlocks = nRegions * nProcs
+        else:
+            nBlocks = nProcs
 
-    # output block partition file
-    if (cullEquatorialRegion):
-        blockPartitionFile = open("%s.part.%i" %(outputPrefix,nProcs), "w")
-        for iRegion in range(0,nRegions):
-            for iProc in range(0,nProcs):
-                blockPartitionFile.write("%i\n" %(iProc))
-        blockPartitionFile.close()
+        combinedGraph = np.zeros(nCells)
+
+        for iRegion in range(0, nRegions):
+
+            # partition the culled grid
+            try:
+                graphFilename = "culled_graph_%i_tmp.info" %(iRegion)
+                subprocess.call([metis, graphFilename, str(nProcs)])
+            except OSError as e:
+                if e.errno == errno.ENOENT:
+                    raise FileNotFoundError("metis program %s not found" %(metis))
+                else:
+                    print("metis error")
+                    raise
+
+            cellid = cellidsInRegion[iRegion]
+
+            # load this partition
+            graph = load_partition("culled_graph_%i_tmp.info.part.%i" %(iRegion,nProcs))
+
+            # add this partition to the combined partition
+            for iCellPartition in range(0,len(graph)):
+                if (cullEquatorialRegion):
+                    combinedGraph[cellid[iCellPartition]] = graph[iCellPartition] + nProcs * iRegion
+                else:
+                    combinedGraph[cellid[iCellPartition]] = graph[iCellPartition]
+
+        # output the cell partition file
+        cellPartitionFile = open("%s.part.%i" %(outputPrefix,nBlocks), "w")
+        for iCell in range(0,nCells):
+            cellPartitionFile.write("%i\n" %(combinedGraph[iCell]))
+        cellPartitionFile.close()
+
+        # output block partition file
+        if (cullEquatorialRegion):
+            blockPartitionFile = open("%s.part.%i" %(outputPrefix,nProcs), "w")
+            for iRegion in range(0,nRegions):
+                for iProc in range(0,nProcs):
+                    blockPartitionFile.write("%i\n" %(iProc))
+            blockPartitionFile.close()
 
 
-    # diagnostics
-    if (plotting):
-        plottingFile = Dataset(plotFilename,"a")
-        partitionVariable = plottingFile.createVariable("partition_%i" %(nProcs),"i4",("nCells"))
-        partitionVariable[:] = combinedGraph
-        plottingFile.close()
+        # diagnostics
+        if (plotting):
+            plottingFile = Dataset(plotFilename,"a")
+            partitionVariable = plottingFile.createVariable("partition_%i" %(nProcs),"i4",("nCells"))
+            partitionVariable[:] = combinedGraph
+            plottingFile.close()
 
-    os.system("rm *tmp*")
+    subprocess.run("rm *tmp*", shell=True)
 
 
 def prepare_partitions():
@@ -244,8 +270,7 @@ def prepare_partitions():
 
     # Check if output directory exists
     if (not os.path.isdir(args.outputDir)):
-        print("ERROR: Output directory does not exist.")
-        sys.exit()
+        raise FileNotFoundError("ERROR: Output directory does not exist.")
 
     # 1) Regrid the ice presence from the input data mesh to the grid of choice
     print("Regrid to desired mesh...")
@@ -256,15 +281,14 @@ def prepare_partitions():
     print("fix_regrid_output...")
 
     # check executable exists
-    if which("fix_regrid_output.exe") is not None:
+    if shutil.which("fix_regrid_output.exe") is not None:
         # it's in the system path
         executable = "fix_regrid_output.exe"
     elif os.path.exists("./fix_regrid_output.exe"):
         # found in local path
         executable = "./fix_regrid_output.exe"
     else:
-        print("ERROR: fix_regrid_output.exe could not be found.")
-        sys.exit()
+        raise FileNotFoundError("fix_regrid_output.exe could not be found.")
 
     inputFile = args.outputDir + "/icePresent_regrid.nc"
     outputFile = args.outputDir + "/icePresent_regrid_modify.nc"
@@ -297,36 +321,34 @@ def create_partitions():
     parser.add_argument('-p', '--prefix', dest="outputPrefix", required=False,
                         help='prefix for output partition filenames.', default="graph.info")
     parser.add_argument('-x', '--plotting', dest="plotting", required=False,
-                        help='create diagnostic plotting file of partitions', action='store_false')
+                        help='create diagnostic plotting file of partitions', action='store_true')
     parser.add_argument('-g', '--metis', dest="metis", required=False, help='name of metis utility', default="gpmetis")
-    parser.add_argument('-n', '--nProcs', dest="nProcs", required=False,
-                        help='number of processors to create partition for.', type=int)
+    parser.add_argument('-n', '--nProcs', dest="nProcsArray", nargs='*', required=False,
+                        help='list of the number of processors to create partition for.', type=int)
     parser.add_argument('-f', '--nProcsFile', dest="nProcsFile", required=False,
                         help='number of processors to create partition for.')
 
     args = parser.parse_args()
 
     # number of processors
-    nProcsArray = []
-    if (args.nProcs is not None and args.nProcsFile is None):
-        nProcsArray.append(args.nProcs)
-    elif (args.nProcs is None and args.nProcsFile is not None):
-        fileNProcs = open(args.nProcsFile, "r")
-        nProcsLines = fileNProcs.readlines()
-        fileNProcs.close()
-        for line in nProcsLines:
-            nProcsArray.append(int(line))
-    elif (args.nProcs is None and args.nProcsFile is None):
-        print("ERROR: Must specify nProcs or nProcsFile")
-        sys.exit()
-    elif (args.nProcs is not None and args.nProcsFile is not None):
-        print("ERROR: Can't specify both nProcs or nProcsFile")
-        sys.exit()
+    if args.nProcsArray is None and args.nProcsFile is None:
+        raise ValueError("Must specify nProcs or nProcsFile")
+    if args.nProcsArray is not None and args.nProcsFile is not None:
+        raise ValueError("Can't specify both nProcs or nProcsFile")
+
+    if args.nProcsFile is not None:
+        with open(args.nProcsFile, "r") as fileNProcs:
+            nProcsLines = fileNProcs.readlines()
+            nProcsArray = [int(line) for line in nProcsLines
+                           if line.split() != '']
+    else:
+        nProcsArray = args.nProcsArray
 
     # create partitions
     regionFilename = args.outputDir + "/regions.nc"
     outputPrefix = args.outputDir + "/" + args.outputPrefix
 
-    for nProcs in nProcsArray:
-        gen_seaice_mesh_partition(args.meshFilename, regionFilename, nProcs, args.mpasCullerLocation, outputPrefix,
-                                  args.plotting, args.metis, False)
+    gen_seaice_mesh_partition(args.meshFilename, regionFilename, nProcsArray,
+                              args.mpasCullerLocation, outputPrefix,
+                              args.plotting, args.metis,
+                              cullEquatorialRegion=False)

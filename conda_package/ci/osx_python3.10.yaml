@@ -4,6 +4,10 @@ cxx_compiler:
 - clangxx
 cxx_compiler_version:
 - '14'
+fortran_compiler:
+- gfortran
+fortran_compiler_version:
+- '10'
 hdf5:
 - 1.12.2
 libnetcdf:
