@@ -12,121 +12,43 @@ from .mask import extend_seaice_mask
 from .regions import make_regions_file
 
 
-#-------------------------------------------------------------------
-
-def degree_to_radian(degree):
-
-    return (degree * math.pi) / 180.0
-
-#-------------------------------------------------------------------
-
-def add_cell_cull_array(filename, cullCell):
-
-    mesh = Dataset(filename,"a")
-
-    cullCellVariable = mesh.createVariable("cullCell","i4",("nCells"))
-
-    cullCellVariable[:] = cullCell
-
-    mesh.close()
-
-#-------------------------------------------------------------------
-
-def cull_mesh(meshToolsDir, filenameIn, filenameOut, cullCell):
-
-    add_cell_cull_array(filenameIn, cullCell)
-    executable = "MpasCellCuller.x"
-    if meshToolsDir is not None:
-        executable = os.path.join(meshToolsDir, executable)
-
-    subprocess.run([executable, filenameIn, filenameOut, "-c"], check=True)
-
-#-------------------------------------------------------------------
-
-def load_partition(graphFilename):
-
-    graphFile = open(graphFilename,"r")
-    lines = graphFile.readlines()
-    graphFile.close()
-
-    partition = []
-    for line in lines:
-        partition.append(int(line))
-
-    return partition
-
-#-------------------------------------------------------------------
-
-def get_cell_ids(culledFilename, originalFilename):
-
-    culledFile = Dataset(culledFilename,"r")
-    nCellsCulled = len(culledFile.dimensions["nCells"])
-
-    originalFile = Dataset(originalFilename,"r")
-    nCellsOriginal = len(originalFile.dimensions["nCells"])
-
-    cellid = np.zeros(nCellsCulled, dtype=int)
-
-    cellMapFile = open("cellMapForward.txt","r")
-    cellMapLines = cellMapFile.readlines()
-    cellMapFile.close()
-
-    iCellOriginal = 0
-    for cellMapLine in cellMapLines:
-
-        if (iCellOriginal % 1000 == 0):
-            print(iCellOriginal, " of ", nCellsOriginal)
-
-        try:
-            cellMap = int(cellMapLine)
-        except ValueError:
-            # There are blank lines to skip
-            continue
-
-        if (cellMap != -1):
-
-            cellid[cellMap] = iCellOriginal
-
-        iCellOriginal = iCellOriginal + 1
-
-    return cellid
-
-#-------------------------------------------------------------------
-
-def get_cell_ids_orig(culledFilename, originalFilename):
-
-    culledFile = Dataset(culledFilename,"r")
-    latCellCulled = culledFile.variables["latCell"][:]
-    lonCellCulled = culledFile.variables["lonCell"][:]
-    nCellsCulled = len(culledFile.dimensions["nCells"])
-
-    originalFile = Dataset(originalFilename,"r")
-    latCellOriginal = originalFile.variables["latCell"][:]
-    lonCellOriginal = originalFile.variables["lonCell"][:]
-    nCellsOriginal = len(originalFile.dimensions["nCells"])
-
-    cellid = np.zeros(nCellsCulled, dtype=int)
-
-    for iCellCulled in range(0,nCellsCulled):
-
-        if (iCellCulled % 1000 == 0):
-            print("iCellCulled: ", iCellCulled, "of ", nCellsCulled)
-
-        for iCellOriginal in range(0,nCellsOriginal):
-
-            if (latCellCulled[iCellCulled] == latCellOriginal[iCellOriginal] and
-                lonCellCulled[iCellCulled] == lonCellOriginal[iCellOriginal]):
-
-                cellid[iCellCulled] = iCellOriginal
-                break
-
-    return cellid
-
-#-------------------------------------------------------------------
-
 def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcsArray,
                               mpasCullerLocation, outputPrefix, plotting,
                               metis, cullEquatorialRegion):
+    """
+    Generate graph partition(s) for the given MPAS-Seaice mesh and the given
+    number(s) of processors and a file defining regions that each processor
+    should own part of (typically a polar region and an equatorial region)
+
+    Parameters
+    ----------
+    meshFilename : str
+        The name of a file containing the MPAS-Seaice mesh
+
+    regionFilename : str
+        The name of a file containing a ``region`` field defining different
+        regions that each processor should own part of
+
+    nProcsArray : list or int
+        The number(s) of processors to create graph partitions for
+
+    mpasCullerLocation : str or None
+        The directory for the ``MpasCellCuller.x`` tool or ``None`` to look in
+        the user's path
+
+    outputPrefix : str
+        The prefix to prepend to each graph partition file
+
+    plotting : bool
+        Whether to create a NetCDF file ``partition_diag.nc`` to use for
+        plotting the partitions
+
+    metis : str
+        The exectable to use for partitioning in each region
+
+    cullEquatorialRegion : bool
+        Whether to remove the equatorial region from the paritions
+    """
 
     # arguments
     meshToolsDir = mpasCullerLocation
@@ -148,7 +70,7 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcsArray,
     plotFilename = "partition_diag.nc"
 
     # get regions
-    regionFile = Dataset(regionFilename,"r")
+    regionFile = Dataset(regionFilename, "r")
     nRegions = regionFile.nRegions
     region = regionFile.variables["region"][:]
     regionFile.close()
@@ -158,34 +80,35 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcsArray,
         shutil.copyfile(meshFilename, plotFilename)
 
     # load mesh file
-    mesh = Dataset(meshFilename,"r")
+    mesh = Dataset(meshFilename, "r")
     nCells = len(mesh.dimensions["nCells"])
     mesh.close()
 
     cellidsInRegion = []
 
-    for iRegion in range(0,nRegions):
+    for iRegion in range(0, nRegions):
 
         # tmp file basename
-        tmp = "%s_%2.2i_tmp" %(meshFilename,iRegion)
+        tmp = "%s_%2.2i_tmp" % (meshFilename, iRegion)
 
         # create precull file
-        tmpFilenamesPrecull = tmp+"_precull.nc"
+        tmpFilenamesPrecull = tmp + "_precull.nc"
         shutil.copyfile(meshFilename, tmpFilenamesPrecull)
 
         # make cullCell variable
         cullCell = np.ones(nCells)
 
-        for iCell in range(0,nCells):
-            if (region[iCell] == iRegion):
+        for iCell in range(0, nCells):
+            if region[iCell] == iRegion:
                 cullCell[iCell] = 0
 
         # cull the mesh
-        tmpFilenamesPostcull = tmp+"_postcull.nc"
-        cull_mesh(meshToolsDir, tmpFilenamesPrecull, tmpFilenamesPostcull, cullCell)
+        tmpFilenamesPostcull = tmp + "_postcull.nc"
+        _cull_mesh(meshToolsDir, tmpFilenamesPrecull, tmpFilenamesPostcull,
+                   cullCell)
 
         # get the cell IDs for this partition
-        cellid = get_cell_ids(tmpFilenamesPostcull, meshFilename)
+        cellid = _get_cell_ids(tmpFilenamesPostcull, meshFilename)
         cellidsInRegion.append(cellid)
 
         # preserve the initial graph file
@@ -196,7 +119,7 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcsArray,
         nProcsArray = [nProcsArray]
 
     for nProcs in nProcsArray:
-        if (cullEquatorialRegion):
+        if cullEquatorialRegion:
             nBlocks = nRegions * nProcs
         else:
             nBlocks = nProcs
@@ -207,11 +130,12 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcsArray,
 
             # partition the culled grid
             try:
-                graphFilename = "culled_graph_%i_tmp.info" %(iRegion)
+                graphFilename = "culled_graph_%i_tmp.info" % iRegion
                 subprocess.call([metis, graphFilename, str(nProcs)])
             except OSError as e:
                 if e.errno == errno.ENOENT:
-                    raise FileNotFoundError("metis program %s not found" %(metis))
+                    raise FileNotFoundError(
+                        "metis program %s not found" % metis)
                 else:
                     print("metis error")
                     raise
@@ -219,34 +143,40 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcsArray,
             cellid = cellidsInRegion[iRegion]
 
             # load this partition
-            graph = load_partition("culled_graph_%i_tmp.info.part.%i" %(iRegion,nProcs))
+            graph = _load_partition(
+                "culled_graph_%i_tmp.info.part.%i" %
+                (iRegion, nProcs))
 
             # add this partition to the combined partition
-            for iCellPartition in range(0,len(graph)):
-                if (cullEquatorialRegion):
-                    combinedGraph[cellid[iCellPartition]] = graph[iCellPartition] + nProcs * iRegion
+            for iCellPartition in range(0, len(graph)):
+                if cullEquatorialRegion:
+                    combinedGraph[cellid[iCellPartition]] = \
+                        graph[iCellPartition] + nProcs * iRegion
                 else:
-                    combinedGraph[cellid[iCellPartition]] = graph[iCellPartition]
+                    combinedGraph[cellid[iCellPartition]] = \
+                        graph[iCellPartition]
 
         # output the cell partition file
-        cellPartitionFile = open("%s.part.%i" %(outputPrefix,nBlocks), "w")
-        for iCell in range(0,nCells):
-            cellPartitionFile.write("%i\n" %(combinedGraph[iCell]))
+        cellPartitionFile = open("%s.part.%i" % (outputPrefix, nBlocks), "w")
+        for iCell in range(0, nCells):
+            cellPartitionFile.write("%i\n" % (combinedGraph[iCell]))
         cellPartitionFile.close()
 
         # output block partition file
-        if (cullEquatorialRegion):
-            blockPartitionFile = open("%s.part.%i" %(outputPrefix,nProcs), "w")
-            for iRegion in range(0,nRegions):
-                for iProc in range(0,nProcs):
-                    blockPartitionFile.write("%i\n" %(iProc))
+        if cullEquatorialRegion:
+            blockPartitionFile = open(
+                "%s.part.%i" %
+                (outputPrefix, nProcs), "w")
+            for iRegion in range(0, nRegions):
+                for iProc in range(0, nProcs):
+                    blockPartitionFile.write("%i\n" % iProc)
             blockPartitionFile.close()
 
-
         # diagnostics
-        if (plotting):
-            plottingFile = Dataset(plotFilename,"a")
-            partitionVariable = plottingFile.createVariable("partition_%i" %(nProcs),"i4",("nCells"))
+        if plotting:
+            plottingFile = Dataset(plotFilename, "a")
+            partitionVariable = plottingFile.createVariable(
+                "partition_%i" % nProcs, "i4", ("nCells",))
             partitionVariable[:] = combinedGraph
             plottingFile.close()
 
@@ -254,8 +184,12 @@ def gen_seaice_mesh_partition(meshFilename, regionFilename, nProcsArray,
 
 
 def prepare_partitions():
+    """
+    An entry point for performing preparatory work for making seaice partitions
+    """
     # parsing input
-    parser = argparse.ArgumentParser(description='Perform preparatory work for making seaice partitions.')
+    parser = argparse.ArgumentParser(
+        description='Perform preparatory work for making seaice partitions.')
 
     parser.add_argument('-i', '--inputmesh', dest="meshFilenameSrc", required=True,
                         help='MPAS mesh file for source regridding mesh.')
@@ -269,13 +203,17 @@ def prepare_partitions():
     args = parser.parse_args()
 
     # Check if output directory exists
-    if (not os.path.isdir(args.outputDir)):
+    if not os.path.isdir(args.outputDir):
         raise FileNotFoundError("ERROR: Output directory does not exist.")
 
     # 1) Regrid the ice presence from the input data mesh to the grid of choice
     print("Regrid to desired mesh...")
     filenameOut = args.outputDir + "/icePresent_regrid.nc"
-    regrid_to_other_mesh(args.meshFilenameSrc, args.filenameData, args.meshFilenameDst, filenameOut)
+    regrid_to_other_mesh(
+        args.meshFilenameSrc,
+        args.filenameData,
+        args.meshFilenameDst,
+        filenameOut)
 
     # 2) create icePresence variable
     print("fix_regrid_output...")
@@ -303,30 +241,47 @@ def prepare_partitions():
     print("make_regions_file...")
     filenameIcePresent = args.outputDir + "/icePresent_regrid_modify.nc"
     filenameOut = args.outputDir + "/regions.nc"
-    make_regions_file(filenameIcePresent, args.meshFilenameDst, "two_region_eq", "icePresenceExtended", 0.5,
-                      filenameOut)
+    make_regions_file(filenameIcePresent=filenameIcePresent,
+                      filenameMesh=args.meshFilenameDst,
+                      regionType="two_region_eq",
+                      varname="icePresenceExtended",
+                      limit=0.5, filenameOut=filenameOut)
 
 
 def create_partitions():
+    """
+    An entry point for creating sea-ice partitions
+    """
 
     # parsing input
     parser = argparse.ArgumentParser(description='Create sea-ice partitions.')
 
-    parser.add_argument('-m', '--outputmesh', dest="meshFilename", required=True,
-                        help='MPAS mesh file for destination regridding mesh.')
-    parser.add_argument('-o', '--outputDir', dest="outputDir", required=True,
-                        help='Output directory for temporary files and partition files.')
-    parser.add_argument('-c', '--cullerDir', dest="mpasCullerLocation", required=False,
-                        help='Location of MPAS MpasCellCuller.x executable.')
-    parser.add_argument('-p', '--prefix', dest="outputPrefix", required=False,
-                        help='prefix for output partition filenames.', default="graph.info")
-    parser.add_argument('-x', '--plotting', dest="plotting", required=False,
-                        help='create diagnostic plotting file of partitions', action='store_true')
-    parser.add_argument('-g', '--metis', dest="metis", required=False, help='name of metis utility', default="gpmetis")
-    parser.add_argument('-n', '--nProcs', dest="nProcsArray", nargs='*', required=False,
-                        help='list of the number of processors to create partition for.', type=int)
-    parser.add_argument('-f', '--nProcsFile', dest="nProcsFile", required=False,
-                        help='number of processors to create partition for.')
+    parser.add_argument(
+        '-m', '--outputmesh', dest="meshFilename", required=True,
+        help='MPAS mesh file for destination regridding mesh.')
+    parser.add_argument(
+        '-o', '--outputDir', dest="outputDir", required=True,
+        help='Output directory for temporary files and partition files.')
+    parser.add_argument(
+        '-c', '--cullerDir', dest="mpasCullerLocation", required=False,
+        help='Location of MPAS MpasCellCuller.x executable.')
+    parser.add_argument(
+        '-p', '--prefix', dest="outputPrefix", required=False,
+        help='prefix for output partition filenames.', default="graph.info")
+    parser.add_argument(
+        '-x', '--plotting', dest="plotting", required=False,
+        help='create diagnostic plotting file of partitions',
+        action='store_true')
+    parser.add_argument(
+        '-g', '--metis', dest="metis", required=False,
+        help='name of metis utility', default="gpmetis")
+    parser.add_argument(
+        '-n', '--nProcs', dest="nProcsArray", nargs='*', required=False,
+        help='list of the number of processors to create partition for.',
+        type=int)
+    parser.add_argument(
+        '-f', '--nProcsFile', dest="nProcsFile", required=False,
+        help='number of processors to create partition for.')
 
     args = parser.parse_args()
 
@@ -352,3 +307,111 @@ def create_partitions():
                               args.mpasCullerLocation, outputPrefix,
                               args.plotting, args.metis,
                               cullEquatorialRegion=False)
+
+
+# ---------------------------------------------------------------------
+# Private functions
+# ---------------------------------------------------------------------
+
+def _degree_to_radian(degree):
+
+    return (degree * math.pi) / 180.0
+
+
+def _add_cell_cull_array(filename, cullCell):
+
+    mesh = Dataset(filename, "a")
+
+    cullCellVariable = mesh.createVariable("cullCell", "i4", ("nCells",))
+
+    cullCellVariable[:] = cullCell
+
+    mesh.close()
+
+
+def _cull_mesh(meshToolsDir, filenameIn, filenameOut, cullCell):
+
+    _add_cell_cull_array(filenameIn, cullCell)
+    executable = "MpasCellCuller.x"
+    if meshToolsDir is not None:
+        executable = os.path.join(meshToolsDir, executable)
+
+    subprocess.run([executable, filenameIn, filenameOut, "-c"], check=True)
+
+
+def _load_partition(graphFilename):
+
+    graphFile = open(graphFilename, "r")
+    lines = graphFile.readlines()
+    graphFile.close()
+
+    partition = []
+    for line in lines:
+        partition.append(int(line))
+
+    return partition
+
+
+def _get_cell_ids(culledFilename, originalFilename):
+
+    culledFile = Dataset(culledFilename, "r")
+    nCellsCulled = len(culledFile.dimensions["nCells"])
+
+    originalFile = Dataset(originalFilename, "r")
+    nCellsOriginal = len(originalFile.dimensions["nCells"])
+
+    cellid = np.zeros(nCellsCulled, dtype=int)
+
+    cellMapFile = open("cellMapForward.txt", "r")
+    cellMapLines = cellMapFile.readlines()
+    cellMapFile.close()
+
+    iCellOriginal = 0
+    for cellMapLine in cellMapLines:
+
+        if iCellOriginal % 1000 == 0:
+            print(iCellOriginal, " of ", nCellsOriginal)
+
+        try:
+            cellMap = int(cellMapLine)
+        except ValueError:
+            # There are blank lines to skip
+            continue
+
+        if cellMap != -1:
+
+            cellid[cellMap] = iCellOriginal
+
+        iCellOriginal = iCellOriginal + 1
+
+    return cellid
+
+
+def _get_cell_ids_orig(culledFilename, originalFilename):
+
+    culledFile = Dataset(culledFilename, "r")
+    latCellCulled = culledFile.variables["latCell"][:]
+    lonCellCulled = culledFile.variables["lonCell"][:]
+    nCellsCulled = len(culledFile.dimensions["nCells"])
+
+    originalFile = Dataset(originalFilename, "r")
+    latCellOriginal = originalFile.variables["latCell"][:]
+    lonCellOriginal = originalFile.variables["lonCell"][:]
+    nCellsOriginal = len(originalFile.dimensions["nCells"])
+
+    cellid = np.zeros(nCellsCulled, dtype=int)
+
+    for iCellCulled in range(0, nCellsCulled):
+
+        if iCellCulled % 1000 == 0:
+            print("iCellCulled: ", iCellCulled, "of ", nCellsCulled)
+
+        for iCellOriginal in range(0, nCellsOriginal):
+
+            if (latCellCulled[iCellCulled] == latCellOriginal[iCellOriginal] and
+                    lonCellCulled[iCellCulled] == lonCellOriginal[iCellOriginal]):
+
+                cellid[iCellCulled] = iCellOriginal
+                break
+
+    return cellid
