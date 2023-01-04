@@ -12,10 +12,9 @@ those created from Metis tools directly.
 
 Graph partition tools
 ---------------------
-`
 The tools ``prepare_seaice_partitions`` and ``create_seaice_partitions`` are
 used to create MPAS-Seaice graph partitions that are better balanced so that
-each processor "owns" cells both polar and equatorial regions.
+each processor "owns" cells from both polar and equatorial regions.
 
 .. code-block:: none
 
@@ -43,7 +42,9 @@ typically use a
 `60-km mesh file <https://web.lcrc.anl.gov/public/e3sm/mpas_standalonedata/mpas-seaice/partition/seaice_QU60km_polar.nc>`_
 and the corresponding
 `presence file <https://web.lcrc.anl.gov/public/e3sm/mpas_standalonedata/mpas-seaice/partition/icePresent_QU60km_polar.nc>`_.
-The presence file will be regridded to the given output MPAS-Seaice mesh.
+The presence file will be regridded to the given output MPAS-Seaice mesh. Here the ice 
+presence was determined as any cell in the mesh to have had ice present at any time 
+during a 50 year MPAS-Seaice standalone simulation with the above 60-km mesh file.
 The output directory is often the current directory.
 
 After this preprocessing has finished, the ``create_seaice_partitions`` tool
