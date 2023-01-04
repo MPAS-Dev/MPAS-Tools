@@ -25,7 +25,7 @@ parser.add_option("-5", dest="file5inName", help="input filename", metavar="FILE
 parser.add_option("-6", dest="file6inName", help="input filename", metavar="FILENAME")
 parser.add_option("-7", dest="file7inName", help="input filename", metavar="FILENAME")
 parser.add_option("-u", dest="units", help="units for mass/volume: m3, kg, Gt", default="Gt", metavar="FILENAME")
-parser.add_option("-c", dest="plotChange", help="plot time series as change from initial.  (not applied to GL flux or calving flux)  Without this option, the full magnitude of time series is used", action='store_true')
+parser.add_option("-c", dest="plotChange", help="plot time series as change from initial.  (not applied to GL flux or calving flux)  Without this option, the full magnitude of time series is used", action='store_true', default=False)
 options, args = parser.parse_args()
 
 print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
@@ -48,73 +48,51 @@ else:
    sys.exit("Unknown mass/volume units")
 print("Using volume/mass units of: ", massUnit)
 
+if options.plotChange:
+    plotChangeStr = ' change'
+else:
+    plotChangeStr = ''
+
 axVol = fig.add_subplot(nrow, ncol, 1)
 plt.xlabel('Year')
-if options.plotChange:
-   plt.ylabel('volume change ({})'.format(massUnit))
-else:
-   plt.ylabel('volume ({})'.format(massUnit))
-#plt.xticks(np.arange(22)*xtickSpacing)
+plt.ylabel(f'volume{plotChangeStr} ({massUnit})')
 plt.grid()
 axX = axVol
 
 axVAF = fig.add_subplot(nrow, ncol, 2, sharex=axX)
 plt.xlabel('Year')
-if options.plotChange:
-   plt.ylabel('VAF change ({})'.format(massUnit))
-else:
-   plt.ylabel('VAF ({})'.format(massUnit))
-#plt.xticks(np.arange(22)*xtickSpacing)
+plt.ylabel(f'VAF{plotChangeStr} ({massUnit})')
 plt.grid()
 
 axVolGround = fig.add_subplot(nrow, ncol, 3, sharex=axX)
 plt.xlabel('Year')
-if options.plotChange:
-   plt.ylabel('grounded volume change ({})'.format(massUnit))
-else:
-   plt.ylabel('grounded volume ({})'.format(massUnit))
-#plt.xticks(np.arange(22)*xtickSpacing)
+plt.ylabel(f'grounded volume{plotChangeStr} ({massUnit})')
 plt.grid()
 
 axVolFloat = fig.add_subplot(nrow, ncol, 4, sharex=axX)
 plt.xlabel('Year')
-if options.plotChange:
-   plt.ylabel('floating volume change ({})'.format(massUnit))
-else:
-   plt.ylabel('floating volume ({})'.format(massUnit))
-#plt.xticks(np.arange(22)*xtickSpacing)
+plt.ylabel(f'floating volume{plotChangeStr} ({massUnit})')
 plt.grid()
 
 axGrdArea = fig.add_subplot(nrow, ncol, 5, sharex=axX)
 plt.xlabel('Year')
-if options.plotChange:
-   plt.ylabel('grounded area change (m$^2$)')
-else:
-   plt.ylabel('grounded area (m$^2$)')
-#plt.xticks(np.arange(22)*xtickSpacing)
+plt.ylabel(f'grounded area{plotChangeStr} (m$^2$)')
 plt.grid()
 
 axFltArea = fig.add_subplot(nrow, ncol, 6, sharex=axX)
 plt.xlabel('Year')
-if options.plotChange:
-   plt.ylabel('floating area change (m$^2$)')
-else:
-   plt.ylabel('floating area (m$^2$)')
-#plt.xticks(np.arange(22)*xtickSpacing)
+plt.ylabel(f'floating area{plotChangeStr} (m$^2$)')
 plt.grid()
 
 axGLflux = fig.add_subplot(nrow, ncol, 7, sharex=axX)
 plt.xlabel('Year')
 plt.ylabel('GL flux (kg/yr)')
-#plt.xticks(np.arange(22)*xtickSpacing)
 plt.grid()
 
 axCalvFlux = fig.add_subplot(nrow, ncol, 8, sharex=axX)
 plt.xlabel('Year')
 plt.ylabel('calving flux (kg/yr)')
-#plt.xticks(np.arange(22)*xtickSpacing)
 plt.grid()
-
 
 
 def plotStat(fname):
