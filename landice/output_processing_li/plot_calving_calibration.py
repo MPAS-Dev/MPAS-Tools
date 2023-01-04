@@ -1,7 +1,16 @@
 #!/usr/bin/env python
 '''
-Script to plot common time-series from one or more landice regionalStats files.
-Matt Hoffman, 8/23/2022
+Script to plot calving information for a small ensemble of runs used for calving calibration.
+The typical application is to run a handful of identical runs with different values of the
+von Mises threshold stress.  The resulting plots can be used to assess which value gives
+results that are stable and/or most similar to a control run with a fixed calving front
+position, on a region by region basis.
+
+It will look for files names regionalStats.nc in all subdirectories of the directory from
+which it is run.  A control run with a fixed calving front should also be specified for
+reference.
+
+Matt Hoffman, Fall 2022
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals

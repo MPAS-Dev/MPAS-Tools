@@ -1,17 +1,25 @@
 #!/usr/bin/env python
 '''
-Script to fine tune ice-shelf geometry:
-1. Smooth ice thickness across ice shelves.  The first row of cells adjacent to GL is left unmodified.
-2. Adjust bathymetry to prevent spurious grounding from thickness adjustment by modifying 
-bathymetry to maintain original water column thickness
-3. Lower bathymetry beneath ice shelves and in open ocean by a uniform amount.  This reduces spurious 
-grounding line advance from transient model dH/dt and geometry inconsistencies.  5 meters appears to be a good amount.
+Script to bulldoze marine troughs.
 
-See beginning of script for options to adjust.
+At a number of locations around Antarctica, it is clear that the
+portion of subglacial troughs seaward of the grounding line are not continuous with
+the portion beneath grounded ice.  This is expected from the relative dearth of
+sub-ice-shelf bathymetric measurements compared with the high density of radar
+measurements beneath grounded ice.  The coarse representation of bahthymetry on the
+seaward side of the grounding line in these locations leads to strong grounding line
+advance at these outlet glaciers and associated grounded mass gain.
 
-Note: changes are made to file in place so perform on a copy of your original file!
+In this script, a number of trough locations to be deepened are specified by x/y
+coordinate pairs for the start and end of the trough.  The smoothTrough function
+is called for each, which applies a parabolic transverse cross section over a centerline
+trough depth that increases linearly between a minimum and maximum value.
+Note that as currently written, the algorithm only works for troughs oriented southwest to
+northeast in grid coordinates!
 
-Matt Hoffman, 9/11/2022
+Input file is copied with a _bulldozedTroughs.nc suffix before being modified.
+
+Matt Hoffman, Fall 2022
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -21,6 +29,7 @@ import numpy as np
 from netCDF4 import Dataset
 from optparse import OptionParser
 import matplotlib.pyplot as plt
+import shutil
 
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
@@ -31,7 +40,11 @@ options, args = parser.parse_args()
 rhoi=910.0
 rhosw=1028.0
 
-f = Dataset(options.fileName, 'r+')
+# Make a copy of file being modified and work on the copy
+outFileName = options.fileName.split('.nc')[0] + '_bulldozedTroughs.nc'
+shutil.copy(options.fileName, outFileName)
+print("Writing output to:", outFileName)
+f = Dataset(outFileName, 'r+')
 
 nCells = len(f.dimensions['nCells'])
 mu = f.variables['muFriction'][0,:]
@@ -100,8 +113,11 @@ def smoothTrough(WCT, p1, p2, minWCT, maxWCT):
     return WCTnew
 
 
+# Define maximum and minimum water column thickness along tough centerline
 maxWCT = 300.0
 minWCT = 50.0
+
+# Specify start and end x/y coordinates for each trough to be bulldozed
 WCTnew = WCT.copy()
 p1=[-1261073.6, 137133.0]; p2=[-1173862.4, 199332.15] # Rutford
 WCTnew = smoothTrough(WCTnew, p1, p2, minWCT, maxWCT)
@@ -111,7 +127,7 @@ p1=[-1513787.6, 311996.4]; p2=[-1386639.4, 337107.2] # Evans
 WCTnew = smoothTrough(WCTnew, p1, p2, minWCT, maxWCT)
 p1=[-34186, 1983479]; p2=[-9070, 2047275] # Fimbul
 WCTnew = smoothTrough(WCTnew, p1, p2, minWCT, maxWCT)
-p1=[-1064519, 206317]; p2=[-1055596, 265431] # lil guy
+p1=[-1064519, 206317]; p2=[-1055596, 265431] # lil guy - note different max/minWCT
 WCTnew = smoothTrough(WCTnew, p1, p2, 40.0, 150.0)
 
 f.variables['bedTopography'][0,:] = lowerSurface - WCTnew

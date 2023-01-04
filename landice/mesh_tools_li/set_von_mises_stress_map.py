@@ -1,5 +1,16 @@
 #!/usr/bin/env python
 '''
+Simple script for creating an input file with region-by-region values for
+the von Mises stress threshold.  This can be used to assign optimal
+regional values identified through a tuning process.
+
+A region mask file is required as input.  Values to assign are hardcoded
+below.  There is not error checking that the number of values match the
+number of regions, so use with care.
+
+The script outputs a file called von_mises_calving_parameters.nc with the
+assigned regional values.
+
 Matt Hoffman, 9/19/2022
 '''
 
@@ -14,7 +25,6 @@ import matplotlib.pyplot as plt
 parser = OptionParser(description=__doc__)
 parser.add_option("-n", dest="fileRegions", help="region file name.", metavar="FILENAME")
 options, args = parser.parse_args()
-
 
 f = Dataset(options.fileRegions, 'r')
 regionCellMasks = f.variables['regionCellMasks'][:]
@@ -55,8 +65,6 @@ for r in range(nRegions):
     mask = np.nonzero(regionCellMasks[:,r] == 1)[0]
     grdVM[0, mask] = values[r] * 1000.0
     fltVM[0, mask] = values[r] * 1000.0
-
-
 
 fout.close()
 f.close()

@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 '''
-Script to fine tune ice-shelf geometry:
-1. Smooth ice thickness across ice shelves.  The first row of cells adjacent to GL is left unmodified.
+Script to fine tune ice-shelf geometry for Antarctica ISMIP6 meshes:
+1. Smooth ice thickness across ice shelves.  The first row of cells adjacent to GL is left unmodified in this step.
 2. Adjust bathymetry to prevent spurious grounding from thickness adjustment by modifying 
-bathymetry to maintain original water column thickness
+bathymetry to maintain original water column thickness.
 3. Lower bathymetry beneath ice shelves and in open ocean by a uniform amount.  This reduces spurious 
-grounding line advance from transient model dH/dt and geometry inconsistencies.  5 meters appears to be a good amount.
+grounding line advance from transient model dH/dt and geometry inconsistencies.  5-20 meters appears to be a good amount.
+Note that adjusting the seaward cells at the grounding line still impacts the velocity solver due to its
+subgrid parameterization of friction near the grounding line (the subgrid position evaluation of the grounding
+line position depends on the bed elevation at the first ocean node).
 
 See beginning of script for options to adjust.
 
-Note: changes are made to file in place so perform on a copy of your original file!
+Input file is copied with a _modifiedBathymetry.nc suffix before being modified.
 
 Matt Hoffman, 9/11/2022
 '''
@@ -21,13 +24,14 @@ import numpy as np
 from netCDF4 import Dataset
 from optparse import OptionParser
 import matplotlib.pyplot as plt
+import shutil
 
 
 # ---- options to adjust (could become command line options ----
 
 nSmoothing = 3 # number of rounds of smoothing to apply.  3 was the best match at 8km to 30 years of thickness evolution on Ross and FRIS.  Set to 0 to disable
 
-elevationDrop = 5.0 # height in meters to drop non-groudned marine bed elevation
+elevationDrop = 5.0 # height in meters to drop non-grounded marine bed elevation
 
 # ------------------------
 
@@ -40,7 +44,11 @@ options, args = parser.parse_args()
 rhoi=910.0
 rhosw=1028.0
 
-f = Dataset(options.fileName, 'r+')
+# Make a copy of file being modified and work on the copy
+outFileName = options.fileName.split('.nc')[0] + '_modifiedBathymetry.nc'
+shutil.copy(options.fileName, outFileName)
+
+f = Dataset(outFileName, 'r+')
 
 nCells = len(f.dimensions['nCells'])
 mu = f.variables['muFriction'][0,:]
@@ -56,6 +64,7 @@ WCT = lowerSurface - bedTopography
 floatMask = ((thickness*910/1028+bedTopography)<0.0)*(thickness>0.0)
 groundMask = ((thickness*910/1028+bedTopography)>0.0)*(thickness>0.0)
 
+# Find row of cells forming the ocean-side of the grounding line (first floating cells)
 oGLmask = np.zeros((nCells,), 'i')
 for c in range(nCells):
     if floatMask[c] == 1:
@@ -64,6 +73,7 @@ for c in range(nCells):
                 oGLmask[c] = True
                 break
 
+# Find floating cells at calving front
 oMgnMask = np.zeros((nCells,),'i')
 for c in range(nCells):
     if floatMask[c] == 1:
@@ -72,6 +82,9 @@ for c in range(nCells):
                 oMgnMask[c] = True
                 break
 
+# Update ocean margin mask to also include floating cells one layer inward from calving front
+# This is to avoid using the margin cells as input to the smoothing, because they might be
+# non-dynamic and have an unrealistic thickness.
 oMgnMaskOld = oMgnMask.copy()
 for c in range(nCells):
     if floatMask[c] == 1:
