@@ -20,7 +20,7 @@ install_requires = [
     'igraph',
     'scikit-image',
     'scipy',
-    'shapely',
+    'shapely >=2.0,<3.0',
     'xarray']
 
 here = os.path.abspath(os.path.dirname(__file__))

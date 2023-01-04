@@ -223,7 +223,7 @@ def _is_uniform(vector, epsilon=1e-10):
     return np.all(np.abs(diff) < epsilon)
 
 
-def _shapes_to_pixel_cooords(lon, lat, shapes):
+def _shapes_to_pixel_coords(lon, lat, shapes):
     intx = partial(_interpx, lon)
     inty = partial(_interpy, lat)
     new_shapes = []

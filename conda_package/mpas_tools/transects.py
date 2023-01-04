@@ -12,9 +12,13 @@ def subdivide_great_circle(x, y, z, maxRes, earthRadius):
 
     Parameters
     ----------
-    x, y, z : numpy.array
-        The Cartesian coordinates of a transect, where the number of segments
+    x : numpy.ndarray
+        The Cartesian x coordinate of a transect, where the number of segments
         is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length.
+    y : numpy.ndarray
+        The Cartesian y coordinate of the transect
+    z : numpy.ndarray
+        The Cartesian z coordinate of the transect
 
     maxRes : float
         The maximum allowed spacing in m after subdivision
@@ -24,15 +28,21 @@ def subdivide_great_circle(x, y, z, maxRes, earthRadius):
 
     Returns
     -------
-    xOut, yOut, zOut : numpy.array
-        The transect subdivided into segments with segment length at most
-        ``maxRes``.  All the points in ``x``, ``y`` and ``z`` are guaranteed
-        to be included.
+    xOut : numpy.ndarray
+        The Cartesian x values of the transect subdivided into segments with
+        segment length at most ``maxRes``.  All the points in ``x``, ``y`` and
+        ``z`` are guaranteed to be included.
 
-    dIn : numpy.array
+    yOut : numpy.ndarray
+        The Cartesian y values of the subdivided transect
+
+    zOut : numpy.ndarray
+        The Cartesian y values of the subdivided transect
+
+    dIn : numpy.ndarray
         The distance along the transect before subdivision
 
-    dOut : numpy.array
+    dOut : numpy.ndarray
         The distance along the transect after subdivision
 
     """
@@ -85,15 +95,19 @@ def cartesian_to_great_circle_distance(x, y, z, earth_radius):
 
     Parameters
     ----------
-    x, y, z : numpy.array
-        Cartesian coordinates along a transect
+    x : numpy.ndarray
+        The Cartesian x coordinate of a transect
+    y : numpy.ndarray
+        The Cartesian y coordinate of the transect
+    z : numpy.ndarray
+        The Cartesian z coordinate of the transect
 
     earth_radius : float
         The radius of the earth
 
     Returns
     -------
-    distance : numpy.array
+    distance : numpy.ndarray
         The distance along the transect
     """
     distance = numpy.zeros(x.shape)
@@ -117,24 +131,31 @@ def subdivide_planar(x, y, maxRes):
 
     Parameters
     ----------
-    x, y: numpy.array
-        The planar coordinates of a transect, where the number of segments
-        is ``len(x) - 1``.  ``x`` and ``y`` are of the same length.
+    x : numpy.ndarray
+        The planar x coordinate of a transect, where the number of segments
+        is ``len(x) - 1``
+
+    y : numpy.ndarray
+        The planar y coordinates of the transect, the same length as ``x``
 
     maxRes : float
         The maximum allowed spacing in m after subdivision
 
     Returns
     -------
-    xOut, yOut : numpy.array
-        The transect subdivided into segments with segment length at most
-        ``maxRes``.  All the points in ``x`` and ``y`` are guaranteed to be
+    xOut : numpy.ndarray
+        The x coordinate of the transect, subdivided into segments with length
+        at most ``maxRes``.  All the points in ``x`` are guaranteed to be
         included.
 
-    dIn : numpy.array
+    yOut : numpy.ndarray
+        The y coordinate of the transect.  All the points in ``y`` are
+        guaranteed to be included.
+
+    dIn : numpy.ndarray
         The distance along the transect before subdivision
 
-    dOut : numpy.array
+    dOut : numpy.ndarray
         The distance along the transect after subdivision
     """
 
@@ -199,19 +220,28 @@ def angular_distance(x=None, y=None, z=None, first=None, second=None):
 
     Parameters
     ----------
-    x, y, z : numpy.array, optional
-        The Cartsian coordinates of a transect, where the number of segments
+    x : numpy.ndarray, optional
+        The Cartesian x coordinate of a transect, where the number of segments
         is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length and
         all must be present if ``first`` and ``second`` are not provided.
 
-    first, second : Vector
-        The start and end points of each segment of the transect, where the
-        ``x``, ``y``, and ``z`` attributes of each vector are ``numpy.array``
+    y : numpy.ndarray, optional
+        The Cartesian y coordinate of the transect
+
+    z : numpy.ndarray, optional
+        The Cartesian z coordinate of the transect
+
+    first : mpas_tools.transect.Vector, optional
+        The start points of each segment of the transect, where the
+        ``x``, ``y``, and ``z`` attributes of each vector are numpy.ndarray
         objects.
+
+    second : mpas_tools.transect.Vector, optional
+        The end points of each segment of the transect
 
     Returns
     -------
-    angularDistance : numpy.array
+    angularDistance : numpy.ndarray
         The angular distance (in radians) between segments of the transect.
     """
     if first is None or second is None:
@@ -232,16 +262,26 @@ def intersects(a1, a2, b1, b2):
 
     Parameters
     ----------
-    a1, a2, b1, b2 : mpas_tools.transects.Vector
-        Cartesian coordinates of the end points of two great circle arcs.
+    a1 : mpas_tools.transects.Vector
+        Cartesian coordinates of the end point of a great circle arc.
         The types of the attributes ``x``, ``y``, and ``z`` must either be
         ``numpy.arrays`` of identical size for all 4 vectors (in which case
         intersections are found element-wise), or scalars for
         at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.
 
+    a2 : mpas_tools.transects.Vector
+        Cartesian coordinates of the other end point of a great circle arc.
+
+    b1 : mpas_tools.transects.Vector
+        Cartesian coordinates of an end point of a second great circle arc.
+
+    b2 : mpas_tools.transects.Vector
+        Cartesian coordinates of the other end point of the second great circle
+        arc.
+
     Returns
     -------
-    intersect : numpy.array
+    intersect : numpy.ndarray
         A boolean array of the same size as ``a1`` and ``a2`` or ``b1`` and
         ``b2``, whichever is greater, indicating if the particular pair of arcs
         intersects
@@ -253,19 +293,28 @@ def intersects(a1, a2, b1, b2):
 def intersection(a1, a2, b1, b2):
     """
     Based on https://stackoverflow.com/a/26669130/7728169
-    Find the intersection point between great circle arc from ``a1`` to ``a2``
-    and from ``b1`` to ``b2``.  The arcs should have already have been found
-    to intersect by calling ``intersects()``
+    Find the intersection point as a unit vector between great circle arc from
+    ``a1`` to ``a2`` and from ``b1`` to ``b2``.  The arcs should have already
+    have been found to intersect by calling ``intersects()``
 
     Parameters
     ----------
-    a1, a2, b1, b2 : mpas_tools.transects.Vector
-        Cartesian coordinates of the end points of two great circle arcs.
+    a1 : mpas_tools.transects.Vector
+        Cartesian coordinates of the end point of a great circle arc.
         The types of the attributes ``x``, ``y``, and ``z`` must either be
         ``numpy.arrays`` of identical size for all 4 vectors (in which case
         intersections are found element-wise), or scalars for
-        at least one of either the ``a1`` and ``a2`` or ``b1`` and ``b2``.
+        at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.
 
+    a2 : mpas_tools.transects.Vector
+        Cartesian coordinates of the other end point of a great circle arc.
+
+    b1 : mpas_tools.transects.Vector
+        Cartesian coordinates of an end point of a second great circle arc.
+
+    b2 : mpas_tools.transects.Vector
+        Cartesian coordinates of the other end point of the second great circle
+        arc.
     Returns
     -------
     points : mpas_tools.transects.Vector
@@ -307,7 +356,7 @@ def _straddles(a1, a2, b1, b2):
 
     Returns
     -------
-    straddle : numpy.array
+    straddle : numpy.ndarray
         A boolean array of the same size as the ``a``s or the ``b``s, whichever
         is greater, indicating if the great circle segment determined by
         (a1, a2) straddles the great circle determined by (b1, b2)

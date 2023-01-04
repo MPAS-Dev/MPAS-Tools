@@ -6,18 +6,18 @@ def find_transect_levels_and_weights(dsTransect, layerThickness, bottomDepth,
                                      maxLevelCell, zTransect=None):
     """
     Construct a vertical coordinate for a transect produced by
-    ``mpas_tools.viz.transects.find_transect_cells_and_weights()``, then break
-    each resulting quadrilateral into 2 triangles that can later be visualized
-    with functions like ``tripcolor`` and ``tricontourf``.  Also, compute
-    interpolation weights such that observations at points on the original
-    transect and with vertical coordinate ``transectZ`` can be bilinearly
-    interpolated to the nodes of the transect.
+    :py:fun:`mpas_tools.viz.transects.find_transect_cells_and_weights()`, then
+    break each resulting quadrilateral into 2 triangles that can later be
+    visualized with functions like ``tripcolor`` and ``tricontourf``.  Also,
+    compute interpolation weights such that observations at points on the
+    original transect and with vertical coordinate ``transectZ`` can be
+    bilinearly interpolated to the nodes of the transect.
 
     Parameters
     ----------
     dsTransect : xarray.Dataset
         A dataset that defines nodes of the transect, the results of calling
-        ``find_transect_cells_and_weights()``
+        :py:fun:`mpas_tools.viz.transects.find_transect_cells_and_weights()`
 
     layerThickness : xarray.DataArray
         layer thicknesses on the MPAS mesh
@@ -31,7 +31,7 @@ def find_transect_levels_and_weights(dsTransect, layerThickness, bottomDepth,
     zTransect : xarray.DataArray, optional
         the z coordinate of the transect (1D or 2D).  If 2D, it must have the
         same along-transect dimension as the lon and lat passed to
-        ``find_transect_cells_and_weights()``
+        :py:fun:`mpas_tools.viz.transects.find_transect_cells_and_weights()`
 
     Returns
     -------
