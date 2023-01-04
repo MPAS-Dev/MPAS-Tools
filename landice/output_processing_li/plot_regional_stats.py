@@ -103,10 +103,17 @@ for r in range(nRegions):
 
 #print(rNames)
 
-nrow=4
-ncol=4
-if nRegions > nrow*ncol:
-    sys.exit("ERROR: Number of regions exceeds number of plots.  Please adjust nrow, ncol as needed.")
+if nRegions <= 4:
+    ncol = 2
+elif nRegions <= 9:
+    ncol = 3
+elif nRegions <= 16:
+    ncol = 4
+elif nRegions <= 25:
+    ncol = 5
+else:
+    sys.exit("ERROR: More than 25 regions found.  Attempting to plot this many regions is likely a bad idea.")
+nrow = np.ceil(nRegions / ncol).astype('int') # Set nrow to have enough rows to plot number of regions based on ncol calculated above
 
 # Set up Figure 1: volume stats overview
 fig1, axs1 = plt.subplots(nrow, ncol, figsize=(13, 11), num=1)
@@ -127,7 +134,7 @@ for reg in range(nRegions):
        [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
        axs1.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig), color='b', alpha=0.2, label='grd obs')
 
-# Set up Figure 2: grd MB
+# Set up Figure 2: grounded MB
 fig2, axs2 = plt.subplots(nrow, ncol, figsize=(13, 11), num=2)
 fig2.suptitle(f'Grounded mass change\n{runinfo}', fontsize=9)
 for reg in range(nRegions):
@@ -153,7 +160,7 @@ for reg in range(nRegions):
        axs2.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig), color='k', alpha=0.2, label='net obs')
 
 
-# Set up Figure 3: flt MB
+# Set up Figure 3: floating MB
 fig3, axs3 = plt.subplots(nrow, ncol, figsize=(13, 11), num=3)
 fig3.suptitle(f'Floating mass change\n{runinfo}', fontsize=9)
 for reg in range(nRegions):
@@ -225,6 +232,18 @@ for reg in range(nRegions):
        mlt = ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0]
        axs6.flatten()[reg].plot(yr, np.ones(yr.shape)*(mlt), color='k', label='melt obs')
 
+# Set up unit conversion factors to be used when reading variables
+if options.units == "m3":
+    volUnitFactor = 1.0
+    massUnitFactor = 1.0 / rhoi
+elif options.units == "kg":
+    volUnitFactor = rhoi
+    massUnitFactor = 1.0
+elif options.units == "Gt":
+    volUnitFactor = rhoi / 1.0e12
+    massUnitFactor = 1.0 / 1.0e12
+else:
+    sys.exit("ERROR: Unknown unit specified")
 
 
 def plotStat(fname, sty, addToLegend=False):
@@ -242,49 +261,25 @@ def plotStat(fname, sty, addToLegend=False):
         sys.exit(f"ERROR: Number of regions in file {fname} does not match number of regions in first input file!")
 
     # Fig 1: summary plot
-    vol = f.variables['regionalIceVolume'][:]
-    if options.units == "m3":
-       pass
-    elif options.units == "kg":
-       vol = vol * rhoi
-    elif options.units == "Gt":
-       vol = vol * rhoi / 1.0e12
+    vol = f.variables['regionalIceVolume'][:] * volUnitFactor
     lbl ='total' if addToLegend else '_nolegend_'
     for r in range(nRegions):
        axs1.flatten()[r].plot(yr, vol[:,r] - vol[0,r], label=lbl, linestyle=sty, color='k')
 
-    VAF = f.variables['regionalVolumeAboveFloatation'][:]
+    VAF = f.variables['regionalVolumeAboveFloatation'][:] * volUnitFactor
     VAF = VAF[:,:] - VAF[0,:]
-    if options.units == "m3":
-       pass
-    elif options.units == "kg":
-       VAF = VAF * rhoi
-    elif options.units == "Gt":
-       VAF = VAF * rhoi / 1.0e12
     lbl ='VAF' if addToLegend else '_nolegend_'
     for r in range(nRegions):
        axs1.flatten()[r].plot(yr, VAF[:,r] - VAF[0,r], label=lbl, linestyle=sty, color='m')
 
-    volGround = f.variables['regionalGroundedIceVolume'][:]
+    volGround = f.variables['regionalGroundedIceVolume'][:] * volUnitFactor
     volGround = volGround[:,:] - volGround[0,:]
-    if options.units == "m3":
-       pass
-    elif options.units == "kg":
-       volGround = volGround * rhoi
-    elif options.units == "Gt":
-       volGround = volGround * rhoi / 1.0e12
     lbl ='grd' if addToLegend else '_nolegend_'
     for r in range(nRegions):
        axs1.flatten()[r].plot(yr, volGround[:,r] - volGround[0,r], label=lbl, linestyle=sty, color='b')
 
-    volFloat = f.variables['regionalFloatingIceVolume'][:]
+    volFloat = f.variables['regionalFloatingIceVolume'][:] * volUnitFactor
     volFloat = volFloat[:,:] - volFloat[0,:]
-    if options.units == "m3":
-       pass
-    elif options.units == "kg":
-       volFloat = volFloat * rhoi
-    elif options.units == "Gt":
-       volFloat = volFloat * rhoi / 1.0e12
     lbl ='flt' if addToLegend else '_nolegend_'
     for r in range(nRegions):
        axs1.flatten()[r].plot(yr, volFloat[:,r] - volFloat[0,r], label=lbl, linestyle=sty, color='g')
@@ -295,37 +290,19 @@ def plotStat(fname, sty, addToLegend=False):
     for r in range(nRegions):
        axs2.flatten()[r].plot(yr, volGround[:,r] - volGround[0,r], label=lbl, linestyle=sty, color='k', linewidth=2)
 
-    grdSMB = f.variables['regionalSumGroundedSfcMassBal'][:]
-    if options.units == "m3":
-       grdSMB = grdSMB / rhoi
-    elif options.units == "kg":
-       pass
-    elif options.units == "Gt":
-       grdSMB = grdSMB / 1.0e12
+    grdSMB = f.variables['regionalSumGroundedSfcMassBal'][:] * massUnitFactor
     cumGrdSMB = np.cumsum(grdSMB*dtnR, axis=0)
     lbl ='SMB' if addToLegend else '_nolegend_'
     for r in range(nRegions):
        axs2.flatten()[r].plot(yr, cumGrdSMB[:,r], label=lbl, linestyle=sty, color='b')
 
-    GLflux = f.variables['regionalSumGroundingLineFlux'][:]
-    if options.units == "m3":
-       GLflux = GLflux / rhoi
-    elif options.units == "kg":
-       pass
-    elif options.units == "Gt":
-       GLflux = GLflux / 1.0e12
+    GLflux = f.variables['regionalSumGroundingLineFlux'][:] * massUnitFactor
     cumGLflux = np.cumsum(GLflux*dtnR, axis=0)
     lbl ='GL flux' if addToLegend else '_nolegend_'
     for r in range(nRegions):
        axs2.flatten()[r].plot(yr, -1.0*cumGLflux[:,r], label=lbl, linestyle=sty, color='g')
 
-    GLMigflux = f.variables['regionalSumGroundingLineMigrationFlux'][:]
-    if options.units == "m3":
-       GLMigflux = GLMigflux / rhoi
-    elif options.units == "kg":
-       pass
-    elif options.units == "Gt":
-       GLMigflux = GLMigflux / 1.0e12
+    GLMigflux = f.variables['regionalSumGroundingLineMigrationFlux'][:] * massUnitFactor
     cumGLMigflux = np.cumsum(GLMigflux*dtnR, axis=0)
     lbl ='GL mig flux' if addToLegend else '_nolegend_'
     for r in range(nRegions):
@@ -349,13 +326,7 @@ def plotStat(fname, sty, addToLegend=False):
     for r in range(nRegions):
        axs3.flatten()[r].plot(yr, volFloat[:,r] - volFloat[0,r], label=lbl, linestyle=sty, color='k', linewidth=2)
 
-    fltSMB = f.variables['regionalSumFloatingSfcMassBal'][:]
-    if options.units == "m3":
-       fltSMB = fltSMB / rhoi
-    elif options.units == "kg":
-       pass
-    elif options.units == "Gt":
-       fltSMB = fltSMB / 1.0e12
+    fltSMB = f.variables['regionalSumFloatingSfcMassBal'][:] * massUnitFactor
     cumFltSMB = np.cumsum(fltSMB*dtnR, axis=0)
     lbl = 'SMB' if addToLegend else '_nolegend_'
     for r in range(nRegions):
@@ -369,25 +340,13 @@ def plotStat(fname, sty, addToLegend=False):
     for r in range(nRegions):
        axs3.flatten()[r].plot(yr, cumGLMigflux[:,r], label=lbl, linestyle=sty, color='y')
 
-    clv = f.variables['regionalSumCalvingFlux'][:]
-    if options.units == "m3":
-       clv = clv / rhoi
-    elif options.units == "kg":
-       pass
-    elif options.units == "Gt":
-       clv = clv / 1.0e12
+    clv = f.variables['regionalSumCalvingFlux'][:] * massUnitFactor
     cumClv = np.cumsum(clv*dtnR, axis=0)
     lbl = 'calving' if addToLegend else '_nolegend_'
     for r in range(nRegions):
        axs3.flatten()[r].plot(yr, -1.0*cumClv[:,r], label=lbl, linestyle=sty, color='m', linewidth=1)
 
-    BMB = f.variables['regionalSumFloatingBasalMassBal'][:]
-    if options.units == "m3":
-       BMB = BMB / rhoi
-    elif options.units == "kg":
-       pass
-    elif options.units == "Gt":
-       BMB = BMB / 1.0e12
+    BMB = f.variables['regionalSumFloatingBasalMassBal'][:] * massUnitFactor
     cumBMB = np.cumsum(BMB*dtnR, axis=0)
     lbl = 'BMB' if addToLegend else '_nolegend_'
     for r in range(nRegions):
