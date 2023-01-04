@@ -1,11 +1,15 @@
 from configparser import RawConfigParser, ConfigParser, ExtendedInterpolation
 import os
-from importlib import resources
 import inspect
 import sys
 import numpy as np
 import ast
 from io import StringIO
+try:
+    from importlib.resources import files as imp_res_files
+except ImportError:
+    # python<=3.8
+    from importlib_resources import files as imp_res_files
 
 
 class MpasConfigParser:
@@ -83,8 +87,8 @@ class MpasConfigParser:
             Whether to raise an exception if the config file isn't found
         """
         try:
-            with resources.path(package, config_filename) as path:
-                self._add(path, user=False)
+            path = imp_res_files(package) / config_filename
+            self._add(path, user=False)
         except (ModuleNotFoundError, FileNotFoundError, TypeError):
             if exception:
                 raise
