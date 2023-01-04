@@ -106,7 +106,7 @@
 
 <div class="viewcode-block" id="find_transect_levels_and_weights"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.transects.find_transect_levels_and_weights.html#mpas_tools.ocean.transects.find_transect_levels_and_weights">[docs]</a><span class="k">def</span> <span class="nf">find_transect_levels_and_weights</span><span class="p">(</span><span class="n">dsTransect</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span> <span class="n">bottomDepth</span><span class="p">,</span>
                                      <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">zTransect</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Construct a vertical coordinate for a transect produced by</span>
 <span class="sd">    ``mpas_tools.viz.transects.find_transect_cells_and_weights()``, then break</span>
 <span class="sd">    each resulting quadrilateral into 2 triangles that can later be visualized</span>
@@ -206,7 +206,7 @@
 
 
 <div class="viewcode-block" id="interp_mpas_to_transect_triangles"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangles.html#mpas_tools.ocean.transects.interp_mpas_to_transect_triangles">[docs]</a><span class="k">def</span> <span class="nf">interp_mpas_to_transect_triangles</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interpolate a 3D (``nCells`` by ``nVertLevels``) MPAS-Ocean DataArray</span>
 <span class="sd">    to transect nodes with constant values in each MPAS cell</span>
 
@@ -237,7 +237,7 @@
 
 
 <div class="viewcode-block" id="interp_mpas_to_transect_triangle_nodes"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html#mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes">[docs]</a><span class="k">def</span> <span class="nf">interp_mpas_to_transect_triangle_nodes</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interpolate a 3D (``nCells`` by ``nVertLevels``) MPAS-Ocean DataArray</span>
 <span class="sd">    to transect nodes, linearly interpolating fields between the closest</span>
 <span class="sd">    neighboring cells</span>
@@ -272,7 +272,7 @@
 
 
 <div class="viewcode-block" id="interp_transect_grid_to_transect_triangle_nodes"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html#mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes">[docs]</a><span class="k">def</span> <span class="nf">interp_transect_grid_to_transect_triangle_nodes</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interpolate a DataArray on the original transect grid to triangle nodes on</span>
 <span class="sd">    the MPAS-Ocean transect.</span>
 
@@ -331,7 +331,7 @@
 
 
 <div class="viewcode-block" id="get_outline_segments"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.transects.get_outline_segments.html#mpas_tools.ocean.transects.get_outline_segments">[docs]</a><span class="k">def</span> <span class="nf">get_outline_segments</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Get a set of line segments that outline the given transect&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a set of line segments that outline the given transect&quot;&quot;&quot;</span>
 
     <span class="n">nSegments</span> <span class="o">=</span> <span class="n">dsTransectTriangles</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nSegments&#39;</span><span class="p">]</span>
     <span class="n">dSeaFloor</span> <span class="o">=</span> <span class="n">dsTransectTriangles</span><span class="o">.</span><span class="n">dNode</span><span class="o">.</span><span class="n">values</span>

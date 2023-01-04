@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.mesh.mask.compute_lon_lat_region_masks &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -134,7 +135,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="mpas-tools-mesh-mask-compute-lon-lat-region-masks">
+  <section id="mpas-tools-mesh-mask-compute-lon-lat-region-masks">
 <h1>mpas_tools.mesh.mask.compute_lon_lat_region_masks<a class="headerlink" href="#mpas-tools-mesh-mask-compute-lon-lat-region-masks" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.mesh.mask.compute_lon_lat_region_masks">
@@ -144,9 +145,9 @@ collection made up of regions (polygons) on a tensor lon/lat grid</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lon</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – A 1D array of longitudes in degrees between -180 and 180</p></li>
-<li><p><strong>lat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.23)"><em>numpy.ndarray</em></a>) – A 1D array of latitudes in degrees between -90 and 90</p></li>
-<li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v0.8.0)"><em>geometric_features.FeatureCollection</em></a>) – A feature collection containing features to use to create the mask</p></li>
+<li><p><strong>lon</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – A 1D array of longitudes in degrees between -180 and 180</p></li>
+<li><p><strong>lat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – A 1D array of latitudes in degrees between -90 and 90</p></li>
+<li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.0.0)"><em>geometric_features.FeatureCollection</em></a>) – A feature collection containing features to use to create the mask</p></li>
 <li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.11)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
 <li><p><strong>pool</strong> (<em>multiprocessing.Pool</em><em>, </em><em>optional</em>) – A pool for performing multiprocessing</p></li>
 <li><p><strong>chunkSize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – The number of cells, vertices or edges that are processed in one
@@ -164,7 +165,7 @@ be subdivided into smaller polygons for faster intersection checking</p></li>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>

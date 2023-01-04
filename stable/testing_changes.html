@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Testing Changes to mpas_tools &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -104,7 +105,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="testing-changes-to-mpas-tools">
+  <section id="testing-changes-to-mpas-tools">
 <span id="dev-testing-changes"></span><h1>Testing Changes to mpas_tools<a class="headerlink" href="#testing-changes-to-mpas-tools" title="Permalink to this heading">¶</a></h1>
 <p>Here, we describe the workflow for creating a development conda environment
 that points to <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> in a branch from a local clone of the repo.
@@ -115,17 +116,17 @@ script or another python package and for calling the “entry points”
 are beyond the scope of this documentation. Make sure the conda-forge channel
 is added and that channel priority is “strict”, meaning packages will
 definitely come from conda-forge if they are available there.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda config --add channels conda-forge
-conda config --set channel_priority strict
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>config<span class="w"> </span>--add<span class="w"> </span>channels<span class="w"> </span>conda-forge
+conda<span class="w"> </span>config<span class="w"> </span>--set<span class="w"> </span>channel_priority<span class="w"> </span>strict
 </pre></div>
 </div>
 <p>To make a conda environment and install the current <cite>mpas_tools</cite> in a way that
 it will be used out of the repo directly (i.e. it will notice changes as you
 make them in your branch), run:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span> conda_package
-conda env create -y -n mpas_tools_dev --file dev-spec.txt
-conda activate mpas_tools_dev
-python -m pip install -e .
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>conda_package
+conda<span class="w"> </span>env<span class="w"> </span>create<span class="w"> </span>-y<span class="w"> </span>-n<span class="w"> </span>mpas_tools_dev<span class="w"> </span>--file<span class="w"> </span>dev-spec.txt
+conda<span class="w"> </span>activate<span class="w"> </span>mpas_tools_dev
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
 <p>You should now find that <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> can be imported in python codes and the
@@ -133,24 +134,24 @@ various scripts and entry points are available in the path.</p>
 <p>If you have already created the <code class="docutils literal notranslate"><span class="pre">mpas_tools_dev</span></code> environment, it may be best
 to remove it (see below) and create it again.  If you are in a rush, you can
 use:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda env update -f ./dev_environment
-conda activate mpas_tools_dev
-python -m pip install -e .
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>env<span class="w"> </span>update<span class="w"> </span>-f<span class="w"> </span>./dev_environment
+conda<span class="w"> </span>activate<span class="w"> </span>mpas_tools_dev
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
 </pre></div>
 </div>
 <p>to update the existing environment and make sure <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> in the
 environment points to your current branch.</p>
 <p>There is no need to build a conda package, as previous instructions had
 suggested.</p>
-<div class="section" id="removing-the-test-environment">
+<section id="removing-the-test-environment">
 <h2>Removing the test environment<a class="headerlink" href="#removing-the-test-environment" title="Permalink to this heading">¶</a></h2>
 <p>If you’re done with testing, you can remove the test environment</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">deactivate</span>
 <span class="n">conda</span> <span class="n">remove</span> <span class="o">--</span><span class="nb">all</span> <span class="o">-</span><span class="n">n</span> <span class="n">mpas_tools_dev</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

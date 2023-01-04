@@ -125,7 +125,7 @@
 <div class="viewcode-block" id="compute_mpas_region_masks"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks">[docs]</a><span class="k">def</span> <span class="nf">compute_mpas_region_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">),</span>
                               <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
                               <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use shapely and processes to create a set of masks from a feature collection</span>
 <span class="sd">    made up of regions (polygons)</span>
 
@@ -228,7 +228,7 @@
 
 
 <span class="k">def</span> <span class="nf">entry_point_compute_mpas_region_masks</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_region_masks()``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_region_masks()``&quot;&quot;&quot;</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--mesh_file_name&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;mesh_file_name&quot;</span><span class="p">,</span>
@@ -297,7 +297,7 @@
                                 <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
                                 <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionResolution</span><span class="o">=</span><span class="mf">10e3</span><span class="p">,</span>
                                 <span class="n">addEdgeSign</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
 <span class="sd">    collection made up of transects (line strings)</span>
 
@@ -419,7 +419,7 @@
 
 
 <span class="k">def</span> <span class="nf">entry_point_compute_mpas_transect_masks</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_transect_masks()``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_transect_masks()``&quot;&quot;&quot;</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--mesh_file_name&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;mesh_file_name&quot;</span><span class="p">,</span>
@@ -490,7 +490,7 @@
 
 
 <div class="viewcode-block" id="compute_mpas_flood_fill_mask"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask">[docs]</a><span class="k">def</span> <span class="nf">compute_mpas_flood_fill_mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcSeed</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Flood fill from the given set of seed points to create a contiguous mask.</span>
 <span class="sd">    The flood fill operates using cellsOnCell, starting from the cells</span>
 <span class="sd">    whose centers are closest to the seed points.</span>
@@ -547,7 +547,7 @@
 
 
 <span class="k">def</span> <span class="nf">entry_point_compute_mpas_flood_fill_mask</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_flood_fill_mask()``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_flood_fill_mask()``&quot;&quot;&quot;</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--mesh_file_name&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;mesh_file_name&quot;</span><span class="p">,</span>
@@ -581,7 +581,7 @@
 <div class="viewcode-block" id="compute_lon_lat_region_masks"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_lon_lat_region_masks.html#mpas_tools.mesh.mask.compute_lon_lat_region_masks">[docs]</a><span class="k">def</span> <span class="nf">compute_lon_lat_region_masks</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                  <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                  <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
 <span class="sd">    collection made up of regions (polygons) on a tensor lon/lat grid</span>
 
@@ -673,7 +673,7 @@
 
 
 <span class="k">def</span> <span class="nf">entry_point_compute_lon_lat_region_masks</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; Entry point for ``compute_lon_lat_region_masks()``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_lon_lat_region_masks()``&quot;&quot;&quot;</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="s2">&quot;--grid_file_name&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;grid_file_name&quot;</span><span class="p">,</span>
@@ -739,7 +739,7 @@
 <span class="k">def</span> <span class="nf">compute_projection_grid_region_masks</span><span class="p">(</span>
         <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
         <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.</span><span class="p">,</span> <span class="n">xdim</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">ydim</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
 <span class="sd">    collection made up of regions (polygons) on a projection grid such as</span>
 <span class="sd">    a polar-stereographic grid.</span>
@@ -833,7 +833,7 @@
 
 
 <span class="k">def</span> <span class="nf">entry_point_compute_projection_grid_region_masks</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot; Entry point for ``compute_projection_grid_region_masks()``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_projection_grid_region_masks()``&quot;&quot;&quot;</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="s2">&quot;--grid_file_name&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;grid_file_name&quot;</span><span class="p">,</span>
@@ -901,7 +901,7 @@
 
 <span class="k">def</span> <span class="nf">_compute_mask_from_shapes</span><span class="p">(</span><span class="n">shapes1</span><span class="p">,</span> <span class="n">shapes2</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
                               <span class="n">showProgress</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    If multiprocessing, break shapes2 into chunks and use multiprocessing to</span>
 <span class="sd">    apply the given function one chunk at a time</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -966,7 +966,7 @@
 
 <span class="k">def</span> <span class="nf">_compute_region_masks</span><span class="p">(</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
                           <span class="n">showProgress</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build a region mask file from the given mesh and geojson file defining</span>
 <span class="sd">    a set of regions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1009,7 +1009,7 @@
 
 
 <span class="k">def</span> <span class="nf">_katana</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxcount</span><span class="o">=</span><span class="mi">250</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    From https://snorfalorpagus.net/blog/2016/03/13/splitting-large-polygons-for-faster-intersections/</span>
 
 <span class="sd">    Split a Polygon into two parts across it&#39;s shortest dimension</span>
@@ -1078,7 +1078,7 @@
 
 <span class="k">def</span> <span class="nf">_compute_transect_masks</span><span class="p">(</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">polygons</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
                             <span class="n">showProgress</span><span class="p">,</span> <span class="n">subdivisionResolution</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build a transect mask file from the given mesh and geojson file defining</span>
 <span class="sd">    a set of transects.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1267,7 +1267,7 @@
 
 
 <span class="k">def</span> <span class="nf">_compute_seed_mask</span><span class="p">(</span><span class="n">fcSeed</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">workers</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find the cell centers (points) closes to the given seed points and set</span>
 <span class="sd">    the resulting mask to 1 there</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1290,7 +1290,7 @@
 
 
 <span class="k">def</span> <span class="nf">_flood_fill_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">cellsOnCell</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Flood fill starting with a mask of seed points</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -1316,7 +1316,7 @@
 
 
 <span class="k">def</span> <span class="nf">_compute_edge_sign</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">edgeMask</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Compute the edge sign along a transect &quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute the edge sign along a transect &quot;&quot;&quot;</span>
 
     <span class="n">edge_indices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">edgeMask</span><span class="p">)</span>
     <span class="n">voe</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">verticesOnEdge</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nEdges</span><span class="o">=</span><span class="n">edge_indices</span><span class="p">)</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>

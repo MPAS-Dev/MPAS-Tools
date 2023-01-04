@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Meridional Overturning Circulation &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -106,14 +107,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="meridional-overturning-circulation">
+  <section id="meridional-overturning-circulation">
 <span id="ocean-moc"></span><h1>Meridional Overturning Circulation<a class="headerlink" href="#meridional-overturning-circulation" title="Permalink to this heading">¶</a></h1>
 <p>The <a class="reference internal" href="../generated/mpas_tools.ocean.moc.html#module-mpas_tools.ocean.moc" title="mpas_tools.ocean.moc"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.ocean.moc</span></code></a> module contains tools for setting up masks
 used by both
 <a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Model/tree/ocean/develop">MPAS-Ocean</a> and
 <a class="reference external" href="https://mpas-dev.github.io/MPAS-Analysis/stable/">MPAS-Analysis</a> for
 computing the global and basin-wide Meridional Overturning Circulation (MOC).</p>
-<div class="section" id="building-moc-basins">
+<section id="building-moc-basins">
 <span id="moc-basins"></span><h2>Building MOC Basins<a class="headerlink" href="#building-moc-basins" title="Permalink to this heading">¶</a></h2>
 <p>The <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.moc.build_moc_basins()</span></code> function can be used to
 merge a large number of individual seas from the
@@ -138,8 +139,8 @@ with these 5 basins.</p>
 <span class="n">fcMOC</span> <span class="o">=</span> <span class="n">build_moc_basins</span><span class="p">(</span><span class="n">gf</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="adding-southern-transects">
+</section>
+<section id="adding-southern-transects">
 <span id="moc-southern-transects"></span><h2>Adding Southern Transects<a class="headerlink" href="#adding-southern-transects" title="Permalink to this heading">¶</a></h2>
 <p>Typically, the basins on their own are not particularly useful.  For all but
 the global MOC, a southern transect is needed to determine the flow into or
@@ -197,8 +198,8 @@ optional arguments:
 <p>The command-line tool is largely intended for backwards compatibility and the
 python function is the preferred way of building a workflow with this
 functionality.</p>
-</div>
-<div class="section" id="building-moc-basins-and-transects-together">
+</section>
+<section id="building-moc-basins-and-transects-together">
 <span id="moc-basins-and-transects"></span><h2>Building MOC Basins and Transects Together<a class="headerlink" href="#building-moc-basins-and-transects-together" title="Permalink to this heading">¶</a></h2>
 <p>Typically, a workflow can be made more efficient by using the function
 <a class="reference internal" href="../generated/mpas_tools.ocean.moc.make_moc_basins_and_transects.html#mpas_tools.ocean.moc.make_moc_basins_and_transects" title="mpas_tools.ocean.moc.make_moc_basins_and_transects"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.moc.make_moc_basins_and_transects()</span></code></a> takes care of
@@ -232,8 +233,8 @@ purposes of debugging or provenance.  The MOC feature collection from
 <a class="reference internal" href="#moc-basins"><span class="std std-ref">Building MOC Basins</span></a> will be written to <code class="docutils literal notranslate"><span class="pre">geojson_filename</span></code>, while the basin
 masks (without the associate transect masks) will be written to
 <code class="docutils literal notranslate"><span class="pre">mask_filename</span></code>.</p>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

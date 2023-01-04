@@ -110,7 +110,7 @@
 
 
 <div class="viewcode-block" id="convert"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert">[docs]</a><span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use ``MpasMeshConverter.x`` to convert an input mesh to a valid MPAS</span>
 <span class="sd">    mesh that is fully compliant with the MPAS mesh specification.</span>
 <span class="sd">    https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf</span>
@@ -165,7 +165,7 @@
 
 <div class="viewcode-block" id="cull"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull">[docs]</a><span class="k">def</span> <span class="nf">cull</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">dsMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsInverse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsPreserve</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
          <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use ``MpasCellCuller.x`` to cull cells from a mesh based on the</span>
 <span class="sd">    ``cullCell`` field in the input file or DataSet and/or the provided masks.</span>
 <span class="sd">    ``cullCell``, dsMask and dsInverse are merged together so that the final</span>
@@ -259,7 +259,7 @@
 
 
 <div class="viewcode-block" id="mask"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask">[docs]</a><span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fcSeed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use ``MpasMaskCreator.x`` to create a set of region masks either from</span>
 <span class="sd">    mask feature collections or from seed points to be used to flood fill</span>
 
@@ -316,7 +316,7 @@
 
 
 <span class="k">def</span> <span class="nf">_call_subprocess</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Call the given subprocess and send the output to the logger&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Call the given subprocess and send the output to the logger&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">subprocess</span><span class="o">.</span><span class="n">check_call</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>

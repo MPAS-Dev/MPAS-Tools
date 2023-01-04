@@ -105,7 +105,7 @@
 
 
 <div class="viewcode-block" id="subdivide_great_circle"><a class="viewcode-back" href="../../generated/mpas_tools.transects.subdivide_great_circle.html#mpas_tools.transects.subdivide_great_circle">[docs]</a><span class="k">def</span> <span class="nf">subdivide_great_circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">maxRes</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Subdivide each segment of the transect so the horizontal resolution</span>
 <span class="sd">    approximately matches the requested resolution</span>
 
@@ -182,7 +182,7 @@
 
 
 <div class="viewcode-block" id="cartesian_to_great_circle_distance"><a class="viewcode-back" href="../../generated/mpas_tools.transects.cartesian_to_great_circle_distance.html#mpas_tools.transects.cartesian_to_great_circle_distance">[docs]</a><span class="k">def</span> <span class="nf">cartesian_to_great_circle_distance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Cartesian transect points to great-circle distance</span>
 
 <span class="sd">    Parameters</span>
@@ -210,7 +210,7 @@
 
 
 <div class="viewcode-block" id="subdivide_planar"><a class="viewcode-back" href="../../generated/mpas_tools.transects.subdivide_planar.html#mpas_tools.transects.subdivide_planar">[docs]</a><span class="k">def</span> <span class="nf">subdivide_planar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">maxRes</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Subdivide each segment of the transect so the horizontal resolution</span>
 <span class="sd">    approximately matches the requested resolution</span>
 
@@ -273,7 +273,7 @@
 
 
 <div class="viewcode-block" id="lon_lat_to_cartesian"><a class="viewcode-back" href="../../generated/mpas_tools.transects.lon_lat_to_cartesian.html#mpas_tools.transects.lon_lat_to_cartesian">[docs]</a><span class="k">def</span> <span class="nf">lon_lat_to_cartesian</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span> <span class="n">degrees</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Convert from lon/lat to Cartesian x, y, z&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert from lon/lat to Cartesian x, y, z&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">degrees</span><span class="p">:</span>
         <span class="n">lon</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
@@ -285,7 +285,7 @@
 
 
 <div class="viewcode-block" id="cartesian_to_lon_lat"><a class="viewcode-back" href="../../generated/mpas_tools.transects.cartesian_to_lon_lat.html#mpas_tools.transects.cartesian_to_lon_lat">[docs]</a><span class="k">def</span> <span class="nf">cartesian_to_lon_lat</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span> <span class="n">degrees</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Convert from  Cartesian x, y, z to lon/lat&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert from  Cartesian x, y, z to lon/lat&quot;&quot;&quot;</span>
     <span class="n">lon</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
     <span class="n">lat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">z</span><span class="o">/</span><span class="n">earth_radius</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">degrees</span><span class="p">:</span>
@@ -295,7 +295,7 @@
 
 
 <div class="viewcode-block" id="angular_distance"><a class="viewcode-back" href="../../generated/mpas_tools.transects.angular_distance.html#mpas_tools.transects.angular_distance">[docs]</a><span class="k">def</span> <span class="nf">angular_distance</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">first</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute angular distance between points on the sphere, following:</span>
 <span class="sd">    https://en.wikipedia.org/wiki/Great-circle_distance</span>
 
@@ -327,7 +327,7 @@
 
 
 <div class="viewcode-block" id="intersects"><a class="viewcode-back" href="../../generated/mpas_tools.transects.intersects.html#mpas_tools.transects.intersects">[docs]</a><span class="k">def</span> <span class="nf">intersects</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Based on https://stackoverflow.com/a/26669130/7728169</span>
 <span class="sd">    Determine if the great circle arc from ``a1`` to ``a2`` intersects that</span>
 <span class="sd">    from ``b1`` to ``b2``.</span>
@@ -353,7 +353,7 @@
 
 
 <div class="viewcode-block" id="intersection"><a class="viewcode-back" href="../../generated/mpas_tools.transects.intersection.html#mpas_tools.transects.intersection">[docs]</a><span class="k">def</span> <span class="nf">intersection</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Based on https://stackoverflow.com/a/26669130/7728169</span>
 <span class="sd">    Find the intersection point between great circle arc from ``a1`` to ``a2``</span>
 <span class="sd">    and from ``b1`` to ``b2``.  The arcs should have already have been found</span>
@@ -381,7 +381,7 @@
 
 
 <div class="viewcode-block" id="Vector"><a class="viewcode-back" href="../../generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector">[docs]</a><span class="k">class</span> <span class="nc">Vector</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A class for representing Cartesian vectors with ``x``, ``y`` and ``z``</span>
 <span class="sd">    components that are either ``float`` or ``numpy.array`` objects of identical</span>
 <span class="sd">    size.</span>
@@ -393,7 +393,7 @@
 
 
 <span class="k">def</span> <span class="nf">_straddles</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Based on https://stackoverflow.com/a/26669130/7728169</span>
 <span class="sd">    Determines if the great circle segment determined by (a1, a2)</span>
 <span class="sd">    straddles the great circle determined by (b1, b2)</span>
@@ -418,24 +418,24 @@
 
 
 <span class="k">def</span> <span class="nf">_dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The dot product between two ``Vector`` objects ``v1`` and ``v2``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The dot product between two ``Vector`` objects ``v1`` and ``v2``&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">v1</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">v1</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">v1</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">z</span>
 
 
 <span class="k">def</span> <span class="nf">_cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The cross product between two ``Vector`` objects ``v1`` and ``v2``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The cross product between two ``Vector`` objects ``v1`` and ``v2``&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">v1</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">v1</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
                   <span class="n">v1</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">v1</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
                   <span class="n">v1</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">v1</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_det</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The determinant of the matrix defined by the three ``Vector`` objects&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The determinant of the matrix defined by the three ``Vector`` objects&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">_dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">_cross</span><span class="p">(</span><span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">))</span>
 
 
 <span class="k">def</span> <span class="nf">_mag</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The magnitude of the ``Vector`` object ``v``&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The magnitude of the ``Vector`` object ``v``&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">_dot</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
 </pre></div>
 

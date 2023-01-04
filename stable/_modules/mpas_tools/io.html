@@ -117,7 +117,7 @@
 
 <div class="viewcode-block" id="write_netcdf"><a class="viewcode-back" href="../../generated/mpas_tools.io.write_netcdf.html#mpas_tools.io.write_netcdf">[docs]</a><span class="k">def</span> <span class="nf">write_netcdf</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">fillValues</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">char_dim_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write an xarray.Dataset to a file with NetCDF4 fill values and the given</span>
 <span class="sd">    name of the string dimension.  Also adds the time and command-line to the</span>
 <span class="sd">    history attribute.</span>
@@ -195,7 +195,7 @@
 
 
 <span class="k">def</span> <span class="nf">update_history</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Add or append history to attributes of a data set&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Add or append history to attributes of a data set&#39;&#39;&#39;</span>
 
     <span class="n">thiscommand</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%a</span><span class="s2"> %b </span><span class="si">%d</span><span class="s2"> %H:%M:%S %Y&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> \
         <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:])</span>
