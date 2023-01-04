@@ -58,6 +58,14 @@
 <li class="toctree-l1"><a class="reference internal" href="ocean/moc.html">Meridional Overturning Circulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ocean/depth.html">Adding a Depth Coordinate</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regrid.html">Regrid</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
@@ -208,10 +216,10 @@
 </li>
       <li><a href="generated/mpas_tools.mesh.mask.compute_lon_lat_region_masks.html#mpas_tools.mesh.mask.compute_lon_lat_region_masks">compute_lon_lat_region_masks() (in module mpas_tools.mesh.mask)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask">compute_mpas_flood_fill_mask() (in module mpas_tools.mesh.mask)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks">compute_mpas_region_masks() (in module mpas_tools.mesh.mask)</a>
 </li>
       <li><a href="generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks">compute_mpas_transect_masks() (in module mpas_tools.mesh.mask)</a>
@@ -225,6 +233,8 @@
       <li><a href="generated/mpas_tools.ocean.coastal_tools.CPP_projection.html#mpas_tools.ocean.coastal_tools.CPP_projection">CPP_projection() (in module mpas_tools.ocean.coastal_tools)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.create_background_mesh.html#mpas_tools.ocean.coastal_tools.create_background_mesh">create_background_mesh() (in module mpas_tools.ocean.coastal_tools)</a>
+</li>
+      <li><a href="generated/mpas_tools.seaice.partition.create_partitions.html#mpas_tools.seaice.partition.create_partitions">create_partitions() (in module mpas_tools.seaice.partition)</a>
 </li>
       <li><a href="generated/mpas_tools.parallel.create_pool.html#mpas_tools.parallel.create_pool">create_pool() (in module mpas_tools.parallel)</a>
 </li>
@@ -249,6 +259,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat">EC_CellWidthVsLat() (in module mpas_tools.mesh.creation.mesh_definition_tools)</a>
+</li>
+      <li><a href="generated/mpas_tools.seaice.mask.extend_seaice_mask.html#mpas_tools.seaice.mask.extend_seaice_mask">extend_seaice_mask() (in module mpas_tools.seaice.mask)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -276,6 +288,8 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/mpas_tools.seaice.partition.gen_seaice_mesh_partition.html#mpas_tools.seaice.partition.gen_seaice_mesh_partition">gen_seaice_mesh_partition() (in module mpas_tools.seaice.partition)</a>
+</li>
       <li><a href="generated/mpas_tools.config.MpasConfigParser.get.html#mpas_tools.config.MpasConfigParser.get">get() (mpas_tools.config.MpasConfigParser method)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates.html#mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates">get_convex_hull_coordinates() (in module mpas_tools.ocean.coastal_tools)</a>
@@ -284,10 +298,10 @@
 </li>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.get_indices_inside_quad.html#mpas_tools.ocean.coastal_tools.get_indices_inside_quad">get_indices_inside_quad() (in module mpas_tools.ocean.coastal_tools)</a>
 </li>
-      <li><a href="generated/mpas_tools.ocean.transects.get_outline_segments.html#mpas_tools.ocean.transects.get_outline_segments">get_outline_segments() (in module mpas_tools.ocean.transects)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/mpas_tools.ocean.transects.get_outline_segments.html#mpas_tools.ocean.transects.get_outline_segments">get_outline_segments() (in module mpas_tools.ocean.transects)</a>
+</li>
       <li><a href="generated/mpas_tools.config.MpasConfigParser.getboolean.html#mpas_tools.config.MpasConfigParser.getboolean">getboolean() (mpas_tools.config.MpasConfigParser method)</a>
 </li>
       <li><a href="generated/mpas_tools.config.MpasConfigParser.getexpression.html#mpas_tools.config.MpasConfigParser.getexpression">getexpression() (mpas_tools.config.MpasConfigParser method)</a>
@@ -372,7 +386,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.ocean.moc.make_moc_basins_and_transects.html#mpas_tools.ocean.moc.make_moc_basins_and_transects">make_moc_basins_and_transects() (in module mpas_tools.ocean.moc)</a>
 </li>
+      <li><a href="generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells">make_mpas_scripfile_on_cells() (in module mpas_tools.seaice.mesh)</a>
+</li>
+      <li><a href="generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices">make_mpas_scripfile_on_vertices() (in module mpas_tools.seaice.mesh)</a>
+</li>
       <li><a href="generated/mpas_tools.planar_hex.make_planar_hex_mesh.html#mpas_tools.planar_hex.make_planar_hex_mesh">make_planar_hex_mesh() (in module mpas_tools.planar_hex)</a>
+</li>
+      <li><a href="generated/mpas_tools.seaice.regions.make_regions_file.html#mpas_tools.seaice.regions.make_regions_file">make_regions_file() (in module mpas_tools.seaice.regions)</a>
 </li>
       <li><a href="generated/mpas_tools.viz.transects.make_triangle_tree.html#mpas_tools.viz.transects.make_triangle_tree">make_triangle_tree() (in module mpas_tools.viz.transects)</a>
 </li>
@@ -481,6 +501,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.ocean.coastal_tools.plot_region_box.html#mpas_tools.ocean.coastal_tools.plot_region_box">plot_region_box() (in module mpas_tools.ocean.coastal_tools)</a>
 </li>
+      <li><a href="generated/mpas_tools.seaice.partition.prepare_partitions.html#mpas_tools.seaice.partition.prepare_partitions">prepare_partitions() (in module mpas_tools.seaice.partition)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -491,6 +513,8 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="generated/mpas_tools.seaice.regrid.regrid_to_other_mesh.html#mpas_tools.seaice.regrid.regrid_to_other_mesh">regrid_to_other_mesh() (in module mpas_tools.seaice.regrid)</a>
+</li>
       <li><a href="generated/mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat">RRS_CellWidthVsLat() (in module mpas_tools.mesh.creation.mesh_definition_tools)</a>
 </li>
   </ul></td>
@@ -549,9 +573,13 @@
 </li>
       <li><a href="generated/mpas_tools.config.MpasConfigParser.write.html#mpas_tools.config.MpasConfigParser.write">write() (mpas_tools.config.MpasConfigParser method)</a>
 </li>
+      <li><a href="generated/mpas_tools.seaice.mesh.write_2D_scripfile.html#mpas_tools.seaice.mesh.write_2D_scripfile">write_2D_scripfile() (in module mpas_tools.seaice.mesh)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="generated/mpas_tools.io.write_netcdf.html#mpas_tools.io.write_netcdf">write_netcdf() (in module mpas_tools.io)</a>
+</li>
+      <li><a href="generated/mpas_tools.seaice.mesh.write_scrip_file.html#mpas_tools.seaice.mesh.write_scrip_file">write_scrip_file() (in module mpas_tools.seaice.mesh)</a>
 </li>
       <li><a href="generated/mpas_tools.ocean.depth.write_time_varying_zmid.html#mpas_tools.ocean.depth.write_time_varying_zmid">write_time_varying_zmid() (in module mpas_tools.ocean.depth)</a>
 </li>

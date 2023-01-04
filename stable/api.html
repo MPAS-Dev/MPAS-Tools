@@ -60,6 +60,14 @@
 <li class="toctree-l1"><a class="reference internal" href="ocean/moc.html">Meridional Overturning Circulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ocean/depth.html">Adding a Depth Coordinate</a></li>
 </ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regrid.html">Regrid</a></li>
+</ul>
 <p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
@@ -180,6 +188,19 @@
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.ocean.transects.get_outline_segments.html">mpas_tools.ocean.transects.get_outline_segments</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sea-ice-tools">Sea-ice Tools</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.seaice.mask.extend_seaice_mask.html">mpas_tools.seaice.mask.extend_seaice_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.seaice.mesh.write_scrip_file.html">mpas_tools.seaice.mesh.write_scrip_file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.seaice.mesh.write_2D_scripfile.html">mpas_tools.seaice.mesh.write_2D_scripfile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells.html">mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices.html">mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.seaice.partition.gen_seaice_mesh_partition.html">mpas_tools.seaice.partition.gen_seaice_mesh_partition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.seaice.partition.prepare_partitions.html">mpas_tools.seaice.partition.prepare_partitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.seaice.partition.create_partitions.html">mpas_tools.seaice.partition.create_partitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.seaice.regions.make_regions_file.html">mpas_tools.seaice.regions.make_regions_file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.seaice.regrid.regrid_to_other_mesh.html">mpas_tools.seaice.regrid.regrid_to_other_mesh</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#logging">Logging</a><ul>
@@ -693,6 +714,80 @@ the documentation.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.transects.get_outline_segments.html#mpas_tools.ocean.transects.get_outline_segments" title="mpas_tools.ocean.transects.get_outline_segments"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_outline_segments</span></code></a>(dsTransectTriangles[, ...])</p></td>
 <td><p>Get a set of line segments that outline the given transect</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="sea-ice-tools">
+<h2>Sea-ice Tools<a class="headerlink" href="#sea-ice-tools" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.mask.extend_seaice_mask.html#mpas_tools.seaice.mask.extend_seaice_mask" title="mpas_tools.seaice.mask.extend_seaice_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extend_seaice_mask</span></code></a>(filenameMesh, ...[, ...])</p></td>
+<td><p>Add a field <code class="docutils literal notranslate"><span class="pre">icePresenceExtended</span></code> to <code class="docutils literal notranslate"><span class="pre">filenamePresence</span></code> if it doesn't already exist.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.mesh.write_scrip_file.html#mpas_tools.seaice.mesh.write_scrip_file" title="mpas_tools.seaice.mesh.write_scrip_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_scrip_file</span></code></a>(scripFilename, title, ...)</p></td>
+<td><p>A low-level function for writing a SCRIP file for the given MPAS-Seaice mesh</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.mesh.write_2D_scripfile.html#mpas_tools.seaice.mesh.write_2D_scripfile" title="mpas_tools.seaice.mesh.write_2D_scripfile"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_2D_scripfile</span></code></a>(filenameScripOut, ...[, ...])</p></td>
+<td><p>Write a SCRIP file for the given 2D grid</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells" title="mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_mpas_scripfile_on_cells</span></code></a>(meshFilename, ...)</p></td>
+<td><p>Write a SCRIP file for cel quantities on the given MPAS-Seaice mesh</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices" title="mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_mpas_scripfile_on_vertices</span></code></a>(...)</p></td>
+<td><p>Write a SCRIP file for vertex quantities on the given MPAS-Seaice mesh</p></td>
+</tr>
+</tbody>
+</table>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.partition.gen_seaice_mesh_partition.html#mpas_tools.seaice.partition.gen_seaice_mesh_partition" title="mpas_tools.seaice.partition.gen_seaice_mesh_partition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gen_seaice_mesh_partition</span></code></a>(meshFilename, ...)</p></td>
+<td><p>Generate graph partition(s) for the given MPAS-Seaice mesh and the given number(s) of processors and a file defining regions that each processor should own part of (typically a polar region and an equatorial region)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.partition.prepare_partitions.html#mpas_tools.seaice.partition.prepare_partitions" title="mpas_tools.seaice.partition.prepare_partitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare_partitions</span></code></a>()</p></td>
+<td><p>An entry point for performing preparatory work for making seaice partitions</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.partition.create_partitions.html#mpas_tools.seaice.partition.create_partitions" title="mpas_tools.seaice.partition.create_partitions"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_partitions</span></code></a>()</p></td>
+<td><p>An entry point for creating sea-ice partitions</p></td>
+</tr>
+</tbody>
+</table>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.regions.make_regions_file.html#mpas_tools.seaice.regions.make_regions_file" title="mpas_tools.seaice.regions.make_regions_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_regions_file</span></code></a>(filenameIcePresent, ...)</p></td>
+<td><p><p>&quot;</p>
+</p></td>
+</tr>
+</tbody>
+</table>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.regrid.regrid_to_other_mesh.html#mpas_tools.seaice.regrid.regrid_to_other_mesh" title="mpas_tools.seaice.regrid.regrid_to_other_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">regrid_to_other_mesh</span></code></a>(meshFilenameSrc, ...)</p></td>
+<td><p></p></td>
 </tr>
 </tbody>
 </table>

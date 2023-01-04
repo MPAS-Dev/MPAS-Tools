@@ -235,6 +235,49 @@ Ocean Tools
    interp_transect_grid_to_transect_triangle_nodes
    get_outline_segments
 
+Sea-ice Tools
+=============
+
+.. currentmodule:: mpas_tools.seaice.mask
+
+.. autosummary::
+   :toctree: generated/
+
+    extend_seaice_mask
+
+.. currentmodule:: mpas_tools.seaice.mesh
+
+.. autosummary::
+   :toctree: generated/
+
+    write_scrip_file
+    write_2D_scripfile
+    make_mpas_scripfile_on_cells
+    make_mpas_scripfile_on_vertices
+
+.. currentmodule:: mpas_tools.seaice.partition
+
+.. autosummary::
+   :toctree: generated/
+
+    gen_seaice_mesh_partition
+    prepare_partitions
+    create_partitions
+
+.. currentmodule:: mpas_tools.seaice.regions
+
+.. autosummary::
+   :toctree: generated/
+
+    make_regions_file
+
+.. currentmodule:: mpas_tools.seaice.regrid
+
+.. autosummary::
+   :toctree: generated/
+
+    regrid_to_other_mesh
+
 Logging
 =======
 
