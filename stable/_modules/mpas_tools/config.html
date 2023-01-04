@@ -110,12 +110,16 @@
   <h1>Source code for mpas_tools.config</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">configparser</span> <span class="kn">import</span> <span class="n">RawConfigParser</span><span class="p">,</span> <span class="n">ConfigParser</span><span class="p">,</span> <span class="n">ExtendedInterpolation</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">resources</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">ast</span>
 <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">importlib.resources</span> <span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># python&lt;=3.8</span>
+    <span class="kn">from</span> <span class="nn">importlib_resources</span> <span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
 
 
 <div class="viewcode-block" id="MpasConfigParser"><a class="viewcode-back" href="../../generated/mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser">[docs]</a><span class="k">class</span> <span class="nc">MpasConfigParser</span><span class="p">:</span>
@@ -193,8 +197,8 @@
 <span class="sd">            Whether to raise an exception if the config file isn&#39;t found</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">with</span> <span class="n">resources</span><span class="o">.</span><span class="n">path</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="n">config_filename</span><span class="p">)</span> <span class="k">as</span> <span class="n">path</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">imp_res_files</span><span class="p">(</span><span class="n">package</span><span class="p">)</span> <span class="o">/</span> <span class="n">config_filename</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">except</span> <span class="p">(</span><span class="ne">ModuleNotFoundError</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">exception</span><span class="p">:</span>
                 <span class="k">raise</span></div>
