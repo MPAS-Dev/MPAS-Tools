@@ -76,12 +76,12 @@ plt.grid()
 
 axGrdArea = fig.add_subplot(nrow, ncol, 5, sharex=axX)
 plt.xlabel('Year')
-plt.ylabel(f'grounded area{plotChangeStr} (m$^2$)')
+plt.ylabel(f'grounded area{plotChangeStr} (km$^2$)')
 plt.grid()
 
 axFltArea = fig.add_subplot(nrow, ncol, 6, sharex=axX)
 plt.xlabel('Year')
-plt.ylabel(f'floating area{plotChangeStr} (m$^2$)')
+plt.ylabel(f'floating area{plotChangeStr} (km$^2$)')
 plt.grid()
 
 axGLflux = fig.add_subplot(nrow, ncol, 7, sharex=axX)
@@ -150,12 +150,12 @@ def plotStat(fname):
         volFloat = volFloat - volFloat[0]
     axVolFloat.plot(yr, volFloat, label=name)
 
-    areaGrd = f.variables['groundedIceArea'][:]
+    areaGrd = f.variables['groundedIceArea'][:] / 1000.0**2
     if options.plotChange:
         areaGrd = areaGrd - areaGrd[0]
     axGrdArea.plot(yr, areaGrd, label=name)
 
-    areaFlt = f.variables['floatingIceArea'][:]
+    areaFlt = f.variables['floatingIceArea'][:] / 1000.0**2
     if options.plotChange:
         areaFlt = areaFlt - areaFlt[0]
     axFltArea.plot(yr, areaFlt, label=name)
