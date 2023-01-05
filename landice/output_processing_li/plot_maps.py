@@ -26,12 +26,23 @@ from matplotlib.colors import Normalize, TwoSlopeNorm
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = argparse.ArgumentParser(description=__doc__)
-parser.add_argument("-r", dest="runs", help="path to .nc file or dir containing output.nc file (strings separated by commas; no spaces)", default=None, metavar="FILENAME")
-parser.add_argument("-t", dest="timeLevels", help="integer time levels at which to plot (int separated by commas; no spaces)", default='-1')
-parser.add_argument("-v", dest="variables", help="variable(s) to plot (list separated by commas; no spaces)", default='thickness')
-parser.add_argument("-l", dest="log_plot", help="Whether to plot the log10 of each variable (True or False list separated by commas; no spaces)", default=None)
-parser.add_argument("-c", dest="colormaps", help="colormaps to use for plotting (list separated by commas, no spaces). This overrides default colormaps.", default=None)
-parser.add_argument("-s", dest="saveNames", help="filename for saving. If empty or None, will plot to screen instead of saving.", default=None, metavar="FILENAME")
+parser.add_argument("-r", dest="runs", default=None, metavar="FILENAME",
+                    help="path to .nc file or dir containing output.nc \
+                          file (strings separated by commas; no spaces)")
+parser.add_argument("-t", dest="timeLevels", default="-1",
+                    help="integer time levels at which to plot \
+                          (int separated by commas; no spaces)")
+parser.add_argument("-v", dest="variables", default='thickness',
+                    help="variable(s) to plot (list separated by commas; no spaces)")
+parser.add_argument("-l", dest="log_plot", default=None,
+                    help="Whether to plot the log10 of each variable \
+                          (True or False list separated by commas; no spaces)")
+parser.add_argument("-c", dest="colormaps", default=None,
+                    help="colormaps to use for plotting (list separated by commas \
+                          , no spaces). This overrides default colormaps.")
+parser.add_argument("-s", dest="saveNames", default=None, metavar="FILENAME",
+                    help="filename for saving. If empty or None, will plot \
+                          to screen instead of saving.")
 
 args = parser.parse_args()
 runs = args.runs.split(',') # split run directories into list
@@ -56,11 +67,11 @@ if args.saveNames is not None:
 # Set up a dictionary of default colormaps for common variables.
 # These can be overridden by the -c flag.
 defaultColors = {'thickness' : 'Blues',
-          'surfaceSpeed' : 'plasma',
-          'basalSpeed' : 'plasma',
-          'bedTopography' : 'BrBG',
-          'floatingBasalMassBalApplied' : 'cividis'
-         }
+                 'surfaceSpeed' : 'plasma',
+                 'basalSpeed' : 'plasma',
+                 'bedTopography' : 'BrBG',
+                 'floatingBasalMassBalApplied' : 'cividis'
+                }
 
 if args.colormaps is not None:
     colormaps = args.colormaps.split(',')
