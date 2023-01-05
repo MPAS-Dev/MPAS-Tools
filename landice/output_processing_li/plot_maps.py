@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 import matplotlib.gridspec as gridspec
 from matplotlib.colorbar import Colorbar
+from matplotlib.colors import Normalize, TwoSlopeNorm
 
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
@@ -29,7 +30,7 @@ parser.add_argument("-r", dest="runs", help="path to .nc file or dir containing 
 parser.add_argument("-t", dest="timeLevels", help="integer time levels at which to plot (int separated by commas; no spaces)", default='-1')
 parser.add_argument("-v", dest="variables", help="variable(s) to plot (list separated by commas; no spaces)", default='thickness')
 parser.add_argument("-l", dest="log_plot", help="Whether to plot the log10 of each variable (True or False list separated by commas; no spaces)", default=None)
-parser.add_argument("-c", dest="colormaps", help="colormaps to use for plotting (list separated by commas, no spaces", default=None)
+parser.add_argument("-c", dest="colormaps", help="colormaps to use for plotting (list separated by commas, no spaces). This overrides default colormaps.", default=None)
 parser.add_argument("-s", dest="saveNames", help="filename for saving. If empty or None, will plot to screen instead of saving.", default=None, metavar="FILENAME")
 
 args = parser.parse_args()
@@ -52,10 +53,36 @@ else:
 if args.saveNames is not None:
     saveNames = args.saveNames.split(',')
 
+# Set up a dictionary of default colormaps for common variables.
+# These can be overridden by the -c flag.
+defaultColors = {'thickness' : 'Blues',
+          'surfaceSpeed' : 'plasma',
+          'basalSpeed' : 'plasma',
+          'bedTopography' : 'BrBG',
+          'floatingBasalMassBalApplied' : 'cividis'
+         }
+
+if args.colormaps is not None:
+    colormaps = args.colormaps.split(',')
+else:
+    colormaps = []
+    for variable in variables:
+        if variable in defaultColors.keys():
+            colormaps.append(defaultColors[variable])
+        else:
+            # All other variables default to viridis
+            colormaps.append('viridis')
+
+# Set bitmask values
 initialExtentValue = 1
 dynamicValue = 2
 floatValue = 4
 groundingLineValue = 256
+
+# List of diverging colormaps for use in plotting bedTopography.
+# I don't see a way around hard-coding this.
+divColorMaps = ['PiYG', 'PRGn', 'BrBG', 'PuOr', 'RdGy', 'RdBu', 'RdYlBu',
+                      'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic']
 
 def dist(i1, i2, xCell, yCell):  # helper distance fn
     dist = ((xCell[i1]-xCell[i2])**2 + (yCell[i1]-yCell[i2])**2)**0.5
@@ -76,7 +103,7 @@ for ii, run in enumerate(runs):
     f.set_auto_mask(False)
 
     # Get mesh geometry and calculate triangulation. 
-    # If would be more efficient to do this outside
+    # It would be more efficient to do this outside
     # this loop if all runs are on the same mesh, but we
     # want this to be as general as possible.
     xCell = f.variables["xCell"][:]
@@ -121,6 +148,7 @@ for ii, run in enumerate(runs):
     # Loop over variables
     for row, (variable, log, colormap, cbar_ax) in enumerate(zip(variables, log_plot, colormaps, cbar_axs)):
         var_to_plot = f.variables[variable][:]
+
         if log == 'True':
             var_to_plot = np.log10(var_to_plot)
             # Get rid of +/- inf values that ruin vmin and vmax
@@ -131,6 +159,18 @@ for ii, run in enumerate(runs):
             colorbar_label_prefix = ''
         units = f.variables[variable].units
         varPlot[run][variable] = []
+
+        # Plot bedTopography on an asymmetric colorbar if appropriate
+        if ( (variable == 'bedTopography') and
+             (np.nanquantile(var_to_plot[timeLevs, :], 0.99) > 0.) and
+             (colormap in divColorMaps) ):
+           norm = TwoSlopeNorm(vmin=np.nanquantile(var_to_plot[timeLevs, :], 0.01),
+                               vmax=np.nanquantile(var_to_plot[timeLevs, :], 0.99),
+                               vcenter=0.)
+        else:
+            norm = Normalize(vmin=np.nanquantile(var_to_plot[timeLevs, :], 0.01),
+                             vmax=np.nanquantile(var_to_plot[timeLevs, :], 0.99))
+
         if 'cellMask' in f.variables.keys():
             cellMask = f.variables["cellMask"][:]
             floatMask = (cellMask & floatValue) // floatValue
@@ -157,8 +197,7 @@ for ii, run in enumerate(runs):
             varPlot[run][variable].append(
                               axs[index].tripcolor(
                                   triang, var_to_plot[timeLev, :], cmap=colormap,
-                                  shading='flat', vmin=np.nanquantile(var_to_plot[timeLevs, :], 0.01),
-                                  vmax=np.nanquantile(var_to_plot[timeLevs, :], 0.99)))
+                                  shading='flat', norm=norm))
             axs[index].set_aspect('equal')
             axs[index].set_title(f'year = {yr[timeLev]:0.2f}')
 
