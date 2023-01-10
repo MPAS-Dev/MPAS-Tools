@@ -50,6 +50,9 @@ variables = args.variables.split(',')
 timeLevs = args.timeLevels.split(',')  # split time levels into list
 # convert timeLevs to list of ints
 timeLevs = [int(i) for i in timeLevs]
+sec_per_year = 60. * 60. * 24. * 365.
+rhoi = 910.
+rhosw = 1028.
 
 if args.log_plot is not None:
     log_plot = args.log_plot.split(',')
@@ -110,7 +113,11 @@ for ii, run in enumerate(runs):
     if '.nc' not in run:
         run = run + '/output.nc'
     f = Dataset(run, 'r')
-    yr = f.variables['daysSinceStart'][:] / 365.
+    if 'daysSinceStart' in f.variables.keys():
+        yr = f.variables['daysSinceStart'][:] / 365.
+    else:
+        yr = [0.]
+
     f.set_auto_mask(False)
 
     # Get mesh geometry and calculate triangulation. 
@@ -158,7 +165,20 @@ for ii, run in enumerate(runs):
     cbars = []
     # Loop over variables
     for row, (variable, log, colormap, cbar_ax) in enumerate(zip(variables, log_plot, colormaps, cbar_axs)):
-        var_to_plot = f.variables[variable][:]
+        if variable == 'observedSpeed':
+            var_to_plot = np.sqrt(f.variables['observedSurfaceVelocityX'][:]**2 +
+                                  f.variables['observedSurfaceVelocityY'][:]**2)
+        else:
+            var_to_plot = f.variables[variable][:]
+
+        if 'Speed' in variable:
+            units = 'm yr^{-1}'
+            var_to_plot *= sec_per_year
+        else:
+            try:
+                units = f.variables[variable].units
+            except AttributeError:
+                units='no-units'
 
         if log == 'True':
             var_to_plot = np.log10(var_to_plot)
@@ -168,7 +188,7 @@ for ii, run in enumerate(runs):
             colorbar_label_prefix = 'log10 '
         else:
             colorbar_label_prefix = ''
-        units = f.variables[variable].units
+
         varPlot[run][variable] = []
 
         # Plot bedTopography on an asymmetric colorbar if appropriate
@@ -189,8 +209,11 @@ for ii, run in enumerate(runs):
             groundingLineMask = (cellMask & groundingLineValue) // groundingLineValue
             initialExtentMask = (cellMask & initialExtentValue) // initialExtentValue
         else:
-            print(f'cellMask is not present in output file {run}')
-        
+            print(f'cellMask is not present in output file {run}; calculating masks from ice thickness')
+            groundedMask = (f.variables['thickness'][:] > (-rhosw / rhoi * f.variables['bedTopography'][:]))
+            groundingLineMask = groundedMask.copy()  # This isn't technically correct, but works for plotting
+            initialExtentMask = (f.variables['thickness'][:] > 0.)
+
         # Loop over time levels
         for col, timeLev in enumerate(timeLevs):
             index = row * (nCols - 1) + col
