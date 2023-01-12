@@ -40,10 +40,12 @@ parser.add_argument("-l", dest="log_plot", default=None,
 parser.add_argument("-c", dest="colormaps", default=None,
                     help="colormaps to use for plotting (list separated by commas \
                           , no spaces). This overrides default colormaps.")
-parser.add_argument("-m", dest="mesh", default=None,
-                    help="Optional input file containing mesh variables. This \
+parser.add_argument("-m", dest="mesh", default=None, metavar="FILENAME",
+                    help="Optional input file(s) containing mesh variables. This \
                           is useful when plotting from files that have no mesh \
-                          variables to limit file size.")
+                          variables to limit file size. Define either one mesh file \
+                          to be applied to all run files, or one mesh file per \
+                          run file (list separated by commas; no spaces)")
 parser.add_argument("-s", dest="saveNames", default=None, metavar="FILENAME",
                     help="filename for saving. If empty or None, will plot \
                           to screen instead of saving.")
