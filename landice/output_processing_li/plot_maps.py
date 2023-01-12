@@ -79,6 +79,10 @@ if args.mesh is not None:
    mesh = args.mesh.split(',')
    if len(mesh) == 1 and len(runs) > 1:
       mesh *= len(runs)
+   assert len(mesh) == len(runs), ("Define either one master mesh file, "
+                                   "or one mesh file per run file. "
+                                   f"You defined {len(mesh)} files and "
+                                   f"{len(runs)} run files.")
 else:
    mesh = runs
 
