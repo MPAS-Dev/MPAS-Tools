@@ -40,6 +40,10 @@ parser.add_argument("-l", dest="log_plot", default=None,
 parser.add_argument("-c", dest="colormaps", default=None,
                     help="colormaps to use for plotting (list separated by commas \
                           , no spaces). This overrides default colormaps.")
+parser.add_argument("-m", dest="mesh", default=None,
+                    help="Optional input file containing mesh variables. This \
+                          is useful when plotting from files that have no mesh \
+                          variables to limit file size.")
 parser.add_argument("-s", dest="saveNames", default=None, metavar="FILENAME",
                     help="filename for saving. If empty or None, will plot \
                           to screen instead of saving.")
@@ -63,6 +67,18 @@ if args.colormaps is not None:
     colormaps = args.colormaps.split(',')
 else:
     colormaps = ['viridis'] * len(variables)
+
+# If separate mesh file(s) specified, use those.
+# Otherwise, get mesh variables from runs files.
+# If -m is used, there will either be one 'master'
+# mesh file that is used for all run files, or
+# there will be one mesh file per run file.
+if args.mesh is not None:
+   mesh = args.mesh.split(',')
+   if len(mesh) == 1 and len(runs) > 1:
+      mesh *= len(runs)
+else:
+   mesh = runs
 
 if args.saveNames is not None:
     saveNames = args.saveNames.split(',')
@@ -124,13 +140,23 @@ for ii, run in enumerate(runs):
     # It would be more efficient to do this outside
     # this loop if all runs are on the same mesh, but we
     # want this to be as general as possible.
-    xCell = f.variables["xCell"][:]
-    yCell = f.variables["yCell"][:]
-    dcEdge = f.variables["dcEdge"][:]
+    if args.mesh is not None:
+       m = Dataset(mesh[ii], 'r')
+    else:
+       m = f  # use run file for mesh variables
+
+    xCell = m.variables["xCell"][:]
+    yCell = m.variables["yCell"][:]
+    dcEdge = m.variables["dcEdge"][:]
+
+    if args.mesh is not None:
+       m.close()
 
     triang = tri.Triangulation(xCell, yCell)
     triMask = np.zeros(len(triang.triangles))
-    maxDist = np.max(dcEdge) * 2.0  # maximum distance in m of edges between points. Make twice dcEdge to be safe
+    # Maximum distance in m of edges between points.
+    # Make twice dcEdge to be safe
+    maxDist = np.max(dcEdge) * 2.0
     for t in range(len(triang.triangles)):
         thisTri = triang.triangles[t, :]
         if dist(thisTri[0], thisTri[1], xCell, yCell) > maxDist:
@@ -142,7 +168,7 @@ for ii, run in enumerate(runs):
     triang.set_mask(triMask)
 
     # set up figure for this run
-    figs[run] = plt.figure(figsize=(15,7))
+    figs[run] = plt.figure()
     figs[run].suptitle(run)
     nRows = len(variables)
     nCols = len(timeLevs) + 1
@@ -203,27 +229,39 @@ for ii, run in enumerate(runs):
                              vmax=np.nanquantile(var_to_plot[timeLevs, :], 0.99))
 
         if 'cellMask' in f.variables.keys():
+            calc_mask = True
             cellMask = f.variables["cellMask"][:]
             floatMask = (cellMask & floatValue) // floatValue
             dynamicMask = (cellMask & dynamicValue) // dynamicValue
             groundingLineMask = (cellMask & groundingLineValue) // groundingLineValue
             initialExtentMask = (cellMask & initialExtentValue) // initialExtentValue
-        else:
+        elif ( 'cellMask' not in f.variables.keys() and
+             'thickness' in f.variables.keys() and 
+             'bedTopography' in f.variables.keys() ):
             print(f'cellMask is not present in output file {run}; calculating masks from ice thickness')
+            calc_mask = True
             groundedMask = (f.variables['thickness'][:] > (-rhosw / rhoi * f.variables['bedTopography'][:]))
             groundingLineMask = groundedMask.copy()  # This isn't technically correct, but works for plotting
             initialExtentMask = (f.variables['thickness'][:] > 0.)
+        else:
+            print(f'cellMask and thickness and/or bedTopography not present in output file {run};'
+                   ' Skipping mask calculation.')
+            calc_mask = False
 
         # Loop over time levels
         for col, timeLev in enumerate(timeLevs):
             index = row * (nCols - 1) + col
             # plot initial grounding line position, initial extent, and GL position at t=timeLev
-            axs[index].tricontour(triang, groundingLineMask[0, :],
-                              levels=[0.9999], colors='grey', linestyles='solid')
-            axs[index].tricontour(triang, groundingLineMask[timeLev, :],
-                              levels=[0.9999], colors='white', linestyles='solid')
-            axs[index].tricontour(triang, initialExtentMask[timeLev, :],
-                              levels=[0.9999], colors='black', linestyles='solid')
+            if calc_mask:
+                axs[index].tricontour(triang, groundingLineMask[0, :],
+                                      levels=[0.9999], colors='grey',
+                                      linestyles='solid')
+                axs[index].tricontour(triang, groundingLineMask[timeLev, :],
+                                      levels=[0.9999], colors='white',
+                                      linestyles='solid')
+                axs[index].tricontour(triang, initialExtentMask[timeLev, :],
+                                      levels=[0.9999], colors='black',
+                                      linestyles='solid')
 
             # Plot 2D field at each desired time. Use quantile range of 0.01-0.99 to cut out
             # outliers. Could improve on this by accounting for areaCell, as currently all cells
@@ -238,6 +276,7 @@ for ii, run in enumerate(runs):
         cbars.append(Colorbar(ax=cbar_ax, mappable=varPlot[run][variable][0], orientation='vertical',
                  label=f'{colorbar_label_prefix}{variable} (${units}$)'))
 
+    figs[run].tight_layout()
     if args.saveNames is not None:
         figs[run].savefig(saveNames[ii], dpi=400, bbox_inches='tight')
     
