@@ -176,7 +176,6 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     else:
         print('WARNING: No calvingThicknessFromThreshold field found; ignoring threshold calving.')
 
-    calvingVelocity = data['calvingVelocity'][:, :].values
     rho_i = 910.0
 
     print("===starting cleaning floatingBasalMassBalApplied===")
@@ -207,6 +206,8 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     print("===starting the calving flux processing===")
 
     assert time == len(deltat)
+
+    calvingVelocity = data['calvingVelocity'][:, :].values
 
     # create and initialize a new data array for calvingFluxArray
     calvingFluxArray = data['calvingVelocity'].copy() * 0.0
@@ -276,12 +277,47 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
             thresholdFlux[t, bdyIndices] += (thresholdSpeed[bdyIndices] + surfaceSpeed[t,bdyIndices]) * rho_i
             calvingFluxArray[t,bdyIndices] += thresholdFlux[t,bdyIndices]
 
-    data['calvingFlux'] = calvingFluxArray
-    data['thresholdFlux'] = thresholdFlux
+    data['calvingFlux'] = calvingFluxArray  # Note: thresholdFlux was already added in above
+    data['thresholdFlux'] = thresholdFlux  # this is just written for diagnostic purposes.  It's not actually sent to ISMIP6.
 
     print("===done calving flux processing!===")
 
-    data.to_netcdf(file_output) # copy of the input file with licalvf added
+
+    print("===starting facemelt flux processing===")
+
+    assert time == len(deltat)
+
+    # create and initialize a new data array for calvingFluxArray
+    # (copied from calving code above)
+    # Some runs won't have this output field, so assume if field is not present
+    # that facemelting was not enabled
+    faceMeltFluxArray = data['calvingVelocity'].copy() * 0.0
+
+    if 'faceMeltSpeed' in data:
+        faceMeltSpeed = data['faceMeltSpeed'][:, :].values
+        for t in range(time):
+            if t%20 == 0:
+                print(f"    Time: {t+1} / {time}")
+    
+            if 'bedTopography' in data:
+                bed = bedTopography[t,:] # have value per time level
+            else:
+                bed = bedTopography[0,:] # just have a single value
+    
+            index_cf = np.where((faceMeltSpeed[t, :] > 0.0) * (bed[:] < 0.0))[0]
+            for i in index_cf:
+                ne = nEdgesOnCell[i]
+                for j in range(ne):
+                    neighborCellId = cellsOnCell[i, j] - 1
+                    # Use this cell if it has a neighbor with zero faceMeltSpeed that is below sea level
+                    if faceMeltSpeed[t,neighborCellId] == 0.0 and bed[neighborCellId] < 0.0:
+                        faceMeltFluxArray[t,i] = faceMeltSpeed[t,i] * rho_i # convert to proper units
+                        continue # no need to keep searching the neighbors of this cell
+    data['faceMeltAndCalvingFlux'] = faceMeltFluxArray + calvingFluxArray  # ismip6 only wants the combined fields
+    print("===done facemelt flux processing!===")
+
+
+    data.to_netcdf(file_output) # copy of the input file with new vars added
     data.close()
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
@@ -435,10 +471,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               exp, output_path)
 
     # ----------- lifmassbf ------------------
-    # For now, we are not calculating any frontal melting, so lifmassbf=licalvf
-    # We could just copy the licalvf file, but it is simpler/less fragile to
-    # calculate a new lifmassbf file using the same input as licalvf.
-    write_netcdf_2d_flux_vars('calvingFlux', 'lifmassbf',
+    # Note: facemelting and calving flux are combined above
+    write_netcdf_2d_flux_vars('faceMeltAndCalvingFlux', 'lifmassbf',
                               'land_ice_specific_mass_flux_due_to_calving_and_ice_front_melting',
                               'kg m-2 s-1',
                               'Ice front melt and calving flux',
