@@ -223,16 +223,22 @@ for ii, run in enumerate(runs):
 
         varPlot[run][variable] = []
 
+        # Set lower and upper bounds for plotting
+        # 0.1 m/yr is a pretty good lower bound for speed
+        first_quant = np.nanquantile(var_to_plot[timeLevs, :], 0.01)
+        if 'Speed' in variable and log == 'True':
+            vmin = max(first_quant, -1.)
+        else:
+            vmin = first_quant
+
+        vmax = np.nanquantile(var_to_plot[timeLevs, :], 0.99)
         # Plot bedTopography on an asymmetric colorbar if appropriate
         if ( (variable == 'bedTopography') and
              (np.nanquantile(var_to_plot[timeLevs, :], 0.99) > 0.) and
              (colormap in divColorMaps) ):
-           norm = TwoSlopeNorm(vmin=np.nanquantile(var_to_plot[timeLevs, :], 0.01),
-                               vmax=np.nanquantile(var_to_plot[timeLevs, :], 0.99),
-                               vcenter=0.)
+            norm = TwoSlopeNorm(vmin=vmin, vmax=vmax, vcenter=0.)
         else:
-            norm = Normalize(vmin=np.nanquantile(var_to_plot[timeLevs, :], 0.01),
-                             vmax=np.nanquantile(var_to_plot[timeLevs, :], 0.99))
+            norm = Normalize(vmin=vmin, vmax=vmax)
 
         if 'cellMask' in f.variables.keys():
             calc_mask = True
