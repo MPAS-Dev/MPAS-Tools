@@ -304,7 +304,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
         # grounded cells, i.e., that bedTopography and lowerSurface are equivalent
         # (which is currently the case).
         faceMeltSpeedVertAvg = faceMeltSpeed * np.abs(
-                               bedTopography / (thickness + dHdt * deltat) )
+                               bedTopography / (thickness - dHdt * deltat) )
         faceMeltingThickness = data['faceMeltingThickness'][:, :].values
         dHdt = data['dHdt'][:, :].values / (3600.0 * 24.0 * 365.0) # convert units to m/s
         for t in range(time):
