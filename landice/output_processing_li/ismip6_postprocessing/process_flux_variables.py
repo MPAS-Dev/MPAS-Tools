@@ -319,7 +319,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
             for i in index_cf:
                 # Use this cell if it has nonzero faceMeltingThickness because faceMeltSpeed
                 # is defined everywhere, but only applied on grounded ice
-                if faceMeltingThickness[t,i] > 0.0
+                if faceMeltingThickness[t,i] > 0.0:
                     faceMeltFluxArray[t,i] = faceMeltSpeedVertAvg[t,i] * rho_i # convert to proper units
                     continue # no need to keep searching the neighbors of this cell
     data['faceMeltAndCalvingFlux'] = faceMeltFluxArray + calvingFluxArray  # ismip6 only wants the combined fields
