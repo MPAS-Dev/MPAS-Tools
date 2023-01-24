@@ -287,7 +287,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
 
     assert time == len(deltat)
 
-    # create and initialize a new data array for calvingFluxArray
+    # create and initialize a new data array for faceMeltFluxArray
     # (copied from calving code above)
     # Some runs won't have this output field, so assume if field is not present
     # that facemelting was not enabled
@@ -295,6 +295,17 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
 
     if 'faceMeltSpeed' in data:
         faceMeltSpeed = data['faceMeltSpeed'][:, :].values
+        # faceMeltSpeed is defined below the water line, but face-melting is
+        # applied to the full ice thickness, so the effective speed is
+        # averaged over the full thickness. Add (dHdt * deltat) to thickness
+        # here because face-melt was applied to thickness from the previous time step.
+        # Note that this calculation assumes that bedTopography is constant in time,
+        # that config_sea_level = 0, and that faceMeltSpeed is only valid for 
+        # grounded cells, i.e., that bedTopography and lowerSurface are equivalent
+        # (which is currently the case).
+        faceMeltSpeedVertAvg = faceMeltSpeed * np.abs(
+                               bedTopography / (thickness + dHdt * deltat) )
+        faceMeltThickness = data['faceMeltThickness'][:, :].values
         for t in range(time):
             if t%20 == 0:
                 print(f"    Time: {t+1} / {time}")
@@ -309,9 +320,10 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
                 ne = nEdgesOnCell[i]
                 for j in range(ne):
                     neighborCellId = cellsOnCell[i, j] - 1
-                    # Use this cell if it has a neighbor with zero faceMeltSpeed that is below sea level
-                    if faceMeltSpeed[t,neighborCellId] == 0.0 and bed[neighborCellId] < 0.0:
-                        faceMeltFluxArray[t,i] = faceMeltSpeed[t,i] * rho_i # convert to proper units
+                    # Use this cell if it has nonzero faceMeltingThickness (because faceMeltSpeed is defined everywhere,
+                    # but only applied on grounded ice) and a neighbor with zero faceMeltSpeed that is below sea level
+                    if faceMeltingThickness[t,i] > 0.0 and faceMeltSpeed[t,neighborCellId] == 0.0 and bed[neighborCellId] < 0.0:
+                        faceMeltFluxArray[t,i] = faceMeltSpeedVertAvg[t,i] * rho_i # convert to proper units
                         continue # no need to keep searching the neighbors of this cell
     data['faceMeltAndCalvingFlux'] = faceMeltFluxArray + calvingFluxArray  # ismip6 only wants the combined fields
     print("===done facemelt flux processing!===")
