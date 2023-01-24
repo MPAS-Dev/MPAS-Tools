@@ -306,6 +306,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
         faceMeltSpeedVertAvg = faceMeltSpeed * np.abs(
                                bedTopography / (thickness + dHdt * deltat) )
         faceMeltingThickness = data['faceMeltingThickness'][:, :].values
+        dHdt = data['dHdt'][:, :].values / (3600.0 * 24.0 * 365.0) # convert units to m/s
         for t in range(time):
             if t%20 == 0:
                 print(f"    Time: {t+1} / {time}")
