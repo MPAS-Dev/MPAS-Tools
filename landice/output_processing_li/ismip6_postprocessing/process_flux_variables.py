@@ -305,7 +305,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
         # (which is currently the case).
         faceMeltSpeedVertAvg = faceMeltSpeed * np.abs(
                                bedTopography / (thickness + dHdt * deltat) )
-        faceMeltThickness = data['faceMeltThickness'][:, :].values
+        faceMeltingThickness = data['faceMeltingThickness'][:, :].values
         for t in range(time):
             if t%20 == 0:
                 print(f"    Time: {t+1} / {time}")
@@ -317,14 +317,11 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     
             index_cf = np.where((faceMeltSpeed[t, :] > 0.0) * (bed[:] < 0.0))[0]
             for i in index_cf:
-                ne = nEdgesOnCell[i]
-                for j in range(ne):
-                    neighborCellId = cellsOnCell[i, j] - 1
-                    # Use this cell if it has nonzero faceMeltingThickness (because faceMeltSpeed is defined everywhere,
-                    # but only applied on grounded ice) and a neighbor with zero faceMeltSpeed that is below sea level
-                    if faceMeltingThickness[t,i] > 0.0 and faceMeltSpeed[t,neighborCellId] == 0.0 and bed[neighborCellId] < 0.0:
-                        faceMeltFluxArray[t,i] = faceMeltSpeedVertAvg[t,i] * rho_i # convert to proper units
-                        continue # no need to keep searching the neighbors of this cell
+                # Use this cell if it has nonzero faceMeltingThickness because faceMeltSpeed
+                # is defined everywhere, but only applied on grounded ice
+                if faceMeltingThickness[t,i] > 0.0
+                    faceMeltFluxArray[t,i] = faceMeltSpeedVertAvg[t,i] * rho_i # convert to proper units
+                    continue # no need to keep searching the neighbors of this cell
     data['faceMeltAndCalvingFlux'] = faceMeltFluxArray + calvingFluxArray  # ismip6 only wants the combined fields
     print("===done facemelt flux processing!===")
 
