@@ -295,6 +295,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
 
     if 'faceMeltSpeed' in data:
         faceMeltSpeed = data['faceMeltSpeed'][:, :].values
+        dHdt = data['dHdt'][:, :].values / (3600.0 * 24.0 * 365.0) # convert units to m/s
         # faceMeltSpeed is defined below the water line, but face-melting is
         # applied to the full ice thickness, so the effective speed is
         # averaged over the full thickness. Add (dHdt * deltat) to thickness
@@ -303,10 +304,12 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
         # that config_sea_level = 0, and that faceMeltSpeed is only valid for 
         # grounded cells, i.e., that bedTopography and lowerSurface are equivalent
         # (which is currently the case).
+
+        # Make an array of deltat to multiply by dHdt
+        deltat_array = np.tile(deltat,  (np.shape(dHdt)[1],1)).transpose()
         faceMeltSpeedVertAvg = faceMeltSpeed * np.abs(
-                               bedTopography / (thickness - dHdt * deltat) )
+                               bedTopography / (thickness - dHdt * deltat_array) )
         faceMeltingThickness = data['faceMeltingThickness'][:, :].values
-        dHdt = data['dHdt'][:, :].values / (3600.0 * 24.0 * 365.0) # convert units to m/s
         for t in range(time):
             if t%20 == 0:
                 print(f"    Time: {t+1} / {time}")
