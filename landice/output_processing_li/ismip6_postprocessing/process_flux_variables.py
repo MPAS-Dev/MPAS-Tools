@@ -307,8 +307,16 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
 
         # Make an array of deltat to multiply by dHdt
         deltat_array = np.tile(deltat,  (np.shape(dHdt)[1],1)).transpose()
-        faceMeltSpeedVertAvg = faceMeltSpeed * np.abs(
-                               bedTopography / (thickness - dHdt * deltat_array) )
+
+        if 'bedTopography' in data:
+            bed = bedTopography # have value per time level
+        else:
+            bed = np.tile(bedTopography[0,:], (np.shape(deltat)[0], 1)) # just have a single value
+
+        ice_idx = np.where( (thickness  - dHdt * deltat_array) > 0.0)  # find cells with ice
+        faceMeltSpeedVertAvg = faceMeltSpeed.copy() * 0.0
+        faceMeltSpeedVertAvg[ice_idx] = faceMeltSpeed[ice_idx] * np.abs(
+                                        bed[ice_idx] / (thickness - dHdt * deltat_array)[ice_idx] )
         faceMeltingThickness = data['faceMeltingThickness'][:, :].values
         for t in range(time):
             if t%20 == 0:
