@@ -38,6 +38,7 @@ def do_time_avg_flux_vars(input_file, output_file):
     dHdt = dataIn['dHdt'][:,:] / (3600.0 * 24.0 * 365.0) # convert units to m/s
     glFlux = dataIn['fluxAcrossGroundingLineOnCells'][:, :]
     calvingFlux = dataIn['calvingFlux'][:, :]
+    faceMeltAndCalvingFlux = dataIn['faceMeltAndCalvingFlux'][:, :]
 
     iceMask = (cellMask[:, :] & 2) / 2  # grounded: dynamic ice
 
@@ -68,6 +69,7 @@ def do_time_avg_flux_vars(input_file, output_file):
 
     avgSmb = np.zeros((len(years), nCells)) * np.nan
     avgCF = np.zeros((len(years), nCells)) * np.nan
+    avgCFandFM = np.zeros((len(years), nCells)) * np.nan
     avgBmbfl = np.zeros((len(years), nCells)) * np.nan
     avgBmbgr = np.zeros((len(years), nCells)) * np.nan
     avgDHdt = np.zeros((len(years), nCells)) * np.nan
@@ -84,6 +86,7 @@ def do_time_avg_flux_vars(input_file, output_file):
         sumYearBmb = 0
         sumYearDHdt = 0
         sumYearCF = 0
+        sumYearCFandFM = 0
         sumYearGF = 0
         sumYearBHF = 0
         sumYearTime = 0
@@ -101,6 +104,7 @@ def do_time_avg_flux_vars(input_file, output_file):
                 sumYearBmbgr = sumYearBmbgr + groundedBasalMassBalApplied[i, :] * deltat[i]
                 sumYearDHdt = sumYearDHdt + dHdt[i, :] * deltat[i]
                 sumYearCF = sumYearCF + calvingFlux[i,:] * deltat[i]
+                sumYearCFandFM = sumYearCFandFM + faceMeltAndCalvingFlux[i,:] * deltat[i]
                 sumYearGF = sumYearGF + glFlux[i, :] * deltat[i]
                 sumYearTime = sumYearTime + deltat[i]
 
@@ -114,6 +118,7 @@ def do_time_avg_flux_vars(input_file, output_file):
         avgBmbgr[j,:] = sumYearBmbgr / sumYearTime
         avgDHdt[j,:] = sumYearDHdt / sumYearTime
         avgCF[j,:] = sumYearCF / sumYearTime
+        avgCFandFM[j,:] = sumYearCFandFM / sumYearTime
         avgGF[j,:] = sumYearGF / sumYearTime
         maxIceMask[j,:] = (sumIceMask>0) # Get mask for anywhere that had ice during this year
 
@@ -128,6 +133,7 @@ def do_time_avg_flux_vars(input_file, output_file):
                      'dHdt':              (['Time', 'nCells'], avgDHdt),
                      'fluxAcrossGroundingLineOnCells': (['Time', 'nCells'], avgGF),
                      'calvingFlux': (['Time', 'nCells'], avgCF),
+                     'faceMeltAndCalvingFlux': (['Time', 'nCells'], faceMeltAndCalvingFlux),
                      'iceMask':        (['Time', 'nCells'], maxIceMask),
                      'timeBndsMin': (['Time'], timeBndsMin),
                      'timeBndsMax': (['Time'], timeBndsMax),
