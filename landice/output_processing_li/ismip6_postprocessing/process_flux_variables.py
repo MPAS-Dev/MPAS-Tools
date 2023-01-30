@@ -133,7 +133,7 @@ def do_time_avg_flux_vars(input_file, output_file):
                      'dHdt':              (['Time', 'nCells'], avgDHdt),
                      'fluxAcrossGroundingLineOnCells': (['Time', 'nCells'], avgGF),
                      'calvingFlux': (['Time', 'nCells'], avgCF),
-                     'faceMeltAndCalvingFlux': (['Time', 'nCells'], faceMeltAndCalvingFlux),
+                     'faceMeltAndCalvingFlux': (['Time', 'nCells'], avgCFandFM),
                      'iceMask':        (['Time', 'nCells'], maxIceMask),
                      'timeBndsMin': (['Time'], timeBndsMin),
                      'timeBndsMax': (['Time'], timeBndsMax),
@@ -339,7 +339,6 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
                 # is defined everywhere, but only applied on grounded ice
                 if faceMeltingThickness[t,i] > 0.0:
                     faceMeltFluxArray[t,i] = faceMeltSpeedVertAvg[t,i] * rho_i # convert to proper units
-                    continue # no need to keep searching the neighbors of this cell
     data['faceMeltAndCalvingFlux'] = faceMeltFluxArray + calvingFluxArray  # ismip6 only wants the combined fields
     print("===done facemelt flux processing!===")
 
