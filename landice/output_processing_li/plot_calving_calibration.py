@@ -143,7 +143,7 @@ for reg in range(nRegions):
    else:
       axs3.flatten()[reg].sharex(axX)
 
-# Set up Figure 2: calving
+# Set up Figure 4: calving
 fig4, axs4 = plt.subplots(nrow, ncol, figsize=(13, 11), num=4)
 fig4.suptitle(f'Calving rate')
 for reg in range(nRegions):

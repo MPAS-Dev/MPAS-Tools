@@ -17,6 +17,9 @@ trough depth that increases linearly between a minimum and maximum value.
 Note that as currently written, the algorithm only works for troughs oriented southwest to
 northeast in grid coordinates!
 
+The location of the points defining the troughs and the amount to bulldoze is
+hardcoded after the smoothTrough function.   Adjustments should be made there.
+
 Input file is copied with a _bulldozedTroughs.nc suffix before being modified.
 
 Matt Hoffman, Fall 2022
@@ -54,6 +57,8 @@ cOnC= f.variables['cellsOnCell'][:]
 nEOnC = f.variables['nEdgesOnCell'][:]
 xCell = f.variables['xCell'][:]
 yCell = f.variables['yCell'][:]
+xEdge = f.variables['xEdge'][:]
+yEdge = f.variables['yEdge'][:]
 dcEdge = f.variables['dcEdge'][:]
 lowerSurface = -rhoi/rhosw*thickness # only works for floating cells
 WCT = lowerSurface - bedTopography
@@ -61,17 +66,18 @@ WCT = lowerSurface - bedTopography
 floatMask = ((thickness*910/1028+bedTopography)<0.0)*(thickness>0.0)
 #groundMask = ((thickness*910/1028+bedTopography)>0.0)*(thickness>0.0)
 
-
-dCell = dcEdge.min()*2.5
-dCell = 8000.0
-print(f"using dCell={dCell}")
-
 def smoothTrough(WCT, p1, p2, minWCT, maxWCT):
     WCTnew = WCT.copy()
+
+    # find representative dCell for this area
+    ind = np.nonzero( (xEdge>p1[0]) * (xEdge<p2[0]) * (yEdge>p1[1]) * (yEdge<p1[2]) )[0]
+    dCell = dcEdge[ind].mean()
+    print(f"using dCell={dCell}")
+
     mask = (WCT<maxWCT) * (floatMask==1) * (xCell>(p1[0]-2*dCell)) * (xCell<(p2[0]+2*dCell)) * (yCell>(p1[1]-2*dCell)) * (yCell<(p2[1]+2*dCell))
     ind = np.nonzero(mask==1)[0]
     length = ( (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2 )**0.5 # length along flowline
-    m1 = (p2[1]-p1[1]) / (p2[0]-p1[0]) # xy slope of flowline 
+    m1 = (p2[1]-p1[1]) / (p2[0]-p1[0]) # xy slope of flowline
     b1 = p1[1] - m1*p1[0] # y int of flowline
     print(f'# cells={len(ind)}, length={length}, m={m1}')
     m2 = -1.0/m1 # slope of all transverse lines
@@ -85,14 +91,11 @@ def smoothTrough(WCT, p1, p2, minWCT, maxWCT):
         dist2centerline *= np.sign((m1*xCell[ind2]+b1) - yCell[ind2]) # make signed distance, assuming NE direction
         print(dist2centerline)
         width = dist2centerline.max()-dist2centerline.min()
-        #width = dist2centerline.max()*2.0
-
 
         # find frac x along center line
         # first need intersection of longit. and ortho lines
         xint = (b2-b1)/(m1-(-1.0/m1))
         mag = (xint-p1[0]) / (p2[0]-p1[0]) * (maxWCT-minWCT) + minWCT
-
 
         widthOrgnIdx = ind2[np.argmin(dist2centerline)] #idx of westmost
         widthOrgn = (xCell[widthOrgnIdx], yCell[widthOrgnIdx]) # position of westmost

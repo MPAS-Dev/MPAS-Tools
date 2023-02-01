@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 '''
-Script to calculate deltat for the ISMIP6 melt param to best match observed melt rates.
+Script to calculate deltat for the ISMIP6 melt param to best match observed melt rates
+for Antarctica.
 
 Note that gamma0 is set in the script, as well as the range of deltaT to search over.
 
@@ -11,6 +12,8 @@ includes the basin info and gamma0 so it can dropped directly into a streams fil
 
 For high res meshes, there may be efficiency gains that can be implemented, or the code may
 need to move to Fortran.
+
+Note: Currently hardcoded to use the first time level in the thermal forcing file.
 
 Matt Hoffman, 9/8/2022
 '''
@@ -27,20 +30,16 @@ import matplotlib.pyplot as plt
 # -----------------------
 # --- Set gamma0 here ---
 gamma0 = 14500.0 # MeanAnt
-#gamma0 = 14500.0 / 3.205158150947664 # MeanAnt with slope factor
-#gamma0 = 14500.0 / 2.385662164153696 # MeanAnt with slope factor
 #gamma0 = 159000.0 # PIGL
-#gamma0 = 2.06e6 #MeanAnt Median with slope
 # -----------------------
 # Select range of deltaT values to search through.
-# np.arange(-1.0, 1.5, 0.05) has been wide enough for MeanAnt with and without slope with default gamma0 values,
+# np.arange(-1.0, 1.5, 0.05) has been wide enough for MeanAnt with default gamma0 values,
 # but range will be affected by gamma0 and a wider range may be necessary if any optimal deltaTs are outside this range.
 # Confirm that the output deltaTs are more than increment away from boundary.
 # Increments of 0.05 seems than fine enough to get a smooth function for interpolating, but use larger increments
 # when testing for faster execution.
-dTs = np.arange(-1.5, 2.5, 0.2)  # MeanAnt
-dTs = np.arange(-1.5, 2.0, 0.25)  # MeanAnt
-#dTs = np.arange(-0.8, 0., 0.05)  # MeanAnt
+#dTs = np.arange(-1.5, 2.0, 0.25)  # MeanAnt - coarse spacing for rapid testing
+dTs = np.arange(-1.0 1.5, 0.05)  # MeanAnt - fine spacing for accurate calculation
 #dTs = np.arange(-1.5, 0.0, 0.05)  # PIGL
 # -----------------------
 
@@ -49,8 +48,7 @@ print("** Gathering information.  (Invoke with --help for more details. All argu
 parser = OptionParser(description=__doc__)
 parser.add_option("-g", dest="fileName", help="input filename that includes ice geometry information.", metavar="FILENAME")
 parser.add_option("-n", dest="fileRegionNames", help="region name filename.", metavar="FILENAME")
-parser.add_option("-o", dest="fcgFileName", help="ocean forcing filename", metavar="FILENAME")
-parser.add_option("-s", "--slope", dest="use_slope", action="store_true", default=False, help="whether to include a slope factor in the melt equation.  If specified, shelfBaseSlope must be in the input file. To get this field, run MALI one timestep with config_ismip6shelfMelt_use_slope=.true. and shelfBaseSlope in the output stream.  This will ensure that the slope is calculated in an identical way to how MALI would do it.")
+parser.add_option("-o", dest="fcgFileName", help="ocean forcing filename.  uses first time level", metavar="FILENAME")
 options, args = parser.parse_args()
 
 # Antarctic data from:
@@ -119,22 +117,8 @@ nCells = len(f.dimensions['nCells'])
 areaCell = f.variables['areaCell'][:]
 xCell = f.variables['xCell'][:]
 yCell = f.variables['yCell'][:]
-if options.use_slope:
-    print('USING SLOPE')
-    slope = f.variables['shelfBaseSlope'][1,:]
-    ind = np.nonzero(floatMask==1)[0]
-    meanSlope = (slope[ind] * areaCell[ind]).sum() / areaCell[ind].sum()
-    meanSlopeFactor = ((1.0 + 900.0 * slope[ind]) * areaCell[ind]).sum() / areaCell[ind].sum()
-    meanSlopeFactor2 = (np.exp2(np.log10(np.maximum(1.0e-4,slope[ind]))+4) * areaCell[ind]).sum() / areaCell[ind].sum()
-    print(f"Mean slope = {meanSlope}, mean slope factor = {meanSlopeFactor}")
-    print(f"Mean slope = {meanSlope}, mean slope factor2 = {meanSlopeFactor2}")
-else:
-    slope = np.zeros((nCells,))
 
 def calcMelt(deltaT):
-    mean_TF = 0.0
-    IS_area = 0.0
-    meanSlope = 0.0
     TFdraft = np.zeros((nCells,))
     meanTFcell = np.zeros((nCells,))
 
@@ -148,7 +132,7 @@ def calcMelt(deltaT):
         meanTF[reg] = (TFdraft[ind]*areaCell[ind]).sum() / areaCell[ind].sum()
         meanTFcell[ind] = meanTF[reg]
 
-    melt = gamma0 * coef * (1.0 + 900.0 * slope) * (TFdraft + deltaT) * np.absolute(meanTFcell + deltaT) # m/yr
+    melt = gamma0 * coef * (TFdraft + deltaT) * np.absolute(meanTFcell + deltaT) # m/yr
 
     totalMelt = np.zeros((nRegions,))
     for reg in range(nRegions):

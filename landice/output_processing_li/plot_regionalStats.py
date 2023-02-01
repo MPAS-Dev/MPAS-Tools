@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 '''
 Script to plot common time-series from one or more landice regionalStats files.
+Currently only useful for whole-AIS simulations.
+
+
 Matt Hoffman, 8/23/2022
 '''
 
