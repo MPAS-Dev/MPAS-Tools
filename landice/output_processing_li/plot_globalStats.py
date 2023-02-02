@@ -13,7 +13,7 @@ from optparse import OptionParser
 import matplotlib.pyplot as plt
 
 rhoi = 910.0
-
+rhosw = 1028.
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser(description=__doc__)
@@ -40,10 +40,13 @@ ncol=2
 
 if options.units == "m3":
    massUnit = "m$^3$"
+   scaleVol = 1.
 elif options.units == "kg":
    massUnit = "kg"
+   scaleVol = 1./rhoi
 elif options.units == "Gt":
    massUnit = "Gt"
+   scaleVol = 1.0e12 / rhoi
 else:
    sys.exit("Unknown mass/volume units")
 print("Using volume/mass units of: ", massUnit)
@@ -95,6 +98,16 @@ plt.ylabel('calving flux (kg/yr)')
 plt.grid()
 
 
+def VAF2seaLevel(vol):
+    return vol * scaleVol / 3.62e14 * rhoi / rhosw * 1000.
+
+def seaLevel2VAF(vol):
+    return vol / scaleVol * 3.62e14 * rhosw / rhoi / 1000. 
+
+def addSeaLevAx(axName):
+    seaLevAx = axName.secondary_yaxis('right', functions=(VAF2seaLevel, seaLevel2VAF))
+    seaLevAx.set_ylabel('Sea-level\nequivalent (mm)')
+
 def plotStat(fname):
     print("Reading and plotting file: {}".format(fname))
 
@@ -106,46 +119,23 @@ def plotStat(fname):
     dt = f.variables['deltat'][:]/3.15e7
     print(yr.max())
 
-    vol = f.variables['totalIceVolume'][:]
-    if options.units == "m3":
-       pass
-    elif options.units == "kg":
-       vol = vol * rhoi
-    elif options.units == "Gt":
-       vol = vol * rhoi / 1.0e12
+    vol = f.variables['totalIceVolume'][:] / scaleVol
     if options.plotChange:
         vol = vol - vol[0]
     axVol.plot(yr, vol, label=name)
 
-    VAF = f.variables['volumeAboveFloatation'][:]
-    if options.units == "m3":
-       pass
-    elif options.units == "kg":
-       VAF = VAF * rhoi
-    elif options.units == "Gt":
-       VAF = VAF * rhoi / 1.0e12
+    VAF = f.variables['volumeAboveFloatation'][:] / scaleVol       
     if options.plotChange:
         VAF = VAF - VAF[0]
     axVAF.plot(yr, VAF, label=name)
+    addSeaLevAx(axVAF)
 
-    volGround = f.variables['groundedIceVolume'][:]
-    if options.units == "m3":
-       pass
-    elif options.units == "kg":
-       volGround = volGround * rhoi
-    elif options.units == "Gt":
-       volGround = volGround * rhoi / 1.0e12
+    volGround = f.variables['groundedIceVolume'][:] / scaleVol
     if options.plotChange:
         volGround = volGround - volGround[0]
     axVolGround.plot(yr, volGround, label=name)
 
-    volFloat = f.variables['floatingIceVolume'][:]
-    if options.units == "m3":
-       pass
-    elif options.units == "kg":
-       volFloat = volFloat * rhoi
-    elif options.units == "Gt":
-       volFloat = volFloat * rhoi / 1.0e12
+    volFloat = f.variables['floatingIceVolume'][:] / scaleVol
     if options.plotChange:
         volFloat = volFloat - volFloat[0]
     axVolFloat.plot(yr, volFloat, label=name)
