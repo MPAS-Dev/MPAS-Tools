@@ -319,11 +319,8 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
         else:
             bed = np.tile(bedTopography[0,:], (np.shape(deltat)[0], 1)) # just have a single value
 
-        ice_idx = np.where( (thickness  - dHdt * deltat_array) > 0.0)  # find cells with ice
-        faceMeltSpeedVertAvg = faceMeltSpeed.copy() * 0.0
-        faceMeltSpeedVertAvg[ice_idx] = faceMeltSpeed[ice_idx] * np.abs(
-                                        bed[ice_idx] / (thickness - dHdt * deltat_array)[ice_idx] )
         faceMeltingThickness = data['faceMeltingThickness'][:, :].values
+        faceMeltSpeedVertAvg = faceMeltingThickness.copy() * 0.0
         for t in range(time):
             if t%20 == 0:
                 print(f"    Time: {t+1} / {time}")
@@ -333,8 +330,10 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
             else:
                 bed = bedTopography[0,:] # just have a single value
     
-            index_cf = np.where((faceMeltSpeed[t, :] > 0.0) * (bed[:] < 0.0))[0]
+            index_cf = np.where((faceMeltingThickness[t, :] > 0.0) * (bed[:] < 0.0))[0]
             for i in index_cf:
+                faceMeltSpeedVertAvg[t,i] = faceMeltSpeed[t, i] * np.abs(bed[i] / thickness[t-1, i])
+                faceMeltSpeedVertAvg[t,i] = min(faceMeltSpeedVertAvg[t,i], faceMeltSpeed[t, i])
                 # Use this cell if it has nonzero faceMeltingThickness because faceMeltSpeed
                 # is defined everywhere, but only applied on grounded ice
                 if faceMeltingThickness[t,i] > 0.0:
