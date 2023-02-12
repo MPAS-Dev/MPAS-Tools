@@ -1,5 +1,9 @@
 import xml.etree.ElementTree as ET
-import pkg_resources
+try:
+    from importlib.resources import files as imp_res_files
+except ImportError:
+    # python<=3.8
+    from importlib_resources import files as imp_res_files
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.pyplot as plt
 
@@ -14,9 +18,8 @@ def register_sci_viz_colormaps():
                     'green-7', 'green-8', 'orange-5', 'orange-6',
                     'orange-green-blue-gray', 'purple-7', 'purple-8', 'red-1',
                     'red-3', 'red-4', 'yellow-1', 'yellow-7']:
-
-        xmlFile = pkg_resources.resource_filename(
-            __name__, 'SciVisColorColormaps/{}.xml'.format(mapName))
+        xmlFile = str(imp_res_files('mpas_tools.viz.SciVisColorColormaps') /
+                      f'{mapName}.xml')
         _read_xml_colormap(xmlFile, mapName)
 
 
