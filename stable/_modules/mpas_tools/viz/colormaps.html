@@ -26,14 +26,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../../../index.html" class="icon icon-home"> mpas_tools
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mpas_tools
           </a>
               <div class="version">
                 stable
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -96,7 +100,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../../../index.html" class="icon icon-home"></a></li>
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
       <li class="breadcrumb-item active">mpas_tools.viz.colormaps</li>
       <li class="wy-breadcrumbs-aside">
@@ -109,7 +113,11 @@
              
   <h1>Source code for mpas_tools.viz.colormaps</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
-<span class="kn">import</span> <span class="nn">pkg_resources</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">importlib.resources</span> <span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># python&lt;=3.8</span>
+    <span class="kn">from</span> <span class="nn">importlib_resources</span> <span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
 <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">LinearSegmentedColormap</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
@@ -124,9 +132,8 @@
                     <span class="s1">&#39;green-7&#39;</span><span class="p">,</span> <span class="s1">&#39;green-8&#39;</span><span class="p">,</span> <span class="s1">&#39;orange-5&#39;</span><span class="p">,</span> <span class="s1">&#39;orange-6&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;orange-green-blue-gray&#39;</span><span class="p">,</span> <span class="s1">&#39;purple-7&#39;</span><span class="p">,</span> <span class="s1">&#39;purple-8&#39;</span><span class="p">,</span> <span class="s1">&#39;red-1&#39;</span><span class="p">,</span>
                     <span class="s1">&#39;red-3&#39;</span><span class="p">,</span> <span class="s1">&#39;red-4&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow-1&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow-7&#39;</span><span class="p">]:</span>
-
-        <span class="n">xmlFile</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">resource_filename</span><span class="p">(</span>
-            <span class="vm">__name__</span><span class="p">,</span> <span class="s1">&#39;SciVisColorColormaps/</span><span class="si">{}</span><span class="s1">.xml&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mapName</span><span class="p">))</span>
+        <span class="n">xmlFile</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">imp_res_files</span><span class="p">(</span><span class="s1">&#39;mpas_tools.viz.SciVisColorColormaps&#39;</span><span class="p">)</span> <span class="o">/</span>
+                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mapName</span><span class="si">}</span><span class="s1">.xml&#39;</span><span class="p">)</span>
         <span class="n">_read_xml_colormap</span><span class="p">(</span><span class="n">xmlFile</span><span class="p">,</span> <span class="n">mapName</span><span class="p">)</span></div>
 
 

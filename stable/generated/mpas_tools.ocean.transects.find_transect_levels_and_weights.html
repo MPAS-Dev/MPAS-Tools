@@ -28,14 +28,18 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="../index.html" class="icon icon-home"> mpas_tools
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            mpas_tools
           </a>
               <div class="version">
                 stable
               </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
@@ -151,7 +155,7 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="../index.html" class="icon icon-home"></a></li>
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
       <li class="breadcrumb-item active">mpas_tools.ocean.transects.find_transect_levels_and_weights</li>
       <li class="wy-breadcrumbs-aside">
@@ -178,12 +182,12 @@ bilinearly interpolated to the nodes of the transect.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsTransect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.1.1.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines nodes of the transect, the results of calling
+<li><p><strong>dsTransect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.2.1.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines nodes of the transect, the results of calling
 <a href="#id3"><span class="problematic" id="id4">:py:fun:`mpas_tools.viz.transects.find_transect_cells_and_weights()`</span></a></p></li>
-<li><p><strong>layerThickness</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.1.1.dev0)"><em>xarray.DataArray</em></a>) – layer thicknesses on the MPAS mesh</p></li>
-<li><p><strong>bottomDepth</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.1.1.dev0)"><em>xarray.DataArray</em></a>) – the (positive down) depth of the seafloor on the MPAS mesh</p></li>
-<li><p><strong>maxLevelCell</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.1.1.dev0)"><em>xarray.DataArray</em></a>) – the vertical zero-based index of the bathymetry on the MPAS mesh</p></li>
-<li><p><strong>zTransect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.1.1.dev0)"><em>xarray.DataArray</em></a><em>, </em><em>optional</em>) – the z coordinate of the transect (1D or 2D).  If 2D, it must have the
+<li><p><strong>layerThickness</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.2.1.dev0)"><em>xarray.DataArray</em></a>) – layer thicknesses on the MPAS mesh</p></li>
+<li><p><strong>bottomDepth</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.2.1.dev0)"><em>xarray.DataArray</em></a>) – the (positive down) depth of the seafloor on the MPAS mesh</p></li>
+<li><p><strong>maxLevelCell</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.2.1.dev0)"><em>xarray.DataArray</em></a>) – the vertical zero-based index of the bathymetry on the MPAS mesh</p></li>
+<li><p><strong>zTransect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.2.1.dev0)"><em>xarray.DataArray</em></a><em>, </em><em>optional</em>) – the z coordinate of the transect (1D or 2D).  If 2D, it must have the
 same along-transect dimension as the lon and lat passed to
 <a href="#id5"><span class="problematic" id="id6">:py:fun:`mpas_tools.viz.transects.find_transect_cells_and_weights()`</span></a></p></li>
 </ul>
