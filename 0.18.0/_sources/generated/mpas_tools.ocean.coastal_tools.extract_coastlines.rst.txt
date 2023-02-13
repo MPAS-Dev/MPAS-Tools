@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.coastal\_tools.extract\_coastlines
+====================================================
+
+.. currentmodule:: mpas_tools.ocean.coastal_tools
+
+.. autofunction:: extract_coastlines

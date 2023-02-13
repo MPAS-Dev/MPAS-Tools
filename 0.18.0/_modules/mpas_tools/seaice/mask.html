@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.seaice.mask &mdash; mpas_tools 0.18.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+              <div class="version">
+                0.18.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.seaice.mask</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.seaice.mask</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
+
+
+<div class="viewcode-block" id="extend_seaice_mask"><a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mask.extend_seaice_mask.html#mpas_tools.seaice.mask.extend_seaice_mask">[docs]</a><span class="k">def</span> <span class="nf">extend_seaice_mask</span><span class="p">(</span><span class="n">filenameMesh</span><span class="p">,</span> <span class="n">filenamePresence</span><span class="p">,</span> <span class="n">extendDistance</span><span class="p">,</span>
+                       <span class="n">unitSphere</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add a field ``icePresenceExtended`` to ``filenamePresence`` if it doesn&#39;t</span>
+<span class="sd">    already exist.  This field is the ``icePresence`` field extended by</span>
+<span class="sd">    a distance of ``extendDistance``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filenameMesh : str</span>
+<span class="sd">        The filename of the MPAS-Seaice mesh</span>
+
+<span class="sd">    filenamePresence : str</span>
+<span class="sd">        A filename for a file containing an ``icePresence`` field to be</span>
+<span class="sd">        extended and to which a new ``icePresenceExtended`` will be added</span>
+
+<span class="sd">    extendDistance : float</span>
+<span class="sd">        The distance in km to expand (no expansion is performed if</span>
+<span class="sd">        ``extendDistance=0.0``)</span>
+
+<span class="sd">    unitSphere : bool, optional</span>
+<span class="sd">        Whether the mesh is provided on the unit sphere, rather than one with</span>
+<span class="sd">        the radius of the Earth</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># mesh</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Load mesh...&quot;</span><span class="p">)</span>
+    <span class="n">fileMesh</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameMesh</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+
+    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fileMesh</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+
+    <span class="n">nEdgesOnCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;nEdgesOnCell&quot;</span><span class="p">][:]</span>
+    <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;cellsOnCell&quot;</span><span class="p">][:]</span>
+
+    <span class="n">cellsOnCell</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="p">[:]</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="n">xCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;xCell&quot;</span><span class="p">][:]</span>
+    <span class="n">yCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;yCell&quot;</span><span class="p">][:]</span>
+    <span class="n">zCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;zCell&quot;</span><span class="p">][:]</span>
+
+    <span class="n">fileMesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># presence</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Load ice presence...&quot;</span><span class="p">)</span>
+    <span class="n">filePresence</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenamePresence</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;icePresenceExtended&quot;</span> <span class="ow">in</span> <span class="n">filePresence</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+        <span class="c1"># we&#39;re already done, probably from a previous call</span>
+        <span class="n">filePresence</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span>
+
+    <span class="n">icePresence</span> <span class="o">=</span> <span class="n">filePresence</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;icePresence&quot;</span><span class="p">][:]</span>
+
+    <span class="n">filePresence</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># ice edge cells</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Get ice edge cells...&quot;</span><span class="p">)</span>
+    <span class="n">iceEdgeCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">iCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">):</span>
+
+        <span class="c1"># if (iCell % 100000 == 0):</span>
+        <span class="c1">#    print(iCell, &quot; of &quot;, nCells, &quot; cells...&quot;)</span>
+
+        <span class="k">for</span> <span class="n">iCellOnCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nEdgesOnCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]):</span>
+
+            <span class="n">iCell2</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">,</span> <span class="n">iCellOnCell</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">icePresence</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">icePresence</span><span class="p">[</span><span class="n">iCell2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">iceEdgeCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="c1"># only edge cells</span>
+    <span class="n">nEdgeCells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">iceEdgeCell</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;nEdgeCells: &quot;</span><span class="p">,</span> <span class="n">nEdgeCells</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Get edge cell vector...&quot;</span><span class="p">)</span>
+    <span class="n">iCellEdge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdgeCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+
+    <span class="n">iEdgeCell</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">iCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">iceEdgeCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">iCellEdge</span><span class="p">[</span><span class="n">iEdgeCell</span><span class="p">]</span> <span class="o">=</span> <span class="n">iCell</span>
+            <span class="n">iEdgeCell</span> <span class="o">=</span> <span class="n">iEdgeCell</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">del</span> <span class="n">iceEdgeCell</span>
+
+    <span class="c1"># get edge positions</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Get edge positions...&quot;</span><span class="p">)</span>
+    <span class="n">xCellEdgeCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdgeCells</span><span class="p">)</span>
+    <span class="n">yCellEdgeCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdgeCells</span><span class="p">)</span>
+    <span class="n">zCellEdgeCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdgeCells</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">iEdgeCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nEdgeCells</span><span class="p">):</span>
+        <span class="n">iCell</span> <span class="o">=</span> <span class="n">iCellEdge</span><span class="p">[</span><span class="n">iEdgeCell</span><span class="p">]</span>
+        <span class="n">xCellEdgeCell</span><span class="p">[</span><span class="n">iEdgeCell</span><span class="p">]</span> <span class="o">=</span> <span class="n">xCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span>
+        <span class="n">yCellEdgeCell</span><span class="p">[</span><span class="n">iEdgeCell</span><span class="p">]</span> <span class="o">=</span> <span class="n">yCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span>
+        <span class="n">zCellEdgeCell</span><span class="p">[</span><span class="n">iEdgeCell</span><span class="p">]</span> <span class="o">=</span> <span class="n">zCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span>
+
+    <span class="c1"># find extended mask</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Find new extended mask...&quot;</span><span class="p">)</span>
+
+    <span class="n">extendDistance</span> <span class="o">=</span> <span class="n">extendDistance</span> <span class="o">*</span> <span class="mf">1000.0</span>  <span class="c1"># convert from km to m</span>
+
+    <span class="k">if</span> <span class="n">unitSphere</span><span class="p">:</span>
+        <span class="n">earthRadius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
+        <span class="n">extendDistance</span> <span class="o">=</span> <span class="n">extendDistance</span> <span class="o">/</span> <span class="n">earthRadius</span>
+
+    <span class="n">distanceLimit</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">extendDistance</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">icePresenceNew</span> <span class="o">=</span> <span class="n">icePresence</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">extendDistance</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">:</span>
+
+        <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdgeCells</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">iCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">iCell</span> <span class="o">%</span> <span class="mi">100000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">iCell</span><span class="p">,</span> <span class="s2">&quot; of &quot;</span><span class="p">,</span> <span class="n">nCells</span><span class="p">,</span> <span class="s2">&quot; cells...&quot;</span><span class="p">)</span>
+
+            <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">xCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">-</span> <span class="n">xCellEdgeCell</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">xCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">-</span> <span class="n">xCellEdgeCell</span><span class="p">))</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">yCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">-</span> <span class="n">yCellEdgeCell</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">yCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">-</span> <span class="n">yCellEdgeCell</span><span class="p">))</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span>
+                <span class="p">(</span><span class="n">zCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">-</span> <span class="n">zCellEdgeCell</span><span class="p">),</span>
+                <span class="p">(</span><span class="n">zCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">-</span> <span class="n">zCellEdgeCell</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">distances</span><span class="p">[</span><span class="n">distances</span><span class="o">.</span><span class="n">argmin</span><span class="p">()]</span> <span class="o">&lt;=</span> <span class="n">distanceLimit</span><span class="p">:</span>
+                <span class="n">icePresenceNew</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Load ice presence...&quot;</span><span class="p">)</span>
+    <span class="n">filePresence</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenamePresence</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+
+    <span class="n">icePresenceVar</span> <span class="o">=</span> <span class="n">filePresence</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+        <span class="s2">&quot;icePresenceExtended&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+    <span class="n">icePresenceVar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">icePresenceNew</span><span class="p">[:]</span>
+
+    <span class="n">filePresence</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

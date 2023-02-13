@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.creation.mesh\_definition\_tools.mergeCellWidthVsLat
+=====================================================================
+
+.. currentmodule:: mpas_tools.mesh.creation.mesh_definition_tools
+
+.. autofunction:: mergeCellWidthVsLat
