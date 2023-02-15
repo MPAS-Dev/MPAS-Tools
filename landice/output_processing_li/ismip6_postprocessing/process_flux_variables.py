@@ -208,9 +208,6 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
 
     print("===done cleaning floatingBasalMassBalApplied===")
 
-
-    print("===starting the calving flux processing===")
-
     assert time == len(deltat)
 
     calvingVelocity = data['calvingVelocity'][:, :].values
@@ -218,6 +215,64 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     # create and initialize a new data array for calvingFluxArray
     calvingFluxArray = data['calvingVelocity'].copy() * 0.0
     thresholdFlux = data['calvingVelocity'].copy() * 0.0
+    calvingThickness = data['calvingThickness'][:, :].values
+    print("===starting facemelt flux processing===")
+
+    # create and initialize a new data array for faceMeltFluxArray
+    # (copied from calving code above)
+    # Some runs won't have this output field, so assume if field is not present
+    # that facemelting was not enabled
+    faceMeltFluxArray = data['calvingVelocity'].copy() * 0.0
+    if 'faceMeltSpeed' in data:
+        faceMeltSpeed = data['faceMeltSpeed'][:, :].values
+        # faceMeltSpeed is defined below the water line, but face-melting is
+        # applied to the full ice thickness, so the effective speed is
+        # averaged over the full thickness from the previous time step.
+        # Note that this calculation assumes that bedTopography is constant in time,
+        # that config_sea_level = 0, and that faceMeltSpeed is only valid for
+        # grounded cells, i.e., that bedTopography and lowerSurface are equivalent
+        # (which is currently the case).
+
+        if 'bedTopography' in data:
+            bed = bedTopography # have value per time level
+        else:
+            bed = np.tile(bedTopography[0,:], (np.shape(deltat)[0], 1)) # just have a single value
+
+        faceMeltingThickness = data['faceMeltingThickness'][:, :].values
+        faceMeltSpeedVertAvg = faceMeltingThickness.copy() * 0.0
+        # Fields for validation and debugging
+        debug_face_melt_flux = False
+        if debug_face_melt_flux:
+            deltat_array = np.tile(deltat,  (np.shape(dHdt)[1],1)).transpose()
+            # Cleaned field for debugging and validation
+            faceMeltingThicknessCleaned = faceMeltingThickness.copy()
+        for t in range(time):
+            if t%20 == 0:
+                print(f"    Time: {t+1} / {time}")
+
+            if 'bedTopography' in data:
+                bed = bedTopography[t,:] # have value per time level
+            else:
+                bed = bedTopography[0,:] # just have a single value
+
+            index_cf = np.where((faceMeltingThickness[t, :] > 0.0) * (bed[:] < 0.0) *
+                                (faceMeltingThickness[t, :] != thickness[t-1, :]))[0]
+            for i in index_cf:
+                faceMeltSpeedVertAvg[t,i] = faceMeltSpeed[t, i] * np.abs(bed[i] / thickness[t-1, i])
+                faceMeltSpeedVertAvg[t,i] = min(faceMeltSpeedVertAvg[t,i], faceMeltSpeed[t, i])
+                # Use this cell if it has nonzero faceMeltingThickness because faceMeltSpeed
+                # is defined everywhere, but only applied on grounded ice
+                if faceMeltingThickness[t,i] > 0.0:
+                    faceMeltFluxArray[t,i] = faceMeltSpeedVertAvg[t,i] * rho_i # convert to proper units
+            # Push mass removed from stranded non-dynamic cells into calving
+            index_stranded_cell_cleanup = np.where(faceMeltingThickness[t, :] == thickness[t-1, :])[0]
+            calvingThicknessFromThreshold[t, index_stranded_cell_cleanup] = faceMeltingThickness[t, index_stranded_cell_cleanup]
+            if debug_face_melt_flux:
+                faceMeltingThicknessCleaned[t, index_stranded_cell_cleanup] -= faceMeltingThickness[t, index_stranded_cell_cleanup]
+            # This is just for debugging and validation
+    print("===done facemelt flux processing!===")
+
+    print("===starting the calving flux processing===")
 
     for t in range(time):
         if t%20 == 0:
@@ -285,63 +340,12 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
 
     data['calvingFlux'] = calvingFluxArray  # Note: thresholdFlux was already added in above
     data['thresholdFlux'] = thresholdFlux  # this is just written for diagnostic purposes.  It's not actually sent to ISMIP6.
-
+    data['faceMeltAndCalvingFlux'] = faceMeltFluxArray + calvingFluxArray  # ismip6 only wants the combined fields for face-melt
     print("===done calving flux processing!===")
-
-
-    print("===starting facemelt flux processing===")
-
-    assert time == len(deltat)
-
-    # create and initialize a new data array for faceMeltFluxArray
-    # (copied from calving code above)
-    # Some runs won't have this output field, so assume if field is not present
-    # that facemelting was not enabled
-    faceMeltFluxArray = data['calvingVelocity'].copy() * 0.0
-
-    if 'faceMeltSpeed' in data:
-        faceMeltSpeed = data['faceMeltSpeed'][:, :].values
-        dHdt = data['dHdt'][:, :].values / (3600.0 * 24.0 * 365.0) # convert units to m/s
-        # faceMeltSpeed is defined below the water line, but face-melting is
-        # applied to the full ice thickness, so the effective speed is
-        # averaged over the full thickness. Add (dHdt * deltat) to thickness
-        # here because face-melt was applied to thickness from the previous time step.
-        # Note that this calculation assumes that bedTopography is constant in time,
-        # that config_sea_level = 0, and that faceMeltSpeed is only valid for 
-        # grounded cells, i.e., that bedTopography and lowerSurface are equivalent
-        # (which is currently the case).
-
-        # Make an array of deltat to multiply by dHdt
-        deltat_array = np.tile(deltat,  (np.shape(dHdt)[1],1)).transpose()
-
-        if 'bedTopography' in data:
-            bed = bedTopography # have value per time level
-        else:
-            bed = np.tile(bedTopography[0,:], (np.shape(deltat)[0], 1)) # just have a single value
-
-        faceMeltingThickness = data['faceMeltingThickness'][:, :].values
-        faceMeltSpeedVertAvg = faceMeltingThickness.copy() * 0.0
-        for t in range(time):
-            if t%20 == 0:
-                print(f"    Time: {t+1} / {time}")
-    
-            if 'bedTopography' in data:
-                bed = bedTopography[t,:] # have value per time level
-            else:
-                bed = bedTopography[0,:] # just have a single value
-    
-            index_cf = np.where((faceMeltingThickness[t, :] > 0.0) * (bed[:] < 0.0))[0]
-            for i in index_cf:
-                faceMeltSpeedVertAvg[t,i] = faceMeltSpeed[t, i] * np.abs(bed[i] / thickness[t-1, i])
-                faceMeltSpeedVertAvg[t,i] = min(faceMeltSpeedVertAvg[t,i], faceMeltSpeed[t, i])
-                # Use this cell if it has nonzero faceMeltingThickness because faceMeltSpeed
-                # is defined everywhere, but only applied on grounded ice
-                if faceMeltingThickness[t,i] > 0.0:
-                    faceMeltFluxArray[t,i] = faceMeltSpeedVertAvg[t,i] * rho_i # convert to proper units
-    data['faceMeltAndCalvingFlux'] = faceMeltFluxArray + calvingFluxArray  # ismip6 only wants the combined fields
-    print("===done facemelt flux processing!===")
-
-
+    if debug_face_melt_flux:
+        print('debug_face_melt_flux is True, so I assume you want a breakpoint' +
+              ' to check fluxes. Just type continue when you want to proceed.')
+        breakpoint()
     data.to_netcdf(file_output) # copy of the input file with new vars added
     data.close()
 
