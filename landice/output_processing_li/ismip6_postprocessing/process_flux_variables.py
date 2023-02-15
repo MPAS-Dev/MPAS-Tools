@@ -243,7 +243,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
         # Fields for validation and debugging
         debug_face_melt_flux = False
         if debug_face_melt_flux:
-            deltat_array = np.tile(deltat,  (np.shape(dHdt)[1],1)).transpose()
+            deltat_array = np.tile(deltat,  (np.shape(faceMeltSpeed)[1],1)).transpose()
             # Cleaned field for debugging and validation
             faceMeltingThicknessCleaned = faceMeltingThickness.copy()
         for t in range(time):
