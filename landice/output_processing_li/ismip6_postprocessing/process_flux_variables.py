@@ -180,7 +180,8 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     if 'calvingThicknessFromThreshold' in data:
         calvingThicknessFromThreshold = data['calvingThicknessFromThreshold'][:, :].values
     else:
-        print('WARNING: No calvingThicknessFromThreshold field found; ignoring threshold calving.')
+        print('WARNING: No calvingThicknessFromThreshold field found; creating a field populated with zeros.')
+        calvingThicknessFromThreshold = thickness.copy() * 0.0
 
     rho_i = 910.0
 
@@ -219,7 +220,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     print("===starting facemelt flux processing===")
 
     # create and initialize a new data array for faceMeltFluxArray
-    # (copied from calving code above)
+    # (copied from calving code below)
     # Some runs won't have this output field, so assume if field is not present
     # that facemelting was not enabled
     faceMeltFluxArray = data['calvingVelocity'].copy() * 0.0
@@ -232,11 +233,6 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
         # that config_sea_level = 0, and that faceMeltSpeed is only valid for
         # grounded cells, i.e., that bedTopography and lowerSurface are equivalent
         # (which is currently the case).
-
-        if 'bedTopography' in data:
-            bed = bedTopography # have value per time level
-        else:
-            bed = np.tile(bedTopography[0,:], (np.shape(deltat)[0], 1)) # just have a single value
 
         faceMeltingThickness = data['faceMeltingThickness'][:, :].values
         faceMeltSpeedVertAvg = faceMeltingThickness.copy() * 0.0
@@ -255,9 +251,13 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
             else:
                 bed = bedTopography[0,:] # just have a single value
 
+            prev_t = max(t-1, 0)  # ensure that index_cf never uses thickness from last (-1) time step
             index_cf = np.where((faceMeltingThickness[t, :] > 0.0) * (bed[:] < 0.0) *
-                                (faceMeltingThickness[t, :] != thickness[t-1, :]))[0]
+                                (faceMeltingThickness[t, :] != thickness[prev_t, :]))[0]
             for i in index_cf:
+                # faceMeltSpeed is calculated for ice below water line, but needs to be aplied
+                # to full ice thickness, so we need a vertically averaged speed. Also ensure that
+                # the vertically averaged speed is never > faceMeltSpeed due to small ice thickness.
                 faceMeltSpeedVertAvg[t,i] = faceMeltSpeed[t, i] * np.abs(bed[i] / thickness[t-1, i])
                 faceMeltSpeedVertAvg[t,i] = min(faceMeltSpeedVertAvg[t,i], faceMeltSpeed[t, i])
                 # Use this cell if it has nonzero faceMeltingThickness because faceMeltSpeed
@@ -266,7 +266,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
                     faceMeltFluxArray[t,i] = faceMeltSpeedVertAvg[t,i] * rho_i # convert to proper units
             # Push mass removed from stranded non-dynamic cells into calving
             index_stranded_cell_cleanup = np.where(faceMeltingThickness[t, :] == thickness[t-1, :])[0]
-            calvingThicknessFromThreshold[t, index_stranded_cell_cleanup] = faceMeltingThickness[t, index_stranded_cell_cleanup]
+            calvingThicknessFromThreshold[t, index_stranded_cell_cleanup] += faceMeltingThickness[t, index_stranded_cell_cleanup]
             if debug_face_melt_flux:
                 faceMeltingThicknessCleaned[t, index_stranded_cell_cleanup] -= faceMeltingThickness[t, index_stranded_cell_cleanup]
             # This is just for debugging and validation
