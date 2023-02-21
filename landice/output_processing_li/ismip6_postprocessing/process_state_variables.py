@@ -112,6 +112,8 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
                 mask = var_sftgrf[i, :, :]
             elif ismip6_var_name == 'litempbotfl':
                 mask = var_sftflf[i, :, :]
+            elif ismip6_var_name == 'topg':
+                mask = np.ones(var_mali.shape[1:])  # don't mask topg
             else:
                 mask = var_sftgif[i, :, :]
             tmp = var_mali[i, :, :]

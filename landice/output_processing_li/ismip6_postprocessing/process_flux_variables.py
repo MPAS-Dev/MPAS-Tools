@@ -38,6 +38,7 @@ def do_time_avg_flux_vars(input_file, output_file):
     dHdt = dataIn['dHdt'][:,:] / (3600.0 * 24.0 * 365.0) # convert units to m/s
     glFlux = dataIn['fluxAcrossGroundingLineOnCells'][:, :]
     calvingFlux = dataIn['calvingFlux'][:, :]
+    faceMeltAndCalvingFlux = dataIn['faceMeltAndCalvingFlux'][:, :]
 
     iceMask = (cellMask[:, :] & 2) / 2  # grounded: dynamic ice
 
@@ -68,6 +69,7 @@ def do_time_avg_flux_vars(input_file, output_file):
 
     avgSmb = np.zeros((len(years), nCells)) * np.nan
     avgCF = np.zeros((len(years), nCells)) * np.nan
+    avgCFandFM = np.zeros((len(years), nCells)) * np.nan
     avgBmbfl = np.zeros((len(years), nCells)) * np.nan
     avgBmbgr = np.zeros((len(years), nCells)) * np.nan
     avgDHdt = np.zeros((len(years), nCells)) * np.nan
@@ -84,6 +86,7 @@ def do_time_avg_flux_vars(input_file, output_file):
         sumYearBmb = 0
         sumYearDHdt = 0
         sumYearCF = 0
+        sumYearCFandFM = 0
         sumYearGF = 0
         sumYearBHF = 0
         sumYearTime = 0
@@ -101,6 +104,7 @@ def do_time_avg_flux_vars(input_file, output_file):
                 sumYearBmbgr = sumYearBmbgr + groundedBasalMassBalApplied[i, :] * deltat[i]
                 sumYearDHdt = sumYearDHdt + dHdt[i, :] * deltat[i]
                 sumYearCF = sumYearCF + calvingFlux[i,:] * deltat[i]
+                sumYearCFandFM = sumYearCFandFM + faceMeltAndCalvingFlux[i,:] * deltat[i]
                 sumYearGF = sumYearGF + glFlux[i, :] * deltat[i]
                 sumYearTime = sumYearTime + deltat[i]
 
@@ -114,6 +118,7 @@ def do_time_avg_flux_vars(input_file, output_file):
         avgBmbgr[j,:] = sumYearBmbgr / sumYearTime
         avgDHdt[j,:] = sumYearDHdt / sumYearTime
         avgCF[j,:] = sumYearCF / sumYearTime
+        avgCFandFM[j,:] = sumYearCFandFM / sumYearTime
         avgGF[j,:] = sumYearGF / sumYearTime
         maxIceMask[j,:] = (sumIceMask>0) # Get mask for anywhere that had ice during this year
 
@@ -128,6 +133,7 @@ def do_time_avg_flux_vars(input_file, output_file):
                      'dHdt':              (['Time', 'nCells'], avgDHdt),
                      'fluxAcrossGroundingLineOnCells': (['Time', 'nCells'], avgGF),
                      'calvingFlux': (['Time', 'nCells'], avgCF),
+                     'faceMeltAndCalvingFlux': (['Time', 'nCells'], avgCFandFM),
                      'iceMask':        (['Time', 'nCells'], maxIceMask),
                      'timeBndsMin': (['Time'], timeBndsMin),
                      'timeBndsMax': (['Time'], timeBndsMax),
@@ -174,9 +180,9 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     if 'calvingThicknessFromThreshold' in data:
         calvingThicknessFromThreshold = data['calvingThicknessFromThreshold'][:, :].values
     else:
-        print('WARNING: No calvingThicknessFromThreshold field found; ignoring threshold calving.')
+        print('WARNING: No calvingThicknessFromThreshold field found; creating a field populated with zeros.')
+        calvingThicknessFromThreshold = thickness.copy() * 0.0
 
-    calvingVelocity = data['calvingVelocity'][:, :].values
     rho_i = 910.0
 
     print("===starting cleaning floatingBasalMassBalApplied===")
@@ -203,14 +209,70 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
 
     print("===done cleaning floatingBasalMassBalApplied===")
 
-
-    print("===starting the calving flux processing===")
-
     assert time == len(deltat)
+
+    calvingVelocity = data['calvingVelocity'][:, :].values
 
     # create and initialize a new data array for calvingFluxArray
     calvingFluxArray = data['calvingVelocity'].copy() * 0.0
     thresholdFlux = data['calvingVelocity'].copy() * 0.0
+    calvingThickness = data['calvingThickness'][:, :].values
+    print("===starting facemelt flux processing===")
+
+    # create and initialize a new data array for faceMeltFluxArray
+    # (copied from calving code below)
+    # Some runs won't have this output field, so assume if field is not present
+    # that facemelting was not enabled
+    faceMeltFluxArray = data['calvingVelocity'].copy() * 0.0
+    if 'faceMeltSpeed' in data:
+        faceMeltSpeed = data['faceMeltSpeed'][:, :].values
+        # faceMeltSpeed is defined below the water line, but face-melting is
+        # applied to the full ice thickness, so the effective speed is
+        # averaged over the full thickness from the previous time step.
+        # Note that this calculation assumes that bedTopography is constant in time,
+        # that config_sea_level = 0, and that faceMeltSpeed is only valid for
+        # grounded cells, i.e., that bedTopography and lowerSurface are equivalent
+        # (which is currently the case).
+
+        faceMeltingThickness = data['faceMeltingThickness'][:, :].values
+        faceMeltSpeedVertAvg = faceMeltingThickness.copy() * 0.0
+        # Fields for validation and debugging
+        debug_face_melt_flux = False
+        if debug_face_melt_flux:
+            deltat_array = np.tile(deltat,  (np.shape(faceMeltSpeed)[1],1)).transpose()
+            # Cleaned field for debugging and validation
+            faceMeltingThicknessCleaned = faceMeltingThickness.copy()
+        for t in range(time):
+            if t%20 == 0:
+                print(f"    Time: {t+1} / {time}")
+
+            if 'bedTopography' in data:
+                bed = bedTopography[t,:] # have value per time level
+            else:
+                bed = bedTopography[0,:] # just have a single value
+
+            prev_t = max(t-1, 0)  # ensure that index_cf never uses thickness from last (-1) time step
+            index_cf = np.where((faceMeltingThickness[t, :] > 0.0) * (bed[:] < 0.0) *
+                                (faceMeltingThickness[t, :] != thickness[prev_t, :]))[0]
+            for i in index_cf:
+                # faceMeltSpeed is calculated for ice below water line, but needs to be aplied
+                # to full ice thickness, so we need a vertically averaged speed. Also ensure that
+                # the vertically averaged speed is never > faceMeltSpeed due to small ice thickness.
+                faceMeltSpeedVertAvg[t,i] = faceMeltSpeed[t, i] * np.abs(bed[i] / thickness[t-1, i])
+                faceMeltSpeedVertAvg[t,i] = min(faceMeltSpeedVertAvg[t,i], faceMeltSpeed[t, i])
+                # Use this cell if it has nonzero faceMeltingThickness because faceMeltSpeed
+                # is defined everywhere, but only applied on grounded ice
+                if faceMeltingThickness[t,i] > 0.0:
+                    faceMeltFluxArray[t,i] = faceMeltSpeedVertAvg[t,i] * rho_i # convert to proper units
+            # Push mass removed from stranded non-dynamic cells into calving
+            index_stranded_cell_cleanup = np.where(faceMeltingThickness[t, :] == thickness[t-1, :])[0]
+            calvingThicknessFromThreshold[t, index_stranded_cell_cleanup] += faceMeltingThickness[t, index_stranded_cell_cleanup]
+            if debug_face_melt_flux:
+                faceMeltingThicknessCleaned[t, index_stranded_cell_cleanup] -= faceMeltingThickness[t, index_stranded_cell_cleanup]
+            # This is just for debugging and validation
+    print("===done facemelt flux processing!===")
+
+    print("===starting the calving flux processing===")
 
     for t in range(time):
         if t%20 == 0:
@@ -276,12 +338,15 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
             thresholdFlux[t, bdyIndices] += (thresholdSpeed[bdyIndices] + surfaceSpeed[t,bdyIndices]) * rho_i
             calvingFluxArray[t,bdyIndices] += thresholdFlux[t,bdyIndices]
 
-    data['calvingFlux'] = calvingFluxArray
-    data['thresholdFlux'] = thresholdFlux
-
+    data['calvingFlux'] = calvingFluxArray  # Note: thresholdFlux was already added in above
+    data['thresholdFlux'] = thresholdFlux  # this is just written for diagnostic purposes.  It's not actually sent to ISMIP6.
+    data['faceMeltAndCalvingFlux'] = faceMeltFluxArray + calvingFluxArray  # ismip6 only wants the combined fields for face-melt
     print("===done calving flux processing!===")
-
-    data.to_netcdf(file_output) # copy of the input file with licalvf added
+    if debug_face_melt_flux:
+        print('debug_face_melt_flux is True, so I assume you want a breakpoint' +
+              ' to check fluxes. Just type continue when you want to proceed.')
+        breakpoint()
+    data.to_netcdf(file_output) # copy of the input file with new vars added
     data.close()
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
@@ -435,10 +500,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               exp, output_path)
 
     # ----------- lifmassbf ------------------
-    # For now, we are not calculating any frontal melting, so lifmassbf=licalvf
-    # We could just copy the licalvf file, but it is simpler/less fragile to
-    # calculate a new lifmassbf file using the same input as licalvf.
-    write_netcdf_2d_flux_vars('calvingFlux', 'lifmassbf',
+    # Note: facemelting and calving flux are combined above
+    write_netcdf_2d_flux_vars('faceMeltAndCalvingFlux', 'lifmassbf',
                               'land_ice_specific_mass_flux_due_to_calving_and_ice_front_melting',
                               'kg m-2 s-1',
                               'Ice front melt and calving flux',
