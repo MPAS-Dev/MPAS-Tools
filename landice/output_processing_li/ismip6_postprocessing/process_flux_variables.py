@@ -258,14 +258,15 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
                 # faceMeltSpeed is calculated for ice below water line, but needs to be aplied
                 # to full ice thickness, so we need a vertically averaged speed. Also ensure that
                 # the vertically averaged speed is never > faceMeltSpeed due to small ice thickness.
-                faceMeltSpeedVertAvg[t,i] = faceMeltSpeed[t, i] * np.abs(bed[i] / thickness[t-1, i])
+                # This may be slightly inaccurate on the very first time step.
+                faceMeltSpeedVertAvg[t,i] = faceMeltSpeed[t, i] * np.abs(bed[i] / thickness[prev_t, i])
                 faceMeltSpeedVertAvg[t,i] = min(faceMeltSpeedVertAvg[t,i], faceMeltSpeed[t, i])
                 # Use this cell if it has nonzero faceMeltingThickness because faceMeltSpeed
                 # is defined everywhere, but only applied on grounded ice
                 if faceMeltingThickness[t,i] > 0.0:
                     faceMeltFluxArray[t,i] = faceMeltSpeedVertAvg[t,i] * rho_i # convert to proper units
             # Push mass removed from stranded non-dynamic cells into calving
-            index_stranded_cell_cleanup = np.where(faceMeltingThickness[t, :] == thickness[t-1, :])[0]
+            index_stranded_cell_cleanup = np.where(faceMeltingThickness[t, :] == thickness[prev_t, :])[0]
             calvingThicknessFromThreshold[t, index_stranded_cell_cleanup] += faceMeltingThickness[t, index_stranded_cell_cleanup]
             if debug_face_melt_flux:
                 faceMeltingThicknessCleaned[t, index_stranded_cell_cleanup] -= faceMeltingThickness[t, index_stranded_cell_cleanup]
