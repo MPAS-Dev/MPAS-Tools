@@ -253,7 +253,8 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
 
             prev_t = max(t-1, 0)  # ensure that index_cf never uses thickness from last (-1) time step
             index_cf = np.where((faceMeltingThickness[t, :] > 0.0) * (bed[:] < 0.0) *
-                                (faceMeltingThickness[t, :] != thickness[prev_t, :]))[0]
+                                (faceMeltingThickness[t, :] != thickness[prev_t, :]) * 
+                                (thickness[prev_t, :] > 0.))[0]
             for i in index_cf:
                 # faceMeltSpeed is calculated for ice below water line, but needs to be aplied
                 # to full ice thickness, so we need a vertically averaged speed. Also ensure that
@@ -317,6 +318,9 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
                         thresholdBoundaryLength[i] += dvEdge[edgesOnCell[i,j]-1]
             bdyIndices = np.where(thresholdBoundary == 1)[0]
             print(f"Found {len(index_cf)} cells with threshold calving at time {t}; {len(bdyIndices)} are boundary cells.")
+            if len(bdyIndices) == 0:
+                print(f"0 boundary cells were found; skipping to next time step")
+                continue
             # Now loop over all threshold cells and assign their volume to the nearest boundary cell
             for i in index_cf:
                 if thresholdBoundary[i] == 1:
