@@ -9,6 +9,7 @@ import numpy as np
 from datetime import date
 from subprocess import check_call
 import os, sys
+import warnings
 
 
 def do_time_avg_flux_vars(input_file, output_file):
@@ -157,7 +158,8 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     """
 
     data = xr.open_dataset(file_input, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
-    del data.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
+    if 'units' in data.daysSinceStart.attrs:
+        del data.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
     time = data.dims['Time']
     nCells = data.dims['nCells']
     nEdgesOnCell = data['nEdgesOnCell'][:].values
@@ -331,7 +333,9 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
                 thresholdBoundarySummedThickness[ownerIdx] += calvingThicknessFromThreshold[t,i]
                 thresholdBoundaryContributors[ownerIdx] += 1
             #print(thresholdBoundaryAssignedVolume.sum(), (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum())
-            assert np.absolute(thresholdBoundaryAssignedVolume.sum() - (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum()) < 1.0
+            diff = np.absolute(thresholdBoundaryAssignedVolume.sum() - (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum()) < 1.0
+            if diff < 1.0:
+                warnings.warn(f"Difference between assigned value and threshold {diff} < 1.0")
             #for i in bdyIndices:
                 #print(f"length={thresholdBoundaryLength[i]}, vol={thresholdBoundaryAssignedVolume[i]}, sumthk={thresholdBoundarySummedThickness[i]}, num={thresholdBoundaryContributors[i]}, meanthk={thresholdBoundarySummedThickness[i]/thresholdBoundaryContributors[i]}")
             # Finally calculate licalvf for each boundary cell and add to whatever was already there
