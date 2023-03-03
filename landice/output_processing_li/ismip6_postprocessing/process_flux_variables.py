@@ -335,7 +335,8 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
             #print(thresholdBoundaryAssignedVolume.sum(), (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum())
             diff = np.absolute(thresholdBoundaryAssignedVolume.sum() - (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum()) < 1.0
             if diff < 1.0:
-                warnings.warn(f"Difference between assigned value and threshold {diff} < 1.0")
+                warnings.warn(f"Difference between assigned `thresholdBoundaryAssignedVolume` value and "
+                              f"`calvingThicknessFromThreshold` threshold value is less than 1: {diff} < 1.0")
             #for i in bdyIndices:
                 #print(f"length={thresholdBoundaryLength[i]}, vol={thresholdBoundaryAssignedVolume[i]}, sumthk={thresholdBoundarySummedThickness[i]}, num={thresholdBoundaryContributors[i]}, meanthk={thresholdBoundarySummedThickness[i]/thresholdBoundaryContributors[i]}")
             # Finally calculate licalvf for each boundary cell and add to whatever was already there
@@ -351,6 +352,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     data['thresholdFlux'] = thresholdFlux  # this is just written for diagnostic purposes.  It's not actually sent to ISMIP6.
     data['faceMeltAndCalvingFlux'] = faceMeltFluxArray + calvingFluxArray  # ismip6 only wants the combined fields for face-melt
     print("===done calving flux processing!===")
+    debug_face_melt_flux = False
     if debug_face_melt_flux:
         print('debug_face_melt_flux is True, so I assume you want a breakpoint' +
               ' to check fluxes. Just type continue when you want to proceed.')
