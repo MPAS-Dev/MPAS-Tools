@@ -50,7 +50,9 @@ def main():
     parser.add_argument("--method", dest="method_remap", default="conserve",
                         required=False,
                         help="mapping method. Default='conserve'")
-
+    parser.add_argument("--res", dest="res_ismip6_grid",
+                        required=True,
+                        help="resolution of the ismip6 grid, (e.g. 8 for 8km res)")
     args = parser.parse_args()
 
     print("\n---Processing remapping file---")
@@ -68,13 +70,15 @@ def main():
             else:
                 method_remap = args.method_remap
 
-            mapping_file = f"map_{args.mali_mesh_name}_to_ismip6_8km_" \
-                           f"{method_remap}.nc"
+            mapping_file = f"map_{args.mali_mesh_name}_to_"\
+                           f"ismip6_{args.res_ismip6_grid}km_{method_remap}.nc"
 
             print(f"Creating new mapping file."
                   f"Mapping method used: {method_remap}")
+
             build_mapping_file(args.input_file_grid, mapping_file,
-                               args.ismip6_grid_file, method_remap)
+                               args.res_ismip6_grid, args.ismip6_grid_file,
+                               method_remap)
 
     print("---Processing remapping file complete---\n")
 
@@ -111,7 +115,8 @@ def main():
 
         # write out 2D state output files in the ismip6-required format
         print("Writing processed and remapped state fields to ISMIP6 file format.")
-        generate_output_2d_state_vars(processed_and_remapped_file_state, args.ismip6_grid_file,
+        generate_output_2d_state_vars(processed_and_remapped_file_state,
+                                      args.res_ismip6_grid, args.ismip6_grid_file,
                                       args.exp, output_path)
 
         os.remove(tmp_file)
@@ -152,6 +157,7 @@ def main():
 
         # write out the output files in the ismip6-required format
         generate_output_2d_flux_vars(processed_file_flux,
+                                     args.res_ismip6_grid,
                                      args.ismip6_grid_file,
                                      args.exp, output_path)
 

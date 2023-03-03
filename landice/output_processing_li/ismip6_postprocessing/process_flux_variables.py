@@ -361,9 +361,8 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     data.close()
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
-                              var_units, var_varname,
-                              remapped_mali_flux_file,
-                              ismip6_grid_file,
+                              var_units, var_varname, remapped_mali_flux_file,
+                              res_ismip6_grid, ismip6_grid_file,
                               exp, output_path):
 
     """
@@ -373,6 +372,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     var_units: variable units
     var_varname: variable variable name
     remapped_mali_flux_file: mali flux file remapped on the ISMIP6 grid
+    res_ismip6_grid: resolution of the ISMIP6 grid in kilometers
     ismip6_grid_file: original ISMIP6 file
     exp: experiment name
     output_path: output path to which the output files will be saved
@@ -380,8 +380,20 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
 
 
     data_ismip6 = Dataset(ismip6_grid_file, 'r')
-    var_x = data_ismip6.variables['x'][:]
-    var_y = data_ismip6.variables['y'][:]
+    if 'x' and 'y' in data_ismip6.variables:
+        var_x = data_ismip6.variables['x'][:]
+        var_y = data_ismip6.variables['y'][:]
+    else:
+        nx = data_ismip6.dimensions['x'].size
+        ny = data_ismip6.dimensions['y'].size
+        dx = int(res_ismip6_grid)*1000
+        dy = dx
+        if (nx % 2) == 0:
+           var_x = dx*((np.arange(-nx/2, nx/2)) + 0.5)
+           var_y = dy*((np.arange(-ny/2, ny/2)) + 0.5)
+        else:
+           var_x = dx*((np.arange(-(nx-1)/2, (nx+1)/2)))
+           var_y = dy*((np.arange(-(ny-1)/2, (ny+1)/2)))
 
     data = Dataset(remapped_mali_flux_file, 'r')
     data.set_auto_mask(False)
@@ -453,13 +465,13 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     data.close()
 
 
-def generate_output_2d_flux_vars(file_remapped_mali_flux,
-                                 ismip6_grid_file,
-                                 exp, output_path):
+def generate_output_2d_flux_vars(file_remapped_mali_flux, res_ismip6_grid,
+                                 ismip6_grid_file, exp, output_path):
     """
     file_remapped_mali_flux: flux output file on mali mesh remapped
     onto the ismip6 grid
     ismip6 grid
+    res_ismip6_grid: ismip6 grid resolution in kilometers
     ismip6_grid_file: ismip6 original file
     exp: ISMIP6 experiment name
     output_path: path to which the final output files are saved
@@ -470,45 +482,40 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
     write_netcdf_2d_flux_vars('sfcMassBalApplied', 'acabf',
                               'land_ice_surface_specific_mass_balance_flux',
                               'kg m-2 s-1', 'Surface mass balance flux',
-                              file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              file_remapped_mali_flux, res_ismip6_grid,
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- libmassbffl ------------------
     write_netcdf_2d_flux_vars('libmassbffl', 'libmassbffl',
                               'land_ice_basal_specific_mass_balance_flux',
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath floating ice',
-                              file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              file_remapped_mali_flux, res_ismip6_grid,
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- libmassbfgr ------------------
     write_netcdf_2d_flux_vars('libmassbfgr', 'libmassbfgr',
                               'land_ice_basal_specific_mass_balance_flux',
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath grounded ice',
-                              file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              file_remapped_mali_flux, res_ismip6_grid,
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- dlithkdt ------------------
     write_netcdf_2d_flux_vars('dHdt', 'dlithkdt',
                               'tendency_of_land_ice_thickness',
                               'm s-1',
                               'Ice thickness imbalance',
-                              file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              file_remapped_mali_flux, res_ismip6_grid,
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- licalvf ------------------
     write_netcdf_2d_flux_vars('calvingFlux', 'licalvf',
                               'land_ice_specific_mass_flux_due_to_calving',
                               'kg m-2 s-1',
                               'Calving flux',
-                              file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              file_remapped_mali_flux, res_ismip6_grid,
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- lifmassbf ------------------
     # Note: facemelting and calving flux are combined above
@@ -516,15 +523,13 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'land_ice_specific_mass_flux_due_to_calving_and_ice_front_melting',
                               'kg m-2 s-1',
                               'Ice front melt and calving flux',
-                              file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              file_remapped_mali_flux, res_ismip6_grid,
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- ligroundf ------------------
     write_netcdf_2d_flux_vars('fluxAcrossGroundingLineOnCells', 'ligroundf',
                               'land_ice_specific_mass_flux_at_grounding_line',
                               'kg m-2 s-1',
                               'Grounding line flux',
-                              file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              file_remapped_mali_flux, res_ismip6_grid,
+                              ismip6_grid_file, exp, output_path)
