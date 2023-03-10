@@ -189,16 +189,26 @@ def prepare_partitions():
     """
     # parsing input
     parser = argparse.ArgumentParser(
-        description='Perform preparatory work for making seaice partitions.')
+        description="Perform preparatory work for making seaice partitions.")
 
-    parser.add_argument('-i', '--inputmesh', dest="meshFilenameSrc", required=True,
-                        help='MPAS mesh file for source regridding mesh.')
-    parser.add_argument('-p', '--presence', dest="filenameData", required=True,
-                        help='Input ice presence file for source mesh.')
-    parser.add_argument('-m', '--outputmesh', dest="meshFilenameDst", required=True,
-                        help='MPAS mesh file for destination regridding mesh.')
-    parser.add_argument('-o', '--outputDir', dest="outputDir", required=True,
-                        help='Output directory for temporary files and partition files.')
+    parser.add_argument("-i", "--inputmesh", dest="meshFilenameSrc",
+                        required=True,
+                        help="MPAS mesh file for source regridding mesh.")
+    parser.add_argument("-p", "--presence", dest="filenameData",
+                        required=True,
+                        help="Input ice presence file for source mesh.")
+    parser.add_argument("-m", "--outputmesh", dest="meshFilenameDst",
+                        required=True,
+                        help="MPAS mesh file for destination regridding mesh.")
+    parser.add_argument("-o", "--outputDir", dest="outputDir",
+                        required=True,
+                        help="Output directory for temporary files and "
+                             "partition files.")
+    parser.add_argument("-w", "--weightsFilename", dest="weightsFilename",
+                        required=False,
+                        help="A mapping file between the input and output "
+                             "MPAS meshes.  One will be generated if it is "
+                             "not supplied.")
 
     args = parser.parse_args()
 
@@ -209,11 +219,14 @@ def prepare_partitions():
     # 1) Regrid the ice presence from the input data mesh to the grid of choice
     print("Regrid to desired mesh...")
     filenameOut = args.outputDir + "/icePresent_regrid.nc"
+
     regrid_to_other_mesh(
-        args.meshFilenameSrc,
-        args.filenameData,
-        args.meshFilenameDst,
-        filenameOut)
+        meshFilenameSrc=args.meshFilenameSrc,
+        filenameData=args.filenameData,
+        meshFilenameDst=args.meshFilenameDst,
+        filenameOut=filenameOut,
+        generateWeights=(args.weightsFilename is None),
+        weightsFilename=args.weightsFilename)
 
     # 2) create icePresence variable
     print("fix_regrid_output...")
