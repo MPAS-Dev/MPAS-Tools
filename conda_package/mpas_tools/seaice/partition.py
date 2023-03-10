@@ -7,6 +7,8 @@ import subprocess
 import argparse
 import shutil
 
+from pyremap import MpasMeshDescriptor, Remapper
+
 from .regrid import regrid_to_other_mesh
 from .mask import extend_seaice_mask
 from .regions import make_regions_file
@@ -189,16 +191,22 @@ def prepare_partitions():
     """
     # parsing input
     parser = argparse.ArgumentParser(
-        description='Perform preparatory work for making seaice partitions.')
+        description="Perform preparatory work for making seaice partitions.")
 
-    parser.add_argument('-i', '--inputmesh', dest="meshFilenameSrc", required=True,
-                        help='MPAS mesh file for source regridding mesh.')
-    parser.add_argument('-p', '--presence', dest="filenameData", required=True,
-                        help='Input ice presence file for source mesh.')
-    parser.add_argument('-m', '--outputmesh', dest="meshFilenameDst", required=True,
-                        help='MPAS mesh file for destination regridding mesh.')
-    parser.add_argument('-o', '--outputDir', dest="outputDir", required=True,
-                        help='Output directory for temporary files and partition files.')
+    parser.add_argument("-i", "--inputmesh", dest="meshFilenameSrc", required=True,
+                        help="MPAS mesh file for source regridding mesh.")
+    parser.add_argument("-p", "--presence", dest="filenameData", required=True,
+                        help="Input ice presence file for source mesh.")
+    parser.add_argument("-m", "--outputmesh", dest="meshFilenameDst", required=True,
+                        help="MPAS mesh file for destination regridding mesh.")
+    parser.add_argument("-o", "--outputDir", dest="outputDir", required=True,
+                        help="Output directory for temporary files and partition files.")
+    parser.add_argument("-e", "--parallel_exec", dest="parallel_exec",
+                        required=False,
+                        help="Parallel executable if remapping in parallel")
+    parser.add_argument("-n", "--ntasks", dest="ntasks", type=int, default=1,
+                        help="Number of MPI tasks for remapping (only used if "
+                             "parallel_exec is supplied)")
 
     args = parser.parse_args()
 
@@ -208,12 +216,32 @@ def prepare_partitions():
 
     # 1) Regrid the ice presence from the input data mesh to the grid of choice
     print("Regrid to desired mesh...")
-    filenameOut = args.outputDir + "/icePresent_regrid.nc"
+    filenameOut = os.path.join(args.outputDir, "icePresent_regrid.nc")
+    weightsFilename = os.path.abspath("weights_tmp.nc")
+    if args.parallel_exec is not None:
+        print("Creating mapping file with pyremap for parallel support")
+        src_descriptor = MpasMeshDescriptor(fileName=args.meshFilenameSrc,
+                                            meshName="source")
+        dst_descriptor = MpasMeshDescriptor(fileName=args.meshFilenameDst,
+                                            meshName="destination")
+        remapper = Remapper(sourceDescriptor=src_descriptor,
+                            destinationDescriptor=dst_descriptor,
+                            mappingFileName=weightsFilename)
+        tmpdir = os.getcwd()
+        remapper.build_mapping_file(method="bilinear", tempdir=tmpdir,
+                                    esmf_parallel_exec=args.parallel_exec,
+                                    mpiTasks=args.ntasks)
+        generateWeights = False
+    else:
+        generateWeights = True
+
     regrid_to_other_mesh(
-        args.meshFilenameSrc,
-        args.filenameData,
-        args.meshFilenameDst,
-        filenameOut)
+        meshFilenameSrc=args.meshFilenameSrc,
+        filenameData=args.filenameData,
+        meshFilenameDst=args.meshFilenameDst,
+        filenameOut=filenameOut,
+        generateWeights=generateWeights,
+        weightsFilename=weightsFilename)
 
     # 2) create icePresence variable
     print("fix_regrid_output...")
