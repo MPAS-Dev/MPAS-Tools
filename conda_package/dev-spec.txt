@@ -19,6 +19,7 @@ progressbar2
 pyamg
 pyevtk
 pyproj
+pyremap>=0.0.15,<0.1.0
 python-igraph
 scikit-image
 scipy
