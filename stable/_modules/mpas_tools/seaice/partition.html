@@ -303,16 +303,26 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># parsing input</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
-        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Perform preparatory work for making seaice partitions.&#39;</span><span class="p">)</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Perform preparatory work for making seaice partitions.&quot;</span><span class="p">)</span>
 
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-i&#39;</span><span class="p">,</span> <span class="s1">&#39;--inputmesh&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;meshFilenameSrc&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;MPAS mesh file for source regridding mesh.&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="s1">&#39;--presence&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;filenameData&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input ice presence file for source mesh.&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--outputmesh&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;meshFilenameDst&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;MPAS mesh file for destination regridding mesh.&#39;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--outputDir&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outputDir&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output directory for temporary files and partition files.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="s2">&quot;--inputmesh&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;meshFilenameSrc&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;MPAS mesh file for source regridding mesh.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;--presence&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;filenameData&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input ice presence file for source mesh.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--outputmesh&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;meshFilenameDst&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;MPAS mesh file for destination regridding mesh.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--outputDir&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outputDir&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output directory for temporary files and &quot;</span>
+                             <span class="s2">&quot;partition files.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="s2">&quot;--weightsFilename&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;weightsFilename&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;A mapping file between the input and output &quot;</span>
+                             <span class="s2">&quot;MPAS meshes.  One will be generated if it is &quot;</span>
+                             <span class="s2">&quot;not supplied.&quot;</span><span class="p">)</span>
 
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
@@ -323,11 +333,14 @@
     <span class="c1"># 1) Regrid the ice presence from the input data mesh to the grid of choice</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Regrid to desired mesh...&quot;</span><span class="p">)</span>
     <span class="n">filenameOut</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outputDir</span> <span class="o">+</span> <span class="s2">&quot;/icePresent_regrid.nc&quot;</span>
+
     <span class="n">regrid_to_other_mesh</span><span class="p">(</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">meshFilenameSrc</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">filenameData</span><span class="p">,</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">meshFilenameDst</span><span class="p">,</span>
-        <span class="n">filenameOut</span><span class="p">)</span>
+        <span class="n">meshFilenameSrc</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">meshFilenameSrc</span><span class="p">,</span>
+        <span class="n">filenameData</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">filenameData</span><span class="p">,</span>
+        <span class="n">meshFilenameDst</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">meshFilenameDst</span><span class="p">,</span>
+        <span class="n">filenameOut</span><span class="o">=</span><span class="n">filenameOut</span><span class="p">,</span>
+        <span class="n">generateWeights</span><span class="o">=</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">weightsFilename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="n">weightsFilename</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">weightsFilename</span><span class="p">)</span>
 
     <span class="c1"># 2) create icePresence variable</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;fix_regrid_output...&quot;</span><span class="p">)</span>
