@@ -9,7 +9,8 @@ from .mesh import make_mpas_scripfile_on_cells
 
 
 def regrid_to_other_mesh(meshFilenameSrc, filenameData,
-                         meshFilenameDst, filenameOut):
+                         meshFilenameDst, filenameOut,
+                         generateWeights=True, weightsFilename=None):
 
     # make scrip files
     print("Make scrip files...")
@@ -22,11 +23,16 @@ def regrid_to_other_mesh(meshFilenameSrc, filenameData,
     make_mpas_scripfile_on_cells(meshFilenameSrc, SCRIPFilenameSrc, titleSrc)
     make_mpas_scripfile_on_cells(meshFilenameDst, SCRIPFilenameDst, titleDst)
 
-    # generate weights file
-    print("Generate weights...")
-    weightsFilename = os.getcwd() + "/weights_tmp.nc"
-    _generate_weights_file(SCRIPFilenameSrc, SCRIPFilenameDst,
-                           weightsFilename, reuseWeights=False)
+    if weightsFilename is None:
+        weightsFilename = os.getcwd() + "/weights_tmp.nc"
+
+    if generateWeights:
+        # generate weights file
+        print("Generate weights...")
+        _generate_weights_file(SCRIPFilenameSrc, SCRIPFilenameDst,
+                               weightsFilename, reuseWeights=False)
+    else:
+        assert os.path.exists(weightsFilename)
 
     # load output mesh
     print("Load output mesh...")
