@@ -69,6 +69,8 @@
 <li class="toctree-l1"><a class="reference internal" href="mask.html">Mask</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh.html">Mesh</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Graph partitioning</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#running-from-compass">Running from compass</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#conda-environment">Conda environment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graph-partition-tools">Graph partition tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#graph-partition-function">Graph partition function</a></li>
 </ul>
@@ -122,8 +124,51 @@
 <p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.seaice.partition</span></code> module contains a function for
 creating graph partition files for MPAS-Seaice that are better balanced than
 those created from Metis tools directly.</p>
+<div class="section" id="running-from-compass">
+<span id="id1"></span><h2>Running from compass<a class="headerlink" href="#running-from-compass" title="Permalink to this heading">¶</a></h2>
+<p>One way to run the tools is from compass using the
+<a class="reference external" href="https://mpas-dev.github.io/compass/latest/users_guide/ocean/test_groups/global_ocean.html#files-for-e3sm-for-an-existing-mesh">files_for_e3sm</a>
+test case.</p>
+<p>This has the advantage that it can run with a version of ESMF that has been
+compiled with system compilers for compass.  Compass also automatically
+downloads and links the files needed for determining the regions of sea-ice
+coverage.  However, if you are unfamiliar with compass, there may be a learning
+curve involved in setting up and running the test case.</p>
+</div>
+<div class="section" id="conda-environment">
+<h2>Conda environment<a class="headerlink" href="#conda-environment" title="Permalink to this heading">¶</a></h2>
+<p>The other preferred way to use the sea ice partitioning tool is through the
+mpas_tools conda package.  To install it, first install
+<a class="reference external" href="https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh">Mambaforge</a>
+(if you don’t already have Miniconda3):</p>
+<p>To activate it, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>~/mambaforge/etc/profile.d/conda.sh
+<span class="nb">source</span><span class="w"> </span>~/mambaforge/etc/profile.d/mamba.sh
+</pre></div>
+</div>
+<p>To create a new conda environment for <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code>, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mamba<span class="w"> </span>activate
+mamba<span class="w"> </span>create<span class="w"> </span>-y<span class="w"> </span>-n<span class="w"> </span>mpas_tools<span class="w"> </span><span class="nv">python</span><span class="o">=</span><span class="m">3</span>.11<span class="w"> </span>mpas_tools<span class="w"> </span><span class="s2">&quot;esmf=*=nompi*&quot;</span>
+</pre></div>
+</div>
+<p>This will create a new conda environment called <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> that contains
+the <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> package and also the version of ESMF without MPI support.
+This is necessary because the version with MPI support (the default) doesn’t
+typically work on HPC.</p>
+<p>Each time you want to run the sea-ice partitioning tools, run:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">source</span><span class="w"> </span>~/mambaforge/etc/profile.d/conda.sh
+<span class="nb">source</span><span class="w"> </span>~/mambaforge/etc/profile.d/mamba.sh
+mamba<span class="w"> </span>activate<span class="w"> </span>mpas_tools
+</pre></div>
+</div>
+<p>All the tools (including <code class="docutils literal notranslate"><span class="pre">fix_regrid_output.exe</span></code> built from the Fortran code)
+are part of the <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> conda package.</p>
+<p>You will also need an MPAS mesh file to partition.  You do not need to pass
+a location for the MPAS cell culler (<code class="docutils literal notranslate"><span class="pre">-c</span></code>) or Metis (<code class="docutils literal notranslate"><span class="pre">-g</span></code>) because theses
+will be found automatically in the conda package</p>
+</div>
 <div class="section" id="graph-partition-tools">
-<span id="id1"></span><h2>Graph partition tools<a class="headerlink" href="#graph-partition-tools" title="Permalink to this heading">¶</a></h2>
+<h2>Graph partition tools<a class="headerlink" href="#graph-partition-tools" title="Permalink to this heading">¶</a></h2>
 <p>The tools <code class="docutils literal notranslate"><span class="pre">prepare_seaice_partitions</span></code> and <code class="docutils literal notranslate"><span class="pre">create_seaice_partitions</span></code> are
 used to create MPAS-Seaice graph partitions that are better balanced so that
 each processor “owns” cells from both polar and equatorial regions.</p>

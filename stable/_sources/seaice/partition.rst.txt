@@ -9,6 +9,61 @@ those created from Metis tools directly.
 
 .. _seaice_partitions_:
 
+Running from compass
+--------------------
+
+One way to run the tools is from compass using the
+`files_for_e3sm <https://mpas-dev.github.io/compass/latest/users_guide/ocean/test_groups/global_ocean.html#files-for-e3sm-for-an-existing-mesh>`_
+test case.
+
+This has the advantage that it can run with a version of ESMF that has been
+compiled with system compilers for compass.  Compass also automatically
+downloads and links the files needed for determining the regions of sea-ice
+coverage.  However, if you are unfamiliar with compass, there may be a learning
+curve involved in setting up and running the test case.
+
+Conda environment
+-----------------
+
+The other preferred way to use the sea ice partitioning tool is through the
+mpas_tools conda package.  To install it, first install
+`Mambaforge <https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh>`_
+(if you don't already have Miniconda3):
+
+To activate it, run:
+
+.. code-block:: bash
+
+    source ~/mambaforge/etc/profile.d/conda.sh
+    source ~/mambaforge/etc/profile.d/mamba.sh
+
+To create a new conda environment for ``mpas_tools``, run:
+
+.. code-block:: bash
+
+    mamba activate
+    mamba create -y -n mpas_tools python=3.11 mpas_tools "esmf=*=nompi*"
+
+This will create a new conda environment called ``mpas_tools`` that contains
+the ``mpas_tools`` package and also the version of ESMF without MPI support.
+This is necessary because the version with MPI support (the default) doesn't
+typically work on HPC.
+
+Each time you want to run the sea-ice partitioning tools, run:
+
+.. code-block:: bash
+
+    source ~/mambaforge/etc/profile.d/conda.sh
+    source ~/mambaforge/etc/profile.d/mamba.sh
+    mamba activate mpas_tools
+
+All the tools (including ``fix_regrid_output.exe`` built from the Fortran code)
+are part of the ``mpas_tools`` conda package.
+
+You will also need an MPAS mesh file to partition.  You do not need to pass
+a location for the MPAS cell culler (``-c``) or Metis (``-g``) because theses
+will be found automatically in the conda package
+
 
 Graph partition tools
 ---------------------
@@ -42,8 +97,8 @@ typically use a
 `60-km mesh file <https://web.lcrc.anl.gov/public/e3sm/mpas_standalonedata/mpas-seaice/partition/seaice_QU60km_polar.nc>`_
 and the corresponding
 `presence file <https://web.lcrc.anl.gov/public/e3sm/mpas_standalonedata/mpas-seaice/partition/icePresent_QU60km_polar.nc>`_.
-The presence file will be regridded to the given output MPAS-Seaice mesh. Here the ice 
-presence was determined as any cell in the mesh to have had ice present at any time 
+The presence file will be regridded to the given output MPAS-Seaice mesh. Here the ice
+presence was determined as any cell in the mesh to have had ice present at any time
 during a 50 year MPAS-Seaice standalone simulation with the above 60-km mesh file.
 The output directory is often the current directory.
 
