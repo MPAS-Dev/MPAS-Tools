@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.transects &mdash; mpas_tools 0.19.0 documentation</title>
+      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+        <script src="../../_static/jquery.js"></script>
+        <script src="../../_static/underscore.js"></script>
+        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../_static/doctools.js"></script>
+        <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+              <div class="version">
+                0.19.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.transects</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.transects</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">Point</span>
+
+
+<div class="viewcode-block" id="subdivide_great_circle"><a class="viewcode-back" href="../../generated/mpas_tools.transects.subdivide_great_circle.html#mpas_tools.transects.subdivide_great_circle">[docs]</a><span class="k">def</span> <span class="nf">subdivide_great_circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">maxRes</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Subdivide each segment of the transect so the horizontal resolution</span>
+<span class="sd">    approximately matches the requested resolution</span>
+
+<span class="sd">    Uses a formula for interpolating unit vectors on the sphere from</span>
+<span class="sd">    https://en.wikipedia.org/wiki/Slerp</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy.ndarray</span>
+<span class="sd">        The Cartesian x coordinate of a transect, where the number of segments</span>
+<span class="sd">        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length.</span>
+<span class="sd">    y : numpy.ndarray</span>
+<span class="sd">        The Cartesian y coordinate of the transect</span>
+<span class="sd">    z : numpy.ndarray</span>
+<span class="sd">        The Cartesian z coordinate of the transect</span>
+
+<span class="sd">    maxRes : float</span>
+<span class="sd">        The maximum allowed spacing in m after subdivision</span>
+
+<span class="sd">    earthRadius : float</span>
+<span class="sd">        The radius of the Earth in m</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    xOut : numpy.ndarray</span>
+<span class="sd">        The Cartesian x values of the transect subdivided into segments with</span>
+<span class="sd">        segment length at most ``maxRes``.  All the points in ``x``, ``y`` and</span>
+<span class="sd">        ``z`` are guaranteed to be included.</span>
+
+<span class="sd">    yOut : numpy.ndarray</span>
+<span class="sd">        The Cartesian y values of the subdivided transect</span>
+
+<span class="sd">    zOut : numpy.ndarray</span>
+<span class="sd">        The Cartesian y values of the subdivided transect</span>
+
+<span class="sd">    dIn : numpy.ndarray</span>
+<span class="sd">        The distance along the transect before subdivision</span>
+
+<span class="sd">    dOut : numpy.ndarray</span>
+<span class="sd">        The distance along the transect after subdivision</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">angularDistance</span> <span class="o">=</span> <span class="n">angular_distance</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">angularDistance</span> <span class="o">*</span> <span class="n">earthRadius</span>
+
+    <span class="n">nSegments</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">dx</span> <span class="o">/</span> <span class="n">maxRes</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">dIn</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">dIn</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
+
+    <span class="n">frac</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">outIndices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dIn</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">nSegments</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">frac</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="o">/</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">outIndices</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">index</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">))</span>
+        <span class="n">delta</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">angularDistance</span><span class="p">[</span><span class="n">index</span><span class="p">]</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="n">frac</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="n">outIndices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dIn</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">delta</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">angularDistance</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">frac</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">frac</span><span class="p">)</span>
+    <span class="n">delta</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">delta</span><span class="p">)</span>
+    <span class="n">outIndices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">outIndices</span><span class="p">)</span>
+
+    <span class="n">a</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">delta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">delta</span> <span class="o">&gt;</span> <span class="mf">0.</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">delta</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+    <span class="n">a</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">denom</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">((</span><span class="mf">1.</span><span class="o">-</span><span class="n">frac</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span><span class="o">*</span><span class="n">delta</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+    <span class="n">b</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">denom</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">frac</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span><span class="o">*</span><span class="n">delta</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+
+    <span class="n">xOut</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">outIndices</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">outIndices</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">yOut</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="n">outIndices</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="n">outIndices</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">zOut</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">z</span><span class="p">[</span><span class="n">outIndices</span><span class="p">]</span> <span class="o">+</span> <span class="n">b</span><span class="o">*</span><span class="n">z</span><span class="p">[</span><span class="n">outIndices</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">dOut</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">frac</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span><span class="o">*</span><span class="n">dIn</span><span class="p">[</span><span class="n">outIndices</span><span class="p">]</span> <span class="o">+</span> <span class="n">frac</span><span class="o">*</span><span class="n">dIn</span><span class="p">[</span><span class="n">outIndices</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">xOut</span><span class="p">,</span> <span class="n">yOut</span><span class="p">,</span> <span class="n">zOut</span><span class="p">,</span> <span class="n">dIn</span><span class="p">,</span> <span class="n">dOut</span></div>
+
+
+<div class="viewcode-block" id="cartesian_to_great_circle_distance"><a class="viewcode-back" href="../../generated/mpas_tools.transects.cartesian_to_great_circle_distance.html#mpas_tools.transects.cartesian_to_great_circle_distance">[docs]</a><span class="k">def</span> <span class="nf">cartesian_to_great_circle_distance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cartesian transect points to great-circle distance</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy.ndarray</span>
+<span class="sd">        The Cartesian x coordinate of a transect</span>
+<span class="sd">    y : numpy.ndarray</span>
+<span class="sd">        The Cartesian y coordinate of the transect</span>
+<span class="sd">    z : numpy.ndarray</span>
+<span class="sd">        The Cartesian z coordinate of the transect</span>
+
+<span class="sd">    earth_radius : float</span>
+<span class="sd">        The radius of the earth</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    distance : numpy.ndarray</span>
+<span class="sd">        The distance along the transect</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">segIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">transectv0</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">segIndex</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">segIndex</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="n">segIndex</span><span class="p">])</span>
+        <span class="n">transectv1</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">segIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">segIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="n">segIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+
+        <span class="n">distance</span><span class="p">[</span><span class="n">segIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">distance</span><span class="p">[</span><span class="n">segIndex</span><span class="p">]</span> <span class="o">+</span> \
+            <span class="n">earth_radius</span><span class="o">*</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="n">transectv0</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="n">transectv1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">distance</span></div>
+
+
+<div class="viewcode-block" id="subdivide_planar"><a class="viewcode-back" href="../../generated/mpas_tools.transects.subdivide_planar.html#mpas_tools.transects.subdivide_planar">[docs]</a><span class="k">def</span> <span class="nf">subdivide_planar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">maxRes</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Subdivide each segment of the transect so the horizontal resolution</span>
+<span class="sd">    approximately matches the requested resolution</span>
+
+<span class="sd">    Uses a formula for interpolating unit vectors on the sphere from</span>
+<span class="sd">    https://en.wikipedia.org/wiki/Slerp</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy.ndarray</span>
+<span class="sd">        The planar x coordinate of a transect, where the number of segments</span>
+<span class="sd">        is ``len(x) - 1``</span>
+
+<span class="sd">    y : numpy.ndarray</span>
+<span class="sd">        The planar y coordinates of the transect, the same length as ``x``</span>
+
+<span class="sd">    maxRes : float</span>
+<span class="sd">        The maximum allowed spacing in m after subdivision</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    xOut : numpy.ndarray</span>
+<span class="sd">        The x coordinate of the transect, subdivided into segments with length</span>
+<span class="sd">        at most ``maxRes``.  All the points in ``x`` are guaranteed to be</span>
+<span class="sd">        included.</span>
+
+<span class="sd">    yOut : numpy.ndarray</span>
+<span class="sd">        The y coordinate of the transect.  All the points in ``y`` are</span>
+<span class="sd">        guaranteed to be included.</span>
+
+<span class="sd">    dIn : numpy.ndarray</span>
+<span class="sd">        The distance along the transect before subdivision</span>
+
+<span class="sd">    dOut : numpy.ndarray</span>
+<span class="sd">        The distance along the transect after subdivision</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dx</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">index</span><span class="p">])</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">segment</span> <span class="o">=</span> <span class="n">LineString</span><span class="p">([</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">])</span>
+        <span class="n">dx</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">segment</span><span class="o">.</span><span class="n">length</span>
+
+    <span class="n">nSegments</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">dx</span> <span class="o">/</span> <span class="n">maxRes</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">dIn</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="n">dIn</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dx</span><span class="p">)</span>
+
+    <span class="n">frac</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">outIndices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dIn</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">nSegments</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+        <span class="n">frac</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="o">/</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">outIndices</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">index</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="nb">int</span><span class="p">))</span>
+    <span class="n">frac</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="n">outIndices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dIn</span><span class="p">)</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">frac</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">frac</span><span class="p">)</span>
+    <span class="n">outIndices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">outIndices</span><span class="p">)</span>
+
+    <span class="n">xOut</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">frac</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">outIndices</span><span class="p">]</span> <span class="o">+</span> <span class="n">frac</span><span class="o">*</span><span class="n">x</span><span class="p">[</span><span class="n">outIndices</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">yOut</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">frac</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="n">outIndices</span><span class="p">]</span> <span class="o">+</span> <span class="n">frac</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="n">outIndices</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">dOut</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">frac</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span><span class="o">*</span><span class="n">dIn</span><span class="p">[</span><span class="n">outIndices</span><span class="p">]</span> <span class="o">+</span> <span class="n">frac</span><span class="o">*</span><span class="n">dIn</span><span class="p">[</span><span class="n">outIndices</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">xOut</span><span class="p">,</span> <span class="n">yOut</span><span class="p">,</span> <span class="n">dIn</span><span class="p">,</span> <span class="n">dOut</span></div>
+
+
+<div class="viewcode-block" id="lon_lat_to_cartesian"><a class="viewcode-back" href="../../generated/mpas_tools.transects.lon_lat_to_cartesian.html#mpas_tools.transects.lon_lat_to_cartesian">[docs]</a><span class="k">def</span> <span class="nf">lon_lat_to_cartesian</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span> <span class="n">degrees</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert from lon/lat to Cartesian x, y, z&quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">degrees</span><span class="p">:</span>
+        <span class="n">lon</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">earth_radius</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">earth_radius</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">earth_radius</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span></div>
+
+
+<div class="viewcode-block" id="cartesian_to_lon_lat"><a class="viewcode-back" href="../../generated/mpas_tools.transects.cartesian_to_lon_lat.html#mpas_tools.transects.cartesian_to_lon_lat">[docs]</a><span class="k">def</span> <span class="nf">cartesian_to_lon_lat</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span> <span class="n">degrees</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert from  Cartesian x, y, z to lon/lat&quot;&quot;&quot;</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">z</span><span class="o">/</span><span class="n">earth_radius</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">degrees</span><span class="p">:</span>
+        <span class="n">lon</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+        <span class="n">lat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span></div>
+
+
+<div class="viewcode-block" id="angular_distance"><a class="viewcode-back" href="../../generated/mpas_tools.transects.angular_distance.html#mpas_tools.transects.angular_distance">[docs]</a><span class="k">def</span> <span class="nf">angular_distance</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">first</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute angular distance between points on the sphere, following:</span>
+<span class="sd">    https://en.wikipedia.org/wiki/Great-circle_distance</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : numpy.ndarray, optional</span>
+<span class="sd">        The Cartesian x coordinate of a transect, where the number of segments</span>
+<span class="sd">        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length and</span>
+<span class="sd">        all must be present if ``first`` and ``second`` are not provided.</span>
+
+<span class="sd">    y : numpy.ndarray, optional</span>
+<span class="sd">        The Cartesian y coordinate of the transect</span>
+
+<span class="sd">    z : numpy.ndarray, optional</span>
+<span class="sd">        The Cartesian z coordinate of the transect</span>
+
+<span class="sd">    first : mpas_tools.transect.Vector, optional</span>
+<span class="sd">        The start points of each segment of the transect, where the</span>
+<span class="sd">        ``x``, ``y``, and ``z`` attributes of each vector are numpy.ndarray</span>
+<span class="sd">        objects.</span>
+
+<span class="sd">    second : mpas_tools.transect.Vector, optional</span>
+<span class="sd">        The end points of each segment of the transect</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    angularDistance : numpy.ndarray</span>
+<span class="sd">        The angular distance (in radians) between segments of the transect.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">second</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">first</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">second</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+
+    <span class="n">angularDistance</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">_mag</span><span class="p">(</span><span class="n">_cross</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">)),</span>
+                                    <span class="n">_dot</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">angularDistance</span></div>
+
+
+<div class="viewcode-block" id="intersects"><a class="viewcode-back" href="../../generated/mpas_tools.transects.intersects.html#mpas_tools.transects.intersects">[docs]</a><span class="k">def</span> <span class="nf">intersects</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Based on https://stackoverflow.com/a/26669130/7728169</span>
+<span class="sd">    Determine if the great circle arc from ``a1`` to ``a2`` intersects that</span>
+<span class="sd">    from ``b1`` to ``b2``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a1 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the end point of a great circle arc.</span>
+<span class="sd">        The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
+<span class="sd">        ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
+<span class="sd">        intersections are found element-wise), or scalars for</span>
+<span class="sd">        at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.</span>
+
+<span class="sd">    a2 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the other end point of a great circle arc.</span>
+
+<span class="sd">    b1 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of an end point of a second great circle arc.</span>
+
+<span class="sd">    b2 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the other end point of the second great circle</span>
+<span class="sd">        arc.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    intersect : numpy.ndarray</span>
+<span class="sd">        A boolean array of the same size as ``a1`` and ``a2`` or ``b1`` and</span>
+<span class="sd">        ``b2``, whichever is greater, indicating if the particular pair of arcs</span>
+<span class="sd">        intersects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">_straddles</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">),</span>
+                             <span class="n">_straddles</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="intersection"><a class="viewcode-back" href="../../generated/mpas_tools.transects.intersection.html#mpas_tools.transects.intersection">[docs]</a><span class="k">def</span> <span class="nf">intersection</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Based on https://stackoverflow.com/a/26669130/7728169</span>
+<span class="sd">    Find the intersection point as a unit vector between great circle arc from</span>
+<span class="sd">    ``a1`` to ``a2`` and from ``b1`` to ``b2``.  The arcs should have already</span>
+<span class="sd">    have been found to intersect by calling ``intersects()``</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a1 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the end point of a great circle arc.</span>
+<span class="sd">        The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
+<span class="sd">        ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
+<span class="sd">        intersections are found element-wise), or scalars for</span>
+<span class="sd">        at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.</span>
+
+<span class="sd">    a2 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the other end point of a great circle arc.</span>
+
+<span class="sd">    b1 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of an end point of a second great circle arc.</span>
+
+<span class="sd">    b2 : mpas_tools.transects.Vector</span>
+<span class="sd">        Cartesian coordinates of the other end point of the second great circle</span>
+<span class="sd">        arc.</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    points : mpas_tools.transects.Vector</span>
+<span class="sd">        An array of Cartesian points *on the unit sphere* indicating where the</span>
+<span class="sd">        arcs intersect</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">_cross</span><span class="p">(</span><span class="n">_cross</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">),</span> <span class="n">_cross</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">))</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">_det</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">))</span><span class="o">/</span><span class="n">_mag</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>  <span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">points</span></div>
+
+
+<div class="viewcode-block" id="Vector"><a class="viewcode-back" href="../../generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector">[docs]</a><span class="k">class</span> <span class="nc">Vector</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for representing Cartesian vectors with ``x``, ``y`` and ``z``</span>
+<span class="sd">    components that are either ``float`` or ``numpy.array`` objects of identical</span>
+<span class="sd">    size.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Vector.__init__"><a class="viewcode-back" href="../../generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span></div></div>
+
+
+<span class="k">def</span> <span class="nf">_straddles</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Based on https://stackoverflow.com/a/26669130/7728169</span>
+<span class="sd">    Determines if the great circle segment determined by (a1, a2)</span>
+<span class="sd">    straddles the great circle determined by (b1, b2)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    a1, a2, b1, b2 : Vector</span>
+<span class="sd">        Cartesian coordinates of the end points of two great circle arcs.</span>
+<span class="sd">        The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
+<span class="sd">        ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
+<span class="sd">        intersections are found element-wise), or scalars for</span>
+<span class="sd">        at least one of either the ``a``s or the ``b``s.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    straddle : numpy.ndarray</span>
+<span class="sd">        A boolean array of the same size as the ``a``s or the ``b``s, whichever</span>
+<span class="sd">        is greater, indicating if the great circle segment determined by</span>
+<span class="sd">        (a1, a2) straddles the great circle determined by (b1, b2)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_det</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="o">*</span> <span class="n">_det</span><span class="p">(</span><span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span>
+
+
+<span class="k">def</span> <span class="nf">_dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The dot product between two ``Vector`` objects ``v1`` and ``v2``&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">v1</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">v1</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">v1</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">z</span>
+
+
+<span class="k">def</span> <span class="nf">_cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The cross product between two ``Vector`` objects ``v1`` and ``v2``&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">v1</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">v1</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                  <span class="n">v1</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">v1</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                  <span class="n">v1</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">v1</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_det</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The determinant of the matrix defined by the three ``Vector`` objects&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">_dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">_cross</span><span class="p">(</span><span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">_mag</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The magnitude of the ``Vector`` object ``v``&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">_dot</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
