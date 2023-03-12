@@ -1,15 +1,86 @@
-These scripts generate partition files that have better load balancing that normal ones generated with metis. prepare_seaice_partitions.py prepares files needed to generate the partition files. create_seaice_partitions.py creates the partition file. Run prepare_seaice_partitions.py first then create_seaice_partitions.py.
+The command-line tools described below generate partition files that have
+better load balancing than normal ones generated with metis.
 
+prepare_seaice_partitions: prepares files needed to generate the partition
+                           files.
 
-prepare_seaice_partitions.py
-----------------------------
+create_seaice_partitions: creates the partition file.
 
-usage: prepare_seaice_partitions.py [-h] -i MESHFILENAMESRC -p FILENAMEDATA
-                                    -m MESHFILENAMEDST -o OUTPUTDIR
+Run prepare_seaice_partitions first then create_seaice_partitions.
 
-Perform prepatory work for making seaice partitions.
+Running from compass
+--------------------
 
-optional arguments:
+One way to run the tools is from compass using the "files_for_e3sm" test case:
+
+https://mpas-dev.github.io/compass/latest/users_guide/ocean/test_groups/global_ocean.html#files-for-e3sm-for-an-existing-mesh
+
+This has the advantage that it can run with a version of ESMF that has been
+compiled with system compilers for compass.  Compass also automatically
+downloads and links the files needed for determining the regions of sea-ice
+coverage.  However, if you are unfamiliar with compass, there may be a learning
+curve involved in setting up and running the test case.
+
+Conda environment
+-----------------
+
+The other preferred way to use the sea ice partitioning tool is through the
+mpas_tools conda package.  To install it, first install Mambaforge (if you
+don't already have Miniconda3):
+https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh
+To activate it, run:
+
+source ~/mambaforge/etc/profile.d/conda.sh
+source ~/mambaforge/etc/profile.d/mamba.sh
+
+To create a new conda environment for mpas_tools, run:
+
+mamba activate
+mamba create -y -n mpas_tools python=3.11 mpas_tools "esmf=*=nompi*"
+
+This will create a new conda environment called "mpas_tools" that contains
+the "mpas_tools" package and also the version of ESMF without MPI support.
+This is necessary because the version with MPI support (the default) doesn't
+typically work on HPC.
+
+Each time you want to run the sea-ice partitioning tools, run:
+
+source ~/mambaforge/etc/profile.d/conda.sh
+source ~/mambaforge/etc/profile.d/mamba.sh
+mamba activate mpas_tools
+
+All the tools (including "fix_regrid_output.exe" built from the Fortran code
+here) are part of the "mpas_tools" conda package.
+
+You will also need an MPAS mesh file to partition.  You do not need to pass
+a location for the MPAS cell culler (-c) or Metis (-g) because theses will be
+found automatically in the conda package
+
+Getting the required input files
+--------------------------------
+
+You need to download these 2 files that are inputs to the
+prepare_seaice_partitions tool:
+https://web.lcrc.anl.gov/public/e3sm/mpas_standalonedata/mpas-seaice/partition/seaice_QU60km_polar.nc
+https://web.lcrc.anl.gov/public/e3sm/mpas_standalonedata/mpas-seaice/partition/icePresent_QU60km_polar.nc
+
+These are passed to prepare_seaice_partitions with the -i and -p flags,
+respectively.
+
+Running the tools
+-----------------
+For a more complete set of documentation, see:
+http://mpas-dev.github.io/MPAS-Tools/stable/seaice/partition.html
+
+prepare_seaice_partitions
+-------------------------
+
+usage: prepare_seaice_partitions [-h] -i MESHFILENAMESRC -p FILENAMEDATA -m
+                                 MESHFILENAMEDST -o OUTPUTDIR
+
+Perform preparatory work for making seaice partitions.
+
+options:
   -h, --help            show this help message and exit
   -i MESHFILENAMESRC, --inputmesh MESHFILENAMESRC
                         MPAS mesh file for source regridding mesh.
@@ -18,24 +89,25 @@ optional arguments:
   -m MESHFILENAMEDST, --outputmesh MESHFILENAMEDST
                         MPAS mesh file for destination regridding mesh.
   -o OUTPUTDIR, --outputDir OUTPUTDIR
-                        Output directory for temporary files and partition files.
+                        Output direct
 
 
-create_seaice_partitions.py
----------------------------
+create_seaice_partitions
+------------------------
 
-usage: create_seaice_partitions.py [-h] -m MESHFILENAME -o OUTPUTDIR
-                                   [-c MPASCULLERLOCATION] [-p OUTPUTPREFIX]
-                                   [-x] [-g METIS] [-n NPROCS] [-f NPROCSFILE]
+usage: create_seaice_partitions [-h] -m MESHFILENAME -o OUTPUTDIR
+                                [-c MPASCULLERLOCATION] [-p OUTPUTPREFIX] [-x]
+                                [-g METIS] [-n NPROCS] [-f NPROCSFILE]
 
 Create sea-ice partitions.
 
-optional arguments:
+options:
   -h, --help            show this help message and exit
   -m MESHFILENAME, --outputmesh MESHFILENAME
                         MPAS mesh file for destination regridding mesh.
   -o OUTPUTDIR, --outputDir OUTPUTDIR
-                        Output directory for temporary files and partition files.
+                        Output directory for temporary files and partition
+                        files.
   -c MPASCULLERLOCATION, --cullerDir MPASCULLERLOCATION
                         Location of MPAS MpasCellCuller.x executable.
   -p OUTPUTPREFIX, --prefix OUTPUTPREFIX
