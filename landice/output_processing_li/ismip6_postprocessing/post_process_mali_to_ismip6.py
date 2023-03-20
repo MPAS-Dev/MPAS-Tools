@@ -12,6 +12,8 @@ import argparse
 from subprocess import check_call
 import os
 import shutil
+import numpy as np
+from netCDF4 import Dataset
 from create_mapfile_mali_to_ismip6 import build_mapping_file
 from process_state_variables import generate_output_2d_state_vars, \
      process_state_vars, generate_output_1d_vars
@@ -55,6 +57,55 @@ def main():
                         help="resolution of the ismip6 grid, (e.g. 8 for 8km res)")
     args = parser.parse_args()
 
+    print("\n---Checking the coordinate variables of the ismip6 grid file---")
+    data_ismip6 = Dataset(args.ismip6_grid_file, "r")
+    if 'x' and 'y' in data_ismip6.variables:
+        ismip6_grid_file = args.ismip6_grid_file
+        print("'x' and 'y' coordinates exist in the file. Moving on...")
+    else:
+        print("'x' and 'y' coordinates don't exist in the file.")
+        print("Creating a copy file with them ...")
+        copy_ismip6_file = f"temp_{os.path.basename(args.ismip6_grid_file)}"
+        shutil.copy2(args.ismip6_grid_file, copy_ismip6_file)
+        copy_ismip6_file = Dataset(copy_ismip6_file, "r+", format="netCDF4")
+        nx = data_ismip6.dimensions["x"].size
+        ny = data_ismip6.dimensions["y"].size
+        dx = int(args.res_ismip6_grid)*1000
+        dy = dx
+        if (nx % 2) == 0:
+            var_x = dx*((np.arange(-nx/2, nx/2)) + 0.5)
+            var_y = dy*((np.arange(-ny/2, ny/2)) + 0.5)
+        else:
+            var_x = dx*((np.arange(-(nx-1)/2, (nx+1)/2)))
+            var_y = dy*((np.arange(-(ny-1)/2, (ny+1)/2)))
+
+        x = copy_ismip6_file.createVariable("x", "d", ("x"))
+        y = copy_ismip6_file.createVariable("y", "d", ("y"))
+
+        for i in range(nx):
+            x[i] = var_x[i]
+        for i in range(ny):
+            y[i] = var_y[i]
+
+        # check the lower left and upper right corners of the grid
+        print("Checking grid corners...")
+        if not x[0] == -3040000 or not y[0] == -3040000:
+            raise ValueError(f"The lower left corner values must be at "
+                             f"-3040000m and -3040000m. But the values are at "
+                             f"{int(x[0])}m and {int(y[0])}m.")
+        elif not x[-1] == 3040000 or not y[-1] == 3040000:
+            raise ValueError(f"The upper right corner values must be at "
+                             f"3040000m and 3040000m. But the values are at "
+                             f"{x[-1]}m and {y[-1]}m.")
+        x.units = 'm'
+        x.standard_name = 'x'
+        y.units = 'm'
+        y.standard_name = 'y'
+
+        copy_ismip6_file.close()
+        ismip6_grid_file = f"temp_{os.path.basename(args.ismip6_grid_file)}"
+        temp_ismip6_grid_file = True
+
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
     if not args.input_file_state is None or not args.input_file_flux is None:
@@ -77,7 +128,7 @@ def main():
                   f"Mapping method used: {method_remap}")
 
             build_mapping_file(args.input_file_grid, mapping_file,
-                               args.res_ismip6_grid, args.ismip6_grid_file,
+                               args.res_ismip6_grid, ismip6_grid_file,
                                method_remap)
 
     print("---Processing remapping file complete---\n")
@@ -116,7 +167,7 @@ def main():
         # write out 2D state output files in the ismip6-required format
         print("Writing processed and remapped state fields to ISMIP6 file format.")
         generate_output_2d_state_vars(processed_and_remapped_file_state,
-                                      args.res_ismip6_grid, args.ismip6_grid_file,
+                                      args.res_ismip6_grid, ismip6_grid_file,
                                       args.exp, output_path)
 
         os.remove(tmp_file)
@@ -158,7 +209,7 @@ def main():
         # write out the output files in the ismip6-required format
         generate_output_2d_flux_vars(processed_file_flux,
                                      args.res_ismip6_grid,
-                                     args.ismip6_grid_file,
+                                     ismip6_grid_file,
                                      args.exp, output_path)
 
         cleanUp = True
@@ -166,6 +217,8 @@ def main():
             os.remove(tmp_file_translate)
             os.remove(tmp_file1)
             os.remove(processed_file_flux)
+            if temp_ismip6_grid_file:
+                os.remove(ismip6_grid_file)
         print("---Processing flux file complete---\n")
     print("---All processing complete---")
 

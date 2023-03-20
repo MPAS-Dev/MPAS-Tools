@@ -378,22 +378,9 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     output_path: output path to which the output files will be saved
     """
 
-
     data_ismip6 = Dataset(ismip6_grid_file, 'r')
-    if 'x' and 'y' in data_ismip6.variables:
-        var_x = data_ismip6.variables['x'][:]
-        var_y = data_ismip6.variables['y'][:]
-    else:
-        nx = data_ismip6.dimensions['x'].size
-        ny = data_ismip6.dimensions['y'].size
-        dx = int(res_ismip6_grid)*1000
-        dy = dx
-        if (nx % 2) == 0:
-           var_x = dx*((np.arange(-nx/2, nx/2)) + 0.5)
-           var_y = dy*((np.arange(-ny/2, ny/2)) + 0.5)
-        else:
-           var_x = dx*((np.arange(-(nx-1)/2, (nx+1)/2)))
-           var_y = dy*((np.arange(-(ny-1)/2, (ny+1)/2)))
+    var_x = data_ismip6.variables['x'][:]
+    var_y = data_ismip6.variables['y'][:]
 
     data = Dataset(remapped_mali_flux_file, 'r')
     data.set_auto_mask(False)
