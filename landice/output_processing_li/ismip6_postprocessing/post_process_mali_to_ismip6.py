@@ -61,10 +61,10 @@ def main():
     data_ismip6 = Dataset(args.ismip6_grid_file, "r")
     if 'x' and 'y' in data_ismip6.variables:
         ismip6_grid_file = args.ismip6_grid_file
-        print("'x' and 'y' coordinates exist in the file. Moving on...")
+        print("'x' and 'y' coordinates exist in the file.")
     else:
         print("'x' and 'y' coordinates don't exist in the file.")
-        print("Creating a copy file with them ...")
+        print("Creating them and a copy file of the ismip6 grid file...")
         copy_ismip6_file = f"temp_{os.path.basename(args.ismip6_grid_file)}"
         shutil.copy2(args.ismip6_grid_file, copy_ismip6_file)
         copy_ismip6_file = Dataset(copy_ismip6_file, "r+", format="netCDF4")
@@ -87,16 +87,6 @@ def main():
         for i in range(ny):
             y[i] = var_y[i]
 
-        # check the lower left and upper right corners of the grid
-        print("Checking grid corners...")
-        if not x[0] == -3040000 or not y[0] == -3040000:
-            raise ValueError(f"The lower left corner values must be at "
-                             f"-3040000m and -3040000m. But the values are at "
-                             f"{int(x[0])}m and {int(y[0])}m.")
-        elif not x[-1] == 3040000 or not y[-1] == 3040000:
-            raise ValueError(f"The upper right corner values must be at "
-                             f"3040000m and 3040000m. But the values are at "
-                             f"{x[-1]}m and {y[-1]}m.")
         x.units = 'm'
         x.standard_name = 'x'
         y.units = 'm'
@@ -105,6 +95,28 @@ def main():
         copy_ismip6_file.close()
         ismip6_grid_file = f"temp_{os.path.basename(args.ismip6_grid_file)}"
         temp_ismip6_grid_file = True
+
+    # check the lower left and upper right corners of the ismip6 grid
+    print("Checking the grid corners...")
+    data_ismip6 = Dataset(ismip6_grid_file, "r")
+    x = data_ismip6.variables["x"]
+    y = data_ismip6.variables["y"]
+    if not x[0] == -3040000 or not y[0] == -3040000:
+        raise ValueError(f"The lower left corner values must be at "
+                         f"-3040000m and -3040000m. But the values are at "
+                         f"{x[0]}m and {y[0]}m. Check the value you "
+                         f"provided for '--res' matches with the resolution of "
+                         f"the MALI output files. ")
+    elif not x[-1] == 3040000 or not y[-1] == 3040000:
+        raise ValueError(f"The upper right corner values must be at "
+                         f"3040000m and 3040000m. But the values are at "
+                         f"{x[-1]}m and {y[-1]}m. Check the value you "
+                         f"provided for '--res' matches with the resolution of "
+                         f"the MALI output files. ")
+    else:
+        print(f"Grid corners are as ismip6-required: "
+              f"lower right corner values at {x[0]}m and {y[0]}m, and "
+              f"upper right corner values at {x[-1]}m and {y[-1]}m")
 
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process

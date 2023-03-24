@@ -157,6 +157,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     licalvf and apply bounds checking on BMB, where some crazy values occasionally occur.
     """
 
+    debug_face_melt_flux = False
     data = xr.open_dataset(file_input, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
     if 'units' in data.daysSinceStart.attrs:
         del data.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
@@ -239,7 +240,6 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
         faceMeltingThickness = data['faceMeltingThickness'][:, :].values
         faceMeltSpeedVertAvg = faceMeltingThickness.copy() * 0.0
         # Fields for validation and debugging
-        debug_face_melt_flux = False
         if debug_face_melt_flux:
             deltat_array = np.tile(deltat,  (np.shape(faceMeltSpeed)[1],1)).transpose()
             # Cleaned field for debugging and validation
@@ -333,7 +333,7 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
                 thresholdBoundarySummedThickness[ownerIdx] += calvingThicknessFromThreshold[t,i]
                 thresholdBoundaryContributors[ownerIdx] += 1
             #print(thresholdBoundaryAssignedVolume.sum(), (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum())
-            diff = np.absolute(thresholdBoundaryAssignedVolume.sum() - (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum()) < 1.0
+            diff = np.absolute(thresholdBoundaryAssignedVolume.sum() - (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum())
             if diff < 1.0:
                 warnings.warn(f"Difference between assigned `thresholdBoundaryAssignedVolume` value and "
                               f"`calvingThicknessFromThreshold` threshold value is less than 1: {diff} < 1.0")
@@ -352,7 +352,6 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     data['thresholdFlux'] = thresholdFlux  # this is just written for diagnostic purposes.  It's not actually sent to ISMIP6.
     data['faceMeltAndCalvingFlux'] = faceMeltFluxArray + calvingFluxArray  # ismip6 only wants the combined fields for face-melt
     print("===done calving flux processing!===")
-    debug_face_melt_flux = False
     if debug_face_melt_flux:
         print('debug_face_melt_flux is True, so I assume you want a breakpoint' +
               ' to check fluxes. Just type continue when you want to proceed.')
