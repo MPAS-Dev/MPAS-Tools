@@ -203,6 +203,9 @@ for ii, run in enumerate(runs):
         else:
             var_to_plot = f.variables[variable][:]
 
+        if len(np.shape(var_to_plot)) == 1:
+           var_to_plot = var_to_plot.reshape((1, np.shape(var_to_plot)[0]))
+
         if 'Speed' in variable:
             units = 'm yr^{-1}'
             var_to_plot *= sec_per_year
