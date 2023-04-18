@@ -40,6 +40,10 @@ parser.add_argument("-l", dest="log_plot", default=None,
 parser.add_argument("-c", dest="colormaps", default=None,
                     help="colormaps to use for plotting (list separated by commas \
                           , no spaces). This overrides default colormaps.")
+parser.add_argument("--vmin", dest="vmin", default=None,
+                    help="minimum value(s) for colorbar(s)")
+parser.add_argument("--vmax", dest="vmax", default=None,
+                    help="maximum value(s) for colorbar(s)")
 parser.add_argument("-m", dest="mesh", default=None, metavar="FILENAME",
                     help="Optional input file(s) containing mesh variables. This \
                           is useful when plotting from files that have no mesh \
@@ -53,6 +57,22 @@ parser.add_argument("-s", dest="saveNames", default=None, metavar="FILENAME",
 args = parser.parse_args()
 runs = args.runs.split(',') # split run directories into list
 variables = args.variables.split(',')
+if args.vmin is not None:
+    vmins = args.vmin.split(',')
+else:
+    vmins = [None] * len(variables)
+
+if args.vmax is not None:
+    vmaxs = args.vmax.split(',')
+else:
+    vmaxs = [None] * len(variables)
+
+#for vlim in [vmins, vmaxs]:
+#    if vlim is not None:
+#        for v in vlim:
+#            if v == 'None':
+#                v = None
+
 timeLevs = args.timeLevels.split(',')  # split time levels into list
 # convert timeLevs to list of ints
 timeLevs = [int(i) for i in timeLevs]
@@ -196,7 +216,8 @@ for ii, run in enumerate(runs):
     varPlot[run] = {}  # is a dict of dicts too complicated?
     cbars = []
     # Loop over variables
-    for row, (variable, log, colormap, cbar_ax) in enumerate(zip(variables, log_plot, colormaps, cbar_axs)):
+    for row, (variable, log, colormap, cbar_ax, vmin, vmax) in enumerate(
+        zip(variables, log_plot, colormaps, cbar_axs, vmins, vmaxs)):
         if variable == 'observedSpeed':
             var_to_plot = np.sqrt(f.variables['observedSurfaceVelocityX'][:]**2 +
                                   f.variables['observedSurfaceVelocityY'][:]**2)
@@ -227,14 +248,15 @@ for ii, run in enumerate(runs):
         varPlot[run][variable] = []
 
         # Set lower and upper bounds for plotting
-        # 0.1 m/yr is a pretty good lower bound for speed
-        first_quant = np.nanquantile(var_to_plot[timeLevs, :], 0.01)
-        if 'Speed' in variable and log == 'True':
-            vmin = max(first_quant, -1.)
-        else:
-            vmin = first_quant
-
-        vmax = np.nanquantile(var_to_plot[timeLevs, :], 0.99)
+        if vmin in ['None', None]:
+            # 0.1 m/yr is a pretty good lower bound for speed
+            first_quant = np.nanquantile(var_to_plot[timeLevs, :], 0.01)
+            if 'Speed' in variable and log == 'True':
+                vmin = max(first_quant, -1.)
+            else:
+                vmin = first_quant
+        if vmax in ['None', None]:
+            vmax = np.nanquantile(var_to_plot[timeLevs, :], 0.99)
         # Plot bedTopography on an asymmetric colorbar if appropriate
         if ( (variable == 'bedTopography') and
              (np.nanquantile(var_to_plot[timeLevs, :], 0.99) > 0.) and
