@@ -41,9 +41,11 @@ parser.add_argument("-c", dest="colormaps", default=None,
                     help="colormaps to use for plotting (list separated by commas \
                           , no spaces). This overrides default colormaps.")
 parser.add_argument("--vmin", dest="vmin", default=None,
-                    help="minimum value(s) for colorbar(s)")
+                    help="minimum value(s) for colorbar(s) \
+                          (list separated by commas; no spaces)")
 parser.add_argument("--vmax", dest="vmax", default=None,
-                    help="maximum value(s) for colorbar(s)")
+                    help="maximum value(s) for colorbar(s) \
+                          (list separated by commas; no spaces)")
 parser.add_argument("-m", dest="mesh", default=None, metavar="FILENAME",
                     help="Optional input file(s) containing mesh variables. This \
                           is useful when plotting from files that have no mesh \
@@ -66,12 +68,6 @@ if args.vmax is not None:
     vmaxs = args.vmax.split(',')
 else:
     vmaxs = [None] * len(variables)
-
-#for vlim in [vmins, vmaxs]:
-#    if vlim is not None:
-#        for v in vlim:
-#            if v == 'None':
-#                v = None
 
 timeLevs = args.timeLevels.split(',')  # split time levels into list
 # convert timeLevs to list of ints
