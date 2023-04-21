@@ -21,10 +21,9 @@ tool are:
 .. code-block:: none
 
     $ plot_ocean_transects --help
-
     usage: plot_ocean_transects [-h] -g GEOJSON_FILENAME [-m MESH_FILENAME] -f
                                 FILENAME [-v VARIABLE_LIST [VARIABLE_LIST ...]]
-                                [-c COLORMAP]
+                                [-c COLORMAP] [--flip]
 
     options:
       -h, --help            show this help message and exit
@@ -38,6 +37,7 @@ tool are:
                             List of variables to plot.  All variables on cells in the data file is the default.
       -c COLORMAP, --colormap COLORMAP
                             A colormap to use for the plots, default depends on the field name.
+      --flip                Flip the x axis for all transects
 
 See `transects <https://github.com/MPAS-Dev/geometric_features/tree/main/geometric_data/ocean/transect>`_
 from ``geometric_features`` for a examples of what a geojson transect might

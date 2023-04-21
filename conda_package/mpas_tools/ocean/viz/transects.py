@@ -17,7 +17,8 @@ from mpas_tools.ocean.viz.inset import add_inset
 from mpas_tools.viz.colormaps import register_sci_viz_colormaps
 
 
-def plot_ocean_transects(fc, ds, ds_mesh=None, variable_list=None, cmap=None):
+def plot_ocean_transects(fc, ds, ds_mesh=None, variable_list=None, cmap=None,
+                         flip=False):
     """
     Plot images of the given variables on the given transects.  One image
     named ``<transect_name>_<variable_name>.png`` will be produced in the
@@ -39,6 +40,9 @@ def plot_ocean_transects(fc, ds, ds_mesh=None, variable_list=None, cmap=None):
 
     cmap : str, optional
         The name of a colormap to use
+
+    flip : book, optional
+        Whether to flip the x axes of all transect plot
     """
     if 'Time' in ds.dims:
         ds = ds.isel(Time=0)
@@ -46,7 +50,7 @@ def plot_ocean_transects(fc, ds, ds_mesh=None, variable_list=None, cmap=None):
     if 'Time' in ds_mesh.dims:
         ds_mesh = ds_mesh.isel(Time=0)
 
-    transects = _compute_transects(fc, ds_mesh)
+    transects = _compute_transects(fc, ds_mesh, flip)
 
     print('\nBuilding transect geometry...')
     fc_transects = dict()
@@ -93,6 +97,8 @@ def main():
     parser.add_argument('-c', '--colormap', dest='colormap',
                         help='A colormap to use for the plots, default '
                              'depends on the field name.')
+    parser.add_argument('--flip', dest='flip', action='store_true',
+                        help='Flip the x axis for all transects')
 
     args = parser.parse_args()
 
@@ -106,10 +112,11 @@ def main():
     variable_list = args.variable_list
 
     plot_ocean_transects(fc=fc, ds=ds, ds_mesh=ds_mesh,
-                         variable_list=variable_list, cmap=args.colormap)
+                         variable_list=variable_list, cmap=args.colormap,
+                         flip=args.flip)
 
 
-def _compute_transects(fc, ds_mesh):
+def _compute_transects(fc, ds_mesh, flip):
     """
     build a sequence of triangles showing the transect intersecting mpas cells
     """
@@ -126,9 +133,14 @@ def _compute_transects(fc, ds_mesh):
 
         coordinates = transect['geometry']['coordinates']
         transect_lon, transect_lat = zip(*coordinates)
-        transect_lon = xr.DataArray(data=np.array(transect_lon),
+        transect_lon = np.array(transect_lon)
+        transect_lat = np.array(transect_lat)
+        if flip:
+            transect_lon = transect_lon[::-1]
+            transect_lat = transect_lat[::-1]
+        transect_lon = xr.DataArray(data=transect_lon,
                                     dims=('nPoints',))
-        transect_lat = xr.DataArray(data=np.array(transect_lat),
+        transect_lat = xr.DataArray(data=transect_lat,
                                     dims=('nPoints',))
 
         ds_mpas_transect = find_transect_cells_and_weights(
