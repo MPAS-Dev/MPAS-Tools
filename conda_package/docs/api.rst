@@ -235,6 +235,14 @@ Ocean Tools
    interp_transect_grid_to_transect_triangle_nodes
    get_outline_segments
 
+.. currentmodule:: mpas_tools.ocean.viz
+
+.. autosummary::
+   :toctree: generated/
+
+   plot_ocean_transects
+   add_inset
+
 Sea-ice Tools
 =============
 
