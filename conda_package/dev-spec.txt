@@ -21,7 +21,7 @@ pyamg
 pyevtk
 pyproj
 python-igraph
-scikit-image
+scikit-image!=0.20.0
 scipy
 shapely>=2.0,<3.0
 xarray
