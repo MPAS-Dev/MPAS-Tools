@@ -8,6 +8,7 @@ import shutil
 
 install_requires = [
     'cartopy',
+    'cmocean',
     'dask',
     'inpoly',
     'matplotlib',
@@ -84,6 +85,7 @@ setup(name='mpas_tools',
                      'ocean_add_depth = mpas_tools.ocean.depth:main_add_depth',
                      'ocean_add_zmid = mpas_tools.ocean.depth:main_add_zmid',
                      'ocean_write_time_varying_zmid = mpas_tools.ocean.depth:main_write_time_varying_zmid',
+                     'plot_ocean_transects = mpas_tools.ocean.viz.transects:main',
                      'mpas_to_triangle = mpas_tools.mesh.creation.mpas_to_triangle:main',
                      'triangle_to_netcdf = mpas_tools.mesh.creation.triangle_to_netcdf:main',
                      'jigsaw_to_netcdf = mpas_tools.mesh.creation.jigsaw_to_netcdf:main',

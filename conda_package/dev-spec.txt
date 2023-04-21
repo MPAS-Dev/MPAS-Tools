@@ -4,6 +4,7 @@
 # Base
 python>=3.8
 cartopy
+cmocean
 dask
 geometric_features>=1.0.1,<2.0.0
 hdf5

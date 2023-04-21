@@ -24,6 +24,7 @@ build:
     - ocean_add_depth = mpas_tools.ocean.depth:main_add_depth
     - ocean_add_zmid = mpas_tools.ocean.depth:main_add_zmid
     - ocean_write_time_varying_zmid = mpas_tools.ocean.depth:main_write_time_varying_zmid
+    - plot_ocean_transects = mpas_tools.ocean.viz.transects:main
     - compute_mpas_region_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_region_masks
     - compute_mpas_transect_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_transect_masks
     - compute_mpas_flood_fill_mask = mpas_tools.mesh.mask:entry_point_compute_mpas_flood_fill_mask
@@ -53,6 +54,7 @@ requirements:
   run:
     - python
     - cartopy
+    - cmocean
     - dask
     - geometric_features >=1.0.1,<2.0.0
     - hdf5
