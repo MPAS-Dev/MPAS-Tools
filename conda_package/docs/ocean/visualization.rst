@@ -102,3 +102,8 @@ but also the vertical mesh variables (``minLevelCell``, ``maxLevelCell``,
 
 If you don't specify the list of variables to plot, all variables with
 dimensions ``nCells`` and ``nVertLevels`` will be plotted.
+
+One way of customizing these visualizaitons is to make your own copy of
+`transects.py <https://github.com/MPAS-Dev/MPAS-Tools/blob/master/conda_package/mpas_tools/ocean/viz/transects.py>`
+and change ``_plot_transect()`` to suite your needs, (changing figure size, dpi,
+colorbar, etc.)
