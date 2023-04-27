@@ -6,6 +6,7 @@ import numpy as np
 import subprocess
 import argparse
 import shutil
+import glob
 
 from .regrid import regrid_to_other_mesh
 from .mask import extend_seaice_mask
@@ -320,6 +321,121 @@ def create_partitions():
                               args.mpasCullerLocation, outputPrefix,
                               args.plotting, args.metis,
                               cullEquatorialRegion=False)
+
+
+def simple_partitions():
+    """
+    An entry point for creating sea-ice partitions on LCRC (Anvil and
+    Chrysalis)
+    """
+
+    data_dir = '/lcrc/group/e3sm/public_html/mpas_standalonedata/' \
+               'mpas-seaice/partition'
+
+    # parsing input
+    parser = argparse.ArgumentParser(
+        description='Create sea-ice partitions on LCRC.')
+
+    parser.add_argument(
+        '-m', '--mesh', dest="meshFilename", required=True,
+        help='MPAS-Seaice mesh file.')
+    parser.add_argument(
+        '-p', '--prefix', dest="outputPrefix", required=True,
+        help='prefix for output partition filenames.')
+    parser.add_argument(
+        '-n', '--nprocs', dest="nProcsArray", nargs='*', required=True,
+        help='list of the number of processors to create partition for.',
+        type=int)
+    parser.add_argument(
+        '-d', '--datadir', dest="dataDir", required=False,
+        default=data_dir,
+        help='Directory with seaice_QU60km_polar.nc and '
+             'icePresent_QU60km_polar.nc.')
+
+    args = parser.parse_args()
+
+    meshFilenameDst = os.path.abspath(args.meshFilename)
+
+    tmpdir = 'tmp_seaice_part_dir'
+    try:
+        shutil.rmtree(tmpdir)
+    except FileNotFoundError:
+        pass
+
+    os.makedirs(tmpdir)
+
+    cwd = os.getcwd()
+
+    os.chdir(tmpdir)
+
+    # make a local link to the mesh file
+    basename = os.path.basename(meshFilenameDst)
+    command = ['ln', '-s', meshFilenameDst, basename]
+    subprocess.run(command, check=True)
+    meshFilenameDst = basename
+
+    # 1) Regrid the ice presence from the input data mesh to the grid of choice
+    print("Regrid to desired mesh...")
+    filenameOut = "icePresent_regrid.nc"
+
+    meshFilenameSrc = os.path.join(data_dir, 'seaice_QU60km_polar.nc')
+    filenameData = os.path.join(data_dir, 'icePresent_QU60km_polar.nc')
+
+    regrid_to_other_mesh(
+        meshFilenameSrc=meshFilenameSrc,
+        filenameData=filenameData,
+        meshFilenameDst=meshFilenameDst,
+        filenameOut=filenameOut,
+        generateWeights=True,
+        weightsFilename=None)
+
+    # 2) create icePresence variable
+    print("fix_regrid_output...")
+
+    inputFile = "icePresent_regrid.nc"
+    outputFile = "icePresent_regrid_modify.nc"
+    subprocess.call(["fix_regrid_output.exe", inputFile, meshFilenameDst,
+                     outputFile])
+
+    # 3) create variable icePresenceExtended
+    print("extend_seaice_mask...")
+    filenamePresence = "icePresent_regrid_modify.nc"
+    extend_seaice_mask(meshFilenameDst, filenamePresence, 0.0, False)
+
+    # 4) Make the regions file from the icePresenceExtended variable
+    print("make_regions_file...")
+    filenameIcePresent = "icePresent_regrid_modify.nc"
+    filenameOut = "regions.nc"
+    make_regions_file(filenameIcePresent=filenameIcePresent,
+                      filenameMesh=meshFilenameDst,
+                      regionType="two_region_eq",
+                      varname="icePresenceExtended",
+                      limit=0.5,
+                      filenameOut=filenameOut)
+
+    nProcsArray = args.nProcsArray
+
+    # create partitions
+    regionFilename = "regions.nc"
+    outputPrefix = os.path.join(cwd, args.outputPrefix)
+
+    gen_seaice_mesh_partition(meshFilename=meshFilenameDst,
+                              regionFilename=regionFilename,
+                              nProcsArray=nProcsArray,
+                              mpasCullerLocation=None,
+                              outputPrefix=outputPrefix,
+                              plotting=False,
+                              metis="gpmetis",
+                              cullEquatorialRegion=False)
+
+    for file in glob.glob(f'{outputPrefix}*'):
+        command = ['chmod', 'ug+rw', file]
+        subprocess.run(command, check=True)
+        command = ['chmod', 'o+r', file]
+        subprocess.run(command, check=True)
+
+    os.chdir(cwd)
+    shutil.rmtree(tmpdir)
 
 
 # ---------------------------------------------------------------------
