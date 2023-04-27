@@ -1,0 +1,6 @@
+﻿mpas\_tools.viz.transects.find\_planar\_transect\_cells\_and\_weights
+=====================================================================
+
+.. currentmodule:: mpas_tools.viz.transects
+
+.. autofunction:: find_planar_transect_cells_and_weights

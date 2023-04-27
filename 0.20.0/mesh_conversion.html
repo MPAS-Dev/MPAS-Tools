@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mesh Conversion &mdash; mpas_tools 0.20.0 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Interpolation" href="interpolation.html" />
+    <link rel="prev" title="Mesh Creation" href="mesh_creation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+              <div class="version">
+                0.20.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Mesh Conversion</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mesh-converter">Mesh Converter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cell-culler">Cell Culler</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mask-creator">Mask Creator</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mask-creation-with-python-multiprocessing">Mask Creation with Python Multiprocessing</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#computing-mpas-region-masks">Computing MPAS Region Masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#computing-transect-masks">Computing Transect Masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#computing-a-flood-fill-mask">Computing a Flood-fill Mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#computing-lon-lat-region-masks">Computing Lon/Lat Region Masks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#merging-and-splitting">Merging and Splitting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#translation">Translation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#converting-between-mesh-formats">Converting Between Mesh Formats</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#msh-to-mpas-netcdf">MSH to MPAS NetCDF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#triangle-to-mpas-netcdf">Triangle to MPAS NetCDF</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mpas-netcdf-to-triangle">MPAS NetCDF to Triangle</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#mpas-netcdf-to-scrip">MPAS NetCDF to SCRIP</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Mesh Conversion</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mesh_conversion.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="mesh-conversion">
+<span id="id1"></span><h1>Mesh Conversion<a class="headerlink" href="#mesh-conversion" title="Permalink to this heading">¶</a></h1>
+<div class="section" id="mesh-converter">
+<span id="id2"></span><h2>Mesh Converter<a class="headerlink" href="#mesh-converter" title="Permalink to this heading">¶</a></h2>
+<p>The command-line tool <code class="docutils literal notranslate"><span class="pre">MpasMeshConverter.x</span></code> and the corresponding wrapper
+function <a class="reference internal" href="generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert" title="mpas_tools.mesh.conversion.convert"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.conversion.convert()</span></code></a> are used to convert a
+dataset describing cell locations, vertex locations, and connectivity between
+cells and vertices into a valid MPAS mesh following the <a class="reference external" href="https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf">MPAS mesh specification</a>.</p>
+<p>Example call to the command-line tool:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ planar_hex --nx 4 --ny 4 --dc 10e3 -o base_mesh.nc
+$ MpasMeshConverter.x base_mesh.nc mesh.nc
+</pre></div>
+</div>
+<p>This example uses the <code class="docutils literal notranslate"><span class="pre">planar_hex</span></code> tool to generate a small, doubly periodic
+MPAS mesh with 10-km cells, then uses the MPAS mesh converter to make sure the
+resulting mesh adheres to the mesh specification.  <code class="docutils literal notranslate"><span class="pre">MpasMeshConverter.x</span></code> takes
+two arguments, the input and output mesh files, and will prompt the user for
+file names if these arguments are not supplied.</p>
+<p>The same example in a python script can be accomplished with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.conversion</span> <span class="kn">import</span> <span class="n">convert</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">10e3</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="s1">&#39;mesh.nc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Regardless of which of these methods is used, the input mesh must define the
+following dimensions, variables and global attributes (not the dimension sizes
+are merely examples from the mesh generated in the previous examples):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">netcdf</span> <span class="n">mesh</span> <span class="p">{</span>
+<span class="n">dimensions</span><span class="p">:</span>
+  <span class="n">nCells</span> <span class="o">=</span> <span class="mi">16</span> <span class="p">;</span>
+  <span class="n">nVertices</span> <span class="o">=</span> <span class="mi">32</span> <span class="p">;</span>
+  <span class="n">vertexDegree</span> <span class="o">=</span> <span class="mi">3</span> <span class="p">;</span>
+<span class="n">variables</span><span class="p">:</span>
+  <span class="n">double</span> <span class="n">xCell</span><span class="p">(</span><span class="n">nCells</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">yCell</span><span class="p">(</span><span class="n">nCells</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">zCell</span><span class="p">(</span><span class="n">nCells</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">xVertex</span><span class="p">(</span><span class="n">nVertices</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">yVertex</span><span class="p">(</span><span class="n">nVertices</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">zVertex</span><span class="p">(</span><span class="n">nVertices</span><span class="p">)</span> <span class="p">;</span>
+  <span class="nb">int</span> <span class="n">cellsOnVertex</span><span class="p">(</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">)</span> <span class="p">;</span>
+  <span class="n">double</span> <span class="n">meshDensity</span><span class="p">(</span><span class="n">nCells</span><span class="p">)</span> <span class="p">;</span>
+
+<span class="o">//</span> <span class="k">global</span> <span class="n">attributes</span><span class="p">:</span>
+      <span class="p">:</span><span class="n">on_a_sphere</span> <span class="o">=</span> <span class="s2">&quot;NO&quot;</span> <span class="p">;</span>
+      <span class="p">:</span><span class="n">sphere_radius</span> <span class="o">=</span> <span class="mf">0.</span> <span class="p">;</span>
+      <span class="p">:</span><span class="n">is_periodic</span> <span class="o">=</span> <span class="s2">&quot;YES&quot;</span> <span class="p">;</span>
+</pre></div>
+</div>
+<p>The variable <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> is required for historical reasons and is passed
+unchanged to the resulting mesh.  It can contain all ones (or zeros), the
+resolution of the mesh in kilometers, or whatever field the user wishes.</p>
+<p>The following global attributes are optional but will be passed on to the
+resulting mesh:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="k">global</span> <span class="n">attributes</span><span class="p">:</span>
+      <span class="p">:</span><span class="n">x_period</span> <span class="o">=</span> <span class="mf">40000.</span> <span class="p">;</span>
+      <span class="p">:</span><span class="n">y_period</span> <span class="o">=</span> <span class="mf">34641.0161513775</span> <span class="p">;</span>
+      <span class="p">:</span><span class="n">history</span> <span class="o">=</span> <span class="s2">&quot;Tue May 26 20:58:10 2020: /home/xylar/miniconda3/envs/mpas/bin/planar_hex --nx 4 --ny 4 --dc 10e3 -o base_mesh.nc&quot;</span> <span class="p">;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">file_id</span></code> global attribute is also optional and is preserved in the
+resulting mesh as <code class="docutils literal notranslate"><span class="pre">parent_id</span></code>.  A new <code class="docutils literal notranslate"><span class="pre">file_id</span></code> (a random hash tag) is
+generated by the mesh converter.</p>
+<p>The resulting dataset has all the dimensions and variables required for an MPAS
+mesh.</p>
+<p>The mesh converter also generates a file called <code class="docutils literal notranslate"><span class="pre">graph.info</span></code> that is used to
+create graph partitions from tools like <a class="reference external" href="http://glaros.dtc.umn.edu/gkhome/views/metis">Metis</a>.  This file is not stored by
+default when the python <code class="docutils literal notranslate"><span class="pre">cull</span></code> function is used but can be specified with
+the <code class="docutils literal notranslate"><span class="pre">graphInfoFileName</span></code> argument.  The python function also takes a <code class="docutils literal notranslate"><span class="pre">logger</span></code>
+that can be used to capture the output that would otherwise go to the screen
+via <code class="docutils literal notranslate"><span class="pre">stdout</span></code> and <code class="docutils literal notranslate"><span class="pre">stderr</span></code>.</p>
+</div>
+<div class="section" id="cell-culler">
+<span id="id3"></span><h2>Cell Culler<a class="headerlink" href="#cell-culler" title="Permalink to this heading">¶</a></h2>
+<p>The command-line tool <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code> and the corresponding wrapper
+function <a class="reference internal" href="generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull" title="mpas_tools.mesh.conversion.cull"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.conversion.cull()</span></code></a> are used to cull cells from
+a mesh based on the <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field in the input dataset and/or the provided
+masks. The contents of the <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field is merge with the mask(s) from a
+masking dataset and the inverse of the mask(s) from an inverse-masking dataset.
+Then, a preserve-masking dataset is used to determine where cells should <em>not</em>
+be culled.</p>
+<p>Example call to the command-line tool, assuming you start with a spherical mesh
+called <code class="docutils literal notranslate"><span class="pre">base_mesh.nc</span></code> (not the doubly periodic planar mesh from the examples
+above):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ merge_features -c natural_earth -b region -n &quot;Land Coverage&quot; -o land.geojson
+$ MpasMaskCreator.x base_mesh.nc land.nc -f land.geojson
+$ MpasCellCuller.x base_mesh.nc culled_mesh.nc -m land.nc
+</pre></div>
+</div>
+<p>This example uses the <code class="docutils literal notranslate"><span class="pre">merge_features</span></code> tool from the <code class="docutils literal notranslate"><span class="pre">geometric_features</span></code>
+conda package to get a geojson file containing land coverage.  Then, it uses
+the mask creator (see the next section) to create a mask on the MPAS mesh that
+is one inside this region and zero outside.  Finally, it culls the base mesh
+to only those cells where the mask is zero (i.e. the mask indicates which cells
+are to be removed).</p>
+<p>The same example in a python script can be accomplished with:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xarray</span>
+<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">GeometricFeatures</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.conversion</span> <span class="kn">import</span> <span class="n">mask</span><span class="p">,</span> <span class="n">cull</span>
+
+<span class="n">gf</span> <span class="o">=</span> <span class="n">GeometricFeatures</span><span class="p">()</span>
+
+<span class="n">fcLandCoverage</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">componentName</span><span class="o">=</span><span class="s1">&#39;natural_earth&#39;</span><span class="p">,</span> <span class="n">objectType</span><span class="o">=</span><span class="s1">&#39;region&#39;</span><span class="p">,</span>
+                         <span class="n">featureNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Land Coverage&#39;</span><span class="p">])</span>
+
+<span class="n">dsBaseMesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">)</span>
+<span class="n">dsLandMask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="n">fcLandCoverage</span><span class="p">)</span>
+<span class="n">dsCulledMesh</span> <span class="o">=</span> <span class="n">conversion</span><span class="o">.</span><span class="n">cull</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span> <span class="n">dsMask</span><span class="o">=</span><span class="n">dsLandMask</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsCulledMesh</span><span class="p">,</span> <span class="s1">&#39;culled_mesh.nc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here is the full usage of <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MpasCellCuller</span><span class="o">.</span><span class="n">x</span> <span class="p">[</span><span class="n">input_name</span><span class="p">]</span> <span class="p">[</span><span class="n">output_name</span><span class="p">]</span> <span class="p">[[</span><span class="o">-</span><span class="n">m</span><span class="o">/-</span><span class="n">i</span><span class="o">/-</span><span class="n">p</span><span class="p">]</span> <span class="n">masks_name</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">c</span><span class="p">]</span>
+
+    <span class="n">input_name</span><span class="p">:</span>
+        <span class="n">This</span> <span class="n">argument</span> <span class="n">specifies</span> <span class="n">the</span> <span class="nb">input</span> <span class="n">MPAS</span> <span class="n">mesh</span><span class="o">.</span>
+    <span class="n">output_name</span><span class="p">:</span>
+        <span class="n">This</span> <span class="n">argument</span> <span class="n">specifies</span> <span class="n">the</span> <span class="n">output</span> <span class="n">culled</span> <span class="n">MPAS</span> <span class="n">mesh</span><span class="o">.</span>
+        <span class="n">If</span> <span class="ow">not</span> <span class="n">specified</span><span class="p">,</span> <span class="n">it</span> <span class="n">defaults</span> <span class="n">to</span> <span class="n">culled_mesh</span><span class="o">.</span><span class="n">nc</span><span class="p">,</span> <span class="n">but</span>
+        <span class="n">it</span> <span class="ow">is</span> <span class="n">required</span> <span class="k">if</span> <span class="n">additional</span> <span class="n">arguments</span> <span class="n">are</span> <span class="n">specified</span><span class="o">.</span>
+    <span class="o">-</span><span class="n">m</span><span class="o">/-</span><span class="n">i</span><span class="o">/-</span><span class="n">p</span><span class="p">:</span>
+        <span class="n">These</span> <span class="n">arguments</span> <span class="n">control</span> <span class="n">how</span> <span class="n">a</span> <span class="nb">set</span> <span class="n">of</span> <span class="n">masks</span> <span class="ow">is</span> <span class="n">used</span> <span class="n">when</span>
+        <span class="n">culling</span> <span class="n">a</span> <span class="n">mesh</span><span class="o">.</span>
+        <span class="n">The</span> <span class="o">-</span><span class="n">m</span> <span class="n">argument</span> <span class="n">applies</span> <span class="n">a</span> <span class="n">mask</span> <span class="n">to</span> <span class="n">cull</span> <span class="n">based</span> <span class="n">on</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span>
+        <span class="n">where</span> <span class="n">the</span> <span class="n">mask</span> <span class="ow">is</span> <span class="mi">1</span><span class="p">,</span> <span class="n">the</span> <span class="n">mesh</span> <span class="n">will</span> <span class="n">be</span> <span class="n">culled</span><span class="p">)</span><span class="o">.</span>
+        <span class="n">The</span> <span class="o">-</span><span class="n">i</span> <span class="n">argument</span> <span class="n">applies</span> <span class="n">the</span> <span class="n">inverse</span> <span class="n">mask</span> <span class="n">to</span> <span class="n">cull</span> <span class="n">based</span>
+        <span class="n">on</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">e</span><span class="o">.</span> <span class="n">where</span> <span class="n">the</span> <span class="n">mask</span> <span class="ow">is</span> <span class="mi">0</span><span class="p">,</span> <span class="n">the</span> <span class="n">mesh</span> <span class="n">will</span> <span class="n">be</span>
+        <span class="n">culled</span><span class="p">)</span><span class="o">.</span>
+        <span class="n">The</span> <span class="o">-</span><span class="n">p</span> <span class="n">argument</span> <span class="n">forces</span> <span class="nb">any</span> <span class="n">marked</span> <span class="n">cells</span> <span class="n">to</span> <span class="ow">not</span> <span class="n">be</span>
+        <span class="n">culled</span><span class="o">.</span>
+        <span class="n">If</span> <span class="n">this</span> <span class="n">argument</span> <span class="ow">is</span> <span class="n">specified</span><span class="p">,</span> <span class="n">the</span> <span class="n">masks_name</span> <span class="n">argument</span>
+        <span class="ow">is</span> <span class="n">required</span>
+    <span class="o">-</span><span class="n">c</span><span class="p">:</span>
+        <span class="n">Output</span> <span class="n">the</span> <span class="n">mapping</span> <span class="kn">from</span> <span class="nn">old</span> <span class="n">to</span> <span class="n">new</span> <span class="n">mesh</span> <span class="p">(</span><span class="n">cellMap</span><span class="p">)</span> <span class="ow">in</span>
+            <span class="n">cellMapForward</span><span class="o">.</span><span class="n">txt</span><span class="p">,</span>
+        <span class="ow">and</span> <span class="n">output</span> <span class="n">the</span> <span class="n">reverse</span> <span class="n">mapping</span> <span class="kn">from</span> <span class="nn">new</span> <span class="n">to</span> <span class="n">old</span> <span class="n">mesh</span> <span class="ow">in</span>
+            <span class="n">cellMapBackward</span><span class="o">.</span><span class="n">txt</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="mask-creator">
+<span id="id4"></span><h2>Mask Creator<a class="headerlink" href="#mask-creator" title="Permalink to this heading">¶</a></h2>
+<p>The command-line tool <code class="docutils literal notranslate"><span class="pre">MpasMaskCreator.x</span></code> and the corresponding wrapper
+function <a class="reference internal" href="generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask" title="mpas_tools.mesh.conversion.mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.conversion.mask()</span></code></a> are used to create a set of
+region masks either from mask features or from seed points to be used to flood
+fill a contiguous block of cells.</p>
+<p>Examples usage of the mask creator can be found above under the Cell Culler.</p>
+<p>Here is the full usage of <code class="docutils literal notranslate"><span class="pre">MpasMaskCreator.x</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MpasMaskCreator</span><span class="o">.</span><span class="n">x</span> <span class="n">in_file</span> <span class="n">out_file</span> <span class="p">[</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="o">/-</span><span class="n">s</span><span class="p">]</span> <span class="n">file</span><span class="o">.</span><span class="n">geojson</span> <span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">positive_lon</span><span class="p">]</span>
+    <span class="n">in_file</span><span class="p">:</span> <span class="n">This</span> <span class="n">argument</span> <span class="n">defines</span> <span class="n">the</span> <span class="nb">input</span> <span class="n">file</span> <span class="n">that</span> <span class="n">masks</span> <span class="n">will</span> <span class="n">be</span> <span class="n">created</span> <span class="k">for</span><span class="o">.</span>
+    <span class="n">out_file</span><span class="p">:</span> <span class="n">This</span> <span class="n">argument</span> <span class="n">defines</span> <span class="n">the</span> <span class="n">file</span> <span class="n">that</span> <span class="n">masks</span> <span class="n">will</span> <span class="n">be</span> <span class="n">written</span> <span class="n">to</span><span class="o">.</span>
+    <span class="o">-</span><span class="n">s</span> <span class="n">file</span><span class="o">.</span><span class="n">geojson</span><span class="p">:</span> <span class="n">This</span> <span class="n">argument</span> <span class="n">pair</span> <span class="n">defines</span> <span class="n">a</span> <span class="nb">set</span> <span class="n">of</span> <span class="n">points</span> <span class="p">(</span><span class="kn">from</span> <span class="nn">the</span> <span class="n">geojson</span> <span class="n">point</span> <span class="n">definition</span><span class="p">)</span>
+        <span class="n">that</span> <span class="n">will</span> <span class="n">be</span> <span class="n">used</span> <span class="k">as</span> <span class="n">seed</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">flood</span> <span class="n">fill</span> <span class="n">algorithim</span><span class="o">.</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">useful</span> <span class="n">when</span> <span class="n">trying</span> <span class="n">to</span> <span class="n">remove</span> <span class="n">isolated</span> <span class="n">cells</span> <span class="kn">from</span> <span class="nn">a</span> <span class="n">mesh</span><span class="o">.</span>
+    <span class="o">-</span><span class="n">f</span> <span class="n">file</span><span class="o">.</span><span class="n">geojson</span><span class="p">:</span> <span class="n">This</span> <span class="n">argument</span> <span class="n">pair</span> <span class="n">defines</span> <span class="n">a</span> <span class="nb">set</span> <span class="n">of</span> <span class="n">geojson</span> <span class="n">features</span> <span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="n">transects</span><span class="p">,</span> <span class="ow">or</span> <span class="n">points</span><span class="p">)</span>
+        <span class="n">that</span> <span class="n">will</span> <span class="n">be</span> <span class="n">converted</span> <span class="n">into</span> <span class="n">masks</span> <span class="o">/</span> <span class="n">lists</span><span class="o">.</span>
+    <span class="o">--</span><span class="n">positive_lon</span><span class="p">:</span> <span class="n">It</span> <span class="ow">is</span> <span class="n">unlikely</span> <span class="n">that</span> <span class="n">you</span> <span class="n">want</span> <span class="n">this</span> <span class="n">argument</span><span class="o">.</span>  <span class="n">In</span> <span class="n">rare</span> <span class="n">cases</span> <span class="n">when</span> <span class="n">using</span> <span class="n">a</span> <span class="n">non</span><span class="o">-</span><span class="n">standard</span> <span class="n">geojson</span>
+        <span class="n">file</span> <span class="n">where</span> <span class="n">the</span> <span class="n">logitude</span> <span class="n">ranges</span> <span class="kn">from</span> <span class="mi">0</span> <span class="n">to</span> <span class="mi">360</span> <span class="n">degrees</span> <span class="p">(</span><span class="k">with</span> <span class="n">the</span> <span class="n">prime</span> <span class="n">meridian</span> <span class="n">at</span> <span class="mi">0</span> <span class="n">degrees</span><span class="p">),</span> <span class="n">use</span> <span class="n">this</span> <span class="n">flag</span><span class="o">.</span>
+        <span class="n">If</span> <span class="n">this</span> <span class="n">flag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">,</span> <span class="n">the</span> <span class="n">logitude</span> <span class="nb">range</span> <span class="ow">is</span> <span class="o">-</span><span class="mi">180</span><span class="o">-</span><span class="mi">180</span> <span class="k">with</span> <span class="mi">0</span> <span class="n">degrees</span> <span class="n">being</span> <span class="n">the</span> <span class="n">prime</span> <span class="n">meridian</span><span class="p">,</span> <span class="n">which</span> <span class="ow">is</span> <span class="n">the</span>
+        <span class="n">case</span> <span class="k">for</span> <span class="n">standar</span> <span class="n">geojson</span> <span class="n">files</span> <span class="n">including</span> <span class="nb">all</span> <span class="n">features</span> <span class="kn">from</span> <span class="nn">the</span> <span class="n">geometric_feature</span> <span class="n">repo</span><span class="o">.</span>
+        <span class="n">The</span> <span class="n">fact</span> <span class="n">that</span> <span class="n">longitudes</span> <span class="ow">in</span> <span class="n">the</span> <span class="nb">input</span> <span class="n">MPAS</span> <span class="n">mesh</span> <span class="nb">range</span> <span class="kn">from</span> <span class="mi">0</span> <span class="n">to</span> <span class="mi">360</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">relevant</span> <span class="n">to</span> <span class="n">this</span> <span class="n">flag</span><span class="p">,</span>
+        <span class="k">as</span> <span class="n">latitude</span> <span class="ow">and</span> <span class="n">longitude</span> <span class="n">are</span> <span class="n">recomputed</span> <span class="n">internally</span> <span class="kn">from</span> <span class="nn">Cartesian</span> <span class="n">coordinates</span><span class="o">.</span>
+        <span class="n">Whether</span> <span class="n">this</span> <span class="n">flag</span> <span class="ow">is</span> <span class="n">passed</span> <span class="ow">in</span> <span class="ow">or</span> <span class="ow">not</span><span class="p">,</span> <span class="nb">any</span> <span class="n">longitudes</span> <span class="n">written</span> <span class="n">are</span> <span class="ow">in</span> <span class="n">the</span> <span class="mi">0</span><span class="o">-</span><span class="mi">360</span> <span class="nb">range</span><span class="o">.</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="mask-creation-with-python-multiprocessing">
+<span id="py-mask-creation"></span><h2>Mask Creation with Python Multiprocessing<a class="headerlink" href="#mask-creation-with-python-multiprocessing" title="Permalink to this heading">¶</a></h2>
+<p>The Mask Creator is a serial code, and the algorithms it uses to find points in
+a region or cells, edges and vertices along a transect are not particularly
+efficient or sophisticated.</p>
+<p>To provide better efficiency and to enable more sophisticated algorithms (now
+and in the future), a set of related python functions has been developed to
+provide much (but not all) of the functionality of the C++ Mask Creator
+described above.</p>
+<div class="section" id="computing-mpas-region-masks">
+<h3>Computing MPAS Region Masks<a class="headerlink" href="#computing-mpas-region-masks" title="Permalink to this heading">¶</a></h3>
+<p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks" title="mpas_tools.mesh.mask.compute_mpas_region_masks"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_region_masks()</span></code></a>
+or the <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code> command-line tool can
+be used to create region masks on cells, edges and/or vertices given an MPAS
+mesh <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.4.3.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.Dataset</span></code></a> <code class="docutils literal notranslate"><span class="pre">dsMesh</span></code> and a
+<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.2.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">geometric_features.FeatureCollection</span></code></a> <code class="docutils literal notranslate"><span class="pre">fcMask</span></code> containing regions.
+The resulting masks, in the variable <code class="docutils literal notranslate"><span class="pre">regionCellMasks</span></code>, are 1 where the center
+of the polygon corresponding to the cell, edge or vertex (see the
+<a class="reference external" href="https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf">MPAS Mesh Specification</a>)
+are inside the given region and 0 where they are outside.  This function is
+far more useful if the user provides a <code class="xref py py-class docutils literal notranslate"><span class="pre">multiprocessing.Pool</span></code> in the
+<code class="docutils literal notranslate"><span class="pre">pool</span></code> argument.  <code class="docutils literal notranslate"><span class="pre">pool</span></code> should be created at the beginning of the calling
+code (when memory usage is small), possibly with
+<a class="reference internal" href="generated/mpas_tools.parallel.create_pool.html#mpas_tools.parallel.create_pool" title="mpas_tools.parallel.create_pool"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.parallel.create_pool()</span></code></a>, and terminated
+(<code class="xref py py-meth docutils literal notranslate"><span class="pre">multiprocessing.Pool.terminate()</span></code>) before the code has finished.
+The same pool can be used in multiple calls to this and the other Python-based
+masking functions.  If <code class="docutils literal notranslate"><span class="pre">pool</span> <span class="pre">=</span> <span class="pre">None</span></code> (the default), the masks are computed in
+serial, which will likely be frustratingly slow.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">chunkSize</span></code> argument can be used to control how much work (how many cells,
+edges or vertices) each process computes on at one time.  A very small
+<code class="docutils literal notranslate"><span class="pre">chunkSize</span></code> will incur a high overhead, while a very large <code class="docutils literal notranslate"><span class="pre">chunkSize</span></code> will
+lead to poor load balancing and infrequent progress updates (if
+<code class="docutils literal notranslate"><span class="pre">showProgress</span> <span class="pre">=</span> <span class="pre">True</span></code>).  The default <code class="docutils literal notranslate"><span class="pre">chunkSize</span></code> of 1000 seems to perform
+well across a wide variety of mesh sizes and processor counts.</p>
+<p>It is a good idea to provide a <code class="docutils literal notranslate"><span class="pre">logger</span></code> (see <a class="reference internal" href="logging.html#logging"><span class="std std-ref">Logging</span></a>) to get some
+output as the mask creation is progressing.</p>
+<p>For efficiency, large shapes (e.g. the global coastline) are divided into
+smaller “tiles”.  This subdivision is controlled with <code class="docutils literal notranslate"><span class="pre">subdivisionThreshold</span></code>,
+which should be set to a minimum size in degrees (latitude or longitude).  If
+a shape is larger than this, it will be divided into tiles.  The underlying
+algorithm first check bounding boxes of the resulting shapes against points
+before performing the more time-consuming step of determining if the point is
+inside the shape.  The default value of 30 degrees performs much better than
+no subdivision for large shapes (again, such as the global coastline), but
+alternative values have not yet been explored.</p>
+<p>The resulting variables are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">regionCellMasks(nCells,</span> <span class="pre">nRegions)</span></code> - a cell mask (1 for inside and 0 for
+outside the region) for each region</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regionEdgeMasks(nEdges,</span> <span class="pre">nRegions)</span></code> - an edge mask for each region</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regionVertexMasks(nVertices,</span> <span class="pre">nRegions)</span></code> - a vertex mask for each region</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regionNames(nRegions,</span> <span class="pre">string64)</span></code> - the names of the regions</p></li>
+</ul>
+</div></blockquote>
+<p>NetCDF fill values are used for invalid mask values, so <code class="docutils literal notranslate"><span class="pre">nCellsInRegion</span></code>,
+etc. are not produced.</p>
+<p>The command-line tool takes the following arguments:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ compute_mpas_region_masks --help
+usage: compute_mpas_region_masks [-h] -m MESH_FILE_NAME -g GEOJSON_FILE_NAME
+                                 -o MASK_FILE_NAME
+                                 [-t MASK_TYPES [MASK_TYPES ...]]
+                                 [-c CHUNK_SIZE] [--show_progress]
+                                 [-s SUBDIVISION]
+                                 [--process_count PROCESS_COUNT]
+                                 [--multiprocessing_method MULTIPROCESSING_METHOD]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m MESH_FILE_NAME, --mesh_file_name MESH_FILE_NAME
+                        An MPAS mesh file
+  -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
+                        An Geojson file containing mask regions
+  -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
+                        An output MPAS region masks file
+  -t MASK_TYPES [MASK_TYPES ...], --mask_types MASK_TYPES [MASK_TYPES ...]
+                        Which type(s) of masks to make: cell, edge or vertex.
+                        Default is cell and vertex.
+  -c CHUNK_SIZE, --chunk_size CHUNK_SIZE
+                        The number of cells, vertices or edges that are
+                        processed in one operation
+  --show_progress       Whether to show a progress bar
+  -s SUBDIVISION, --subdivision SUBDIVISION
+                        A threshold in degrees (lon or lat) above which the
+                        mask region will be subdivided into smaller polygons
+                        for faster intersection checking
+  --process_count PROCESS_COUNT
+                        The number of processes to use to compute masks. The
+                        default is to use all available cores
+  --multiprocessing_method MULTIPROCESSING_METHOD
+                        The multiprocessing method use for python mask
+                        creation (&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)
+</pre></div>
+</div>
+</div>
+<div class="section" id="computing-transect-masks">
+<h3>Computing Transect Masks<a class="headerlink" href="#computing-transect-masks" title="Permalink to this heading">¶</a></h3>
+<p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks" title="mpas_tools.mesh.mask.compute_mpas_transect_masks"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_transect_masks()</span></code></a>
+and the <code class="docutils literal notranslate"><span class="pre">compute_mpas_transect_masks</span></code> command-line tool
+are similar to the function for computing region masks.  The function takes a
+<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.2.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">geometric_features.FeatureCollection</span></code></a> <code class="docutils literal notranslate"><span class="pre">fcMask</span></code> that is made up of
+transects, rather than regions.  One mask is produced for each feature in the
+collection, indicating where the transect
+intersects the cell, edge or vertex polygons (see the
+<a class="reference external" href="https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf">MPAS Mesh Specification</a>).</p>
+<p>The arguments <code class="docutils literal notranslate"><span class="pre">logger</span></code>, <code class="docutils literal notranslate"><span class="pre">pool</span></code>, <code class="docutils literal notranslate"><span class="pre">chunkSize</span></code> and <code class="docutils literal notranslate"><span class="pre">showProgress</span></code> are the
+same as for region-mask creation above.</p>
+<p>The argument <code class="docutils literal notranslate"><span class="pre">subdivisionResolution</span></code> is a length in meters, above which
+segments of the transect are subdivided to provide a better representation of
+the spherical path in longitude/latitude space.  The default value of 10 km is
+typically good enough to capture distortion at typical MPAS mesh resolutions.</p>
+<p>The algorithm perform intersections in longitude/latitude space using the
+<code class="docutils literal notranslate"><span class="pre">shapely</span></code> library.  Because <code class="docutils literal notranslate"><span class="pre">shapely</span></code> is designed for 2D shapes in a
+Cartesian plane, it is not designed for spherical coordinates.  Care has been
+taken to handle periodicity at the dateline (antimeridian) but there may be
+issues with MPAS mesh polygons containing the north or south pole.  If a user
+needs to handle a transect that is very close to the pole, it is likely worth
+contacting the developers to request modifications to the code to support this
+case.</p>
+<p>The resulting variables are:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">transectCellMasks(nCells,</span> <span class="pre">nTransects)</span></code> - a cell mask (1 if the transect
+intersects the cell and 0 if not) for each transect</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transectEdgeMasks(nEdges,</span> <span class="pre">nTransects)</span></code> - an edge mask for each transect</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transectVertexMasks(nVertices,</span> <span class="pre">nTransects)</span></code> - a vertex mask for each
+transect</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">transectNames(nTransects,</span> <span class="pre">string64)</span></code> - the names of the transects</p></li>
+</ul>
+</div></blockquote>
+<p>We don’t currently provide cell, edge or vertex indices (e.g.
+<code class="docutils literal notranslate"><span class="pre">transectCellGlobalIDs</span></code>) for path along a transect.  This is, in part,
+because the algorithm doesn’t keep track of the relative order of points along
+a transect. This could be updated in the future if there is sufficient demand.</p>
+<p>The edge sign (<code class="docutils literal notranslate"><span class="pre">transectEdgeMaskSigns</span></code>) is computed only if
+<code class="docutils literal notranslate"><span class="pre">addEdgeSign=True</span></code>, since this takes extra time to compute and isn’t always
+needed.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>While the default <code class="docutils literal notranslate"><span class="pre">subdivisionResolution</span></code> is 10 km for
+<a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks" title="mpas_tools.mesh.mask.compute_mpas_transect_masks"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_transect_masks()</span></code></a>, the default
+behavior in the command-line tool <code class="docutils literal notranslate"><span class="pre">compute_mpas_transect_masks</span></code> is no
+subdivision because there is otherwise not a good way to specify at the
+command line that no subdivision is desired.  Typically, users will want
+to request subdivision with something like <code class="docutils literal notranslate"><span class="pre">-s</span> <span class="pre">10e3</span></code></p>
+</div>
+<p>The command-line tool takes the following arguments:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ compute_mpas_transect_masks --help
+usage: compute_mpas_transect_masks [-h] -m MESH_FILE_NAME -g GEOJSON_FILE_NAME
+                                   -o MASK_FILE_NAME
+                                   [-t MASK_TYPES [MASK_TYPES ...]]
+                                   [-c CHUNK_SIZE] [--show_progress]
+                                   [-s SUBDIVISION]
+                                   [--process_count PROCESS_COUNT]
+                                   [--multiprocessing_method MULTIPROCESSING_METHOD]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m MESH_FILE_NAME, --mesh_file_name MESH_FILE_NAME
+                        An MPAS mesh file
+  -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
+                        An Geojson file containing transects
+  -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
+                        An output MPAS transect masks file
+  -t MASK_TYPES [MASK_TYPES ...], --mask_types MASK_TYPES [MASK_TYPES ...]
+                        Which type(s) of masks to make: cell, edge or vertex.
+                        Default is cell, edge and vertex.
+  -c CHUNK_SIZE, --chunk_size CHUNK_SIZE
+                        The number of cells, vertices or edges that are
+                        processed in one operation
+  --show_progress       Whether to show a progress bar
+  -s SUBDIVISION, --subdivision SUBDIVISION
+                        The maximum resolution (in meters) of segments in a
+                        transect. If a transect is too coarse, it will be
+                        subdivided. Default is no subdivision.
+  --process_count PROCESS_COUNT
+                        The number of processes to use to compute masks. The
+                        default is to use all available cores
+  --multiprocessing_method MULTIPROCESSING_METHOD
+                        The multiprocessing method use for python mask
+                        creation (&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)
+  --add_edge_sign       Whether to add the transectEdgeMaskSigns variable
+</pre></div>
+</div>
+</div>
+<div class="section" id="computing-a-flood-fill-mask">
+<h3>Computing a Flood-fill Mask<a class="headerlink" href="#computing-a-flood-fill-mask" title="Permalink to this heading">¶</a></h3>
+<p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask" title="mpas_tools.mesh.mask.compute_mpas_flood_fill_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_flood_fill_mask()</span></code></a>
+and the command-line tool <code class="docutils literal notranslate"><span class="pre">compute_mpas_flood_fill_mask</span></code>
+fill in a mask, starting with the ocean points closest to the seed points
+given in <a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.2.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">geometric_features.FeatureCollection</span></code></a> <code class="docutils literal notranslate"><span class="pre">fcSeed</span></code>.  This
+algorithm runs in serial, and will be more efficient the more seed points
+are provided and the more widely scattered over the ocean they are.</p>
+<p>The resulting dataset contains a single variable:</p>
+<blockquote>
+<div><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">cellSeedMask(nCells)</span></code> - a cell mask that is 1 where the flood fill
+(following <code class="docutils literal notranslate"><span class="pre">cellsOnCell</span></code>) propagated starting from the seed points and 0
+elsewhere</p></li>
+</ul>
+</div></blockquote>
+<p>The command-line tool takes the following arguments:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ compute_mpas_flood_fill_mask --help
+usage: compute_mpas_flood_fill_mask [-h] -m MESH_FILE_NAME -g
+                                    GEOJSON_FILE_NAME -o MASK_FILE_NAME
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m MESH_FILE_NAME, --mesh_file_name MESH_FILE_NAME
+                        An MPAS mesh file
+  -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
+                        An Geojson file containing points at which to start
+                        the flood fill
+  -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
+                        An output MPAS region masks file
+</pre></div>
+</div>
+</div>
+<div class="section" id="computing-lon-lat-region-masks">
+<h3>Computing Lon/Lat Region Masks<a class="headerlink" href="#computing-lon-lat-region-masks" title="Permalink to this heading">¶</a></h3>
+<p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_lon_lat_region_masks.html#mpas_tools.mesh.mask.compute_lon_lat_region_masks" title="mpas_tools.mesh.mask.compute_lon_lat_region_masks"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_lon_lat_region_masks()</span></code></a>
+or the <code class="docutils literal notranslate"><span class="pre">compute_lon_lat_region_masks</span></code> command-line tool compute region masks
+on a longitude/latitude grid but are otherwise functionally very similar to
+the corresponding tools for compute MPAS region masks. The major difference is
+that 1D arrays of longitude and latitude are provided instead of an MPAS mesh
+dataset.  There is no argument equivalent to the mask type for MPAS meshes.
+Instead, mask values are given at each point on the 2D longitude/latitude grid.
+All other arguments serve the same purpose as for the MPAS region mask creation
+described above.</p>
+<p>The command-line tool takes the following arguments:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ compute_lon_lat_region_masks --help
+usage: compute_lon_lat_region_masks [-h] -i GRID_FILE_NAME [--lon LON]
+                                    [--lat LAT] -g GEOJSON_FILE_NAME -o
+                                    MASK_FILE_NAME [-c CHUNK_SIZE]
+                                    [--show_progress] [-s SUBDIVISION]
+                                    [--process_count PROCESS_COUNT]
+                                    [--multiprocessing_method MULTIPROCESSING_METHOD]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -i GRID_FILE_NAME, --grid_file_name GRID_FILE_NAME
+                        An input lon/lat grid file
+  --lon LON             The name of the longitude coordinate
+  --lat LAT             The name of the latitude coordinate
+  -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
+                        An Geojson file containing mask regions
+  -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
+                        An output MPAS region masks file
+  -c CHUNK_SIZE, --chunk_size CHUNK_SIZE
+                        The number of grid points that are processed in one
+                        operation
+  --show_progress       Whether to show a progress bar
+  -s SUBDIVISION, --subdivision SUBDIVISION
+                        A threshold in degrees (lon or lat) above which the
+                        mask region will be subdivided into smaller polygons
+                        for faster intersection checking
+  --process_count PROCESS_COUNT
+                        The number of processes to use to compute masks. The
+                        default is to use all available cores
+  --multiprocessing_method MULTIPROCESSING_METHOD
+                        The multiprocessing method use for python mask
+                        creation (&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="merging-and-splitting">
+<span id="merge-split"></span><h2>Merging and Splitting<a class="headerlink" href="#merging-and-splitting" title="Permalink to this heading">¶</a></h2>
+<p>In order to support running
+<a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Model/tree/landice/develop">MPAS-Albany Land Ice (MALI)</a>
+with both Greenland and Antarctica at the same time, tools have been added to
+support merging and splitting MPAS meshes.</p>
+<p>Merging two meshes can be accomplished with
+<a class="reference internal" href="generated/mpas_tools.merge_grids.merge_grids.html#mpas_tools.merge_grids.merge_grids" title="mpas_tools.merge_grids.merge_grids"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.merge_grids.merge_grids()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">translate</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.merge_grids</span> <span class="kn">import</span> <span class="n">merge_grids</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+
+
+<span class="n">dsMesh1</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">dsMesh2</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">translate</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">20000.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh1</span><span class="p">,</span> <span class="s1">&#39;mesh1.nc&#39;</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="s1">&#39;mesh2.nc&#39;</span><span class="p">)</span>
+
+<span class="n">merge_grids</span><span class="p">(</span><span class="n">infile1</span><span class="o">=</span><span class="s1">&#39;mesh1.nc&#39;</span><span class="p">,</span> <span class="n">infile2</span><span class="o">=</span><span class="s1">&#39;mesh2.nc&#39;</span><span class="p">,</span>
+            <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;merged_mesh.nc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Typically, it will only make sense to merge non-periodic meshes in this way.</p>
+<p>Later, perhaps during analysis or visualization, it can be useful to split
+apart the merged meshes.  This can be done with
+<a class="reference internal" href="generated/mpas_tools.split_grids.split_grids.html#mpas_tools.split_grids.split_grids" title="mpas_tools.split_grids.split_grids"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.split_grids.split_grids()</span></code></a></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">translate</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.split_grids</span> <span class="kn">import</span> <span class="n">split_grids</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+
+
+<span class="n">dsMesh1</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">dsMesh2</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">translate</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">20000.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh1</span><span class="p">,</span> <span class="s1">&#39;mesh1.nc&#39;</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="s1">&#39;mesh2.nc&#39;</span><span class="p">)</span>
+
+
+<span class="n">split_grids</span><span class="p">(</span><span class="n">infile</span><span class="o">=</span><span class="s1">&#39;merged_mesh.nc&#39;</span><span class="p">,</span> <span class="n">outfile1</span><span class="o">=</span><span class="s1">&#39;split_mesh1.nc&#39;</span><span class="p">,</span>
+            <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;split_mesh2.nc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Merging meshes can also be accomplished with the <code class="docutils literal notranslate"><span class="pre">merge_grids</span></code> command-line
+tool:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ merge_grids --help
+
+usage: merge_grids [-h] [-o FILENAME] FILENAME1 FILENAME2
+
+Tool to merge 2 MPAS non-contiguous meshes together into a single file
+
+positional arguments:
+  FILENAME1    File name for first mesh to merge
+  FILENAME2    File name for second mesh to merge
+
+optional arguments:
+  -h, --help   show this help message and exit
+  -o FILENAME  The merged mesh file
+</pre></div>
+</div>
+<p>Similarly, <code class="docutils literal notranslate"><span class="pre">split_grids</span></code> can be used to to split meshes:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ split_grids --help
+
+usage: split_grids [-h] [-1 FILENAME] [-2 FILENAME] [--nCells NCELLS]
+                   [--nEdges NEDGES] [--nVertices NVERTICES]
+                   [--maxEdges MAXEDGES1 MAXEDGES2]
+                   MESHFILE
+
+Tool to split 2 previously merged MPAS non-contiguous meshes into separate files.
+Typical usage is:
+    split_grids.py -1 outfile1.nc -2 outfile2.nc infile
+The optional arguments for nCells, nEdges, nVertices, and maxEdges should
+generally not be required as this information is saved in the combined mesh file
+as global attributes by the merge_grids.py script.
+
+positional arguments:
+  MESHFILE              Mesh file to split
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -1 FILENAME, --outfile1 FILENAME
+                        File name for first mesh output
+                        (default: mesh1.nc)
+  -2 FILENAME, --outfile2 FILENAME
+                        File name for second mesh output
+                        (default: mesh2.nc)
+  --nCells NCELLS       The number of cells in the first mesh
+                        (default: the value specified in MESHFILE global attribute merge_point)
+  --nEdges NEDGES       The number of edges in the first mesh
+                        (default: the value specified in MESHFILE global attribute merge_point)
+  --nVertices NVERTICES
+                        The number of vertices in the first mesh
+                        (default: the value specified in MESHFILE global attribute merge_point)
+  --maxEdges MAXEDGES1 MAXEDGES2
+                        The number of maxEdges in each mesh
+                        (default: the value specified in MESHFILE global attribute merge_point
+                              OR: will use MESHFILE maxEdges dimension and assume same for both)
+</pre></div>
+</div>
+</div>
+<div class="section" id="translation">
+<span id="mesh-translation"></span><h2>Translation<a class="headerlink" href="#translation" title="Permalink to this heading">¶</a></h2>
+<p>A planar mesh can be translated in x, y or both by calling
+<a class="reference internal" href="generated/mpas_tools.translate.translate.html#mpas_tools.translate.translate" title="mpas_tools.translate.translate"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.translate.translate()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">translate</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+
+<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">translate</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">2000.</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This creates a periodic, planar mesh and then translates it by 1 km in x and
+2 km in y.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>All the functions in the <code class="docutils literal notranslate"><span class="pre">mpas_tools.translate</span></code> module modify the mesh
+inplace, rather than returning a new <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> object.  This is
+in contrast to typical <code class="docutils literal notranslate"><span class="pre">xarray</span></code> functions and methods.</p>
+</div>
+<p>A mesh can be translated so that its center is at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">0.</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">0.</span></code> with
+the function <a class="reference internal" href="generated/mpas_tools.translate.center.html#mpas_tools.translate.center" title="mpas_tools.translate.center"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.translate.center()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">center</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+
+<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">center</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>A mesh can be translated so its center matches the center of another mesh by
+using <a class="reference internal" href="generated/mpas_tools.translate.center_on_mesh.html#mpas_tools.translate.center_on_mesh" title="mpas_tools.translate.center_on_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.translate.center_on_mesh()</span></code></a>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">center_on_mesh</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+
+<span class="n">dsMesh1</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">dsMesh2</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">2000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">center_on_mesh</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="n">dsMesh1</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In this example, the coordinates of <code class="docutils literal notranslate"><span class="pre">dsMesh2</span></code> are altered so its center
+matches that of <code class="docutils literal notranslate"><span class="pre">dsMesh1</span></code>.</p>
+<p>The functionality of all three of these functions is also available via the
+<code class="docutils literal notranslate"><span class="pre">translate_planar_grid</span></code> command-line tool:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ translate_planar_grid --help
+
+== Gathering information.  (Invoke with --help for more details. All arguments are optional)
+Usage: translate_planar_grid [options]
+
+This script translates the coordinate system of the planar MPAS mesh specified
+with the -f flag.  There are 3 possible methods to choose from: 1) shift the
+origin to the center of the domain 2) arbirary shift in x and/or y 3) shift to
+the center of the domain described in a separate file
+
+Options:
+  -h, --help            show this help message and exit
+  -f FILENAME, --file=FILENAME
+                        MPAS planar grid file name. [default: grid.nc]
+  -d FILENAME, --datafile=FILENAME
+                        data file name to which to match the domain center of.
+                        Uses xCell,yCell or, if those fields do not exist,
+                        will secondly try x1,y1 fields.
+  -x SHIFT_VALUE        user-specified shift in the x-direction. [default:
+                        0.0]
+  -y SHIFT_VALUE        user-specified shift in the y-direction. [default:
+                        0.0]
+  -c                    shift so origin is at center of domain [default:
+                        False]
+</pre></div>
+</div>
+</div>
+<div class="section" id="converting-between-mesh-formats">
+<h2>Converting Between Mesh Formats<a class="headerlink" href="#converting-between-mesh-formats" title="Permalink to this heading">¶</a></h2>
+<div class="section" id="msh-to-mpas-netcdf">
+<h3>MSH to MPAS NetCDF<a class="headerlink" href="#msh-to-mpas-netcdf" title="Permalink to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">jigsawpy</span></code> produces meshes in <code class="docutils literal notranslate"><span class="pre">.msh</span></code> format that need to be converted to
+<a class="reference external" href="https://www.unidata.ucar.edu/software/netcdf/">NetCDF</a> files for use by MPAS
+components.  A utility function
+<a class="reference internal" href="generated/mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html#mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf" title="mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf()</span></code></a> or the
+command-line utility <code class="docutils literal notranslate"><span class="pre">jigsaw_to_netcdf</span></code> are used for this purpose.</p>
+<p>In addition to the input <code class="docutils literal notranslate"><span class="pre">.msh</span></code> and output <code class="docutils literal notranslate"><span class="pre">.nc</span></code> files, the user must
+specify whether this is a spherical or planar mesh and, if it is spherical,
+provide the radius of the Earth in meters.</p>
+</div>
+<div class="section" id="triangle-to-mpas-netcdf">
+<h3>Triangle to MPAS NetCDF<a class="headerlink" href="#triangle-to-mpas-netcdf" title="Permalink to this heading">¶</a></h3>
+<p>Meshes in <a class="reference external" href="https://www.cs.cmu.edu/~quake/triangle.html">Triangle</a> format
+can be converted to MPAS NetCDF format using
+<a class="reference internal" href="generated/mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf.html#mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf" title="mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf()</span></code></a> or
+the <code class="docutils literal notranslate"><span class="pre">triangle_to_netcdf</span></code> command-line tool.</p>
+<p>The user supplies the names of input <code class="docutils literal notranslate"><span class="pre">.node</span></code> and <code class="docutils literal notranslate"><span class="pre">.ele</span></code> files and the
+name of an output MPAS mesh file.</p>
+</div>
+<div class="section" id="mpas-netcdf-to-triangle">
+<h3>MPAS NetCDF to Triangle<a class="headerlink" href="#mpas-netcdf-to-triangle" title="Permalink to this heading">¶</a></h3>
+<p>MPAS meshes in NetCDF format can be converted to <code class="docutils literal notranslate"><span class="pre">Triangle</span></code> format using
+<a class="reference internal" href="generated/mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle.html#mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle" title="mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.mpas_to_triangle.mpas_to_triangle()</span></code></a> or
+the <code class="docutils literal notranslate"><span class="pre">mpas_to_triangle</span></code> command-line tool.</p>
+<p>The user supplies the name of an input MPAS mesh file and the output prefix
+for the resulting Triangle <code class="docutils literal notranslate"><span class="pre">.node</span></code> and <code class="docutils literal notranslate"><span class="pre">.ele</span></code> files.</p>
+</div>
+<div class="section" id="mpas-netcdf-to-scrip">
+<h3>MPAS NetCDF to SCRIP<a class="headerlink" href="#mpas-netcdf-to-scrip" title="Permalink to this heading">¶</a></h3>
+<p>The function <a class="reference internal" href="generated/mpas_tools.scrip.from_mpas.scrip_from_mpas.html#mpas_tools.scrip.from_mpas.scrip_from_mpas" title="mpas_tools.scrip.from_mpas.scrip_from_mpas"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.scrip.from_mpas.scrip_from_mpas()</span></code></a> can be
+used to convert an MPAS mesh file in NetCDF format to
+<a class="reference external" href="http://www.earthsystemmodeling.org/esmf_releases/public/ESMF_5_2_0rp1/ESMF_refdoc/node3.html#SECTION03024000000000000000">SCRIP</a>
+format.  SCRIP files are typically used to create mapping files used to
+interpolate between meshes.</p>
+<p>A command-line tools is also available for this purpose:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ scrip_from_mpas --help
+== Gathering information.  (Invoke with --help for more details. All arguments are optional)
+Usage: scrip_from_mpas [options]
+
+This script takes an MPAS grid file and generates a SCRIP grid file.
+
+Options:
+  -h, --help            show this help message and exit
+  -m FILENAME, --mpas=FILENAME
+                        MPAS grid file name used as input. [default: grid.nc]
+  -s FILENAME, --scrip=FILENAME
+                        SCRIP grid file to output. [default: scrip.nc]
+  -l, --landice         If flag is on, landice masks will be computed and
+                        used.
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mesh_creation.html" class="btn btn-neutral float-left" title="Mesh Creation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="interpolation.html" class="btn btn-neutral float-right" title="Interpolation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

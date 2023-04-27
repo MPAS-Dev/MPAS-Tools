@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.seaice.mesh.write_2D_scripfile &mdash; mpas_tools 0.20.0 documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells" href="mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells.html" />
+    <link rel="prev" title="mpas_tools.seaice.mesh.write_scrip_file" href="mpas_tools.seaice.mesh.write_scrip_file.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+              <div class="version">
+                0.20.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#sea-ice-tools">Sea-ice Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.seaice.mask.extend_seaice_mask.html">mpas_tools.seaice.mask.extend_seaice_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.seaice.mesh.write_scrip_file.html">mpas_tools.seaice.mesh.write_scrip_file</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.seaice.mesh.write_2D_scripfile</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.seaice.mesh.write_2D_scripfile"><code class="docutils literal notranslate"><span class="pre">write_2D_scripfile()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells.html">mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices.html">mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.seaice.partition.gen_seaice_mesh_partition.html">mpas_tools.seaice.partition.gen_seaice_mesh_partition</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.seaice.partition.prepare_partitions.html">mpas_tools.seaice.partition.prepare_partitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.seaice.partition.create_partitions.html">mpas_tools.seaice.partition.create_partitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.seaice.regions.make_regions_file.html">mpas_tools.seaice.regions.make_regions_file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.seaice.regrid.regrid_to_other_mesh.html">mpas_tools.seaice.regrid.regrid_to_other_mesh</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.seaice.mesh.write_2D_scripfile</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/mpas_tools.seaice.mesh.write_2D_scripfile.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="mpas-tools-seaice-mesh-write-2d-scripfile">
+<h1>mpas_tools.seaice.mesh.write_2D_scripfile<a class="headerlink" href="#mpas-tools-seaice-mesh-write-2d-scripfile" title="Permalink to this heading">¶</a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="mpas_tools.seaice.mesh.write_2D_scripfile">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.seaice.mesh.</span></span><span class="sig-name descname"><span class="pre">write_2D_scripfile</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filenameScripOut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scripTitle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nColumns</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nRows</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latsCentre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonsCentre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latsVertex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonsVertex</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">degrees</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/seaice/mesh.html#write_2D_scripfile"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.seaice.mesh.write_2D_scripfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write a SCRIP file for the given 2D grid</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filenameScripOut</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The name of the resulting SCRIP file</p></li>
+<li><p><strong>scripTitle</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – A string to include as the <code class="docutils literal notranslate"><span class="pre">title</span></code> attribute in the SCRIP file</p></li>
+<li><p><strong>nColumns</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – The number of columns in the grid</p></li>
+<li><p><strong>nRows</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – The number of rows in the grid</p></li>
+<li><p><strong>latsCentre</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The latitude (in radians) of cell centers</p></li>
+<li><p><strong>lonsCentre</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The longitude (in radians) of cell centers</p></li>
+<li><p><strong>latsVertex</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The latitude (in radians) of cell vertices</p></li>
+<li><p><strong>lonsVertex</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The longitude (in radians) of cell vertices</p></li>
+<li><p><strong>degrees</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether the latitude and longitude variables are in degrees (as opposed
+to radians)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mpas_tools.seaice.mesh.write_scrip_file.html" class="btn btn-neutral float-left" title="mpas_tools.seaice.mesh.write_scrip_file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells.html" class="btn btn-neutral float-right" title="mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

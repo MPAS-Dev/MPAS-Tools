@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.scrip.from_mpas &mdash; mpas_tools 0.20.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+              <div class="version">
+                0.20.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.scrip.from_mpas</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.scrip.from_mpas</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Create a SCRIP file from an MPAS mesh.</span>
+<span class="c1"># See for details: http://www.earthsystemmodeling.org/esmf_releases/public/ESMF_5_2_0rp1/ESMF_refdoc/node3.html#SECTION03024000000000000000</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">netCDF4</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
+
+<div class="viewcode-block" id="scrip_from_mpas"><a class="viewcode-back" href="../../../generated/mpas_tools.scrip.from_mpas.scrip_from_mpas.html#mpas_tools.scrip.from_mpas.scrip_from_mpas">[docs]</a><span class="k">def</span> <span class="nf">scrip_from_mpas</span><span class="p">(</span><span class="n">mpasFile</span><span class="p">,</span> <span class="n">scripFile</span><span class="p">,</span> <span class="n">useLandIceMask</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a SCRIP file from an MPAS mesh</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mpasFile : str</span>
+<span class="sd">        The path to a NetCDF file with the MPAS mesh</span>
+
+<span class="sd">    scripFile : str</span>
+<span class="sd">        The path to the output SCRIP file</span>
+
+<span class="sd">    useLandIceMask : bool</span>
+<span class="sd">        Whether to use the landIceMask field for masking</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">useLandIceMask</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -- Landice Masks are enabled&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -- Landice Masks are disabled&quot;</span><span class="p">)</span>
+
+    <span class="c1"># make a space in stdout before further output</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">fin</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">mpasFile</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="c1"># This will clobber existing files</span>
+    <span class="n">fout</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">scripFile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Get info from input file</span>
+    <span class="n">latCell</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;latCell&#39;</span><span class="p">][:]</span>
+    <span class="n">lonCell</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lonCell&#39;</span><span class="p">][:]</span>
+    <span class="n">latVertex</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;latVertex&#39;</span><span class="p">][:]</span>
+    <span class="n">lonVertex</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lonVertex&#39;</span><span class="p">][:]</span>
+    <span class="n">verticesOnCell</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;verticesOnCell&#39;</span><span class="p">][:]</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">nEdgesOnCell</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;nEdgesOnCell&#39;</span><span class="p">][:]</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">])</span>
+    <span class="n">maxVertices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;maxEdges&#39;</span><span class="p">])</span>
+    <span class="n">areaCell</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;areaCell&#39;</span><span class="p">][:]</span>
+    <span class="n">sphereRadius</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">sphere_radius</span><span class="p">)</span>
+    <span class="n">on_a_sphere</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">fin</span><span class="o">.</span><span class="n">on_a_sphere</span><span class="p">)</span>
+
+    <span class="c1"># check the longitude convention to use positive values [0 2pi]</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)):</span>
+       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;lonCell is not in the desired range (0, 2pi)&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">lonVertex</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">lonVertex</span> <span class="o">&gt;</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)):</span>
+       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;lonVertex is not in the desired range (0, 2pi)&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">sphereRadius</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+       <span class="n">sphereRadius</span> <span class="o">=</span>  <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
+       <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -- WARNING: sphereRadius&lt;0 so setting sphereRadius = &quot;</span>
+             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">on_a_sphere</span> <span class="o">==</span> <span class="s2">&quot;NO&quot;</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -- WARNING: &#39;on_a_sphere&#39; attribute is &#39;NO&#39;, which means that &quot;</span>
+              <span class="s2">&quot;there may be some disagreement regarding area between the &quot;</span>
+              <span class="s2">&quot;planar (source) and spherical (target) mesh&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">useLandIceMask</span><span class="p">:</span>
+        <span class="n">landIceMask</span> <span class="o">=</span> <span class="n">fin</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;landIceMask&#39;</span><span class="p">][:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">landIceMask</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># Write to output file</span>
+    <span class="c1"># Dimensions</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;grid_size&quot;</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;grid_corners&quot;</span><span class="p">,</span> <span class="n">maxVertices</span><span class="p">)</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;grid_rank&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># Variables</span>
+    <span class="n">grid_center_lat</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;grid_center_lat&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span>
+                                          <span class="p">(</span><span class="s1">&#39;grid_size&#39;</span><span class="p">,))</span>
+    <span class="n">grid_center_lat</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;radians&#39;</span>
+    <span class="n">grid_center_lon</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;grid_center_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span>
+                                          <span class="p">(</span><span class="s1">&#39;grid_size&#39;</span><span class="p">,))</span>
+    <span class="n">grid_center_lon</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;radians&#39;</span>
+    <span class="n">grid_corner_lat</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;grid_corner_lat&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span>
+                                          <span class="p">(</span><span class="s1">&#39;grid_size&#39;</span><span class="p">,</span> <span class="s1">&#39;grid_corners&#39;</span><span class="p">))</span>
+    <span class="n">grid_corner_lat</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;radians&#39;</span>
+    <span class="n">grid_corner_lon</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;grid_corner_lon&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span>
+                                          <span class="p">(</span><span class="s1">&#39;grid_size&#39;</span><span class="p">,</span> <span class="s1">&#39;grid_corners&#39;</span><span class="p">))</span>
+    <span class="n">grid_corner_lon</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;radians&#39;</span>
+    <span class="n">grid_area</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;grid_area&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;grid_size&#39;</span><span class="p">,))</span>
+    <span class="n">grid_area</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;radian^2&#39;</span>
+    <span class="n">grid_imask</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;grid_imask&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;grid_size&#39;</span><span class="p">,))</span>
+    <span class="n">grid_imask</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;unitless&#39;</span>
+    <span class="n">grid_dims</span> <span class="o">=</span> <span class="n">fout</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;grid_dims&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;grid_rank&#39;</span><span class="p">,))</span>
+
+    <span class="n">grid_center_lat</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">latCell</span><span class="p">[:]</span>
+    <span class="n">grid_center_lon</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">lonCell</span><span class="p">[:]</span>
+    <span class="c1"># SCRIP uses square radians</span>
+    <span class="n">grid_area</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">areaCell</span><span class="p">[:]</span><span class="o">/</span><span class="p">(</span><span class="n">sphereRadius</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">grid_dims</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">nCells</span>
+
+    <span class="c1"># grid corners:</span>
+    <span class="n">grid_corner_lon_local</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxVertices</span><span class="p">))</span>
+    <span class="n">grid_corner_lat_local</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxVertices</span><span class="p">))</span>
+    <span class="n">cellIndices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nCells</span><span class="p">)</span>
+    <span class="n">lastValidVertex</span> <span class="o">=</span> <span class="n">verticesOnCell</span><span class="p">[</span><span class="n">cellIndices</span><span class="p">,</span> <span class="n">nEdgesOnCell</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">iVertex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxVertices</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">iVertex</span> <span class="o">&lt;</span> <span class="n">nEdgesOnCell</span>
+        <span class="n">grid_corner_lat_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">latVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]]</span>
+        <span class="n">grid_corner_lon_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">lonVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]]</span>
+
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">iVertex</span> <span class="o">&gt;=</span> <span class="n">nEdgesOnCell</span>
+        <span class="n">grid_corner_lat_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> <span class="n">latVertex</span><span class="p">[</span><span class="n">lastValidVertex</span><span class="p">[</span><span class="n">mask</span><span class="p">]]</span>
+        <span class="n">grid_corner_lon_local</span><span class="p">[</span><span class="n">mask</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> <span class="n">lonVertex</span><span class="p">[</span><span class="n">lastValidVertex</span><span class="p">[</span><span class="n">mask</span><span class="p">]]</span>
+
+    <span class="k">if</span> <span class="n">useLandIceMask</span><span class="p">:</span>
+        <span class="c1"># If useLandIceMask are enabled, mask out ocean under land ice.</span>
+        <span class="n">grid_imask</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">landIceMask</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># If landiceMasks are not enabled, don&#39;t mask anything out.</span>
+        <span class="n">grid_imask</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">grid_corner_lat</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">grid_corner_lat_local</span><span class="p">[:]</span>
+    <span class="n">grid_corner_lon</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">grid_corner_lon_local</span><span class="p">[:]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Input latCell min/max values (radians): </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">latCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">latCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Input lonCell min/max values (radians): </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">lonCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">lonCell</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculated grid_center_lat min/max values (radians): </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+         <span class="n">grid_center_lat</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">grid_center_lat</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculated grid_center_lon min/max values (radians): </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">grid_center_lon</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">grid_center_lon</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculated grid_area min/max values (sq radians): </span><span class="si">{}</span><span class="s2">, </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">grid_area</span><span class="p">[:]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">grid_area</span><span class="p">[:]</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>
+
+    <span class="n">fin</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="n">fout</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creation of SCRIP file is complete.&quot;</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== Gathering information.  (Invoke with --help for more details. All&quot;</span>
+          <span class="s2">&quot; arguments are optional)&quot;</span><span class="p">)</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">()</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;This script takes an MPAS grid file and generates &quot;</span> \
+                         <span class="s2">&quot;a SCRIP grid file.&quot;</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--mpas&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;mpasFile&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;MPAS grid file name used as input.&quot;</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="s2">&quot;grid.nc&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;FILENAME&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-s&quot;</span><span class="p">,</span> <span class="s2">&quot;--scrip&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;scripFile&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;SCRIP grid file to output.&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;scrip.nc&quot;</span><span class="p">,</span>
+                      <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;FILENAME&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_option</span><span class="p">(</span><span class="s2">&quot;-l&quot;</span><span class="p">,</span> <span class="s2">&quot;--landice&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;landiceMasks&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If flag is on, landice masks will be computed &quot;</span>
+                           <span class="s2">&quot;and used.&quot;</span><span class="p">,</span>
+                      <span class="n">action</span><span class="o">=</span><span class="s2">&quot;store_true&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">parser</span><span class="o">.</span><span class="n">option_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">option</span><span class="o">.</span><span class="n">default</span> <span class="o">!=</span> <span class="p">(</span><span class="s2">&quot;NO&quot;</span><span class="p">,</span> <span class="s2">&quot;DEFAULT&quot;</span><span class="p">):</span>
+            <span class="n">option</span><span class="o">.</span><span class="n">help</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot; &quot;</span> <span class="k">if</span> <span class="n">option</span><span class="o">.</span><span class="n">help</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;[default: </span><span class="si">%d</span><span class="s2">efault]&quot;</span>
+    <span class="n">options</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">mpasFile</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s1">&#39;Error: MPAS input grid file is required.  Specify with -m &#39;</span>
+                 <span class="s1">&#39;command line argument.&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">scripFile</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s1">&#39;Error: SCRIP output grid file is required.  Specify with -s &#39;</span>
+                 <span class="s1">&#39;command line argument.&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">landiceMasks</span><span class="p">:</span>
+        <span class="n">options</span><span class="o">.</span><span class="n">landiceMasks</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">scrip_from_mpas</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">mpasFile</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">scripFile</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">landiceMasks</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
