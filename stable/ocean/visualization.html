@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visualization &mdash; mpas_tools stable documentation</title>
+      <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+              <div class="version">
+                stable
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Visualization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/ocean/visualization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <div class="section" id="visualization">
+<span id="ocean-visualization"></span><h1>Visualization<a class="headerlink" href="#visualization" title="Permalink to this heading">¶</a></h1>
+<div class="section" id="plotting-ocean-transects">
+<span id="ocean-viz-transects"></span><h2>Plotting Ocean Transects<a class="headerlink" href="#plotting-ocean-transects" title="Permalink to this heading">¶</a></h2>
+<a class="reference internal image-reference" href="../_images/south_atlantic_temperature_transect.png"><img alt="../_images/south_atlantic_temperature_transect.png" class="align-center" src="../_images/south_atlantic_temperature_transect.png" style="width: 500px;" /></a>
+<p>The function <a class="reference internal" href="../generated/mpas_tools.ocean.viz.plot_ocean_transects.html#mpas_tools.ocean.viz.plot_ocean_transects" title="mpas_tools.ocean.viz.plot_ocean_transects"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.viz.plot_ocean_transects()</span></code></a> and the
+associated <code class="docutils literal notranslate"><span class="pre">plot_ocean_transects</span></code> command-line tool can be used to plot
+transects of various MPAS-Ocean variables.  The arguments to the command-line
+tool are:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ plot_ocean_transects --help
+usage: plot_ocean_transects [-h] -g GEOJSON_FILENAME [-m MESH_FILENAME] -f
+                            FILENAME [-v VARIABLE_LIST [VARIABLE_LIST ...]]
+                            [-c COLORMAP] [--flip]
+
+options:
+  -h, --help            show this help message and exit
+  -g GEOJSON_FILENAME, --geojson GEOJSON_FILENAME
+                        A geojson file with transects to plot
+  -m MESH_FILENAME, --mesh MESH_FILENAME
+                        An MPAS-Ocean mesh file.  If not specified, the MPAS-Ocean data file must contain the mesh.
+  -f FILENAME, --file FILENAME
+                        An MPAS-Ocean data file
+  -v VARIABLE_LIST [VARIABLE_LIST ...], --variable_list VARIABLE_LIST [VARIABLE_LIST ...]
+                        List of variables to plot.  All variables on cells in the data file is the default.
+  -c COLORMAP, --colormap COLORMAP
+                        A colormap to use for the plots, default depends on the field name.
+  --flip                Flip the x axis for all transects
+</pre></div>
+</div>
+<p>See <a class="reference external" href="https://github.com/MPAS-Dev/geometric_features/tree/main/geometric_data/ocean/transect">transects</a>
+from <code class="docutils literal notranslate"><span class="pre">geometric_features</span></code> for a examples of what a geojson transect might
+look like:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FeatureCollection&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;features&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">        </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Feature&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Drake Passage&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;object&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;transect&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;component&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ocean&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;author&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Mark Petersen, Xylar Asay-Davis, Milena Veneziani&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;geometry&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">                </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;LineString&quot;</span><span class="p">,</span>
+<span class="w">                </span><span class="nt">&quot;coordinates&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                    </span><span class="p">[</span>
+<span class="w">                        </span><span class="mf">-63.02</span><span class="p">,</span>
+<span class="w">                        </span><span class="mf">-65.46</span>
+<span class="w">                    </span><span class="p">],</span>
+<span class="w">                    </span><span class="p">[</span>
+<span class="w">                        </span><span class="mf">-63.81</span><span class="p">,</span>
+<span class="w">                        </span><span class="mf">-63.8</span>
+<span class="w">                    </span><span class="p">],</span>
+<span class="w">                    </span><span class="p">[</span>
+<span class="w">                        </span><span class="mf">-64.42</span><span class="p">,</span>
+<span class="w">                        </span><span class="mf">-62.02</span>
+<span class="w">                    </span><span class="p">],</span>
+<span class="w">                    </span><span class="p">[</span>
+<span class="w">                        </span><span class="mf">-65.04</span><span class="p">,</span>
+<span class="w">                        </span><span class="mf">-60.25</span>
+<span class="w">                    </span><span class="p">],</span>
+<span class="w">                    </span><span class="p">[</span>
+<span class="w">                        </span><span class="mf">-65.74</span><span class="p">,</span>
+<span class="w">                        </span><span class="mf">-58.28</span>
+<span class="w">                    </span><span class="p">],</span>
+<span class="w">                    </span><span class="p">[</span>
+<span class="w">                        </span><span class="mf">-66.37</span><span class="p">,</span>
+<span class="w">                        </span><span class="mf">-56.39</span>
+<span class="w">                    </span><span class="p">],</span>
+<span class="w">                    </span><span class="p">[</span>
+<span class="w">                        </span><span class="mf">-67.02</span><span class="p">,</span>
+<span class="w">                        </span><span class="mf">-54.44</span>
+<span class="w">                    </span><span class="p">]</span>
+<span class="w">                </span><span class="p">]</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">        </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Add more features to the <code class="docutils literal notranslate"><span class="pre">features</span></code> list to plot multiple transects at the
+same time.</p>
+<p>The MPAS-Ocean mesh file must including not just the horizontal mesh variables
+but also the vertical mesh variables (<code class="docutils literal notranslate"><span class="pre">minLevelCell</span></code>, <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code>,
+<code class="docutils literal notranslate"><span class="pre">layerThickness</span></code>, etc.)</p>
+<p>If you don’t specify the list of variables to plot, all variables with
+dimensions <code class="docutils literal notranslate"><span class="pre">nCells</span></code> and <code class="docutils literal notranslate"><span class="pre">nVertLevels</span></code> will be plotted.</p>
+<p>One way of customizing these visualizaitons is to make your own copy of
+<cite>transects.py &lt;https://github.com/MPAS-Dev/MPAS-Tools/blob/master/conda_package/mpas_tools/ocean/viz/transects.py&gt;</cite>
+and change <code class="docutils literal notranslate"><span class="pre">_plot_transect()</span></code> to suite your needs, (changing figure size, dpi,
+colorbar, etc.)</p>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mpas_tools.ocean.coastal_tools.smooth_coastline &mdash; mpas_tools stable documentation</title>
+  <title>mpas_tools.ocean.viz.plot_ocean_transects &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.ocean.coastal_tools.get_data_inside_box" href="mpas_tools.ocean.coastal_tools.get_data_inside_box.html" />
-    <link rel="prev" title="mpas_tools.ocean.coastal_tools.CPP_projection" href="mpas_tools.ocean.coastal_tools.CPP_projection.html" /> 
+    <link rel="next" title="mpas_tools.ocean.viz.add_inset" href="mpas_tools.ocean.viz.add_inset.html" />
+    <link rel="prev" title="mpas_tools.ocean.transects.get_outline_segments" href="mpas_tools.ocean.transects.get_outline_segments.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -98,10 +98,7 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.compute_cell_width.html">mpas_tools.ocean.coastal_tools.compute_cell_width</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.save_matfile.html">mpas_tools.ocean.coastal_tools.save_matfile</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.CPP_projection.html">mpas_tools.ocean.coastal_tools.CPP_projection</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.coastal_tools.smooth_coastline</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.coastal_tools.smooth_coastline"><code class="docutils literal notranslate"><span class="pre">smooth_coastline()</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.smooth_coastline.html">mpas_tools.ocean.coastal_tools.smooth_coastline</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_data_inside_box.html">mpas_tools.ocean.coastal_tools.get_data_inside_box</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_indices_inside_quad.html">mpas_tools.ocean.coastal_tools.get_indices_inside_quad</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates.html">mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates</a></li>
@@ -122,7 +119,10 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html">mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.transects.get_outline_segments.html">mpas_tools.ocean.transects.get_outline_segments</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.viz.plot_ocean_transects.html">mpas_tools.ocean.viz.plot_ocean_transects</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.viz.plot_ocean_transects</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.viz.plot_ocean_transects"><code class="docutils literal notranslate"><span class="pre">plot_ocean_transects()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.viz.add_inset.html">mpas_tools.ocean.viz.add_inset</a></li>
 </ul>
 </li>
@@ -159,9 +159,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
-      <li class="breadcrumb-item active">mpas_tools.ocean.coastal_tools.smooth_coastline</li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.viz.plot_ocean_transects</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/generated/mpas_tools.ocean.coastal_tools.smooth_coastline.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/generated/mpas_tools.ocean.viz.plot_ocean_transects.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -169,12 +169,27 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="mpas-tools-ocean-coastal-tools-smooth-coastline">
-<h1>mpas_tools.ocean.coastal_tools.smooth_coastline<a class="headerlink" href="#mpas-tools-ocean-coastal-tools-smooth-coastline" title="Permalink to this heading">¶</a></h1>
+  <div class="section" id="mpas-tools-ocean-viz-plot-ocean-transects">
+<h1>mpas_tools.ocean.viz.plot_ocean_transects<a class="headerlink" href="#mpas-tools-ocean-viz-plot-ocean-transects" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="mpas_tools.ocean.coastal_tools.smooth_coastline">
-<span class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.coastal_tools.</span></span><span class="sig-name descname"><span class="pre">smooth_coastline</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">window</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/coastal_tools.html#smooth_coastline"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.coastal_tools.smooth_coastline" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="mpas_tools.ocean.viz.plot_ocean_transects">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.viz.</span></span><span class="sig-name descname"><span class="pre">plot_ocean_transects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ds_mesh</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variable_list</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flip</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/viz/transects.html#plot_ocean_transects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.viz.plot_ocean_transects" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot images of the given variables on the given transects.  One image
+named <code class="docutils literal notranslate"><span class="pre">&lt;transect_name&gt;_&lt;variable_name&gt;.png</span></code> will be produced in the
+current directory for each transect and variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fc</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.2.0)"><em>geometric_features.FeatureCollection</em></a>) – The transects to plot</p></li>
+<li><p><strong>ds</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.4.3.dev0)"><em>xarray.Dataset</em></a>) – The MPAS-Ocean dataset to plot</p></li>
+<li><p><strong>ds_mesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.4.3.dev0)"><em>xarray.Dataset</em></a><em>, </em><em>optional</em>) – The MPAS-Ocean mesh to use for plotting, the same as <code class="docutils literal notranslate"><span class="pre">ds</span></code> by default</p></li>
+<li><p><strong>variable_list</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em> of </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – The variables to plot</p></li>
+<li><p><strong>cmap</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – The name of a colormap to use</p></li>
+<li><p><strong>flip</strong> (<em>book</em><em>, </em><em>optional</em>) – Whether to flip the x axes of all transect plot</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 </div>
 
@@ -182,8 +197,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="mpas_tools.ocean.coastal_tools.CPP_projection.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.coastal_tools.CPP_projection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mpas_tools.ocean.coastal_tools.get_data_inside_box.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.coastal_tools.get_data_inside_box" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mpas_tools.ocean.transects.get_outline_segments.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.transects.get_outline_segments" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.ocean.viz.add_inset.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.viz.add_inset" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>
