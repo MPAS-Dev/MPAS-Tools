@@ -94,4 +94,5 @@ setup(name='mpas_tools',
                      'compute_lon_lat_region_masks = mpas_tools.mesh.mask:entry_point_compute_lon_lat_region_masks',
                      'compute_projection_region_masks = mpas_tools.mesh.mask:entry_point_compute_projection_region_masks',
                      'prepare_seaice_partitions = mpas_tools.seaice.partition:prepare_partitions',
-                     'create_seaice_partitions = mpas_tools.seaice.partition:create_partitions']})
+                     'create_seaice_partitions = mpas_tools.seaice.partition:create_partitions',
+                     'simple_seaice_partitions = mpas_tools.seaice.partition:simple_partitions']})
