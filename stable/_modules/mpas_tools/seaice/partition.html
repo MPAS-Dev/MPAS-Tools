@@ -120,6 +120,7 @@
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">argparse</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">import</span> <span class="nn">glob</span>
 
 <span class="kn">from</span> <span class="nn">.regrid</span> <span class="kn">import</span> <span class="n">regrid_to_other_mesh</span>
 <span class="kn">from</span> <span class="nn">.mask</span> <span class="kn">import</span> <span class="n">extend_seaice_mask</span>
@@ -434,6 +435,121 @@
                               <span class="n">args</span><span class="o">.</span><span class="n">mpasCullerLocation</span><span class="p">,</span> <span class="n">outputPrefix</span><span class="p">,</span>
                               <span class="n">args</span><span class="o">.</span><span class="n">plotting</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">metis</span><span class="p">,</span>
                               <span class="n">cullEquatorialRegion</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">simple_partitions</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An entry point for creating sea-ice partitions on LCRC (Anvil and</span>
+<span class="sd">    Chrysalis)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="s1">&#39;/lcrc/group/e3sm/public_html/mpas_standalonedata/&#39;</span> \
+               <span class="s1">&#39;mpas-seaice/partition&#39;</span>
+
+    <span class="c1"># parsing input</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Create sea-ice partitions on LCRC.&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--mesh&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;meshFilename&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;MPAS-Seaice mesh file.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="s1">&#39;--prefix&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outputPrefix&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;prefix for output partition filenames.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="s1">&#39;--nprocs&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;nProcsArray&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list of the number of processors to create partition for.&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-d&#39;</span><span class="p">,</span> <span class="s1">&#39;--datadir&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;dataDir&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">data_dir</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Directory with seaice_QU60km_polar.nc and &#39;</span>
+             <span class="s1">&#39;icePresent_QU60km_polar.nc.&#39;</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">meshFilenameDst</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">meshFilename</span><span class="p">)</span>
+
+    <span class="n">tmpdir</span> <span class="o">=</span> <span class="s1">&#39;tmp_seaice_part_dir&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+
+    <span class="c1"># make a local link to the mesh file</span>
+    <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">meshFilenameDst</span><span class="p">)</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ln&#39;</span><span class="p">,</span> <span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="n">meshFilenameDst</span><span class="p">,</span> <span class="n">basename</span><span class="p">]</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">meshFilenameDst</span> <span class="o">=</span> <span class="n">basename</span>
+
+    <span class="c1"># 1) Regrid the ice presence from the input data mesh to the grid of choice</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Regrid to desired mesh...&quot;</span><span class="p">)</span>
+    <span class="n">filenameOut</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid.nc&quot;</span>
+
+    <span class="n">meshFilenameSrc</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;seaice_QU60km_polar.nc&#39;</span><span class="p">)</span>
+    <span class="n">filenameData</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;icePresent_QU60km_polar.nc&#39;</span><span class="p">)</span>
+
+    <span class="n">regrid_to_other_mesh</span><span class="p">(</span>
+        <span class="n">meshFilenameSrc</span><span class="o">=</span><span class="n">meshFilenameSrc</span><span class="p">,</span>
+        <span class="n">filenameData</span><span class="o">=</span><span class="n">filenameData</span><span class="p">,</span>
+        <span class="n">meshFilenameDst</span><span class="o">=</span><span class="n">meshFilenameDst</span><span class="p">,</span>
+        <span class="n">filenameOut</span><span class="o">=</span><span class="n">filenameOut</span><span class="p">,</span>
+        <span class="n">generateWeights</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">weightsFilename</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># 2) create icePresence variable</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;fix_regrid_output...&quot;</span><span class="p">)</span>
+
+    <span class="n">inputFile</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid.nc&quot;</span>
+    <span class="n">outputFile</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid_modify.nc&quot;</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s2">&quot;fix_regrid_output.exe&quot;</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> <span class="n">meshFilenameDst</span><span class="p">,</span>
+                     <span class="n">outputFile</span><span class="p">])</span>
+
+    <span class="c1"># 3) create variable icePresenceExtended</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;extend_seaice_mask...&quot;</span><span class="p">)</span>
+    <span class="n">filenamePresence</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid_modify.nc&quot;</span>
+    <span class="n">extend_seaice_mask</span><span class="p">(</span><span class="n">meshFilenameDst</span><span class="p">,</span> <span class="n">filenamePresence</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># 4) Make the regions file from the icePresenceExtended variable</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;make_regions_file...&quot;</span><span class="p">)</span>
+    <span class="n">filenameIcePresent</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid_modify.nc&quot;</span>
+    <span class="n">filenameOut</span> <span class="o">=</span> <span class="s2">&quot;regions.nc&quot;</span>
+    <span class="n">make_regions_file</span><span class="p">(</span><span class="n">filenameIcePresent</span><span class="o">=</span><span class="n">filenameIcePresent</span><span class="p">,</span>
+                      <span class="n">filenameMesh</span><span class="o">=</span><span class="n">meshFilenameDst</span><span class="p">,</span>
+                      <span class="n">regionType</span><span class="o">=</span><span class="s2">&quot;two_region_eq&quot;</span><span class="p">,</span>
+                      <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;icePresenceExtended&quot;</span><span class="p">,</span>
+                      <span class="n">limit</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                      <span class="n">filenameOut</span><span class="o">=</span><span class="n">filenameOut</span><span class="p">)</span>
+
+    <span class="n">nProcsArray</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nProcsArray</span>
+
+    <span class="c1"># create partitions</span>
+    <span class="n">regionFilename</span> <span class="o">=</span> <span class="s2">&quot;regions.nc&quot;</span>
+    <span class="n">outputPrefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cwd</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">outputPrefix</span><span class="p">)</span>
+
+    <span class="n">gen_seaice_mesh_partition</span><span class="p">(</span><span class="n">meshFilename</span><span class="o">=</span><span class="n">meshFilenameDst</span><span class="p">,</span>
+                              <span class="n">regionFilename</span><span class="o">=</span><span class="n">regionFilename</span><span class="p">,</span>
+                              <span class="n">nProcsArray</span><span class="o">=</span><span class="n">nProcsArray</span><span class="p">,</span>
+                              <span class="n">mpasCullerLocation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">outputPrefix</span><span class="o">=</span><span class="n">outputPrefix</span><span class="p">,</span>
+                              <span class="n">plotting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">metis</span><span class="o">=</span><span class="s2">&quot;gpmetis&quot;</span><span class="p">,</span>
+                              <span class="n">cullEquatorialRegion</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">outputPrefix</span><span class="si">}</span><span class="s1">*&#39;</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;chmod&#39;</span><span class="p">,</span> <span class="s1">&#39;ug+rw&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">]</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;chmod&#39;</span><span class="p">,</span> <span class="s1">&#39;o+r&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">]</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
 
 
 <span class="c1"># ---------------------------------------------------------------------</span>
