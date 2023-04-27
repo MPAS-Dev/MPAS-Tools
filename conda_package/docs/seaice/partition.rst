@@ -149,6 +149,55 @@ line, in a file. You can optionally save a NetCDF file with partition
 information ``partition_diag.nc``, which will contain a ``partition_{nProcs}``
 field for each number of processors requested.
 
+A simplified tool, primarily intended for use on LCRC machines Anvil and
+Chrysalis, has only a few arguments:
+
+.. code-block:: none
+
+    $ simple_seaice_partitions --help
+    usage: simple_seaice_partitions [-h] -m MESHFILENAME -p OUTPUTPREFIX -n
+                                    [NPROCSARRAY ...] [-d DATADIR]
+
+    Create sea-ice partitions on LCRC.
+
+    options:
+      -h, --help            show this help message and exit
+      -m MESHFILENAME, --mesh MESHFILENAME
+                            MPAS-Seaice mesh file.
+      -p OUTPUTPREFIX, --prefix OUTPUTPREFIX
+                            prefix for output partition filenames.
+      -n [NPROCSARRAY ...], --nprocs [NPROCSARRAY ...]
+                            list of the number of processors to create partition
+                            for.
+      -d DATADIR, --datadir DATADIR
+                            Directory with seaice_QU60km_polar.nc and
+                            icePresent_QU60km_polar.nc.
+
+The mesh file is any file that contains the MPAS-Seaice mesh.  Some meshes
+are available in `inputdata/share/meshes/mpas/sea-ice` and also each
+MPAS-Seaice initial condition in `inputdata/ice/mpas-seaice/<mesh_name>`
+contains the MPAS mesh.  Which specific initial condition you choose should
+not matter because the mesh should be identical.
+
+The output prefix can be an absolute or relative path prefix for the graph
+partition file to be created.  Typically, this will be something like
+``partitions/mpas-seaice.graph.info.230313``.  It should end in a date that
+matches other existing partition files (i.e. it can't typically be today's
+date or E3SM won't find the new partition file) and should not contain the
+``.part.<task_count>`` suffix.
+
+You can provide several task counts with ``-n`` for efficiency.  There is a
+significant overhead in calling the tool multiple times for different task
+counts.
+
+Here is an example:
+
+.. code-block:: bash
+
+    cd /lcrc/group/e3sm/public_html/inputdata/ice/mpas-seaice/WC14to60E2r3
+    simple_seaice_partitions -m seaice.WC14to60E2r3.210210.nc -p partitions/mpas-seaice.graph.info.230313 -n 468
+
+
 Graph partition function
 ------------------------
 
