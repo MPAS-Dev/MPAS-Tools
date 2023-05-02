@@ -381,6 +381,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         print(f"WARNING: Found {len(ind)} values of totalFloatingBasalMassBal<-1.0e18")
         bmbFlt[ind] = np.nan
     cfx = data.variables['totalCalvingFlux'][:]
+    fmfx = data.variables['totalFaceMeltingFlux'][:]
     gfx = data.variables['groundingLineFlux'][:]
 
     # initialize 1D variables that will store data value on the
@@ -394,6 +395,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     bmb_avg = np.zeros(nt_flux) * np.nan
     bmbFlt_avg = np.zeros(nt_flux) * np.nan
     cfx_avg = np.zeros(nt_flux) * np.nan
+    cfmfx_avg = np.zeros(nt_flux) * np.nan
     gfx_avg = np.zeros(nt_flux) * np.nan
     days_min = np.zeros(nt_flux) * np.nan
     days_max = np.zeros(nt_flux) * np.nan
@@ -419,6 +421,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         bmbi = bmb[ind_avg]
         bmbFlti = bmbFlt[ind_avg]
         cfxi = cfx[ind_avg]
+        cfmfxi = cfx[ind_avg] + fmfx[ind_avg]
         gfxi = gfx[ind_avg]
         dti  = dt[ind_avg]
 
@@ -427,6 +430,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         bmb_avg[i] = np.nansum(bmbi * dti) / np.nansum(dti)
         bmbFlt_avg[i] = np.nansum(bmbFlti * dti) / np.nansum(dti)
         cfx_avg[i] = np.nansum(cfxi * dti) / np.nansum(dti)
+        cfmfx_avg[i] = np.nansum(cfmfxi * dti) / np.nansum(dti)
         gfx_avg[i] = np.nansum(gfxi * dti) / np.nansum(dti)
         days_min[i] = (years_flux[i] - refYear) * 365.0
         days_max[i] = (years_flux[i] + 1.0 - refYear) * 365.0
@@ -620,7 +624,29 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     data_scalar.close()
 
     # -------------- tendlifmassbf: this is a flux var
-        # this variable (Total calving and ice front melting front is not calculated in MALI) ??
+    data_scalar = Dataset(f'{output_path}/tendlifmassbf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
+    data_scalar.createDimension('time', nt_flux)
+    tendlicalvfValues = data_scalar.createVariable('tendlifmassbf', 'd', ('time'))
+    timeValues = data_scalar.createVariable('time', 'd', ('time'))
+    data_scalar.createDimension('bnds', 2)
+    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
+    for i in range(nt_flux):
+        tendlicalvfValues[i] = -cfmfx_avg[i] / 31536000
+        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
+        timebndsValues[i, 0] = days_min[i]
+        timebndsValues[i, 1] = days_max[i]
+    timeValues.units = f'days since {simulationStartDate}'
+    timeValues.calendar = 'noleap'
+    timeValues.standard_name = 'time'
+    timeValues.long_name = 'time'
+    tendlicalvfValues.standard_name = 'tendency_of_land_ice_mass_due_to_calving_and_ice_front_melting'
+    tendlicalvfValues.units = 'kg s-1'
+    data_scalar.AUTHORS= AUTHOR_STR
+    data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
+    data_scalar.GROUP = 'Los Alamos National Laboratory'
+    data_scalar.VARIABLE = 'Total calving and ice front melting flux'
+    data_scalar.DATE = DATE_STR
+    data_scalar.close()
 
     # -------------- tendligroundf: this is a flux var
     data_scalar = Dataset(f'{output_path}/tendligroundf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
