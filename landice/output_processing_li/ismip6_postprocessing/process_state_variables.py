@@ -300,10 +300,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
     DATE_STR = date.today().strftime("%d-%b-%Y")
 
-    # make a copy of the original globalStats file
-    shutil.copy(global_stats_file, "copy_globalStats.nc")
-
-    data = Dataset(global_stats_file, 'r+')
+    data = Dataset(global_stats_file, 'r')
     xtime = data.variables['xtime'][:, :]
     daysSinceStart = data.variables['daysSinceStart'][:]
     dt = data.variables['deltat'][:]
@@ -642,4 +639,3 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     data_scalar.close()
 
     data.close()
-    os.remove("copy_globalStats.nc")
