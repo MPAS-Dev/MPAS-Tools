@@ -49,7 +49,7 @@ def main():
         nTime = file_in.dims['Time']
         nCells = file_in.dims['nCells']
         nVertLevels = file_in.dims['nVertLevels']
-        floating_iceMask = (cellMask[:, :] & 4) / 4 * (cellMask[:, :] & 2) / 2  # floating and dynamic
+        floating_iceMask = (cellMask[:, :] & 4) // 4
         seaLevel = 0.0
         rhoi = 910.0
         rhoo = 1028.0
@@ -69,30 +69,29 @@ def main():
             layerInterfaceFractions[k] = 0.5 * (layerThicknessFractions[k-1]
                                          + layerThicknessFractions[k])
         layerInterfaceFractions[nVertLevels] = 0.5 * layerThicknessFractions[nVertLevels-1]
-        
-        for i in range(nTime):
-            for j in range(nCells):
-                # calculate lower and upper surface elevation
-                if (cellMask[i,j] & 4) // 4 == 1: # floating ice
-                    lowerSfc[i,j] = seaLevel - thickness[i,j] * (rhoi / rhoo)
-                else: 
-                    lowerSfc[i,j] = bedTopography[i,j]
-            
-                upperSfc[i,j] = lowerSfc[i,j] + thickness[i,j]
-             
-                # calculate surface temperature (unit in Kelvin)
-                sfcTemp[i,j] = np.minimum(273.15, sfcAirTemp[i,j]) # 0 celsius = 273 Kelvin
+        print("layerThicknessFractions:", layerThicknessFractions[:].data)
+        print("layerInterfaceFractions:", layerInterfaceFractions)
 
-                # calculate vertical mean velocity
-                xvelmean[i,j] = np.sum(uReconstructX[i,j,:] * layerInterfaceFractions[:])
-                yvelmean[i,j] = np.sum(uReconstructY[i,j,:] * layerInterfaceFractions[:])
-        
+        print(f'nTime={nTime}, nCells={nCells}')
+        for i in range(nTime):
+            # calculate surface temperature (unit in Kelvin)
+            sfcTemp[i,:] = np.minimum(273.15, sfcAirTemp[i,:]) # 0 celsius = 273 Kelvin
+            print('surfaceTemperature processed')
+
+            lowerSfc[i,:] = np.where(floating_iceMask, seaLevel - thickness[i,:] * (rhoi / rhoo), bedTopography[i,:])
+            upperSfc[i,:] = lowerSfc[i,:] + thickness[i,:]
+            print('lower/upperSurface processed')
+
+            xvelmean[i,:] = np.sum(uReconstructX[i,:,:] * layerInterfaceFractions[:], axis=1)
+            yvelmean[i,:] = np.sum(uReconstructY[i,:,:] * layerInterfaceFractions[:], axis=1)
+            print('x/yvelmean processed')
+
         file_in_copy['lowerSurface'] = (['Time', 'nCells'], lowerSfc)
         file_in_copy['upperSurface'] = (['Time', 'nCells'], upperSfc)
         file_in_copy['surfaceTemperature'] = (['Time', 'nCells'], sfcTemp)
         file_in_copy['xvelmean'] = (['Time', 'nCells'], xvelmean)
         file_in_copy['yvelmean'] = (['Time', 'nCells'], yvelmean)
-        
+
         print("\n--- writing out to a new file ---")
         # save/write out the new file
         # define the path to which the output (processed) files will be saved
@@ -103,13 +102,13 @@ def main():
         
         if not os.path.isdir(output_path):
             os.makedirs(output_path)
-        
+
         print(f"file output path: {output_path}")
         file_out_path = os.path.join(output_path, args.file_out)
-        file_in_copy.to_netcdf(file_out_path, mode='a')
+        file_in_copy.to_netcdf(file_out_path, mode='w')
         file_in.close()
         
-        print("\n--- process compleate! ---")
+        print("\n--- process complete! ---")
 
 if __name__ == "__main__":
     main()
