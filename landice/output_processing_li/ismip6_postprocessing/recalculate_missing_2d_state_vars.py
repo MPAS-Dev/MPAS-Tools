@@ -41,7 +41,7 @@ def main():
         # calculate mising fields for the missing time level
         cellMask = file_in['cellMask'][:, :]
         thickness = file_in['thickness'][:,:]
-        bedTopography = file_in['thickness'][:,:]
+        bedTopography = file_in['bedTopography'][:,:]
         sfcAirTemp = file_in['surfaceAirTemperature'][:,:]
         uReconstructX = file_in['uReconstructX'][:,:,:]
         uReconstructY = file_in['uReconstructY'][:,:,:]
