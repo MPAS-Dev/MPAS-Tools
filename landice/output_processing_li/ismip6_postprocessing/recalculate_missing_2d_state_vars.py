@@ -43,8 +43,8 @@ def main():
         thickness = file_in['thickness'][:,:]
         bedTopography = file_in['thickness'][:,:]
         sfcAirTemp = file_in['surfaceAirTemperature'][:,:]
-        uReconstructX = file_in['uReconstructX'][:,:]
-        uReconstructY = file_in['uReconstructY'][:,:]
+        uReconstructX = file_in['uReconstructX'][:,:,:]
+        uReconstructY = file_in['uReconstructY'][:,:,:]
         layerThicknessFractions = file_in['layerThicknessFractions']
         nTime = file_in.dims['Time']
         nCells = file_in.dims['nCells']
@@ -84,8 +84,8 @@ def main():
                 sfcTemp[i,j] = np.minimum(273.15, sfcAirTemp[i,j]) # 0 celsius = 273 Kelvin
 
                 # calculate vertical mean velocity
-                xvelmean[i,j] = np.sum(uReconstructX[i,j] * layerInterfaceFractions[:])
-                yvelmean[i,j] = np.sum(uReconstructY[i,j] * layerInterfaceFractions[:])
+                xvelmean[i,j] = np.sum(uReconstructX[i,j,:] * layerInterfaceFractions[:])
+                yvelmean[i,j] = np.sum(uReconstructY[i,j,:] * layerInterfaceFractions[:])
         
         file_in_copy['lowerSurface'] = (['Time', 'nCells'], lowerSfc)
         file_in_copy['upperSurface'] = (['Time', 'nCells'], upperSfc)
