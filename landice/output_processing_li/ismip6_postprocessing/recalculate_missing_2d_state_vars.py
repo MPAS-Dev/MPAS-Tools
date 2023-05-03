@@ -21,6 +21,10 @@ def main():
     parser.add_argument("-f", "--file", dest="file_in",
                         required=True,
                         help="restart file to be read in")
+    parser.add_argument("-f_state", dest="file_state_in",
+                        required=True,
+                        help="output_state file with which the resulting"
+                        "restart file will be concatenaed")
     parser.add_argument("-o", "--output_file", dest="file_out",
                         required=True,
                         help="output file name")
@@ -33,11 +37,13 @@ def main():
     if args.file_in is None:
         print("--- restart file is not provided. Aborting... ---")
     else:
-        print("\n--- Reading in/copying the restart file ---")
+        print("\n--- Reading in the restart and output state files ---")
 
         file_in = xr.open_dataset(args.file_in, engine="netcdf4", decode_cf=False)
         file_in_copy = file_in.copy(deep=True)
-        
+        file_state_in = xr.open_dataset(args.file_state_in,
+                                        engine="netcdf4", decode_cf=False)
+
         # calculate mising fields for the missing time level
         cellMask = file_in['cellMask'][:, :]
         thickness = file_in['thickness'][:,:]
@@ -91,6 +97,26 @@ def main():
         file_in_copy['surfaceTemperature'] = (['Time', 'nCells'], sfcTemp)
         file_in_copy['xvelmean'] = (['Time', 'nCells'], xvelmean)
         file_in_copy['yvelmean'] = (['Time', 'nCells'], yvelmean)
+
+        print("\n--- copying over variables from the output state file ---")
+        var_list = file_state_in.variables
+        for var in var_list:
+            var_check = var in file_in_copy.variables
+            if not var_check:
+                if (len(file_state_in[var].dims) == 1):
+                    file_in_copy[var] = file_state_in[var][0]
+                    print(f"variable '{var}' copied to the new file from the state file")
+                elif (len(file_state_in[var].dims) == 2):
+                    file_in_copy[var] = file_state_in[var][0,:]
+                    print(f"variable '{var}' copied to the new file from the state file")
+
+        print("\n--- dropping variables that are not in the output state file ---")
+        var_list = file_in_copy.variables
+        for var in var_list:
+            var_check = var in file_state_in.variables
+            if not var_check:
+                file_in_copy = file_in_copy.drop(var)
+                print(f"variable '{var}' dropped from the new file")
 
         print("\n--- writing out to a new file ---")
         # save/write out the new file
