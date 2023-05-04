@@ -52,6 +52,7 @@ def main():
         xtime = file_in['xtime']
         xtimeStr = xtime.data.tobytes().decode()  # convert to str
         xtime2 = xr.DataArray(np.array([xtimeStr], dtype = np.dtype(('S', 64))), dims = ['Time'])  # convert back to char array
+        # followed example here: https://github.com/pydata/xarray/issues/3407
 
         floating_iceMask = (cellMask[:, :] & 4) // 4
         seaLevel = 0.0
@@ -114,6 +115,7 @@ def main():
             }
         dataOut = xr.Dataset(data_vars=out_data_vars)  # create xarray dataset object
         dataOut.xtime.encoding.update({"char_dim_name": "StrLen"})  # another hacky thing to make xarray handle xtime correctly
+        # learned this from: https://github.com/pydata/xarray/issues/2895
 
         print("\n--- copying over unmodified variables from the restart file ---")
         for var in ['thickness', 'uReconstructX', 'uReconstructY', 'bedTopography',
