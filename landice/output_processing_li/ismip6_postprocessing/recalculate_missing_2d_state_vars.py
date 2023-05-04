@@ -143,7 +143,7 @@ def main():
 
         print(f"file output path: {output_path}")
         file_out_path = os.path.join(output_path, args.file_out)
-        dataOut.to_netcdf(file_out_path, mode='w')
+        dataOut.to_netcdf(file_out_path, mode='w', unlimited_dims=['Time'])
         file_in.close()
         
         print("\n--- process complete! ---")
