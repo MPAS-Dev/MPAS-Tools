@@ -7,7 +7,6 @@ missing time level and writes them to an updated restart file.
 """
 
 import argparse
-from subprocess import check_call
 import os
 import shutil
 import xarray as xr
@@ -21,10 +20,6 @@ def main():
     parser.add_argument("-f", "--file", dest="file_in",
                         required=True,
                         help="restart file to be read in")
-    parser.add_argument("-f_state", dest="file_state_in",
-                        required=True,
-                        help="output_state file with which the resulting"
-                        "restart file will be concatenaed")
     parser.add_argument("-o", "--output_file", dest="file_out",
                         required=True,
                         help="output file name")
@@ -39,12 +34,9 @@ def main():
     else:
         print("\n--- Reading in the restart and output state files ---")
 
-        file_in = xr.open_dataset(args.file_in, engine="netcdf4", decode_cf=False)
-        file_in_copy = file_in.copy(deep=True)
-        file_state_in = xr.open_dataset(args.file_state_in,
-                                        engine="netcdf4", decode_cf=False)
+        file_in = xr.open_dataset(args.file_in, decode_times=False, decode_cf=False)
 
-        # calculate mising fields for the missing time level
+        # get needed info from restart file
         cellMask = file_in['cellMask'][:, :]
         thickness = file_in['thickness'][:,:]
         bedTopography = file_in['bedTopography'][:,:]
@@ -55,17 +47,31 @@ def main():
         nTime = file_in.dims['Time']
         nCells = file_in.dims['nCells']
         nVertLevels = file_in.dims['nVertLevels']
+
+        # xtime needs some massaging for xarray not to mangle it
+        xtime = file_in['xtime']
+        xtimeStr = xtime.data.tobytes().decode()  # convert to str
+        xtime2 = xr.DataArray(np.array([xtimeStr], dtype = np.dtype(('S', 64))), dims = ['Time'])  # convert back to char array
+
         floating_iceMask = (cellMask[:, :] & 4) // 4
         seaLevel = 0.0
         rhoi = 910.0
         rhoo = 1028.0
-        
+
+        print(f'nTime={nTime}, nCells={nCells}')
+
         layerInterfaceFractions = np.zeros(nVertLevels+1, dtype=float)
         lowerSfc = np.zeros([nTime, nCells], dtype=float)
-        upperSfc = np.zeros([nTime, nCells], dtype=float) 
-        sfcTemp = np.zeros([nTime, nCells], dtype=float) 
-        xvelmean = np.zeros([nTime, nCells], dtype=float) 
-        yvelmean = np.zeros([nTime, nCells], dtype=float) 
+        upperSfc = np.zeros([nTime, nCells], dtype=float)
+        sfcTemp = np.zeros([nTime, nCells], dtype=float)
+        xvelmean = np.zeros([nTime, nCells], dtype=float)
+        yvelmean = np.zeros([nTime, nCells], dtype=float)
+        # the following need to be in the file so ncrcat will work but processing won't use
+        # values, so can leave as zeros
+        surfaceSpeed = np.zeros([nTime, nCells], dtype=float)
+        vonMisesStress = np.zeros([nTime, nCells], dtype=float)
+        deltat = np.zeros([nTime,], dtype=float)
+        daysSinceStart = np.zeros([nTime,], dtype=float)
         
         print("\n--- calculating the missing state variables ---")
 
@@ -78,7 +84,6 @@ def main():
         print("layerThicknessFractions:", layerThicknessFractions[:].data)
         print("layerInterfaceFractions:", layerInterfaceFractions)
 
-        print(f'nTime={nTime}, nCells={nCells}')
         for i in range(nTime):
             # calculate surface temperature (unit in Kelvin)
             sfcTemp[i,:] = np.minimum(273.15, sfcAirTemp[i,:]) # 0 celsius = 273 Kelvin
@@ -92,33 +97,30 @@ def main():
             yvelmean[i,:] = np.sum(uReconstructY[i,:,:] * layerInterfaceFractions[:], axis=1)
             print('x/yvelmean processed')
 
-        file_in_copy['lowerSurface'] = (['Time', 'nCells'], lowerSfc)
-        file_in_copy['upperSurface'] = (['Time', 'nCells'], upperSfc)
-        file_in_copy['surfaceTemperature'] = (['Time', 'nCells'], sfcTemp)
-        file_in_copy['xvelmean'] = (['Time', 'nCells'], xvelmean)
-        file_in_copy['yvelmean'] = (['Time', 'nCells'], yvelmean)
+        # create variable dictionary of fields to include in the new file
+        # Note: ncrcat does not require that time-independent fields be in both
+        # files, so we don't need to include them in the new file.
+        out_data_vars = {
+            'lowerSurface': (['Time', 'nCells'], lowerSfc),
+            'upperSurface': (['Time', 'nCells'], upperSfc),
+            'surfaceTemperature': (['Time', 'nCells'], sfcTemp),
+            'xvelmean': (['Time', 'nCells'], xvelmean),
+            'yvelmean': (['Time', 'nCells'], yvelmean),
+            'surfaceSpeed': (['Time', 'nCells'], surfaceSpeed),
+            'vonMisesStress': (['Time', 'nCells'], vonMisesStress),
+            'deltat': (['Time',], deltat ),
+            'daysSinceStart': (['Time',], daysSinceStart),
+            'xtime': xtime2
+            }
+        dataOut = xr.Dataset(data_vars=out_data_vars)  # create xarray dataset object
+        dataOut.xtime.encoding.update({"char_dim_name": "StrLen"})  # another hacky thing to make xarray handle xtime correctly
 
-        print("\n--- copying over variables from the output state file ---")
-        var_list = file_state_in.variables
-        for var in var_list:
-            var_check = var in file_in_copy.variables
-            if not var_check:
-                if (len(file_state_in[var].dims) == 1):
-                    file_in_copy[var] = file_state_in[var][0]
-                    print(f"variable '{var}' copied to the new file from the state file")
-                elif (len(file_state_in[var].dims) == 2):
-                    file_in_copy[var] = file_state_in[var][0,:]
-                    print(f"variable '{var}' copied to the new file from the state file")
+        print("\n--- copying over unmodified variables from the restart file ---")
+        for var in ['thickness', 'uReconstructX', 'uReconstructY', 'bedTopography',
+                    'basalTemperature', 'betaSolve', 'cellMask', 'damage']:
+            print("   Copying", var)
+            dataOut[var] = file_in[var]
 
-        print("\n--- dropping variables that are not in the output state file ---")
-        var_list = file_in_copy.variables
-        for var in var_list:
-            var_check = var in file_state_in.variables
-            if not var_check:
-                file_in_copy = file_in_copy.drop(var)
-                print(f"variable '{var}' dropped from the new file")
-
-        print("\n--- writing out to a new file ---")
         # save/write out the new file
         # define the path to which the output (processed) files will be saved
         if args.output_path is None:
@@ -131,7 +133,7 @@ def main():
 
         print(f"file output path: {output_path}")
         file_out_path = os.path.join(output_path, args.file_out)
-        file_in_copy.to_netcdf(file_out_path, mode='w')
+        dataOut.to_netcdf(file_out_path, mode='w')
         file_in.close()
         
         print("\n--- process complete! ---")
