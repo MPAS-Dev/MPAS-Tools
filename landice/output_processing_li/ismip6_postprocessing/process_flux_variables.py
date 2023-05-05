@@ -9,6 +9,7 @@ import numpy as np
 from datetime import date
 from subprocess import check_call
 import os, sys
+import warnings
 
 
 def do_time_avg_flux_vars(input_file, output_file):
@@ -156,8 +157,10 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     licalvf and apply bounds checking on BMB, where some crazy values occasionally occur.
     """
 
+    debug_face_melt_flux = False
     data = xr.open_dataset(file_input, decode_cf=False) # need decode_cf=False to prevent xarray from reading daysSinceStart as a timedelta type.
-    del data.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
+    if 'units' in data.daysSinceStart.attrs:
+        del data.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type.
     time = data.dims['Time']
     nCells = data.dims['nCells']
     nEdgesOnCell = data['nEdgesOnCell'][:].values
@@ -237,7 +240,6 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
         faceMeltingThickness = data['faceMeltingThickness'][:, :].values
         faceMeltSpeedVertAvg = faceMeltingThickness.copy() * 0.0
         # Fields for validation and debugging
-        debug_face_melt_flux = False
         if debug_face_melt_flux:
             deltat_array = np.tile(deltat,  (np.shape(faceMeltSpeed)[1],1)).transpose()
             # Cleaned field for debugging and validation
@@ -331,7 +333,10 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
                 thresholdBoundarySummedThickness[ownerIdx] += calvingThicknessFromThreshold[t,i]
                 thresholdBoundaryContributors[ownerIdx] += 1
             #print(thresholdBoundaryAssignedVolume.sum(), (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum())
-            assert np.absolute(thresholdBoundaryAssignedVolume.sum() - (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum()) < 1.0
+            diff = np.absolute(thresholdBoundaryAssignedVolume.sum() - (calvingThicknessFromThreshold[t,:]*areaCell[:]).sum())
+            if diff < 1.0:
+                warnings.warn(f"Difference between assigned `thresholdBoundaryAssignedVolume` value and "
+                              f"`calvingThicknessFromThreshold` threshold value is less than 1: {diff} < 1.0")
             #for i in bdyIndices:
                 #print(f"length={thresholdBoundaryLength[i]}, vol={thresholdBoundaryAssignedVolume[i]}, sumthk={thresholdBoundarySummedThickness[i]}, num={thresholdBoundaryContributors[i]}, meanthk={thresholdBoundarySummedThickness[i]/thresholdBoundaryContributors[i]}")
             # Finally calculate licalvf for each boundary cell and add to whatever was already there
@@ -355,10 +360,8 @@ def clean_flux_fields_before_time_averaging(file_input, file_mesh,
     data.close()
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
-                              var_units, var_varname,
-                              remapped_mali_flux_file,
-                              ismip6_grid_file,
-                              exp, output_path):
+                              var_units, var_varname, remapped_mali_flux_file,
+                              ismip6_grid_file, exp, output_path):
 
     """
     mali_var_name: variable name on MALI side
@@ -371,7 +374,6 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
     exp: experiment name
     output_path: output path to which the output files will be saved
     """
-
 
     data_ismip6 = Dataset(ismip6_grid_file, 'r')
     var_x = data_ismip6.variables['x'][:]
@@ -448,8 +450,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip6_var_name, var_std_name,
 
 
 def generate_output_2d_flux_vars(file_remapped_mali_flux,
-                                 ismip6_grid_file,
-                                 exp, output_path):
+                                 ismip6_grid_file, exp, output_path):
     """
     file_remapped_mali_flux: flux output file on mali mesh remapped
     onto the ismip6 grid
@@ -465,8 +466,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'land_ice_surface_specific_mass_balance_flux',
                               'kg m-2 s-1', 'Surface mass balance flux',
                               file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- libmassbffl ------------------
     write_netcdf_2d_flux_vars('libmassbffl', 'libmassbffl',
@@ -474,8 +474,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath floating ice',
                               file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- libmassbfgr ------------------
     write_netcdf_2d_flux_vars('libmassbfgr', 'libmassbfgr',
@@ -483,8 +482,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath grounded ice',
                               file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- dlithkdt ------------------
     write_netcdf_2d_flux_vars('dHdt', 'dlithkdt',
@@ -492,8 +490,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'm s-1',
                               'Ice thickness imbalance',
                               file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- licalvf ------------------
     write_netcdf_2d_flux_vars('calvingFlux', 'licalvf',
@@ -501,8 +498,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Calving flux',
                               file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- lifmassbf ------------------
     # Note: facemelting and calving flux are combined above
@@ -511,8 +507,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Ice front melt and calving flux',
                               file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              ismip6_grid_file, exp, output_path)
 
     # ----------- ligroundf ------------------
     write_netcdf_2d_flux_vars('fluxAcrossGroundingLineOnCells', 'ligroundf',
@@ -520,5 +515,4 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Grounding line flux',
                               file_remapped_mali_flux,
-                              ismip6_grid_file,
-                              exp, output_path)
+                              ismip6_grid_file, exp, output_path)

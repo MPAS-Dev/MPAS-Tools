@@ -1,9 +1,12 @@
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from subprocess import check_call
 import os
+import netCDF4
+import xarray as xr
 
 def build_mapping_file(mali_mesh_file,
-                       mapping_file, ismip6_grid_file=None,
+                       mapping_file, res_ismip6_grid,
+                       ismip6_grid_file=None,
                        method_remap=None):
     """
     Build a mapping file if it does not exist.
@@ -18,6 +21,9 @@ def build_mapping_file(mali_mesh_file,
 
     mapping_file : str
         weights for interpolation from mali_mesh_file to ismip6_grid_file
+
+    res_ismip6_grid: str
+        resolution of the ismip6 grid in kilometers
 
     ismip6_grid_file : str, optional
         The ISMIP6 file if mapping file does not exist
@@ -38,7 +44,7 @@ def build_mapping_file(mali_mesh_file,
     if method_remap is None:
         method_remap = "conserve"
 
-    ismip6_scripfile = "temp_ismip6_8km_scrip.nc"
+    ismip6_scripfile = f"temp_ismip6_{res_ismip6_grid}km_scrip.nc"
     mali_scripfile = "temp_mali_scrip.nc"
     ismip6_projection = "ais-bedmap2"
 
@@ -49,6 +55,7 @@ def build_mapping_file(mali_mesh_file,
     print(f"Creating temporary scripfiles "
           f"for ismip6 grid and mali mesh...")
 
+    # create a scripfile for ismip6 grid
     args = ["create_SCRIP_file_from_planar_rectangular_grid.py",
             "--input", ismip6_grid_file,
             "--scrip", ismip6_scripfile,
@@ -57,16 +64,7 @@ def build_mapping_file(mali_mesh_file,
 
     check_call(args)
 
-    # create a MALI mesh scripfile if mapping file does not exist
-    # make sure the mali mesh file uses the longitude convention of [0 2pi]
-    # This should already be the case, so don't modify the input file
-    # Leaving this commented out in case it's necessary in some cases
-
-    #args = ["set_lat_lon_fields_in_planar_grid.py",
-    #        "--file", mali_mesh_file,
-    #        "--proj", ismip6_projection]
-    #check_call(args)
-
+    # create a MALI mesh scripfile
     scrip_from_mpas(mali_mesh_file, mali_scripfile)
 
     # create a mapping file using ESMF weight gen
