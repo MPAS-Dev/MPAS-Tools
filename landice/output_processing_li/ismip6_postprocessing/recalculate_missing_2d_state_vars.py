@@ -32,7 +32,7 @@ def main():
     if args.file_in is None:
         print("--- restart file is not provided. Aborting... ---")
     else:
-        print("\n--- Reading in the restart and output state files ---")
+        print("\n--- Reading in the restart file ---")
 
         file_in = xr.open_dataset(args.file_in, decode_times=False, decode_cf=False)
 
@@ -114,14 +114,6 @@ def main():
             'xtime': xtime2
             }
         dataOut = xr.Dataset(data_vars=out_data_vars)  # create xarray dataset object
-
-        print("\n--- copying over dimensions from the restart file ---")
-        for dim in file_in.dims:
-            if not dim in dataOut.dims:
-                dataOut.expand_dims({dim: file_in.dims[dim]})
-                print('new file dimension', dataOut.dims)
-                print("   Copying dimension", dim)
-
         dataOut.xtime.encoding.update({"char_dim_name": "StrLen"})  # another hacky thing to make xarray handle xtime correctly
         # learned this from: https://github.com/pydata/xarray/issues/2895
 
