@@ -60,8 +60,7 @@ def process_state_vars(inputfile_state, tmp_file):
 
 def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
                                var_units, var_varname, remapped_mali_outputfile,
-                               res_ismip6_grid, ismip6_grid_file,
-                               exp, output_path):
+                               ismip6_grid_file, exp, output_path):
     """
     mali_var_name: variable name on MALI side
     ismip6_var_name: variable name required by ISMIP6
@@ -69,7 +68,6 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     var_units: variable units
     var_varname: variable variable name
     remapped_mali_outputfile: mali state file remapped on the ISMIP6 grid
-    res_ismip6_grid: resolution of the ISMIP6 grid in kilometers
     ismip6_grid_file: original ISMIP6 file
     exp: experiment name
     output_path: output path to which the output files will be saved
@@ -147,12 +145,11 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     dataOut.close()
 
 
-def generate_output_2d_state_vars(file_remapped_mali_state, res_ismip6_grid,
+def generate_output_2d_state_vars(file_remapped_mali_state,
                                   ismip6_grid_file, exp, output_path):
     """
     file_remapped_mali_state: output files on mali mesh remapped
     on the ismip6 grid
-    res_ismip6_grid: ismip6 grid resolution in kilometers
     ismip6_grid_file: ismip6 original file
     exp: ISMIP6 experiment name
     output_path: path to which the final output files are saved
@@ -162,25 +159,25 @@ def generate_output_2d_state_vars(file_remapped_mali_state, res_ismip6_grid,
     # ----------- lithk ------------------
     write_netcdf_2d_state_vars('thickness','lithk', 'land_ice_thickness',
                                'm', 'Ice thickness',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- orog ------------------
     write_netcdf_2d_state_vars('upperSurface','orog', 'surface_altitude', 'm',
                                'Surface elevation',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file,exp, output_path)
 
     # ----------- base ------------------
     write_netcdf_2d_state_vars('lowerSurface','base', 'base_altitude', 'm',
                                'Base elevation',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- topg ------------------
     write_netcdf_2d_state_vars('bedTopography','topg', 'bedrock_altitude', 'm',
                                'Bedrock elevation',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- hfgeoubed------------------
@@ -196,28 +193,28 @@ def generate_output_2d_state_vars(file_remapped_mali_state, res_ismip6_grid,
     write_netcdf_2d_state_vars('uReconstructX_sfc', 'xvelsurf',
                                'land_ice_surface_x_velocity',
                                'm s-1', 'Surface velocity in x',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # -----------yxvelsurf ------------------
     write_netcdf_2d_state_vars('uReconstructY_sfc', 'yvelsurf',
                                'land_ice_surface_y_velocity',
                                'm s-1', 'Surface velocity in x',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- xvelbase ------------------
     write_netcdf_2d_state_vars('uReconstructX_base', 'xvelbase',
                                'land_ice_basal_x_velocity',
                                'm s-1', 'Basal velocity in x',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- yvelbase ------------------
     write_netcdf_2d_state_vars('uReconstructY_base', 'yvelbase',
                                'land_ice_basal_y_velocity',
                                'm s-1', 'Basal velocity in y',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- zvelsurf & zvelbase ------------------
@@ -228,63 +225,63 @@ def generate_output_2d_state_vars(file_remapped_mali_state, res_ismip6_grid,
     write_netcdf_2d_state_vars('xvelmean', 'xvelmean',
                                'land_ice_vertical_mean_x_velocity',
                                'm s-1', 'Mean velocity in x',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- yvelmean ------------------
     write_netcdf_2d_state_vars('yvelmean', 'yvelmean',
                                'land_ice_vertical_mean_y_velocity',
                                'm s-1', 'Mean velocity in y',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- litemptop ------------------
     write_netcdf_2d_state_vars('surfaceTemperature', 'litemptop',
                                'temperature_at_top_of_ice_sheet_model', 'K',
                                'Surface temperature',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- litempbotgr ------------------
     write_netcdf_2d_state_vars('litempbotgr', 'litempbotgr',
                                'temperature_at_base_of_ice_sheet_model', 'K',
                                'Basal temperature beneath grounded ice sheet',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file,exp, output_path)
 
     # ----------- litempbotfl ------------------
     write_netcdf_2d_state_vars('litempbotfl', 'litempbotfl',
                                'temperature_at_base_of_ice_sheet_model', 'K',
                                'Basal temperature beneath floating ice shelf',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- strbasemag ------------------
     write_netcdf_2d_state_vars('strbasemag', 'strbasemag',
                                'land_ice_basal_drag ', 'Pa',
                                'Basal drag',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- sftgif ------------------
     write_netcdf_2d_state_vars('sftgif','sftgif',
                                'land_ice_area_fraction', '1',
                                'Land ice area fraction',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- sftgrf ------------------
     write_netcdf_2d_state_vars('sftgrf', 'sftgrf',
                                'grounded_ice_sheet_area_fraction', '1',
                                'Grounded ice sheet area fraction',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
     # ----------- sftflf ------------------
     write_netcdf_2d_state_vars('sftflf','sftflf',
                                'floating_ice_shelf_area_fraction', '1',
                                'Floating ice shelf area fraction',
-                               file_remapped_mali_state, res_ismip6_grid,
+                               file_remapped_mali_state,
                                ismip6_grid_file, exp, output_path)
 
 

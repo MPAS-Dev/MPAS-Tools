@@ -179,7 +179,7 @@ def main():
         # write out 2D state output files in the ismip6-required format
         print("Writing processed and remapped state fields to ISMIP6 file format.")
         generate_output_2d_state_vars(processed_and_remapped_file_state,
-                                      args.res_ismip6_grid, ismip6_grid_file,
+                                      ismip6_grid_file,
                                       args.exp, output_path)
 
         os.remove(tmp_file)
@@ -220,7 +220,6 @@ def main():
 
         # write out the output files in the ismip6-required format
         generate_output_2d_flux_vars(processed_file_flux,
-                                     args.res_ismip6_grid,
                                      ismip6_grid_file,
                                      args.exp, output_path)
 
