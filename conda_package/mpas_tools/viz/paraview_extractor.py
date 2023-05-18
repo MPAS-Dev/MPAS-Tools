@@ -2173,9 +2173,13 @@ def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
         bar = None
 
     out_time_file_names = []
+    already_culled = []
     for index, filename in enumerate(time_file_names):
-        out_filename = '{}/time_series{:04d}.nc'.format(temp_dir, index)
+        file_index = len(already_culled)
+        out_filename = f'{temp_dir}/time_series{file_index:04d}.nc'
         out_time_file_names.append(out_filename)
+        if filename in already_culled:
+            continue
         ds_in = xarray.open_dataset(filename)
         ds_out = xarray.Dataset()
         if xtime is None:
@@ -2188,6 +2192,7 @@ def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
                 if dim in ds_in[var].dims:
                     ds_out[var] = ds_in[var].where(region_masks[dim], drop=True)
         write_netcdf(ds_out, out_filename)
+        already_culled.append(filename)
         if use_progress_bar:
             bar.update(index+1)
     bar.finish()
