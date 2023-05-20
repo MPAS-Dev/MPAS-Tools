@@ -3,7 +3,7 @@ import logging
 import subprocess
 
 
-def check_call(args, logger, log_command=True, timeout=None, **kwargs):
+def check_call(args, logger=None, log_command=True, timeout=None, **kwargs):
     """
     Call the given subprocess with logging to the given logger.
 
@@ -13,7 +13,7 @@ def check_call(args, logger, log_command=True, timeout=None, **kwargs):
         A list or string of argument to the subprocess.  If ``args`` is a
         string, you must pass ``shell=True`` as one of the ``kwargs``.
 
-    logger : logging.Logger
+    logger : logging.Logger, optional
         The logger to write output to
 
     log_command : bool, optional
@@ -36,25 +36,28 @@ def check_call(args, logger, log_command=True, timeout=None, **kwargs):
         print_args = args
     else:
         print_args = ' '.join(args)
-    if log_command:
-        logger.info(f'Running: {print_args}')
 
-    process = subprocess.Popen(args, stdout=subprocess.PIPE,
-                               stderr=subprocess.PIPE, **kwargs)
-    stdout, stderr = process.communicate(timeout=timeout)
+    # make a logger if there isn't already one
+    with LoggingContext(print_args, logger=logger) as logger:
+        if log_command:
+            logger.info(f'Running: {print_args}')
 
-    if stdout:
-        stdout = stdout.decode('utf-8')
-        for line in stdout.split('\n'):
-            logger.info(line)
-    if stderr:
-        stderr = stderr.decode('utf-8')
-        for line in stderr.split('\n'):
-            logger.error(line)
+        process = subprocess.Popen(args, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE, **kwargs)
+        stdout, stderr = process.communicate(timeout=timeout)
 
-    if process.returncode != 0:
-        raise subprocess.CalledProcessError(process.returncode,
-                                            print_args)
+        if stdout:
+            stdout = stdout.decode('utf-8')
+            for line in stdout.split('\n'):
+                logger.info(line)
+        if stderr:
+            stderr = stderr.decode('utf-8')
+            for line in stderr.split('\n'):
+                logger.error(line)
+
+        if process.returncode != 0:
+            raise subprocess.CalledProcessError(process.returncode,
+                                                print_args)
 
 
 class LoggingContext(object):
