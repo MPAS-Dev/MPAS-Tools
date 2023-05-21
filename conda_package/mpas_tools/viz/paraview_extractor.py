@@ -94,6 +94,7 @@ from io import StringIO
 from progressbar import ProgressBar, Percentage, Bar, ETA
 from mpas_tools.conversion import mask, cull
 from mpas_tools.io import write_netcdf
+from mpas_tools.logging import check_call
 
 
 def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
@@ -2146,12 +2147,14 @@ def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
         print('Making a region mask file')
         ds_mask = mask(dsMesh=ds_mesh, fcMask=fc_region_mask, logger=logger,
                        dir=temp_dir)
-        write_netcdf(ds_mask, '{}/mask.nc'.format(temp_dir))
+        write_netcdf(ds_mask, f'{temp_dir}/mask.nc')
         print('Cropping mesh to region')
         out_mesh_filename = '{}/mesh.nc'.format(temp_dir)
-        ds_culled = cull(dsIn=ds_mesh, dsInverse=ds_mask, logger=logger,
-                         dir=temp_dir)
-        write_netcdf(ds_culled, out_mesh_filename)
+        args = ['MpasCellCuller.x',
+                mesh_filename,
+                out_mesh_filename,
+                '-i', f'{temp_dir}/mask.nc']
+        check_call(args=args, logger=logger)
 
         region_masks = dict()
         cell_mask = ds_mask.regionCellMasks.sum(dim='nRegions') > 0
@@ -2201,5 +2204,3 @@ def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
     handler.close()
 
     return out_mesh_filename, out_time_file_names
-
-# vim: set expandtab:
