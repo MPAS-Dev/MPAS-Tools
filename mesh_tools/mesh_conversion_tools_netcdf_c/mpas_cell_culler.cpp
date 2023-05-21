@@ -54,7 +54,7 @@ int markEdges();
 int outputGridDimensions(const string outputFilename);
 int outputGridAttributes(const string inputFilename, const string outputFilename);
 int mapAndOutputGridCoordinates(const string inputFilename, const string outputFilename);
-int mapAndOutputCellFields(const string inputFilename, const string outputPath, 
+int mapAndOutputCellFields(const string inputFilename, const string outputPath,
                            const string outputFilename);
 int mapAndOutputEdgeFields(const string inputFilename, const string outputFilename);
 int mapAndOutputVertexFields(const string inputFilename, const string outputFilename);
@@ -396,7 +396,11 @@ int readGridInput(const string inputFilename){/*{{{*/
 #endif
 	cullCell.clear();
 	cullCell.resize(nCells);
-    ncutil::get_var(inputFilename, "cullCell", &cullCell[0]);
+    try {
+        ncutil::get_var(inputFilename, "cullCell", &cullCell[0]);
+    } catch (...) {
+    // allow errors for optional vars. not found
+    }
 
 	// Build cellsOnVertex information
 	cellsonvertex_list = new int[nVertices * vertexDegree];
@@ -636,7 +640,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
     }
 
     size_t nCellsNew, nEdgesNew, nVerticesNew;
-	
+
     nCellsNew = 0;
 	for(int iCell = 0; iCell < nCells; iCell++){
 		nCellsNew += (cellMap.at(iCell) != -1);
@@ -668,7 +672,7 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
 	 * outputFilename
 	 *
 	 * **********************************************************************/
-	
+
 	string history_str = "";
 	string id_str = "";
 	string parent_str = "";
@@ -679,7 +683,7 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
         ncutil::put_att(outputFilename, "sphere_radius", NC_DOUBLE, 0.);
 	} else {
         ncutil::put_str(outputFilename, "on_a_sphere", "YES");
-        ncutil::put_att(outputFilename, 
+        ncutil::put_att(outputFilename,
             "sphere_radius", NC_DOUBLE, sphere_radius);
 	}
 
@@ -728,7 +732,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 	 * Both cartesian and lat,lon, as well as all of their indices
 	 *
 	 * **********************************************************************/
-	
+
 	size_t nCellsNew, nEdgesNew, nVerticesNew;
     ncutil::get_dim(outputFilename, "nCells", nCellsNew);
     ncutil::get_dim(outputFilename, "nEdges", nEdgesNew);
@@ -759,7 +763,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
     ncutil::get_var(inputFilename, "zCell", zOld);
     ncutil::get_var(inputFilename, "latCell", latOld);
     ncutil::get_var(inputFilename, "lonCell", lonOld);
-    
+
 	idx_map = 0;
 	for(int iCell = 0; iCell < nCells; iCell++){
 		if(cellMap.at(iCell) != -1){
@@ -772,27 +776,27 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 			idx_map++;
 		}
 	}
-    
-    ncutil::def_var(outputFilename, "latCell", 
+
+    ncutil::def_var(outputFilename, "latCell",
         NC_DOUBLE, "latitudes of cell centres", {"nCells"});
-    ncutil::def_var(outputFilename, "lonCell", 
+    ncutil::def_var(outputFilename, "lonCell",
         NC_DOUBLE, "longitudes of cell centres", {"nCells"});
 
-    ncutil::put_var(outputFilename, "latCell", &latNew[0]);        
+    ncutil::put_var(outputFilename, "latCell", &latNew[0]);
     ncutil::put_var(outputFilename, "lonCell", &lonNew[0]);
 
-    ncutil::def_var(outputFilename, "xCell", 
+    ncutil::def_var(outputFilename, "xCell",
         NC_DOUBLE, "x-coordinates of cell centres", {"nCells"});
-    ncutil::def_var(outputFilename, "yCell", 
+    ncutil::def_var(outputFilename, "yCell",
         NC_DOUBLE, "y-coordinates of cell centres", {"nCells"});
-    ncutil::def_var(outputFilename, "zCell", 
+    ncutil::def_var(outputFilename, "zCell",
         NC_DOUBLE, "z-coordinates of cell centres", {"nCells"});
 
-    ncutil::put_var(outputFilename, "xCell", &xNew[0]);        
+    ncutil::put_var(outputFilename, "xCell", &xNew[0]);
     ncutil::put_var(outputFilename, "yCell", &yNew[0]);
     ncutil::put_var(outputFilename, "zCell", &zNew[0]);
 
-    ncutil::def_var(outputFilename, "indexToCellID", 
+    ncutil::def_var(outputFilename, "indexToCellID",
         NC_INT, "index to cell ID mapping", {"nCells"});
 
     ncutil::put_var(outputFilename, "indexToCellID", &idxToNew[0]);
@@ -843,26 +847,26 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 		}
 	}
 
-    ncutil::def_var(outputFilename, "latEdge", 
+    ncutil::def_var(outputFilename, "latEdge",
         NC_DOUBLE, "latitudes of edge centres", {"nEdges"});
-    ncutil::def_var(outputFilename, "lonEdge", 
+    ncutil::def_var(outputFilename, "lonEdge",
         NC_DOUBLE, "longitudes of edge centres", {"nEdges"});
 
-    ncutil::put_var(outputFilename, "latEdge", &latNew[0]);        
+    ncutil::put_var(outputFilename, "latEdge", &latNew[0]);
     ncutil::put_var(outputFilename, "lonEdge", &lonNew[0]);
 
-    ncutil::def_var(outputFilename, "xEdge", 
+    ncutil::def_var(outputFilename, "xEdge",
         NC_DOUBLE, "x-coordinates of edge centres", {"nEdges"});
-    ncutil::def_var(outputFilename, "yEdge", 
+    ncutil::def_var(outputFilename, "yEdge",
         NC_DOUBLE, "y-coordinates of edge centres", {"nEdges"});
-    ncutil::def_var(outputFilename, "zEdge", 
+    ncutil::def_var(outputFilename, "zEdge",
         NC_DOUBLE, "z-coordinates of edge centres", {"nEdges"});
 
-    ncutil::put_var(outputFilename, "xEdge", &xNew[0]);        
+    ncutil::put_var(outputFilename, "xEdge", &xNew[0]);
     ncutil::put_var(outputFilename, "yEdge", &yNew[0]);
     ncutil::put_var(outputFilename, "zEdge", &zNew[0]);
 
-    ncutil::def_var(outputFilename, "indexToEdgeID", 
+    ncutil::def_var(outputFilename, "indexToEdgeID",
         NC_INT, "index to edge ID mapping", {"nEdges"});
 
     ncutil::put_var(outputFilename, "indexToEdgeID", &idxToNew[0]);
@@ -913,26 +917,26 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 		}
 	}
 
-    ncutil::def_var(outputFilename, "latVertex", 
+    ncutil::def_var(outputFilename, "latVertex",
         NC_DOUBLE, "latitudes of vertices", {"nVertices"});
-    ncutil::def_var(outputFilename, "lonVertex", 
+    ncutil::def_var(outputFilename, "lonVertex",
         NC_DOUBLE, "longitudes of vertices", {"nVertices"});
 
     ncutil::put_var(outputFilename, "latVertex", &latNew[0]);
     ncutil::put_var(outputFilename, "lonVertex", &lonNew[0]);
 
-    ncutil::def_var(outputFilename, "xVertex", 
+    ncutil::def_var(outputFilename, "xVertex",
         NC_DOUBLE, "x-coordinates of vertices", {"nVertices"});
-    ncutil::def_var(outputFilename, "yVertex", 
+    ncutil::def_var(outputFilename, "yVertex",
         NC_DOUBLE, "y-coordinates of vertices", {"nVertices"});
-    ncutil::def_var(outputFilename, "zVertex", 
+    ncutil::def_var(outputFilename, "zVertex",
         NC_DOUBLE, "z-coordinates of vertices", {"nVertices"});
 
-    ncutil::put_var(outputFilename, "xVertex", &xNew[0]);        
+    ncutil::put_var(outputFilename, "xVertex", &xNew[0]);
     ncutil::put_var(outputFilename, "yVertex", &yNew[0]);
     ncutil::put_var(outputFilename, "zVertex", &zNew[0]);
 
-    ncutil::def_var(outputFilename, "indexToVertexID", 
+    ncutil::def_var(outputFilename, "indexToVertexID",
         NC_INT, "index to vertex ID mapping", {"nVertices"});
 
     ncutil::put_var(outputFilename, "indexToVertexID", &idxToNew[0]);
@@ -952,7 +956,7 @@ int mapAndOutputGridCoordinates( const string inputFilename, const string output
 
 	return 0;
 }/*}}}*/
-int mapAndOutputCellFields( const string inputFilename, const string outputPath, 
+int mapAndOutputCellFields( const string inputFilename, const string outputPath,
                             const string outputFilename) {/*{{{*/
 	/*****************************************************************
 	 *
@@ -967,7 +971,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
 	 * It also writes the graph.info file which can be used to decompose the mesh.
 	 *
 	 * ***************************************************************/
-	
+
 	size_t nCellsNew, nEdgesNew, maxEdgesNew, edgeCount;
     ncutil::get_dim(outputFilename, "nCells", nCellsNew);
     ncutil::get_dim(outputFilename, "nEdges", nEdgesNew);
@@ -999,7 +1003,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
     ncutil::def_dim(outputFilename, "maxEdges2", maxEdgesNew * 2);
 
 	// Write nEdgesOncell to output file
-    ncutil::def_var(outputFilename, "nEdgesOnCell", 
+    ncutil::def_var(outputFilename, "nEdgesOnCell",
         NC_INT, "number of edges on each cell", {"nCells"});
 
     ncutil::put_var(outputFilename, "nEdgesOnCell", &nEdgesOnCellNew[0]);
@@ -1020,15 +1024,15 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
 				}
 
 #ifdef _DEBUG
-				cout << "    Mapping edge: " << iEdge << " to " << 
-                    tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] << " dbg info: " << 
+				cout << "    Mapping edge: " << iEdge << " to " <<
+                    tmp_arr_new[cellMap.at(iCell)*maxEdgesNew + j] << " dbg info: " <<
                         tmp_arr_old[iCell*maxEdges + j] << " " << j << endl;
 #endif
 			}
 		}
 	}
 
-    ncutil::def_var(outputFilename, "edgesOnCell", 
+    ncutil::def_var(outputFilename, "edgesOnCell",
         NC_INT, "edges on each cell", {"nCells", "maxEdges"});
 
     ncutil::put_var(outputFilename, "edgesOnCell", &tmp_arr_new[0]);
@@ -1066,7 +1070,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
 	}
 	graph.close();
 
-    ncutil::def_var(outputFilename, "cellsOnCell", 
+    ncutil::def_var(outputFilename, "cellsOnCell",
         NC_INT, "cells adj. to each cell", {"nCells", "maxEdges"});
 
     ncutil::put_var(outputFilename, "cellsOnCell", &tmp_arr_new[0]);
@@ -1091,7 +1095,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
 		}
 	}
 
-    ncutil::def_var(outputFilename, "verticesOnCell", 
+    ncutil::def_var(outputFilename, "verticesOnCell",
         NC_INT, "vertices on each cell", {"nCells", "maxEdges"});
 
     ncutil::put_var(outputFilename, "verticesOnCell", &tmp_arr_new[0]);
@@ -1108,7 +1112,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
 		}
 	}
 
-    ncutil::def_var(outputFilename, "areaCell", 
+    ncutil::def_var(outputFilename, "areaCell",
         NC_DOUBLE, "surface area of each cell", {"nCells"});
 
     ncutil::put_var(outputFilename, "areaCell", &areaCellNew[0]);
@@ -1127,7 +1131,7 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
 		}
 	}
 
-    ncutil::def_var(outputFilename, "meshDensity", 
+    ncutil::def_var(outputFilename, "meshDensity",
         NC_DOUBLE, "mesh density distribution", {"nCells"});
 
     ncutil::put_var(outputFilename, "meshDensity", &meshDensityNew[0]);
@@ -1148,7 +1152,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 	 * angleEdge
 	 *
 	 * ***************************************************************/
-	
+
 	size_t nEdgesNew, maxEdges2New, two = 2;
     ncutil::get_dim(outputFilename, "nEdges", nEdgesNew);
     ncutil::get_dim(outputFilename, "maxEdges2", maxEdges2New);
@@ -1239,9 +1243,9 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 		}
 	}
 
-    ncutil::def_var(outputFilename, "verticesOnEdge", 
+    ncutil::def_var(outputFilename, "verticesOnEdge",
         NC_INT, "vertices on each edge", {"nEdges", "TWO"});
-    ncutil::def_var(outputFilename, "cellsOnEdge", 
+    ncutil::def_var(outputFilename, "cellsOnEdge",
         NC_INT, "cells adj. to each edge", {"nEdges", "TWO"});
 
     ncutil::put_var(outputFilename, "verticesOnEdge", &verticesOnEdgeNew[0]);
@@ -1286,7 +1290,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 
 					if(eoe != -1 && eoe < edgeMap.size()){
 						edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = edgeMap.at(eoe) + 1;
-						weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 
+						weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] =
                             weightsOnEdgeOld[iEdge*maxEdges*2 + j];
 						edgeCount++;
 					} else {
@@ -1309,15 +1313,15 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 		}
 	}
 
-    ncutil::def_var(outputFilename, "nEdgesOnEdge", 
+    ncutil::def_var(outputFilename, "nEdgesOnEdge",
         NC_INT, "number of edges adj. to each edge", {"nEdges"});
-    ncutil::def_var(outputFilename, "edgesOnEdge", 
+    ncutil::def_var(outputFilename, "edgesOnEdge",
         NC_INT, "edges adj. to each edge", {"nEdges", "maxEdges2"});
-    
+
     ncutil::put_var(outputFilename, "nEdgesOnEdge", &nEdgesOnEdgeNew[0]);
     ncutil::put_var(outputFilename, "edgesOnEdge", &edgesOnEdgeNew[0]);
 
-    ncutil::def_var(outputFilename, "weightsOnEdge", 
+    ncutil::def_var(outputFilename, "weightsOnEdge",
         NC_DOUBLE, "tangential flux reconstruction weights", {"nEdges", "maxEdges2"});
 
     ncutil::put_var(outputFilename, "weightsOnEdge", &weightsOnEdgeNew[0]);
@@ -1349,11 +1353,11 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 		}
 	}
 
-    ncutil::def_var(outputFilename, "dvEdge", 
+    ncutil::def_var(outputFilename, "dvEdge",
         NC_DOUBLE, "length of arc between centres", {"nEdges"});
-    ncutil::def_var(outputFilename, "dcEdge", 
+    ncutil::def_var(outputFilename, "dcEdge",
         NC_DOUBLE, "length of arc between centres", {"nEdges"});
-    ncutil::def_var(outputFilename, "angleEdge", 
+    ncutil::def_var(outputFilename, "angleEdge",
         NC_DOUBLE, "angle to edges", {"nEdges"}) ;
 
     ncutil::put_var(outputFilename, "dvEdge", &dvEdgeNew[0]);
@@ -1379,7 +1383,7 @@ int mapAndOutputVertexFields( const string inputFilename, const string outputFil
 	 * kiteAreasOnVertex
 	 *
 	 * ***************************************************************/
-	
+
 	size_t nVerticesNew;
     ncutil::get_dim(outputFilename, "nVertices", nVerticesNew);
 
@@ -1416,7 +1420,7 @@ int mapAndOutputVertexFields( const string inputFilename, const string outputFil
 					if(cellMap.at(iCell) == -1){
 						kiteAreasOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = 0.0;
 					} else {
-						kiteAreasOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = 
+						kiteAreasOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] =
                             kiteAreasOnVertexOld[iVertex*vertexDegree + j];
 					}
 					area += kiteAreasOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j];
@@ -1436,18 +1440,18 @@ int mapAndOutputVertexFields( const string inputFilename, const string outputFil
 		}
 	}
 
-    ncutil::def_var(outputFilename, "edgesOnVertex", 
+    ncutil::def_var(outputFilename, "edgesOnVertex",
         NC_INT, "edges adj. to each vertex", {"nVertices", "vertexDegree"});
-    ncutil::def_var(outputFilename, "cellsOnVertex", 
+    ncutil::def_var(outputFilename, "cellsOnVertex",
         NC_INT, "cells adj. to each vertex", {"nVertices", "vertexDegree"});
-    
+
     ncutil::put_var(outputFilename, "edgesOnVertex", &edgesOnVertexNew [0]);
     ncutil::put_var(outputFilename, "cellsOnVertex", &cellsOnVertexNew [0]);
 
-    ncutil::def_var(outputFilename, "areaTriangle", 
+    ncutil::def_var(outputFilename, "areaTriangle",
         NC_DOUBLE, "surface area of dual cells", {"nVertices"});
-    ncutil::def_var(outputFilename, "kiteAreasOnVertex", 
-        NC_DOUBLE, 
+    ncutil::def_var(outputFilename, "kiteAreasOnVertex",
+        NC_DOUBLE,
     "surface areas of overlap between cells and dual cells", {"nVertices", "vertexDegree"});
 
     ncutil::put_var(outputFilename, "areaTriangle", &areaTriangleNew [0]);
