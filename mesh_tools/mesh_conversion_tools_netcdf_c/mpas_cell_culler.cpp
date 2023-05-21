@@ -396,7 +396,11 @@ int readGridInput(const string inputFilename){/*{{{*/
 #endif
     cullCell.clear();
     cullCell.resize(nCells);
-    ncutil::get_var(inputFilename, "cullCell", &cullCell[0]);
+    try {
+        ncutil::get_var(inputFilename, "cullCell", &cullCell[0]);
+    } catch (...) {
+    // allow errors for optional vars. not found
+    }
 
     // Build cellsOnVertex information
     cellsonvertex_list = new int[nVertices * vertexDegree];
