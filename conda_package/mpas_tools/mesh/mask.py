@@ -38,7 +38,7 @@ def compute_mpas_region_masks(dsMesh, fcMask, maskTypes=('cell', 'vertex'),
     maskTypes : tuple of {'cell', 'edge', 'vertex'}, optional
         Which type(s) of masks to make.  Masks are created based on whether
         the latitude and longitude associated with each of these locations
-        (e.g. ``dsMesh.latCell`` and ``dsMesh.lonCell`` for ``'cells'``) are
+        (e.g. ``dsMesh.latCell`` and ``dsMesh.lonCell`` for ``'cell'``) are
         inside or outside of the regions in ``fcMask``.
 
     logger : logging.Logger, optional
@@ -213,7 +213,7 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
     maskTypes : tuple of {'cell', 'edge', 'vertex'}, optional
         Which type(s) of masks to make.  Masks are created based on whether
         the latitude and longitude associated with each of these locations
-        (e.g. ``dsMesh.latCell`` and ``dsMesh.lonCell`` for ``'cells'``) are
+        (e.g. ``dsMesh.latCell`` and ``dsMesh.lonCell`` for ``'cell'``) are
         inside or outside of the transects in ``fcMask``.
 
     logger : logging.Logger, optional
