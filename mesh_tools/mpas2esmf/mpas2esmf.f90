@@ -8,7 +8,7 @@ module read_mesh
    
    subroutine read_mpas_mesh(filename, &
                              nCells, nVertices, maxEdges, &
-                             latCell, lonCell, latVertex, lonVertex, nEdgesOnCell, verticesOnCell, areaCell, &
+                             latCell, lonCell, latVertex, lonVertex, nEdgesOnCell, verticesOnCell, areaCell, meshDensity, &
                              sphere_radius)
    
       use netcdf
@@ -17,14 +17,14 @@ module read_mesh
    
       character (len=*), intent(in) :: filename
       integer, intent(inout) :: nCells, nVertices, maxEdges
-      double precision, dimension(:), pointer :: latCell, lonCell, latVertex, lonVertex, areaCell
+      double precision, dimension(:), pointer :: latCell, lonCell, latVertex, lonVertex, areaCell, meshDensity
       integer, dimension(:), pointer :: nEdgesOnCell
       integer, dimension(:,:), pointer :: verticesOnCell
       double precision, intent(inout) :: sphere_radius
    
    
       integer :: ncid, nCellsID, nVerticesID, maxEdgesID, latCellID, lonCellID, &
-                 latVertexID, lonVertexID, nEdgesOnCellID, verticesOnCellID, areaCellID, status
+                 latVertexID, lonVertexID, nEdgesOnCellID, verticesOnCellID, areaCellID, meshDensityID, status
    
       status = nf90_open(path=trim(filename), mode=nf90_nowrite, ncid=ncid)
       if (status /= nf90_noerr) then
@@ -82,6 +82,7 @@ module read_mesh
       allocate(nEdgesOnCell(nCells))
       allocate(verticesOnCell(maxEdges,nCells))
       allocate(areaCell(nCells))
+      allocate(meshDensity(nCells))
    
       status = nf90_inq_varid(ncid, 'latCell',   latCellID)
       status = nf90_inquire_dimension(ncid, maxEdgesID,  len=maxEdges)
@@ -129,6 +130,13 @@ module read_mesh
       status = nf90_inq_varid(ncid, 'areaCell', areaCellID)
       if (status /= nf90_noerr) then
           write(0,*) "mpas2esmf: Error on inquire varid of 'areaCell'"
+          write(0,*) trim(nf90_strerror(status))
+          stop 
+      end if
+
+      status = nf90_inq_varid(ncid, 'meshDensity', meshDensityID)
+      if (status /= nf90_noerr) then
+          write(0,*) "mpas2esmf: Error on inquire varid of 'meshDensity'"
           write(0,*) trim(nf90_strerror(status))
           stop 
       end if
@@ -182,6 +190,13 @@ module read_mesh
           stop 
       end if
 
+      status = nf90_get_var(ncid, meshDensityID, meshDensity)
+      if (status /= nf90_noerr) then
+          write(0,*) "mpas2esmf: Error on get var of 'meshDensity'"
+          write(0,*) trim(nf90_strerror(status))
+          stop 
+      end if
+
       status = nf90_get_att(ncid, NF90_GLOBAL, 'sphere_radius', sphere_radius)
       if (status /= nf90_noerr) then
           write(0,*) "mpas2esmf: Error on get attribute of 'sphere_radius'"
@@ -204,7 +219,7 @@ module write_desc
                               title, datestring, &
                               nCells, maxEdges, &
                               latCell, lonCell, &
-                              grid_area, latVerticesOnCell, lonVerticesOnCell, grid_imask)
+                              grid_area, rrfac, latVerticesOnCell, lonVerticesOnCell, grid_imask)
    
       use netcdf
    
@@ -214,13 +229,13 @@ module write_desc
       character (len=*), intent(in) :: title
       character (len=*), intent(in) :: datestring
       integer, intent(inout) :: nCells, maxEdges
-      double precision, dimension(:), pointer :: latCell, lonCell, grid_area
+      double precision, dimension(:), pointer :: latCell, lonCell, grid_area, rrfac
       double precision, dimension(:,:), pointer :: latVerticesOnCell, lonVerticesOnCell
       integer, dimension(:), pointer :: grid_imask
    
    
       integer :: ncid, grid_sizeID, grid_cornersID, grid_rankID, status
-      integer :: grid_areaID, grid_center_latID, grid_center_lonID, &
+      integer :: grid_areaID, rrfacID, grid_center_latID, grid_center_lonID, &
                  grid_corner_lonID, grid_corner_latID, grid_imaskID, grid_dimsID
       integer, dimension(1) :: id1
       integer, dimension(2) :: id2
@@ -268,6 +283,26 @@ module write_desc
       status = nf90_put_att(ncid, grid_areaID, 'long_name', 'area weights')
       if (status /= nf90_noerr) then
           write(0,*) "mpas2esmf: Error occured in nf90_put_att for 'long_name' for grid_area"
+          write(0,*) trim(nf90_strerror(status))
+          stop 
+      end if
+
+      id1(1) = grid_sizeID
+      status = nf90_def_var(ncid, 'rrfac', NF90_DOUBLE, id1, rrfacID)
+      if (status /= nf90_noerr) then
+          write(0,*) "mpas2esmf: Error occured in nf90_def_var for 'rrfac'"
+          write(0,*) trim(nf90_strerror(status))
+          stop 
+      end if
+      status = nf90_put_att(ncid, rrfacID, 'units', 'dimensionless')
+      if (status /= nf90_noerr) then
+          write(0,*) "mpas2esmf: Error occured in nf90_put_att for 'units' for rrfac"
+          write(0,*) trim(nf90_strerror(status))
+          stop 
+      end if
+      status = nf90_put_att(ncid, rrfacID, 'long_name', 'normalized dc')
+      if (status /= nf90_noerr) then
+          write(0,*) "mpas2esmf: Error occured in nf90_put_att for 'long_name' for rrfac"
           write(0,*) trim(nf90_strerror(status))
           stop 
       end if
@@ -374,6 +409,12 @@ module write_desc
           write(0,*) trim(nf90_strerror(status))
           stop 
       end if
+      status = nf90_put_var(ncid, rrfacID, rrfac)
+      if (status /= nf90_noerr) then
+          write(0,*) "mpas2esmf: Error occured in nf90_put_var for 'rrfac'"
+          write(0,*) trim(nf90_strerror(status))
+          stop 
+      end if
       status = nf90_put_var(ncid, grid_center_latID, latCell)
       if (status /= nf90_noerr) then
           write(0,*) "mpas2esmf: Error occured in nf90_put_var for 'grid_center_lat'"
@@ -425,7 +466,7 @@ module write_desc
                               input_file, title, datestring, &
                               nCells, nVertices, maxEdges, &
                               centerCoords, nodeCoords, elementConn, nEdgesOnCell, &
-                              grid_area, grid_imask)
+                              grid_area, rrfac, grid_imask)
    
       use netcdf
    
@@ -436,7 +477,7 @@ module write_desc
       character (len=*), intent(in) :: title
       character (len=*), intent(in) :: datestring
       integer, intent(inout) :: nCells, nVertices, maxEdges
-      double precision, dimension(:), pointer :: grid_area
+      double precision, dimension(:), pointer :: grid_area, rrfac
       double precision, dimension(:,:), pointer :: centerCoords, nodeCoords
       integer, dimension(:,:), pointer :: elementConn
       integer, dimension(:), pointer :: grid_imask, nEdgesOnCell
@@ -444,7 +485,7 @@ module write_desc
    
       integer :: ncid, nVerticesID, nCellsID, maxNodePElementID, coordDimID, status
       integer :: nodeCoordsID, elementConnID, numElementConnID, centerCoordsID, &
-                 elementAreaID, elementMaskID
+                 elementAreaID, elementMaskID, elementRefinementRatioID
       integer, dimension(1) :: id1
       integer, dimension(2) :: id2
 
@@ -575,6 +616,27 @@ module write_desc
           stop 
       end if
 
+      id1(1) = nCellsID
+      status = nf90_def_var(ncid, 'elementRefinementRatio', NF90_DOUBLE, id1, elementRefinementRatioID)
+      if (status /= nf90_noerr) then
+          write(0,*) "mpas2esmf: Error occured in nf90_def_var for 'elementRefinementRatio'"
+          write(0,*) trim(nf90_strerror(status))
+          stop 
+      end if
+
+      status = nf90_put_att(ncid, elementRefinementRatioID, 'units', 'dimensionless')
+      if (status /= nf90_noerr) then
+          write(0,*) "mpas2esmf: Error occured in nf90_put_att for 'units' for 'elementRefinementRatioID'"
+          write(0,*) trim(nf90_strerror(status))
+          stop 
+      end if
+
+      status = nf90_put_att(ncid, elementRefinementRatioID, 'long_name', 'normalized dc')
+      if (status /= nf90_noerr) then
+          write(0,*) "mpas2esmf: Error occured in nf90_put_att for 'long_name' for 'elementRefinementRatioID'"
+          write(0,*) trim(nf90_strerror(status))
+          stop 
+      end if
 
       id1(1) = nCellsID
       status = nf90_def_var(ncid, 'elementMask', NF90_INT, id1, elementMaskID)
@@ -652,6 +714,12 @@ module write_desc
           write(0,*) trim(nf90_strerror(status))
           stop 
       end if
+      status = nf90_put_var(ncid, elementRefinementRatioID, rrfac)
+      if (status /= nf90_noerr) then
+          write(0,*) "mpas2esmf: Error occured in nf90_put_var for 'elementRefinementRatio'"
+          write(0,*) trim(nf90_strerror(status))
+          stop 
+      end if
       status = nf90_put_var(ncid, elementMaskID, grid_imask)
       if (status /= nf90_noerr) then
           write(0,*) "mpas2esmf: Error occured in nf90_put_var for 'elementMask'"
@@ -680,11 +748,13 @@ program mpas2esmf
 
    integer :: nCells, nVertices, maxEdges
    integer :: iCell, iVtx
-   double precision, dimension(:), pointer :: latCell, lonCell, latVertex, lonVertex, grid_area
+   double precision, dimension(:), pointer :: latCell, lonCell, latVertex, lonVertex, grid_area, meshDensity
    integer, dimension(:), pointer :: nEdgesOnCell
    integer, dimension(:,:), pointer :: verticesOnCell, elementConn
    double precision, dimension(:,:), pointer :: latVerticesOnCell, lonVerticesOnCell, &
                                                 centerCoords, nodeCoords 
+   double precision, dimension(:), pointer :: rrfac
+   double precision :: dcMin, dcMax
    double precision :: sphere_radius
    integer, dimension(:), pointer :: grid_imask
    character (len=1024) :: input_file_name
@@ -704,7 +774,7 @@ program mpas2esmf
 
    call read_mpas_mesh(trim(input_file_name), &
                        nCells, nVertices, maxEdges, &
-                       latCell, lonCell, latVertex, lonVertex, nEdgesOnCell, verticesOnCell, grid_area, &
+                       latCell, lonCell, latVertex, lonVertex, nEdgesOnCell, verticesOnCell, grid_area, meshDensity, &
                        sphere_radius)
 
    if (sphere_radius /= 1.0) then
@@ -725,6 +795,25 @@ program mpas2esmf
    allocate(nodeCoords(2,nVertices))
    allocate(elementConn(maxEdges,nCells))
    allocate(grid_imask(nCells))
+   allocate(rrfac(nCells))
+
+   ! convert meshDensity to normalized dc (cell separation distance, aka dx)
+   do iCell=1,nCells
+      meshDensity(iCell) = 1./meshDensity(iCell)**0.25
+   end do
+
+   ! find min and max dc
+   dcMin = meshDensity(1)
+   dcMax = meshDensity(1)
+   do iCell=2,nCells
+     dcMin = min(dcMin, meshDensity(iCell))
+     dcMax = max(dcMax, meshDensity(iCell))
+   end do
+
+   ! compute CAM refinement factor
+   do iCell=1,nCells
+     rrfac(iCell) = dcMax/meshDensity(iCell)
+   end do
 
    do iCell=1,nCells
       do iVtx=1,nEdgesOnCell(iCell)
@@ -756,7 +845,7 @@ program mpas2esmf
                         title, datestring, &
                         nCells, maxEdges, &
                         latCell, lonCell, &
-                        grid_area, latVerticesOnCell, lonVerticesOnCell, grid_imask)
+                        grid_area, rrfac, latVerticesOnCell, lonVerticesOnCell, grid_imask)
 
    write(0,*) "DONE!"
    write(0,'(A)',advance='no') "mpas2esmf: Creating fields for ESMF files ... "
@@ -778,7 +867,7 @@ program mpas2esmf
                         input_file_name, title, datestring, &
                         nCells, nVertices, maxEdges, &
                         centerCoords, nodeCoords, elementConn, nEdgesOnCell, &
-                        grid_area, grid_imask)
+                        grid_area, rrfac, grid_imask)
 
    write(0,*) "DONE!"
 
