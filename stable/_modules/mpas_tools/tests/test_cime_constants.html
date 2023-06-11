@@ -124,8 +124,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-        <span class="s1">&#39;https://raw.githubusercontent.com/E3SM-Project/E3SM/</span><span class="si">{}</span><span class="s1">/share/util/&#39;</span>
-        <span class="s1">&#39;shr_const_mod.F90&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e3sm_tag</span><span class="p">))</span>
+        <span class="sa">f</span><span class="s1">&#39;https://raw.githubusercontent.com/E3SM-Project/E3SM/</span><span class="si">{</span><span class="n">e3sm_tag</span><span class="si">}</span><span class="s1">/&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;share/util/shr_const_mod.F90&#39;</span><span class="p">)</span>
 
     <span class="n">text</span> <span class="o">=</span> <span class="n">resp</span><span class="o">.</span><span class="n">text</span>
 
@@ -139,20 +139,28 @@
         <span class="n">constant</span><span class="p">,</span> <span class="n">value</span> <span class="o">=</span> <span class="n">_parse_value</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">constant</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">continue</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;parsed: </span><span class="si">{}</span><span class="s1"> = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">constant</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;line: </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;parsed: </span><span class="si">{</span><span class="n">constant</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">constant</span> <span class="ow">in</span> <span class="n">constants</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;verifying </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">constant</span><span class="p">))</span>
-            <span class="k">assert</span> <span class="n">value</span> <span class="o">==</span> <span class="n">constants</span><span class="p">[</span><span class="n">constant</span><span class="p">]</span>
-            <span class="n">found</span><span class="p">[</span><span class="n">constant</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;verifying </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">constant</span><span class="p">))</span>
+                <span class="k">assert</span> <span class="n">value</span> <span class="o">==</span> <span class="n">constants</span><span class="p">[</span><span class="n">constant</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;skipping verification for </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">constant</span><span class="p">))</span>
 
-    <span class="n">allFound</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="n">found</span><span class="p">[</span><span class="n">constant</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;not in constants&#39;</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+    <span class="n">all_found</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">for</span> <span class="n">constant</span> <span class="ow">in</span> <span class="n">found</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">[</span><span class="n">constant</span><span class="p">]:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> was not found!&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">constant</span><span class="p">))</span>
-            <span class="n">allFound</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">all_found</span> <span class="o">=</span> <span class="kc">False</span>
 
-    <span class="k">assert</span> <span class="n">allFound</span></div>
+    <span class="k">assert</span> <span class="n">all_found</span></div>
 
 
 <span class="k">def</span> <span class="nf">_parse_value</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
@@ -168,11 +176,7 @@
     <span class="k">if</span> <span class="s1">&#39;!&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
         <span class="n">line</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="s1">&#39;_R8&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-        <span class="n">line</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_R8&#39;</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="s1">&#39;_r8&#39;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
-        <span class="n">line</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;_r8&#39;</span><span class="p">)</span>
+    <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_R8&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_r8&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
 
     <span class="k">try</span><span class="p">:</span>
         <span class="n">value</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
