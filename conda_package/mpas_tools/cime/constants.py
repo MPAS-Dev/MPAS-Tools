@@ -1,8 +1,10 @@
+import numpy as np
+
+
 constants = \
     {'SHR_CONST_PI': 3.14159265358979323846,
      'SHR_CONST_CDAY': 86400.0,
      'SHR_CONST_SDAY': 86164.0,
-     'SHR_CONST_OMEGA': 2.0,
      'SHR_CONST_REARTH': 6.37122e6,
      'SHR_CONST_G': 9.80616,
      'SHR_CONST_STEBOL': 5.67e-8,
@@ -34,8 +36,8 @@ constants = \
      'SHR_CONST_OCN_REF_SAL': 34.7,
      'SHR_CONST_ICE_REF_SAL':  4.0,
      'SHR_CONST_SPVAL': 1.0e30,
-     'SHR_CONST_SPVAL_TOLMIN': 0.99,
-     'SHR_CONST_SPVAL_TOLMAX': 1.01,
+     'SHR_CONST_SPVAL_TOLMIN': 0.99 * 1.0e30,
+     'SHR_CONST_SPVAL_TOLMAX': 1.01 * 1.0e30,
      'SHR_CONST_SPVAL_AERODEP': 1.e29,
      'SHR_CONST_VSMOW_18O': 2005.2e-6,
      'SHR_CONST_VSMOW_17O': 379.e-6,
@@ -44,3 +46,5 @@ constants = \
      'SHR_CONST_VSMOW_T': 1.85e-6,
      'SHR_CONST_VSMOW_H': 0.99984426,
      'SHR_CONST_RSTD_H2ODEV': 1.0}
+
+constants['SHR_CONST_OMEGA'] = 2.0 * np.pi / constants['SHR_CONST_SDAY']

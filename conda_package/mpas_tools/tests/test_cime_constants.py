@@ -13,8 +13,8 @@ def test_cime_constants(e3sm_tag='master'):
     """
 
     resp = requests.get(
-        'https://raw.githubusercontent.com/E3SM-Project/E3SM/{}/share/util/'
-        'shr_const_mod.F90'.format(e3sm_tag))
+        f'https://raw.githubusercontent.com/E3SM-Project/E3SM/{e3sm_tag}/'
+        f'share/util/shr_const_mod.F90')
 
     text = resp.text
 
@@ -28,20 +28,28 @@ def test_cime_constants(e3sm_tag='master'):
         constant, value = _parse_value(line)
         if constant is None:
             continue
-        print(line)
-        print('parsed: {} = {}'.format(constant, value))
+        print(f'line: {line}')
+        print(f'parsed: {constant} = {value}')
         if constant in constants:
-            print('verifying {}'.format(constant))
-            assert value == constants[constant]
-            found[constant] = True
+            if isinstance(value, float):
+                print('verifying {}'.format(constant))
+                assert value == constants[constant]
+            else:
+                print('skipping verification for {}'.format(constant))
 
-    allFound = True
+            found[constant] = True
+        else:
+            print('not in constants')
+
+        print('')
+
+    all_found = True
     for constant in found:
         if not found[constant]:
             print('{} was not found!'.format(constant))
-            allFound = False
+            all_found = False
 
-    assert allFound
+    assert all_found
 
 
 def _parse_value(line):
@@ -57,11 +65,7 @@ def _parse_value(line):
     if '!' in line:
         line, _ = line.split('!', 1)
 
-    if '_R8' in line:
-        line, _ = line.split('_R8')
-
-    if '_r8' in line:
-        line, _ = line.split('_r8')
+    line = line.replace('_R8', '').replace('_r8', '')
 
     try:
         value = float(line)
