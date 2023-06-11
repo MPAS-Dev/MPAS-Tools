@@ -1,6 +1,8 @@
 import numpy
 from shapely.geometry import LineString, Point
 
+from mpas_tools.vector import Vector
+
 
 def subdivide_great_circle(x, y, z, maxRes, earthRadius):
     """
@@ -116,7 +118,7 @@ def cartesian_to_great_circle_distance(x, y, z, earth_radius):
         transectv1 = Vector(x[segIndex+1], y[segIndex+1], z[segIndex+1])
 
         distance[segIndex+1] = distance[segIndex] + \
-            earth_radius*angular_distance(first=transectv0, second=transectv1)
+            earth_radius*transectv0.angular_distance(transectv1)
 
     return distance
 
@@ -213,174 +215,30 @@ def cartesian_to_lon_lat(x, y, z, earth_radius, degrees):
     return lon, lat
 
 
-def angular_distance(x=None, y=None, z=None, first=None, second=None):
+def angular_distance(x, y, z):
     """
     Compute angular distance between points on the sphere, following:
     https://en.wikipedia.org/wiki/Great-circle_distance
 
     Parameters
     ----------
-    x : numpy.ndarray, optional
+    x : numpy.ndarray
         The Cartesian x coordinate of a transect, where the number of segments
-        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length and
-        all must be present if ``first`` and ``second`` are not provided.
+        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same lengt.
 
-    y : numpy.ndarray, optional
+    y : numpy.ndarray
         The Cartesian y coordinate of the transect
 
-    z : numpy.ndarray, optional
+    z : numpy.ndarray
         The Cartesian z coordinate of the transect
 
-    first : mpas_tools.transect.Vector, optional
-        The start points of each segment of the transect, where the
-        ``x``, ``y``, and ``z`` attributes of each vector are numpy.ndarray
-        objects.
-
-    second : mpas_tools.transect.Vector, optional
-        The end points of each segment of the transect
-
     Returns
     -------
-    angularDistance : numpy.ndarray
+    distance : numpy.ndarray
         The angular distance (in radians) between segments of the transect.
     """
-    if first is None or second is None:
-        first = Vector(x[0:-1], y[0:-1], z[0:-1])
-        second = Vector(x[1:], y[1:], z[1:])
+    first = Vector(x[0:-1], y[0:-1], z[0:-1])
+    second = Vector(x[1:], y[1:], z[1:])
 
-    angularDistance = numpy.arctan2(_mag(_cross(first, second)),
-                                    _dot(first, second))
-
-    return angularDistance
-
-
-def intersects(a1, a2, b1, b2):
-    """
-    Based on https://stackoverflow.com/a/26669130/7728169
-    Determine if the great circle arc from ``a1`` to ``a2`` intersects that
-    from ``b1`` to ``b2``.
-
-    Parameters
-    ----------
-    a1 : mpas_tools.transects.Vector
-        Cartesian coordinates of the end point of a great circle arc.
-        The types of the attributes ``x``, ``y``, and ``z`` must either be
-        ``numpy.arrays`` of identical size for all 4 vectors (in which case
-        intersections are found element-wise), or scalars for
-        at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.
-
-    a2 : mpas_tools.transects.Vector
-        Cartesian coordinates of the other end point of a great circle arc.
-
-    b1 : mpas_tools.transects.Vector
-        Cartesian coordinates of an end point of a second great circle arc.
-
-    b2 : mpas_tools.transects.Vector
-        Cartesian coordinates of the other end point of the second great circle
-        arc.
-
-    Returns
-    -------
-    intersect : numpy.ndarray
-        A boolean array of the same size as ``a1`` and ``a2`` or ``b1`` and
-        ``b2``, whichever is greater, indicating if the particular pair of arcs
-        intersects
-    """
-    return numpy.logical_and(_straddles(a1, a2, b1, b2),
-                             _straddles(b1, b2, a1, a2))
-
-
-def intersection(a1, a2, b1, b2):
-    """
-    Based on https://stackoverflow.com/a/26669130/7728169
-    Find the intersection point as a unit vector between great circle arc from
-    ``a1`` to ``a2`` and from ``b1`` to ``b2``.  The arcs should have already
-    have been found to intersect by calling ``intersects()``
-
-    Parameters
-    ----------
-    a1 : mpas_tools.transects.Vector
-        Cartesian coordinates of the end point of a great circle arc.
-        The types of the attributes ``x``, ``y``, and ``z`` must either be
-        ``numpy.arrays`` of identical size for all 4 vectors (in which case
-        intersections are found element-wise), or scalars for
-        at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.
-
-    a2 : mpas_tools.transects.Vector
-        Cartesian coordinates of the other end point of a great circle arc.
-
-    b1 : mpas_tools.transects.Vector
-        Cartesian coordinates of an end point of a second great circle arc.
-
-    b2 : mpas_tools.transects.Vector
-        Cartesian coordinates of the other end point of the second great circle
-        arc.
-    Returns
-    -------
-    points : mpas_tools.transects.Vector
-        An array of Cartesian points *on the unit sphere* indicating where the
-        arcs intersect
-    """
-    points = _cross(_cross(a1, a2), _cross(b1, b2))
-    s = numpy.sign(_det(a1, b1, b2))/_mag(points)
-    points = Vector(s*points.x,  s*points.y, s*points.z)
-    return points
-
-
-class Vector:
-    """
-    A class for representing Cartesian vectors with ``x``, ``y`` and ``z``
-    components that are either ``float`` or ``numpy.array`` objects of identical
-    size.
-    """
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-
-
-def _straddles(a1, a2, b1, b2):
-    """
-    Based on https://stackoverflow.com/a/26669130/7728169
-    Determines if the great circle segment determined by (a1, a2)
-    straddles the great circle determined by (b1, b2)
-
-    Parameters
-    ----------
-    a1, a2, b1, b2 : Vector
-        Cartesian coordinates of the end points of two great circle arcs.
-        The types of the attributes ``x``, ``y``, and ``z`` must either be
-        ``numpy.arrays`` of identical size for all 4 vectors (in which case
-        intersections are found element-wise), or scalars for
-        at least one of either the ``a``s or the ``b``s.
-
-    Returns
-    -------
-    straddle : numpy.ndarray
-        A boolean array of the same size as the ``a``s or the ``b``s, whichever
-        is greater, indicating if the great circle segment determined by
-        (a1, a2) straddles the great circle determined by (b1, b2)
-    """
-    return _det(a1, b1, b2) * _det(a2, b1, b2) < 0
-
-
-def _dot(v1, v2):
-    """The dot product between two ``Vector`` objects ``v1`` and ``v2``"""
-    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z
-
-
-def _cross(v1, v2):
-    """The cross product between two ``Vector`` objects ``v1`` and ``v2``"""
-    return Vector(v1.y * v2.z - v1.z * v2.y,
-                  v1.z * v2.x - v1.x * v2.z,
-                  v1.x * v2.y - v1.y * v2.x)
-
-
-def _det(v1, v2, v3):
-    """The determinant of the matrix defined by the three ``Vector`` objects"""
-    return _dot(v1, _cross(v2, v3))
-
-
-def _mag(v):
-    """The magnitude of the ``Vector`` object ``v``"""
-    return numpy.sqrt(_dot(v, v))
+    distance = first.angular_distance(second)
+    return distance
