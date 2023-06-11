@@ -18,7 +18,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="mpas_tools.viz.paraview_extractor.extract_vtk" href="mpas_tools.viz.paraview_extractor.extract_vtk.html" />
-    <link rel="prev" title="mpas_tools.transects.intersection" href="mpas_tools.transects.intersection.html" /> 
+    <link rel="prev" title="mpas_tools.transects.angular_distance" href="mpas_tools.transects.angular_distance.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -87,8 +87,6 @@
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.lon_lat_to_cartesian.html">mpas_tools.transects.lon_lat_to_cartesian</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.cartesian_to_lon_lat.html">mpas_tools.transects.cartesian_to_lon_lat</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.angular_distance.html">mpas_tools.transects.angular_distance</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.intersects.html">mpas_tools.transects.intersects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.intersection.html">mpas_tools.transects.intersection</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.transects.Vector</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#mpas_tools.transects.Vector"><code class="docutils literal notranslate"><span class="pre">Vector</span></code></a></li>
 </ul>
@@ -139,20 +137,65 @@
 <h1>mpas_tools.transects.Vector<a class="headerlink" href="#mpas-tools-transects-vector" title="Permalink to this heading">¶</a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="mpas_tools.transects.Vector">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mpas_tools.transects.</span></span><span class="sig-name descname"><span class="pre">Vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/transects.html#Vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.transects.Vector" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mpas_tools.transects.</span></span><span class="sig-name descname"><span class="pre">Vector</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/vector.html#Vector"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.transects.Vector" title="Permalink to this definition">¶</a></dt>
 <dd><p>A class for representing Cartesian vectors with <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code>
-components that are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">numpy.array</span></code> objects of identical
-size.</p>
+components that are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">numpy.array</span></code> objects of
+identical size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em> or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The x component(s)</p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em> or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The y component(s)</p></li>
+<li><p><strong>z</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em> or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The z component(s)</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="mpas_tools.transects.Vector.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/transects.html#Vector.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.transects.Vector.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/vector.html#Vector.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.transects.Vector.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>A class for representing Cartesian vectors with <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code>
+components that are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">numpy.array</span></code> objects of
+identical size.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em> or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The x component(s)</p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em> or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The y component(s)</p></li>
+<li><p><strong>z</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em> or </em><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The z component(s)</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <p class="rubric">Methods</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="#mpas_tools.transects.Vector.__init__" title="mpas_tools.transects.Vector.__init__"><code class="xref py py-obj docutils literal notranslate"><span class="pre">__init__</span></code></a>(x, y, z)</p></td>
-<td><p></p></td>
+<td><p>A class for representing Cartesian vectors with <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code> components that are either <code class="docutils literal notranslate"><span class="pre">float</span></code> or <code class="docutils literal notranslate"><span class="pre">numpy.array</span></code> objects of identical size.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">angular_distance</span></code>(other)</p></td>
+<td><p>Compute angular distance between points on the sphere, following: <a class="reference external" href="https://en.wikipedia.org/wiki/Great-circle_distance">https://en.wikipedia.org/wiki/Great-circle_distance</a></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">cross</span></code>(other)</p></td>
+<td><p>Compute the dot product between this vector and <code class="docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">det</span></code>(v1, v2, v3)</p></td>
+<td><p>The determinant of the matrix defined by the three <code class="docutils literal notranslate"><span class="pre">Vector</span></code> objects</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">dot</span></code>(other)</p></td>
+<td><p>Compute the dot product between this vector and <code class="docutils literal notranslate"><span class="pre">other</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">intersection</span></code>(a1, a2, b1, b2)</p></td>
+<td><p>Based on <a class="reference external" href="https://stackoverflow.com/a/26669130/7728169">https://stackoverflow.com/a/26669130/7728169</a> Find the intersection point as a unit vector between great circle arc from <code class="docutils literal notranslate"><span class="pre">a1</span></code> to <code class="docutils literal notranslate"><span class="pre">a2</span></code> and from <code class="docutils literal notranslate"><span class="pre">b1</span></code> to <code class="docutils literal notranslate"><span class="pre">b2</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">intersects</span></code>(a1, a2, b1, b2)</p></td>
+<td><p>Based on <a class="reference external" href="https://stackoverflow.com/a/26669130/7728169">https://stackoverflow.com/a/26669130/7728169</a> Determine if the great circle arc from <code class="docutils literal notranslate"><span class="pre">a1</span></code> to <code class="docutils literal notranslate"><span class="pre">a2</span></code> intersects that from <code class="docutils literal notranslate"><span class="pre">b1</span></code> to <code class="docutils literal notranslate"><span class="pre">b2</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">mag</span></code>()</p></td>
+<td><p>The magnitude of the vector</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">straddles</span></code>(a1, a2, b1, b2)</p></td>
+<td><p>Based on <a class="reference external" href="https://stackoverflow.com/a/26669130/7728169">https://stackoverflow.com/a/26669130/7728169</a> Determines if the great circle segment determined by (a1, a2) straddles the great circle determined by (b1, b2)</p></td>
 </tr>
 </tbody>
 </table>
@@ -164,7 +207,7 @@ size.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="mpas_tools.transects.intersection.html" class="btn btn-neutral float-left" title="mpas_tools.transects.intersection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.transects.angular_distance.html" class="btn btn-neutral float-left" title="mpas_tools.transects.angular_distance" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="mpas_tools.viz.paraview_extractor.extract_vtk.html" class="btn btn-neutral float-right" title="mpas_tools.viz.paraview_extractor.extract_vtk" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

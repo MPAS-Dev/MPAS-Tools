@@ -17,7 +17,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.transects.intersects" href="mpas_tools.transects.intersects.html" />
+    <link rel="next" title="mpas_tools.transects.Vector" href="mpas_tools.transects.Vector.html" />
     <link rel="prev" title="mpas_tools.transects.cartesian_to_lon_lat" href="mpas_tools.transects.cartesian_to_lon_lat.html" /> 
 </head>
 
@@ -90,8 +90,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#mpas_tools.transects.angular_distance"><code class="docutils literal notranslate"><span class="pre">angular_distance()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.intersects.html">mpas_tools.transects.intersects</a></li>
-<li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.intersection.html">mpas_tools.transects.intersection</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.transects.Vector.html">mpas_tools.transects.Vector</a></li>
 </ul>
 </li>
@@ -139,25 +137,20 @@
 <h1>mpas_tools.transects.angular_distance<a class="headerlink" href="#mpas-tools-transects-angular-distance" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.transects.angular_distance">
-<span class="sig-prename descclassname"><span class="pre">mpas_tools.transects.</span></span><span class="sig-name descname"><span class="pre">angular_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">first</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">second</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/transects.html#angular_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.transects.angular_distance" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.transects.</span></span><span class="sig-name descname"><span class="pre">angular_distance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/transects.html#angular_distance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.transects.angular_distance" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute angular distance between points on the sphere, following:
 <a class="reference external" href="https://en.wikipedia.org/wiki/Great-circle_distance">https://en.wikipedia.org/wiki/Great-circle_distance</a></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a><em>, </em><em>optional</em>) – The Cartesian x coordinate of a transect, where the number of segments
-is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code>.  <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code> are of the same length and
-all must be present if <code class="docutils literal notranslate"><span class="pre">first</span></code> and <code class="docutils literal notranslate"><span class="pre">second</span></code> are not provided.</p></li>
-<li><p><strong>y</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a><em>, </em><em>optional</em>) – The Cartesian y coordinate of the transect</p></li>
-<li><p><strong>z</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a><em>, </em><em>optional</em>) – The Cartesian z coordinate of the transect</p></li>
-<li><p><strong>first</strong> (<em>mpas_tools.transect.Vector</em><em>, </em><em>optional</em>) – The start points of each segment of the transect, where the
-<code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code>, and <code class="docutils literal notranslate"><span class="pre">z</span></code> attributes of each vector are numpy.ndarray
-objects.</p></li>
-<li><p><strong>second</strong> (<em>mpas_tools.transect.Vector</em><em>, </em><em>optional</em>) – The end points of each segment of the transect</p></li>
+<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The Cartesian x coordinate of a transect, where the number of segments
+is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code>.  <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code> are of the same lengt.</p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The Cartesian y coordinate of the transect</p></li>
+<li><p><strong>z</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.24)"><em>numpy.ndarray</em></a>) – The Cartesian z coordinate of the transect</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>angularDistance</strong> (<em>numpy.ndarray</em>) – The angular distance (in radians) between segments of the transect.</p>
+<dd class="field-even"><p><strong>distance</strong> (<em>numpy.ndarray</em>) – The angular distance (in radians) between segments of the transect.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -169,7 +162,7 @@ objects.</p></li>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="mpas_tools.transects.cartesian_to_lon_lat.html" class="btn btn-neutral float-left" title="mpas_tools.transects.cartesian_to_lon_lat" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mpas_tools.transects.intersects.html" class="btn btn-neutral float-right" title="mpas_tools.transects.intersects" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mpas_tools.transects.Vector.html" class="btn btn-neutral float-right" title="mpas_tools.transects.Vector" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

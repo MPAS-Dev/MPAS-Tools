@@ -115,9 +115,13 @@
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">cKDTree</span>
 <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">Point</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.transects</span> <span class="kn">import</span> <span class="n">Vector</span><span class="p">,</span> <span class="n">lon_lat_to_cartesian</span><span class="p">,</span> \
-    <span class="n">cartesian_to_lon_lat</span><span class="p">,</span> <span class="n">intersects</span><span class="p">,</span> <span class="n">intersection</span><span class="p">,</span> <span class="n">angular_distance</span><span class="p">,</span> \
-    <span class="n">subdivide_great_circle</span><span class="p">,</span> <span class="n">subdivide_planar</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.transects</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">cartesian_to_lon_lat</span><span class="p">,</span>
+    <span class="n">lon_lat_to_cartesian</span><span class="p">,</span>
+    <span class="n">subdivide_great_circle</span><span class="p">,</span>
+    <span class="n">subdivide_planar</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.vector</span> <span class="kn">import</span> <span class="n">Vector</span>
 
 
 <div class="viewcode-block" id="make_triangle_tree"><a class="viewcode-back" href="../../../generated/mpas_tools.viz.transects.make_triangle_tree.html#mpas_tools.viz.transects.make_triangle_tree">[docs]</a><span class="k">def</span> <span class="nf">make_triangle_tree</span><span class="p">(</span><span class="n">dsTris</span><span class="p">):</span>
@@ -305,8 +309,8 @@
                         <span class="n">yNode</span><span class="p">[</span><span class="n">n1IndicesCand</span><span class="p">],</span>
                         <span class="n">zNode</span><span class="p">[</span><span class="n">n1IndicesCand</span><span class="p">])</span>
 
-        <span class="n">intersect</span> <span class="o">=</span> <span class="n">intersects</span><span class="p">(</span><span class="n">n0Cand</span><span class="p">,</span> <span class="n">n1Cand</span><span class="p">,</span> <span class="n">transectv0</span><span class="p">,</span>
-                               <span class="n">transectv1</span><span class="p">)</span>
+        <span class="n">intersect</span> <span class="o">=</span> <span class="n">Vector</span><span class="o">.</span><span class="n">intersects</span><span class="p">(</span><span class="n">n0Cand</span><span class="p">,</span> <span class="n">n1Cand</span><span class="p">,</span> <span class="n">transectv0</span><span class="p">,</span>
+                                      <span class="n">transectv1</span><span class="p">)</span>
 
         <span class="n">n0Inter</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">n0Cand</span><span class="o">.</span><span class="n">x</span><span class="p">[</span><span class="n">intersect</span><span class="p">],</span>
                          <span class="n">n0Cand</span><span class="o">.</span><span class="n">y</span><span class="p">[</span><span class="n">intersect</span><span class="p">],</span>
@@ -319,24 +323,23 @@
         <span class="n">n0IndicesInter</span> <span class="o">=</span> <span class="n">n0IndicesCand</span><span class="p">[</span><span class="n">intersect</span><span class="p">]</span>
         <span class="n">n1IndicesInter</span> <span class="o">=</span> <span class="n">n1IndicesCand</span><span class="p">[</span><span class="n">intersect</span><span class="p">]</span>
 
-        <span class="n">intersections</span> <span class="o">=</span> <span class="n">intersection</span><span class="p">(</span><span class="n">n0Inter</span><span class="p">,</span> <span class="n">n1Inter</span><span class="p">,</span> <span class="n">transectv0</span><span class="p">,</span> <span class="n">transectv1</span><span class="p">)</span>
+        <span class="n">intersections</span> <span class="o">=</span> <span class="n">Vector</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">n0Inter</span><span class="p">,</span> <span class="n">n1Inter</span><span class="p">,</span> <span class="n">transectv0</span><span class="p">,</span>
+                                            <span class="n">transectv1</span><span class="p">)</span>
         <span class="n">intersections</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">earth_radius</span><span class="o">*</span><span class="n">intersections</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>
                                <span class="n">earth_radius</span><span class="o">*</span><span class="n">intersections</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
                                <span class="n">earth_radius</span><span class="o">*</span><span class="n">intersections</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
 
-        <span class="n">angularDistance</span> <span class="o">=</span> <span class="n">angular_distance</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="n">transectv0</span><span class="p">,</span>
-                                           <span class="n">second</span><span class="o">=</span><span class="n">intersections</span><span class="p">)</span>
+        <span class="n">angularDistance</span> <span class="o">=</span> <span class="n">transectv0</span><span class="o">.</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">intersections</span><span class="p">)</span>
 
         <span class="n">dNodeLocal</span> <span class="o">=</span> <span class="n">dStart</span> <span class="o">+</span> <span class="n">earth_radius</span> <span class="o">*</span> <span class="n">angularDistance</span>
 
-        <span class="n">dStart</span> <span class="o">+=</span> <span class="n">earth_radius</span><span class="o">*</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="n">transectv0</span><span class="p">,</span>
-                                                <span class="n">second</span><span class="o">=</span><span class="n">transectv1</span><span class="p">)</span>
+        <span class="n">dStart</span> <span class="o">+=</span> <span class="n">earth_radius</span><span class="o">*</span><span class="n">transectv0</span><span class="o">.</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">transectv1</span><span class="p">)</span>
 
         <span class="n">node0Inter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">n0IndicesInter</span><span class="p">,</span> <span class="n">nNodes</span><span class="p">)</span>
         <span class="n">node1Inter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">n1IndicesInter</span><span class="p">,</span> <span class="n">nNodes</span><span class="p">)</span>
 
-        <span class="n">nodeWeights</span> <span class="o">=</span> <span class="p">(</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="n">intersections</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="n">n1Inter</span><span class="p">)</span> <span class="o">/</span>
-                       <span class="n">angular_distance</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="n">n0Inter</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="n">n1Inter</span><span class="p">))</span>
+        <span class="n">nodeWeights</span> <span class="o">=</span> <span class="p">(</span><span class="n">intersections</span><span class="o">.</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">n1Inter</span><span class="p">)</span> <span class="o">/</span>
+                       <span class="n">n0Inter</span><span class="o">.</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">n1Inter</span><span class="p">))</span>
 
         <span class="n">weights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">trisInter</span><span class="p">),</span> <span class="n">nHorizWeights</span><span class="p">))</span>
         <span class="n">cellIndices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">trisInter</span><span class="p">),</span> <span class="n">nHorizWeights</span><span class="p">),</span> <span class="nb">int</span><span class="p">)</span>

@@ -1,6 +1,0 @@
-﻿mpas\_tools.transects.intersects
-================================
-
-.. currentmodule:: mpas_tools.transects
-
-.. autofunction:: intersects

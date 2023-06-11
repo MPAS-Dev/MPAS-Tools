@@ -14,6 +14,14 @@
    .. autosummary::
    
       ~Vector.__init__
+      ~Vector.angular_distance
+      ~Vector.cross
+      ~Vector.det
+      ~Vector.dot
+      ~Vector.intersection
+      ~Vector.intersects
+      ~Vector.mag
+      ~Vector.straddles
    
    
 

@@ -112,6 +112,8 @@
 <span></span><span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">Point</span>
 
+<span class="kn">from</span> <span class="nn">mpas_tools.vector</span> <span class="kn">import</span> <span class="n">Vector</span>
+
 
 <div class="viewcode-block" id="subdivide_great_circle"><a class="viewcode-back" href="../../generated/mpas_tools.transects.subdivide_great_circle.html#mpas_tools.transects.subdivide_great_circle">[docs]</a><span class="k">def</span> <span class="nf">subdivide_great_circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">maxRes</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -227,7 +229,7 @@
         <span class="n">transectv1</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">segIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">segIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="n">segIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">])</span>
 
         <span class="n">distance</span><span class="p">[</span><span class="n">segIndex</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">distance</span><span class="p">[</span><span class="n">segIndex</span><span class="p">]</span> <span class="o">+</span> \
-            <span class="n">earth_radius</span><span class="o">*</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">first</span><span class="o">=</span><span class="n">transectv0</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="n">transectv1</span><span class="p">)</span>
+            <span class="n">earth_radius</span><span class="o">*</span><span class="n">transectv0</span><span class="o">.</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">transectv1</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">distance</span></div>
 
@@ -324,177 +326,33 @@
     <span class="k">return</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span></div>
 
 
-<div class="viewcode-block" id="angular_distance"><a class="viewcode-back" href="../../generated/mpas_tools.transects.angular_distance.html#mpas_tools.transects.angular_distance">[docs]</a><span class="k">def</span> <span class="nf">angular_distance</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">first</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">second</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="angular_distance"><a class="viewcode-back" href="../../generated/mpas_tools.transects.angular_distance.html#mpas_tools.transects.angular_distance">[docs]</a><span class="k">def</span> <span class="nf">angular_distance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute angular distance between points on the sphere, following:</span>
 <span class="sd">    https://en.wikipedia.org/wiki/Great-circle_distance</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    x : numpy.ndarray, optional</span>
+<span class="sd">    x : numpy.ndarray</span>
 <span class="sd">        The Cartesian x coordinate of a transect, where the number of segments</span>
-<span class="sd">        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length and</span>
-<span class="sd">        all must be present if ``first`` and ``second`` are not provided.</span>
+<span class="sd">        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same lengt.</span>
 
-<span class="sd">    y : numpy.ndarray, optional</span>
+<span class="sd">    y : numpy.ndarray</span>
 <span class="sd">        The Cartesian y coordinate of the transect</span>
 
-<span class="sd">    z : numpy.ndarray, optional</span>
+<span class="sd">    z : numpy.ndarray</span>
 <span class="sd">        The Cartesian z coordinate of the transect</span>
 
-<span class="sd">    first : mpas_tools.transect.Vector, optional</span>
-<span class="sd">        The start points of each segment of the transect, where the</span>
-<span class="sd">        ``x``, ``y``, and ``z`` attributes of each vector are numpy.ndarray</span>
-<span class="sd">        objects.</span>
-
-<span class="sd">    second : mpas_tools.transect.Vector, optional</span>
-<span class="sd">        The end points of each segment of the transect</span>
-
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    angularDistance : numpy.ndarray</span>
+<span class="sd">    distance : numpy.ndarray</span>
 <span class="sd">        The angular distance (in radians) between segments of the transect.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">first</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">second</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">first</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="n">second</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="n">first</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">z</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">second</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 
-    <span class="n">angularDistance</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">_mag</span><span class="p">(</span><span class="n">_cross</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">)),</span>
-                                    <span class="n">_dot</span><span class="p">(</span><span class="n">first</span><span class="p">,</span> <span class="n">second</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">angularDistance</span></div>
-
-
-<div class="viewcode-block" id="intersects"><a class="viewcode-back" href="../../generated/mpas_tools.transects.intersects.html#mpas_tools.transects.intersects">[docs]</a><span class="k">def</span> <span class="nf">intersects</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Based on https://stackoverflow.com/a/26669130/7728169</span>
-<span class="sd">    Determine if the great circle arc from ``a1`` to ``a2`` intersects that</span>
-<span class="sd">    from ``b1`` to ``b2``.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    a1 : mpas_tools.transects.Vector</span>
-<span class="sd">        Cartesian coordinates of the end point of a great circle arc.</span>
-<span class="sd">        The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
-<span class="sd">        ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
-<span class="sd">        intersections are found element-wise), or scalars for</span>
-<span class="sd">        at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.</span>
-
-<span class="sd">    a2 : mpas_tools.transects.Vector</span>
-<span class="sd">        Cartesian coordinates of the other end point of a great circle arc.</span>
-
-<span class="sd">    b1 : mpas_tools.transects.Vector</span>
-<span class="sd">        Cartesian coordinates of an end point of a second great circle arc.</span>
-
-<span class="sd">    b2 : mpas_tools.transects.Vector</span>
-<span class="sd">        Cartesian coordinates of the other end point of the second great circle</span>
-<span class="sd">        arc.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    intersect : numpy.ndarray</span>
-<span class="sd">        A boolean array of the same size as ``a1`` and ``a2`` or ``b1`` and</span>
-<span class="sd">        ``b2``, whichever is greater, indicating if the particular pair of arcs</span>
-<span class="sd">        intersects</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">_straddles</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">),</span>
-                             <span class="n">_straddles</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">))</span></div>
-
-
-<div class="viewcode-block" id="intersection"><a class="viewcode-back" href="../../generated/mpas_tools.transects.intersection.html#mpas_tools.transects.intersection">[docs]</a><span class="k">def</span> <span class="nf">intersection</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Based on https://stackoverflow.com/a/26669130/7728169</span>
-<span class="sd">    Find the intersection point as a unit vector between great circle arc from</span>
-<span class="sd">    ``a1`` to ``a2`` and from ``b1`` to ``b2``.  The arcs should have already</span>
-<span class="sd">    have been found to intersect by calling ``intersects()``</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    a1 : mpas_tools.transects.Vector</span>
-<span class="sd">        Cartesian coordinates of the end point of a great circle arc.</span>
-<span class="sd">        The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
-<span class="sd">        ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
-<span class="sd">        intersections are found element-wise), or scalars for</span>
-<span class="sd">        at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.</span>
-
-<span class="sd">    a2 : mpas_tools.transects.Vector</span>
-<span class="sd">        Cartesian coordinates of the other end point of a great circle arc.</span>
-
-<span class="sd">    b1 : mpas_tools.transects.Vector</span>
-<span class="sd">        Cartesian coordinates of an end point of a second great circle arc.</span>
-
-<span class="sd">    b2 : mpas_tools.transects.Vector</span>
-<span class="sd">        Cartesian coordinates of the other end point of the second great circle</span>
-<span class="sd">        arc.</span>
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    points : mpas_tools.transects.Vector</span>
-<span class="sd">        An array of Cartesian points *on the unit sphere* indicating where the</span>
-<span class="sd">        arcs intersect</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">points</span> <span class="o">=</span> <span class="n">_cross</span><span class="p">(</span><span class="n">_cross</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">),</span> <span class="n">_cross</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">))</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">_det</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">))</span><span class="o">/</span><span class="n">_mag</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
-    <span class="n">points</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>  <span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">points</span></div>
-
-
-<div class="viewcode-block" id="Vector"><a class="viewcode-back" href="../../generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector">[docs]</a><span class="k">class</span> <span class="nc">Vector</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A class for representing Cartesian vectors with ``x``, ``y`` and ``z``</span>
-<span class="sd">    components that are either ``float`` or ``numpy.array`` objects of identical</span>
-<span class="sd">    size.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="Vector.__init__"><a class="viewcode-back" href="../../generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span></div></div>
-
-
-<span class="k">def</span> <span class="nf">_straddles</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Based on https://stackoverflow.com/a/26669130/7728169</span>
-<span class="sd">    Determines if the great circle segment determined by (a1, a2)</span>
-<span class="sd">    straddles the great circle determined by (b1, b2)</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    a1, a2, b1, b2 : Vector</span>
-<span class="sd">        Cartesian coordinates of the end points of two great circle arcs.</span>
-<span class="sd">        The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
-<span class="sd">        ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
-<span class="sd">        intersections are found element-wise), or scalars for</span>
-<span class="sd">        at least one of either the ``a``s or the ``b``s.</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    straddle : numpy.ndarray</span>
-<span class="sd">        A boolean array of the same size as the ``a``s or the ``b``s, whichever</span>
-<span class="sd">        is greater, indicating if the great circle segment determined by</span>
-<span class="sd">        (a1, a2) straddles the great circle determined by (b1, b2)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_det</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="o">*</span> <span class="n">_det</span><span class="p">(</span><span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span>
-
-
-<span class="k">def</span> <span class="nf">_dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;The dot product between two ``Vector`` objects ``v1`` and ``v2``&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">v1</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">v1</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">v1</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">z</span>
-
-
-<span class="k">def</span> <span class="nf">_cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;The cross product between two ``Vector`` objects ``v1`` and ``v2``&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="n">v1</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="n">v1</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
-                  <span class="n">v1</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="n">v1</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
-                  <span class="n">v1</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="n">v1</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">v2</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">_det</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;The determinant of the matrix defined by the three ``Vector`` objects&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_dot</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">_cross</span><span class="p">(</span><span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">))</span>
-
-
-<span class="k">def</span> <span class="nf">_mag</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;The magnitude of the ``Vector`` object ``v``&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">_dot</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">first</span><span class="o">.</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">second</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">distance</span></div>
 </pre></div>
 
            </div>
