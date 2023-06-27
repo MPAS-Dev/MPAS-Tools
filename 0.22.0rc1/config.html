@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Config files &mdash; mpas_tools 0.22.0rc1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Logging" href="logging.html" />
+    <link rel="prev" title="CIME Constants" href="cime.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+              <div class="version">
+                0.22.0rc1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Config files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#comments-in-config-files">Comments in config files</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Config files</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/config.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="config-files">
+<span id="config-mod"></span><h1>Config files<a class="headerlink" href="#config-files" title="Permalink to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">mpas_tools.config</span></code> module includes the
+<a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser" title="mpas_tools.config.MpasConfigParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser</span></code></a> class reading, getting, setting,
+and writing config options and config files.</p>
+<p>The <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.add_from_package.html#mpas_tools.config.MpasConfigParser.add_from_package" title="mpas_tools.config.MpasConfigParser.add_from_package"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.add_from_package()</span></code></a> method can
+be used to add the contents of a config file within a package to the config
+options.</p>
+<p>Here is an example from <a class="reference external" href="https://github.com/MPAS-Dev/compass">compass</a>
+.. code-block:: python</p>
+<blockquote>
+<div><dl class="simple">
+<dt>self.config.add_from_package(</dt><dd><p>‘compass.ocean.tests.global_ocean.make_diagnostics_files’,
+‘make_diagnostics_files.cfg’, exception=True)</p>
+</dd>
+</dl>
+</div></blockquote>
+<p>The first and second arguments are the name of a package containing the config
+file and the name of the config file itself, respectively.  You can see that
+the file is in the path <code class="docutils literal notranslate"><span class="pre">compass/ocean/tests/global_ocean/make_diagnostics_files</span></code>
+(replacing the <code class="docutils literal notranslate"><span class="pre">.</span></code> in the module name with <code class="docutils literal notranslate"><span class="pre">/</span></code>).  In this case, we know
+that the config file should always exist, so we would like the code to raise
+an exception (<code class="docutils literal notranslate"><span class="pre">exception=True</span></code>) if the file is not found.  This is the
+default behavior.  In some cases, you would like the code to add the config
+options if the config file exists and do nothing if it does not
+(<code class="docutils literal notranslate"><span class="pre">exception=False</span></code>).</p>
+<p>Ihe <code class="docutils literal notranslate"><span class="pre">MpasConfigParser</span></code> class also includes methods for adding a user
+config file, <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.add_user_config.html#mpas_tools.config.MpasConfigParser.add_user_config" title="mpas_tools.config.MpasConfigParser.add_user_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.add_user_config()</span></code></a>,
+and other config files by file name,
+<a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.add_from_file.html#mpas_tools.config.MpasConfigParser.add_from_file" title="mpas_tools.config.MpasConfigParser.add_from_file"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.add_from_file()</span></code></a>.</p>
+<p>The <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.copy.html#mpas_tools.config.MpasConfigParser.copy" title="mpas_tools.config.MpasConfigParser.copy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.copy()</span></code></a> method can be used to
+make a deep copy of the config parser.  This is useful in cases where config
+options should be added or modified without affecting the original config
+object.  For example, this feature is used in MPAS-Analysis to set a reference
+year as the start year in some analysis without affecting the start year in
+other analysis.</p>
+<p>The <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.set.html#mpas_tools.config.MpasConfigParser.set" title="mpas_tools.config.MpasConfigParser.set"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.set()</span></code></a> method has some
+optional arguments not present in <code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser.set()</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">comment</span></code> argument can be used to add a comment that will be written
+out above the config option.  The comment can cover multiple lines by including
+a <code class="docutils literal notranslate"><span class="pre">\n</span></code> character.  The comment should not include the <code class="docutils literal notranslate"><span class="pre">#</span></code> comment
+character, as this is added automatically.  The argument <code class="docutils literal notranslate"><span class="pre">user=True</span></code> can be
+used to set “user” config options similar to reading a user config file with
+<a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.add_user_config.html#mpas_tools.config.MpasConfigParser.add_user_config" title="mpas_tools.config.MpasConfigParser.add_user_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.add_user_config()</span></code></a>.</p>
+<p>Other methods for the <code class="docutils literal notranslate"><span class="pre">MpasConfigParser</span></code> are similar to those for
+<a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a>.  In addition to <code class="docutils literal notranslate"><span class="pre">get()</span></code>,
+<code class="docutils literal notranslate"><span class="pre">getinteger()</span></code>, <code class="docutils literal notranslate"><span class="pre">getfloat()</span></code> and <code class="docutils literal notranslate"><span class="pre">getboolean()</span></code> methods, this class
+implements <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.getlist.html#mpas_tools.config.MpasConfigParser.getlist" title="mpas_tools.config.MpasConfigParser.getlist"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.getlist()</span></code></a>, which
+can be used to parse a config value separated by spaces and/or commas into
+a list of strings, floats, integers, booleans, etc.  Another useful method
+is <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.getexpression.html#mpas_tools.config.MpasConfigParser.getexpression" title="mpas_tools.config.MpasConfigParser.getexpression"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.getexpression()</span></code></a>, which can
+be used to get python dictionaries, lists and tuples as well as a small set
+of functions (<code class="docutils literal notranslate"><span class="pre">range()</span></code>, <code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.linspace()</span></code>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.arange()</span></code>, and <code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.array()</span></code>)</p>
+<p>Currently, <code class="docutils literal notranslate"><span class="pre">MpasConfigParser</span></code> supports accessing a config section using
+section names as keys, e.g.:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">section</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;enthalpy_benchmark_viz&#39;</span><span class="p">]</span>
+<span class="n">display_image</span> <span class="o">=</span> <span class="n">section</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;display_image&#39;</span><span class="p">)</span>
+<span class="o">...</span>
+</pre></div>
+</div>
+<p>But it does not allow assignment of a section or many of the other
+dictionary-like features supported by <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a>.</p>
+<section id="comments-in-config-files">
+<span id="config-comments"></span><h2>Comments in config files<a class="headerlink" href="#comments-in-config-files" title="Permalink to this heading">¶</a></h2>
+<p>One of the main advantages of <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser" title="mpas_tools.config.MpasConfigParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser</span></code></a>
+over <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a> is that it keeps track of comments
+that are associated with config sections and options.  There are a few “rules”
+that make this possible.</p>
+<p>Comments must begin with the <code class="docutils literal notranslate"><span class="pre">#</span></code> character.  They must be placed <em>before</em> the
+config section or option in question (preferably without blank lines between).
+The comments can be any number of lines.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Inline comments (after a config option on the same line) are not allowed
+and will be parsed as part of the config option itself.</p>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="cime.html" class="btn btn-neutral float-left" title="CIME Constants" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="logging.html" class="btn btn-neutral float-right" title="Logging" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
