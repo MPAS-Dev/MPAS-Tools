@@ -21,7 +21,7 @@ Purpose:
 	at:
 	https://github.com/MPAS-Dev/geometric_features
 	Masks have a value of 0 or 1, and are integers.
-	
+
 Requirements:
 	mpas_mesh_converter.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
 	It also requires the tr1 headers for c++, specifically unordered_set.
@@ -77,7 +77,7 @@ Usage of mpas_cell_culler.cpp:
 		The output_name should be the name of the NetCDF file that will be generated. It will be the same as the input file,
 		with cells, edges, and vertices removed where appropriate. Also, the cullCell field will be removed.
 		If input_name is specified, outputname defaults to culled_mesh.nc.
-	
+
 	-m/-i:
 		These flags allow the addition of a masks file to be used to define
 		cells that should be culled.
@@ -87,7 +87,7 @@ Usage of mpas_cell_culler.cpp:
 		If the -i flag is used, the inverse of the masks file is used to cull
 		the mesh. Meaning where all masks in the masks file are 0, the mesh
 		will be culled.
-	
+
 	mask_file:
 		The mask_file argument should be the name of a NetCDF file containing
 		the regionCellMasks field, which defines masks for culling cells.
@@ -106,7 +106,7 @@ Usage of mpas_mask_creator.cpp:
 		The output masks should be the path to a NetCDF file that will be
 		generated. It will contain all of the mask information after applying
 		the region specifications to the input name mesh file.
-	
+
 	feature_groupN:
 		After the output masks argument, the mask creator can take an arbitrary
 		number of feature files. The mask creator assumes each file is a group
@@ -125,7 +125,7 @@ Notes for mpas_mesh_converter.cpp:
 		given a negative area.
 	- Negative area cells can be removed at a later state to remove non-complete
 		cells.
-	
+
 
 Notes for mpas_cell_culler.cpp:
 	- Cells that contain negative area will be removed in addition to all cells that have

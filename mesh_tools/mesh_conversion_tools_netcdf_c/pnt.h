@@ -129,7 +129,7 @@ class pnt {/*{{{*/
 				std::cout << x << " " << y << " " << z << " " << idx << std::endl;
 
 				assert(norm != 0);
-			}	
+			}
 			norm = sqrt(norm);
 
 			x = x/norm;
@@ -271,7 +271,7 @@ class pnt {/*{{{*/
 		}/*}}}*/
 	struct hasher {/*{{{*/
 		size_t operator()(const pnt &p) const {
-			uint32_t hash; 
+			uint32_t hash;
 			size_t i, key[3] = { (size_t)p.x, (size_t)p.y, (size_t)p.z };
 			for(hash = i = 0; i < sizeof(key); ++i) {
 				hash += ((uint8_t *)key)[i];

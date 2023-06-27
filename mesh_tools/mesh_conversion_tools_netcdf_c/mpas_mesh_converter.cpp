@@ -269,7 +269,7 @@ int main ( int argc, char *argv[] ) {
 		cout << "Error - " << error << endl;
 		exit(error);
 	}
-	
+
 	cout << "Reading and writing meshDensity" << endl;
 	if(error = outputMeshDensity(out_name)){
 		cout << "Error - " << error << endl;
@@ -285,7 +285,7 @@ int main ( int argc, char *argv[] ) {
 
 /* Building/Ordering functions {{{ */
 int readGridInput(const string inputFilename){/*{{{*/
-    int ncid, retv;	
+    int ncid, retv;
     size_t nCells, nVertices, vertexDegree;
     string on_a_sphere, is_periodic;
 	double *xcell, *ycell,*zcell;
@@ -354,9 +354,9 @@ int readGridInput(const string inputFilename){/*{{{*/
 	cout << "   Reading y_period" << endl;
 #endif
 	ncutil::get_att(inputFilename, "y_period", &yPeriod);
-    
+
     } catch (...) {
-    // allow errors for optional attr. not found    
+    // allow errors for optional attr. not found
     }
 
 	cout << "Read dimensions:" << endl;
@@ -449,7 +449,7 @@ int readGridInput(const string inputFilename){/*{{{*/
 	meshDensity.clear();
 	meshDensity.resize(cells.size());
     ncutil::get_var(inputFilename, "meshDensity", &meshDensity[0]);
-	
+
 	xCellDistance = fabs(xCellRange[1] - xCellRange[0]);
 	yCellDistance = fabs(yCellRange[1] - yCellRange[0]);
 	zCellDistance = fabs(zCellRange[1] - zCellRange[0]);
@@ -521,14 +521,14 @@ int buildUnorderedCellConnectivity(){/*{{{*/
 	//    It should compute the inverse of cellsOnVertex (verticesOnCell) unordered.
 	//    It will also compute an unordered cellsOnCell that can be considered invalid for actual use (e.g. quad grids).
 	//    This ordering should happen regardless of it the mesh is planar or spherical.
-	
+
 	int iVertex, iCell, newCell, j, k, l, m, matches;
 	bool add;
 
 #ifdef _DEBUG
 	cout << endl << endl << "Begin function: buildUnorderedCellConnectivity" << endl << endl;
 #endif
-	
+
 	verticesOnCell.clear();
 	verticesOnCell.resize(cells.size());
 
@@ -585,7 +585,7 @@ int buildUnorderedCellConnectivity(){/*{{{*/
 #endif
 							} else {
 #ifdef _DEBUG
-								cout << "   Only found " << matches << 
+								cout << "   Only found " << matches <<
                                     " shared vertices for cell edge. Not adding cell." << endl;
 #endif
 
@@ -748,7 +748,7 @@ int firstOrderingVerticesOnCell(){/*{{{*/
 }/*}}}*/
 int buildCompleteCellMask(){/*{{{*/
 	/*
-	 * The buildCompleteCellMask function parses an ordered 
+	 * The buildCompleteCellMask function parses an ordered
 	 * verticesOnCell field to determine if a cell is complete. It takes each
 	 * vertex-vertex pair (from verticesOnCell) and determines the angle
 	 * between them. If only one vertex is shared, the "edge" is skipped.
@@ -955,8 +955,8 @@ int buildEdges(){/*{{{*/
 		if(completeCellMask.at(iCell) == 1) {
 			// Build edges from every vertex/vertex pair around a cell if the cell is complete
 			for(l = 0; l < verticesOnCell.at(iCell).size()-1; l++){
-				vertex1 = verticesOnCell.at(iCell).at(l);	
-				vertex2 = verticesOnCell.at(iCell).at(l+1);	
+				vertex1 = verticesOnCell.at(iCell).at(l);
+				vertex2 = verticesOnCell.at(iCell).at(l+1);
 
 				// Find cell shaerd by vertices, that's not iCell
 				cell1 = iCell;
@@ -1089,7 +1089,7 @@ int buildEdges(){/*{{{*/
 						for(k = 0; k < verticesOnCell.at(cell2).size(); k++){
 							if(verticesOnCell.at(cell1).at(j) == verticesOnCell.at(cell2).at(k)) {
 								if(vertex1 == -1){
-									vertex1 = verticesOnCell.at(cell1).at(j);	
+									vertex1 = verticesOnCell.at(cell1).at(j);
 								} else if(vertex2 == -1) {
 									vertex2 = verticesOnCell.at(cell1).at(j);
 								} else {
@@ -1143,7 +1143,7 @@ int buildEdges(){/*{{{*/
 					}
 #endif
 
-					if(completeCellMask.at(new_edge.cell1) != 0 || 
+					if(completeCellMask.at(new_edge.cell1) != 0 ||
                         (new_edge.cell2 != -1 && completeCellMask.at(new_edge.cell2) != 0) ){
 						add_edge = false;
 					}
@@ -1271,7 +1271,7 @@ int buildEdges(){/*{{{*/
 #ifdef _DEBUG
 		cout << "New Edge At: " << edge_loc << endl;
 		cout << "         c1: " << cells.at(cell1) << endl;
-		if(cell2 > -1) { 
+		if(cell2 > -1) {
 			cout << "         c2: " << cells.at(cell2) << endl;
 			cout << "    mod? c2: " << cell_loc2 << endl;
 		} else {
@@ -1361,7 +1361,7 @@ int orderVertexArrays(){/*{{{*/
 
 		if(vertex1 != -1) {
 			edgesOnVertex.at(vertex1).push_back(iEdge);
-		} 
+		}
 
 		if(vertex2 != -1){
 			edgesOnVertex.at(vertex2).push_back(iEdge);
@@ -1474,7 +1474,7 @@ int orderCellArrays(){/*{{{*/
 	 * orderCellArrays assumes verticesOnCell are ordered CCW already.
 	 *
 	 */
-	int iCell, iVertex, iEdge, iEdge2, add_cell;	
+	int iCell, iVertex, iEdge, iEdge2, add_cell;
 	int cell1, cell2, vertex1, vertex2, prev_vertex;
 	int edge_idx, loc_edge_idx;
 	int i, j, k, swp_idx;
@@ -1507,8 +1507,8 @@ int orderCellArrays(){/*{{{*/
 
 	// First, build full list of edges on cell.
 	for(iEdge = 0; iEdge < edges.size(); iEdge++){
-		cell1 = cellsOnEdge.at(iEdge).at(0);	
-		cell2 = cellsOnEdge.at(iEdge).at(1);	
+		cell1 = cellsOnEdge.at(iEdge).at(0);
+		cell2 = cellsOnEdge.at(iEdge).at(1);
 
 		edgesOnCell.at(cell1).push_back(iEdge);
 		if(cell2 != -1){
@@ -1539,7 +1539,7 @@ int orderCellArrays(){/*{{{*/
 #endif
 
 			// /*
-			// Determine starting edge. It should either be the first edge in the set, 
+			// Determine starting edge. It should either be the first edge in the set,
 			// or the only edge such that all other edges are CCW from it.
 			edge_idx = edgesOnCell.at(iCell).at(0);
 	#ifdef _DEBUG
@@ -1621,8 +1621,8 @@ int orderCellArrays(){/*{{{*/
 		// Swap edge_idx with first edge.
 		if(loc_edge_idx != 0){
 #ifdef _DEBUG
-			cout << "     Swapping edges: " << 
-                edgesOnCell.at(iCell).at(loc_edge_idx) << 
+			cout << "     Swapping edges: " <<
+                edgesOnCell.at(iCell).at(loc_edge_idx) <<
                     " and " << edgesOnCell.at(iCell).at(0) << endl;
 #endif
 			edgesOnCell.at(iCell).at(loc_edge_idx) = edgesOnCell.at(iCell).at(0);
@@ -1755,7 +1755,7 @@ int buildAreas(){/*{{{*/
 
 	for(iCell = 0; iCell < cells.size(); iCell++){
 		areaCell.at(iCell) = 0.0;
-		
+
 		if(completeCellMask.at(iCell) == 1){
 			for(j = 0; j < edgesOnCell.at(iCell).size(); j++){
 				iEdge = edgesOnCell.at(iCell).at(j);
@@ -1814,14 +1814,14 @@ int buildAreas(){/*{{{*/
 					cell_loc.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
 					edge_loc1.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
 					edge_loc2.fixPeriodicity(vertices.at(iVertex), xPeriodicFix, yPeriodicFix);
-					kiteAreasOnVertex.at(iVertex).at(j) += 
+					kiteAreasOnVertex.at(iVertex).at(j) +=
                         planarTriangleArea(vertices.at(iVertex), edge_loc1, cell_loc);
-					kiteAreasOnVertex.at(iVertex).at(j) += 
+					kiteAreasOnVertex.at(iVertex).at(j) +=
                         planarTriangleArea(vertices.at(iVertex), cell_loc, edge_loc2);
 				} else {
-					kiteAreasOnVertex.at(iVertex).at(j) += 
+					kiteAreasOnVertex.at(iVertex).at(j) +=
                         sphericalTriangleArea(vertices.at(iVertex), edge_loc1, cell_loc);
-					kiteAreasOnVertex.at(iVertex).at(j) += 
+					kiteAreasOnVertex.at(iVertex).at(j) +=
                         sphericalTriangleArea(vertices.at(iVertex), cell_loc, edge_loc2);
 				}
 
@@ -1922,10 +1922,10 @@ int buildEdgesOnEdgeArrays(){/*{{{*/
 				}
 
 				if(cell1 == cellsOnEdge.at(cur_edge).at(0)){
-					weightsOnEdge.at(iEdge).push_back( 
+					weightsOnEdge.at(iEdge).push_back(
                         +1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 				} else {
-					weightsOnEdge.at(iEdge).push_back( 
+					weightsOnEdge.at(iEdge).push_back(
                         -1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 				}
 
@@ -1980,10 +1980,10 @@ int buildEdgesOnEdgeArrays(){/*{{{*/
 				}
 
 				if(cell1 == cellsOnEdge.at(cur_edge).at(0)){
-					weightsOnEdge.at(iEdge).push_back( 
+					weightsOnEdge.at(iEdge).push_back(
                         +1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 				} else {
-					weightsOnEdge.at(iEdge).push_back( 
+					weightsOnEdge.at(iEdge).push_back(
                         -1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 				}
 
@@ -2049,10 +2049,10 @@ int buildEdgesOnEdgeArrays(){/*{{{*/
 					}
 
 					if(cell2 == cellsOnEdge.at(cur_edge).at(0)){
-						weightsOnEdge.at(iEdge).push_back( 
+						weightsOnEdge.at(iEdge).push_back(
                             -1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 					} else {
-						weightsOnEdge.at(iEdge).push_back( 
+						weightsOnEdge.at(iEdge).push_back(
                             +1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 					}
 
@@ -2107,10 +2107,10 @@ int buildEdgesOnEdgeArrays(){/*{{{*/
 					}
 
 					if(cell2 == cellsOnEdge.at(cur_edge).at(0)){
-						weightsOnEdge.at(iEdge).push_back( 
+						weightsOnEdge.at(iEdge).push_back(
                             -1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 					} else {
-						weightsOnEdge.at(iEdge).push_back( 
+						weightsOnEdge.at(iEdge).push_back(
                             +1.0 * (0.5 - area_sum) * dvEdge.at(cur_edge) / dcEdge.at(iEdge) );
 					}
 
@@ -2139,7 +2139,7 @@ int buildAngleEdge(){/*{{{*/
 	 *    or
 	 * 2. The angles the positive normal direction (u)
 	 * 	  makes with the local eastward direction.
-	 * 	  
+	 *
 	 * 	  In a plane, local eastward is defined as the x axis, and
 	 * 	  nortward is defined as the y axis.
 	 */
@@ -2186,7 +2186,7 @@ int buildAngleEdge(){/*{{{*/
 		}
 
 		if(!spherical){
-			cell_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);	
+			cell_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
 
 			normal = cell_loc2 - cell_loc1;
 			angleEdge.at(iEdge) = acos( x_axis.dot(normal) / (x_axis.magnitude() * normal.magnitude()));
@@ -2286,7 +2286,7 @@ int buildMeshQualities(){/*{{{*/
 		} else {
 			cellQuality.at(iCell) = 0.0;
 		}
-		gridSpacing.at(iCell) = spacing / edgesOnCell.at(iCell).size(); 
+		gridSpacing.at(iCell) = spacing / edgesOnCell.at(iCell).size();
 	}
 
 #ifdef _DEBUG
@@ -2338,11 +2338,11 @@ int buildMeshQualities(){/*{{{*/
 					cout << "  length 3:" << c_len <<endl;
 #endif
 
-					angle1 = acos( max(-1.0, min(1.0, 
+					angle1 = acos( max(-1.0, min(1.0,
                         (b_len * b_len + c_len * c_len - a_len * a_len) / (2 * b_len * c_len))));
-					angle2 = acos( max(-1.0, min(1.0, 
+					angle2 = acos( max(-1.0, min(1.0,
                         (a_len * a_len + c_len * c_len - b_len * c_len) / (2 * a_len * c_len))));
-					angle3 = acos( max(-1.0, min(1.0, 
+					angle3 = acos( max(-1.0, min(1.0,
                         (a_len * a_len + b_len * b_len - c_len * c_len) / (2 * a_len * b_len))));
 
 					minAngle = min(angle1, min(angle2, angle3));
@@ -2377,7 +2377,7 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 	 * outputFilename
 	 *
 	 * **********************************************************************/
-    
+
 	int grid, retv;
     if ((retv = nc_create(outputFilename.c_str(), NC_CLOBBER|NC_NETCDF4, &grid)))
     {
@@ -2389,9 +2389,9 @@ int outputGridDimensions( const string outputFilename ){/*{{{*/
 
 	/*
 	for(vec_int_itr = edgesOnCell.begin(); vec_int_itr != edgesOnCell.end(); ++vec_int_itr){
-		maxEdges = std::max(maxEdges, (int)(*vec_int_itr).size());	
+		maxEdges = std::max(maxEdges, (int)(*vec_int_itr).size());
 	}*/
-	
+
     ncutil::def_dim(outputFilename, "nCells", cells.size());
     ncutil::def_dim(outputFilename, "nEdges", edges.size());
     ncutil::def_dim(outputFilename, "nVertices", vertices.size());
@@ -2423,7 +2423,7 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
         ncutil::put_att(outputFilename, "sphere_radius", NC_DOUBLE, 0.);
 	} else {
         ncutil::put_str(outputFilename, "on_a_sphere", "YES");
-        ncutil::put_att(outputFilename, 
+        ncutil::put_att(outputFilename,
             "sphere_radius", NC_DOUBLE, sphereRadius);
 	}
 
@@ -2473,7 +2473,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	 * Both cartesian and lat,lon, as well as all of their indices
 	 *
 	 * **********************************************************************/
-	
+
 	int nCells = cells.size();
 	int nEdges = edges.size();
 	int nVertices = vertices.size();
@@ -2509,26 +2509,26 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "latCell", 
+    ncutil::def_var(outputFilename, "latCell",
         NC_DOUBLE, "latitudes of cell centres", {"nCells"});
-    ncutil::def_var(outputFilename, "lonCell", 
+    ncutil::def_var(outputFilename, "lonCell",
         NC_DOUBLE, "longitudes of cell centres", {"nCells"});
 
-    ncutil::put_var(outputFilename, "latCell", &lat[0]);        
+    ncutil::put_var(outputFilename, "latCell", &lat[0]);
     ncutil::put_var(outputFilename, "lonCell", &lon[0]);
 
-    ncutil::def_var(outputFilename, "xCell", 
+    ncutil::def_var(outputFilename, "xCell",
         NC_DOUBLE, "x-coordinates of cell centres", {"nCells"});
-    ncutil::def_var(outputFilename, "yCell", 
+    ncutil::def_var(outputFilename, "yCell",
         NC_DOUBLE, "y-coordinates of cell centres", {"nCells"});
-    ncutil::def_var(outputFilename, "zCell", 
+    ncutil::def_var(outputFilename, "zCell",
         NC_DOUBLE, "z-coordinates of cell centres", {"nCells"});
 
-    ncutil::put_var(outputFilename, "xCell", &x[0]);        
+    ncutil::put_var(outputFilename, "xCell", &x[0]);
     ncutil::put_var(outputFilename, "yCell", &y[0]);
     ncutil::put_var(outputFilename, "zCell", &z[0]);
 
-    ncutil::def_var(outputFilename, "indexToCellID", 
+    ncutil::def_var(outputFilename, "indexToCellID",
         NC_INT, "index to cell ID mapping", {"nCells"});
 
     ncutil::put_var(outputFilename, "indexToCellID", &idxTo[0]);
@@ -2539,7 +2539,7 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 	delete[] lat;
 	delete[] lon;
 	delete[] idxTo;
-	
+
 	//Build and write edge coordinate arrays
 	x = new double[nEdges];
 	y = new double[nEdges];
@@ -2567,27 +2567,27 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 
 		i++;
 	}
-	
-    ncutil::def_var(outputFilename, "latEdge", 
+
+    ncutil::def_var(outputFilename, "latEdge",
         NC_DOUBLE, "latitudes of edge centres", {"nEdges"});
-    ncutil::def_var(outputFilename, "lonEdge", 
+    ncutil::def_var(outputFilename, "lonEdge",
         NC_DOUBLE, "longitudes of edge centres", {"nEdges"});
 
-    ncutil::put_var(outputFilename, "latEdge", &lat[0]);        
+    ncutil::put_var(outputFilename, "latEdge", &lat[0]);
     ncutil::put_var(outputFilename, "lonEdge", &lon[0]);
 
-    ncutil::def_var(outputFilename, "xEdge", 
+    ncutil::def_var(outputFilename, "xEdge",
         NC_DOUBLE, "x-coordinates of edge centres", {"nEdges"});
-    ncutil::def_var(outputFilename, "yEdge", 
+    ncutil::def_var(outputFilename, "yEdge",
         NC_DOUBLE, "y-coordinates of edge centres", {"nEdges"});
-    ncutil::def_var(outputFilename, "zEdge", 
+    ncutil::def_var(outputFilename, "zEdge",
         NC_DOUBLE, "z-coordinates of edge centres", {"nEdges"});
 
-    ncutil::put_var(outputFilename, "xEdge", &x[0]);        
+    ncutil::put_var(outputFilename, "xEdge", &x[0]);
     ncutil::put_var(outputFilename, "yEdge", &y[0]);
     ncutil::put_var(outputFilename, "zEdge", &z[0]);
 
-    ncutil::def_var(outputFilename, "indexToEdgeID", 
+    ncutil::def_var(outputFilename, "indexToEdgeID",
         NC_INT, "index to edge ID mapping", {"nEdges"});
 
     ncutil::put_var(outputFilename, "indexToEdgeID", &idxTo[0]);
@@ -2626,27 +2626,27 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
 
 		i++;
 	}
-	
-    ncutil::def_var(outputFilename, "latVertex", 
+
+    ncutil::def_var(outputFilename, "latVertex",
         NC_DOUBLE, "latitudes of vertices", {"nVertices"});
-    ncutil::def_var(outputFilename, "lonVertex", 
+    ncutil::def_var(outputFilename, "lonVertex",
         NC_DOUBLE, "longitudes of vertices", {"nVertices"});
 
-    ncutil::put_var(outputFilename, "latVertex", &lat[0]);        
+    ncutil::put_var(outputFilename, "latVertex", &lat[0]);
     ncutil::put_var(outputFilename, "lonVertex", &lon[0]);
 
-    ncutil::def_var(outputFilename, "xVertex", 
+    ncutil::def_var(outputFilename, "xVertex",
         NC_DOUBLE, "x-coordinates of vertices", {"nVertices"});
-    ncutil::def_var(outputFilename, "yVertex", 
+    ncutil::def_var(outputFilename, "yVertex",
         NC_DOUBLE, "y-coordinates of vertices", {"nVertices"});
-    ncutil::def_var(outputFilename, "zVertex", 
+    ncutil::def_var(outputFilename, "zVertex",
         NC_DOUBLE, "z-coordinates of vertices", {"nVertices"});
 
-    ncutil::put_var(outputFilename, "xVertex", &x[0]);        
+    ncutil::put_var(outputFilename, "xVertex", &x[0]);
     ncutil::put_var(outputFilename, "yVertex", &y[0]);
     ncutil::put_var(outputFilename, "zVertex", &z[0]);
 
-    ncutil::def_var(outputFilename, "indexToVertexID", 
+    ncutil::def_var(outputFilename, "indexToVertexID",
         NC_INT, "index to vertex ID mapping", {"nVertices"});
 
     ncutil::put_var(outputFilename, "indexToVertexID", &idxTo[0]);
@@ -2670,12 +2670,12 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
 	 * nEdgesonCell
 	 *
 	 * ***************************************************************/
-	
+
 	int nCells = cells.size();
 	int i, j;
 
 	int *tmp_arr;
-	
+
 	// Build and write COC array
 	tmp_arr = new int[nCells*maxEdges];
 
@@ -2695,7 +2695,7 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "cellsOnCell", 
+    ncutil::def_var(outputFilename, "cellsOnCell",
         NC_INT, "cells adj. to each cell", {"nCells", "maxEdges"});
 
     ncutil::put_var(outputFilename, "cellsOnCell", &tmp_arr[0]);
@@ -2711,19 +2711,19 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = edgesOnCell.begin(); vec_int_itr != edgesOnCell.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*maxEdges + j] = (*int_itr) + 1;	
+			tmp_arr[i*maxEdges + j] = (*int_itr) + 1;
 			j++;
 		}
 
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "edgesOnCell", 
+    ncutil::def_var(outputFilename, "edgesOnCell",
         NC_INT, "edges on each cell", {"nCells", "maxEdges"});
 
     ncutil::put_var(outputFilename, "edgesOnCell", &tmp_arr[0]);
 
-	// Build and write VOC array 
+	// Build and write VOC array
 	for(i = 0; i < nCells; i++){
 		for(j = 0; j < maxEdges; j++){
 			tmp_arr[i*maxEdges + j] = 0;
@@ -2734,13 +2734,13 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = verticesOnCell.begin(); vec_int_itr != verticesOnCell.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*maxEdges + j] = (*int_itr) + 1;	
+			tmp_arr[i*maxEdges + j] = (*int_itr) + 1;
 			j++;
 		}
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "verticesOnCell", 
+    ncutil::def_var(outputFilename, "verticesOnCell",
         NC_INT, "vertices on each cell", {"nCells", "maxEdges"});
 
     ncutil::put_var(outputFilename, "verticesOnCell", &tmp_arr[0]);
@@ -2756,7 +2756,7 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "nEdgesOnCell", 
+    ncutil::def_var(outputFilename, "nEdgesOnCell",
         NC_INT, "number of edges on each cell", {"nCells"});
 
     ncutil::put_var(outputFilename, "nEdgesOnCell", &tmp_arr[0]);
@@ -2778,7 +2778,7 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
 	 * nEdgesOnEdge
 	 *
 	 * ***************************************************************/
-	
+
     int nEdges = edges.size();
 	int maxEdges2 = maxEdges * 2;
 	int vertexDegree = vertex_degree;
@@ -2800,14 +2800,14 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = edgesOnEdge.begin(); vec_int_itr != edgesOnEdge.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*maxEdges2 + j] = (*int_itr) + 1;	
+			tmp_arr[i*maxEdges2 + j] = (*int_itr) + 1;
 			j++;
 		}
 
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "edgesOnEdge", 
+    ncutil::def_var(outputFilename, "edgesOnEdge",
         NC_INT, "edges adj. to each edge", {"nEdges", "maxEdges2"});
 
     ncutil::put_var(outputFilename, "edgesOnEdge", &tmp_arr[0]);
@@ -2825,14 +2825,14 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = cellsOnEdge.begin(); vec_int_itr != cellsOnEdge.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*two + j] = (*int_itr) + 1;	
+			tmp_arr[i*two + j] = (*int_itr) + 1;
 			j++;
 		}
 
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "cellsOnEdge", 
+    ncutil::def_var(outputFilename, "cellsOnEdge",
         NC_INT, "cells adj. to each edge", {"nEdges", "TWO"});
 
     ncutil::put_var(outputFilename, "cellsOnEdge", &tmp_arr[0]);
@@ -2842,14 +2842,14 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = verticesOnEdge.begin(); vec_int_itr != verticesOnEdge.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*two + j] = (*int_itr) + 1;	
+			tmp_arr[i*two + j] = (*int_itr) + 1;
 			j++;
 		}
 
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "verticesOnEdge", 
+    ncutil::def_var(outputFilename, "verticesOnEdge",
         NC_INT, "vertices on each edge", {"nEdges", "TWO"});
 
     ncutil::put_var(outputFilename, "verticesOnEdge", &tmp_arr[0]);
@@ -2864,7 +2864,7 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "nEdgesOnEdge", 
+    ncutil::def_var(outputFilename, "nEdgesOnEdge",
         NC_INT, "number of edges on each edge", {"nEdges"});
 
     ncutil::put_var(outputFilename, "nEdgesOnEdge", &tmp_arr[0]);
@@ -2885,7 +2885,7 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 	 * edgesOnVertex
 	 *
 	 * ***************************************************************/
-	
+
 	int nVertices = vertices.size();
 	int vertexDegree = vertex_degree;
 	int i, j;
@@ -2894,7 +2894,7 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 
 	// Build and write COV array
 	tmp_arr = new int[nVertices*vertexDegree];
-	
+
 	for(i = 0; i < nVertices; i++){
 		for(j = 0; j < vertexDegree; j++){
 			tmp_arr[i*vertexDegree + j] = 0;
@@ -2905,13 +2905,13 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = cellsOnVertex.begin(); vec_int_itr != cellsOnVertex.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*vertexDegree + j] = (*int_itr) + 1;	
+			tmp_arr[i*vertexDegree + j] = (*int_itr) + 1;
 			j++;
 		}
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "cellsOnVertex", 
+    ncutil::def_var(outputFilename, "cellsOnVertex",
         NC_INT, "vertices adj. to each vertex", {"nVertices", "vertexDegree"});
 
     ncutil::put_var(outputFilename, "cellsOnVertex", &tmp_arr[0]);
@@ -2926,14 +2926,14 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 	for(vec_int_itr = edgesOnVertex.begin(); vec_int_itr != edgesOnVertex.end(); ++vec_int_itr){
 		j = 0;
 		for(int_itr = (*vec_int_itr).begin(); int_itr != (*vec_int_itr).end(); ++int_itr){
-			tmp_arr[i*vertexDegree + j] = (*int_itr) + 1;	
+			tmp_arr[i*vertexDegree + j] = (*int_itr) + 1;
 			j++;
 		}
 
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "edgesOnVertex", 
+    ncutil::def_var(outputFilename, "edgesOnVertex",
         NC_INT, "edges adj. to each vertex", {"nVertices", "vertexDegree"});
 
     ncutil::put_var(outputFilename, "edgesOnVertex", &tmp_arr[0]);
@@ -2942,7 +2942,7 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 
 	// Build and write bdryVert array
 	tmp_arr = new int[nVertices];
-	
+
 	i = 0;
 	for(vec_int_itr = cellsOnVertex.begin(); vec_int_itr != cellsOnVertex.end(); ++vec_int_itr){
 		if((*vec_int_itr).size() == vertexDegree){
@@ -2953,7 +2953,7 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "boundaryVertex", 
+    ncutil::def_var(outputFilename, "boundaryVertex",
         NC_INT, "non-zero for each vertex on mesh boundary", {"nVertices"});
 
     ncutil::put_var(outputFilename, "boundaryVertex", &tmp_arr[0]);
@@ -2972,7 +2972,7 @@ int outputCellParameters( const string outputFilename) {/*{{{*/
 	 * 	areaCell
 	 *
 	 * *******************************************************/
-	
+
 	int nCells = cells.size();
 	int i, j;
 
@@ -2982,7 +2982,7 @@ int outputCellParameters( const string outputFilename) {/*{{{*/
 		}
 	}
 
-    ncutil::def_var(outputFilename, "areaCell", 
+    ncutil::def_var(outputFilename, "areaCell",
         NC_DOUBLE, "surface areas of cells", {"nCells"});
 
     ncutil::put_var(outputFilename, "areaCell", &areaCell[0]);
@@ -2999,7 +2999,7 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
 	 * 	kiteAreasOnVertex
 	 *
 	 * *******************************************************/
-	
+
 	int nVertices = vertices.size();
 	int vertexDegree = vertex_degree;
 	int i, j;
@@ -3013,7 +3013,7 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
 		}
 	}
 
-    ncutil::def_var(outputFilename, "areaTriangle", 
+    ncutil::def_var(outputFilename, "areaTriangle",
         NC_DOUBLE, "surface areas of dual cells", {"nVertices"});
 
     ncutil::put_var(outputFilename, "areaTriangle", &areaTriangle[0]);
@@ -3040,8 +3040,8 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "kiteAreasOnVertex", 
-        NC_DOUBLE, 
+    ncutil::def_var(outputFilename, "kiteAreasOnVertex",
+        NC_DOUBLE,
     "surface areas of overlap between cells and dual cells", {"nVertices", "vertexDegree"});
 
     ncutil::put_var(outputFilename, "kiteAreasOnVertex", &tmp_arr[0]);
@@ -3062,7 +3062,7 @@ int outputEdgeParameters( const string outputFilename) {/*{{{*/
 	 *	weightsOnEdge
 	 *
 	 * *******************************************************/
-	
+
 	int nEdges = edges.size();
 	int maxEdges2 = maxEdges * 2;
 	int i, j;
@@ -3087,7 +3087,7 @@ int outputEdgeParameters( const string outputFilename) {/*{{{*/
         NC_DOUBLE, "length of arc between vertices", {"nEdges"});
 
     ncutil::put_var(outputFilename, "dcEdge", &dcEdge[0]) ;
-    ncutil::put_var(outputFilename, "dvEdge", &dvEdge[0]) ;      
+    ncutil::put_var(outputFilename, "dvEdge", &dvEdge[0]) ;
 
 	//Build and write weightsOnEdge
 	tmp_arr = new double[nEdges*maxEdges2];
@@ -3106,7 +3106,7 @@ int outputEdgeParameters( const string outputFilename) {/*{{{*/
 		i++;
 	}
 
-    ncutil::def_var(outputFilename, "weightsOnEdge", 
+    ncutil::def_var(outputFilename, "weightsOnEdge",
         NC_DOUBLE, "tangential flux reconstruction weights", {"nEdges", "maxEdges2"});
 
     ncutil::put_var(outputFilename, "weightsOnEdge", &tmp_arr[0]);
@@ -3126,8 +3126,8 @@ int outputMeshDensity( const string outputFilename) {/*{{{*/
 	 * This function writes the meshDensity variable. Read in from the file SaveDensity
 	 *
 	 * *************************************************************************/
-    
-    ncutil::def_var(outputFilename, "meshDensity", 
+
+    ncutil::def_var(outputFilename, "meshDensity",
         NC_DOUBLE, "mesh density distribution", {"nCells"});
 
     ncutil::put_var(outputFilename, "meshDensity", &meshDensity[0]);
@@ -3145,30 +3145,30 @@ int outputMeshQualities( const string outputFilename) {/*{{{*/
 	 *		- obtuseTriangle
 	 *
 	 * *************************************************************************/
-	
-    ncutil::def_var(outputFilename, "cellQuality", 
+
+    ncutil::def_var(outputFilename, "cellQuality",
         NC_DOUBLE, "quality of mesh cells", {"nCells"});
 
     ncutil::put_var(outputFilename, "cellQuality", &cellQuality[0]);
 
-    ncutil::def_var(outputFilename, "gridSpacing", 
+    ncutil::def_var(outputFilename, "gridSpacing",
         NC_DOUBLE, "grid spacing distribution", {"nCells"});
 
     ncutil::put_var(outputFilename, "gridSpacing", &cellQuality[0]);
 
-    ncutil::def_var(outputFilename, "triangleQuality", 
+    ncutil::def_var(outputFilename, "triangleQuality",
         NC_DOUBLE, "quality of mesh dual cells", {"nVertices"});
 
     ncutil::put_var(outputFilename, "triangleQuality", &triangleQuality[0]);
 
-    ncutil::def_var(outputFilename, "triangleAngleQuality", 
+    ncutil::def_var(outputFilename, "triangleAngleQuality",
         NC_DOUBLE, "quality of mesh dual cells", {"nVertices"});
 
-    ncutil::put_var(outputFilename, 
+    ncutil::put_var(outputFilename,
         "triangleAngleQuality", &triangleAngleQuality [0]);
 
-    ncutil::def_var(outputFilename, "obtuseTriangle", 
-        NC_INT, 
+    ncutil::def_var(outputFilename, "obtuseTriangle",
+        NC_INT,
     "non-zero for any dual cell containing obtuse angles", {"nVertices"});
 
     ncutil::put_var(outputFilename, "obtuseTriangle", &obtuseTriangle[0]);

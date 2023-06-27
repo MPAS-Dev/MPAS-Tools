@@ -17,7 +17,7 @@
 #   include <initializer_list>
 
 #   include <netcdf.h>
-    
+
 #   pragma once
 
 #   ifndef __NCUTIL__
@@ -46,7 +46,7 @@
 
         if ((_retv = nc_open(_file.c_str(), NC_WRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for write: " + std::to_string(_retv));
 
         if ((_retv = nc_def_dim(
@@ -54,13 +54,13 @@
         {
             nc_close(_ncid) ;
             throw std::invalid_argument(
-                "Error putting dimension " + 
+                "Error putting dimension " +
                     _name + " :" + std::to_string(_retv));
         }
 
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
@@ -71,17 +71,17 @@
         )
     {
         int _retv, _ncid, _dtag;
-        
+
         if ((_retv = nc_open(_file.c_str(), NC_NOWRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for read.: " + std::to_string(_retv));
 
         if ((_retv = nc_inq_dimid(_ncid, _name.c_str(), &_dtag)))
         {
             nc_close(_ncid) ;
             throw std::invalid_argument(
-                "Error getting dimension " + 
+                "Error getting dimension " +
                     _name + " : " + std::to_string(_retv));
         }
 
@@ -89,13 +89,13 @@
         {
             nc_close(_ncid) ;
             throw std::invalid_argument(
-                "Error getting dimension " + 
+                "Error getting dimension " +
                     _name + " : " + std::to_string(_retv));
         }
 
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
@@ -119,10 +119,10 @@
 
         if ((_retv = nc_open(_file.c_str(), NC_NOWRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for read.: " + std::to_string(_retv));
 
-        if ((_retv = nc_get_att(_ncid, 
+        if ((_retv = nc_get_att(_ncid,
                 _vtag, _name.c_str (), (void *) _vals)))
         {
             nc_close(_ncid) ;
@@ -133,7 +133,7 @@
 
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
@@ -149,7 +149,7 @@
 
         if ((_retv = nc_open(_file.c_str(), NC_NOWRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for read.: " + std::to_string(_retv));
 
         if ((_retv = nc_inq_attlen(
@@ -170,10 +170,10 @@
                 "Error getting attribute " +
                     _name + ": " + std::to_string(_retv));
         }
-        
+
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
@@ -192,11 +192,11 @@
 
         if ((_retv = nc_open(_file.c_str(), NC_WRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for write: " + std::to_string(_retv));
 
         if ((_retv = nc_put_att(
-                _ncid, _vtag, 
+                _ncid, _vtag,
                 _name.c_str(), _type, +1, (void *) &_vals)))
         {
             nc_close(_ncid) ;
@@ -207,7 +207,7 @@
 
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
@@ -219,13 +219,13 @@
         )
     {
         int _retv, _ncid;
-        
+
         if ((_retv = nc_open(_file.c_str(), NC_WRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for read.: " + std::to_string(_retv));
 
-        if ((_retv = nc_put_att_text(_ncid, _vtag, 
+        if ((_retv = nc_put_att_text(_ncid, _vtag,
                 _name.c_str (), _vals.size(), _vals.c_str())))
         {
             nc_close(_ncid) ;
@@ -233,10 +233,10 @@
                 "Error getting attribute " +
                     _name + ": " + std::to_string(_retv));
         }
-        
+
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
@@ -256,11 +256,11 @@
 
         if ((_retv = nc_open(_file.c_str(), NC_WRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for write: " + std::to_string(_retv));
 
         if ((_retv = nc_put_att(
-                _ncid, _vtag , 
+                _ncid, _vtag ,
                 _name.c_str(), _type, _nval, (void *) _vals)))
         {
             nc_close(_ncid) ;
@@ -271,7 +271,7 @@
 
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
@@ -294,12 +294,12 @@
 
         if (_dims.size() > +256)
             throw std::invalid_argument(
-                "Error putting variable " + 
+                "Error putting variable " +
                     _name + " : too many dimensions!");
 
         if ((_retv = nc_open(_file.c_str(), NC_WRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for write: " + std::to_string(_retv));
 
         for (auto _elem : _dims)
@@ -309,13 +309,13 @@
         {
             nc_close(_ncid) ;
             throw std::invalid_argument(
-                "Error putting variable " + 
+                "Error putting variable " +
                     _name + " : " + std::to_string(_retv));
         }
         }
 
         if ((_retv = nc_def_var(
-                _ncid, _name.c_str(), 
+                _ncid, _name.c_str(),
                     _type, _dims.size (), _dtag, &_vtag)))
         {
             nc_close(_ncid) ;
@@ -324,7 +324,7 @@
                     _name + ": " + std::to_string(_retv));
         }
 
-        if ((_retv = nc_put_att_text(_ncid, _vtag, 
+        if ((_retv = nc_put_att_text(_ncid, _vtag,
                 "long_name", _long.size(), _long.c_str())))
         {
             nc_close(_ncid) ;
@@ -335,7 +335,7 @@
 
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
@@ -352,14 +352,14 @@
 
         if ((_retv = nc_open(_file.c_str(), NC_NOWRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for read.: " + std::to_string(_retv));
 
         if ((_retv = nc_inq_varid(_ncid, _name.c_str(), &_vtag)))
         {
             nc_close(_ncid) ;
             throw std::invalid_argument(
-                "Error getting variable " + 
+                "Error getting variable " +
                     _name + " : " + std::to_string(_retv));
         }
 
@@ -373,7 +373,7 @@
 
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
@@ -390,14 +390,14 @@
 
         if ((_retv = nc_open(_file.c_str(), NC_WRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for write: " + std::to_string(_retv));
 
         if ((_retv = nc_inq_varid(_ncid, _name.c_str(), &_vtag)))
         {
             nc_close(_ncid) ;
             throw std::invalid_argument(
-                "Error putting variable " + 
+                "Error putting variable " +
                     _name + " : " + std::to_string(_retv));
         }
 
@@ -411,7 +411,7 @@
 
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
@@ -433,10 +433,10 @@
         )
     {
         int _retv, _ncid;
-        
+
         if ((_retv = nc_open(_file.c_str(), NC_NOWRITE, &_ncid)))
             throw std::invalid_argument(
-                "Can't open " + _file + 
+                "Can't open " + _file +
                     " for read.: " + std::to_string(_retv));
 
         if (_kind == NC_DIMENSION)
@@ -449,7 +449,7 @@
                 "Error getting attribute " +
                     _name + ": " + std::to_string(_retv));
         }
-        }    
+        }
         else
         if (_kind == NC_VARIABLE)
         {
@@ -461,7 +461,7 @@
                 "Error getting attribute " +
                     _name + ": " + std::to_string(_retv));
         }
-        }    
+        }
         else
         if (_kind == NC_ATTRIBUTE)
         {
@@ -474,10 +474,10 @@
                     _name + ": " + std::to_string(_retv));
         }
         }
-        
+
         if ((_retv = nc_close(_ncid)))
             throw std::invalid_argument(
-                "Error handling " + 
+                "Error handling " +
                     _file + " close: " + std::to_string(_retv));
     }
 
