@@ -29,6 +29,7 @@ for option in parser.option_list:
 options, args = parser.parse_args()
 
 dataset = Dataset(options.nc_file, 'r+')
+dataset.set_auto_mask(False)
 var_name = options.var_name
 varValue = dataset.variables[var_name][0, :]
 extrapolation = options.extrapolation
@@ -45,7 +46,7 @@ yCell = dataset.variables["xCell"][:]
 # Define region of good data to extrapolate from.  Different methods for different variables
 if var_name in ["effectivePressure", "beta", "muFriction"]:
     groundedMask = (thickness > (-1028.0 / 910.0 * bed))
-    keepCellMask = np.copy(groundedMask)
+    keepCellMask = np.copy(groundedMask) * np.isfinite(varValue)
     extrapolation == "min"
 
     for iCell in range(nCells):
@@ -55,6 +56,7 @@ if var_name in ["effectivePressure", "beta", "muFriction"]:
                 keepCellMask[iCell] = 1
                 continue
     keepCellMask *= (varValue > 0)  # ensure zero muFriction does not get extrapolated
+    keepCellMask *= (varValue < 1.e12)  # get rid of ridiculous values
 elif var_name in ["floatingBasalMassBal"]:
     floatingMask = (thickness <= (-1028.0 / 910.0 * bed))
     keepCellMask = floatingMask * (varValue != 0.0)
