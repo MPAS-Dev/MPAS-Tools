@@ -150,7 +150,7 @@ def cell_del2(mesh):
     return csr_matrix((xvec, (ivec, jvec)))
 
 
-if (__name__ == "__main__"):
+def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawTextHelpFormatter)
@@ -185,3 +185,7 @@ if (__name__ == "__main__"):
             fptr.write("\n")
 
     mesh.to_netcdf(args.sort_file, format="NETCDF4")
+
+
+if (__name__ == "__main__"):
+    main()
