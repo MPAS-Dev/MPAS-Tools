@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Visualization &mdash; mpas_tools 0.22.0rc3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -11,9 +12,6 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -130,12 +128,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="visualization">
+  <section id="visualization">
 <span id="id1"></span><h1>Visualization<a class="headerlink" href="#visualization" title="Permalink to this heading">¶</a></h1>
 <p>MPAS-Tools has kind of a hodge-podge of unrelated visualization tools.  This is
 largely because MPAS-Tools is conceived of primarily as a repository for tools
 for manipulating MPAS meshes during their construction and initialization.</p>
-<div class="section" id="paraview-vtk-extractor">
+<section id="paraview-vtk-extractor">
 <span id="viz-paraview-extractor"></span><h2>ParaView VTK Extractor<a class="headerlink" href="#paraview-vtk-extractor" title="Permalink to this heading">¶</a></h2>
 <p>Data on MPAS meshes can be viewed directly in
 <a class="reference external" href="https://www.paraview.org/">ParaView</a>.  However, those of us who work with
@@ -189,7 +187,7 @@ to be combined in filters within Paraview at the expense of considerable
 additional storage space.</p>
 <p>Since the extractor is fairly complex with a lot of possible use cases, we will
 describe its functionality in several examples.</p>
-<div class="section" id="extracting-a-temperature-time-series">
+<section id="extracting-a-temperature-time-series">
 <span id="extract-temperature"></span><h3>Extracting a Temperature Time-series<a class="headerlink" href="#extracting-a-temperature-time-series" title="Permalink to this heading">¶</a></h3>
 <p>To extract fields across multiple files, passing in a regular expression
 for the filename pattern, for example
@@ -235,8 +233,8 @@ on filling in the continents and displaying the current date in ParaView.</p>
      -m init.nc -o vtk_files --xtime=xtime_startDaily
 </pre></div>
 </div>
-</div>
-<div class="section" id="extracting-multiple-fields">
+</section>
+<section id="extracting-multiple-fields">
 <h3>Extracting Multiple Fields<a class="headerlink" href="#extracting-multiple-fields" title="Permalink to this heading">¶</a></h3>
 <p>In this next example, we will extract <code class="docutils literal notranslate"><span class="pre">areaCell</span></code> in addition to temperature.
 First, we will extract it into a separate VTK file for time-independent
@@ -282,8 +280,8 @@ vtk_files3/time_series/fieldsOnCells.0.vtp
 ...
 </pre></div>
 </div>
-</div>
-<div class="section" id="extracting-all-fields">
+</section>
+<section id="extracting-all-fields">
 <h3>Extracting “All” Fields<a class="headerlink" href="#extracting-all-fields" title="Permalink to this heading">¶</a></h3>
 <p>Sometimes, you want all of the fields from your input files to be extracted.
 For this purpose there is a special “variable” called <code class="docutils literal notranslate"><span class="pre">'all'</span></code> that gets
@@ -309,8 +307,8 @@ excluded:</p>
     <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files4&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="indexing-dimensions">
+</section>
+<section id="indexing-dimensions">
 <h3>Indexing Dimensions<a class="headerlink" href="#indexing-dimensions" title="Permalink to this heading">¶</a></h3>
 <p>In the previous examples, we saw a basic example of indexing the “extra”
 dimensions (i.e. dimensions other than <code class="docutils literal notranslate"><span class="pre">Time</span></code>, <code class="docutils literal notranslate"><span class="pre">nCells</span></code>, <code class="docutils literal notranslate"><span class="pre">nVertices</span></code> and
@@ -359,8 +357,8 @@ timeDaily_avg_layerThickness_0
 timeDaily_avg_layerThickness_maxLevelCell
 </pre></div>
 </div>
-</div>
-<div class="section" id="indexing-time">
+</section>
+<section id="indexing-time">
 <h3>Indexing Time<a class="headerlink" href="#indexing-time" title="Permalink to this heading">¶</a></h3>
 <p>Time can also be indexed like the other dimensions, but it is not passed to the
 <code class="docutils literal notranslate"><span class="pre">dimension_list</span></code> argument but instead to the <code class="docutils literal notranslate"><span class="pre">time</span></code> argument.  The time
@@ -388,16 +386,16 @@ end index <code class="docutils literal notranslate"><span class="pre">n</span><
     <span class="n">time</span><span class="o">=</span><span class="s1">&#39;0::6&#39;</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files6&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="ignoring-time">
+</section>
+<section id="ignoring-time">
 <h3>Ignoring Time<a class="headerlink" href="#ignoring-time" title="Permalink to this heading">¶</a></h3>
 <p>Some MPAS files, for example mesh files and initial conditions, contain a
 <code class="docutils literal notranslate"><span class="pre">Time</span></code> dimension but no <code class="docutils literal notranslate"><span class="pre">xtime</span></code> variable.  The extractor will complain about
 this unless you specify <code class="docutils literal notranslate"><span class="pre">ignore_time=True</span></code>.  In this case, only the first time
 index is used and all fields are considered to be time-independent, ending
 up in <code class="docutils literal notranslate"><span class="pre">staticFieldsOnCells.vtp</span></code>, etc.</p>
-</div>
-<div class="section" id="lon-lat-coordinates">
+</section>
+<section id="lon-lat-coordinates">
 <h3>Lon/Lat Coordinates<a class="headerlink" href="#lon-lat-coordinates" title="Permalink to this heading">¶</a></h3>
 <p>The extractor can produce files in lon/lat coordinates instead of 3D Cartesian
 space if <code class="docutils literal notranslate"><span class="pre">lonlat=True</span></code>.  Polygons near the prime meridian (0 or 360 degrees
@@ -449,8 +447,8 @@ Datasets Filter, then hit “Apply”.</p>
 <p>Now, the data should have clean edges.  If you want, you can put a plane behind
 it to fill in the land:</p>
 <a class="reference internal image-reference" href="_images/clipped.png"><img alt="_images/clipped.png" class="align-center" src="_images/clipped.png" style="width: 500px;" /></a>
-</div>
-<div class="section" id="topographic-data">
+</section>
+<section id="topographic-data">
 <h3>Topographic Data<a class="headerlink" href="#topographic-data" title="Permalink to this heading">¶</a></h3>
 <p>The extractor includes optional support for extracting geometry appropriate
 for displaying variables at the depth of a topographic feature (typically
@@ -503,8 +501,8 @@ Calculator Filter is a bit simpler:</p>
 </div>
 <p>Here is the bottom temperature in such a plot:</p>
 <a class="reference internal image-reference" href="_images/qu240_topo_lonlat.png"><img alt="_images/qu240_topo_lonlat.png" class="align-center" src="_images/qu240_topo_lonlat.png" style="width: 500px;" /></a>
-</div>
-<div class="section" id="extracting-a-region">
+</section>
+<section id="extracting-a-region">
 <h3>Extracting a Region<a class="headerlink" href="#extracting-a-region" title="Permalink to this heading">¶</a></h3>
 <p>Some simulations are focused on a small region, even though the entire globe is
 included in the mesh.  For such situations, we provide a way to extract a
@@ -536,8 +534,8 @@ remove.</p>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="_images/so_cropped.png"><img alt="_images/so_cropped.png" class="align-center" src="_images/so_cropped.png" style="width: 500px;" /></a>
-</div>
-<div class="section" id="paraview-macros">
+</section>
+<section id="paraview-macros">
 <span id="id2"></span><h3>ParaView Macros<a class="headerlink" href="#paraview-macros" title="Permalink to this heading">¶</a></h3>
 <p>We also provide two macros that can be imported into ParaView,
 <a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Tools/blob/master/visualization/paraview_vtk_field_extractor/add_earth_sphere.py">add_earth_sphere.py</a>
@@ -548,9 +546,9 @@ Download them and then go to Macros &gt; Add New Macro, and select each file.</p
 on the sphere so that continents are not holes in the data.  The second can
 be used to display the current time (extracted from the <code class="docutils literal notranslate"><span class="pre">xtime</span></code> variable) in
 a ParaVeiw animation.</p>
-</div>
-</div>
-<div class="section" id="mpas-mesh-to-triangles">
+</section>
+</section>
+<section id="mpas-mesh-to-triangles">
 <span id="viz-mesh-tris"></span><h2>MPAS Mesh to Triangles<a class="headerlink" href="#mpas-mesh-to-triangles" title="Permalink to this heading">¶</a></h2>
 <p>A relatively new and under-explored functionality in MPAS-Tools is the
 capability to extract a triangle mesh for visualization from an MPAS mesh.
@@ -617,8 +615,8 @@ of the 3D temperature field.</p>
 <p>Here are the resulting plots (which look nearly identical at this resolution):</p>
 <a class="reference internal image-reference" href="_images/ec60to30_tris_gouraud.png"><img alt="_images/ec60to30_tris_gouraud.png" class="align-center" src="_images/ec60to30_tris_gouraud.png" style="width: 500px;" /></a>
 <a class="reference internal image-reference" href="_images/ec60to30_tris_flat.png"><img alt="_images/ec60to30_tris_flat.png" class="align-center" src="_images/ec60to30_tris_flat.png" style="width: 500px;" /></a>
-</div>
-<div class="section" id="colormaps">
+</section>
+<section id="colormaps">
 <span id="viz-colormaps"></span><h2>Colormaps<a class="headerlink" href="#colormaps" title="Permalink to this heading">¶</a></h2>
 <p>Some MPAS-Tools routines include plots of mesh resolution and related variables.
 We have found it handy to use the
@@ -632,8 +630,8 @@ are required, as the XML files for defining the colormaps are included in the
 package.</p>
 <p>In this example, we use the <code class="docutils literal notranslate"><span class="pre">3Wbgy5</span></code> colormap:</p>
 <a class="reference internal image-reference" href="_images/so60to12_res.png"><img alt="_images/so60to12_res.png" class="align-center" src="_images/so60to12_res.png" style="width: 500px;" /></a>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.transects.subdivide_great_circle &mdash; mpas_tools 0.22.0rc3 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -11,9 +12,6 @@
   <![endif]-->
   
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -135,7 +133,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="mpas-tools-transects-subdivide-great-circle">
+  <section id="mpas-tools-transects-subdivide-great-circle">
 <h1>mpas_tools.transects.subdivide_great_circle<a class="headerlink" href="#mpas-tools-transects-subdivide-great-circle" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.transects.subdivide_great_circle">
@@ -145,7 +143,7 @@ approximately matches the requested resolution</p>
 <p>Uses a formula for interpolating unit vectors on the sphere from
 <a class="reference external" href="https://en.wikipedia.org/wiki/Slerp">https://en.wikipedia.org/wiki/Slerp</a></p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>numpy.ndarray</em></a>) – The Cartesian x coordinate of a transect, where the number of segments
 is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code>.  <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and <code class="docutils literal notranslate"><span class="pre">z</span></code> are of the same length.</p></li>
@@ -155,7 +153,7 @@ is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <s
 <li><p><strong>earthRadius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – The radius of the Earth in m</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>xOut</strong> (<em>numpy.ndarray</em>) – The Cartesian x values of the transect subdivided into segments with
 segment length at most <code class="docutils literal notranslate"><span class="pre">maxRes</span></code>.  All the points in <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span></code> and
@@ -170,7 +168,7 @@ segment length at most <code class="docutils literal notranslate"><span class="p
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>

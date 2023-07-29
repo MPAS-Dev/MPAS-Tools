@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.viz.transects.find_transect_cells_and_weights &mdash; mpas_tools 0.22.0rc3 documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -11,9 +12,6 @@
   <![endif]-->
   
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -134,7 +132,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="mpas-tools-viz-transects-find-transect-cells-and-weights">
+  <section id="mpas-tools-viz-transects-find-transect-cells-and-weights">
 <h1>mpas_tools.viz.transects.find_transect_cells_and_weights<a class="headerlink" href="#mpas-tools-viz-transects-find-transect-cells-and-weights" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.viz.transects.find_transect_cells_and_weights">
@@ -142,7 +140,7 @@
 <dd><p>Find “nodes” where the transect intersects the edges of the triangles
 that make up MPAS cells.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>lonTransect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.7.1.dev0)"><em>xarray.DataArray</em></a>) – The longitude of segments making up the transect</p></li>
 <li><p><strong>latTransect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2023.7.1.dev0)"><em>xarray.DataArray</em></a>) – The latitude of segments making up the transect</p></li>
@@ -158,7 +156,7 @@ intersection candidates.  Should be small enough that curvature is
 small.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><p><strong>dsOut</strong> (<em>xarray.Dataset</em>) – A dataset that contains “nodes” where the transect intersects the
 edges of the triangles in <code class="docutils literal notranslate"><span class="pre">dsTris</span></code>.  The nodes also includes the two
 end points of the transect, which typically lie within triangles. Each
@@ -201,7 +199,7 @@ found by:</p>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>

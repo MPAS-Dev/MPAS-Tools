@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>API reference &mdash; mpas_tools 0.22.0rc3 documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -11,9 +12,6 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -274,20 +272,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="api-reference">
+  <section id="api-reference">
 <h1>API reference<a class="headerlink" href="#api-reference" title="Permalink to this heading">¶</a></h1>
 <p>This page provides an auto-generated summary of the MPAS mesh-tools API. For
 more details and examples, refer to the relevant chapters in the main part of
 the documentation.</p>
-<div class="section" id="mpas-mesh-tools">
+<section id="mpas-mesh-tools">
 <h2>MPAS mesh tools<a class="headerlink" href="#mpas-mesh-tools" title="Permalink to this heading">¶</a></h2>
-<div class="section" id="mesh-creation">
+<section id="mesh-creation">
 <h3>Mesh creation<a class="headerlink" href="#mesh-creation" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.planar_hex.make_planar_hex_mesh.html#mpas_tools.planar_hex.make_planar_hex_mesh" title="mpas_tools.planar_hex.make_planar_hex_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_planar_hex_mesh</span></code></a>(nx, ny, dc, ...[, ...])</p></td>
 <td><p>Builds an MPAS periodic, planar hexagonal mesh with the requested dimensions, optionally saving it to a file, and returns it as an <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code>.</p></td>
@@ -295,10 +289,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.creation.build_mesh.html#module-mpas_tools.mesh.creation.build_mesh" title="mpas_tools.mesh.creation.build_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">build_mesh</span></code></a></p></td>
 <td><p></p></td>
@@ -350,14 +340,10 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="mesh-conversion">
+</section>
+<section id="mesh-conversion">
 <h3>Mesh conversion<a class="headerlink" href="#mesh-conversion" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert" title="mpas_tools.mesh.conversion.convert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert</span></code></a>(dsIn[, graphInfoFileName, logger, dir])</p></td>
 <td><p>Use <code class="docutils literal notranslate"><span class="pre">MpasMeshConverter.x</span></code> to convert an input mesh to a valid MPAS mesh that is fully compliant with the MPAS mesh specification.</p></td>
@@ -365,16 +351,12 @@ the documentation.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull" title="mpas_tools.mesh.conversion.cull"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cull</span></code></a>(dsIn[, dsMask, dsInverse, dsPreserve, ...])</p></td>
 <td><p>Use <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code> to cull cells from a mesh based on the <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field in the input file or DataSet and/or the provided masks.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask" title="mpas_tools.mesh.conversion.mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask</span></code></a>(dsMesh[, fcMask, fcSeed, logger, dir])</p></td>
-<td><p>Use <code class="docutils literal notranslate"><span class="pre">MpasMaskCreator.x</span></code> to create a set of region masks either from mask feature collections or from seed points to be used to flood fill</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask" title="mpas_tools.mesh.conversion.mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask</span></code></a>(dsMesh[, fcMask, logger, dir, cores])</p></td>
+<td><p>Use <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code> to create a set of region masks either from mask feature collections</p></td>
 </tr>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks" title="mpas_tools.mesh.mask.compute_mpas_region_masks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code></a>(dsMesh, fcMask[, ...])</p></td>
 <td><p>Use shapely and processes to create a set of masks from a feature collection made up of regions (polygons)</p></td>
@@ -391,10 +373,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.merge_grids.merge_grids.html#mpas_tools.merge_grids.merge_grids" title="mpas_tools.merge_grids.merge_grids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">merge_grids</span></code></a>([infile1, infile2, outfile, runner])</p></td>
 <td><p>Merges two MPAS non-contiguous meshes together into a single file</p></td>
@@ -402,10 +380,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.split_grids.split_grids.html#mpas_tools.split_grids.split_grids" title="mpas_tools.split_grids.split_grids"><code class="xref py py-obj docutils literal notranslate"><span class="pre">split_grids</span></code></a>([infile, outfile1, outfile2, ...])</p></td>
 <td><p>Split two previously merged MPAS non-contiguous meshes together into separate files.</p></td>
@@ -413,10 +387,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.translate.translate.html#mpas_tools.translate.translate" title="mpas_tools.translate.translate"><code class="xref py py-obj docutils literal notranslate"><span class="pre">translate</span></code></a>(mesh[, xOffset, yOffset])</p></td>
 <td><p>Translates the coordinate system of the planar MPAS mesh by an arbitrary shift in x and/or y</p></td>
@@ -430,24 +400,16 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.scrip.from_mpas.scrip_from_mpas.html#mpas_tools.scrip.from_mpas.scrip_from_mpas" title="mpas_tools.scrip.from_mpas.scrip_from_mpas"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scrip_from_mpas</span></code></a>(mpasFile, scripFile[, ...])</p></td>
 <td><p>Create a SCRIP file from an MPAS mesh</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="config">
+</section>
+<section id="config">
 <h3>Config<a class="headerlink" href="#config" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser" title="mpas_tools.config.MpasConfigParser"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MpasConfigParser</span></code></a>()</p></td>
 <td><p>A &quot;meta&quot; config parser that keeps a dictionary of config parsers and their sources to combine when needed.</p></td>
@@ -499,71 +461,51 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="i-o">
+</section>
+<section id="i-o">
 <h3>I/O<a class="headerlink" href="#i-o" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.io.write_netcdf.html#mpas_tools.io.write_netcdf" title="mpas_tools.io.write_netcdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_netcdf</span></code></a>(ds, fileName[, fillValues, ...])</p></td>
 <td><p>Write an xarray.Dataset to a file with NetCDF4 fill values and the given name of the string dimension.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="parallelism">
+</section>
+<section id="parallelism">
 <h3>Parallelism<a class="headerlink" href="#parallelism" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.parallel.create_pool.html#mpas_tools.parallel.create_pool" title="mpas_tools.parallel.create_pool"><code class="xref py py-obj docutils literal notranslate"><span class="pre">create_pool</span></code></a>([process_count, method])</p></td>
 <td><p>Crate a pool for creating masks with Python multiprocessing.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="interpolation">
+</section>
+<section id="interpolation">
 <h3>Interpolation<a class="headerlink" href="#interpolation" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.interpolation.interp_bilin.html#mpas_tools.mesh.interpolation.interp_bilin" title="mpas_tools.mesh.interpolation.interp_bilin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interp_bilin</span></code></a>(x, y, field, xCell, yCell)</p></td>
 <td><p>Perform bilinear interpolation of <code class="docutils literal notranslate"><span class="pre">field</span></code> on a tensor grid to cell centers on an MPAS mesh.</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="cime-constants">
+</section>
+<section id="cime-constants">
 <h3>CIME constants<a class="headerlink" href="#cime-constants" title="Permalink to this heading">¶</a></h3>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.cime.constants.html#module-mpas_tools.cime.constants" title="mpas_tools.cime.constants"><code class="xref py py-obj docutils literal notranslate"><span class="pre">constants</span></code></a></p></td>
 <td><p></p></td>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-<div class="section" id="ocean-tools">
+</section>
+</section>
+<section id="ocean-tools">
 <h2>Ocean Tools<a class="headerlink" href="#ocean-tools" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.coastline_alteration.html#module-mpas_tools.ocean.coastline_alteration" title="mpas_tools.ocean.coastline_alteration"><code class="xref py py-obj docutils literal notranslate"><span class="pre">coastline_alteration</span></code></a></p></td>
 <td><p></p></td>
@@ -585,7 +527,7 @@ the documentation.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html#mpas_tools.ocean.moc.add_moc_southern_boundary_transects" title="mpas_tools.ocean.moc.add_moc_southern_boundary_transects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">moc.add_moc_southern_boundary_transects</span></code></a>(...)</p></td>
 <td><p><dl class="field-list simple">
-<dt class="field-odd">param dsMask</dt>
+<dt class="field-odd">param dsMask<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Region masks defining MOC basins</p>
 </dd>
 </dl>
@@ -660,10 +602,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.inject_bathymetry.inject_bathymetry.html#mpas_tools.ocean.inject_bathymetry.inject_bathymetry" title="mpas_tools.ocean.inject_bathymetry.inject_bathymetry"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inject_bathymetry</span></code></a>(mesh_file)</p></td>
 <td><p></p></td>
@@ -671,10 +609,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html#mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file" title="mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inject_meshDensity_from_file</span></code></a>(cw_filename, ...)</p></td>
 <td><p>Add a <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> field into an MPAS mesh.</p></td>
@@ -688,10 +622,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html#mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain" title="mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain"><code class="xref py py-obj docutils literal notranslate"><span class="pre">inject_preserve_floodplain</span></code></a>(mesh_file, ...)</p></td>
 <td><p></p></td>
@@ -699,10 +629,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.transects.find_transect_levels_and_weights.html#mpas_tools.ocean.transects.find_transect_levels_and_weights" title="mpas_tools.ocean.transects.find_transect_levels_and_weights"><code class="xref py py-obj docutils literal notranslate"><span class="pre">find_transect_levels_and_weights</span></code></a>(dsTransect, ...)</p></td>
 <td><p>Construct a vertical coordinate for a transect produced by <a href="#id1"><span class="problematic" id="id2">:py:fun:`mpas_tools.viz.transects.find_transect_cells_and_weights()`</span></a>, then break each resulting quadrilateral into 2 triangles that can later be visualized with functions like <code class="docutils literal notranslate"><span class="pre">tripcolor</span></code> and <code class="docutils literal notranslate"><span class="pre">tricontourf</span></code>. Also, compute interpolation weights such that observations at points on the original transect and with vertical coordinate <code class="docutils literal notranslate"><span class="pre">transectZ</span></code> can be bilinearly interpolated to the nodes of the transect.</p></td>
@@ -722,10 +648,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.ocean.viz.plot_ocean_transects.html#mpas_tools.ocean.viz.plot_ocean_transects" title="mpas_tools.ocean.viz.plot_ocean_transects"><code class="xref py py-obj docutils literal notranslate"><span class="pre">plot_ocean_transects</span></code></a>(fc, ds[, ds_mesh, ...])</p></td>
 <td><p>Plot images of the given variables on the given transects.</p></td>
@@ -735,14 +657,10 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="sea-ice-tools">
+</section>
+<section id="sea-ice-tools">
 <h2>Sea-ice Tools<a class="headerlink" href="#sea-ice-tools" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.mask.extend_seaice_mask.html#mpas_tools.seaice.mask.extend_seaice_mask" title="mpas_tools.seaice.mask.extend_seaice_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extend_seaice_mask</span></code></a>(filenameMesh, ...[, ...])</p></td>
 <td><p>Add a field <code class="docutils literal notranslate"><span class="pre">icePresenceExtended</span></code> to <code class="docutils literal notranslate"><span class="pre">filenamePresence</span></code> if it doesn't already exist.</p></td>
@@ -750,10 +668,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.mesh.write_scrip_file.html#mpas_tools.seaice.mesh.write_scrip_file" title="mpas_tools.seaice.mesh.write_scrip_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_scrip_file</span></code></a>(scripFilename, title, ...)</p></td>
 <td><p>A low-level function for writing a SCRIP file for the given MPAS-Seaice mesh</p></td>
@@ -770,10 +684,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.partition.gen_seaice_mesh_partition.html#mpas_tools.seaice.partition.gen_seaice_mesh_partition" title="mpas_tools.seaice.partition.gen_seaice_mesh_partition"><code class="xref py py-obj docutils literal notranslate"><span class="pre">gen_seaice_mesh_partition</span></code></a>(meshFilename, ...)</p></td>
 <td><p>Generate graph partition(s) for the given MPAS-Seaice mesh and the given number(s) of processors and a file defining regions that each processor should own part of (typically a polar region and an equatorial region)</p></td>
@@ -787,10 +697,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.regions.make_regions_file.html#mpas_tools.seaice.regions.make_regions_file" title="mpas_tools.seaice.regions.make_regions_file"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_regions_file</span></code></a>(filenameIcePresent, ...)</p></td>
 <td><p><p>&quot;</p>
@@ -799,26 +705,18 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.seaice.regrid.regrid_to_other_mesh.html#mpas_tools.seaice.regrid.regrid_to_other_mesh" title="mpas_tools.seaice.regrid.regrid_to_other_mesh"><code class="xref py py-obj docutils literal notranslate"><span class="pre">regrid_to_other_mesh</span></code></a>(meshFilenameSrc, ...[, ...])</p></td>
 <td><p></p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="logging">
+</section>
+<section id="logging">
 <h2>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.logging.check_call.html#mpas_tools.logging.check_call" title="mpas_tools.logging.check_call"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_call</span></code></a>(args, logger[, log_command, timeout])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.logging.check_call.html#mpas_tools.logging.check_call" title="mpas_tools.logging.check_call"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_call</span></code></a>(args[, logger, log_command, timeout])</p></td>
 <td><p>Call the given subprocess with logging to the given logger.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.logging.LoggingContext.html#mpas_tools.logging.LoggingContext" title="mpas_tools.logging.LoggingContext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoggingContext</span></code></a>(name[, logger, log_filename])</p></td>
@@ -826,14 +724,10 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="transects">
+</section>
+<section id="transects">
 <h2>Transects<a class="headerlink" href="#transects" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.transects.subdivide_great_circle.html#mpas_tools.transects.subdivide_great_circle" title="mpas_tools.transects.subdivide_great_circle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">subdivide_great_circle</span></code></a>(x, y, z, maxRes, ...)</p></td>
 <td><p>Subdivide each segment of the transect so the horizontal resolution approximately matches the requested resolution</p></td>
@@ -858,14 +752,10 @@ the documentation.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="visualization">
+</section>
+<section id="visualization">
 <h2>Visualization<a class="headerlink" href="#visualization" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.viz.paraview_extractor.extract_vtk.html#mpas_tools.viz.paraview_extractor.extract_vtk" title="mpas_tools.viz.paraview_extractor.extract_vtk"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_vtk</span></code></a>(filename_pattern[, ...])</p></td>
 <td><p>Extract fields from a time series of NetCDF files as VTK files for plotting in ParaView.</p></td>
@@ -873,10 +763,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html#mpas_tools.viz.mesh_to_triangles.mesh_to_triangles" title="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mesh_to_triangles</span></code></a>(dsMesh[, periodicCopy])</p></td>
 <td><p>Construct a dataset in which each MPAS cell is divided into the triangles connecting pairs of adjacent vertices to cell centers.</p></td>
@@ -884,10 +770,6 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.viz.transects.make_triangle_tree.html#mpas_tools.viz.transects.make_triangle_tree" title="mpas_tools.viz.transects.make_triangle_tree"><code class="xref py py-obj docutils literal notranslate"><span class="pre">make_triangle_tree</span></code></a>(dsTris)</p></td>
 <td><p>Make a KD-Tree for finding triangle edges that are near enough to transect segments that they might intersect</p></td>
@@ -901,32 +783,24 @@ the documentation.</p>
 </tbody>
 </table>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.viz.colormaps.register_sci_viz_colormaps.html#mpas_tools.viz.colormaps.register_sci_viz_colormaps" title="mpas_tools.viz.colormaps.register_sci_viz_colormaps"><code class="xref py py-obj docutils literal notranslate"><span class="pre">register_sci_viz_colormaps</span></code></a>()</p></td>
 <td><p>Register all SciVisColor colormaps with matplotlib</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="tests">
+</section>
+<section id="tests">
 <h2>Tests<a class="headerlink" href="#tests" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 90%" />
-</colgroup>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.tests.test_cime_constants.test_cime_constants.html#mpas_tools.tests.test_cime_constants.test_cime_constants" title="mpas_tools.tests.test_cime_constants.test_cime_constants"><code class="xref py py-obj docutils literal notranslate"><span class="pre">test_cime_constants</span></code></a>([e3sm_tag])</p></td>
 <td><p>Parse relevant constants from CIME</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
