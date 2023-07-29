@@ -1,5 +1,5 @@
 {% set name = "mpas_tools" %}
-{% set version = "0.22.0rc2" %}
+{% set version = "0.22.0rc3" %}
 
 package:
   name: {{ name|lower }}
