@@ -30,7 +30,7 @@ parser.add_option("-e", "--exo", dest="exo_file", help="the exo input file")
 parser.add_option("-a", "--ascii", dest="id_file", help="the ascii global id input file")
 parser.add_option("-o", "--out", dest="nc_file", help="the mpas file to write to")
 parser.add_option("-v", "--variable", dest="var_name", help="the mpas variable(s) you want to convert from an exodus file. May be a single variable or multiple variables comma-separated (no spaces)")
-parser.add_option("--dynamics", dest="dynamics", action="store_true", help="Use to convert ice dynamics fields: beta, muFriction, stiffnessFactor, uReconstructX/Y.  If stiffnessFactor was not included in the optimzation, it will be skipped.")
+parser.add_option("--dynamics", dest="dynamics", action="store_true", help="Use to convert ice dynamics fields: beta, muFriction, stiffnessFactor, uReconstructX/Y.  If stiffnessFactor was not included in the optimization, it will be skipped.")
 parser.add_option("--thermal", dest="thermal", action="store_true", help="Use to convert thermal fields: temperature, surfaceTemperature, basalTemperature.  Only use when the Albany optimization included the thermal solution.")
 parser.add_option("--geometry", dest="geometry", action="store_true", help="Use to convert geometry fields: thickness and corresponding adjustment to bedTopography.  Only use when the Albany optimization included adjustment to the ice thickness.")
 for option in parser.option_list:
@@ -46,8 +46,8 @@ if SEACAS_path == None:
    #sys.path.append('/home/tzhang/Apps/seacas/lib')
    #sys.path.append('/Users/trevorhillebrand/Documents/mpas/seacas/lib/')
    #sys.path.append('/Users/mhoffman/software/seacas/install/lib')
-   sys.path.append('/global/project/projectdirs/piscees/nightlyCoriCDash/build/TrilinosInstall/lib')  # path on Cori
-   # Note: There is currently not an operational installation on Badger or Grizzly
+   sys.path.append('/global/common/software/fanssie/trilinos-serial-release-gnu/lib')  # Perlmutter
+   #sys.path.append('/usr/projects/climate/SHARED_CLIMATE/software/badger/trilinos/2018-12-19/gcc-6.4.0/openmpi-2.1.2/lib')  # Chicoma
 else:
    sys.path.append(SEACAS_path+'/lib')
 
