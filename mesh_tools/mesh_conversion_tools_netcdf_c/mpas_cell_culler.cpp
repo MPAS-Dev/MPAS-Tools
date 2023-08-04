@@ -500,6 +500,12 @@ int mergeCellMasks(const string masksFilename, const int maskOp){/*{{{*/
     // allow errors for optional attr. not found
     }
 
+    cout << "mask filename: " << masksFilename << endl;
+    cout << "  nRegions: " << nRegions << endl;
+    cout << "  nTransects: " << nTransects << endl;
+    cout << "  maskOp: " << maskOp << endl;
+    cout << "  nCells: " << nCells << endl;
+
     regionCellMasks = new int[nCells*nRegions];
     transectCellMasks = new int[nCells*nTransects];
     cellSeedMask = new int[nCells];
