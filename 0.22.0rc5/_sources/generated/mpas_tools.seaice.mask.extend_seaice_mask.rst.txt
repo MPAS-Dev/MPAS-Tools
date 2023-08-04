@@ -1,0 +1,6 @@
+﻿mpas\_tools.seaice.mask.extend\_seaice\_mask
+============================================
+
+.. currentmodule:: mpas_tools.seaice.mask
+
+.. autofunction:: extend_seaice_mask
