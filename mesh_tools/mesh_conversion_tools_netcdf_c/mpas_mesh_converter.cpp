@@ -325,31 +325,59 @@ int readGridInput(const string inputFilename){/*{{{*/
 #endif
     ncutil::get_str(inputFilename, "on_a_sphere", on_a_sphere);
     spherical = (on_a_sphere.find("YES") != string::npos);
+    } catch (...) {
+    // allow errors for optional attr. not found
+    }
+    try {
 #ifdef _DEBUG
     cout << "   Reading sphere_radius" << endl;
 #endif
     ncutil::get_att(inputFilename, "sphere_radius", &sphereRadius);
+    } catch (...) {
+    // allow errors for optional attr. not found
+    }
+    try {
 #ifdef _DEBUG
     cout << "   Reading history" << endl;
 #endif
     ncutil::get_str(inputFilename, "history", in_history);
+    } catch (...) {
+    // allow errors for optional attr. not found
+    }
+    try {
 #ifdef _DEBUG
     cout << "   Reading file_id" << endl;
 #endif
     ncutil::get_str(inputFilename, "file_id", in_file_id);
+    } catch (...) {
+    // allow errors for optional attr. not found
+    }
+    try {
 #ifdef _DEBUG
     cout << "   Reading parent_id" << endl;
 #endif
     ncutil::get_str(inputFilename, "parent_id", in_parent_id);
+    } catch (...) {
+    // allow errors for optional attr. not found
+    }
+    try {
 #ifdef _DEBUG
     cout << "   Reading is_periodic" << endl;
 #endif
     ncutil::get_str(inputFilename, "is_periodic", is_periodic);
     periodic = (is_periodic.find("YES") != string::npos);
+    } catch (...) {
+    // allow errors for optional attr. not found
+    }
+    try {
 #ifdef _DEBUG
     cout << "   Reading x_period" << endl;
 #endif
     ncutil::get_att(inputFilename, "x_period", &xPeriod);
+    } catch (...) {
+    // allow errors for optional attr. not found
+    }
+    try {
 #ifdef _DEBUG
     cout << "   Reading y_period" << endl;
 #endif
