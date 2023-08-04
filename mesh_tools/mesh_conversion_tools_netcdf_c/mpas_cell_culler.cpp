@@ -142,13 +142,6 @@ int main ( int argc, char *argv[] ) {
         in_name = argv[1];
         out_name = argv[2];
     }
-    else if (argc >= 10)
-    {
-        cout << "\n";
-        cout << " ERROR: Incorrect number of arguments specified. See usage statement" << endl;
-        print_usage();
-        exit(1);
-    }
     else
     {
         cullMasks = true;
@@ -156,7 +149,8 @@ int main ( int argc, char *argv[] ) {
         out_name = argv[2];
         bool foundOperation;
 
-        for ( int i = 3; i < argc; i+=2 ) {
+        int i = 3;
+        while ( i < argc ) {
             foundOperation = false;
             if (strcmp(argv[i], "-m") == 0 ) {
                 mask_ops.push_back(static_cast<int>(mergeOp));
@@ -174,9 +168,11 @@ int main ( int argc, char *argv[] ) {
                 print_usage();
                 exit(1);
             }
+            i++;
 
             if (foundOperation) {
-                mask_names.push_back( argv[i+1] );
+                mask_names.push_back( argv[i] );
+                i++;
             }
         }
     }
