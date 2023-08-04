@@ -514,23 +514,22 @@ int mergeCellMasks(const string masksFilename, const int maskOp){/*{{{*/
     for ( i = 0; i < nCells; i++){
         cellSeedMask[i] = 0;
     }
-
-    try {
-        ncutil::get_var(masksFilename, "regionCellMasks", regionCellMasks);
-    } catch (...) {
-    // allow errors for optional vars. not found
-    }
-    try {
-        ncutil::get_var(masksFilename, "transectCellMasks", transectCellMasks);
-    } catch (...) {
-    // allow errors for optional vars. not found
-    }
     try {
         ncutil::get_var(masksFilename, "cellSeedMask", cellSeedMask);
     } catch (...) {
     // allow errors for optional vars. not found
     }
 
+    if (nRegions > 0) {
+        cout << "  Reading regionCellMasks" << endl;
+        ncutil::get_var(masksFilename, "regionCellMasks", regionCellMasks);
+    }
+    if (nTransects > 0) {
+        cout << "  Reading transectCellMasks" << endl;
+        ncutil::get_var(masksFilename, "transectCellMasks", transectCellMasks);
+    }
+
+    cout << "  Flattening seed, region and/or transect masks" << endl;
     for ( i = 0; i < nCells; i++){
         flattenedMask[i] = cellSeedMask[i];
         for ( j = 0; j < nRegions; j++){
@@ -542,17 +541,22 @@ int mergeCellMasks(const string masksFilename, const int maskOp){/*{{{*/
         }
     }
 
+    cout << "  Applying flattened mask to cullCell" << endl;
+
     if ( maskOp == invertOp || maskOp == mergeOp ) {
         if ( maskOp == invertOp ) {
+            cout << "  Inverting flattened mask" << endl;
             for (i = 0; i < nCells; i++){
                 flattenedMask[i] = (flattenedMask[i] + 1) % 2;
             }
         }
 
+        cout << "  Masking cullCell with the flattened mask" << endl;
         for ( i = 0; i < nCells; i++ ){
             cullCell[i] = max(cullCell[i], flattenedMask[i]);
         }
     } else if ( maskOp == preserveOp ) {
+        cout << "  Preserving cells in cullCell with the flattened mask" << endl;
         for ( i = 0; i < nCells; i++ ) {
             if ( flattenedMask[i] && cullCell[i] ) {
                 cullCell[i] = 0;
