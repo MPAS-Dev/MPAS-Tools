@@ -473,6 +473,10 @@ int mergeCellMasks(const string masksFilename, const int maskOp){/*{{{*/
     cellSeedMask = new int[nCells];
     flattenedMask = new int[nCells];
 
+    for ( i = 0; i < nCells; i++){
+        cellSeedMask[i] = 0;
+    }
+
     try {
         ncutil::get_var(masksFilename, "regionCellMasks", regionCellMasks);
         ncutil::get_var(masksFilename, "transectCellMasks", transectCellMasks);
