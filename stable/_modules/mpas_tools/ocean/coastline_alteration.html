@@ -184,7 +184,7 @@
                                  <span class="n">edgeMask</span><span class="p">[</span><span class="n">eoc</span><span class="p">])</span>
         <span class="c1"># cells with a neighboring transect edge should be masked to 1</span>
         <span class="n">dsMask</span><span class="p">[</span><span class="s1">&#39;transectCellMasks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsMask</span><span class="o">.</span><span class="n">transectCellMasks</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-            <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">),</span> <span class="mf">1.</span><span class="p">)</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">dsMask</span></div>
 
