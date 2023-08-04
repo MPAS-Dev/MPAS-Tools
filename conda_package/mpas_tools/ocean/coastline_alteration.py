@@ -73,7 +73,7 @@ def widen_transect_edge_masks(dsMask, dsMesh, latitude_threshold=43.0):
                                  edgeMask[eoc])
         # cells with a neighboring transect edge should be masked to 1
         dsMask['transectCellMasks'] = dsMask.transectCellMasks.where(
-            numpy.logical_not(mask), 1.)
+            numpy.logical_not(mask), 1).astype(int)
 
     return dsMask
 
