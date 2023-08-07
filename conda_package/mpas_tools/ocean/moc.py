@@ -136,8 +136,6 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
 
     cellsOnEdgeInRange = numpy.logical_and(cellsOnEdge >= 0,
                                            cellsOnEdge < nCells)
-    # make sure both cells on the dummy edge at the end are out of range
-    cellsOnEdgeInRange[-1, :] = False
 
     southernBoundaryEdges = []
     southernBoundaryEdgeSigns = []
@@ -181,7 +179,7 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
             _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
                                            verticesOnEdge)
 
-        logger.info('  done: {} edges in transect.'.format(len(edgeSequence)))
+        logger.info(f'  done: {len(edgeSequence)} edges in transect.')
 
         aboveSouthernBoundary = latEdge[edgeSequence] > minLat + latBuffer
 
@@ -310,7 +308,7 @@ def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
 
         mocMask['regionGroupNames'] = \
             (('nRegionGroups',), numpy.zeros((nRegionGroups,),
-                                             dtype='|S{}'.format(nChar)))
+                                             dtype=f'|S{nChar}'))
 
         for index in range(nRegionGroups):
             mocMask['regionGroupNames'][index] = regionGroupNames[index]
@@ -318,7 +316,7 @@ def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
         # we need to make sure the region names use the same string length
         mocMask['regionNames'] = \
             (('nRegions',), numpy.zeros((nRegions,),
-                                        dtype='|S{}'.format(nChar)))
+                                        dtype=f'|S{nChar}'))
 
         for index in range(nRegions):
             mocMask['regionNames'][index] = regionNames[index]
@@ -368,7 +366,7 @@ def _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
         # find the edge that is not iEdge but is on the boundary
         nextEdge = -1
         for edge in eov:
-            if edge != iEdge and edgeSign[edge] != 0:
+            if edge != -1 and edge != iEdge and edgeSign[edge] != 0:
                 nextEdge = edge
                 break
         assert(nextEdge != -1)
