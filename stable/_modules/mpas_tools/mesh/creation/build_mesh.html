@@ -117,8 +117,7 @@
 <span class="kn">import</span> <span class="nn">cartopy.crs</span> <span class="k">as</span> <span class="nn">ccrs</span>
 <span class="kn">import</span> <span class="nn">cartopy</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.conversion</span> <span class="kn">import</span> <span class="n">convert</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.logging</span> <span class="kn">import</span> <span class="n">check_call</span>
 
 <span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.jigsaw_driver</span> <span class="kn">import</span> <span class="n">jigsaw_driver</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.jigsaw_to_netcdf</span> <span class="kn">import</span> <span class="n">jigsaw_to_netcdf</span>
@@ -212,9 +211,10 @@
                          <span class="n">sphere_radius</span><span class="o">=</span><span class="n">earth_radius</span><span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 3. Convert from triangles to MPAS mesh&#39;</span><span class="p">)</span>
-        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">convert</span><span class="p">(</span><span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">,</span>
-                             <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">),</span>
-                     <span class="n">out_filename</span><span class="p">)</span></div>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MpasMeshConverter.x&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">,</span>
+                <span class="n">out_filename</span><span class="p">]</span>
+        <span class="n">check_call</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="build_planar_mesh"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.build_mesh.build_planar_mesh.html#mpas_tools.mesh.creation.build_mesh.build_planar_mesh">[docs]</a><span class="k">def</span> <span class="nf">build_planar_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span><span class="p">,</span>
@@ -263,10 +263,10 @@
                          <span class="n">output_name</span><span class="o">=</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 3. Convert from triangles to MPAS mesh&#39;</span><span class="p">)</span>
-        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">convert</span><span class="p">(</span><span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">),</span>
-                             <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">),</span>
-                     <span class="n">out_filename</span><span class="p">)</span></div>
-
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MpasMeshConverter.x&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">,</span>
+                <span class="n">out_filename</span><span class="p">]</span>
+        <span class="n">check_call</span><span class="p">(</span><span class="n">args</span><span class="o">=</span><span class="n">args</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

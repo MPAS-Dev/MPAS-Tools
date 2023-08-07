@@ -351,8 +351,8 @@ the documentation.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull" title="mpas_tools.mesh.conversion.cull"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cull</span></code></a>(dsIn[, dsMask, dsInverse, dsPreserve, ...])</p></td>
 <td><p>Use <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code> to cull cells from a mesh based on the <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field in the input file or DataSet and/or the provided masks.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask" title="mpas_tools.mesh.conversion.mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask</span></code></a>(dsMesh[, fcMask, fcSeed, logger, dir])</p></td>
-<td><p>Use <code class="docutils literal notranslate"><span class="pre">MpasMaskCreator.x</span></code> to create a set of region masks either from mask feature collections or from seed points to be used to flood fill</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask" title="mpas_tools.mesh.conversion.mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask</span></code></a>(dsMesh[, fcMask, logger, dir, cores])</p></td>
+<td><p>Use <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code> to create a set of region masks either from mask feature collections</p></td>
 </tr>
 </tbody>
 </table>
@@ -716,7 +716,7 @@ the documentation.</p>
 <h2>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">¶</a></h2>
 <table class="autosummary longtable docutils align-default">
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.logging.check_call.html#mpas_tools.logging.check_call" title="mpas_tools.logging.check_call"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_call</span></code></a>(args, logger[, log_command, timeout])</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.logging.check_call.html#mpas_tools.logging.check_call" title="mpas_tools.logging.check_call"><code class="xref py py-obj docutils literal notranslate"><span class="pre">check_call</span></code></a>(args[, logger, log_command, timeout])</p></td>
 <td><p>Call the given subprocess with logging to the given logger.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.logging.LoggingContext.html#mpas_tools.logging.LoggingContext" title="mpas_tools.logging.LoggingContext"><code class="xref py py-obj docutils literal notranslate"><span class="pre">LoggingContext</span></code></a>(name[, logger, log_filename])</p></td>
