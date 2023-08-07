@@ -20,7 +20,7 @@ cmake --build .
 cmake --install .
 
 # build and install mesh conversion tools
-cd ${SRC_DIR}/conda_package/mesh_tools/mesh_conversion_tools
+cd ${SRC_DIR}/conda_package/mesh_tools/mesh_conversion_tools_netcdf_c
 mkdir build
 cd build
 cmake \

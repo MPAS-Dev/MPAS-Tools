@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 import cartopy.crs as ccrs
 import cartopy
 
-from mpas_tools.mesh.conversion import convert
-from mpas_tools.io import write_netcdf
+from mpas_tools.logging import check_call
 
 from mpas_tools.mesh.creation.jigsaw_driver import jigsaw_driver
 from mpas_tools.mesh.creation.jigsaw_to_netcdf import jigsaw_to_netcdf
@@ -101,9 +100,10 @@ def build_spherical_mesh(cellWidth, lon, lat, earth_radius,
                          sphere_radius=earth_radius)
 
         logger.info('Step 3. Convert from triangles to MPAS mesh')
-        write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc'), dir=dir,
-                             logger=logger),
-                     out_filename)
+        args = ['MpasMeshConverter.x',
+                'mesh_triangles.nc',
+                out_filename]
+        check_call(args=args, logger=logger)
 
 
 def build_planar_mesh(cellWidth, x, y, geom_points, geom_edges,
@@ -152,7 +152,7 @@ def build_planar_mesh(cellWidth, x, y, geom_points, geom_edges,
                          output_name='mesh_triangles.nc', on_sphere=False)
 
         logger.info('Step 3. Convert from triangles to MPAS mesh')
-        write_netcdf(convert(xarray.open_dataset('mesh_triangles.nc'),
-                             logger=logger),
-                     out_filename)
-
+        args = ['MpasMeshConverter.x',
+                'mesh_triangles.nc',
+                out_filename]
+        check_call(args=args, logger=logger)
