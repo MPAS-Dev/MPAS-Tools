@@ -1,5 +1,6 @@
 import os
-import xarray
+import numpy as np
+import xarray as xr
 from tempfile import TemporaryDirectory, mkdtemp
 import shutil
 
@@ -52,7 +53,7 @@ def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
 
     check_call(['MpasMeshConverter.x', inFileName, outFileName], logger)
 
-    dsOut = xarray.open_dataset(outFileName)
+    dsOut = xr.open_dataset(outFileName)
     dsOut.load()
 
     if graphInfoFileName is not None:
@@ -111,6 +112,7 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
         dir = os.path.abspath(dir)
     tempdir = mkdtemp(dir=dir)
     inFileName = '{}/ds_in.nc'.format(tempdir)
+    dsIn = _masks_to_int(dsIn)
     write_netcdf(dsIn, inFileName)
     outFileName = '{}/ds_out.nc'.format(tempdir)
 
@@ -120,6 +122,7 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
         if not isinstance(dsMask, list):
             dsMask = [dsMask]
         for index, ds in enumerate(dsMask):
+            ds = _masks_to_int(ds)
             fileName = '{}/mask{}.nc'.format(tempdir, index)
             write_netcdf(ds, fileName)
             args.extend(['-m', fileName])
@@ -128,6 +131,7 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
         if not isinstance(dsInverse, list):
             dsInverse = [dsInverse]
         for index, ds in enumerate(dsInverse):
+            ds = _masks_to_int(ds)
             fileName = '{}/inverse{}.nc'.format(tempdir, index)
             write_netcdf(ds, fileName)
             args.extend(['-i', fileName])
@@ -136,6 +140,7 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
         if not isinstance(dsPreserve, list):
             dsPreserve = [dsPreserve]
         for index, ds in enumerate(dsPreserve):
+            ds = _masks_to_int(ds)
             fileName = '{}/preserve{}.nc'.format(tempdir, index)
             write_netcdf(ds, fileName)
             args.extend(['-p', fileName])
@@ -147,7 +152,7 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
 
     check_call(args=args, logger=logger)
 
-    dsOut = xarray.open_dataset(outFileName)
+    dsOut = xr.open_dataset(outFileName)
     dsOut.load()
 
     if graphInfoFileName is not None:
@@ -208,7 +213,21 @@ def mask(dsMesh, fcMask=None, logger=None, dir=None, cores=1):
 
         check_call(args=args, logger=logger)
 
-        dsOut = xarray.open_dataset(outFileName)
+        dsOut = xr.open_dataset(outFileName)
         dsOut.load()
+
+    return dsOut
+
+
+def _masks_to_int(dsIn):
+    """ Convert masks to int type required by the cell culler """
+    var_list = ['regionCellMasks', 'transectCellMasks', 'cullCell',
+                'cellSeedMask']
+    dsOut = xr.Dataset(dsIn, attrs=dsIn.attrs)
+    for var in var_list:
+        if var in dsIn:
+            print(var)
+            dsOut[var] = dsIn[var].astype(np.int32)
+            print(dsOut[var].dtype)
 
     return dsOut
