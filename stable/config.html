@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Config files &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -12,6 +11,9 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -114,7 +116,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="config-files">
+  <div class="section" id="config-files">
 <span id="config-mod"></span><h1>Config files<a class="headerlink" href="#config-files" title="Permalink to this heading">¶</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">mpas_tools.config</span></code> module includes the
 <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser" title="mpas_tools.config.MpasConfigParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser</span></code></a> class reading, getting, setting,
@@ -177,7 +179,7 @@ section names as keys, e.g.:</p>
 </div>
 <p>But it does not allow assignment of a section or many of the other
 dictionary-like features supported by <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a>.</p>
-<section id="comments-in-config-files">
+<div class="section" id="comments-in-config-files">
 <span id="config-comments"></span><h2>Comments in config files<a class="headerlink" href="#comments-in-config-files" title="Permalink to this heading">¶</a></h2>
 <p>One of the main advantages of <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser" title="mpas_tools.config.MpasConfigParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser</span></code></a>
 over <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a> is that it keeps track of comments
@@ -191,8 +193,8 @@ The comments can be any number of lines.</p>
 <p>Inline comments (after a config option on the same line) are not allowed
 and will be parsed as part of the config option itself.</p>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

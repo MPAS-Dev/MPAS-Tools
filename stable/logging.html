@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Logging &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -12,6 +11,9 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -115,11 +117,11 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="logging">
+  <div class="section" id="logging">
 <span id="id1"></span><h1>Logging<a class="headerlink" href="#logging" title="Permalink to this heading">¶</a></h1>
 <p>MPAS-Tools includes capabilities for logging output from many of its function
 calls to either <code class="docutils literal notranslate"><span class="pre">stdout</span></code>/<code class="docutils literal notranslate"><span class="pre">stderr</span></code> or to a log file.</p>
-<section id="using-logging">
+<div class="section" id="using-logging">
 <h2>Using logging<a class="headerlink" href="#using-logging" title="Permalink to this heading">¶</a></h2>
 <p>Logging is performed by creating a
 <a class="reference internal" href="generated/mpas_tools.logging.LoggingContext.html#mpas_tools.logging.LoggingContext" title="mpas_tools.logging.LoggingContext"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpas_tools.logging.LoggingContext</span></code></a> object inside a <code class="docutils literal notranslate"><span class="pre">with</span></code>
@@ -187,8 +189,8 @@ argument:</p>
 <p>If both the <code class="docutils literal notranslate"><span class="pre">logger</span></code> and <code class="docutils literal notranslate"><span class="pre">log_filename</span></code> arguments are not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the
 <code class="docutils literal notranslate"><span class="pre">log_filename</span></code> is ignored and the existing <code class="docutils literal notranslate"><span class="pre">logger</span></code> is simply used for
 logging.</p>
-</section>
-<section id="logging-subprocess-calls">
+</div>
+<div class="section" id="logging-subprocess-calls">
 <h2>Logging subprocess calls<a class="headerlink" href="#logging-subprocess-calls" title="Permalink to this heading">¶</a></h2>
 <p>You can also run subprocesses and capture the output to a <code class="docutils literal notranslate"><span class="pre">logger</span></code>.  This is
 accomplished with the function <a class="reference internal" href="generated/mpas_tools.logging.check_call.html#mpas_tools.logging.check_call" title="mpas_tools.logging.check_call"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.logging.check_call()</span></code></a>, which
@@ -207,8 +209,8 @@ the logger, as in this example from
     <span class="n">check_call</span><span class="p">([</span><span class="s1">&#39;jigsaw&#39;</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">jcfg_file</span><span class="p">],</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>

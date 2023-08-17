@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -12,6 +11,9 @@
   <![endif]-->
   
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -149,14 +151,14 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="mpas-tools-mesh-creation-mesh-definition-tools-atlanticpacificgrid">
+  <div class="section" id="mpas-tools-mesh-creation-mesh-definition-tools-atlanticpacificgrid">
 <h1>mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid<a class="headerlink" href="#mpas-tools-mesh-creation-mesh-definition-tools-atlanticpacificgrid" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid">
 <span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.creation.mesh_definition_tools.</span></span><span class="sig-name descname"><span class="pre">AtlanticPacificGrid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cellWidthInAtlantic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cellWidthInPacific</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/mesh_definition_tools.html#AtlanticPacificGrid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combine two cell width distributions using a <code class="docutils literal notranslate"><span class="pre">tanh</span></code> function.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>lat</strong> (<em>ndarray</em>) – vector of length n, with entries between -90 and 90, degrees</p></li>
 <li><p><strong>lon</strong> (<em>ndarray</em>) – vector of length m, with entries between -180, 180, degrees</p></li>
@@ -164,13 +166,13 @@
 <li><p><strong>cellWidthInPacific</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – vector of length n, cell width in Pacific as a function of lon, km</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>cellWidthOut</strong> (<em>ndarray</em>) – m by n array, grid cell width on globe, km</p>
 </dd>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>

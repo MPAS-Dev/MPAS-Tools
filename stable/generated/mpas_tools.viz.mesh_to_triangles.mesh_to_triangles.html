@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.viz.mesh_to_triangles.mesh_to_triangles &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -12,6 +11,9 @@
   <![endif]-->
   
         <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="../_static/doctools.js"></script>
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
@@ -132,7 +134,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="mpas-tools-viz-mesh-to-triangles-mesh-to-triangles">
+  <div class="section" id="mpas-tools-viz-mesh-to-triangles-mesh-to-triangles">
 <h1>mpas_tools.viz.mesh_to_triangles.mesh_to_triangles<a class="headerlink" href="#mpas-tools-viz-mesh-to-triangles-mesh-to-triangles" title="Permalink to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles">
@@ -140,14 +142,14 @@
 <dd><p>Construct a dataset in which each MPAS cell is divided into the triangles
 connecting pairs of adjacent vertices to cell centers.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.7.1.dev0)"><em>xarray.Dataset</em></a>) – An MPAS mesh</p></li>
 <li><p><strong>periodicCopy</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to make a periodic copy of triangles that cross -180/180 degrees
 longitude.  This is helpful when plotting triangles in a lon/lat space.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>dsTris</strong> (<em>xarray.Dataset</em>) – A dataset that defines triangles connecting pairs of adjacent vertices
 to cell centers as well as the cell index that each triangle is in and
 cell indices and weights for interpolating data defined at cell centers
@@ -163,7 +165,7 @@ counterclockwise winding.</p>
 </dl>
 </dd></dl>
 
-</section>
+</div>
 
 
            </div>

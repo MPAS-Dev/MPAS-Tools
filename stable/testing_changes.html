@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
-
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Testing Changes to mpas_tools &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -12,6 +11,9 @@
   <![endif]-->
   
         <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
         <script src="_static/doctools.js"></script>
         <script src="_static/sphinx_highlight.js"></script>
     <script src="_static/js/theme.js"></script>
@@ -114,7 +116,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="testing-changes-to-mpas-tools">
+  <div class="section" id="testing-changes-to-mpas-tools">
 <span id="dev-testing-changes"></span><h1>Testing Changes to mpas_tools<a class="headerlink" href="#testing-changes-to-mpas-tools" title="Permalink to this heading">¶</a></h1>
 <p>Here, we describe the workflow for creating a development conda environment
 that points to <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> in a branch from a local clone of the repo.
@@ -152,15 +154,15 @@ python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </sp
 environment points to your current branch.</p>
 <p>There is no need to build a conda package, as previous instructions had
 suggested.</p>
-<section id="removing-the-test-environment">
+<div class="section" id="removing-the-test-environment">
 <h2>Removing the test environment<a class="headerlink" href="#removing-the-test-environment" title="Permalink to this heading">¶</a></h2>
 <p>If you’re done with testing, you can remove the test environment</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">deactivate</span>
 <span class="n">conda</span> <span class="n">remove</span> <span class="o">--</span><span class="nb">all</span> <span class="o">-</span><span class="n">n</span> <span class="n">mpas_tools_dev</span>
 </pre></div>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
            </div>
