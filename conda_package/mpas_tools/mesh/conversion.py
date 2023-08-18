@@ -1,6 +1,7 @@
 import os
-import xarray
-from tempfile import TemporaryDirectory
+import numpy as np
+import xarray as xr
+from tempfile import TemporaryDirectory, mkdtemp
 import shutil
 
 import mpas_tools.io
@@ -38,26 +39,26 @@ def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
     """
     if dir is not None:
         dir = os.path.abspath(dir)
-    with TemporaryDirectory(dir=dir) as tempdir:
-        inFileName = '{}/mesh_in.nc'.format(tempdir)
-        write_netcdf(dsIn, inFileName)
 
-        outFileName = '{}/mesh_out.nc'.format(tempdir)
+    tempdir = mkdtemp(dir=dir)
+    inFileName = '{}/mesh_in.nc'.format(tempdir)
+    write_netcdf(dsIn, inFileName)
 
-        if graphInfoFileName is not None:
-            graphInfoFileName = os.path.abspath(graphInfoFileName)
+    outFileName = '{}/mesh_out.nc'.format(tempdir)
 
-        outDir = os.path.dirname(outFileName)
+    if graphInfoFileName is not None:
+        graphInfoFileName = os.path.abspath(graphInfoFileName)
 
-        check_call(['MpasMeshConverter.x', inFileName, outFileName],
-                         logger)
+    outDir = os.path.dirname(outFileName)
 
-        dsOut = xarray.open_dataset(outFileName)
-        dsOut.load()
+    check_call(['MpasMeshConverter.x', inFileName, outFileName], logger)
 
-        if graphInfoFileName is not None:
-            shutil.copyfile('{}/graph.info'.format(outDir),
-                            graphInfoFileName)
+    dsOut = xr.open_dataset(outFileName)
+    dsOut.load()
+
+    if graphInfoFileName is not None:
+        shutil.copyfile('{}/graph.info'.format(outDir),
+                        graphInfoFileName)
 
     return dsOut
 
@@ -109,50 +110,54 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
     """
     if dir is not None:
         dir = os.path.abspath(dir)
-    with TemporaryDirectory(dir=dir) as tempdir:
-        inFileName = '{}/ds_in.nc'.format(tempdir)
-        write_netcdf(dsIn, inFileName)
-        outFileName = '{}/ds_out.nc'.format(tempdir)
+    tempdir = mkdtemp(dir=dir)
+    inFileName = '{}/ds_in.nc'.format(tempdir)
+    dsIn = _masks_to_int(dsIn)
+    write_netcdf(dsIn, inFileName)
+    outFileName = '{}/ds_out.nc'.format(tempdir)
 
-        args = ['MpasCellCuller.x', inFileName, outFileName]
+    args = ['MpasCellCuller.x', inFileName, outFileName]
 
-        if dsMask is not None:
-            if not isinstance(dsMask, list):
-                dsMask = [dsMask]
-            for index, ds in enumerate(dsMask):
-                fileName = '{}/mask{}.nc'.format(tempdir, index)
-                write_netcdf(ds, fileName)
-                args.extend(['-m', fileName])
+    if dsMask is not None:
+        if not isinstance(dsMask, list):
+            dsMask = [dsMask]
+        for index, ds in enumerate(dsMask):
+            ds = _masks_to_int(ds)
+            fileName = '{}/mask{}.nc'.format(tempdir, index)
+            write_netcdf(ds, fileName)
+            args.extend(['-m', fileName])
 
-        if dsInverse is not None:
-            if not isinstance(dsInverse, list):
-                dsInverse = [dsInverse]
-            for index, ds in enumerate(dsInverse):
-                fileName = '{}/inverse{}.nc'.format(tempdir, index)
-                write_netcdf(ds, fileName)
-                args.extend(['-i', fileName])
+    if dsInverse is not None:
+        if not isinstance(dsInverse, list):
+            dsInverse = [dsInverse]
+        for index, ds in enumerate(dsInverse):
+            ds = _masks_to_int(ds)
+            fileName = '{}/inverse{}.nc'.format(tempdir, index)
+            write_netcdf(ds, fileName)
+            args.extend(['-i', fileName])
 
-        if dsPreserve is not None:
-            if not isinstance(dsPreserve, list):
-                dsPreserve = [dsPreserve]
-            for index, ds in enumerate(dsPreserve):
-                fileName = '{}/preserve{}.nc'.format(tempdir, index)
-                write_netcdf(ds, fileName)
-                args.extend(['-p', fileName])
+    if dsPreserve is not None:
+        if not isinstance(dsPreserve, list):
+            dsPreserve = [dsPreserve]
+        for index, ds in enumerate(dsPreserve):
+            ds = _masks_to_int(ds)
+            fileName = '{}/preserve{}.nc'.format(tempdir, index)
+            write_netcdf(ds, fileName)
+            args.extend(['-p', fileName])
 
-        if graphInfoFileName is not None:
-            graphInfoFileName = os.path.abspath(graphInfoFileName)
+    if graphInfoFileName is not None:
+        graphInfoFileName = os.path.abspath(graphInfoFileName)
 
-        outDir = os.path.dirname(outFileName)
+    outDir = os.path.dirname(outFileName)
 
-        check_call(args=args, logger=logger)
+    check_call(args=args, logger=logger)
 
-        dsOut = xarray.open_dataset(outFileName)
-        dsOut.load()
+    dsOut = xr.open_dataset(outFileName)
+    dsOut.load()
 
-        if graphInfoFileName is not None:
-            shutil.copyfile('{}/culled_graph.info'.format(outDir),
-                            graphInfoFileName)
+    if graphInfoFileName is not None:
+        shutil.copyfile('{}/culled_graph.info'.format(outDir),
+                        graphInfoFileName)
 
     return dsOut
 
@@ -208,7 +213,21 @@ def mask(dsMesh, fcMask=None, logger=None, dir=None, cores=1):
 
         check_call(args=args, logger=logger)
 
-        dsOut = xarray.open_dataset(outFileName)
+        dsOut = xr.open_dataset(outFileName)
         dsOut.load()
+
+    return dsOut
+
+
+def _masks_to_int(dsIn):
+    """ Convert masks to int type required by the cell culler """
+    var_list = ['regionCellMasks', 'transectCellMasks', 'cullCell',
+                'cellSeedMask']
+    dsOut = xr.Dataset(dsIn, attrs=dsIn.attrs)
+    for var in var_list:
+        if var in dsIn:
+            print(var)
+            dsOut[var] = dsIn[var].astype(np.int32)
+            print(dsOut[var].dtype)
 
     return dsOut
