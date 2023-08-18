@@ -1,0 +1,6 @@
+﻿mpas\_tools.transects.angular\_distance
+=======================================
+
+.. currentmodule:: mpas_tools.transects
+
+.. autofunction:: angular_distance
