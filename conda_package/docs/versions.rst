@@ -35,6 +35,7 @@ Documentation    On GitHub
 `v0.20.0`_        `0.20.0`_
 `v0.21.0`_        `0.21.0`_
 `v0.22.0`_        `0.22.0`_
+`v0.23.0`_        `0.23.0`_
 ================ ===============
 
 .. _`stable`: ../stable/index.html
@@ -95,3 +96,5 @@ Documentation    On GitHub
 .. _`0.21.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.21.0
 .. _`v0.22.0`: ../0.22.0/index.html
 .. _`0.22.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.22.0
+.. _`v0.23.0`: ../0.23.0/index.html
+.. _`0.23.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.23.0
