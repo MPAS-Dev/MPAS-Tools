@@ -310,11 +310,24 @@ Transects
    subdivide_planar
    lon_lat_to_cartesian
    cartesian_to_lon_lat
-   angular_distance
-   intersects
-   intersection
-   Vector
 
+Vector
+======
+
+.. currentmodule:: mpas_tools.vector
+
+.. autosummary::
+   :toctree: generated/
+
+   Vector
+   Vector.angular_distance
+   Vector.intersects
+   Vector.intersection
+   Vector.straddles
+   Vector.dot
+   Vector.cross
+   Vector.det
+   Vector.mag
 
 Visualization
 =============

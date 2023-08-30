@@ -22,7 +22,7 @@ def make_triangle_tree(dsTris):
     ----------
     dsTris : xarray.Dataset
         A dataset that defines triangles, the results of calling
-        :py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
+        :py:func:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
 
     Returns
     -------
@@ -66,7 +66,7 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
 
     dsTris : xarray.Dataset
         A dataset that defines triangles, the results of calling
-        :py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
+        :py:func:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
 
     dsMesh : xarray.Dataset
         A data set with the full MPAS mesh.
@@ -351,7 +351,7 @@ def find_planar_transect_cells_and_weights(xTransect, yTransect, dsTris, dsMesh,
 
     dsTris : xarray.Dataset
         A dataset that defines triangles, the results of calling
-        `:py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
+        `:py:func:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
 
     dsMesh : xarray.Dataset
         A data set with the full MPAS mesh.

@@ -224,7 +224,7 @@ def angular_distance(x, y, z):
     ----------
     x : numpy.ndarray
         The Cartesian x coordinate of a transect, where the number of segments
-        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same lengt.
+        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length.
 
     y : numpy.ndarray
         The Cartesian y coordinate of the transect
