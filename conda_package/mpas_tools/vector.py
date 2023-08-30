@@ -140,12 +140,12 @@ class Vector:
 
         Parameters
         ----------
-        a1: mpas_tools.vector.Vector
+        a1 : mpas_tools.vector.Vector
             Cartesian coordinates of first end point of first great circle arc.
             The types of the attributes ``x``, ``y``, and ``z`` must either be
             ``numpy.arrays`` of identical size for all 4 vectors (in which case
             intersections are found element-wise), or scalars for
-            at least one of either the ``a``s or the ``b``s.
+            at least one of either the a's or the b's.
 
         a2 : mpas_tools.vector.Vector
             Second end point of first great circle arc.
@@ -159,7 +159,7 @@ class Vector:
         Returns
         -------
         straddle : numpy.ndarray
-            A boolean array of the same size as the ``a``s or the ``b``s, whichever
+            A boolean array of the same size as the a's or the b's, whichever
             is greater, indicating if the great circle segment determined by
             (a1, a2) straddles the great circle determined by (b1, b2)
         """

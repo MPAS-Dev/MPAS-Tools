@@ -33,8 +33,7 @@ def write_netcdf(ds, fileName, fillValues=None, format=None, engine=None,
         ``mpas_tools.io.default_fills``, which can be modified but which
         defaults to ``netCDF4.default_fillvals``
 
-    format : {'NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT',
-              'NETCDF3_CLASSIC'}, optional
+    format : {'NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', 'NETCDF3_CLASSIC'}, optional
         The NetCDF file format to use.  Default is
         ``mpas_tools.io.default_format``, which can be modified but which
         defaults to ``'NETCDF3_64BIT'``
@@ -49,7 +48,7 @@ def write_netcdf(ds, fileName, fillValues=None, format=None, engine=None,
         The name of the dimension used for character strings, or None to let
         xarray figure this out. Default is
         ``mpas_tools.io.default_char_dim_name``, which can be modified but
-        which defaults to ``'StrLen'`
+        which defaults to ``'StrLen'``
 
     """
     if format is None:
