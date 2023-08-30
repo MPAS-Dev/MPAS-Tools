@@ -1,7 +1,7 @@
-﻿mpas\_tools.transects.Vector
-============================
+﻿mpas\_tools.vector.Vector
+=========================
 
-.. currentmodule:: mpas_tools.transects
+.. currentmodule:: mpas_tools.vector
 
 .. autoclass:: Vector
 

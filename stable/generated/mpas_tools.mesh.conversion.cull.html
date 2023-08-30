@@ -63,6 +63,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../ocean/coastline_alteration.html">Coastline Alteration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ocean/moc.html">Meridional Overturning Circulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
 <ul>
@@ -107,6 +108,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api.html#sea-ice-tools">Sea-ice Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#vector">Vector</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#tests">Tests</a></li>
 </ul>
@@ -160,13 +162,13 @@ where cells should <em>not</em> be culled.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsIn</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.7.1.dev0)"><em>xarray.Dataset</em></a>) – A data set to cull, possibly with a <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field set to one where
+<li><p><strong>dsIn</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.8.1.dev0)"><em>xarray.Dataset</em></a>) – A data set to cull, possibly with a <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field set to one where
 cells should be removed</p></li>
-<li><p><strong>dsMask</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.7.1.dev0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 1 where cells
+<li><p><strong>dsMask</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.8.1.dev0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 1 where cells
 should be culled</p></li>
-<li><p><strong>dsInverse</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.7.1.dev0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 0 where cells
+<li><p><strong>dsInverse</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.8.1.dev0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 0 where cells
 should be culled</p></li>
-<li><p><strong>dsPreserve</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.7.1.dev0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 1 where cells
+<li><p><strong>dsPreserve</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.8.1.dev0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.11)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 1 where cells
 should <em>not</em> be culled</p></li>
 <li><p><strong>graphInfoFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – A file path (relative or absolute) where the graph file (typically
 <code class="docutils literal notranslate"><span class="pre">culled_graph.info</span></code> should be written out.  By default,

@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles" href="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html" />
-    <link rel="prev" title="mpas_tools.transects.Vector" href="mpas_tools.transects.Vector.html" /> 
+    <link rel="prev" title="mpas_tools.vector.Vector.mag" href="mpas_tools.vector.Vector.mag.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -63,6 +63,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../ocean/coastline_alteration.html">Coastline Alteration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ocean/moc.html">Meridional Overturning Circulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
 <ul>
@@ -83,6 +84,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api.html#sea-ice-tools">Sea-ice Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#vector">Vector</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#visualization">Visualization</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.viz.paraview_extractor.extract_vtk</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#mpas_tools.viz.paraview_extractor.extract_vtk"><code class="docutils literal notranslate"><span class="pre">extract_vtk()</span></code></a></li>
@@ -230,7 +232,7 @@ dimension but no xtime variable (e.g. mesh file)</p></li>
 topo_dim-1 for all cells)</p></li>
 <li><p><strong>include_mesh_vars</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to include mesh variables as well as time-series variables
 in the extraction</p></li>
-<li><p><strong>fc_region_mask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.2.0)"><em>geometric_features.FeatureCollection</em></a><em>, </em><em>optional</em>) – A feature collection used to define a mask.  The MPAS data is culled to
+<li><p><strong>fc_region_mask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.3.0)"><em>geometric_features.FeatureCollection</em></a><em>, </em><em>optional</em>) – A feature collection used to define a mask.  The MPAS data is culled to
 lie within the mask before conversion to VTK proceeds</p></li>
 <li><p><strong>temp_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – If fc_region_mask is supplied, a temporary directory where the culled
 mesh and time series files are stored</p></li>
@@ -246,7 +248,7 @@ mesh and time series files are stored</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="mpas_tools.transects.Vector.html" class="btn btn-neutral float-left" title="mpas_tools.transects.Vector" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.vector.Vector.mag.html" class="btn btn-neutral float-left" title="mpas_tools.vector.Vector.mag" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html" class="btn btn-neutral float-right" title="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

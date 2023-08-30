@@ -63,6 +63,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../ocean/coastline_alteration.html">Coastline Alteration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ocean/moc.html">Meridional Overturning Circulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
 <ul>
@@ -83,6 +84,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../api.html#sea-ice-tools">Sea-ice Tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#vector">Vector</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#visualization">Visualization</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.paraview_extractor.extract_vtk.html">mpas_tools.viz.paraview_extractor.extract_vtk</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html">mpas_tools.viz.mesh_to_triangles.mesh_to_triangles</a></li>
@@ -143,8 +145,8 @@
 segments that they might intersect</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dsTris</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.7.1.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines triangles, the results of calling
-<a href="#id1"><span class="problematic" id="id2">:py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`</span></a></p>
+<dd class="field-odd"><p><strong>dsTris</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.8.1.dev0)"><em>xarray.Dataset</em></a>) – A dataset that defines triangles, the results of calling
+<a class="reference internal" href="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html#mpas_tools.viz.mesh_to_triangles.mesh_to_triangles" title="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()</span></code></a></p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><strong>tree</strong> (<em>scipy.spatial.cKDTree</em>) – A tree of edge centers from triangles making up an MPAS mesh</p>

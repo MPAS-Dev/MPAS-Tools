@@ -18,7 +18,9 @@
         <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" /> 
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Mask" href="../seaice/mask.html" />
+    <link rel="prev" title="Adding a Depth Coordinate" href="depth.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -55,12 +57,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
-<ul>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Ocean Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coastal_tools.html">Coastal Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="coastline_alteration.html">Coastline Alteration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="moc.html">Meridional Overturning Circulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Visualization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#plotting-ocean-transects">Plotting Ocean Transects</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
 <ul>
@@ -200,7 +206,7 @@ but also the vertical mesh variables (<code class="docutils literal notranslate"
 <p>If you don’t specify the list of variables to plot, all variables with
 dimensions <code class="docutils literal notranslate"><span class="pre">nCells</span></code> and <code class="docutils literal notranslate"><span class="pre">nVertLevels</span></code> will be plotted.</p>
 <p>One way of customizing these visualizaitons is to make your own copy of
-<cite>transects.py &lt;https://github.com/MPAS-Dev/MPAS-Tools/blob/master/conda_package/mpas_tools/ocean/viz/transects.py&gt;</cite>
+<a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Tools/blob/master/conda_package/mpas_tools/ocean/viz/transects.py">transects.py</a>
 and change <code class="docutils literal notranslate"><span class="pre">_plot_transect()</span></code> to suite your needs, (changing figure size, dpi,
 colorbar, etc.)</p>
 </div>
@@ -209,7 +215,10 @@ colorbar, etc.)</p>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="depth.html" class="btn btn-neutral float-left" title="Adding a Depth Coordinate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../seaice/mask.html" class="btn btn-neutral float-right" title="Mask" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

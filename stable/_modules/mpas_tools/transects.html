@@ -61,6 +61,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../ocean/moc.html">Meridional Overturning Circulation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
 <ul>
@@ -329,7 +330,7 @@
     <span class="k">return</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span></div>
 
 
-<div class="viewcode-block" id="angular_distance"><a class="viewcode-back" href="../../generated/mpas_tools.transects.angular_distance.html#mpas_tools.transects.angular_distance">[docs]</a><span class="k">def</span> <span class="nf">angular_distance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">angular_distance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute angular distance between points on the sphere, following:</span>
 <span class="sd">    https://en.wikipedia.org/wiki/Great-circle_distance</span>
@@ -338,7 +339,7 @@
 <span class="sd">    ----------</span>
 <span class="sd">    x : numpy.ndarray</span>
 <span class="sd">        The Cartesian x coordinate of a transect, where the number of segments</span>
-<span class="sd">        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same lengt.</span>
+<span class="sd">        is ``len(x) - 1``.  ``x``, ``y`` and ``z`` are of the same length.</span>
 
 <span class="sd">    y : numpy.ndarray</span>
 <span class="sd">        The Cartesian y coordinate of the transect</span>
@@ -355,7 +356,7 @@
     <span class="n">second</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">y</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">z</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
 
     <span class="n">distance</span> <span class="o">=</span> <span class="n">first</span><span class="o">.</span><span class="n">angular_distance</span><span class="p">(</span><span class="n">second</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">distance</span></div>
+    <span class="k">return</span> <span class="n">distance</span>
 </pre></div>
 
            </div>
