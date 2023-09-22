@@ -1,7 +1,7 @@
-FC = $(shell nc-config --fc)
+FC = $(shell nf-config --fc)
 FFLAGS = -O3
-FCINCLUDES = $(shell nc-config --fflags)
-FCLIBS = $(shell nc-config --flibs)
+FCINCLUDES = $(shell nf-config --fflags)
+FCLIBS = $(shell nf-config --flibs)
 
 all: grid_rotate
 
