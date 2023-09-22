@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.seaice.mesh.write_scrip_file &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -10,12 +11,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -140,31 +138,31 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="mpas-tools-seaice-mesh-write-scrip-file">
-<h1>mpas_tools.seaice.mesh.write_scrip_file<a class="headerlink" href="#mpas-tools-seaice-mesh-write-scrip-file" title="Permalink to this heading">¶</a></h1>
+  <section id="mpas-tools-seaice-mesh-write-scrip-file">
+<h1>mpas_tools.seaice.mesh.write_scrip_file<a class="headerlink" href="#mpas-tools-seaice-mesh-write-scrip-file" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.seaice.mesh.write_scrip_file">
-<span class="sig-prename descclassname"><span class="pre">mpas_tools.seaice.mesh.</span></span><span class="sig-name descname"><span class="pre">write_scrip_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scripFilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nCells</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxEdges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latCell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonCell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corner_lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corner_lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/seaice/mesh.html#write_scrip_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.seaice.mesh.write_scrip_file" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.seaice.mesh.</span></span><span class="sig-name descname"><span class="pre">write_scrip_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">scripFilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nCells</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxEdges</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latCell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lonCell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corner_lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corner_lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/seaice/mesh.html#write_scrip_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.seaice.mesh.write_scrip_file" title="Link to this definition">¶</a></dt>
 <dd><p>A low-level function for writing a SCRIP file for the given MPAS-Seaice
 mesh</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>scripFilename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The name of the resulting SCRIP file</p></li>
 <li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – A string to include as the <code class="docutils literal notranslate"><span class="pre">title</span></code> attribute in the SCRIP file</p></li>
 <li><p><strong>nCells</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – The number of cells in the mesh</p></li>
 <li><p><strong>maxEdges</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a>) – The maximum number of edges/vertices on a cell in the mesh</p></li>
-<li><p><strong>latCell</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>numpy.ndarray</em></a>) – The latitude (in radians) of cell centers</p></li>
-<li><p><strong>lonCell</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>numpy.ndarray</em></a>) – The longitude (in radians) of cell centers</p></li>
-<li><p><strong>corner_lat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>numpy.ndarray</em></a>) – The latitude (in radians) of cell vertices</p></li>
-<li><p><strong>corner_lon</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>numpy.ndarray</em></a>) – The longitude (in radians) of cell vertices</p></li>
-<li><p><strong>mask</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>numpy.ndarray</em></a><em>, </em><em>optional</em>) – A mask of where cells are valid</p></li>
+<li><p><strong>latCell</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a>) – The latitude (in radians) of cell centers</p></li>
+<li><p><strong>lonCell</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a>) – The longitude (in radians) of cell centers</p></li>
+<li><p><strong>corner_lat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a>) – The latitude (in radians) of cell vertices</p></li>
+<li><p><strong>corner_lon</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a>) – The longitude (in radians) of cell vertices</p></li>
+<li><p><strong>mask</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a><em>, </em><em>optional</em>) – A mask of where cells are valid</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>

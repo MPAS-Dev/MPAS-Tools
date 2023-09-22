@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.seaice.partition.gen_seaice_mesh_partition &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -10,12 +11,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -140,16 +138,16 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="mpas-tools-seaice-partition-gen-seaice-mesh-partition">
-<h1>mpas_tools.seaice.partition.gen_seaice_mesh_partition<a class="headerlink" href="#mpas-tools-seaice-partition-gen-seaice-mesh-partition" title="Permalink to this heading">¶</a></h1>
+  <section id="mpas-tools-seaice-partition-gen-seaice-mesh-partition">
+<h1>mpas_tools.seaice.partition.gen_seaice_mesh_partition<a class="headerlink" href="#mpas-tools-seaice-partition-gen-seaice-mesh-partition" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.seaice.partition.gen_seaice_mesh_partition">
-<span class="sig-prename descclassname"><span class="pre">mpas_tools.seaice.partition.</span></span><span class="sig-name descname"><span class="pre">gen_seaice_mesh_partition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshFilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regionFilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nProcsArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpasCullerLocation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputPrefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cullEquatorialRegion</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/seaice/partition.html#gen_seaice_mesh_partition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.seaice.partition.gen_seaice_mesh_partition" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.seaice.partition.</span></span><span class="sig-name descname"><span class="pre">gen_seaice_mesh_partition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">meshFilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">regionFilename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nProcsArray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpasCullerLocation</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outputPrefix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">plotting</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metis</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cullEquatorialRegion</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/seaice/partition.html#gen_seaice_mesh_partition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.seaice.partition.gen_seaice_mesh_partition" title="Link to this definition">¶</a></dt>
 <dd><p>Generate graph partition(s) for the given MPAS-Seaice mesh and the given
 number(s) of processors and a file defining regions that each processor
 should own part of (typically a polar region and an equatorial region)</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>meshFilename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The name of a file containing the MPAS-Seaice mesh</p></li>
 <li><p><strong>regionFilename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The name of a file containing a <code class="docutils literal notranslate"><span class="pre">region</span></code> field defining different
@@ -167,7 +165,7 @@ plotting the partitions</p></li>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>

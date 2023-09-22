@@ -10,12 +10,9 @@
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script src="../../../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -121,7 +118,9 @@
 <span class="n">radiansToDegrees</span> <span class="o">=</span> <span class="mf">180.0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
 
 
-<div class="viewcode-block" id="write_scrip_file"><a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.write_scrip_file.html#mpas_tools.seaice.mesh.write_scrip_file">[docs]</a><span class="k">def</span> <span class="nf">write_scrip_file</span><span class="p">(</span><span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">,</span>
+<div class="viewcode-block" id="write_scrip_file">
+<a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.write_scrip_file.html#mpas_tools.seaice.mesh.write_scrip_file">[docs]</a>
+<span class="k">def</span> <span class="nf">write_scrip_file</span><span class="p">(</span><span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">,</span>
                      <span class="n">latCell</span><span class="p">,</span> <span class="n">lonCell</span><span class="p">,</span> <span class="n">corner_lat</span><span class="p">,</span> <span class="n">corner_lon</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A low-level function for writing a SCRIP file for the given MPAS-Seaice</span>
@@ -199,10 +198,13 @@
 
     <span class="n">scripFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
+
 <span class="c1"># ------------------------------------------------------------------------------------</span>
 
 
-<div class="viewcode-block" id="write_2D_scripfile"><a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.write_2D_scripfile.html#mpas_tools.seaice.mesh.write_2D_scripfile">[docs]</a><span class="k">def</span> <span class="nf">write_2D_scripfile</span><span class="p">(</span><span class="n">filenameScripOut</span><span class="p">,</span> <span class="n">scripTitle</span><span class="p">,</span> <span class="n">nColumns</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span>
+<div class="viewcode-block" id="write_2D_scripfile">
+<a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.write_2D_scripfile.html#mpas_tools.seaice.mesh.write_2D_scripfile">[docs]</a>
+<span class="k">def</span> <span class="nf">write_2D_scripfile</span><span class="p">(</span><span class="n">filenameScripOut</span><span class="p">,</span> <span class="n">scripTitle</span><span class="p">,</span> <span class="n">nColumns</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span>
                        <span class="n">latsCentre</span><span class="p">,</span> <span class="n">lonsCentre</span><span class="p">,</span> <span class="n">latsVertex</span><span class="p">,</span> <span class="n">lonsVertex</span><span class="p">,</span>
                        <span class="n">degrees</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -312,10 +314,13 @@
 
     <span class="n">fileOut</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
+
 <span class="c1"># ---------------------------------------------------------------------</span>
 
 
-<div class="viewcode-block" id="make_mpas_scripfile_on_cells"><a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells">[docs]</a><span class="k">def</span> <span class="nf">make_mpas_scripfile_on_cells</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+<div class="viewcode-block" id="make_mpas_scripfile_on_cells">
+<a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells">[docs]</a>
+<span class="k">def</span> <span class="nf">make_mpas_scripfile_on_cells</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write a SCRIP file for cel quantities on the given MPAS-Seaice mesh</span>
 
@@ -381,10 +386,13 @@
         <span class="n">corner_lat</span><span class="p">,</span>
         <span class="n">corner_lon</span><span class="p">)</span></div>
 
+
 <span class="c1"># ---------------------------------------------------------------------</span>
 
 
-<div class="viewcode-block" id="make_mpas_scripfile_on_vertices"><a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices">[docs]</a><span class="k">def</span> <span class="nf">make_mpas_scripfile_on_vertices</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+<div class="viewcode-block" id="make_mpas_scripfile_on_vertices">
+<a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices">[docs]</a>
+<span class="k">def</span> <span class="nf">make_mpas_scripfile_on_vertices</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write a SCRIP file for vertex quantities on the given MPAS-Seaice mesh</span>
 
@@ -442,6 +450,7 @@
     <span class="c1"># create the scrip file</span>
     <span class="n">write_scrip_file</span><span class="p">(</span><span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">,</span>
                      <span class="n">latVertex</span><span class="p">,</span> <span class="n">lonVertex</span><span class="p">,</span> <span class="n">corner_lat</span><span class="p">,</span> <span class="n">corner_lon</span><span class="p">)</span></div>
+
 
 
 <span class="c1"># ---------------------------------------------------------------------</span>

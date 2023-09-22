@@ -10,12 +10,9 @@
     <script src="../../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/sphinx_highlight.js"></script>
+        <script src="../../../../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -125,7 +122,9 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="mergeCellWidthVsLat"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat">[docs]</a><span class="k">def</span> <span class="nf">mergeCellWidthVsLat</span><span class="p">(</span>
+<div class="viewcode-block" id="mergeCellWidthVsLat">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat">[docs]</a>
+<span class="k">def</span> <span class="nf">mergeCellWidthVsLat</span><span class="p">(</span>
         <span class="n">lat</span><span class="p">,</span>
         <span class="n">cellWidthInSouth</span><span class="p">,</span>
         <span class="n">cellWidthInNorth</span><span class="p">,</span>
@@ -177,7 +176,10 @@
     <span class="k">return</span> <span class="n">cellWidthOut</span></div>
 
 
-<div class="viewcode-block" id="EC_CellWidthVsLat"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat">[docs]</a><span class="k">def</span> <span class="nf">EC_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">cellWidthEq</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">cellWidthMidLat</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span>
+
+<div class="viewcode-block" id="EC_CellWidthVsLat">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat">[docs]</a>
+<span class="k">def</span> <span class="nf">EC_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">cellWidthEq</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">cellWidthMidLat</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span>
                       <span class="n">cellWidthPole</span><span class="o">=</span><span class="mf">35.0</span><span class="p">,</span> <span class="n">latPosEq</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">latPosPole</span><span class="o">=</span><span class="mf">73.0</span><span class="p">,</span>
                       <span class="n">latTransition</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">latWidthEq</span><span class="o">=</span><span class="mf">6.0</span><span class="p">,</span> <span class="n">latWidthPole</span><span class="o">=</span><span class="mf">9.0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -246,7 +248,10 @@
     <span class="k">return</span> <span class="n">cellWidthOut</span></div>
 
 
-<div class="viewcode-block" id="RRS_CellWidthVsLat"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat">[docs]</a><span class="k">def</span> <span class="nf">RRS_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">cellWidthEq</span><span class="p">,</span> <span class="n">cellWidthPole</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RRS_CellWidthVsLat">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat">[docs]</a>
+<span class="k">def</span> <span class="nf">RRS_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">cellWidthEq</span><span class="p">,</span> <span class="n">cellWidthPole</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create Rossby Radius Scaling as a function of lat.  This is intended  as</span>
 <span class="sd">    part of the workflow to make an MPAS global mesh.</span>
@@ -282,7 +287,10 @@
     <span class="k">return</span> <span class="n">cellWidthOut</span></div>
 
 
-<div class="viewcode-block" id="AtlanticPacificGrid"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid.html#mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid">[docs]</a><span class="k">def</span> <span class="nf">AtlanticPacificGrid</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">cellWidthInAtlantic</span><span class="p">,</span> <span class="n">cellWidthInPacific</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AtlanticPacificGrid">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid.html#mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid">[docs]</a>
+<span class="k">def</span> <span class="nf">AtlanticPacificGrid</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">cellWidthInAtlantic</span><span class="p">,</span> <span class="n">cellWidthInPacific</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Combine two cell width distributions using a ``tanh`` function.</span>
 
@@ -325,6 +333,7 @@
                 <span class="k">if</span> <span class="p">(</span><span class="n">lon</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">60.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">lon</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">20.0</span><span class="p">):</span>
                     <span class="n">cellWidthOut</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">cellWidthInAtlantic</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">cellWidthOut</span></div>
+
 </pre></div>
 
            </div>

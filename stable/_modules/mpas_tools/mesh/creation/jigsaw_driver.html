@@ -10,12 +10,9 @@
     <script src="../../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-        <script src="../../../../_static/jquery.js"></script>
-        <script src="../../../../_static/underscore.js"></script>
-        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../../_static/doctools.js"></script>
-        <script src="../../../../_static/sphinx_highlight.js"></script>
+        <script src="../../../../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" /> 
@@ -123,7 +120,9 @@
 <span class="kn">from</span> <span class="nn">mpas_tools.logging</span> <span class="kn">import</span> <span class="n">check_call</span>
 
 
-<div class="viewcode-block" id="jigsaw_driver"><a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver.html#mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver">[docs]</a><span class="k">def</span> <span class="nf">jigsaw_driver</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">earth_radius</span><span class="o">=</span><span class="mf">6371.0e3</span><span class="p">,</span>
+<div class="viewcode-block" id="jigsaw_driver">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver.html#mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver">[docs]</a>
+<span class="k">def</span> <span class="nf">jigsaw_driver</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">earth_radius</span><span class="o">=</span><span class="mf">6371.0e3</span><span class="p">,</span>
                   <span class="n">geom_points</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">geom_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A function for building a jigsaw mesh</span>
@@ -197,6 +196,7 @@
 
     <span class="n">savejig</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">jcfg_file</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span>
     <span class="n">check_call</span><span class="p">([</span><span class="s1">&#39;jigsaw&#39;</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">jcfg_file</span><span class="p">],</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span></div>
+
 </pre></div>
 
            </div>

@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mesh Creation &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -10,12 +11,9 @@
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+        <script src="_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -131,10 +129,10 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <span class="target" id="mesh-creation"></span><div class="section" id="id1">
-<h1>Mesh Creation<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
-<div class="section" id="uniform-planar-meshes">
-<h2>Uniform, Planar Meshes<a class="headerlink" href="#uniform-planar-meshes" title="Permalink to this heading">¶</a></h2>
+  <span class="target" id="mesh-creation"></span><section id="id1">
+<h1>Mesh Creation<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h1>
+<section id="uniform-planar-meshes">
+<h2>Uniform, Planar Meshes<a class="headerlink" href="#uniform-planar-meshes" title="Link to this heading">¶</a></h2>
 <p>The most basic tool for creating an MPAS mesh is the function
 <a class="reference internal" href="generated/mpas_tools.planar_hex.make_planar_hex_mesh.html#mpas_tools.planar_hex.make_planar_hex_mesh" title="mpas_tools.planar_hex.make_planar_hex_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.planar_hex.make_planar_hex_mesh()</span></code></a> or the associated
 command-line tool <code class="docutils literal notranslate"><span class="pre">planar_hex</span></code>.  These tools create a uniform, planar mesh
@@ -180,15 +178,15 @@ $ MpasCellCuller.x mesh_to_cull.nc culled_mesh.nc
 $ MpasMeshConverter.x culled_mesh.nc nonperiodic_mesh_10x20_1km.nc
 </pre></div>
 </div>
-</div>
-<div class="section" id="building-a-jigsaw-mesh">
-<h2>Building a JIGSAW Mesh<a class="headerlink" href="#building-a-jigsaw-mesh" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="building-a-jigsaw-mesh">
+<h2>Building a JIGSAW Mesh<a class="headerlink" href="#building-a-jigsaw-mesh" title="Link to this heading">¶</a></h2>
 <p>The <a class="reference internal" href="generated/mpas_tools.mesh.creation.build_mesh.html#module-mpas_tools.mesh.creation.build_mesh" title="mpas_tools.mesh.creation.build_mesh"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.build_mesh</span></code></a> module is used
 create an MPAS mesh using the <a class="reference external" href="https://github.com/dengwirda/jigsaw">JIGSAW</a>
 and <a class="reference external" href="https://github.com/dengwirda/jigsaw-python">JIGSAW-Python (jigsawpy)</a>
 packages.</p>
-<div class="section" id="spherical-meshes">
-<h3>Spherical Meshes<a class="headerlink" href="#spherical-meshes" title="Permalink to this heading">¶</a></h3>
+<section id="spherical-meshes">
+<h3>Spherical Meshes<a class="headerlink" href="#spherical-meshes" title="Link to this heading">¶</a></h3>
 <p>Spherical meshes are constructed with the function
 <a class="reference internal" href="generated/mpas_tools.mesh.creation.build_mesh.build_spherical_mesh.html#mpas_tools.mesh.creation.build_mesh.build_spherical_mesh" title="mpas_tools.mesh.creation.build_mesh.build_spherical_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.build_mesh.build_spherical_mesh()</span></code></a>.
 The user provides a 2D array <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code> of cell sizes in kilometers along
@@ -242,9 +240,9 @@ resolution:</p>
 <p>We define the resolution on a coarse (10 degree by 10 degree) grid because it
 is uniform.  Meshes with more complex variation may require higher resolution
 grids to cell widths.</p>
-</div>
-<div class="section" id="planar-meshes">
-<h3>Planar Meshes<a class="headerlink" href="#planar-meshes" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="planar-meshes">
+<h3>Planar Meshes<a class="headerlink" href="#planar-meshes" title="Link to this heading">¶</a></h3>
 <p>Planar meshes can be constructed with the function
 <a class="reference internal" href="generated/mpas_tools.mesh.creation.build_mesh.build_planar_mesh.html#mpas_tools.mesh.creation.build_mesh.build_planar_mesh" title="mpas_tools.mesh.creation.build_mesh.build_planar_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.build_mesh.build_planar_mesh()</span></code></a>.  Provide
 this function with a 2D array <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code> of cell sizes in kilometers and
@@ -256,21 +254,21 @@ in <code class="docutils literal notranslate"><span class="pre">geom_points</spa
 <code class="docutils literal notranslate"><span class="pre">base_mesh.nc</span></code> by default, as well as several intermediate files:
 <code class="docutils literal notranslate"><span class="pre">mesh.log</span></code>, <code class="docutils literal notranslate"><span class="pre">mesh-HFUN.msh</span></code>, <code class="docutils literal notranslate"><span class="pre">mesh.jig</span></code>, <code class="docutils literal notranslate"><span class="pre">mesh-MESH.msh</span></code>, <code class="docutils literal notranslate"><span class="pre">mesh.msh</span></code>,
 and <code class="docutils literal notranslate"><span class="pre">mesh_triangles.nc</span></code>.</p>
-</div>
-<div class="section" id="jigsaw-driver">
-<h3>JIGSAW Driver<a class="headerlink" href="#jigsaw-driver" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="jigsaw-driver">
+<h3>JIGSAW Driver<a class="headerlink" href="#jigsaw-driver" title="Link to this heading">¶</a></h3>
 <p>Underlying both spherical and planar mesh creation is the JIGSAW driver
 function <a class="reference internal" href="generated/mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver.html#mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver" title="mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver()</span></code></a>.  This
 function is used to setup data structures and then build a JIGSAW mesh using
 <code class="docutils literal notranslate"><span class="pre">jigsawpy</span></code>.</p>
-</div>
-</div>
-<div class="section" id="mesh-definition-tools">
-<h2>Mesh Definition Tools<a class="headerlink" href="#mesh-definition-tools" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+<section id="mesh-definition-tools">
+<h2>Mesh Definition Tools<a class="headerlink" href="#mesh-definition-tools" title="Link to this heading">¶</a></h2>
 <p>The <a class="reference internal" href="generated/mpas_tools.mesh.creation.mesh_definition_tools.html#module-mpas_tools.mesh.creation.mesh_definition_tools" title="mpas_tools.mesh.creation.mesh_definition_tools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.mesh_definition_tools</span></code></a> module includes
 several tools for defining the <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code> variable.</p>
-<div class="section" id="merging-cell-widths">
-<h3>Merging Cell Widths<a class="headerlink" href="#merging-cell-widths" title="Permalink to this heading">¶</a></h3>
+<section id="merging-cell-widths">
+<h3>Merging Cell Widths<a class="headerlink" href="#merging-cell-widths" title="Link to this heading">¶</a></h3>
 <p>The function
 <a class="reference internal" href="generated/mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat" title="mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat()</span></code></a>
 is used to combine two cell-width distributions that are functions of latitude
@@ -294,9 +292,9 @@ latitude, transitioning over a characteristic “distance” of about 5 degrees.
     <span class="n">latTransition</span><span class="p">,</span> <span class="n">latWidthTransition</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="defining-an-eddy-closure-mesh">
-<span id="ec-mesh"></span><h3>Defining an Eddy-closure Mesh<a class="headerlink" href="#defining-an-eddy-closure-mesh" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="defining-an-eddy-closure-mesh">
+<span id="ec-mesh"></span><h3>Defining an Eddy-closure Mesh<a class="headerlink" href="#defining-an-eddy-closure-mesh" title="Link to this heading">¶</a></h3>
 <p>One of the commonly used flavor of MPAS-Ocean and MPAS-Seaice meshes is designed
 with relatively coarse resolution in mind (requiring parameterization of ocean
 eddies with an “eddy closure”).  This flavor of mesh has resolution that is
@@ -321,9 +319,9 @@ function
 <span class="n">cellWidths</span> <span class="o">=</span> <span class="n">EC_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="defining-a-rossby-radius-mesh">
-<span id="rrs-mesh"></span><h3>Defining a Rossby-radius Mesh<a class="headerlink" href="#defining-a-rossby-radius-mesh" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="defining-a-rossby-radius-mesh">
+<span id="rrs-mesh"></span><h3>Defining a Rossby-radius Mesh<a class="headerlink" href="#defining-a-rossby-radius-mesh" title="Link to this heading">¶</a></h3>
 <p>Another common flavor of MPAS-Ocean and MPAS-Seaice meshes is designed for
 higher resolutions, where the Rossby radius of deformation can be (at least
 partially) resolved.  These meshes approximately scale their resolution in
@@ -341,17 +339,17 @@ by:</p>
 <span class="n">cellWidths</span> <span class="o">=</span> <span class="n">RRS_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">cellWidthEq</span><span class="o">=</span><span class="mf">18.</span><span class="p">,</span> <span class="n">cellWidthPole</span><span class="o">=</span><span class="mf">6.</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="defining-an-atlantic-pacific-mesh">
-<h3>Defining an Atlantic/Pacific Mesh<a class="headerlink" href="#defining-an-atlantic-pacific-mesh" title="Permalink to this heading">¶</a></h3>
+</section>
+<section id="defining-an-atlantic-pacific-mesh">
+<h3>Defining an Atlantic/Pacific Mesh<a class="headerlink" href="#defining-an-atlantic-pacific-mesh" title="Link to this heading">¶</a></h3>
 <p>The function
 <a class="reference internal" href="generated/mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid.html#mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid" title="mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid()</span></code></a>
 can be used to define a mesh that has two different, constant resolutions in the
 Atlantic and Pacific Oceans.</p>
-</div>
-</div>
-<div class="section" id="signed-distance-functions">
-<h2>Signed Distance Functions<a class="headerlink" href="#signed-distance-functions" title="Permalink to this heading">¶</a></h2>
+</section>
+</section>
+<section id="signed-distance-functions">
+<h2>Signed Distance Functions<a class="headerlink" href="#signed-distance-functions" title="Link to this heading">¶</a></h2>
 <p>The <a class="reference internal" href="generated/mpas_tools.mesh.creation.signed_distance.html#module-mpas_tools.mesh.creation.signed_distance" title="mpas_tools.mesh.creation.signed_distance"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.signed_distance</span></code></a> module includes several
 functions for creating <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code> variables based on the signed distance from
 a boundary curve on the sphere.  A signed distance function is positive outside
@@ -549,8 +547,8 @@ and 0 degrees latitude and the resolution is ~2 degrees elsewhere.  The shape
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

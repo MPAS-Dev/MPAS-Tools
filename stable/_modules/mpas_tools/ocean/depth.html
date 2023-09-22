@@ -10,12 +10,9 @@
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script src="../../../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -123,7 +120,9 @@
 <span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
 
 
-<div class="viewcode-block" id="compute_depth"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.compute_depth.html#mpas_tools.ocean.depth.compute_depth">[docs]</a><span class="k">def</span> <span class="nf">compute_depth</span><span class="p">(</span><span class="n">refBottomDepth</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_depth">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.compute_depth.html#mpas_tools.ocean.depth.compute_depth">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_depth</span><span class="p">(</span><span class="n">refBottomDepth</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes depth and depth bounds given refBottomDepth</span>
 
@@ -157,7 +156,10 @@
     <span class="k">return</span> <span class="n">depth</span><span class="p">,</span> <span class="n">depth_bnds</span></div>
 
 
-<div class="viewcode-block" id="compute_zmid"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid">[docs]</a><span class="k">def</span> <span class="nf">compute_zmid</span><span class="p">(</span><span class="n">bottomDepth</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span>
+
+<div class="viewcode-block" id="compute_zmid">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_zmid</span><span class="p">(</span><span class="n">bottomDepth</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span>
                  <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes zMid given data arrays for bottomDepth, maxLevelCell and</span>
@@ -212,7 +214,10 @@
     <span class="k">return</span> <span class="n">zMid</span></div>
 
 
-<div class="viewcode-block" id="add_depth"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.add_depth.html#mpas_tools.ocean.depth.add_depth">[docs]</a><span class="k">def</span> <span class="nf">add_depth</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="add_depth">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.add_depth.html#mpas_tools.ocean.depth.add_depth">[docs]</a>
+<span class="k">def</span> <span class="nf">add_depth</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a 1D depth coordinate to an MPAS-Ocean file.</span>
 
@@ -273,6 +278,7 @@
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">)</span></div>
 
 
+
 <span class="k">def</span> <span class="nf">main_add_depth</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
@@ -293,7 +299,9 @@
               <span class="n">coordFileName</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">coordFileName</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="add_zmid"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid">[docs]</a><span class="k">def</span> <span class="nf">add_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="add_zmid">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid">[docs]</a>
+<span class="k">def</span> <span class="nf">add_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</span>
 
@@ -352,6 +360,7 @@
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">)</span></div>
 
 
+
 <span class="k">def</span> <span class="nf">main_add_zmid</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
@@ -373,7 +382,9 @@
              <span class="n">coordFileName</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">coordFileName</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="write_time_varying_zmid"><a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.write_time_varying_zmid.html#mpas_tools.ocean.depth.write_time_varying_zmid">[docs]</a><span class="k">def</span> <span class="nf">write_time_varying_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="write_time_varying_zmid">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.write_time_varying_zmid.html#mpas_tools.ocean.depth.write_time_varying_zmid">[docs]</a>
+<span class="k">def</span> <span class="nf">write_time_varying_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                             <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</span>
@@ -425,6 +436,7 @@
     <span class="n">dsOut</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">history</span>
 
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsOut</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span> <span class="nf">main_write_time_varying_zmid</span><span class="p">():</span>

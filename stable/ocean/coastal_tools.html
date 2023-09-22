@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coastal Tools &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -10,12 +11,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -122,12 +120,12 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <span class="target" id="ocean-coastal-tools"></span><div class="section" id="coastal-tools">
-<h1>Coastal Tools<a class="headerlink" href="#coastal-tools" title="Permalink to this heading">¶</a></h1>
+  <span class="target" id="ocean-coastal-tools"></span><section id="coastal-tools">
+<h1>Coastal Tools<a class="headerlink" href="#coastal-tools" title="Link to this heading">¶</a></h1>
 <p>The <a class="reference internal" href="../generated/mpas_tools.ocean.coastal_tools.html#module-mpas_tools.ocean.coastal_tools" title="mpas_tools.ocean.coastal_tools"><code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastal_tools</span></code></a> module contains several functions
 that aid in the construction of meshes refined around coastlines.</p>
-<div class="section" id="refining-a-mesh">
-<span id="coastal-tools-refine-mesh"></span><h2>Refining a Mesh<a class="headerlink" href="#refining-a-mesh" title="Permalink to this heading">¶</a></h2>
+<section id="refining-a-mesh">
+<span id="coastal-tools-refine-mesh"></span><h2>Refining a Mesh<a class="headerlink" href="#refining-a-mesh" title="Link to this heading">¶</a></h2>
 <p>The main driver of coastal tools is the function
 <a class="reference internal" href="../generated/mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html#mpas_tools.ocean.coastal_tools.coastal_refined_mesh" title="mpas_tools.ocean.coastal_tools.coastal_refined_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastal_tools.coastal_refined_mesh()</span></code></a>.  This function
 is called repeatedly with different dictionaries of <code class="docutils literal notranslate"><span class="pre">params</span></code> to add refinement
@@ -309,9 +307,9 @@ resolution.</p>
     <span class="n">params</span><span class="p">,</span> <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="creating-a-background-mesh">
-<span id="coastal-tools-background-mesh"></span><h2>Creating a Background Mesh<a class="headerlink" href="#creating-a-background-mesh" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="creating-a-background-mesh">
+<span id="coastal-tools-background-mesh"></span><h2>Creating a Background Mesh<a class="headerlink" href="#creating-a-background-mesh" title="Link to this heading">¶</a></h2>
 <p>A background mesh is typically created by calling
 <a class="reference internal" href="../generated/mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html#mpas_tools.ocean.coastal_tools.coastal_refined_mesh" title="mpas_tools.ocean.coastal_tools.coastal_refined_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastal_tools.coastal_refined_mesh()</span></code></a> without
 providing an input mesh but can also be created by calling
@@ -324,9 +322,9 @@ Quasi-Uniform (QU) meshes, the resulting cell width will be a constant equal to
 always used (see <a class="reference internal" href="../mesh_creation.html#ec-mesh"><span class="std std-ref">Defining an Eddy-closure Mesh</span></a>).  For Rossby-Radius Scaled (RRS) meshes,
 <code class="docutils literal notranslate"><span class="pre">dx_min_global</span></code> is the resolution at the poles while <code class="docutils literal notranslate"><span class="pre">dx_max_global</span></code> is the
 resolution at the equator (see <a class="reference internal" href="../mesh_creation.html#rrs-mesh"><span class="std std-ref">Defining a Rossby-radius Mesh</span></a>).</p>
-</div>
-<div class="section" id="extracting-coastlines">
-<span id="coastal-tools-extract"></span><h2>Extracting Coastlines<a class="headerlink" href="#extracting-coastlines" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="extracting-coastlines">
+<span id="coastal-tools-extract"></span><h2>Extracting Coastlines<a class="headerlink" href="#extracting-coastlines" title="Link to this heading">¶</a></h2>
 <p><code class="docutils literal notranslate"><span class="pre">coastal_tools</span></code> extracts points along a coastline using
 <a class="reference internal" href="../generated/mpas_tools.ocean.coastal_tools.extract_coastlines.html#mpas_tools.ocean.coastal_tools.extract_coastlines" title="mpas_tools.ocean.coastal_tools.extract_coastlines"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastal_tools.extract_coastlines()</span></code></a>.  The default
 parameters are set up to use the
@@ -342,9 +340,9 @@ cost but more (or fewer) contours can be retained by setting
 <code class="docutils literal notranslate"><span class="pre">params['n_longest']</span></code> to another number.</p>
 <p>Optionally, the results can be plotted withing the given “plot box” and saved
 to a file.</p>
-</div>
-<div class="section" id="computing-distance-to-coast">
-<span id="coastal-tools-distance"></span><h2>Computing Distance to Coast<a class="headerlink" href="#computing-distance-to-coast" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="computing-distance-to-coast">
+<span id="coastal-tools-distance"></span><h2>Computing Distance to Coast<a class="headerlink" href="#computing-distance-to-coast" title="Link to this heading">¶</a></h2>
 <p>A key ingredient in defining resolution in coastal meshes is a field containing
 the distance from each location in the field to the nearest point on the
 coastline.  This distance field <code class="docutils literal notranslate"><span class="pre">D</span></code> is computed with
@@ -356,9 +354,9 @@ a single coastline contour—with multiple contours, the current algorithm will
 average the end of one contour with the start fo the next—by specifying an
 integer number of neighbors as <code class="docutils literal notranslate"><span class="pre">params['smooth_coastline']</span></code>.  The default is
 no smoothing (<code class="docutils literal notranslate"><span class="pre">0</span></code> neighbors).</p>
-</div>
-<div class="section" id="blending-cell-widths">
-<span id="coastal-tools-cell-width"></span><h2>Blending Cell Widths<a class="headerlink" href="#blending-cell-widths" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="blending-cell-widths">
+<span id="coastal-tools-cell-width"></span><h2>Blending Cell Widths<a class="headerlink" href="#blending-cell-widths" title="Link to this heading">¶</a></h2>
 <p>The final step in each iteration of coastal refinement is to blend the new,
 refined resolution into the previous grid of cell widths with the function
 <a class="reference internal" href="../generated/mpas_tools.ocean.coastal_tools.compute_cell_width.html#mpas_tools.ocean.coastal_tools.compute_cell_width" title="mpas_tools.ocean.coastal_tools.compute_cell_width"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.coastal_tools.compute_cell_width()</span></code></a>.</p>
@@ -390,9 +388,9 @@ the example above:</p>
                      <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="regions">
-<span id="coastal-tools-regions"></span><h2>Regions<a class="headerlink" href="#regions" title="Permalink to this heading">¶</a></h2>
+</section>
+<section id="regions">
+<span id="coastal-tools-regions"></span><h2>Regions<a class="headerlink" href="#regions" title="Link to this heading">¶</a></h2>
 <p><a class="reference internal" href="#coastal-tools-extract"><span class="std std-ref">Extracting Coastlines</span></a> requires a set of bounding regions to be defined.
 These regions are made up of a list of quadrilaterals to <code class="docutils literal notranslate"><span class="pre">include</span></code> and another
 list to <code class="docutils literal notranslate"><span class="pre">exclude</span></code>.  The quadrilaterals are either bounding rectangles
@@ -448,8 +446,8 @@ regions are:</p>
 <li><p>CONUS</p></li>
 <li><p>Continental_US</p></li>
 </ul>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>

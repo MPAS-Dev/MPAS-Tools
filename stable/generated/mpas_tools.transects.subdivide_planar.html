@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.transects.subdivide_planar &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -10,12 +11,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -135,25 +133,25 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="mpas-tools-transects-subdivide-planar">
-<h1>mpas_tools.transects.subdivide_planar<a class="headerlink" href="#mpas-tools-transects-subdivide-planar" title="Permalink to this heading">¶</a></h1>
+  <section id="mpas-tools-transects-subdivide-planar">
+<h1>mpas_tools.transects.subdivide_planar<a class="headerlink" href="#mpas-tools-transects-subdivide-planar" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.transects.subdivide_planar">
-<span class="sig-prename descclassname"><span class="pre">mpas_tools.transects.</span></span><span class="sig-name descname"><span class="pre">subdivide_planar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxRes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/transects.html#subdivide_planar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.transects.subdivide_planar" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.transects.</span></span><span class="sig-name descname"><span class="pre">subdivide_planar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">maxRes</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/transects.html#subdivide_planar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.transects.subdivide_planar" title="Link to this definition">¶</a></dt>
 <dd><p>Subdivide each segment of the transect so the horizontal resolution
 approximately matches the requested resolution</p>
 <p>Uses a formula for interpolating unit vectors on the sphere from
 <a class="reference external" href="https://en.wikipedia.org/wiki/Slerp">https://en.wikipedia.org/wiki/Slerp</a></p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>numpy.ndarray</em></a>) – The planar x coordinate of a transect, where the number of segments
+<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a>) – The planar x coordinate of a transect, where the number of segments
 is <code class="docutils literal notranslate"><span class="pre">len(x)</span> <span class="pre">-</span> <span class="pre">1</span></code></p></li>
-<li><p><strong>y</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>numpy.ndarray</em></a>) – The planar y coordinates of the transect, the same length as <code class="docutils literal notranslate"><span class="pre">x</span></code></p></li>
+<li><p><strong>y</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a>) – The planar y coordinates of the transect, the same length as <code class="docutils literal notranslate"><span class="pre">x</span></code></p></li>
 <li><p><strong>maxRes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – The maximum allowed spacing in m after subdivision</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><strong>xOut</strong> (<em>numpy.ndarray</em>) – The x coordinate of the transect, subdivided into segments with length
 at most <code class="docutils literal notranslate"><span class="pre">maxRes</span></code>.  All the points in <code class="docutils literal notranslate"><span class="pre">x</span></code> are guaranteed to be
@@ -168,7 +166,7 @@ guaranteed to be included.</p></li>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>

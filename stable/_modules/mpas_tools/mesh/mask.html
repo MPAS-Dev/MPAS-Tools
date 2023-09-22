@@ -10,12 +10,9 @@
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script src="../../../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -135,7 +132,9 @@
 <span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
 
 
-<div class="viewcode-block" id="compute_mpas_region_masks"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks">[docs]</a><span class="k">def</span> <span class="nf">compute_mpas_region_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">),</span>
+<div class="viewcode-block" id="compute_mpas_region_masks">
+<a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_mpas_region_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">),</span>
                               <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
                               <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -240,6 +239,7 @@
     <span class="k">return</span> <span class="n">dsMasks</span></div>
 
 
+
 <span class="k">def</span> <span class="nf">entry_point_compute_mpas_region_masks</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_region_masks()``&quot;&quot;&quot;</span>
 
@@ -305,7 +305,9 @@
                  <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="compute_mpas_transect_masks"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks">[docs]</a><span class="k">def</span> <span class="nf">compute_mpas_transect_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">,</span>
+<div class="viewcode-block" id="compute_mpas_transect_masks">
+<a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_mpas_transect_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">,</span>
                                 <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">),</span>
                                 <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
                                 <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionResolution</span><span class="o">=</span><span class="mf">10e3</span><span class="p">,</span>
@@ -431,6 +433,7 @@
     <span class="k">return</span> <span class="n">dsMasks</span></div>
 
 
+
 <span class="k">def</span> <span class="nf">entry_point_compute_mpas_transect_masks</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_transect_masks()``&quot;&quot;&quot;</span>
 
@@ -502,7 +505,9 @@
                  <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="compute_mpas_flood_fill_mask"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask">[docs]</a><span class="k">def</span> <span class="nf">compute_mpas_flood_fill_mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcSeed</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="compute_mpas_flood_fill_mask">
+<a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_mpas_flood_fill_mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcSeed</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Flood fill from the given set of seed points to create a contiguous mask.</span>
 <span class="sd">    The flood fill operates using cellsOnCell, starting from the cells</span>
@@ -559,6 +564,7 @@
     <span class="k">return</span> <span class="n">dsMasks</span></div>
 
 
+
 <span class="k">def</span> <span class="nf">entry_point_compute_mpas_flood_fill_mask</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_flood_fill_mask()``&quot;&quot;&quot;</span>
 
@@ -591,7 +597,9 @@
                  <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="compute_lon_lat_region_masks"><a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_lon_lat_region_masks.html#mpas_tools.mesh.mask.compute_lon_lat_region_masks">[docs]</a><span class="k">def</span> <span class="nf">compute_lon_lat_region_masks</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="compute_lon_lat_region_masks">
+<a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_lon_lat_region_masks.html#mpas_tools.mesh.mask.compute_lon_lat_region_masks">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_lon_lat_region_masks</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                  <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                  <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -683,6 +691,7 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Done.&#39;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">dsMasks</span></div>
+
 
 
 <span class="k">def</span> <span class="nf">entry_point_compute_lon_lat_region_masks</span><span class="p">():</span>

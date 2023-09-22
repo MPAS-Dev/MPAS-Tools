@@ -10,12 +10,9 @@
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script src="../../../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -123,7 +120,9 @@
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 
-<div class="viewcode-block" id="register_sci_viz_colormaps"><a class="viewcode-back" href="../../../generated/mpas_tools.viz.colormaps.register_sci_viz_colormaps.html#mpas_tools.viz.colormaps.register_sci_viz_colormaps">[docs]</a><span class="k">def</span> <span class="nf">register_sci_viz_colormaps</span><span class="p">():</span>
+<div class="viewcode-block" id="register_sci_viz_colormaps">
+<a class="viewcode-back" href="../../../generated/mpas_tools.viz.colormaps.register_sci_viz_colormaps.html#mpas_tools.viz.colormaps.register_sci_viz_colormaps">[docs]</a>
+<span class="k">def</span> <span class="nf">register_sci_viz_colormaps</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Register all SciVisColor colormaps with matplotlib&quot;&quot;&quot;</span>
 
     <span class="k">for</span> <span class="n">mapName</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;3wave-yellow-grey-blue&#39;</span><span class="p">,</span> <span class="s1">&#39;3Wbgy5&#39;</span><span class="p">,</span>
@@ -136,6 +135,7 @@
         <span class="n">xmlFile</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">imp_res_files</span><span class="p">(</span><span class="s1">&#39;mpas_tools.viz.SciVisColorColormaps&#39;</span><span class="p">)</span> <span class="o">/</span>
                       <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mapName</span><span class="si">}</span><span class="s1">.xml&#39;</span><span class="p">)</span>
         <span class="n">_read_xml_colormap</span><span class="p">(</span><span class="n">xmlFile</span><span class="p">,</span> <span class="n">mapName</span><span class="p">)</span></div>
+
 
 
 <span class="k">def</span> <span class="nf">_read_xml_colormap</span><span class="p">(</span><span class="n">xmlFile</span><span class="p">,</span> <span class="n">mapName</span><span class="p">):</span>

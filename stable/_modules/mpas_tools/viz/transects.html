@@ -10,12 +10,9 @@
     <script src="../../../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/sphinx_highlight.js"></script>
+        <script src="../../../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -128,7 +125,9 @@
 <span class="kn">from</span> <span class="nn">mpas_tools.vector</span> <span class="kn">import</span> <span class="n">Vector</span>
 
 
-<div class="viewcode-block" id="make_triangle_tree"><a class="viewcode-back" href="../../../generated/mpas_tools.viz.transects.make_triangle_tree.html#mpas_tools.viz.transects.make_triangle_tree">[docs]</a><span class="k">def</span> <span class="nf">make_triangle_tree</span><span class="p">(</span><span class="n">dsTris</span><span class="p">):</span>
+<div class="viewcode-block" id="make_triangle_tree">
+<a class="viewcode-back" href="../../../generated/mpas_tools.viz.transects.make_triangle_tree.html#mpas_tools.viz.transects.make_triangle_tree">[docs]</a>
+<span class="k">def</span> <span class="nf">make_triangle_tree</span><span class="p">(</span><span class="n">dsTris</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Make a KD-Tree for finding triangle edges that are near enough to transect</span>
 <span class="sd">    segments that they might intersect</span>
@@ -165,7 +164,10 @@
     <span class="k">return</span> <span class="n">tree</span></div>
 
 
-<div class="viewcode-block" id="find_transect_cells_and_weights"><a class="viewcode-back" href="../../../generated/mpas_tools.viz.transects.find_transect_cells_and_weights.html#mpas_tools.viz.transects.find_transect_cells_and_weights">[docs]</a><span class="k">def</span> <span class="nf">find_transect_cells_and_weights</span><span class="p">(</span><span class="n">lonTransect</span><span class="p">,</span> <span class="n">latTransect</span><span class="p">,</span> <span class="n">dsTris</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span>
+
+<div class="viewcode-block" id="find_transect_cells_and_weights">
+<a class="viewcode-back" href="../../../generated/mpas_tools.viz.transects.find_transect_cells_and_weights.html#mpas_tools.viz.transects.find_transect_cells_and_weights">[docs]</a>
+<span class="k">def</span> <span class="nf">find_transect_cells_and_weights</span><span class="p">(</span><span class="n">lonTransect</span><span class="p">,</span> <span class="n">latTransect</span><span class="p">,</span> <span class="n">dsTris</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span>
                                     <span class="n">tree</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">subdivisionRes</span><span class="o">=</span><span class="mf">10e3</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find &quot;nodes&quot; where the transect intersects the edges of the triangles</span>
@@ -450,7 +452,10 @@
     <span class="k">return</span> <span class="n">dsOut</span></div>
 
 
-<div class="viewcode-block" id="find_planar_transect_cells_and_weights"><a class="viewcode-back" href="../../../generated/mpas_tools.viz.transects.find_planar_transect_cells_and_weights.html#mpas_tools.viz.transects.find_planar_transect_cells_and_weights">[docs]</a><span class="k">def</span> <span class="nf">find_planar_transect_cells_and_weights</span><span class="p">(</span><span class="n">xTransect</span><span class="p">,</span> <span class="n">yTransect</span><span class="p">,</span> <span class="n">dsTris</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span>
+
+<div class="viewcode-block" id="find_planar_transect_cells_and_weights">
+<a class="viewcode-back" href="../../../generated/mpas_tools.viz.transects.find_planar_transect_cells_and_weights.html#mpas_tools.viz.transects.find_planar_transect_cells_and_weights">[docs]</a>
+<span class="k">def</span> <span class="nf">find_planar_transect_cells_and_weights</span><span class="p">(</span><span class="n">xTransect</span><span class="p">,</span> <span class="n">yTransect</span><span class="p">,</span> <span class="n">dsTris</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span>
                                            <span class="n">tree</span><span class="p">,</span> <span class="n">subdivisionRes</span><span class="o">=</span><span class="mf">10e3</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find &quot;nodes&quot; where the transect intersects the edges of the triangles</span>
@@ -731,6 +736,7 @@
                                            <span class="n">transectWeightsOnHorizNode</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">dsOut</span></div>
+
 
 
 <span class="k">def</span> <span class="nf">_sort_intersections</span><span class="p">(</span><span class="n">dNode</span><span class="p">,</span> <span class="n">tris</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">xOut</span><span class="p">,</span> <span class="n">yOut</span><span class="p">,</span> <span class="n">zOut</span><span class="p">,</span> <span class="n">interpCells</span><span class="p">,</span>

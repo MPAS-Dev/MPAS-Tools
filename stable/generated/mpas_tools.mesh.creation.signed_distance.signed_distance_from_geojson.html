@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -10,12 +11,9 @@
     <script src="../_static/js/html5shiv.min.js"></script>
   <![endif]-->
   
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/underscore.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+        <script src="../_static/documentation_options.js?v=ea3bebfc"></script>
+        <script src="../_static/doctools.js?v=888ff710"></script>
+        <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -153,19 +151,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="mpas-tools-mesh-creation-signed-distance-signed-distance-from-geojson">
-<h1>mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson<a class="headerlink" href="#mpas-tools-mesh-creation-signed-distance-signed-distance-from-geojson" title="Permalink to this heading">¶</a></h1>
+  <section id="mpas-tools-mesh-creation-signed-distance-signed-distance-from-geojson">
+<h1>mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson<a class="headerlink" href="#mpas-tools-mesh-creation-signed-distance-signed-distance-from-geojson" title="Link to this heading">¶</a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson">
-<span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.creation.signed_distance.</span></span><span class="sig-name descname"><span class="pre">signed_distance_from_geojson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_grd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_grd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">earth_radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/signed_distance.html#signed_distance_from_geojson"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.creation.signed_distance.</span></span><span class="sig-name descname"><span class="pre">signed_distance_from_geojson</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fc</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lon_grd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat_grd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">earth_radius</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_length</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/signed_distance.html#signed_distance_from_geojson"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson" title="Link to this definition">¶</a></dt>
 <dd><p>Get the distance for each point on a lon/lat grid from the closest point
 on the boundary of the geojson regions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>fc</strong> (<em>geometrics_features.FeatureCollection</em>) – The regions to be rasterized</p></li>
-<li><p><strong>lon_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>numpy.ndarray</em></a>) – A 1D array of longitude values</p></li>
-<li><p><strong>lat_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.25)"><em>numpy.ndarray</em></a>) – A 1D array of latitude values</p></li>
+<li><p><strong>lon_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a>) – A 1D array of longitude values</p></li>
+<li><p><strong>lat_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a>) – A 1D array of latitude values</p></li>
 <li><p><strong>earth_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Earth radius in meters</p></li>
 <li><p><strong>max_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – The maximum distance (in degrees) between points on the boundary of the
 geojson region.  If the boundary is too coarse, it will be subdivided.</p></li>
@@ -173,14 +171,14 @@ geojson region.  If the boundary is too coarse, it will be subdivided.</p></li>
 is all available threads (<code class="docutils literal notranslate"><span class="pre">workers=-1</span></code>)</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>signed_distance</strong> (<em>numpy.ndarray</em>) – A 2D field of distances (negative inside the region, positive outside)
 to the shape boundary</p>
 </dd>
 </dl>
 </dd></dl>
 
-</div>
+</section>
 
 
            </div>
