@@ -423,24 +423,6 @@ class MpasConfigParser:
             self.combine()
         return self.combined[section]
 
-    def _add(self, filename, user):
-        filename = os.path.abspath(filename)
-        config = RawConfigParser()
-        if not os.path.exists(filename):
-            raise FileNotFoundError(f'Config file does not exist: {filename}')
-        config.read(filenames=filename)
-        with open(filename) as fp:
-            comments = self._parse_comments(fp, filename, comments_before=True)
-
-        if user:
-            self._user_config[filename] = config
-        else:
-            self._configs[filename] = config
-        self._comments[filename] = comments
-        self.combined = None
-        self.combined_comments = None
-        self.sources = None
-
     def combine(self):
         """
         Combine the config files into one.  This is normally handled
@@ -462,6 +444,24 @@ class MpasConfigParser:
                         self.combined.set(section, option, value)
                         self.combined_comments[(section, option)] = \
                             self._comments[source][(section, option)]
+
+    def _add(self, filename, user):
+        filename = os.path.abspath(filename)
+        config = RawConfigParser()
+        if not os.path.exists(filename):
+            raise FileNotFoundError(f'Config file does not exist: {filename}')
+        config.read(filenames=filename)
+        with open(filename) as fp:
+            comments = self._parse_comments(fp, filename, comments_before=True)
+
+        if user:
+            self._user_config[filename] = config
+        else:
+            self._configs[filename] = config
+        self._comments[filename] = comments
+        self.combined = None
+        self.combined_comments = None
+        self.sources = None
 
     @staticmethod
     def _parse_comments(fp, filename, comments_before=True):
