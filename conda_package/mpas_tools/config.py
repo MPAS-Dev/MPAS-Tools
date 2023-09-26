@@ -338,7 +338,7 @@ class MpasConfigParser:
             comment = ''.join([f'# {line}\n' for line in comment.split('\n')])
         self._comments[filename][(section, option)] = comment
 
-    def write(self, fp, include_sources=True, include_comments=True):
+    def write(self, fp, include_sources=True, include_comments=True, raw=True):
         """
         Write the config options to the given file pointer.
 
@@ -354,9 +354,12 @@ class MpasConfigParser:
         include_comments : bool, optional
             Whether to include the original comments associated with each
             section or option
+
+        raw : bool, optional
+            Whether to write "raw" config options, rather than using extended
+            interpolation
         """
-        if self.combined is None:
-            self.combine()
+        self.combine(raw=raw)
         for section in self.combined.sections():
             section_items = self.combined.items(section=section)
             if include_comments and section in self.combined_comments:
@@ -368,9 +371,16 @@ class MpasConfigParser:
                 if include_sources:
                     source = self.sources[(section, option)]
                     fp.write(f'# source: {source}\n')
-                value = str(value).replace('\n', '\n\t').replace('$', '$$')
+                value = str(value).replace('\n', '\n\t')
+                if not raw:
+                    value = value.replace('$', '$$')
                 fp.write(f'{option} = {value}\n\n')
             fp.write('\n')
+
+        if raw:
+            # since we combined in "raw" mode, force recombining on future
+            # access commands
+            self.combined = None
 
     def list_files(self):
         """
@@ -423,12 +433,21 @@ class MpasConfigParser:
             self.combine()
         return self.combined[section]
 
-    def combine(self):
+    def combine(self, raw=False):
         """
         Combine the config files into one.  This is normally handled
         automatically.
+
+        Parameters
+        ----------
+        raw : bool, optional
+            Whether to combine "raw" config options, rather than using extended
+            interpolation
         """
-        self.combined = ConfigParser(interpolation=ExtendedInterpolation())
+        if raw:
+            self.combined = RawConfigParser()
+        else:
+            self.combined = ConfigParser(interpolation=ExtendedInterpolation())
         self.sources = dict()
         self.combined_comments = dict()
         for configs in [self._configs, self._user_config]:
