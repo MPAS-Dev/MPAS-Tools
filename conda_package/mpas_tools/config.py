@@ -415,6 +415,47 @@ class MpasConfigParser:
         config_copy._comments = dict(self._comments)
         return config_copy
 
+    def append(self, other):
+        """
+        Append a deep copy of another config parser to this one.  Config
+        options from ``other`` will take precedence over those from this config
+        parser.
+
+        Parameters
+        ----------
+        other : mpas_tools.config.MpasConfigParser
+            The other, higher priority config parser
+        """
+        other = other.copy()
+        self._configs.update(other._configs)
+        self._user_config.update(other._user_config)
+        self._comments.update(other._comments)
+
+    def prepend(self, other):
+        """
+        Prepend a deep copy of another config parser to this one.  Config
+        options from this config parser will take precedence over those from
+        ``other``.
+
+        Parameters
+        ----------
+        other : mpas_tools.config.MpasConfigParser
+            The other, higher priority config parser
+        """
+        other = other.copy()
+
+        configs = dict(other._configs)
+        configs.update(self._configs)
+        self._configs = configs
+
+        user_config = dict(other._user_config)
+        user_config.update(self._user_config)
+        self._user_config = user_config
+
+        comments = dict(other._comments)
+        comments.update(self._comments)
+        self._comments = comments
+
     def __getitem__(self, section):
         """
         Get get the config options for a given section.
