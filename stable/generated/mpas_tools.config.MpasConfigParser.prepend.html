@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mpas_tools.config.MpasConfigParser.add_from_package &mdash; mpas_tools stable documentation</title>
+  <title>mpas_tools.config.MpasConfigParser.prepend &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <!--[if lt IE 9]>
@@ -17,8 +17,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.config.MpasConfigParser.get" href="mpas_tools.config.MpasConfigParser.get.html" />
-    <link rel="prev" title="mpas_tools.config.MpasConfigParser.add_from_file" href="mpas_tools.config.MpasConfigParser.add_from_file.html" /> 
+    <link rel="next" title="mpas_tools.config.MpasConfigParser.__getitem__" href="mpas_tools.config.MpasConfigParser.__getitem__.html" />
+    <link rel="prev" title="mpas_tools.config.MpasConfigParser.append" href="mpas_tools.config.MpasConfigParser.append.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -84,7 +84,7 @@
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.html">mpas_tools.config.MpasConfigParser</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.add_user_config.html">mpas_tools.config.MpasConfigParser.add_user_config</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.add_from_file.html">mpas_tools.config.MpasConfigParser.add_from_file</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.config.MpasConfigParser.add_from_package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.add_from_package.html">mpas_tools.config.MpasConfigParser.add_from_package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.get.html">mpas_tools.config.MpasConfigParser.get</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.getint.html">mpas_tools.config.MpasConfigParser.getint</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.getfloat.html">mpas_tools.config.MpasConfigParser.getfloat</a></li>
@@ -97,7 +97,7 @@
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.write.html">mpas_tools.config.MpasConfigParser.write</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.copy.html">mpas_tools.config.MpasConfigParser.copy</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.append.html">mpas_tools.config.MpasConfigParser.append</a></li>
-<li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.prepend.html">mpas_tools.config.MpasConfigParser.prepend</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.config.MpasConfigParser.prepend</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.config.MpasConfigParser.__getitem__.html">mpas_tools.config.MpasConfigParser.__getitem__</a></li>
 </ul>
 </li>
@@ -142,9 +142,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
-      <li class="breadcrumb-item active">mpas_tools.config.MpasConfigParser.add_from_package</li>
+      <li class="breadcrumb-item active">mpas_tools.config.MpasConfigParser.prepend</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/generated/mpas_tools.config.MpasConfigParser.add_from_package.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/generated/mpas_tools.config.MpasConfigParser.prepend.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -152,19 +152,17 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="mpas-tools-config-mpasconfigparser-add-from-package">
-<h1>mpas_tools.config.MpasConfigParser.add_from_package<a class="headerlink" href="#mpas-tools-config-mpasconfigparser-add-from-package" title="Link to this heading">¶</a></h1>
+  <section id="mpas-tools-config-mpasconfigparser-prepend">
+<h1>mpas_tools.config.MpasConfigParser.prepend<a class="headerlink" href="#mpas-tools-config-mpasconfigparser-prepend" title="Link to this heading">¶</a></h1>
 <dl class="py method">
-<dt class="sig sig-object py" id="mpas_tools.config.MpasConfigParser.add_from_package">
-<span class="sig-prename descclassname"><span class="pre">MpasConfigParser.</span></span><span class="sig-name descname"><span class="pre">add_from_package</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">package</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">config_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exception</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/config.html#MpasConfigParser.add_from_package"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.config.MpasConfigParser.add_from_package" title="Link to this definition">¶</a></dt>
-<dd><p>Add the contents of a config file to the parser.</p>
+<dt class="sig sig-object py" id="mpas_tools.config.MpasConfigParser.prepend">
+<span class="sig-prename descclassname"><span class="pre">MpasConfigParser.</span></span><span class="sig-name descname"><span class="pre">prepend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/config.html#MpasConfigParser.prepend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.config.MpasConfigParser.prepend" title="Link to this definition">¶</a></dt>
+<dd><p>Prepend a deep copy of another config parser to this one.  Config
+options from this config parser will take precedence over those from
+<code class="docutils literal notranslate"><span class="pre">other</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>package</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em> or </em><em>Package</em>) – The package where <code class="docutils literal notranslate"><span class="pre">config_filename</span></code> is found</p></li>
-<li><p><strong>config_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The name of the config file to add</p></li>
-<li><p><strong>exception</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to raise an exception if the config file isn’t found</p></li>
-</ul>
+<dd class="field-odd"><p><strong>other</strong> (<a class="reference internal" href="mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser" title="mpas_tools.config.MpasConfigParser"><em>mpas_tools.config.MpasConfigParser</em></a>) – The other, higher priority config parser</p>
 </dd>
 </dl>
 </dd></dl>
@@ -175,8 +173,8 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="mpas_tools.config.MpasConfigParser.add_from_file.html" class="btn btn-neutral float-left" title="mpas_tools.config.MpasConfigParser.add_from_file" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mpas_tools.config.MpasConfigParser.get.html" class="btn btn-neutral float-right" title="mpas_tools.config.MpasConfigParser.get" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mpas_tools.config.MpasConfigParser.append.html" class="btn btn-neutral float-left" title="mpas_tools.config.MpasConfigParser.append" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.config.MpasConfigParser.__getitem__.html" class="btn btn-neutral float-right" title="mpas_tools.config.MpasConfigParser.__getitem__" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

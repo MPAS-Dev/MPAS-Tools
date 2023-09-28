@@ -17,6 +17,7 @@
       ~MpasConfigParser.add_from_file
       ~MpasConfigParser.add_from_package
       ~MpasConfigParser.add_user_config
+      ~MpasConfigParser.append
       ~MpasConfigParser.combine
       ~MpasConfigParser.copy
       ~MpasConfigParser.get
@@ -28,6 +29,7 @@
       ~MpasConfigParser.has_option
       ~MpasConfigParser.has_section
       ~MpasConfigParser.list_files
+      ~MpasConfigParser.prepend
       ~MpasConfigParser.set
       ~MpasConfigParser.write
    

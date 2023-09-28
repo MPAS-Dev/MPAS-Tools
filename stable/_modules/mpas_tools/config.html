@@ -493,7 +493,7 @@
 
 <div class="viewcode-block" id="MpasConfigParser.write">
 <a class="viewcode-back" href="../../generated/mpas_tools.config.MpasConfigParser.write.html#mpas_tools.config.MpasConfigParser.write">[docs]</a>
-    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">include_sources</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_comments</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fp</span><span class="p">,</span> <span class="n">include_sources</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_comments</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Write the config options to the given file pointer.</span>
 
@@ -509,9 +509,12 @@
 <span class="sd">        include_comments : bool, optional</span>
 <span class="sd">            Whether to include the original comments associated with each</span>
 <span class="sd">            section or option</span>
+
+<span class="sd">        raw : bool, optional</span>
+<span class="sd">            Whether to write &quot;raw&quot; config options, rather than using extended</span>
+<span class="sd">            interpolation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">combine</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combine</span><span class="p">(</span><span class="n">raw</span><span class="o">=</span><span class="n">raw</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
             <span class="n">section_items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">section</span><span class="o">=</span><span class="n">section</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">include_comments</span> <span class="ow">and</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span><span class="p">:</span>
@@ -523,9 +526,16 @@
                 <span class="k">if</span> <span class="n">include_sources</span><span class="p">:</span>
                     <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span>
                     <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;# source: </span><span class="si">{</span><span class="n">source</span><span class="si">}</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-                <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39;$$&#39;</span><span class="p">)</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\n\t</span><span class="s1">&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">raw</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="s1">&#39;$$&#39;</span><span class="p">)</span>
                 <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">option</span><span class="si">}</span><span class="s1"> = </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span></div>
+            <span class="n">fp</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">raw</span><span class="p">:</span>
+            <span class="c1"># since we combined in &quot;raw&quot; mode, force recombining on future</span>
+            <span class="c1"># access commands</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">combined</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
     <span class="k">def</span> <span class="nf">list_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -564,6 +574,53 @@
         <span class="k">return</span> <span class="n">config_copy</span></div>
 
 
+<div class="viewcode-block" id="MpasConfigParser.append">
+<a class="viewcode-back" href="../../generated/mpas_tools.config.MpasConfigParser.append.html#mpas_tools.config.MpasConfigParser.append">[docs]</a>
+    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Append a deep copy of another config parser to this one.  Config</span>
+<span class="sd">        options from ``other`` will take precedence over those from this config</span>
+<span class="sd">        parser.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : mpas_tools.config.MpasConfigParser</span>
+<span class="sd">            The other, higher priority config parser</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_configs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_user_config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_comments</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="MpasConfigParser.prepend">
+<a class="viewcode-back" href="../../generated/mpas_tools.config.MpasConfigParser.prepend.html#mpas_tools.config.MpasConfigParser.prepend">[docs]</a>
+    <span class="k">def</span> <span class="nf">prepend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Prepend a deep copy of another config parser to this one.  Config</span>
+<span class="sd">        options from this config parser will take precedence over those from</span>
+<span class="sd">        ``other``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : mpas_tools.config.MpasConfigParser</span>
+<span class="sd">            The other, higher priority config parser</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="n">configs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_configs</span><span class="p">)</span>
+        <span class="n">configs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_configs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_configs</span> <span class="o">=</span> <span class="n">configs</span>
+
+        <span class="n">user_config</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_user_config</span><span class="p">)</span>
+        <span class="n">user_config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span> <span class="o">=</span> <span class="n">user_config</span>
+
+        <span class="n">comments</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_comments</span><span class="p">)</span>
+        <span class="n">comments</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span> <span class="o">=</span> <span class="n">comments</span></div>
+
+
 <div class="viewcode-block" id="MpasConfigParser.__getitem__">
 <a class="viewcode-back" href="../../generated/mpas_tools.config.MpasConfigParser.__getitem__.html#mpas_tools.config.MpasConfigParser.__getitem__">[docs]</a>
     <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section</span><span class="p">):</span>
@@ -585,6 +642,37 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="p">[</span><span class="n">section</span><span class="p">]</span></div>
 
 
+    <span class="k">def</span> <span class="nf">combine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Combine the config files into one.  This is normally handled</span>
+<span class="sd">        automatically.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        raw : bool, optional</span>
+<span class="sd">            Whether to combine &quot;raw&quot; config options, rather than using extended</span>
+<span class="sd">            interpolation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">raw</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">combined</span> <span class="o">=</span> <span class="n">RawConfigParser</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">combined</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="n">ExtendedInterpolation</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sources</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">configs</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_configs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">source</span><span class="p">,</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">configs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">[</span><span class="n">source</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span><span class="p">[</span><span class="n">section</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">[</span><span class="n">source</span><span class="p">][</span><span class="n">section</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">section</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">add_section</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
+                    <span class="k">for</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">section</span><span class="p">):</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span> <span class="o">=</span> <span class="n">source</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span><span class="p">[(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span> <span class="o">=</span> \
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">[</span><span class="n">source</span><span class="p">][(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span>
+
     <span class="k">def</span> <span class="nf">_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
         <span class="n">config</span> <span class="o">=</span> <span class="n">RawConfigParser</span><span class="p">()</span>
@@ -602,28 +690,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">combined</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">sources</span> <span class="o">=</span> <span class="kc">None</span>
-
-    <span class="k">def</span> <span class="nf">combine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Combine the config files into one.  This is normally handled</span>
-<span class="sd">        automatically.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">combined</span> <span class="o">=</span> <span class="n">ConfigParser</span><span class="p">(</span><span class="n">interpolation</span><span class="o">=</span><span class="n">ExtendedInterpolation</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">sources</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">configs</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_configs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span><span class="p">]:</span>
-            <span class="k">for</span> <span class="n">source</span><span class="p">,</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">configs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-                <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
-                    <span class="k">if</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">[</span><span class="n">source</span><span class="p">]:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span><span class="p">[</span><span class="n">section</span><span class="p">]</span> <span class="o">=</span> \
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">[</span><span class="n">source</span><span class="p">][</span><span class="n">section</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">section</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">add_section</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">section</span><span class="p">):</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span> <span class="o">=</span> <span class="n">source</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span><span class="p">[(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span> <span class="o">=</span> \
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">[</span><span class="n">source</span><span class="p">][(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_parse_comments</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">comments_before</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
