@@ -338,7 +338,7 @@ class MpasConfigParser:
             comment = ''.join([f'# {line}\n' for line in comment.split('\n')])
         self._comments[filename][(section, option)] = comment
 
-    def write(self, fp, include_sources=True, include_comments=True):
+    def write(self, fp, include_sources=True, include_comments=True, raw=True):
         """
         Write the config options to the given file pointer.
 
@@ -354,9 +354,12 @@ class MpasConfigParser:
         include_comments : bool, optional
             Whether to include the original comments associated with each
             section or option
+
+        raw : bool, optional
+            Whether to write "raw" config options, rather than using extended
+            interpolation
         """
-        if self.combined is None:
-            self.combine()
+        self.combine(raw=raw)
         for section in self.combined.sections():
             section_items = self.combined.items(section=section)
             if include_comments and section in self.combined_comments:
@@ -368,9 +371,16 @@ class MpasConfigParser:
                 if include_sources:
                     source = self.sources[(section, option)]
                     fp.write(f'# source: {source}\n')
-                value = str(value).replace('\n', '\n\t').replace('$', '$$')
+                value = str(value).replace('\n', '\n\t')
+                if not raw:
+                    value = value.replace('$', '$$')
                 fp.write(f'{option} = {value}\n\n')
             fp.write('\n')
+
+        if raw:
+            # since we combined in "raw" mode, force recombining on future
+            # access commands
+            self.combined = None
 
     def list_files(self):
         """
@@ -405,6 +415,47 @@ class MpasConfigParser:
         config_copy._comments = dict(self._comments)
         return config_copy
 
+    def append(self, other):
+        """
+        Append a deep copy of another config parser to this one.  Config
+        options from ``other`` will take precedence over those from this config
+        parser.
+
+        Parameters
+        ----------
+        other : mpas_tools.config.MpasConfigParser
+            The other, higher priority config parser
+        """
+        other = other.copy()
+        self._configs.update(other._configs)
+        self._user_config.update(other._user_config)
+        self._comments.update(other._comments)
+
+    def prepend(self, other):
+        """
+        Prepend a deep copy of another config parser to this one.  Config
+        options from this config parser will take precedence over those from
+        ``other``.
+
+        Parameters
+        ----------
+        other : mpas_tools.config.MpasConfigParser
+            The other, higher priority config parser
+        """
+        other = other.copy()
+
+        configs = dict(other._configs)
+        configs.update(self._configs)
+        self._configs = configs
+
+        user_config = dict(other._user_config)
+        user_config.update(self._user_config)
+        self._user_config = user_config
+
+        comments = dict(other._comments)
+        comments.update(self._comments)
+        self._comments = comments
+
     def __getitem__(self, section):
         """
         Get get the config options for a given section.
@@ -423,6 +474,37 @@ class MpasConfigParser:
             self.combine()
         return self.combined[section]
 
+    def combine(self, raw=False):
+        """
+        Combine the config files into one.  This is normally handled
+        automatically.
+
+        Parameters
+        ----------
+        raw : bool, optional
+            Whether to combine "raw" config options, rather than using extended
+            interpolation
+        """
+        if raw:
+            self.combined = RawConfigParser()
+        else:
+            self.combined = ConfigParser(interpolation=ExtendedInterpolation())
+        self.sources = dict()
+        self.combined_comments = dict()
+        for configs in [self._configs, self._user_config]:
+            for source, config in configs.items():
+                for section in config.sections():
+                    if section in self._comments[source]:
+                        self.combined_comments[section] = \
+                            self._comments[source][section]
+                    if not self.combined.has_section(section):
+                        self.combined.add_section(section)
+                    for option, value in config.items(section):
+                        self.sources[(section, option)] = source
+                        self.combined.set(section, option, value)
+                        self.combined_comments[(section, option)] = \
+                            self._comments[source][(section, option)]
+
     def _add(self, filename, user):
         filename = os.path.abspath(filename)
         config = RawConfigParser()
@@ -440,28 +522,6 @@ class MpasConfigParser:
         self.combined = None
         self.combined_comments = None
         self.sources = None
-
-    def combine(self):
-        """
-        Combine the config files into one.  This is normally handled
-        automatically.
-        """
-        self.combined = ConfigParser(interpolation=ExtendedInterpolation())
-        self.sources = dict()
-        self.combined_comments = dict()
-        for configs in [self._configs, self._user_config]:
-            for source, config in configs.items():
-                for section in config.sections():
-                    if section in self._comments[source]:
-                        self.combined_comments[section] = \
-                            self._comments[source][section]
-                    if not self.combined.has_section(section):
-                        self.combined.add_section(section)
-                    for option, value in config.items(section):
-                        self.sources[(section, option)] = source
-                        self.combined.set(section, option, value)
-                        self.combined_comments[(section, option)] = \
-                            self._comments[source][(section, option)]
 
     @staticmethod
     def _parse_comments(fp, filename, comments_before=True):

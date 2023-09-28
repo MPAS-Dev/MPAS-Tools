@@ -116,6 +116,8 @@ Config
    MpasConfigParser.set
    MpasConfigParser.write
    MpasConfigParser.copy
+   MpasConfigParser.append
+   MpasConfigParser.prepend
    MpasConfigParser.__getitem__
 
 I/O
