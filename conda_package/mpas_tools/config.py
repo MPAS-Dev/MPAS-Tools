@@ -430,6 +430,9 @@ class MpasConfigParser:
         self._configs.update(other._configs)
         self._user_config.update(other._user_config)
         self._comments.update(other._comments)
+        self.combined = None
+        self.combined_comments = None
+        self.sources = None
 
     def prepend(self, other):
         """
@@ -455,6 +458,9 @@ class MpasConfigParser:
         comments = dict(other._comments)
         comments.update(self._comments)
         self._comments = comments
+        self.combined = None
+        self.combined_comments = None
+        self.sources = None
 
     def __getitem__(self, section):
         """
