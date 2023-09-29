@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.mask.compute\_lon\_lat\_region\_masks
+======================================================
+
+.. currentmodule:: mpas_tools.mesh.mask
+
+.. autofunction:: compute_lon_lat_region_masks
