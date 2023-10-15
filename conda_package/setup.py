@@ -98,4 +98,5 @@ setup(name='mpas_tools',
                      'compute_projection_region_masks = mpas_tools.mesh.mask:entry_point_compute_projection_grid_region_masks',
                      'prepare_seaice_partitions = mpas_tools.seaice.partition:prepare_partitions',
                      'create_seaice_partitions = mpas_tools.seaice.partition:create_partitions',
-                     'simple_seaice_partitions = mpas_tools.seaice.partition:simple_partitions']})
+                     'simple_seaice_partitions = mpas_tools.seaice.partition:simple_partitions',
+                     'vector_reconstruct = mpas_tools.vector.reconstruct:main']})
