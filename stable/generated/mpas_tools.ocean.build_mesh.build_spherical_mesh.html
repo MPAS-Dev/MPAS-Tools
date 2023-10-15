@@ -52,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vector.html">Vector Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
@@ -185,18 +186,18 @@ intermediate files: <code class="docutils literal notranslate"><span class="pre"
 <li><p><strong>cellWidth</strong> (<em>ndarray</em>) – m x n array of cell width in km</p></li>
 <li><p><strong>lon</strong> (<em>ndarray</em>) – longitude in degrees (length n and between -180 and 180)</p></li>
 <li><p><strong>lat</strong> (<em>ndarray</em>) – longitude in degrees (length m and between -90 and 90)</p></li>
-<li><p><strong>out_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – The file name of the resulting MPAS mesh</p></li>
-<li><p><strong>plot_cellWidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to produce a plot of <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code>. If so, it will be written
+<li><p><strong>out_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>optional</em>) – The file name of the resulting MPAS mesh</p></li>
+<li><p><strong>plot_cellWidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to produce a plot of <code class="docutils literal notranslate"><span class="pre">cellWidth</span></code>. If so, it will be written
 to <code class="docutils literal notranslate"><span class="pre">cellWidthGlobal.png</span></code>.</p></li>
-<li><p><strong>vtk_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the directory where mesh data will be extracted for viewing
+<li><p><strong>vtk_dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the directory where mesh data will be extracted for viewing
 in ParaVeiw.</p></li>
-<li><p><strong>preserve_floodplain</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether a flood plain (bathymetry above z = 0) should  be preserved in
+<li><p><strong>preserve_floodplain</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether a flood plain (bathymetry above z = 0) should  be preserved in
 the mesh</p></li>
-<li><p><strong>floodplain_elevation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – The elevation in meters to which the flood plain is preserved</p></li>
-<li><p><strong>do_inject_bathymetry</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether one of the default bathymetry datasets, <code class="docutils literal notranslate"><span class="pre">earth_relief_15s.nc</span></code>
+<li><p><strong>floodplain_elevation</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – The elevation in meters to which the flood plain is preserved</p></li>
+<li><p><strong>do_inject_bathymetry</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether one of the default bathymetry datasets, <code class="docutils literal notranslate"><span class="pre">earth_relief_15s.nc</span></code>
 or <code class="docutils literal notranslate"><span class="pre">topo.msh</span></code>, should be added to the MPAS mesh</p></li>
-<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.11)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
-<li><p><strong>use_progress_bar</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to display progress bars (problematic in logging to a file)</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.12)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
+<li><p><strong>use_progress_bar</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to display progress bars (problematic in logging to a file)</p></li>
 </ul>
 </dd>
 </dl>

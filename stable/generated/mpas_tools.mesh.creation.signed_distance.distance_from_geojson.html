@@ -52,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vector.html">Vector Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
@@ -164,11 +165,11 @@ on the boundary of the geojson regions.</p>
 <li><p><strong>fc</strong> (<em>geometrics_features.FeatureCollection</em>) – The regions to be rasterized</p></li>
 <li><p><strong>lon_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a>) – A 1D array of longitude values</p></li>
 <li><p><strong>lat_grd</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v1.26)"><em>numpy.ndarray</em></a>) – A 1D array of latitude values</p></li>
-<li><p><strong>earth_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – Earth radius in meters</p></li>
+<li><p><strong>earth_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – Earth radius in meters</p></li>
 <li><p><strong>nn_search</strong> (<em>{'kdtree'}</em><em>, </em><em>optional</em>) – The method used to find the nearest point on the shape boundary</p></li>
-<li><p><strong>max_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – The maximum distance (in degrees) between points on the boundary of the
+<li><p><strong>max_length</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – The maximum distance (in degrees) between points on the boundary of the
 geojson region.  If the boundary is too coarse, it will be subdivided.</p></li>
-<li><p><strong>workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.11)"><em>int</em></a><em>, </em><em>optional</em>) – The number of threads used for finding nearest neighbors.  The default
+<li><p><strong>workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a><em>, </em><em>optional</em>) – The number of threads used for finding nearest neighbors.  The default
 is all available threads (<code class="docutils literal notranslate"><span class="pre">workers=-1</span></code>)</p></li>
 </ul>
 </dd>

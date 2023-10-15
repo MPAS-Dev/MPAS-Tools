@@ -52,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vector.html">Vector Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
@@ -162,14 +163,14 @@ of the workflow to make an MPAS global mesh.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>lat</strong> (<em>ndarray</em>) – vector of length n, with entries between -90 and 90, degrees</p></li>
-<li><p><strong>cellWidthEq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at the equator</p></li>
-<li><p><strong>cellWidthMidLat</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at mid latitudes</p></li>
-<li><p><strong>cellWidthPole</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at the poles</p></li>
-<li><p><strong>latPosEq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – Latitude in degrees of center of the equatorial transition region</p></li>
-<li><p><strong>latPosPole</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – Latitude in degrees of center of the polar transition region</p></li>
-<li><p><strong>latTransition</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – Latitude in degrees of the change from equatorial to polar function</p></li>
-<li><p><strong>latWidthEq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – Width in degrees latitude of the equatorial transition region</p></li>
-<li><p><strong>latWidthPole</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – Width in degrees latitude of the polar transition region</p></li>
+<li><p><strong>cellWidthEq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at the equator</p></li>
+<li><p><strong>cellWidthMidLat</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at mid latitudes</p></li>
+<li><p><strong>cellWidthPole</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – Cell width in km at the poles</p></li>
+<li><p><strong>latPosEq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – Latitude in degrees of center of the equatorial transition region</p></li>
+<li><p><strong>latPosPole</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – Latitude in degrees of center of the polar transition region</p></li>
+<li><p><strong>latTransition</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – Latitude in degrees of the change from equatorial to polar function</p></li>
+<li><p><strong>latWidthEq</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – Width in degrees latitude of the equatorial transition region</p></li>
+<li><p><strong>latWidthPole</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – Width in degrees latitude of the polar transition region</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>

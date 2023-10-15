@@ -52,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vector.html">Vector Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
@@ -147,16 +148,16 @@
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>filenameIcePresent</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – A filename for a file containing the field specified in <code class="docutils literal notranslate"><span class="pre">varname</span></code>
+<li><p><strong>filenameIcePresent</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – A filename for a file containing the field specified in <code class="docutils literal notranslate"><span class="pre">varname</span></code>
 that determines where ice may be present</p></li>
-<li><p><strong>filenameMesh</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The name of a file containing the MPAS-Seaice mesh</p></li>
+<li><p><strong>filenameMesh</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – The name of a file containing the MPAS-Seaice mesh</p></li>
 <li><p><strong>regionType</strong> (<em>{&quot;three_region&quot;</em><em>, </em><em>&quot;two_region_eq&quot;</em><em>, </em><em>&quot;three_region_eq&quot;</em><em>, </em><em>&quot;five_region_eq&quot;}</em>) – The type of regions to write</p></li>
-<li><p><strong>varname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The name of the variable that determines where ice might be present</p></li>
-<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a>) – For <code class="docutils literal notranslate"><span class="pre">regionType</span></code> either <code class="docutils literal notranslate"><span class="pre">three_region</span></code> or <code class="docutils literal notranslate"><span class="pre">five_region_eq</span></code>,
+<li><p><strong>varname</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – The name of the variable that determines where ice might be present</p></li>
+<li><p><strong>limit</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a>) – For <code class="docutils literal notranslate"><span class="pre">regionType</span></code> either <code class="docutils literal notranslate"><span class="pre">three_region</span></code> or <code class="docutils literal notranslate"><span class="pre">five_region_eq</span></code>,
 the  value of the <code class="docutils literal notranslate"><span class="pre">varname</span></code> field above which ice is considered to
 be present.  For other <code class="docutils literal notranslate"><span class="pre">regionType</span></code> values, the limit is always 0.5
 and this parameter is ignored.</p></li>
-<li><p><strong>filenameOut</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.11)"><em>str</em></a>) – The NetCDF filename to write the resulting <code class="docutils literal notranslate"><span class="pre">region</span></code> field to</p></li>
+<li><p><strong>filenameOut</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – The NetCDF filename to write the resulting <code class="docutils literal notranslate"><span class="pre">region</span></code> field to</p></li>
 </ul>
 </dd>
 </dl>

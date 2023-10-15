@@ -55,6 +55,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vector.html">Vector Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
@@ -160,7 +161,7 @@ character, as this is added automatically.  The argument <code class="docutils l
 used to set “user” config options similar to reading a user config file with
 <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.add_user_config.html#mpas_tools.config.MpasConfigParser.add_user_config" title="mpas_tools.config.MpasConfigParser.add_user_config"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.add_user_config()</span></code></a>.</p>
 <p>Other methods for the <code class="docutils literal notranslate"><span class="pre">MpasConfigParser</span></code> are similar to those for
-<a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a>.  In addition to <code class="docutils literal notranslate"><span class="pre">get()</span></code>,
+<a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a>.  In addition to <code class="docutils literal notranslate"><span class="pre">get()</span></code>,
 <code class="docutils literal notranslate"><span class="pre">getinteger()</span></code>, <code class="docutils literal notranslate"><span class="pre">getfloat()</span></code> and <code class="docutils literal notranslate"><span class="pre">getboolean()</span></code> methods, this class
 implements <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.getlist.html#mpas_tools.config.MpasConfigParser.getlist" title="mpas_tools.config.MpasConfigParser.getlist"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.getlist()</span></code></a>, which
 can be used to parse a config value separated by spaces and/or commas into
@@ -177,11 +178,11 @@ section names as keys, e.g.:</p>
 </pre></div>
 </div>
 <p>But it does not allow assignment of a section or many of the other
-dictionary-like features supported by <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a>.</p>
+dictionary-like features supported by <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a>.</p>
 <section id="comments-in-config-files">
 <span id="config-comments"></span><h2>Comments in config files<a class="headerlink" href="#comments-in-config-files" title="Link to this heading">¶</a></h2>
 <p>One of the main advantages of <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser" title="mpas_tools.config.MpasConfigParser"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser</span></code></a>
-over <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.11)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a> is that it keeps track of comments
+over <a class="reference external" href="https://docs.python.org/3/library/configparser.html#configparser.ConfigParser" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">configparser.ConfigParser</span></code></a> is that it keeps track of comments
 that are associated with config sections and options.  There are a few “rules”
 that make this possible.</p>
 <p>Comments must begin with the <code class="docutils literal notranslate"><span class="pre">#</span></code> character.  They must be placed <em>before</em> the

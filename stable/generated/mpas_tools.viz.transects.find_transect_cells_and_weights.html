@@ -52,6 +52,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vector.html">Vector Operations</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
@@ -151,9 +152,9 @@ that make up MPAS cells.</p>
 <li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2023.9.1.dev0)"><em>xarray.Dataset</em></a>) – A data set with the full MPAS mesh.</p></li>
 <li><p><strong>tree</strong> (<em>scipy.spatial.cKDTree</em>) – A tree of edge centers from triangles making up an MPAS mesh, the return
 value from <code class="docutils literal notranslate"><span class="pre">make_triangle_tree()</span></code></p></li>
-<li><p><strong>degrees</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.11)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether <code class="docutils literal notranslate"><span class="pre">lonTransect</span></code> and <code class="docutils literal notranslate"><span class="pre">latTransect</span></code> are in degrees (as opposed
+<li><p><strong>degrees</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether <code class="docutils literal notranslate"><span class="pre">lonTransect</span></code> and <code class="docutils literal notranslate"><span class="pre">latTransect</span></code> are in degrees (as opposed
 to radians).</p></li>
-<li><p><strong>subdivisionRes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.11)"><em>float</em></a><em>, </em><em>optional</em>) – Resolution in m to use to subdivide the transect when looking for
+<li><p><strong>subdivisionRes</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><em>float</em></a><em>, </em><em>optional</em>) – Resolution in m to use to subdivide the transect when looking for
 intersection candidates.  Should be small enough that curvature is
 small.</p></li>
 </ul>
