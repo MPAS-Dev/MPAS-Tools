@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.transects.find\_transect\_levels\_and\_weights
+================================================================
+
+.. currentmodule:: mpas_tools.ocean.transects
+
+.. autofunction:: find_transect_levels_and_weights

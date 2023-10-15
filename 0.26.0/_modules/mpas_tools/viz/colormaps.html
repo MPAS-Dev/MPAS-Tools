@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.viz.colormaps &mdash; mpas_tools 0.26.0 documentation</title>
+      <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/documentation_options.js?v=4aa2dafa"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+              <div class="version">
+                0.26.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vector.html">Vector Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.viz.colormaps</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.viz.colormaps</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">importlib.resources</span> <span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="c1"># python&lt;=3.8</span>
+    <span class="kn">from</span> <span class="nn">importlib_resources</span> <span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
+<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">LinearSegmentedColormap</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+
+<div class="viewcode-block" id="register_sci_viz_colormaps">
+<a class="viewcode-back" href="../../../generated/mpas_tools.viz.colormaps.register_sci_viz_colormaps.html#mpas_tools.viz.colormaps.register_sci_viz_colormaps">[docs]</a>
+<span class="k">def</span> <span class="nf">register_sci_viz_colormaps</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Register all SciVisColor colormaps with matplotlib&quot;&quot;&quot;</span>
+
+    <span class="k">for</span> <span class="n">mapName</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;3wave-yellow-grey-blue&#39;</span><span class="p">,</span> <span class="s1">&#39;3Wbgy5&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;4wave-grey-red-green-mgreen&#39;</span><span class="p">,</span> <span class="s1">&#39;5wave-yellow-brown-blue&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;blue-1&#39;</span><span class="p">,</span> <span class="s1">&#39;blue-3&#39;</span><span class="p">,</span> <span class="s1">&#39;blue-6&#39;</span><span class="p">,</span> <span class="s1">&#39;blue-8&#39;</span><span class="p">,</span> <span class="s1">&#39;blue-orange-div&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;brown-2&#39;</span><span class="p">,</span> <span class="s1">&#39;brown-5&#39;</span><span class="p">,</span> <span class="s1">&#39;brown-8&#39;</span><span class="p">,</span> <span class="s1">&#39;green-1&#39;</span><span class="p">,</span> <span class="s1">&#39;green-4&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;green-7&#39;</span><span class="p">,</span> <span class="s1">&#39;green-8&#39;</span><span class="p">,</span> <span class="s1">&#39;orange-5&#39;</span><span class="p">,</span> <span class="s1">&#39;orange-6&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;orange-green-blue-gray&#39;</span><span class="p">,</span> <span class="s1">&#39;purple-7&#39;</span><span class="p">,</span> <span class="s1">&#39;purple-8&#39;</span><span class="p">,</span> <span class="s1">&#39;red-1&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;red-3&#39;</span><span class="p">,</span> <span class="s1">&#39;red-4&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow-1&#39;</span><span class="p">,</span> <span class="s1">&#39;yellow-7&#39;</span><span class="p">]:</span>
+        <span class="n">xmlFile</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">imp_res_files</span><span class="p">(</span><span class="s1">&#39;mpas_tools.viz.SciVisColorColormaps&#39;</span><span class="p">)</span> <span class="o">/</span>
+                      <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">mapName</span><span class="si">}</span><span class="s1">.xml&#39;</span><span class="p">)</span>
+        <span class="n">_read_xml_colormap</span><span class="p">(</span><span class="n">xmlFile</span><span class="p">,</span> <span class="n">mapName</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span> <span class="nf">_read_xml_colormap</span><span class="p">(</span><span class="n">xmlFile</span><span class="p">,</span> <span class="n">mapName</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Read in an XML colormap&quot;&quot;&quot;</span>
+
+    <span class="n">xml</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xmlFile</span><span class="p">)</span>
+
+    <span class="n">root</span> <span class="o">=</span> <span class="n">xml</span><span class="o">.</span><span class="n">getroot</span><span class="p">()</span>
+    <span class="n">colormap</span> <span class="o">=</span> <span class="n">root</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;ColorMap&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">colormap</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">colormap</span> <span class="o">=</span> <span class="n">colormap</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">colorDict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;red&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;green&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;blue&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">colormap</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s1">&#39;Point&#39;</span><span class="p">):</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">))</span>
+            <span class="n">color</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;r&#39;</span><span class="p">)),</span> <span class="nb">float</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">)),</span>
+                     <span class="nb">float</span><span class="p">(</span><span class="n">point</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;b&#39;</span><span class="p">))]</span>
+            <span class="n">colorDict</span><span class="p">[</span><span class="s1">&#39;red&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+            <span class="n">colorDict</span><span class="p">[</span><span class="s1">&#39;green&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="n">colorDict</span><span class="p">[</span><span class="s1">&#39;blue&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">color</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">color</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+        <span class="n">cmap</span> <span class="o">=</span> <span class="n">LinearSegmentedColormap</span><span class="p">(</span><span class="n">mapName</span><span class="p">,</span> <span class="n">colorDict</span><span class="p">,</span> <span class="mi">256</span><span class="p">)</span>
+
+        <span class="n">_register_colormap_and_reverse</span><span class="p">(</span><span class="n">mapName</span><span class="p">,</span> <span class="n">cmap</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_register_colormap_and_reverse</span><span class="p">(</span><span class="n">mapName</span><span class="p">,</span> <span class="n">cmap</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">mapName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">plt</span><span class="o">.</span><span class="n">colormaps</span><span class="p">():</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">register_cmap</span><span class="p">(</span><span class="n">mapName</span><span class="p">,</span> <span class="n">cmap</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">register_cmap</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_r&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mapName</span><span class="p">),</span> <span class="n">cmap</span><span class="o">.</span><span class="n">reversed</span><span class="p">())</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
