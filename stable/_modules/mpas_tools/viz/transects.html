@@ -111,9 +111,9 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.viz.transects</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">xarray</span>
-
 <span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">cKDTree</span>
 <span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">Point</span>
 
@@ -637,9 +637,9 @@
         <span class="n">xIntersection</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">xIntersection</span><span class="p">)</span>
         <span class="n">yIntersection</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">yIntersection</span><span class="p">)</span>
         <span class="n">nodeWeights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nodeWeights</span><span class="p">)</span>
-        <span class="n">node0Inter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">node0Inter</span><span class="p">)</span>
-        <span class="n">node1Inter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">node1Inter</span><span class="p">)</span>
-        <span class="n">trisInter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">trisInter</span><span class="p">)</span>
+        <span class="n">node0Inter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">node0Inter</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">node1Inter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">node1Inter</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">trisInter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">trisInter</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
 
         <span class="n">dNodeLocal</span> <span class="o">=</span> <span class="n">dStart</span> <span class="o">+</span> <span class="n">distances</span>
 
@@ -747,6 +747,17 @@
     <span class="n">sortIndices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">dNode</span><span class="p">)</span>
     <span class="n">dSorted</span> <span class="o">=</span> <span class="n">dNode</span><span class="p">[</span><span class="n">sortIndices</span><span class="p">]</span>
     <span class="n">trisSorted</span> <span class="o">=</span> <span class="n">tris</span><span class="p">[</span><span class="n">sortIndices</span><span class="p">]</span>
+
+    <span class="c1"># sometimes we end up with redundant intersections in the transect, and</span>
+    <span class="c1"># these need to be removed</span>
+    <span class="n">unique_d_tris</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dSorted</span><span class="p">)):</span>
+        <span class="n">unique_d_tris</span><span class="p">[(</span><span class="n">dSorted</span><span class="p">[</span><span class="n">index</span><span class="p">],</span> <span class="n">trisSorted</span><span class="p">[</span><span class="n">index</span><span class="p">])]</span> <span class="o">=</span> <span class="n">index</span>
+
+    <span class="n">unique_indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">unique_d_tris</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">sortIndices</span> <span class="o">=</span> <span class="n">sortIndices</span><span class="p">[</span><span class="n">unique_indices</span><span class="p">]</span>
+    <span class="n">dSorted</span> <span class="o">=</span> <span class="n">dSorted</span><span class="p">[</span><span class="n">unique_indices</span><span class="p">]</span>
+    <span class="n">trisSorted</span> <span class="o">=</span> <span class="n">trisSorted</span><span class="p">[</span><span class="n">unique_indices</span><span class="p">]</span>
 
     <span class="n">nodesAreSame</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dSorted</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">dSorted</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;</span> <span class="n">epsilon</span>
     <span class="k">if</span> <span class="n">nodesAreSame</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
