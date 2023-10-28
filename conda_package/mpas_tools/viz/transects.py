@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy
 import xarray
-
 from scipy.spatial import cKDTree
 from shapely.geometry import LineString, Point
 
@@ -516,9 +516,9 @@ def find_planar_transect_cells_and_weights(xTransect, yTransect, dsTris, dsMesh,
         xIntersection = numpy.array(xIntersection)
         yIntersection = numpy.array(yIntersection)
         nodeWeights = numpy.array(nodeWeights)
-        node0Inter = numpy.array(node0Inter)
-        node1Inter = numpy.array(node1Inter)
-        trisInter = numpy.array(trisInter)
+        node0Inter = numpy.array(node0Inter, dtype=int)
+        node1Inter = numpy.array(node1Inter, dtype=int)
+        trisInter = numpy.array(trisInter, dtype=int)
 
         dNodeLocal = dStart + distances
 
@@ -625,6 +625,17 @@ def _sort_intersections(dNode, tris, nodes, xOut, yOut, zOut, interpCells,
     sortIndices = numpy.argsort(dNode)
     dSorted = dNode[sortIndices]
     trisSorted = tris[sortIndices]
+
+    # sometimes we end up with redundant intersections in the transect, and
+    # these need to be removed
+    unique_d_tris = dict()
+    for index in range(len(dSorted)):
+        unique_d_tris[(dSorted[index], trisSorted[index])] = index
+
+    unique_indices = list(unique_d_tris.values())
+    sortIndices = sortIndices[unique_indices]
+    dSorted = dSorted[unique_indices]
+    trisSorted = trisSorted[unique_indices]
 
     nodesAreSame = numpy.abs(dSorted[1:] - dSorted[:-1]) < epsilon
     if nodesAreSame[0]:
