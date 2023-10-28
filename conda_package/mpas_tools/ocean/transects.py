@@ -378,9 +378,14 @@ def _get_vertical_coordinate(dsTransect, layerThickness, bottomDepth,
     layerThicknessTransect = (layerThicknessTransect*interpCellWeights).sum(
         dim='nHorizWeights')
 
+    interpMask = maxLevelCell.isel(nCells=interpCellIndices) >= 0
+    interpHorizCellWeights = interpMask*dsTransect.interpHorizCellWeights
+    weightSum = interpHorizCellWeights.sum(dim='nHorizWeights')
+    interpHorizCellWeights = \
+        (interpHorizCellWeights/weightSum).where(interpMask)
+
     sshTransect = ssh.isel(nCells=interpCellIndices)
-    sshTransect = (sshTransect*dsTransect.interpHorizCellWeights).sum(
-        dim='nHorizWeights')
+    sshTransect = (sshTransect*interpHorizCellWeights).sum(dim='nHorizWeights')
 
     zBot = sshTransect - layerThicknessTransect.cumsum(dim='nVertLevels')
     zTop = zBot + layerThicknessTransect
