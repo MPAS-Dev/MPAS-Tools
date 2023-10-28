@@ -19,6 +19,17 @@ cmake \
 cmake --build .
 cmake --install .
 
+# build and install legacy mask creator
+cd ${SRC_DIR}/conda_package/mesh_tools/mesh_conversion_tools
+mkdir build
+cd build
+cmake \
+  -D CMAKE_INSTALL_PREFIX=${PREFIX} \
+  -D CMAKE_BUILD_TYPE=Release \
+  ..
+cmake --build .
+cp MpasMaskCreator.x ${PREFIX}/bin
+
 # build and install mesh conversion tools
 cd ${SRC_DIR}/conda_package/mesh_tools/mesh_conversion_tools_netcdf_c
 mkdir build
