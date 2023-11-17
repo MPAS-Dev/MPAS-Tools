@@ -1,0 +1,19 @@
+Authors: Adrian Turner, Mat Maltrud
+
+A tool for smoothing bathymetry in an MPAS-Ocean initial condition with a
+Gaussian filter with a characteristic length scale (stdDeviation) and cut-off
+distance (distanceLimit). The smoothing is only applied if the original
+maxLevelCell is larger than a given threshold (minLevelForSmoothing). Smoothing
+is applied over a given number of iterations (numSmoothingPasses).
+
+An example namelist file (smooth_depth_in) is:
+
+&smooth
+    filename_depth_in  = "mpaso.IcoswISC30E3r2.20230901.nc"
+    filename_depth_out = "smooth.IcoswISC30E3r2.r200e100.1pass.min5.skipLandIce.231115.nc"
+    filename_mpas_mesh   = "mpaso.IcoswISC30E3r2.20230901.nc"
+    distanceLimit    = 200.
+    stdDeviation     = 100.
+    numSmoothingPasses = 1
+    minLevelForSmoothing = 5
+/
