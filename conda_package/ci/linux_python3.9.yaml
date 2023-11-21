@@ -15,7 +15,7 @@ fortran_compiler:
 fortran_compiler_version:
 - '12'
 hdf5:
-- 1.14.1
+- 1.14.2
 libnetcdf:
 - 4.9.2
 netcdf_fortran:
