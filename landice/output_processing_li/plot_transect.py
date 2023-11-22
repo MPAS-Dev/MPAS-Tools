@@ -51,8 +51,9 @@ layerThicknessFractions = dataset.variables["layerThicknessFractions"][:]
 nVertLevels = dataset.dimensions['nVertLevels'].size
 
 # replace -1 time index with last forward index of time array
-times[times.index(-1)] = dataset.dimensions['Time'].size - 1
-times_list[times_list.index('-1')] = str(dataset.dimensions['Time'].size - 1)
+if -1 in times:
+    times[times.index(-1)] = dataset.dimensions['Time'].size - 1
+    times_list[times_list.index('-1')] = str(dataset.dimensions['Time'].size - 1)
 # Cannot plot temperature for more than one time index.
 if options.interp_temp and (len(times) > 1):
     print('Cannot plot temperature for more than one time index.' +
