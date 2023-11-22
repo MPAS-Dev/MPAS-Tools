@@ -49,6 +49,12 @@ nCells = dataset.dimensions['nCells'].size
 areaCell = dataset.variables["areaCell"][:]
 layerThicknessFractions = dataset.variables["layerThicknessFractions"][:]
 nVertLevels = dataset.dimensions['nVertLevels'].size
+if "daysSinceStart" in dataset.variables.keys():
+    use_yrs = True
+    yrs = dataset.variables["daysSinceStart"][:] / 365.
+    times_list = [str(yrs[i]) for i in times]
+else:
+    use_yrs = False
 
 # replace -1 time index with last forward index of time array
 if -1 in times:
@@ -179,12 +185,15 @@ if options.interp_temp:
     temp_cbar.set_label('Temperature (K)')
     temp_cbar.ax.tick_params(labelsize=12)
 
-if len(times) > 1:
-    time_cbar = plt.colorbar(cm.ScalarMappable(cmap='plasma'), ax=speedAx)
-    time_cbar.set_label('time index')
+if (len(times) > 1):
+    time_cbar = plt.colorbar(cm.ScalarMappable(cmap='plasma'), ax=thickAx)
+    time_cbar.ax.tick_params(labelsize=12)
+    if use_yrs:
+        time_cbar.set_label('Year')
+    else:
+        time_cbar.set_label('time index')
     time_cbar.set_ticks(times / np.max(times))
     time_cbar.set_ticklabels(times_list)
-    time_cbar.ax.tick_params(labelsize=12)
 
 plt.show()
 
