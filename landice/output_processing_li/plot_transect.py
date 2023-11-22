@@ -30,6 +30,9 @@ parser.add_option('-x', dest='x_coords', default=None,
 parser.add_option('-y', dest='y_coords', default=None,
                   help='List of y coordinates of transect if not \
                         using a csv file. Comma-separated, no spaces.')
+parser.add_option('-s', dest='save_filename', default=None,
+                  help='Path to save .png to, if desired.')
+
 parser.add_option("--temperature", dest="interp_temp",
                   action="store_true", help="interpolate temperature")
 
@@ -56,10 +59,18 @@ if "daysSinceStart" in dataset.variables.keys():
 else:
     use_yrs = False
 
-# replace -1 time index with last forward index of time array
+# Replace -1 time index with last forward index of time array.
+# It is unclear why these need to be in separate if-statements, but they do.
 if -1 in times:
-    times[times.index(-1)] = dataset.dimensions['Time'].size - 1
+    times[times.index(-1)] = int(dataset.dimensions['Time'].size - 1)
+if '-1' in times_list:
     times_list[times_list.index('-1')] = str(dataset.dimensions['Time'].size - 1)
+
+print(times_list)
+
+print(times)
+
+print(dataset.dimensions['Time'].size)
 # Cannot plot temperature for more than one time index.
 if options.interp_temp and (len(times) > 1):
     print('Cannot plot temperature for more than one time index.' +
@@ -194,6 +205,9 @@ if (len(times) > 1):
         time_cbar.set_label('time index')
     time_cbar.set_ticks(times / np.max(times))
     time_cbar.set_ticklabels(times_list)
+
+if options.save_filename is not None:
+    transectFig.savefig(options.save_filename, dpi=400, bbox_inches='tight')
 
 plt.show()
 
