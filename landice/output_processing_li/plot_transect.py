@@ -116,10 +116,12 @@ else:
     x = [float(i) for i in options.x_coords.split(',')]
     y = [float(i) for i in options.y_coords.split(',')]
 
-# increase sampling by a factor of 100
-xArray = np.interp(np.linspace(0, len(x)-1, 100*len(x)),
+# increase sampling to match highest mesh resolution
+total_distance = np.sqrt( (x[0] - x[1])**2. + (y[0] - y[1])**2.)
+n_samples = int(round(total_distance / np.min(dataset.variables["dcEdge"][:])))
+xArray = np.interp(np.linspace(0, len(x)-1, n_samples),
                      np.linspace(0, len(x)-1, len(x)), x)
-yArray = np.interp(np.linspace(0, len(y)-1, 100*len(y)),
+yArray = np.interp(np.linspace(0, len(y)-1, n_samples),
                      np.linspace(0, len(y)-1, len(y)), y)
 
 d_distance = np.zeros(len(xArray))
