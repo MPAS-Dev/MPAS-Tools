@@ -66,11 +66,6 @@ if -1 in times:
 if '-1' in times_list:
     times_list[times_list.index('-1')] = str(dataset.dimensions['Time'].size - 1)
 
-print(times_list)
-
-print(times)
-
-print(dataset.dimensions['Time'].size)
 # Cannot plot temperature for more than one time index.
 if options.interp_temp and (len(times) > 1):
     print('Cannot plot temperature for more than one time index.' +
@@ -82,13 +77,20 @@ cellMask = dataset.variables['cellMask'][:]
 cellMask_dynamicIce = (cellMask & li_mask_ValueDynamicIce) // li_mask_ValueDynamicIce
 # only take thickness of dynamic ice
 thk = dataset.variables["thickness"][:] * cellMask_dynamicIce
+plot_speed = True
 # Include speed on non-dynamic ice to avoid interpolation artifacts.
 if "surfaceSpeed" in dataset.variables.keys():
     speed = dataset.variables["surfaceSpeed"][:] * 3600. * 24. * 365.
+elif "surfaceSpeed" not in dataset.variables.keys() and \
+    all([ii in dataset.variables.keys() for ii in ['uReconstructX', 'uReconstructY']]):
+        speed = np.sqrt(dataset.variables["uReconstructX"][:,:,0]**2. +
+                        dataset.variables["uReconstructY"][:,:,0]**2.)
+        speed *= 3600. * 24. * 365.  # convert from m/s to m/yr
 else:
-    speed = np.sqrt(dataset.variables["uReconstructX"][:,:,0]**2. + 
-                    dataset.variables["uReconstructY"][:,:,0]**2.)
-    speed *= 3600. * 24. * 365.  # convert from m/s to m/yr
+    print('File does not contain surfaceSpeed or uReconstructX/Y.',
+          ' Skipping velocity plot.')
+    plot_speed = False
+
 
 if options.interp_temp:
     temperature = dataset.variables['temperature'][:]
@@ -150,12 +152,13 @@ for i, time in enumerate(times):
     upper_surf_nan[thk_transect==0.] = np.nan
     thickAx.plot(distance, lower_surf_nan, color=timeColors[i])
     thickAx.plot(distance, upper_surf_nan, color=timeColors[i])
-    
-    speed_interpolant = LinearNDInterpolator(
-                            np.vstack((xCell, yCell)).T, speed[time,:])
-    speed_transect = speed_interpolant(np.vstack((xArray, yArray)).T)
-    speed_transect[thk_transect == 0.] = np.nan
-    speedAx.plot(distance, speed_transect, color=timeColors[i])
+
+    if plot_speed:
+        speed_interpolant = LinearNDInterpolator(
+                                np.vstack((xCell, yCell)).T, speed[time,:])
+        speed_transect = speed_interpolant(np.vstack((xArray, yArray)).T)
+        speed_transect[thk_transect == 0.] = np.nan
+        speedAx.plot(distance, speed_transect, color=timeColors[i])
 
     if options.interp_temp:
         layer_thk = np.zeros((len(thk_transect), nVertLevels + 1))
