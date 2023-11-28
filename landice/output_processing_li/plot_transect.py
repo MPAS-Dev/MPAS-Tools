@@ -96,7 +96,8 @@ if options.interp_temp:
     temperature = dataset.variables['temperature'][:]
     
 bedTopo = dataset.variables["bedTopography"][0,:]
-
+print('Reading bedTopography from the first time level only. If multiple',
+      'times are needed, plot_transects.py will need to be updated.')
 # Use coordinates from CSV file or -x -y options, but not both.
 # CSV file takes precedent if both are present.
 if options.coords_file is not None:
