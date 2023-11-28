@@ -55,7 +55,7 @@ nVertLevels = dataset.dimensions['nVertLevels'].size
 if "daysSinceStart" in dataset.variables.keys():
     use_yrs = True
     yrs = dataset.variables["daysSinceStart"][:] / 365.
-    times_list = [str(yrs[i]) for i in times]
+    times_list = [f'{yrs[i]:.1f}' for i in times]
 else:
     use_yrs = False
 
