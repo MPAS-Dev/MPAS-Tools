@@ -73,18 +73,18 @@ if options.interp_temp and (len(times) > 1):
     options.interp_temp = False
 
 li_mask_ValueDynamicIce = 2
-cellMask = dataset.variables['cellMask'][:]
+cellMask = dataset.variables['cellMask'][times,:]
 cellMask_dynamicIce = (cellMask & li_mask_ValueDynamicIce) // li_mask_ValueDynamicIce
 # only take thickness of dynamic ice
-thk = dataset.variables["thickness"][:] * cellMask_dynamicIce
+thk = dataset.variables["thickness"][times,:] * cellMask_dynamicIce
 plot_speed = True
 # Include speed on non-dynamic ice to avoid interpolation artifacts.
 if "surfaceSpeed" in dataset.variables.keys():
-    speed = dataset.variables["surfaceSpeed"][:] * 3600. * 24. * 365.
+    speed = dataset.variables["surfaceSpeed"][times,:] * 3600. * 24. * 365.
 elif "surfaceSpeed" not in dataset.variables.keys() and \
     all([ii in dataset.variables.keys() for ii in ['uReconstructX', 'uReconstructY']]):
-        speed = np.sqrt(dataset.variables["uReconstructX"][:,:,0]**2. +
-                        dataset.variables["uReconstructY"][:,:,0]**2.)
+        speed = np.sqrt(dataset.variables["uReconstructX"][times,:,0]**2. +
+                        dataset.variables["uReconstructY"][times,:,0]**2.)
         speed *= 3600. * 24. * 365.  # convert from m/s to m/yr
 else:
     print('File does not contain surfaceSpeed or uReconstructX/Y.',
@@ -93,7 +93,7 @@ else:
 
 
 if options.interp_temp:
-    temperature = dataset.variables['temperature'][:]
+    temperature = dataset.variables['temperature'][times,:]
     
 bedTopo = dataset.variables["bedTopography"][0,:]
 print('Reading bedTopography from the first time level only. If multiple',
@@ -145,7 +145,7 @@ bed_transect = bed_interpolant(np.vstack((xArray, yArray)).T)
 
 for i, time in enumerate(times):
     thk_interpolant = LinearNDInterpolator(
-                        np.vstack((xCell, yCell)).T, thk[time,:])
+                        np.vstack((xCell, yCell)).T, thk[i,:])
     thk_transect = thk_interpolant(np.vstack((xArray, yArray)).T)
     lower_surf = np.maximum( -910. / 1028. * thk_transect, bed_transect)
     lower_surf_nan = lower_surf.copy()  # for plotting
@@ -158,7 +158,7 @@ for i, time in enumerate(times):
 
     if plot_speed:
         speed_interpolant = LinearNDInterpolator(
-                                np.vstack((xCell, yCell)).T, speed[time,:])
+                                np.vstack((xCell, yCell)).T, speed[i,:])
         speed_transect = speed_interpolant(np.vstack((xArray, yArray)).T)
         speed_transect[thk_transect == 0.] = np.nan
         speedAx.plot(distance, speed_transect, color=timeColors[i])
@@ -180,7 +180,7 @@ for i, time in enumerate(times):
             print(f'Interpolating temperature for level {lev}')
             temp_interpolant = LinearNDInterpolator(
                                     np.vstack((xCell, yCell)).T,
-                                    temperature[time,:,lev])
+                                    temperature[i,:,lev])
             temp_transect[:, lev] = temp_interpolant(
                                         np.vstack((xArray, yArray)).T)
 
