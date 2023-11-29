@@ -112,12 +112,14 @@ if options.coords_file is not None:
     if [options.x_coords, options.y_coords] != [None, None]:
         print('-c and -x/-y options were both provided. Reading from ',
               f'{options.coords_file} and ignoring -x and -y settings.')
+    x = np.asarray(x)
+    y = np.asarray(y)
 else:
-    x = [float(i) for i in options.x_coords.split(',')]
-    y = [float(i) for i in options.y_coords.split(',')]
+    x = np.array([float(i) for i in options.x_coords.split(',')])
+    y = np.array([float(i) for i in options.y_coords.split(',')])
 
 # increase sampling to match highest mesh resolution
-total_distance = np.sqrt( (x[0] - x[1])**2. + (y[0] - y[1])**2.)
+total_distance, = np.cumsum( np.sqrt( np.diff(x)**2. + np.diff(y)**2. ) )
 n_samples = int(round(total_distance / np.min(dataset.variables["dcEdge"][:])))
 xArray = np.interp(np.linspace(0, len(x)-1, n_samples),
                      np.linspace(0, len(x)-1, len(x)), x)
