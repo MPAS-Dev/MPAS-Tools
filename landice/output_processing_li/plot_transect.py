@@ -109,7 +109,7 @@ if options.coords_file is not None:
         for row in reader:
             x.append(float(row[0]))
             y.append(float(row[1]))
-    if [options.x_coords, options.y_coords] is not [None, None]:
+    if [options.x_coords, options.y_coords] != [None, None]:
         print('-c and -x/-y options were both provided. Reading from ',
               f'{options.coords_file} and ignoring -x and -y settings.')
 else:
