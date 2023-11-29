@@ -121,15 +121,15 @@ else:
 # increase sampling to match highest mesh resolution
 total_distance, = np.cumsum( np.sqrt( np.diff(x)**2. + np.diff(y)**2. ) )
 n_samples = int(round(total_distance / np.min(dataset.variables["dcEdge"][:])))
-xArray = np.interp(np.linspace(0, len(x)-1, n_samples),
+x_interp = np.interp(np.linspace(0, len(x)-1, n_samples),
                      np.linspace(0, len(x)-1, len(x)), x)
-yArray = np.interp(np.linspace(0, len(y)-1, n_samples),
+y_interp = np.interp(np.linspace(0, len(y)-1, n_samples),
                      np.linspace(0, len(y)-1, len(y)), y)
 
-d_distance = np.zeros(len(xArray))
-for ii in np.arange(1, len(xArray)):
-    d_distance[ii] = np.sqrt( (xArray[ii] - xArray[ii-1])**2 +
-                              (yArray[ii] - yArray[ii-1])**2 )
+d_distance = np.zeros(len(x_interp))
+for ii in np.arange(1, len(x_interp)):
+    d_distance[ii] = np.sqrt( (x_interp[ii] - x_interp[ii-1])**2 +
+                              (y_interp[ii] - y_interp[ii-1])**2 )
 
 distance = np.cumsum(d_distance) / 1000.  # in km for plotting
 
@@ -143,12 +143,12 @@ timeColors = cm.plasma(np.linspace(0,1,len(times)))
 plt.rcParams.update({'font.size': 16})
 
 bed_interpolant = LinearNDInterpolator(np.vstack((xCell, yCell)).T, bedTopo)
-bed_transect = bed_interpolant(np.vstack((xArray, yArray)).T)
+bed_transect = bed_interpolant(np.vstack((x_interp, y_interp)).T)
 
 for i, time in enumerate(times):
     thk_interpolant = LinearNDInterpolator(
                         np.vstack((xCell, yCell)).T, thk[i,:])
-    thk_transect = thk_interpolant(np.vstack((xArray, yArray)).T)
+    thk_transect = thk_interpolant(np.vstack((x_interp, y_interp)).T)
     lower_surf = np.maximum( -910. / 1028. * thk_transect, bed_transect)
     lower_surf_nan = lower_surf.copy()  # for plotting
     lower_surf_nan[thk_transect==0.] = np.nan
@@ -161,7 +161,7 @@ for i, time in enumerate(times):
     if plot_speed:
         speed_interpolant = LinearNDInterpolator(
                                 np.vstack((xCell, yCell)).T, speed[i,:])
-        speed_transect = speed_interpolant(np.vstack((xArray, yArray)).T)
+        speed_transect = speed_interpolant(np.vstack((x_interp, y_interp)).T)
         speed_transect[thk_transect == 0.] = np.nan
         speedAx.plot(distance, speed_transect, color=timeColors[i])
 
@@ -177,14 +177,14 @@ for i, time in enumerate(times):
                                                      layer_thk[ii,0:-1]) / 2.
             layer_interfaces[ii,:] = upper_surf[ii] - layer_thk[ii,:]
 
-        temp_transect = np.zeros((len(xArray), nVertLevels))
+        temp_transect = np.zeros((len(x_interp), nVertLevels))
         for lev in range(nVertLevels):
             print(f'Interpolating temperature for level {lev}')
             temp_interpolant = LinearNDInterpolator(
                                     np.vstack((xCell, yCell)).T,
                                     temperature[i,:,lev])
             temp_transect[:, lev] = temp_interpolant(
-                                        np.vstack((xArray, yArray)).T)
+                                        np.vstack((x_interp, y_interp)).T)
 
 thickAx.plot(distance, bed_transect, color='black')
 
