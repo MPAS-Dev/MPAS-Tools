@@ -18,4 +18,7 @@ target_link_libraries (ocean_smooth_topo_skip_land_ice ${NETCDF_LIBRARIES})
 add_executable (ocean_smooth_topo_before_init smooth_topo_before_init.F90)
 target_link_libraries (ocean_smooth_topo_before_init ${NETCDF_LIBRARIES})
 
-install (TARGETS ocean_smooth_topo_skip_land_ice ocean_smooth_topo_before_init DESTINATION bin)
+add_executable (ocean_smooth_topo_before_init_skip_land_ice smooth_topo_before_init_skip_land_ice.F90)
+target_link_libraries (ocean_smooth_topo_before_init_skip_land_ice ${NETCDF_LIBRARIES})
+
+install (TARGETS ocean_smooth_topo_skip_land_ice ocean_smooth_topo_before_init ocean_smooth_topo_before_init_skip_land_ice DESTINATION bin)
