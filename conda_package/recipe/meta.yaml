@@ -96,6 +96,9 @@ test:
     - mpas_tools.viz
     - mpas_tools.conversion
   commands:
+    - test -f "${PREFIX}/bin/ocean_smooth_topo_skip_land_ice"
+    - test -f "${PREFIX}/bin/ocean_smooth_topo_before_init"
+    - test -f "${PREFIX}/bin/ocean_smooth_topo_before_init_skip_land_ice"
     - planar_hex --nx=10 --ny=20 --dc=1000. --outFileName='periodic_mesh_10x20_1km.nc'
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -x 1000. -y 2000.
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -c
