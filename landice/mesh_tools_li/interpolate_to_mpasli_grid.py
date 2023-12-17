@@ -756,6 +756,12 @@ for MPASfieldName in fieldInfo:
            MPASfield[MPASfield < 0.0] = 0.0
            print('  removed negative thickness, new min/max: {} {}'.format(MPASfield.min(), MPASfield.max()))
 
+       # basalHeatFlux must be non-negative
+       if MPASfieldName == 'basalHeatFlux':
+           assert MPASfield.min() >= 0.0, 'basalHeatFlux contains negative values! This is likely due to the ' \
+                                          'conventions used in the input file, rather than bad data. Ensure ' \
+                                          'non-negative values before interpolating.'
+           
        # Now insert the MPAS field into the file.
        if 'Time' in MPASfile.variables[MPASfieldName].dimensions:
            MPASfile.variables[MPASfieldName][timelevout,:] = MPASfield  # Time will always be leftmost index
