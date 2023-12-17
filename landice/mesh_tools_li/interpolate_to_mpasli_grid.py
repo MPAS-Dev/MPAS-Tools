@@ -67,6 +67,7 @@ if args.weightFile and args.interpType == 'e':
     row = wfile.variables['row'][:]
     n_a = len(wfile.dimensions['n_a'])
     n_b = len(wfile.dimensions['n_b'])
+    dst_frac = wfile.variables['frac_b'][:]
     wfile.close()
     #----------------------------
 
@@ -89,6 +90,10 @@ def ESMF_interp(sourceField):
   try:
     source_csr = scipy.sparse.csr_matrix(sourceField.flatten()[:, np.newaxis])
     destinationField = wt_csr.dot(source_csr).toarray().squeeze()
+    # For conserve remapping, need to normalize by destination area fraction
+    # It should be safe to do this for other methods
+    ind = np.where(dst_frac > 0.0)[0]
+    destinationField[ind] /= dst_frac[ind]
   except:
     print('error in ESMF_interp')
   return destinationField
