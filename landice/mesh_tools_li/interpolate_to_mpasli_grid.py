@@ -32,6 +32,7 @@ import argparse
 import math
 from collections import OrderedDict
 import scipy.spatial
+import scipy.sparse
 import time
 from datetime import datetime
 
@@ -64,8 +65,13 @@ if args.weightFile and args.interpType == 'e':
     S = wfile.variables['S'][:]
     col = wfile.variables['col'][:]
     row = wfile.variables['row'][:]
+    n_a = len(wfile.dimensions['n_a'])
+    n_b = len(wfile.dimensions['n_b'])
     wfile.close()
     #----------------------------
+
+    # convert to sparse matrix format
+    wt_csr = scipy.sparse.coo_array((S, (row - 1, col - 1)), shape=(n_b, n_a)).tocsr()
 
 print('') # make a space in stdout before further output
 
@@ -78,15 +84,13 @@ print('') # make a space in stdout before further output
 #----------------------------
 
 def ESMF_interp(sourceField):
-    # Interpolates from the sourceField to the destinationField using ESMF weights
+  # Interpolates from the sourceField to the destinationField using ESMF weights
+  destinationField = np.zeros(xCell.shape)  # fields on cells only
   try:
-    # Initialize new field to 0 - required
-    destinationField = np.zeros(xCell.shape)  # fields on cells only
-    sourceFieldFlat = sourceField.flatten()  # Flatten source field
-    for i in range(len(row)):
-      destinationField[row[i]-1] = destinationField[row[i]-1] + S[i] * sourceFieldFlat[col[i]-1]
+    source_csr = scipy.sparse.csr_matrix(sourceField.flatten()[:, np.newaxis])
+    destinationField = wt_csr.dot(source_csr).toarray()
   except:
-     'error in ESMF_interp'
+    print('error in ESMF_interp')
   return destinationField
 
 #----------------------------
