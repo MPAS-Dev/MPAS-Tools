@@ -84,7 +84,7 @@ def ESMF_interp(sourceField):
     destinationField = np.zeros(xCell.shape)  # fields on cells only
     sourceFieldFlat = sourceField.flatten()  # Flatten source field
     for i in range(len(row)):
-      destinationField[row[i]-1] = destinationField[row[i]-1] + S[i] * sourceFieldFlat[col[i]]
+      destinationField[row[i]-1] = destinationField[row[i]-1] + S[i] * sourceFieldFlat[col[i]-1]
   except:
      'error in ESMF_interp'
   return destinationField
