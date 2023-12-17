@@ -88,7 +88,7 @@ def ESMF_interp(sourceField):
   destinationField = np.zeros(xCell.shape)  # fields on cells only
   try:
     source_csr = scipy.sparse.csr_matrix(sourceField.flatten()[:, np.newaxis])
-    destinationField = wt_csr.dot(source_csr).toarray()
+    destinationField = wt_csr.dot(source_csr).toarray().squeeze()
   except:
     print('error in ESMF_interp')
   return destinationField
@@ -332,7 +332,7 @@ def interpolate_field_with_layers(MPASfieldName):
         if filetype=='cism':
            print('  Input layer {}, layer {} min/max: {} {}'.format(z, InputFieldName, InputField[z,:,:].min(), InputField[z,:,:].max()))
         elif filetype=='mpas':
-           print('  Input layer {}, layer {} min/max: {} {}'.format(z, InputFieldName, InputField[:,z].min(), InputField[z,:].max()))
+           print('  Input layer {}, layer {} min/max: {} {}'.format(z, InputFieldName, InputField[:,z].min(), InputField[:,z].max()))
         # Call the appropriate routine for actually doing the interpolation
         if args.interpType == 'b':
             print("  ...Layer {}, Interpolating this layer to MPAS grid using built-in bilinear method...".format(z))
@@ -353,7 +353,10 @@ def interpolate_field_with_layers(MPASfieldName):
                 mpas_grid_input_layers[z,:] = InputField[:,z].flatten()[nn_idx_cell]  # 2d cism fields need to be flattened. (Note the indices were flattened during init, so this just matches that operation for the field data itself.)  1d mpas fields do not, but the operation won't do anything because they are already flat.
         elif args.interpType == 'e':
             print("  ...Layer{}, Interpolating this layer to MPAS grid using ESMF-weights method...".format(z))
-            mpas_grid_input_layers[z,:] = ESMF_interp(InputField[z,:,:])
+            if filetype=='cism':
+                mpas_grid_input_layers[z,:] = ESMF_interp(InputField[z,:,:])
+            elif filetype=='mpas':
+                mpas_grid_input_layers[z,:] = ESMF_interp(InputField[:,z])
         else:
             sys.exit('ERROR: Unknown interpolation method specified')
         print('  interpolated MPAS {}, layer {} min/max {} {}: '.format(MPASfieldName, z, mpas_grid_input_layers[z,:].min(), mpas_grid_input_layers[z,:].max()))
