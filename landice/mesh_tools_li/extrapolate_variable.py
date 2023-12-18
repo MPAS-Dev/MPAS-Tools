@@ -31,7 +31,6 @@ options, args = parser.parse_args()
 dataset = Dataset(options.nc_file, 'r+')
 dataset.set_auto_mask(False)
 var_name = options.var_name
-varValue = dataset.variables[var_name][0, :]
 extrapolation = options.extrapolation
 # Extrapolation
 nCells = len(dataset.dimensions['nCells'])
@@ -43,80 +42,104 @@ nEdgesOnCell = dataset.variables['nEdgesOnCell'][:]
 xCell = dataset.variables["yCell"][:]
 yCell = dataset.variables["xCell"][:]
 
-# Define region of good data to extrapolate from.  Different methods for different variables
-if var_name in ["effectivePressure", "beta", "muFriction"]:
-    groundedMask = (thickness > (-1028.0 / 910.0 * bed))
-    keepCellMask = np.copy(groundedMask) * np.isfinite(varValue)
-    extrapolation == "min"
-
-    for iCell in range(nCells):
-        for n in range(nEdgesOnCell[iCell]):
-            jCell = cellsOnCell[iCell, n] - 1
-            if (groundedMask[jCell] == 1):
-                keepCellMask[iCell] = 1
-                continue
-    keepCellMask *= (varValue > 0)  # ensure zero muFriction does not get extrapolated
-    keepCellMask *= (varValue < 1.e12)  # get rid of ridiculous values
-elif var_name in ["floatingBasalMassBal"]:
-    floatingMask = (thickness <= (-1028.0 / 910.0 * bed))
-    keepCellMask = floatingMask * (varValue != 0.0)
-    extrapolation == "idw"
+if dataset.variables[var_name].ndim == 2:
+    has_vertical_dim = False
+    n_vert = 1
+    varValue = dataset.variables[var_name][0, :]
+elif dataset.variables[var_name].ndim == 3:
+    has_vertical_dim = True
+    print(dataset.variables[var_name].dimensions[2])
+    vert_dim_name = dataset.variables[var_name].dimensions[2]
+    n_vert = len(dataset.dimensions[vert_dim_name])
+    print(f"This variable has a vertical dimension of {vert_dim_name} with size {n_vert}")
+    print("")
 else:
-    keepCellMask = (thickness > 0.0)
+    print("Unexpected number of dimension in variable")
 
-keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that will be used later
-keepCellMaskOrig = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
+for v in range(n_vert):
+    if has_vertical_dim == True:
+        print(f"Processing vertical level number {v}")
+        varValue = dataset.variables[var_name][0, :, v]
+    else:
+        varValue = dataset.variables[var_name][0, :]
 
-# recursive extrapolation steps:
-# 1) find cell A with mask = 0
-# 2) find how many surrounding cells have nonzero mask, and their indices (this will give us the cells from upstream)
-# 3) use the values for nonzero mask upstream cells to extrapolate the value for cell A
-# 4) change the mask for A from 0 to 1
-# 5) Update mask
-# 6) go to step 1)
+    # Define region of good data to extrapolate from.  Different methods for different variables
+    if var_name in ["effectivePressure", "beta", "muFriction"]:
+        groundedMask = (thickness > (-1028.0 / 910.0 * bed))
+        keepCellMask = np.copy(groundedMask) * np.isfinite(varValue)
+        extrapolation == "min"
 
-print("\nStart {} extrapolation using {} method".format(var_name, extrapolation))
-if extrapolation == 'value':
-    varValue[np.where(np.logical_not(keepCellMask))] = float(options.set_value)
-else:
-    while np.count_nonzero(keepCellMask) != nCells:
-        keepCellMask = np.copy(keepCellMaskNew)
-        searchCells = np.where(keepCellMask==0)[0]
-        varValueOld = np.copy(varValue)
-    
-        for iCell in searchCells:
-            neighborcellID = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
-            neighborcellID = neighborcellID[neighborcellID>=0] # Important: ignore the phantom "neighbors" that are off the edge of the mesh (0 values in cellsOnCell)
-    
-            mask_for_idx = keepCellMask[neighborcellID] # active cell mask
-            mask_nonzero_idx, = np.nonzero(mask_for_idx)
-    
-            nonzero_id = neighborcellID[mask_nonzero_idx] # id for nonzero beta cells
-            nonzero_num = np.count_nonzero(mask_for_idx)
-    
-            assert len(nonzero_id) == nonzero_num
-    
-            if nonzero_num > 0:
-                x_i = xCell[iCell]
-                y_i = yCell[iCell]
-                x_adj = xCell[nonzero_id]
-                y_adj = yCell[nonzero_id]
-                var_adj = varValueOld[nonzero_id]
-                if extrapolation == 'idw':
-                    ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
-                    assert np.count_nonzero(ds)==len(ds)
-                    var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
-                    varValue[iCell] = var_interp
-                elif extrapolation == 'min':
-                    varValue[iCell] = np.min(var_adj)
-                else:
-                    sys.exit("ERROR: wrong extrapolation scheme! Set option m as idw or min!")
-    
-                keepCellMaskNew[iCell] = 1
-    
-        print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+        for iCell in range(nCells):
+            for n in range(nEdgesOnCell[iCell]):
+                jCell = cellsOnCell[iCell, n] - 1
+                if (groundedMask[jCell] == 1):
+                    keepCellMask[iCell] = 1
+                    continue
+        keepCellMask *= (varValue > 0)  # ensure zero muFriction does not get extrapolated
+        keepCellMask *= (varValue < 1.e12)  # get rid of ridiculous values
+    elif var_name in ["floatingBasalMassBal"]:
+        floatingMask = (thickness <= (-1028.0 / 910.0 * bed))
+        keepCellMask = floatingMask * (varValue != 0.0)
+        extrapolation == "idw"
+    else:
+        keepCellMask = (thickness > 0.0)
 
-dataset.variables[var_name][0,:] = varValue # Put updated array back into file.
+    keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that will be used later
+    keepCellMaskOrig = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
+
+    # recursive extrapolation steps:
+    # 1) find cell A with mask = 0
+    # 2) find how many surrounding cells have nonzero mask, and their indices (this will give us the cells from upstream)
+    # 3) use the values for nonzero mask upstream cells to extrapolate the value for cell A
+    # 4) change the mask for A from 0 to 1
+    # 5) Update mask
+    # 6) go to step 1)
+
+    print("\nStart {} extrapolation using {} method".format(var_name, extrapolation))
+    if extrapolation == 'value':
+        varValue[np.where(np.logical_not(keepCellMask))] = float(options.set_value)
+    else:
+        while np.count_nonzero(keepCellMask) != nCells:
+            keepCellMask = np.copy(keepCellMaskNew)
+            searchCells = np.where(keepCellMask==0)[0]
+            varValueOld = np.copy(varValue)
+
+            for iCell in searchCells:
+                neighborcellID = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
+                neighborcellID = neighborcellID[neighborcellID>=0] # Important: ignore the phantom "neighbors" that are off the edge of the mesh (0 values in cellsOnCell)
+
+                mask_for_idx = keepCellMask[neighborcellID] # active cell mask
+                mask_nonzero_idx, = np.nonzero(mask_for_idx)
+
+                nonzero_id = neighborcellID[mask_nonzero_idx] # id for nonzero beta cells
+                nonzero_num = np.count_nonzero(mask_for_idx)
+
+                assert len(nonzero_id) == nonzero_num
+
+                if nonzero_num > 0:
+                    x_i = xCell[iCell]
+                    y_i = yCell[iCell]
+                    x_adj = xCell[nonzero_id]
+                    y_adj = yCell[nonzero_id]
+                    var_adj = varValueOld[nonzero_id]
+                    if extrapolation == 'idw':
+                        ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
+                        assert np.count_nonzero(ds)==len(ds)
+                        var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+                        varValue[iCell] = var_interp
+                    elif extrapolation == 'min':
+                        varValue[iCell] = np.min(var_adj)
+                    else:
+                        sys.exit("ERROR: wrong extrapolation scheme! Set option m as idw or min!")
+
+                    keepCellMaskNew[iCell] = 1
+
+            print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+
+    if has_vertical_dim == True:
+        dataset.variables[var_name][0,:,v] = varValue # Put updated array back into file.
+    else:
+        dataset.variables[var_name][0,:] = varValue # Put updated array back into file.
 # === Clean-up =============
 
 # Update history attribute of netCDF file
