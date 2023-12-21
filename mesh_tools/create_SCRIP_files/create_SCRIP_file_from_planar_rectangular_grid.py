@@ -125,18 +125,19 @@ stag_lon, stag_lat = t.transform(xcmatrix, ycmatrix)
 print ('Filling in corners of each cell.')
 grid_corner_lon_local = np.zeros( (nx * ny, 4) )  # It is WAYYY faster to fill in the array entry-by-entry in memory than to disk.
 grid_corner_lat_local = np.zeros( (nx * ny, 4) )
-for j in range(ny):
-  for i in range(nx):
-    iCell = j*nx + i
 
-    grid_corner_lon_local[iCell, 0] = stag_lon[j, i]
-    grid_corner_lon_local[iCell, 1] = stag_lon[j, i+1]
-    grid_corner_lon_local[iCell, 2] = stag_lon[j+1, i+1]
-    grid_corner_lon_local[iCell, 3] = stag_lon[j+1, i]
-    grid_corner_lat_local[iCell, 0] = stag_lat[j, i]
-    grid_corner_lat_local[iCell, 1] = stag_lat[j, i+1]
-    grid_corner_lat_local[iCell, 2] = stag_lat[j+1, i+1]
-    grid_corner_lat_local[iCell, 3] = stag_lat[j+1, i]
+jj = np.arange(ny)
+ii = np.arange(nx)
+i_ind, j_ind = np.meshgrid(ii, jj)
+cell_ind = j_ind * nx + i_ind
+grid_corner_lon_local[cell_ind, 0] = stag_lon[j_ind, i_ind]
+grid_corner_lon_local[cell_ind, 1] = stag_lon[j_ind, i_ind + 1]
+grid_corner_lon_local[cell_ind, 2] = stag_lon[j_ind + 1, i_ind + 1]
+grid_corner_lon_local[cell_ind, 3] = stag_lon[j_ind + 1, i_ind]
+grid_corner_lat_local[cell_ind, 0] = stag_lat[j_ind, i_ind]
+grid_corner_lat_local[cell_ind, 1] = stag_lat[j_ind, i_ind + 1]
+grid_corner_lat_local[cell_ind, 2] = stag_lat[j_ind + 1, i_ind + 1]
+grid_corner_lat_local[cell_ind, 3] = stag_lat[j_ind + 1, i_ind]
 
 grid_corner_lon[:] = grid_corner_lon_local[:]
 grid_corner_lat[:] = grid_corner_lat_local[:]
@@ -171,3 +172,4 @@ if options.plot:
 
 fin.close()
 fout.close()
+print('scrip file generation complete')
