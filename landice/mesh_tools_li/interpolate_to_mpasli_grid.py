@@ -702,6 +702,7 @@ elif filetype=='mpas':
 
      fieldInfo['stiffnessFactor'] = {'InputName':'stiffnessFactor', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
      fieldInfo['effectivePressure'] = {'InputName':'effectivePressure', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
+     fieldInfo['iceMask'] = {'InputName':'iceMask', 'scalefactor':1.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
 
 # Used by Trevor
 #     fieldInfo['sfcMassBalUncertainty'] = {'InputName':'smb_std_vector', 'scalefactor':910.0/(3600.0*24.0*365.0)/1000.0, 'offset':0.0, 'gridType':'cell', 'vertDim':False}
