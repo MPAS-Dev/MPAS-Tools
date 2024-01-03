@@ -31,7 +31,7 @@ import shutil
 
 nSmoothing = 3 # number of rounds of smoothing to apply.  3 was the best match at 8km to 30 years of thickness evolution on Ross and FRIS.  Set to 0 to disable
 
-elevationDrop = 5.0 # height in meters to drop non-grounded marine bed elevation
+elevationDrop = 20.0 # height in meters to drop non-grounded marine bed elevation
 
 # ------------------------
 

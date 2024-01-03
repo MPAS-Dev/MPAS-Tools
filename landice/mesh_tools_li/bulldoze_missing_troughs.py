@@ -117,8 +117,8 @@ def smoothTrough(WCT, p1, p2, minWCT, maxWCT):
 
 
 # Define maximum and minimum water column thickness along tough centerline
-maxWCT = 300.0
-minWCT = 50.0
+maxWCT = 400.0
+minWCT = 75.0
 
 # Specify start and end x/y coordinates for each trough to be bulldozed
 WCTnew = WCT.copy()
