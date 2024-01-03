@@ -70,9 +70,9 @@ def smoothTrough(WCT, p1, p2, minWCT, maxWCT):
     WCTnew = WCT.copy()
 
     # find representative dCell for this area
-    ind = np.nonzero( (xEdge>p1[0]) * (xEdge<p2[0]) * (yEdge>p1[1]) * (yEdge<p1[2]) )[0]
+    ind = np.nonzero( (xEdge>p1[0]) * (xEdge<p2[0]) * (yEdge>p1[1]) * (yEdge<p2[1]) )[0]
     dCell = dcEdge[ind].mean()
-    print(f"using dCell={dCell}")
+    print(f"using dCell={dCell} averaged from {len(ind)} cells")
 
     mask = (WCT<maxWCT) * (floatMask==1) * (xCell>(p1[0]-2*dCell)) * (xCell<(p2[0]+2*dCell)) * (yCell>(p1[1]-2*dCell)) * (yCell<(p2[1]+2*dCell))
     ind = np.nonzero(mask==1)[0]
