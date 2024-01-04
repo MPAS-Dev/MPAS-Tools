@@ -138,9 +138,12 @@ the MPAS mesh.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xarray</span>
 
 <span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">GeometricFeatures</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh</span> <span class="kn">import</span> <span class="n">conversion</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh</span> <span class="kn">import</span> <span class="n">mask</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.ocean.coastline_alteration</span> <span class="kn">import</span> <span class="n">add_critical_land_blockages</span>
 
+
+<span class="n">earthRadius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
 
 <span class="c1"># an object used to read feature collections from the geometric_features</span>
 <span class="c1"># package</span>
@@ -154,7 +157,9 @@ the MPAS mesh.</p>
 <span class="n">dsBaseMesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">)</span>
 <span class="c1"># create a mask on the base mesh that is ones for land or grounded ice and</span>
 <span class="c1"># zeros for ocean</span>
-<span class="n">dsLandMask</span> <span class="o">=</span> <span class="n">conversion</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="n">fcLandCoverage</span><span class="p">)</span>
+<span class="n">dsLandMask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">compute_mpas_region_masks</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span>
+                                            <span class="n">fcMask</span><span class="o">=</span><span class="n">fcLandCoverage</span><span class="p">,</span>
+                                            <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,))</span>
 
 <span class="c1"># get a collection of features from geometric_features that are meant for</span>
 <span class="c1"># use as critical land blockages</span>
@@ -162,7 +167,9 @@ the MPAS mesh.</p>
                           <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Critical_Land_Blockage&#39;</span><span class="p">])</span>
 
 <span class="c1"># make masks from the transects</span>
-<span class="n">dsCritBlockMask</span> <span class="o">=</span> <span class="n">conversion</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="n">fcCritBlockages</span><span class="p">)</span>
+<span class="n">dsCritBlockMask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">compute_mpas_transect_masks</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span>
+                                                   <span class="n">fcMask</span><span class="o">=</span><span class="n">fcCritBlockages</span><span class="p">,</span>
+                                                   <span class="n">earthRadius</span><span class="o">=</span><span class="n">earthRadius</span><span class="p">)</span>
 
 <span class="c1"># add the masks to the &quot;land&quot; mask</span>
 <span class="n">dsLandMask</span> <span class="o">=</span> <span class="n">add_critical_land_blockages</span><span class="p">(</span><span class="n">dsLandMask</span><span class="p">,</span> <span class="n">dsCritBlockMask</span><span class="p">)</span>
@@ -189,7 +196,7 @@ land-locked cells.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xarray</span>
 
 <span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">GeometricFeatures</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh</span> <span class="kn">import</span> <span class="n">conversion</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh</span> <span class="kn">import</span> <span class="n">mask</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.ocean.coastline_alteration</span> <span class="kn">import</span> \
     <span class="n">add_land_locked_cells_to_mask</span>
 
@@ -206,7 +213,9 @@ land-locked cells.</p>
 <span class="n">dsBaseMesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">)</span>
 <span class="c1"># create a mask on the base mesh that is ones for land or grounded ice and</span>
 <span class="c1"># zeros for ocean</span>
-<span class="n">dsLandMask</span> <span class="o">=</span> <span class="n">conversion</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="n">fcLandCoverage</span><span class="p">)</span>
+<span class="n">dsLandMask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">compute_mpas_region_masks</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span>
+                                            <span class="n">fcMask</span><span class="o">=</span><span class="n">fcLandCoverage</span><span class="p">,</span>
+                                            <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,))</span>
 
 <span class="c1"># Find ocean cells that are land-locked, and alter the cell mask so that</span>
 <span class="c1"># they are counted as land cells</span>
@@ -229,8 +238,11 @@ default).</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xarray</span>
 
 <span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">GeometricFeatures</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh</span> <span class="kn">import</span> <span class="n">conversion</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh</span> <span class="kn">import</span> <span class="n">mask</span>
 <span class="kn">from</span> <span class="nn">mpas_tools.ocean.coastline_alteration</span> <span class="kn">import</span> <span class="n">widen_transect_edge_masks</span>
+
+<span class="n">earthRadius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
 
 <span class="c1"># an object used to read feature collections from the geometric_features</span>
 <span class="c1"># package</span>
@@ -244,7 +256,9 @@ default).</p>
                          <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Critical_Passage&#39;</span><span class="p">])</span>
 
 <span class="c1"># create masks from the transects</span>
-<span class="n">dsCritPassMask</span> <span class="o">=</span> <span class="n">conversion</span><span class="o">.</span><span class="n">mask</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="n">fcCritPassages</span><span class="p">)</span>
+<span class="n">dsCritPassMask</span> <span class="o">=</span> <span class="n">mask</span><span class="o">.</span><span class="n">compute_mpas_transect_masks</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span>
+                                                  <span class="n">fcMask</span><span class="o">=</span><span class="n">fcCritPassages</span><span class="p">,</span>
+                                                  <span class="n">earthRadius</span><span class="o">=</span><span class="n">earthRadius</span><span class="p">)</span>
 
 <span class="c1"># Alter critical passages to be at least two cells wide, to avoid sea ice</span>
 <span class="c1"># blockage.</span>
