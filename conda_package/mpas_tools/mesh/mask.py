@@ -522,6 +522,9 @@ def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
 
     dsMasks = xr.Dataset()
 
+    # make sure lon is between -180 and 180
+    lon = numpy.mod(lon + 180., 360.) - 180.
+
     Lon, Lat = numpy.meshgrid(lon, lat)
 
     shape = Lon.shape
