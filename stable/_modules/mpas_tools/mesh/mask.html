@@ -648,6 +648,9 @@
 
     <span class="n">dsMasks</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
 
+    <span class="c1"># make sure lon is between -180 and 180</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">lon</span> <span class="o">+</span> <span class="mf">180.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">)</span> <span class="o">-</span> <span class="mf">180.</span>
+
     <span class="n">Lon</span><span class="p">,</span> <span class="n">Lat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
 
     <span class="n">shape</span> <span class="o">=</span> <span class="n">Lon</span><span class="o">.</span><span class="n">shape</span>
