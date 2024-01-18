@@ -71,8 +71,8 @@ if args.weightFile and args.interpType == 'e':
     wfile.close()
     #----------------------------
 
-    # convert to sparse matrix format
-    wt_csr = scipy.sparse.coo_array((S, (row - 1, col - 1)), shape=(n_b, n_a)).tocsr()
+    # convert to SciPy Compressed Sparse Row (CSR) matrix format
+    weights_csr = scipy.sparse.coo_array((S, (row - 1, col - 1)), shape=(n_b, n_a)).tocsr()
 
 print('') # make a space in stdout before further output
 
@@ -88,8 +88,11 @@ def ESMF_interp(sourceField):
   # Interpolates from the sourceField to the destinationField using ESMF weights
   destinationField = np.zeros(xCell.shape)  # fields on cells only
   try:
+    # Convert the source field into the SciPy Compressed Sparse Row matrix format
+    # This needs some reshaping to get the matching dimensions
     source_csr = scipy.sparse.csr_matrix(sourceField.flatten()[:, np.newaxis])
-    destinationField = wt_csr.dot(source_csr).toarray().squeeze()
+    # Use SciPy CSR dot product - much faster than iterating over elements of the full matrix
+    destinationField = weights_csr.dot(source_csr).toarray().squeeze()
     # For conserve remapping, need to normalize by destination area fraction
     # It should be safe to do this for other methods
     ind = np.where(dst_frac > 0.0)[0]
