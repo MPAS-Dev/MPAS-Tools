@@ -101,7 +101,7 @@ elif maskmethod == 'numCells':
               if keepCellMask[n] == 1:
                   keepCellMaskNew[iCell] = 1
     keepCellMask = np.copy(keepCellMaskNew)  # after we've looped over all cells assign the new mask to the variable we need (either for another loop around the domain or to write out)
-    print('  Num of cells to keep: {}'.format(sum(keepCellMask)))
+    print(f'Num of cells to keep: {keepCellMask.sum()}')
 
   # Now convert the keepCellMask to the cullMask
   cullCell[:] = np.absolute(keepCellMask[:]-1)  # Flip the mask for which ones to cull
@@ -148,7 +148,7 @@ elif maskmethod == 'distance':
       ind = np.nonzero(((xCell-xCell[iCell])**2 + (yCell-yCell[iCell])**2)**0.5 < dist)[0]
       keepCellMask[ind] = 1
 
-  print('  Num of cells to keep:'.format(sum(keepCellMask)))
+  print(f'Num of cells to keep: {keepCellMask.sum()}')
 
   # Now convert the keepCellMask to the cullMask
   cullCell[:] = np.absolute(keepCellMask[:]-1)  # Flip the mask for which ones to cull

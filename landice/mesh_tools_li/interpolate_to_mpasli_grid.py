@@ -32,6 +32,7 @@ import argparse
 import math
 from collections import OrderedDict
 import scipy.spatial
+import scipy.sparse
 import time
 from datetime import datetime
 
@@ -64,8 +65,14 @@ if args.weightFile and args.interpType == 'e':
     S = wfile.variables['S'][:]
     col = wfile.variables['col'][:]
     row = wfile.variables['row'][:]
+    n_a = len(wfile.dimensions['n_a'])
+    n_b = len(wfile.dimensions['n_b'])
+    dst_frac = wfile.variables['frac_b'][:]
     wfile.close()
     #----------------------------
+
+    # convert to SciPy Compressed Sparse Row (CSR) matrix format
+    weights_csr = scipy.sparse.coo_array((S, (row - 1, col - 1)), shape=(n_b, n_a)).tocsr()
 
 print('') # make a space in stdout before further output
 
@@ -78,15 +85,20 @@ print('') # make a space in stdout before further output
 #----------------------------
 
 def ESMF_interp(sourceField):
-    # Interpolates from the sourceField to the destinationField using ESMF weights
+  # Interpolates from the sourceField to the destinationField using ESMF weights
+  destinationField = np.zeros(xCell.shape)  # fields on cells only
   try:
-    # Initialize new field to 0 - required
-    destinationField = np.zeros(xCell.shape)  # fields on cells only
-    sourceFieldFlat = sourceField.flatten()  # Flatten source field
-    for i in range(len(row)):
-      destinationField[row[i]-1] = destinationField[row[i]-1] + S[i] * sourceFieldFlat[col[i]]
+    # Convert the source field into the SciPy Compressed Sparse Row matrix format
+    # This needs some reshaping to get the matching dimensions
+    source_csr = scipy.sparse.csr_matrix(sourceField.flatten()[:, np.newaxis])
+    # Use SciPy CSR dot product - much faster than iterating over elements of the full matrix
+    destinationField = weights_csr.dot(source_csr).toarray().squeeze()
+    # For conserve remapping, need to normalize by destination area fraction
+    # It should be safe to do this for other methods
+    ind = np.where(dst_frac > 0.0)[0]
+    destinationField[ind] /= dst_frac[ind]
   except:
-     'error in ESMF_interp'
+    print('error in ESMF_interp')
   return destinationField
 
 #----------------------------
@@ -328,7 +340,7 @@ def interpolate_field_with_layers(MPASfieldName):
         if filetype=='cism':
            print('  Input layer {}, layer {} min/max: {} {}'.format(z, InputFieldName, InputField[z,:,:].min(), InputField[z,:,:].max()))
         elif filetype=='mpas':
-           print('  Input layer {}, layer {} min/max: {} {}'.format(z, InputFieldName, InputField[:,z].min(), InputField[z,:].max()))
+           print('  Input layer {}, layer {} min/max: {} {}'.format(z, InputFieldName, InputField[:,z].min(), InputField[:,z].max()))
         # Call the appropriate routine for actually doing the interpolation
         if args.interpType == 'b':
             print("  ...Layer {}, Interpolating this layer to MPAS grid using built-in bilinear method...".format(z))
@@ -349,7 +361,10 @@ def interpolate_field_with_layers(MPASfieldName):
                 mpas_grid_input_layers[z,:] = InputField[:,z].flatten()[nn_idx_cell]  # 2d cism fields need to be flattened. (Note the indices were flattened during init, so this just matches that operation for the field data itself.)  1d mpas fields do not, but the operation won't do anything because they are already flat.
         elif args.interpType == 'e':
             print("  ...Layer{}, Interpolating this layer to MPAS grid using ESMF-weights method...".format(z))
-            mpas_grid_input_layers[z,:] = ESMF_interp(InputField[z,:,:])
+            if filetype=='cism':
+                mpas_grid_input_layers[z,:] = ESMF_interp(InputField[z,:,:])
+            elif filetype=='mpas':
+                mpas_grid_input_layers[z,:] = ESMF_interp(InputField[:,z])
         else:
             sys.exit('ERROR: Unknown interpolation method specified')
         print('  interpolated MPAS {}, layer {} min/max {} {}: '.format(MPASfieldName, z, mpas_grid_input_layers[z,:].min(), mpas_grid_input_layers[z,:].max()))
