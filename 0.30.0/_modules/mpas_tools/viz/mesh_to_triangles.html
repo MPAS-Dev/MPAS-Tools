@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.viz.mesh_to_triangles &mdash; mpas_tools 0.30.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/documentation_options.js?v=a7ea5d77"></script>
+        <script src="../../../_static/doctools.js?v=888ff710"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+              <div class="version">
+                0.30.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vector.html">Vector Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.viz.mesh_to_triangles</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.viz.mesh_to_triangles</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">xarray</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+
+
+<div class="viewcode-block" id="mesh_to_triangles">
+<a class="viewcode-back" href="../../../generated/mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html#mpas_tools.viz.mesh_to_triangles.mesh_to_triangles">[docs]</a>
+<span class="k">def</span> <span class="nf">mesh_to_triangles</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">periodicCopy</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct a dataset in which each MPAS cell is divided into the triangles</span>
+<span class="sd">    connecting pairs of adjacent vertices to cell centers.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dsMesh : xarray.Dataset</span>
+<span class="sd">        An MPAS mesh</span>
+
+<span class="sd">    periodicCopy : bool, optional</span>
+<span class="sd">        Whether to make a periodic copy of triangles that cross -180/180 degrees</span>
+<span class="sd">        longitude.  This is helpful when plotting triangles in a lon/lat space.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dsTris : xarray.Dataset</span>
+<span class="sd">        A dataset that defines triangles connecting pairs of adjacent vertices</span>
+<span class="sd">        to cell centers as well as the cell index that each triangle is in and</span>
+<span class="sd">        cell indices and weights for interpolating data defined at cell centers</span>
+<span class="sd">        to triangle nodes.  ``dsTris`` includes variables ``triCellIndices``,</span>
+<span class="sd">        the cell that each triangle is part of; ``nodeCellIndices`` and</span>
+<span class="sd">        ``nodeCellWeights``, the indices and weights used to interpolate from</span>
+<span class="sd">        MPAS cell centers to triangle nodes; Cartesian coordinates ``xNode``,</span>
+<span class="sd">        ``yNode``, and ``zNode``; and ``lonNode``` and ``latNode`` in radians.</span>
+<span class="sd">        ``lonNode`` is guaranteed to be within 180 degrees of the cell center</span>
+<span class="sd">        corresponding to ``triCellIndices``.  Nodes always have a</span>
+<span class="sd">        counterclockwise winding.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nVerticesOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">nEdgesOnCell</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">verticesOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">verticesOnCell</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">cellsOnVertex</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">cellsOnVertex</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="n">kiteAreasOnVertex</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">kiteAreasOnVertex</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="n">nTriangles</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nVerticesOnCell</span><span class="p">)</span>
+
+    <span class="n">maxEdges</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;maxEdges&#39;</span><span class="p">]</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;vertexDegree&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;mesh_to_triangles only supports meshes with &#39;</span>
+                         <span class="s1">&#39;vertexDegree = 3&#39;</span><span class="p">)</span>
+
+    <span class="c1"># find the third vertex for each triangle</span>
+    <span class="n">nextVertex</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">verticesOnCell</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">iVertex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxEdges</span><span class="p">):</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">iVertex</span> <span class="o">&lt;</span> <span class="n">nVerticesOnCell</span>
+        <span class="n">invalid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span>
+        <span class="n">verticesOnCell</span><span class="p">[</span><span class="n">invalid</span><span class="p">,</span> <span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">nv</span> <span class="o">=</span> <span class="n">nVerticesOnCell</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+        <span class="n">cellIndices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)[</span><span class="n">valid</span><span class="p">]</span>
+        <span class="n">iNext</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">iVertex</span> <span class="o">&lt;</span> <span class="n">nv</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">iVertex</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">nextVertex</span><span class="p">[:,</span> <span class="n">iVertex</span><span class="p">][</span><span class="n">valid</span><span class="p">]</span> <span class="o">=</span> <span class="n">verticesOnCell</span><span class="p">[</span><span class="n">cellIndices</span><span class="p">,</span> <span class="n">iNext</span><span class="p">]</span>
+
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">verticesOnCell</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+    <span class="n">verticesOnCell</span> <span class="o">=</span> <span class="n">verticesOnCell</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+    <span class="n">nextVertex</span> <span class="o">=</span> <span class="n">nextVertex</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+
+    <span class="c1"># find the cell index for each triangle</span>
+    <span class="n">triCellIndices</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">),</span>
+                                       <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span>
+                                       <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)</span>
+    <span class="n">triCellIndices</span> <span class="o">=</span> <span class="n">triCellIndices</span><span class="p">[</span><span class="n">valid</span><span class="p">]</span>
+
+    <span class="c1"># find list of cells and weights for each triangle node</span>
+    <span class="n">nodeCellIndices</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nTriangles</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="nb">int</span><span class="p">)</span>
+    <span class="n">nodeCellWeights</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nTriangles</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+
+    <span class="c1"># the first node is at the cell center, so the value is just the one from</span>
+    <span class="c1"># that cell</span>
+    <span class="n">nodeCellIndices</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">triCellIndices</span>
+    <span class="n">nodeCellWeights</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+
+    <span class="c1"># the other 2 nodes are associated with vertices</span>
+    <span class="n">nodeCellIndices</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">cellsOnVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">nodeCellWeights</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">kiteAreasOnVertex</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">nodeCellIndices</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">cellsOnVertex</span><span class="p">[</span><span class="n">nextVertex</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">nodeCellWeights</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">kiteAreasOnVertex</span><span class="p">[</span><span class="n">nextVertex</span><span class="p">,</span> <span class="p">:]</span>
+
+    <span class="n">weightSum</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">nodeCellWeights</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">iNode</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span>
+        <span class="n">nodeCellWeights</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">iNode</span><span class="p">]</span> <span class="o">=</span> <span class="n">nodeCellWeights</span><span class="p">[:,</span> <span class="p">:,</span> <span class="n">iNode</span><span class="p">]</span><span class="o">/</span><span class="n">weightSum</span>
+
+    <span class="n">dsTris</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+    <span class="n">dsTris</span><span class="p">[</span><span class="s1">&#39;triCellIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">,</span> <span class="n">triCellIndices</span><span class="p">)</span>
+    <span class="n">dsTris</span><span class="p">[</span><span class="s1">&#39;nodeCellIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">,</span> <span class="s1">&#39;nNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nInterp&#39;</span><span class="p">),</span>
+                                 <span class="n">nodeCellIndices</span><span class="p">)</span>
+    <span class="n">dsTris</span><span class="p">[</span><span class="s1">&#39;nodeCellWeights&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">,</span> <span class="s1">&#39;nNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nInterp&#39;</span><span class="p">),</span>
+                                 <span class="n">nodeCellWeights</span><span class="p">)</span>
+
+    <span class="c1"># get Cartesian and lon/lat coordinates of each node</span>
+    <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;lat&#39;</span><span class="p">,</span> <span class="s1">&#39;lon&#39;</span><span class="p">]:</span>
+        <span class="n">outVar</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">Node&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="n">cellVar</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">Cell&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="n">vertexVar</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">Vertex&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nTriangles</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+        <span class="n">coord</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="p">[</span><span class="n">cellVar</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">triCellIndices</span><span class="p">]</span>
+        <span class="n">coord</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="p">[</span><span class="n">vertexVar</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">verticesOnCell</span><span class="p">]</span>
+        <span class="n">coord</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="p">[</span><span class="n">vertexVar</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">nextVertex</span><span class="p">]</span>
+        <span class="n">dsTris</span><span class="p">[</span><span class="n">outVar</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">,</span> <span class="s1">&#39;nNodes&#39;</span><span class="p">),</span> <span class="n">coord</span><span class="p">)</span>
+
+    <span class="c1"># nothing obvious we can do about triangles containing the poles</span>
+
+    <span class="c1"># make sure node longitudes are within 180 degrees of the cell center</span>
+    <span class="n">lonNode</span> <span class="o">=</span> <span class="n">dsTris</span><span class="o">.</span><span class="n">lonNode</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">lonCell</span> <span class="o">=</span> <span class="n">lonNode</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">copyEast</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">lonCell</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+    <span class="n">copyWest</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">lonCell</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">iNode</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">lonNode</span><span class="p">[:,</span> <span class="n">iNode</span><span class="p">]</span> <span class="o">-</span> <span class="n">lonCell</span> <span class="o">&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">copyEast</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">copyEast</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+        <span class="n">lonNode</span><span class="p">[:,</span> <span class="n">iNode</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">lonNode</span><span class="p">[:,</span> <span class="n">iNode</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span> <span class="o">-</span> <span class="mi">2</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">lonNode</span><span class="p">[:,</span> <span class="n">iNode</span><span class="p">]</span> <span class="o">-</span> <span class="n">lonCell</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">copyWest</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">copyWest</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+        <span class="n">lonNode</span><span class="p">[:,</span> <span class="n">iNode</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">lonNode</span><span class="p">[:,</span> <span class="n">iNode</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span>
+    <span class="k">if</span> <span class="n">periodicCopy</span><span class="p">:</span>
+        <span class="n">dsNew</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+        <span class="n">eastIndices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">copyEast</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">westIndices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">copyWest</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">triIndices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nTriangles</span><span class="p">),</span>
+                                               <span class="n">eastIndices</span><span class="p">),</span> <span class="n">westIndices</span><span class="p">)</span>
+
+        <span class="n">dsNew</span><span class="p">[</span><span class="s1">&#39;triCellIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">,</span> <span class="n">triCellIndices</span><span class="p">[</span><span class="n">triIndices</span><span class="p">])</span>
+        <span class="n">dsNew</span><span class="p">[</span><span class="s1">&#39;nodeCellIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">,</span> <span class="s1">&#39;nNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nInterp&#39;</span><span class="p">),</span>
+                                    <span class="n">nodeCellIndices</span><span class="p">[</span><span class="n">triIndices</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span>
+        <span class="n">dsNew</span><span class="p">[</span><span class="s1">&#39;nodeCellWeights&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">,</span> <span class="s1">&#39;nNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nInterp&#39;</span><span class="p">),</span>
+                                    <span class="n">nodeCellWeights</span><span class="p">[</span><span class="n">triIndices</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:])</span>
+        <span class="k">for</span> <span class="n">prefix</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="s1">&#39;lat&#39;</span><span class="p">]:</span>
+            <span class="n">outVar</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">Node&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prefix</span><span class="p">)</span>
+            <span class="n">coord</span> <span class="o">=</span> <span class="n">dsTris</span><span class="p">[</span><span class="n">outVar</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+            <span class="n">dsNew</span><span class="p">[</span><span class="n">outVar</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">,</span> <span class="s1">&#39;nNodes&#39;</span><span class="p">),</span> <span class="n">coord</span><span class="p">[</span><span class="n">triIndices</span><span class="p">,</span> <span class="p">:])</span>
+
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">dsTris</span><span class="p">[</span><span class="s1">&#39;lonNode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">triIndices</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">eastSlice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">nTriangles</span><span class="p">,</span> <span class="n">nTriangles</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">eastIndices</span><span class="p">))</span>
+        <span class="n">coord</span><span class="p">[</span><span class="n">eastSlice</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="n">eastSlice</span><span class="p">,</span> <span class="p">:]</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">westSlice</span> <span class="o">=</span> <span class="nb">slice</span><span class="p">(</span><span class="n">nTriangles</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">eastIndices</span><span class="p">),</span>
+                          <span class="n">nTriangles</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">eastIndices</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">westIndices</span><span class="p">))</span>
+        <span class="n">coord</span><span class="p">[</span><span class="n">westSlice</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">coord</span><span class="p">[</span><span class="n">westSlice</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">pi</span>
+        <span class="n">dsNew</span><span class="p">[</span><span class="s1">&#39;lonNode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">,</span> <span class="s1">&#39;nNodes&#39;</span><span class="p">),</span> <span class="n">coord</span><span class="p">)</span>
+        <span class="n">dsTris</span> <span class="o">=</span> <span class="n">dsNew</span>
+
+    <span class="k">return</span> <span class="n">dsTris</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
