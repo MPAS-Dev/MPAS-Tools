@@ -51,10 +51,12 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
     xCell_full = msh['POINT'][:, 0]
     yCell_full = msh['POINT'][:, 1]
     zCell_full = []
-    if msh['NDIMS'] == 3:
+    if msh['NDIMS'] == 2:
+        zCell_full = np.zeros(yCell_full.shape)
+    elif msh['NDIMS'] == 3:
         zCell_full = msh['POINT'][:, 2]
     else:
-        zCell_full = np.zeros(yCell_full.shape)
+        raise ValueError(f'Unexpected mesh NDIMS: {msh["NDIMS"]}')
     for cells in [xCell_full, yCell_full, zCell_full]:
         assert cells.shape[0] == nCells, 'Number of anticipated nodes is' \
                                          ' not correct!'
