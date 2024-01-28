@@ -34,8 +34,10 @@ version = re.search(r'{}\s*=\s*[(]([^)]*)[)]'.format('__version_info__'),
 os.chdir(here)
 
 for path in ['ocean', 'landice', 'visualization', 'mesh_tools']:
-    if not os.path.exists(path):
-        shutil.copytree('../{}'.format(path), './{}'.format(path))
+    destPath = './{}'.format(path)
+    if os.path.exists(destPath):
+        shutil.rmtree(destPath)
+    shutil.copytree('../{}'.format(path), destPath)
 
 setup(name='mpas_tools',
       version=version,
