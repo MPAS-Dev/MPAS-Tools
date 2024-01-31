@@ -774,7 +774,7 @@ for MPASfieldName in fieldInfo:
 
        # basalHeatFlux must be non-negative
        if MPASfieldName == 'basalHeatFlux':
-           assert MPASfield.min() >= 0.0, 'basalHeatFlux contains negative values! This is likely due to the ' \
+           assert np.nanmin(MPASfield) >= 0.0, 'basalHeatFlux contains negative values! This is likely due to the ' \
                                           'conventions used in the input file, rather than bad data. Ensure ' \
                                           'non-negative values before interpolating.'
            
