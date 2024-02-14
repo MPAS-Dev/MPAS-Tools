@@ -1035,6 +1035,8 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
     int *tmp_arr_old, *nEdgesOnCellOld, *nEdgesOnCellNew;
     int *tmp_arr_new;
 
+    bool hasMeshDensity;
+
     tmp_arr_old = new int[nCells*maxEdges];
     nEdgesOnCellOld = new int[nCells];
     nEdgesOnCellNew = new int[nCellsNew];
@@ -1175,20 +1177,30 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
 
     // Map meshDensity
     meshDensityOld = new double[nCells];
-    meshDensityNew = new double[nCellsNew];
 
-    ncutil::get_var(inputFilename, "meshDensity", meshDensityOld);
-
-    for(int iCell = 0; iCell < nCells; iCell++){
-        if(cellMap.at(iCell) != -1){
-            meshDensityNew[cellMap.at(iCell)] = meshDensityOld[iCell];
-        }
+    try {
+        ncutil::get_var(inputFilename, "meshDensity", meshDensityOld);
+        hasMeshDensity = true;
+    } catch (...) {
+        // allow errors for optional vars. not found
+        hasMeshDensity = false;
     }
 
-    ncutil::def_var(outputFilename, "meshDensity",
-        NC_DOUBLE, "mesh density distribution", {"nCells"});
+    if(hasMeshDensity) {
+        meshDensityNew = new double[nCellsNew];
+        for(int iCell = 0; iCell < nCells; iCell++){
+            if(cellMap.at(iCell) != -1){
+                meshDensityNew[cellMap.at(iCell)] = meshDensityOld[iCell];
+            }
+        }
 
-    ncutil::put_var(outputFilename, "meshDensity", &meshDensityNew[0]);
+        ncutil::def_var(outputFilename, "meshDensity",
+            NC_DOUBLE, "mesh density distribution", {"nCells"});
+
+        ncutil::put_var(outputFilename, "meshDensity", &meshDensityNew[0]);
+        delete[] meshDensityNew;
+    }
+    delete[] meshDensityOld;
 
     return 0;
 }/*}}}*/
