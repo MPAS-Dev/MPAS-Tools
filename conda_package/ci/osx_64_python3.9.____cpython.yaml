@@ -7,17 +7,17 @@ channel_targets:
 cxx_compiler:
 - clangxx
 cxx_compiler_version:
-- '15'
+- '16'
 fortran_compiler:
 - gfortran
 fortran_compiler_version:
 - '12'
 hdf5:
-- 1.14.2
+- 1.14.3
 libnetcdf:
 - 4.9.2
 llvm_openmp:
-- '15'
+- '16'
 macos_machine:
 - x86_64-apple-darwin13.4.0
 netcdf_fortran:
@@ -27,7 +27,7 @@ pin_run_as_build:
     min_pin: x.x
     max_pin: x.x
 python:
-- 3.11.* *_cpython
+- 3.9.* *_cpython
 target_platform:
 - osx-64
 zip_keys:
