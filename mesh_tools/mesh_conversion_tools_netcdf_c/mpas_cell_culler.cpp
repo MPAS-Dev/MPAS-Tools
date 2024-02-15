@@ -1232,7 +1232,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
     double *dcEdgeOld, *dcEdgeNew;
     double *angleEdgeOld, *angleEdgeNew;
 
-    bool hasWeightsOnEdge;
+    bool hasWeightsOnEdge, hasAngleEdge;
 
     // Need to map cellsOnEdge and verticesOnEdge
     cellsOnEdgeOld = new int[nEdges*2];
@@ -1387,7 +1387,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 
             for(int j = edgeCount; j < maxEdges2New; j++){
                 edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
-                if(hasWeightsOnEdge) {
+                if(hasWeightsOnEdge){
                     weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
                 }
             }
@@ -1427,13 +1427,22 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 
     ncutil::get_var(inputFilename, "dvEdge", dvEdgeOld);
     ncutil::get_var(inputFilename, "dcEdge", dcEdgeOld);
-    ncutil::get_var(inputFilename, "angleEdge", angleEdgeOld);
+
+    try{
+        ncutil::get_var(inputFilename, "angleEdge", angleEdgeOld);
+        hasAngleEdge = true;
+    } catch (...) {
+        // allow errors for optional vars. not found
+        hasAngleEdge = false;
+    }
 
     for(int iEdge = 0; iEdge < nEdges; iEdge++){
         if(edgeMap.at(iEdge) != -1){
             dvEdgeNew[edgeMap.at(iEdge)] = dvEdgeOld[iEdge];
             dcEdgeNew[edgeMap.at(iEdge)] = dcEdgeOld[iEdge];
-            angleEdgeNew[edgeMap.at(iEdge)] = angleEdgeOld[iEdge];
+            if(hasAngleEdge) {
+                angleEdgeNew[edgeMap.at(iEdge)] = angleEdgeOld[iEdge];
+            }
         }
     }
 
@@ -1446,7 +1455,9 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 
     ncutil::put_var(outputFilename, "dvEdge", &dvEdgeNew[0]);
     ncutil::put_var(outputFilename, "dcEdge", &dcEdgeNew[0]);
-    ncutil::put_var(outputFilename, "angleEdge", &angleEdgeNew[0]);
+    if(hasAngleEdge) {
+        ncutil::put_var(outputFilename, "angleEdge", &angleEdgeNew[0]);
+    }
 
     delete[] dvEdgeOld;
     delete[] dvEdgeNew;
