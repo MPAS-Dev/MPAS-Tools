@@ -1035,6 +1035,8 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
     int *tmp_arr_old, *nEdgesOnCellOld, *nEdgesOnCellNew;
     int *tmp_arr_new;
 
+    bool hasMeshDensity;
+
     tmp_arr_old = new int[nCells*maxEdges];
     nEdgesOnCellOld = new int[nCells];
     nEdgesOnCellNew = new int[nCellsNew];
@@ -1175,20 +1177,30 @@ int mapAndOutputCellFields( const string inputFilename, const string outputPath,
 
     // Map meshDensity
     meshDensityOld = new double[nCells];
-    meshDensityNew = new double[nCellsNew];
 
-    ncutil::get_var(inputFilename, "meshDensity", meshDensityOld);
-
-    for(int iCell = 0; iCell < nCells; iCell++){
-        if(cellMap.at(iCell) != -1){
-            meshDensityNew[cellMap.at(iCell)] = meshDensityOld[iCell];
-        }
+    try {
+        ncutil::get_var(inputFilename, "meshDensity", meshDensityOld);
+        hasMeshDensity = true;
+    } catch (...) {
+        // allow errors for optional vars. not found
+        hasMeshDensity = false;
     }
 
-    ncutil::def_var(outputFilename, "meshDensity",
-        NC_DOUBLE, "mesh density distribution", {"nCells"});
+    if(hasMeshDensity) {
+        meshDensityNew = new double[nCellsNew];
+        for(int iCell = 0; iCell < nCells; iCell++){
+            if(cellMap.at(iCell) != -1){
+                meshDensityNew[cellMap.at(iCell)] = meshDensityOld[iCell];
+            }
+        }
 
-    ncutil::put_var(outputFilename, "meshDensity", &meshDensityNew[0]);
+        ncutil::def_var(outputFilename, "meshDensity",
+            NC_DOUBLE, "mesh density distribution", {"nCells"});
+
+        ncutil::put_var(outputFilename, "meshDensity", &meshDensityNew[0]);
+        delete[] meshDensityNew;
+    }
+    delete[] meshDensityOld;
 
     return 0;
 }/*}}}*/
@@ -1219,6 +1231,8 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
     double *dvEdgeOld, *dvEdgeNew;
     double *dcEdgeOld, *dcEdgeNew;
     double *angleEdgeOld, *angleEdgeNew;
+
+    bool hasWeightsOnEdge, hasAngleEdge;
 
     // Need to map cellsOnEdge and verticesOnEdge
     cellsOnEdgeOld = new int[nEdges*2];
@@ -1320,7 +1334,13 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 
     ncutil::get_var(inputFilename, "nEdgesOnEdge", nEdgesOnEdgeOld);
     ncutil::get_var(inputFilename, "edgesOnEdge", edgesOnEdgeOld);
-    ncutil::get_var(inputFilename, "weightsOnEdge", weightsOnEdgeOld);
+    try{
+        ncutil::get_var(inputFilename, "weightsOnEdge", weightsOnEdgeOld);
+        hasWeightsOnEdge = true;
+    } catch (...) {
+        // allow errors for optional vars. not found
+        hasWeightsOnEdge = false;
+    }
 
     for(int iEdge = 0; iEdge < nEdges; iEdge++){
         int edgeCount = 0;
@@ -1344,24 +1364,32 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 
                     if(eoe != -1 && eoe < edgeMap.size()){
                         edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = edgeMap.at(eoe) + 1;
-                        weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] =
-                            weightsOnEdgeOld[iEdge*maxEdges*2 + j];
+                        if(hasWeightsOnEdge) {
+                            weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] =
+                                weightsOnEdgeOld[iEdge*maxEdges*2 + j];
+                        }
                         edgeCount++;
                     } else {
                         edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
-                        weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
+                        if(hasWeightsOnEdge) {
+                            weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
+                        }
                     }
                 }
             } else if ( cell1 == -1  || cell2 == -1){
                 for(int j = 0; j < nEdgesOnEdgeOld[iEdge]; j++){
                     edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
-                    weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
+                    if(hasWeightsOnEdge) {
+                        weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
+                    }
                 }
             }
 
             for(int j = edgeCount; j < maxEdges2New; j++){
                 edgesOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
-                weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
+                if(hasWeightsOnEdge){
+                    weightsOnEdgeNew[edgeMap.at(iEdge)*maxEdges2New + j] = 0;
+                }
             }
             nEdgesOnEdgeNew[edgeMap.at(iEdge)] = edgeCount;
         }
@@ -1375,10 +1403,12 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
     ncutil::put_var(outputFilename, "nEdgesOnEdge", &nEdgesOnEdgeNew[0]);
     ncutil::put_var(outputFilename, "edgesOnEdge", &edgesOnEdgeNew[0]);
 
-    ncutil::def_var(outputFilename, "weightsOnEdge",
-        NC_DOUBLE, "tangential flux reconstruction weights", {"nEdges", "maxEdges2"});
+    if(hasWeightsOnEdge) {
+        ncutil::def_var(outputFilename, "weightsOnEdge",
+            NC_DOUBLE, "tangential flux reconstruction weights", {"nEdges", "maxEdges2"});
 
-    ncutil::put_var(outputFilename, "weightsOnEdge", &weightsOnEdgeNew[0]);
+        ncutil::put_var(outputFilename, "weightsOnEdge", &weightsOnEdgeNew[0]);
+    }
 
     delete[] nEdgesOnEdgeOld;
     delete[] cellsOnEdgeOld;
@@ -1397,13 +1427,22 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 
     ncutil::get_var(inputFilename, "dvEdge", dvEdgeOld);
     ncutil::get_var(inputFilename, "dcEdge", dcEdgeOld);
-    ncutil::get_var(inputFilename, "angleEdge", angleEdgeOld);
+
+    try{
+        ncutil::get_var(inputFilename, "angleEdge", angleEdgeOld);
+        hasAngleEdge = true;
+    } catch (...) {
+        // allow errors for optional vars. not found
+        hasAngleEdge = false;
+    }
 
     for(int iEdge = 0; iEdge < nEdges; iEdge++){
         if(edgeMap.at(iEdge) != -1){
             dvEdgeNew[edgeMap.at(iEdge)] = dvEdgeOld[iEdge];
             dcEdgeNew[edgeMap.at(iEdge)] = dcEdgeOld[iEdge];
-            angleEdgeNew[edgeMap.at(iEdge)] = angleEdgeOld[iEdge];
+            if(hasAngleEdge) {
+                angleEdgeNew[edgeMap.at(iEdge)] = angleEdgeOld[iEdge];
+            }
         }
     }
 
@@ -1416,7 +1455,9 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 
     ncutil::put_var(outputFilename, "dvEdge", &dvEdgeNew[0]);
     ncutil::put_var(outputFilename, "dcEdge", &dcEdgeNew[0]);
-    ncutil::put_var(outputFilename, "angleEdge", &angleEdgeNew[0]);
+    if(hasAngleEdge) {
+        ncutil::put_var(outputFilename, "angleEdge", &angleEdgeNew[0]);
+    }
 
     delete[] dvEdgeOld;
     delete[] dvEdgeNew;

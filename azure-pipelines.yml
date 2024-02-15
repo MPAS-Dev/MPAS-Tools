@@ -38,7 +38,7 @@ jobs:
   - bash: |
       eval "$(conda shell.bash hook)"
       conda activate build
-      conda build -m "conda_package/ci/linux_python${PYTHON_VERSION}.yaml" "conda_package/recipe"
+      conda build -m "conda_package/ci/linux_64_python${PYTHON_VERSION}.____cpython.yaml" "conda_package/recipe"
     displayName: Build MPAS-Tools
 
   - bash: |
@@ -158,7 +158,7 @@ jobs:
   - bash: |
       eval "$(conda shell.bash hook)"
       conda activate build
-      conda build -m "conda_package/ci/osx_python${PYTHON_VERSION}.yaml" "conda_package/recipe"
+      conda build -m "conda_package/ci/osx_64_python${PYTHON_VERSION}.____cpython.yaml" "conda_package/recipe"
     displayName: Build MPAS-Tools
 
   - bash: |
