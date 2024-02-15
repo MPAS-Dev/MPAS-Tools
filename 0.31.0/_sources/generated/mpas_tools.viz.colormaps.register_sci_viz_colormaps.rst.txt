@@ -1,0 +1,6 @@
+﻿mpas\_tools.viz.colormaps.register\_sci\_viz\_colormaps
+=======================================================
+
+.. currentmodule:: mpas_tools.viz.colormaps
+
+.. autofunction:: register_sci_viz_colormaps
