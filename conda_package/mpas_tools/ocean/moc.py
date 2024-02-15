@@ -121,11 +121,11 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
     boundary.
     """
 
-    nCells = mesh.dims['nCells']
-    nEdges = mesh.dims['nEdges']
+    nCells = mesh.sizes['nCells']
+    nEdges = mesh.sizes['nEdges']
 
-    nRegions = mocMask.dims['nRegions']
-    assert(mocMask.dims['nCells'] == nCells)
+    nRegions = mocMask.sizes['nRegions']
+    assert(mocMask.sizes['nCells'] == nCells)
 
     # convert to python zero-based indices
     cellsOnEdge = mesh.variables['cellsOnEdge'].values-1
@@ -241,8 +241,8 @@ def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
 
     nTransects = len(southernBoundaryEdges)
 
-    nEdges = mesh.dims['nEdges']
-    nVertices = mesh.dims['nVertices']
+    nEdges = mesh.sizes['nEdges']
+    nVertices = mesh.sizes['nVertices']
 
     maxEdgesInTransect = numpy.amax([len(southernBoundaryEdges[iTransect])
                                      for iTransect in range(nTransects)])
