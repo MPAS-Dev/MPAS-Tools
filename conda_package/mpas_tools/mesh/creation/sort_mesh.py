@@ -11,12 +11,12 @@ def sort_mesh(mesh):
     """
     Sort cells, edges and duals in the mesh
     to improve cache-locality
-    
+
     Parameters
     ----------
     mesh : xarray.Dataset
         A dataset containing an MPAS mesh to sort
-        
+
     Returns
     -------
     mesh : xarray.Dataset
@@ -24,9 +24,9 @@ def sort_mesh(mesh):
     """
     # Authors: Darren Engwirda
 
-    ncells = mesh.dims["nCells"]
-    nedges = mesh.dims["nEdges"]
-    nduals = mesh.dims["nVertices"]
+    ncells = mesh.sizes["nCells"]
+    nedges = mesh.sizes["nEdges"]
+    nduals = mesh.sizes["nVertices"]
 
     cell_fwd = np.arange(0, ncells) + 1
     cell_rev = np.arange(0, ncells) + 1
@@ -110,8 +110,8 @@ def sort_mesh(mesh):
     mesh["indexToEdgeID"][:] = np.arange(nedges) + 1
 
     return mesh
-    
-    
+
+
 def main():
     parser = argparse.ArgumentParser(
         description=__doc__,
@@ -135,7 +135,7 @@ def main():
               args.sort_file), "graph.info"), "w") as fptr:
         cellsOnCell = mesh["cellsOnCell"].values
 
-        ncells = mesh.dims["nCells"]
+        ncells = mesh.sizes["nCells"]
         nedges = np.count_nonzero(cellsOnCell) // 2
 
         fptr.write(f"{ncells} {nedges}\n")
@@ -152,15 +152,15 @@ def main():
 def _sort_fwd(data, fwd):
     """
     Apply a forward permutation to a mesh array
-    
+
     Parameters
     ----------
     data : array-like
         An MPAS mesh array to permute
-        
+
     fwd : numpy.ndarray
-        An array of integers defining the permutation       
-    
+        An array of integers defining the permutation
+
     Returns
     -------
     data : numpy.ndarray
@@ -174,15 +174,15 @@ def _sort_fwd(data, fwd):
 def _sort_rev(data, rev):
     """
     Apply a reverse permutation to a mesh array
-    
+
     Parameters
     ----------
     data : array-like
         An MPAS mesh array to permute
-        
+
     rev : numpy.ndarray
-        An array of integers defining the permutation       
-    
+        An array of integers defining the permutation
+
     Returns
     -------
     data : numpy.ndarray
@@ -197,17 +197,17 @@ def _sort_rev(data, rev):
 def _cell_del2(mesh):
     """
     Form cell-to-cell sparse adjacency graph
-    
+
     Parameters
     ----------
     mesh : xarray.Dataset
         A dataset containing an MPAS mesh to sort
-        
+
     Returns
     -------
     del2 : scipy.sparse.csr_matrix
         The cell-to-cell adjacency graph as a sparse matrix
-    """    
+    """
     xvec = np.array([], dtype=np.int8)
     ivec = np.array([], dtype=np.int32)
     jvec = np.array([], dtype=np.int32)
@@ -236,6 +236,6 @@ def _cell_del2(mesh):
 
     return csr_matrix((xvec, (ivec, jvec)))
 
-    
+
 if (__name__ == "__main__"):\
     main()
