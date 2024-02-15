@@ -242,11 +242,11 @@
 <span class="sd">    boundary.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">nCells</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span>
-    <span class="n">nEdges</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span>
+    <span class="n">nEdges</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span>
 
-    <span class="n">nRegions</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;nRegions&#39;</span><span class="p">]</span>
-    <span class="k">assert</span><span class="p">(</span><span class="n">mocMask</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">nCells</span><span class="p">)</span>
+    <span class="n">nRegions</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nRegions&#39;</span><span class="p">]</span>
+    <span class="k">assert</span><span class="p">(</span><span class="n">mocMask</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">nCells</span><span class="p">)</span>
 
     <span class="c1"># convert to python zero-based indices</span>
     <span class="n">cellsOnEdge</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;cellsOnEdge&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">-</span><span class="mi">1</span>
@@ -362,8 +362,8 @@
 
     <span class="n">nTransects</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">southernBoundaryEdges</span><span class="p">)</span>
 
-    <span class="n">nEdges</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span>
-    <span class="n">nVertices</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;nVertices&#39;</span><span class="p">]</span>
+    <span class="n">nEdges</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span>
+    <span class="n">nVertices</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertices&#39;</span><span class="p">]</span>
 
     <span class="n">maxEdgesInTransect</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">amax</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">southernBoundaryEdges</span><span class="p">[</span><span class="n">iTransect</span><span class="p">])</span>
                                      <span class="k">for</span> <span class="n">iTransect</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nTransects</span><span class="p">)])</span>
