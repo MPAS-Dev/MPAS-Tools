@@ -4,7 +4,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>mpas_tools.translate.center &mdash; mpas_tools stable documentation</title>
+  <title>mpas_tools.mesh.cull.write_map_culled_to_base &mdash; mpas_tools stable documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=19f00094" />
 
@@ -19,8 +19,8 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.translate.center_on_mesh" href="mpas_tools.translate.center_on_mesh.html" />
-    <link rel="prev" title="mpas_tools.translate.translate" href="mpas_tools.translate.translate.html" /> 
+    <link rel="next" title="mpas_tools.mesh.cull.map_culled_to_base" href="mpas_tools.mesh.cull.map_culled_to_base.html" />
+    <link rel="prev" title="mpas_tools.mesh.conversion.mask" href="mpas_tools.mesh.conversion.mask.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -86,7 +86,7 @@
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.convert.html">mpas_tools.mesh.conversion.convert</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.cull.html">mpas_tools.mesh.conversion.cull</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.conversion.mask.html">mpas_tools.mesh.conversion.mask</a></li>
-<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.cull.write_map_culled_to_base.html">mpas_tools.mesh.cull.write_map_culled_to_base</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.mesh.cull.write_map_culled_to_base</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.cull.map_culled_to_base.html">mpas_tools.mesh.cull.map_culled_to_base</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.cull.write_culled_dataset.html">mpas_tools.mesh.cull.write_culled_dataset</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.cull.cull_dataset.html">mpas_tools.mesh.cull.cull_dataset</a></li>
@@ -97,7 +97,7 @@
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.translate.html">mpas_tools.translate.translate</a></li>
-<li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.translate.center</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center.html">mpas_tools.translate.center</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.center_on_mesh.html">mpas_tools.translate.center_on_mesh</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.scrip.from_mpas.scrip_from_mpas.html">mpas_tools.scrip.from_mpas.scrip_from_mpas</a></li>
 </ul>
@@ -144,9 +144,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
-      <li class="breadcrumb-item active">mpas_tools.translate.center</li>
+      <li class="breadcrumb-item active">mpas_tools.mesh.cull.write_map_culled_to_base</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/generated/mpas_tools.translate.center.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/generated/mpas_tools.mesh.cull.write_map_culled_to_base.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -154,16 +154,26 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="mpas-tools-translate-center">
-<h1>mpas_tools.translate.center<a class="headerlink" href="#mpas-tools-translate-center" title="Link to this heading">¶</a></h1>
+  <section id="mpas-tools-mesh-cull-write-map-culled-to-base">
+<h1>mpas_tools.mesh.cull.write_map_culled_to_base<a class="headerlink" href="#mpas-tools-mesh-cull-write-map-culled-to-base" title="Link to this heading">¶</a></h1>
 <dl class="py function">
-<dt class="sig sig-object py" id="mpas_tools.translate.center">
-<span class="sig-prename descclassname"><span class="pre">mpas_tools.translate.</span></span><span class="sig-name descname"><span class="pre">center</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mesh</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/translate.html#center"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.translate.center" title="Link to this definition">¶</a></dt>
-<dd><p>Translates the coordinate system of the planar MPAS mesh by shifting the
-origin to the center of the domain</p>
+<dt class="sig sig-object py" id="mpas_tools.mesh.cull.write_map_culled_to_base">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.cull.</span></span><span class="sig-name descname"><span class="pre">write_map_culled_to_base</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base_mesh_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">culled_mesh_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/cull.html#write_map_culled_to_base"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.cull.write_map_culled_to_base" title="Link to this definition">¶</a></dt>
+<dd><p>Write out a file with maps from cells, edges and vertices on a culled mesh
+to the same elements on a base mesh.  All elements in the culled mesh must
+be in the base mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>mesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2024.2.1.dev0)"><em>xarray.Dataset</em></a>) – A planar mesh to translate</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>base_mesh_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – A file with the horizontal MPAS mesh before culling</p></li>
+<li><p><strong>culled_mesh_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – A file with the culled horizonal MPAS mesh</p></li>
+<li><p><strong>out_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><em>str</em></a>) – A file to which the maps should be written.  The dataset will include
+<code class="docutils literal notranslate"><span class="pre">mapCulledToBaseCell</span></code>, <code class="docutils literal notranslate"><span class="pre">mapCulledToBaseEdge</span></code> and
+<code class="docutils literal notranslate"><span class="pre">mapCulledToBaseVertex</span></code>, each of which contains the base mesh index
+corresponding to the same element from the culled mesh.</p></li>
+<li><p><strong>workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.12)"><em>int</em></a><em>, </em><em>optional</em>) – The number of threads to use to query base mesh elements. The default
+is all available threads (<code class="docutils literal notranslate"><span class="pre">workers=-1</span></code>)</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -174,8 +184,8 @@ origin to the center of the domain</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="mpas_tools.translate.translate.html" class="btn btn-neutral float-left" title="mpas_tools.translate.translate" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mpas_tools.translate.center_on_mesh.html" class="btn btn-neutral float-right" title="mpas_tools.translate.center_on_mesh" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mpas_tools.mesh.conversion.mask.html" class="btn btn-neutral float-left" title="mpas_tools.mesh.conversion.mask" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.mesh.cull.map_culled_to_base.html" class="btn btn-neutral float-right" title="mpas_tools.mesh.cull.map_culled_to_base" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

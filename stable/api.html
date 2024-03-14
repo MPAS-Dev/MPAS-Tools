@@ -105,6 +105,10 @@
 <li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.conversion.convert.html">mpas_tools.mesh.conversion.convert</a></li>
 <li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.conversion.cull.html">mpas_tools.mesh.conversion.cull</a></li>
 <li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.conversion.mask.html">mpas_tools.mesh.conversion.mask</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.cull.write_map_culled_to_base.html">mpas_tools.mesh.cull.write_map_culled_to_base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.cull.map_culled_to_base.html">mpas_tools.mesh.cull.map_culled_to_base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.cull.write_culled_dataset.html">mpas_tools.mesh.cull.write_culled_dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.cull.cull_dataset.html">mpas_tools.mesh.cull.cull_dataset</a></li>
 <li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html">mpas_tools.mesh.mask.compute_mpas_region_masks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html">mpas_tools.mesh.mask.compute_mpas_transect_masks</a></li>
 <li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html">mpas_tools.mesh.mask.compute_mpas_flood_fill_mask</a></li>
@@ -369,6 +373,22 @@ the documentation.</p>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask" title="mpas_tools.mesh.conversion.mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask</span></code></a>(dsMesh[, fcMask, logger, dir, cores])</p></td>
 <td><p>Use <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code> to create a set of region masks either from mask feature collections</p></td>
+</tr>
+</tbody>
+</table>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.cull.write_map_culled_to_base.html#mpas_tools.mesh.cull.write_map_culled_to_base" title="mpas_tools.mesh.cull.write_map_culled_to_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_map_culled_to_base</span></code></a>(base_mesh_filename, ...)</p></td>
+<td><p>Write out a file with maps from cells, edges and vertices on a culled mesh to the same elements on a base mesh.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.cull.map_culled_to_base.html#mpas_tools.mesh.cull.map_culled_to_base" title="mpas_tools.mesh.cull.map_culled_to_base"><code class="xref py py-obj docutils literal notranslate"><span class="pre">map_culled_to_base</span></code></a>(ds_base, ds_culled[, workers])</p></td>
+<td><p>Create maps from cells, edges and vertices on a culled mesh to the same elements on a base mesh.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.cull.write_culled_dataset.html#mpas_tools.mesh.cull.write_culled_dataset" title="mpas_tools.mesh.cull.write_culled_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_culled_dataset</span></code></a>(in_filename, ...[, ...])</p></td>
+<td><p>Create a new dataset in which all fields from <code class="docutils literal notranslate"><span class="pre">ds</span></code> have been culled from the base mesh to the culled mesh.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.cull.cull_dataset.html#mpas_tools.mesh.cull.cull_dataset" title="mpas_tools.mesh.cull.cull_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cull_dataset</span></code></a>(ds, ds_base_mesh, ds_culled_mesh)</p></td>
+<td><p>Create a new dataset in which all fields from <code class="docutils literal notranslate"><span class="pre">ds</span></code> have been culled from the base mesh to the culled mesh.</p></td>
 </tr>
 </tbody>
 </table>

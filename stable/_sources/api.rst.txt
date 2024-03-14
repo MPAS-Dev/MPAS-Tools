@@ -53,6 +53,16 @@ Mesh conversion
    cull
    mask
 
+.. currentmodule:: mpas_tools.mesh.cull
+
+.. autosummary::
+   :toctree: generated/
+
+   write_map_culled_to_base
+   map_culled_to_base
+   write_culled_dataset
+   cull_dataset
+
 .. currentmodule:: mpas_tools.mesh.mask
 
 .. autosummary::

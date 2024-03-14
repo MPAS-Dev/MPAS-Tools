@@ -59,6 +59,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#computing-lon-lat-region-masks">Computing Lon/Lat Region Masks</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#culling-mpas-datasets">Culling MPAS Datasets</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#merging-and-splitting">Merging and Splitting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#translation">Translation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#converting-between-mesh-formats">Converting Between Mesh Formats</a><ul>
@@ -570,6 +571,73 @@ optional arguments:
 </pre></div>
 </div>
 </section>
+</section>
+<section id="culling-mpas-datasets">
+<span id="cull-mpas-dataset"></span><h2>Culling MPAS Datasets<a class="headerlink" href="#culling-mpas-datasets" title="Link to this heading">¶</a></h2>
+<p>The tools described in <a class="reference internal" href="#cell-culler"><span class="std std-ref">Cell Culler</span></a> can be used to create a culled
+horizontal MPAS mesh.  Once a culled MPAS mesh has been created, an MPAS
+dataset on the unculled mesh can be cropped to the culled mesh using the
+the <a class="reference internal" href="generated/mpas_tools.mesh.cull.cull_dataset.html#mpas_tools.mesh.cull.cull_dataset" title="mpas_tools.mesh.cull.cull_dataset"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.cull.cull_dataset()</span></code></a> or
+<a class="reference internal" href="generated/mpas_tools.mesh.cull.write_culled_dataset.html#mpas_tools.mesh.cull.write_culled_dataset" title="mpas_tools.mesh.cull.write_culled_dataset"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.cull.write_culled_dataset()</span></code></a> functions.  These
+functions take a dataset (or filename) to crop as well as datasets (or
+filenames) for the unculled and culled horizontal MPAS meshes.  They return
+(or write out) the culled version of the data set.  Fields that exist in
+the culled horizonal mesh are copied from the culled mesh, rather than cropped
+from the dataset.  This because we wish to keep the cropped horizontal mesh
+exactly as it was produced by the culling tool, which may not correspond to
+a cropped version of the field from the original mesh.  For example, fields
+are reindexed during culling and coordinates are recomputed.</p>
+<p>It may be useful to compute and store the maps from cells, edges and vertices
+on the culled mesh back to the unculled mesh for reuse.  This can be
+accomplished by calling the <a class="reference internal" href="generated/mpas_tools.mesh.cull.map_culled_to_base.html#mpas_tools.mesh.cull.map_culled_to_base" title="mpas_tools.mesh.cull.map_culled_to_base"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.cull.map_culled_to_base()</span></code></a>
+or <a class="reference internal" href="generated/mpas_tools.mesh.cull.write_map_culled_to_base.html#mpas_tools.mesh.cull.write_map_culled_to_base" title="mpas_tools.mesh.cull.write_map_culled_to_base"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.cull.write_map_culled_to_base()</span></code></a> functions.</p>
+<p>An example workflow that culls out ice-shelf cavities from an MPAS-Ocean
+initial condition might look like the following.  In this case the file
+<code class="docutils literal notranslate"><span class="pre">culled_mesh.nc</span></code> is a mesh where land (and the grounded portion of the
+ice sheet) has been removed but where ice-shelf cavities are still present.
+It serves as the “base” mesh for the purposes of this example.
+<code class="docutils literal notranslate"><span class="pre">culled_mesh_no_isc.nc</span></code> is created (if it doesn’t already exist) with the
+ice-shelf cavities removed as well, so it is the “culled” mesh in this example.
+We store the mapping betwen the two horizontal meshes in
+<code class="docutils literal notranslate"><span class="pre">no_isc_to_culled_map.nc</span></code> in case we want to resue it later.  The initial
+condition is read from <code class="docutils literal notranslate"><span class="pre">initial_state.nc</span></code> and the culled version is written
+to <code class="docutils literal notranslate"><span class="pre">initial_state_no_isc.nc</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+
+<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.conversion</span> <span class="kn">import</span> <span class="n">cull</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.cull</span> <span class="kn">import</span> <span class="n">write_map_culled_to_base</span><span class="p">,</span> <span class="n">write_culled_dataset</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.logging</span> <span class="kn">import</span> <span class="n">LoggingContext</span>
+
+
+<span class="n">in_filename</span> <span class="o">=</span> <span class="s1">&#39;initial_state.nc&#39;</span>
+<span class="n">out_filename</span> <span class="o">=</span> <span class="s1">&#39;initial_state_no_isc.nc&#39;</span>
+<span class="n">base_mesh_filename</span> <span class="o">=</span> <span class="s1">&#39;culled_mesh.nc&#39;</span>
+<span class="n">culled_mesh_filename</span> <span class="o">=</span> <span class="s1">&#39;culled_mesh_no_isc.nc&#39;</span>
+<span class="n">map_filename</span> <span class="o">=</span> <span class="s1">&#39;no_isc_to_culled_map.nc&#39;</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">culled_mesh_filename</span><span class="p">):</span>
+    <span class="n">ds_culled_mesh</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">base_mesh_filename</span><span class="p">)</span>
+    <span class="n">ds_init</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">in_filename</span><span class="p">)</span>
+    <span class="n">ds_culled_mesh</span><span class="p">[</span><span class="s1">&#39;cullCell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ds_init</span><span class="o">.</span><span class="n">landIceMask</span>
+    <span class="n">ds_culled_mesh_no_isc</span> <span class="o">=</span> <span class="n">cull</span><span class="p">(</span><span class="n">ds_culled_mesh</span><span class="p">)</span>
+    <span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds_culled_mesh_no_isc</span><span class="p">,</span> <span class="n">culled_mesh_filename</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">map_filename</span><span class="p">):</span>
+    <span class="n">write_map_culled_to_base</span><span class="p">(</span><span class="n">base_mesh_filename</span><span class="o">=</span><span class="n">base_mesh_filename</span><span class="p">,</span>
+                             <span class="n">culled_mesh_filename</span><span class="o">=</span><span class="n">culled_mesh_filename</span><span class="p">,</span>
+                             <span class="n">out_filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
+    <span class="n">write_culled_dataset</span><span class="p">(</span><span class="n">in_filename</span><span class="o">=</span><span class="n">in_filename</span><span class="p">,</span> <span class="n">out_filename</span><span class="o">=</span><span class="n">out_filename</span><span class="p">,</span>
+                         <span class="n">base_mesh_filename</span><span class="o">=</span><span class="n">base_mesh_filename</span><span class="p">,</span>
+                         <span class="n">culled_mesh_filename</span><span class="o">=</span><span class="n">culled_mesh_filename</span><span class="p">,</span>
+                         <span class="n">map_culled_to_base_filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">,</span>
+                         <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+</pre></div>
+</div>
 </section>
 <section id="merging-and-splitting">
 <span id="merge-split"></span><h2>Merging and Splitting<a class="headerlink" href="#merging-and-splitting" title="Link to this heading">¶</a></h2>
