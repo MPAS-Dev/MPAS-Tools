@@ -1,0 +1,31 @@
+﻿mpas\_tools.mesh.creation.signed\_distance
+==========================================
+
+.. automodule:: mpas_tools.mesh.creation.signed_distance
+
+   
+   
+   
+
+   
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      distance_from_geojson
+      mask_from_geojson
+      signed_distance_from_geojson
+   
+   
+
+   
+   
+   
+
+   
+   
+   
+
+
+
