@@ -31,6 +31,11 @@ projections['gis-gimp'] = '+proj=stere +lat_ts=70.0 +lat_0=90 +lon_0=315.0 +k_0=
 # BEDMAP2 projection
 projections['ais-bedmap2'] = '+proj=stere +lat_ts=-71.0 +lat_0=-90 +lon_0=0.0 +k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84'  # Note: BEDMAP2 elevations use EIGEN-GL04C geoid
 
+# BEDMAP2 projection of sphere. This projection must be used to adjust MALI mesh when performing 
+# coupled MALI-SeaLevelModel simulations. Otherwise, ice mass won't be conserved between the MALI planar mesh and
+# the spherical sea-level model grid during the post-processing (output analysis) step.
+projections['ais-bedmap2-sphere'] = '+proj=stere +lat_ts=-71.0 +lat_0=-90 +lon_0=0.0 +k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=sphere'
+
 # Standard Lat/Long
 projections['latlon'] = '+proj=longlat +ellps=WGS84'
 # ===================================
