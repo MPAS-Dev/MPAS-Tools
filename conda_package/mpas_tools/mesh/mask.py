@@ -387,7 +387,8 @@ def entry_point_compute_mpas_transect_masks():
                  engine=args.engine)
 
 
-def compute_mpas_flood_fill_mask(dsMesh, fcSeed, logger=None, workers=-1):
+def compute_mpas_flood_fill_mask(dsMesh, fcSeed, daGrow=None, logger=None,
+                                 workers=-1):
     """
     Flood fill from the given set of seed points to create a contiguous mask.
     The flood fill operates using cellsOnCell, starting from the cells
@@ -400,6 +401,11 @@ def compute_mpas_flood_fill_mask(dsMesh, fcSeed, logger=None, workers=-1):
 
     fcSeed : geometric_features.FeatureCollection
         A feature collection containing points at which to start the flood fill
+
+    daGrow : xarray.DataArray, optional
+        A data array of size ``nCells`` with a mask that is 1 anywhere the
+        flood fill is allowed to grow.  The default is that the mask is all
+        ones.
 
     logger : logging.Logger, optional
         A logger for the output if not stdout
@@ -426,17 +432,22 @@ def compute_mpas_flood_fill_mask(dsMesh, fcSeed, logger=None, workers=-1):
     if logger is not None:
         logger.info('  Computing flood fill mask on cells:')
 
-    mask = _compute_seed_mask(fcSeed, lon, lat, workers)
+    seedMask = _compute_seed_mask(fcSeed, lon, lat, workers)
 
     cellsOnCell = dsMesh.cellsOnCell.values - 1
 
-    mask = _flood_fill_mask(mask, cellsOnCell)
+    if daGrow is not None:
+        growMask = daGrow.values
+    else:
+        growMask = numpy.ones(dsMesh.sizes['nCells'])
+
+    seedMask = _flood_fill_mask(seedMask, growMask, cellsOnCell)
 
     if logger is not None:
         logger.info('  Adding masks to dataset...')
     # create a new data array for the mask
     masksVarName = 'cellSeedMask'
-    dsMasks[masksVarName] = (('nCells',), numpy.array(mask, dtype=int))
+    dsMasks[masksVarName] = (('nCells',), numpy.array(seedMask, dtype=int))
 
     if logger is not None:
         logger.info('  Done.')
@@ -1183,7 +1194,7 @@ def _compute_seed_mask(fcSeed, lon, lat, workers):
     return mask
 
 
-def _flood_fill_mask(mask, cellsOnCell):
+def _flood_fill_mask(seedMask, growMask, cellsOnCell):
     """
     Flood fill starting with a mask of seed points
     """
@@ -1191,22 +1202,23 @@ def _flood_fill_mask(mask, cellsOnCell):
     maxNeighbors = cellsOnCell.shape[1]
 
     while True:
-        neighbors = cellsOnCell[mask == 1, :]
+        neighbors = cellsOnCell[seedMask == 1, :]
         maskCount = 0
         for iNeighbor in range(maxNeighbors):
             indices = neighbors[:, iNeighbor]
-            # we only want to mask valid neighbors and locations that aren't
-            # already masked
+            # we only want to mask valid neighbors, locations that aren't
+            # already masked, and locations that we're allowed to flood
             indices = indices[indices >= 0]
-            localMask = mask[indices] == 0
+            localMask = numpy.logical_and(seedMask[indices] == 0,
+                                          growMask[indices] == 1)
             maskCount += numpy.count_nonzero(localMask)
             indices = indices[localMask]
-            mask[indices] = 1
+            seedMask[indices] = 1
 
         if maskCount == 0:
             break
 
-    return mask
+    return seedMask
 
 
 def _compute_edge_sign(dsMesh, edgeMask, shape):
