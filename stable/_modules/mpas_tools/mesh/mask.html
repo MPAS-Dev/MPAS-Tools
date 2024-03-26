@@ -510,7 +510,8 @@
 
 <div class="viewcode-block" id="compute_mpas_flood_fill_mask">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_mpas_flood_fill_mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcSeed</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">compute_mpas_flood_fill_mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcSeed</span><span class="p">,</span> <span class="n">daGrow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                 <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Flood fill from the given set of seed points to create a contiguous mask.</span>
 <span class="sd">    The flood fill operates using cellsOnCell, starting from the cells</span>
@@ -523,6 +524,11 @@
 
 <span class="sd">    fcSeed : geometric_features.FeatureCollection</span>
 <span class="sd">        A feature collection containing points at which to start the flood fill</span>
+
+<span class="sd">    daGrow : xarray.DataArray, optional</span>
+<span class="sd">        A data array of size ``nCells`` with a mask that is 1 anywhere the</span>
+<span class="sd">        flood fill is allowed to grow.  The default is that the mask is all</span>
+<span class="sd">        ones.</span>
 
 <span class="sd">    logger : logging.Logger, optional</span>
 <span class="sd">        A logger for the output if not stdout</span>
@@ -549,17 +555,22 @@
     <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Computing flood fill mask on cells:&#39;</span><span class="p">)</span>
 
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">_compute_seed_mask</span><span class="p">(</span><span class="n">fcSeed</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">workers</span><span class="p">)</span>
+    <span class="n">seedMask</span> <span class="o">=</span> <span class="n">_compute_seed_mask</span><span class="p">(</span><span class="n">fcSeed</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">workers</span><span class="p">)</span>
 
     <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">cellsOnCell</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
 
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">_flood_fill_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">cellsOnCell</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">daGrow</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">growMask</span> <span class="o">=</span> <span class="n">daGrow</span><span class="o">.</span><span class="n">values</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">growMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">dsMesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">])</span>
+
+    <span class="n">seedMask</span> <span class="o">=</span> <span class="n">_flood_fill_mask</span><span class="p">(</span><span class="n">seedMask</span><span class="p">,</span> <span class="n">growMask</span><span class="p">,</span> <span class="n">cellsOnCell</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Adding masks to dataset...&#39;</span><span class="p">)</span>
     <span class="c1"># create a new data array for the mask</span>
     <span class="n">masksVarName</span> <span class="o">=</span> <span class="s1">&#39;cellSeedMask&#39;</span>
-    <span class="n">dsMasks</span><span class="p">[</span><span class="n">masksVarName</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nCells&#39;</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
+    <span class="n">dsMasks</span><span class="p">[</span><span class="n">masksVarName</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nCells&#39;</span><span class="p">,),</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">seedMask</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Done.&#39;</span><span class="p">)</span>
@@ -1310,7 +1321,7 @@
     <span class="k">return</span> <span class="n">mask</span>
 
 
-<span class="k">def</span> <span class="nf">_flood_fill_mask</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">cellsOnCell</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_flood_fill_mask</span><span class="p">(</span><span class="n">seedMask</span><span class="p">,</span> <span class="n">growMask</span><span class="p">,</span> <span class="n">cellsOnCell</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Flood fill starting with a mask of seed points</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1318,22 +1329,23 @@
     <span class="n">maxNeighbors</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">neighbors</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="p">[</span><span class="n">mask</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">neighbors</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="p">[</span><span class="n">seedMask</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
         <span class="n">maskCount</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">iNeighbor</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxNeighbors</span><span class="p">):</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="n">neighbors</span><span class="p">[:,</span> <span class="n">iNeighbor</span><span class="p">]</span>
-            <span class="c1"># we only want to mask valid neighbors and locations that aren&#39;t</span>
-            <span class="c1"># already masked</span>
+            <span class="c1"># we only want to mask valid neighbors, locations that aren&#39;t</span>
+            <span class="c1"># already masked, and locations that we&#39;re allowed to flood</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="n">indices</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
-            <span class="n">localMask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span>
+            <span class="n">localMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">seedMask</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+                                          <span class="n">growMask</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
             <span class="n">maskCount</span> <span class="o">+=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">localMask</span><span class="p">)</span>
             <span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="n">localMask</span><span class="p">]</span>
-            <span class="n">mask</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">seedMask</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
         <span class="k">if</span> <span class="n">maskCount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">break</span>
 
-    <span class="k">return</span> <span class="n">mask</span>
+    <span class="k">return</span> <span class="n">seedMask</span>
 
 
 <span class="k">def</span> <span class="nf">_compute_edge_sign</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">edgeMask</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>

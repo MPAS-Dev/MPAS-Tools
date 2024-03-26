@@ -495,10 +495,13 @@ optional arguments:
 <h3>Computing a Flood-fill Mask<a class="headerlink" href="#computing-a-flood-fill-mask" title="Link to this heading">¶</a></h3>
 <p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask" title="mpas_tools.mesh.mask.compute_mpas_flood_fill_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_flood_fill_mask()</span></code></a>
 and the command-line tool <code class="docutils literal notranslate"><span class="pre">compute_mpas_flood_fill_mask</span></code>
-fill in a mask, starting with the ocean points closest to the seed points
+fill in a mask, starting with the cell centers closest to the seed points
 given in <a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.3.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">geometric_features.FeatureCollection</span></code></a> <code class="docutils literal notranslate"><span class="pre">fcSeed</span></code>.  This
 algorithm runs in serial, and will be more efficient the more seed points
-are provided and the more widely scattered over the ocean they are.</p>
+are provided and the more widely scattered over the mesh they are.</p>
+<p>An optional <code class="docutils literal notranslate"><span class="pre">daGrow</span></code> argument to the function (not currently available from
+the command-line tool) provides a mask into which the flood fill is allowed to
+grow.  The default is all ones.</p>
 <p>The resulting dataset contains a single variable:</p>
 <blockquote>
 <div><ul class="simple">
