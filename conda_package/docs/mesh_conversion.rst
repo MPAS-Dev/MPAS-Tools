@@ -413,10 +413,14 @@ Computing a Flood-fill Mask
 
 The function :py:func:`mpas_tools.mesh.mask.compute_mpas_flood_fill_mask()`
 and the command-line tool ``compute_mpas_flood_fill_mask``
-fill in a mask, starting with the ocean points closest to the seed points
+fill in a mask, starting with the cell centers closest to the seed points
 given in :py:class:`geometric_features.FeatureCollection` ``fcSeed``.  This
 algorithm runs in serial, and will be more efficient the more seed points
-are provided and the more widely scattered over the ocean they are.
+are provided and the more widely scattered over the mesh they are.
+
+An optional ``daGrow`` argument to the function (not currently available from
+the command-line tool) provides a mask into which the flood fill is allowed to
+grow.  The default is all ones.
 
 The resulting dataset contains a single variable:
 
