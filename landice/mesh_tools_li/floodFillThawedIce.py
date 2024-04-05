@@ -1,0 +1,97 @@
+#!/usr/bin/env python
+
+import mpas_tools
+import numpy as np
+import xarray as xr
+from compass.landice.mesh import mpas_flood_fill
+from optparse import OptionParser
+import subprocess
+
+print("** Gathering information ...")
+parser = OptionParser()
+parser.add_option("-f", "--file", dest="file", metavar="FILE")
+options, args = parser.parse_args()
+
+f = xr.open_dataset(options.file, decode_times=False, decode_cf=False)
+groundedBasalMassBal = f['groundedBasalMassBal'][0,:]
+cellsOnCell= f['cellsOnCell'][:].data
+nEdgesOnCell = f['nEdgesOnCell'][:].data
+thickness = f['thickness'][0,:].data
+bedTopography = f['bedTopography'][0,:].data
+edgesOnCell = f['edgesOnCell'][:,:].data
+yEdge = f['yEdge'][:].data
+dims = f.dims
+nVertInterfaces = dims['nVertInterfaces']
+uReconstructX = f['uReconstructX'][0,:,nVertInterfaces].data
+uReconstructY = f['uReconstructY'][0,:,nVertInterfaces].data
+
+groundedMask = ((thickness*910/1028+bedTopography)>0.0)*(thickness>0.0)
+floatingMask = ((thickness*910/1028+bedTopography)<0.0)*(thickness>0.0)
+oceanMask = (thickness==0.0)*(bedTopography<0.0)
+landMask = (thickness==0.0)*(bedTopography>0.0)
+
+groundedMask = groundedMask.reshape((len(groundedMask),1))
+floatingMask = floatingMask.reshape(len(floatingMask),1)
+oceanMask = oceanMask.reshape(len(oceanMask),1)
+landMask = landMask.reshape(len(landMask),1)
+
+seedMask = np.zeros((len(nEdgesOnCell),1), 'float64')
+
+print("**Defining Seed and Grow Masks ...")
+ind = np.where(groundedMask==1)[0]
+for i in ind:
+    #identify grounded cells just inland of grounding line
+    for ii in range(nEdgesOnCell[i]):
+      # if ((groundedMask[cellsOnCell[i,ii]-1] == 0):
+       if ((floatingMask[cellsOnCell[i,ii]-1] == 1) | (oceanMask[cellsOnCell[i,ii]-1] == 1)):
+          seedMask[i] = 1
+
+#identify grounded, thawed ice
+basalSlidingSpeed = np.sqrt(uReconstructX**2 + uReconstructY**2) * 3.15e7 #convert to m/yr
+UbThresh = 25 #m/yr – change frozen ice to thawed ice if basalSlidingSpeed is above UbThresh
+
+growMask = (abs(groundedBasalMassBal) > 0.0)*(basalSlidingSpeed > UbThresh)
+growMask = growMask.expand_dims(dim='Time').T
+
+print("**Flood Filling ...")
+keepMask = mpas_flood_fill(seedMask, growMask, cellsOnCell, nEdgesOnCell)
+
+print("Defining waterFluxMask ...")
+
+#zero out ice thickness where frozen ice or no thawed ice in contact with grounding line
+thickness[keepMask!=1] = 0
+thickness = thickness.reshape(1,len(thickness))
+
+#create zero flux mask on edges of unactive domain
+waterFluxMask = np.zeros((len(yEdge),1),'int32')
+for i in range(len(yEdge)):
+    cell1 = cellsOnEdge[i,0]-1
+    cell2 = cellsOnEdge[i,1]-1
+    if ((keepMask[cell1] == 1 and keepMask[cell2] == 0 and groundMask[cell1] == 1 and groundMask[cell2] == 1) \
+        or (keepMask[cell2] == 1 and keepMask[cell1] == 0 and groundMask[cell1] and groundMask[cell2])):
+        waterFluxMask[i] = 2
+
+print("Saving ....")
+
+f = f.drop_vars(['thickness'])
+f = f.drop_vars(['xtime'])
+f = f.drop_vars(['simulationStartTime'])
+
+basalMeltInput = abs(groundedBasalMassBal)
+bmi = xr.DataArray(basalMeltInput.T.astype('int32'),dims=('Time','nEdges')
+f['basalMeltInput'] = bmi
+
+wfm = xr.DataArray(waterFluxMask.T.astype('int32'),dims=('Time','nEdges'))
+f['waterFluxMask'] = wfm
+
+thk = xr.DataArray(thickness.astype('float64'),dims=('Time','nCells'))
+f['thickness'] = thk
+
+#Remove fill values automatically added by xarray
+for varname in f.variables
+    if '_FillValue' in f.variables[varname].attrs
+        del f.variables.attrs['_FillValue']
+
+f.to_netcdf("finalMaskedFile.nc")
+f.close()
+
