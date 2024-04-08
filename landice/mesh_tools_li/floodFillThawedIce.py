@@ -10,6 +10,7 @@ import subprocess
 print("** Gathering information ...")
 parser = OptionParser()
 parser.add_option("-f", "--file", dest="file", metavar="FILE")
+parser.add_option("-u", "--UbThresh", dest="UbThresh", type="float", default=25, help="basal sliding threshold used to redefined frozen ice as thawed where sliding speed is above UbThresh (in m/yr)")
 options, args = parser.parse_args()
 
 f = xr.open_dataset(options.file, decode_times=False, decode_cf=False)
@@ -48,7 +49,6 @@ for i in ind:
 
 #identify grounded, thawed ice
 basalSlidingSpeed = np.sqrt(uReconstructX**2 + uReconstructY**2) * 3.15e7 #convert to m/yr
-UbThresh = 25 #m/yr – change frozen ice to thawed ice if basalSlidingSpeed is above UbThresh
 
 growMask = (abs(groundedBasalMassBal) > 0.0)*(basalSlidingSpeed > UbThresh)
 growMask = growMask.expand_dims(dim='Time').T
