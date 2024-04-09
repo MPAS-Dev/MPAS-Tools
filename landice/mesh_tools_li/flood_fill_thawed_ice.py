@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-Uses output from MALI's thermal solver to determine where regions of the bed are frozen or thawed and masks of frozen cells from the hydro domain.
+Uses output from MALI's thermal solver to determine where regions of the bed are frozen or thawed and masks off frozen cells from the hydro domain.
 Only thawed cells in hydraulic contact with the grounding line are incorporated into the hydro domain. All other cells are set to zero ice thickness
 and are surrounded by no-flow conditions with the waterFluxMask. An additional argument, "-u", will count any frozen ice as thawed if basal sliding speeds
 exceed a threshold value (default is 25 m/yr).
