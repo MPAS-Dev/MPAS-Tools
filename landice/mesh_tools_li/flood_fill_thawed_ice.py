@@ -20,13 +20,14 @@ options, args = parser.parse_args()
 
 f = xr.open_dataset(options.file, decode_times=False, decode_cf=False)
 groundedBasalMassBal = f['groundedBasalMassBal'][0,:].data
-cellsOnCell= f['cellsOnCell'][:].data
+cellsOnCell= f['cellsOnCell'][:,:].data
 nEdgesOnCell = f['nEdgesOnCell'][:].data
 thickness = f['thickness'][0,:].data
 bedTopography = f['bedTopography'][0,:].data
 edgesOnCell = f['edgesOnCell'][:,:].data
+cellsOnEdge = f['cellsOnEdge'][:,:].data
 yEdge = f['yEdge'][:].data
-nVertInterfaces = f.dims['nVertInterfaces']
+nVertInterfaces = f.sizes['nVertInterfaces']
 uReconstructX = f['uReconstructX'][0,:,nVertInterfaces-1].data
 uReconstructY = f['uReconstructY'][0,:,nVertInterfaces-1].data
 
@@ -54,7 +55,7 @@ for i in ind:
 basalSlidingSpeed = np.sqrt(uReconstructX**2 + uReconstructY**2) * 3.15e7 #convert to m/yr
 
 growMask = np.logical_or(groundedBasalMassBal < 0.0, basalSlidingSpeed > options.UbThresh)
-growMask = growMask.expand_dims(dim='Time').T
+growMask = growMask.reshape(len(growMask),1)
 
 print("**Flood Filling ...")
 keepMask = mpas_flood_fill(seedMask, growMask, cellsOnCell, nEdgesOnCell)
@@ -62,39 +63,46 @@ keepMask = mpas_flood_fill(seedMask, growMask, cellsOnCell, nEdgesOnCell)
 print("Defining waterFluxMask ...")
 
 #zero out ice thickness where frozen ice or no thawed ice in contact with grounding line
+thickness = thickness.reshape(len(thickness),1)
 thickness[keepMask!=1] = 0
-thickness = thickness.reshape(1,len(thickness))
 
 #create zero flux mask on edges of inactive domain
 waterFluxMask = np.zeros((len(yEdge),1),'int32')
 for i in range(len(yEdge)):
     cell1 = cellsOnEdge[i,0]-1
     cell2 = cellsOnEdge[i,1]-1
-    if ((keepMask[cell1] == 1 and keepMask[cell2] == 0 and groundMask[cell1] == 1 and groundMask[cell2] == 1) \
-        or (keepMask[cell2] == 1 and keepMask[cell1] == 0 and groundMask[cell1] == 1 and groundMask[cell2] == 1)):
+    if ((keepMask[cell1] == 1 and keepMask[cell2] == 0 and groundedMask[cell1] == 1 and groundedMask[cell2] == 1) \
+        or (keepMask[cell2] == 1 and keepMask[cell1] == 0 and groundedMask[cell1] == 1 and groundedMask[cell2] == 1)):
         waterFluxMask[i] = 2
 
 print("Saving ....")
+try:
+   f = f.drop_vars(['xtime'])
+finally:
+   print("No xtime variable to delete")
 
-f = f.drop_vars(['thickness'])
-f = f.drop_vars(['xtime'])
-f = f.drop_vars(['simulationStartTime'])
+try:
+   f = f.drop_vars(['simulationStartTime'])
+finally:
+   print("No simulationStartTime variable to delete")
+
+try:
+   f = f.drop_vars(['forcingTimeStamp'])
+finally:
+   ("No forcingTimeStamp variable to delete")
 
 basalMeltInput = -1.0 * np.minimum(0.0, groundedBasalMassBal)
-bmi = xr.DataArray(basalMeltInput.T.astype('int32'),dims=('Time','nCells'))
+basalMeltInput = basalMeltInput.reshape(len(basalMeltInput), 1)
+bmi = xr.DataArray(basalMeltInput.T.astype('float64'),dims=('Time','nCells'))
 f['basalMeltInput'] = bmi
 
 wfm = xr.DataArray(waterFluxMask.T.astype('int32'),dims=('Time','nEdges'))
 f['waterFluxMask'] = wfm
 
-thk = xr.DataArray(thickness.astype('float64'),dims=('Time','nCells'))
+thk = xr.DataArray(thickness.T.astype('float64'),dims=('Time','nCells'))
 f['thickness'] = thk
-
-#Remove fill values automatically added by xarray
-for varname in f.variables:
-    if '_FillValue' in f.variables[varname].attrs:
-        del f.variables.attrs['_FillValue']
 
 f.to_netcdf("finalMaskedFile.nc")
 f.close()
 
+subprocess.run(["ncatted", "-a", "_FillValue,,d,,", "finalMaskedFile.nc"])
