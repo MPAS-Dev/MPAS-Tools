@@ -53,7 +53,7 @@ cmake --build .
 cmake --install .
 
 # build and install WAVE MESH tools
-cd ${SRC_DIR}/conda_package/ocean/cull_wave_mesh
+cd ${SRC_DIR}/conda_package/ocean/wave_mesh_tools
 mkdir build
 cd build
 cmake \
