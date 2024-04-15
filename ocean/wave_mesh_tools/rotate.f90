@@ -81,7 +81,7 @@
 
       CALL write_gmsh_file(mesh_file_out,grid)
 
-      OPEN(UNIT=10,NAME='angled.d')
+      OPEN(UNIT=10,FILE='angled.d')
       DO i = 1,grid%nn
         WRITE(10,"(3(F12.6))") LON(i), LAT(i), ANGLED(i)
       ENDDO
