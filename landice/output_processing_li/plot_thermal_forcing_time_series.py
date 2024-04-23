@@ -17,11 +17,16 @@ from matplotlib.pyplot import cm
 
 
 parser = OptionParser(description='Plot transect from MPAS netCDF')
-parser.add_option("-f", "--file", dest="thermal_forcing_file",
+parser.add_option("-t", "--tf", dest="thermal_forcing_file",
                   help="List of MPAS netCDF files that contains the ismip6shelfMelt_3dThermalForcing" \
                        " field and zOcean variable. Comma-separated, no spaces.")
+parser.add_option("-s", "--smb", dest="smb_file",
+                  help="List of MPAS netCDF files that contains the sfcMassBal" \
+                       " field. Comma-separated, no spaces.")
 parser.add_option("-m", "--mesh", dest="mesh_file",
                   help="the MPAS netCDF file that contains the mesh variable, as well as thickness and bedTopography")
+parser.add_option("-r", "--regions", dest="regions_file", default=None,
+                  help="the MPAS netCDF file that contains the region masks")
 parser.add_option("--start_time", dest="start_time", default="0",
                   help="beginning of time range to plot")
 parser.add_option("--end_time", dest="end_time", default="-1",
@@ -40,6 +45,8 @@ parser.add_option('-d', dest='depth', default=None,
                         ' interpolation to determine the thermal forcing' \
                         ' at that depth. If two values are given, the script' \
                         ' will provide the average over that depth range.')
+parser.add_option('-n', dest='region_number', default=None,
+                  help='Region number to plot. If None, use entire domain.')
 parser.add_option("--seafloor", dest="plot_seafloor_thermal_forcing",
                   action="store_true",
                   help="plot thermal forcing at the seafloor, instead of at specific depth")
@@ -51,7 +58,7 @@ parser.add_option("--average", dest="plot_average_thermal_forcing",
                   ' thermal forcing across all coordinates provided.')
 parser.add_option("--n_samples", dest="n_samples", default=None,
                   help="Number of random samples to take from provided coordinates.")
-parser.add_option("-s", dest="save_filename", default=None,
+parser.add_option("--save", dest="save_filename", default=None,
                    help="File to save figure to.")
 
 options, args = parser.parse_args()
@@ -59,6 +66,8 @@ options, args = parser.parse_args()
 rhoi = 910.
 rhosw = 1028.
 start_year = 1995  # first year in TF forcings
+scyr = 60. * 60. * 24. * 365.
+forcing_interval_years = 1.
 
 times_list = [options.start_time, options.end_time]  # list of string times for plotting
 times = [int(i) for i in times_list]  # list of integer time indices
@@ -96,11 +105,21 @@ xCell = mesh.variables["xCell"][:]
 yCell = mesh.variables["yCell"][:]
 nCells = mesh.dimensions['nCells'].size
 areaCell = mesh.variables["areaCell"][:]
+ice_mask = thk[0, :] > 1.
 mesh.close()
 
-fig, ax = plt.subplots(1,1, layout='constrained')
+fig, ax = plt.subplots(1,2, sharex=True, layout='constrained')
 
-def interp_and_plot(tf_file, plot_ax):
+# Get region information, if desire
+if options.region_number is not None:
+    region_number = int(options.region_number)
+    regions = Dataset(options.regions_file, 'r')
+    regionCellMasks = regions.variables["regionCellMasks"][:, region_number]
+    # Update ice_mask to only include desired region
+    ice_mask = np.logical_and(ice_mask, regionCellMasks)
+    regions.close()
+
+def interp_and_plot_tf(tf_file, plot_ax):
     # Thermal forcing fields
     tf_data = Dataset(tf_file, 'r')
     tf_data.set_always_mask(False)
@@ -140,7 +159,10 @@ def interp_and_plot(tf_file, plot_ax):
         tf_depth.append(tf_tmp)
 
     if "UKESM" in tf_file:
-        plot_color = 'tab:blue'
+        if "SSP126" in tf_file:
+            plot_color = 'tab:green'
+        else:
+            plot_color = 'tab:blue'
     else:
         plot_color = 'tab:grey'
  
@@ -154,13 +176,60 @@ def interp_and_plot(tf_file, plot_ax):
     else:
         plot_ax.plot(plot_times + start_year, tf_depth, c=plot_color)
 
+
+def plot_smb(smb_file, plot_ax):
+    smb_data = Dataset(smb_file, 'r')
+    smb_data.set_always_mask(False)
+    smb = smb_data.variables["sfcMassBal"][:, ice_mask]
+    smb_tot = np.sum(smb * areaCell[ice_mask] * scyr / 1.e12, axis=1)  # Gt/yr
+
+    n_time_levs = smb_data.dimensions["Time"].size
+    smb_data.close()
+    if times[1] == -1:
+        times[1] = n_time_levs - 1
+    plot_times = np.arange(times[0], times[1], step=1)  # annual posting
+
+    # filter smb for plotting
+    filtered_smb = np.ones_like(smb_tot)
+    filtered_smb_std = np.ones_like(smb_tot) 
+    window_width_years = 10
+    for time in range(1, n_time_levs):
+        n_t = min(time, window_width_years)
+        filtered_smb[time] = np.mean(smb_tot[time-n_t:time])
+        filtered_smb_std[time] = np.std(smb_tot[time-n_t:time])
+
+    if "UKESM" in smb_file:
+        if "SSP126" in tf_file:
+            plot_color = 'tab:green'
+        else:
+            plot_color = 'tab:blue'
+    else:
+        plot_color = 'tab:grey'
+
+    plot_smb = filtered_smb[plot_times[0]:plot_times[-1]+1]
+    plot_smb_std = filtered_smb_std[plot_times[0]:plot_times[-1]+1]
+
+    plot_ax.plot(plot_times + start_year, plot_smb, c=plot_color)
+    plot_ax.fill_between(plot_times + start_year, plot_smb - plot_smb_std,
+                         plot_smb + plot_smb_std, fc=plot_color,
+                         alpha = 0.5)
+
+
 tf_files = [i for i in options.thermal_forcing_file.split(',')]
-for tf_file in tf_files:
+smb_files = [i for i in options.smb_file.split(',')]
+for tf_file, smb_file in zip(tf_files, smb_files):
     print(f"Plotting from {tf_file}")
-    interp_and_plot(tf_file, ax)
-ax.set_xlabel("Year")
-ax.set_ylabel("Thermal Forcing (°C)")
-ax.grid('on')
+    interp_and_plot_tf(tf_file, ax[0])
+    print(f"Plotting from {smb_file}")
+    plot_smb(smb_file, ax[1])
+
+ax[0].set_xlabel("Year")
+ax[0].set_ylabel("Thermal Forcing (°C)")
+ax[0].grid('on')
+ax[1].set_xlabel("Year")
+ax[1].set_ylabel("Total Surface Mass Balance (Gt/yr)")
+ax[1].grid('on')
 if options.save_filename is not None:
-    fig.savefig(options.save_filename, dpi=400, bbox_inches='tight')    
+    fig.savefig(options.save_filename, dpi=400, bbox_inches='tight')
+    fig.savefig(options.save_filename, format='pdf', bbox_inches='tight') 
 plt.show()
