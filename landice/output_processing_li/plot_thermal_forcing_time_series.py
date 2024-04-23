@@ -53,6 +53,9 @@ parser.add_option("--seafloor", dest="plot_seafloor_thermal_forcing",
 parser.add_option("--shelf_base", dest="plot_shelf_base_thermal_forcing",
                   action="store_true",
                   help="plot thermal forcing at the base of floating ice, instead of at specific depth")
+parser.add_option("--shelf_range", dest="plot_shelf_depth_range_thermal_forcing",
+                  action="store_true",
+                  help="plot average thermal forcing over the whole depth range spanned by the ice shelf base")
 parser.add_option("--average", dest="plot_average_thermal_forcing",
                   action="store_true", help='Whether to plot average' \
                   ' thermal forcing across all coordinates provided.')
@@ -148,6 +151,13 @@ def interp_and_plot_tf(tf_file, plot_ax):
     elif options.plot_shelf_base_thermal_forcing:
         # Assume this is floating ice
         depth = -1. * rhoi / rhosw * thk[0, nearest_cell]
+    elif options.plot_shelf_depth_range_thermal_forcing:
+        depth = np.zeros(2)
+        depth[0] = np.max( (-1. * rhoi / rhosw * thk[0, nearest_cell])
+                           [thk[0, nearest_cell] > 10.] )  # ignore very thin ice
+        depth[1] = np.min( (-1. * rhoi / rhosw * thk[0, nearest_cell])
+                           [thk[0, nearest_cell] > 10.] )
+        plot_depth_range = True
 
     # Clip depth to within the range of the TF data
     depth[depth > np.max(z)] = np.max(z)
