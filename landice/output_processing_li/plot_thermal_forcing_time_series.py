@@ -108,9 +108,9 @@ areaCell = mesh.variables["areaCell"][:]
 ice_mask = thk[0, :] > 1.
 mesh.close()
 
-fig, ax = plt.subplots(1,2, sharex=True, layout='constrained')
+fig, ax = plt.subplots(1,2, sharex=True, figsize=(8,3), layout='constrained')
 
-# Get region information, if desire
+# Get region information, if desired
 if options.region_number is not None:
     region_number = int(options.region_number)
     regions = Dataset(options.regions_file, 'r')
@@ -165,16 +165,23 @@ def interp_and_plot_tf(tf_file, plot_ax):
             plot_color = 'tab:blue'
     else:
         plot_color = 'tab:grey'
+
+    if "CESM" in tf_file:
+        linestyle = "dashed"
+    elif "CCSM" in tf_file:
+        linestyle = "dotted"
+    else:
+        linestyle = "solid"
  
     if options.plot_average_thermal_forcing:
         tf_avg = np.mean(tf_depth, axis=1)
         tf_std = np.std(tf_depth, axis=1)
-        plot_ax.plot(plot_times + start_year, tf_avg, c=plot_color)
+        plot_ax.plot(plot_times + start_year, tf_avg, c=plot_color, linestyle=linestyle)
         plot_ax.fill_between(plot_times + start_year, tf_avg - tf_std,
                              tf_avg + tf_std, fc=plot_color,
                              alpha = 0.5)
     else:
-        plot_ax.plot(plot_times + start_year, tf_depth, c=plot_color)
+        plot_ax.plot(plot_times + start_year, tf_depth, c=plot_color, linestyle=linestyle)
 
 
 def plot_smb(smb_file, plot_ax):
@@ -206,10 +213,17 @@ def plot_smb(smb_file, plot_ax):
     else:
         plot_color = 'tab:grey'
 
+    if "CESM" in smb_file:
+        linestyle = "dashed"
+    elif "CCSM" in smb_file:
+        linestyle = "dotted"
+    else:
+        linestyle = "solid"
+
     plot_smb = filtered_smb[plot_times[0]:plot_times[-1]+1]
     plot_smb_std = filtered_smb_std[plot_times[0]:plot_times[-1]+1]
 
-    plot_ax.plot(plot_times + start_year, plot_smb, c=plot_color)
+    plot_ax.plot(plot_times + start_year, plot_smb, c=plot_color, linestyle=linestyle)
     plot_ax.fill_between(plot_times + start_year, plot_smb - plot_smb_std,
                          plot_smb + plot_smb_std, fc=plot_color,
                          alpha = 0.5)
@@ -224,12 +238,12 @@ for tf_file, smb_file in zip(tf_files, smb_files):
     plot_smb(smb_file, ax[1])
 
 ax[0].set_xlabel("Year")
-ax[0].set_ylabel("Thermal Forcing (°C)")
+ax[0].set_ylabel("Thermal forcing (°C)")
 ax[0].grid('on')
 ax[1].set_xlabel("Year")
-ax[1].set_ylabel("Total Surface Mass Balance (Gt/yr)")
+ax[1].set_ylabel("Total surface mass balance (Gt yr$^{-1}$)")
 ax[1].grid('on')
 if options.save_filename is not None:
     fig.savefig(options.save_filename, dpi=400, bbox_inches='tight')
-    fig.savefig(options.save_filename, format='pdf', bbox_inches='tight') 
+    fig.savefig(options.save_filename + ".pdf", format='pdf', bbox_inches='tight') 
 plt.show()
