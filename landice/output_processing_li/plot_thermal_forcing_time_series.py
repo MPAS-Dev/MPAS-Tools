@@ -137,8 +137,12 @@ def interp_and_plot_tf(tf_file, plot_ax):
         nearest_cell.append(np.argmin( np.sqrt((xCell - x_i)**2. + (yCell - y_i)**2) ))
     
     # Find depth to seafloor or ice-shelf base
+    plot_depth_range = False
     if options.depth is not None:
-        depth = [float(i) for i in options.depth]
+        depth = np.array([float(i) for i in options.depth.split(',')])
+        if len(depth) == 2:
+           plot_depth_range = True
+
     if options.plot_seafloor_thermal_forcing:
         depth = bed[0, nearest_cell]
     elif options.plot_shelf_base_thermal_forcing:
@@ -150,13 +154,22 @@ def interp_and_plot_tf(tf_file, plot_ax):
     depth[depth < np.min(z)] = np.min(z)
     
     # Vertical interpolation of ocean forcing.
-    tf_depth = []
-    for time in plot_times:
-        tf_tmp = []
-        for cell, cell_depth in zip(nearest_cell, depth):
-            tf_interp = interp1d(z, tf[time, cell, :])
-            tf_tmp.append(tf_interp(cell_depth))
-        tf_depth.append(tf_tmp)
+    if plot_depth_range:
+        # We'll just use the nearest zOcean depths to the
+        # requested top and bottom depths for simplicity and speed
+        print(f"Averaging TF over the depth range {depth}")
+        top_depth_index = np.argmin(np.abs(z - np.max(depth)))
+        bottom_depth_index = np.argmin(np.abs(z - np.min(depth)))
+        tf_depth = np.mean(tf[plot_times[0]:plot_times[-1] + 1, :,
+                              top_depth_index:bottom_depth_index+1], axis=2)
+    else:
+        tf_depth = []
+        for time in plot_times:
+            tf_tmp = []
+            for cell, cell_depth in zip(nearest_cell, depth):
+                tf_interp = interp1d(z, tf[time, cell, :])
+                tf_tmp.append(tf_interp(cell_depth))
+            tf_depth.append(tf_tmp)
 
     if "UKESM" in tf_file:
         if "SSP126" in tf_file:
@@ -245,5 +258,5 @@ ax[1].set_ylabel("Total surface mass balance (Gt yr$^{-1}$)")
 ax[1].grid('on')
 if options.save_filename is not None:
     fig.savefig(options.save_filename, dpi=400, bbox_inches='tight')
-    fig.savefig(options.save_filename + ".pdf", format='pdf', bbox_inches='tight') 
+    fig.savefig(options.save_filename + ".pdf", format='pdf', bbox_inches='tight')
 plt.show()
