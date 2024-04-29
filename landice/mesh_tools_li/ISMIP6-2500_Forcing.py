@@ -8,12 +8,17 @@ from cftime import datetime
 from mpas_tools.io import write_netcdf
 
 def __xtime2cftime(xtime_str, format="%Y-%m-%d_%H:%M:%S"): 
-    
+    """Convert a single xtime value to a cftime datetime object
+    """
+
     stripped_str = xtime_str.tobytes().decode("utf-8").strip().strip('\x00')
     
     return datetime.strptime(stripped_str, format)
     
 def parse_xtime(ds): 
+    """Parse `xtime` vaules to cftime datetimes and create new coordinate
+       from parsed values, named `Time`
+    """
 
     times = list(map(__xtime2cftime, ds.xtime.values))
     
@@ -22,12 +27,12 @@ def parse_xtime(ds):
     return ds.assign_coords({"Time":time_da})
 
 def generate_samples(ds, sampling_start, sampling_end, rng, repeat_period=200):
+    """Generate array of sample indices from `Time` dimension of `ds`
     """
-    """
-    #  
+
     sampling_period = sampling_end - sampling_start
 
-    # 0 index OK, or should it be min? Dim has to be sorted...
+    # 0 index assumes `Time` coordinate is sorted
     forcing_start = int(ds.Time.dt.year[0])
     
     # get the offset for the indexes
@@ -38,7 +43,9 @@ def generate_samples(ds, sampling_start, sampling_end, rng, repeat_period=200):
     return samples
 
 def extend_forcing(src_ds, sample_idxs): 
-
+    """Create new "extended" dataset using the `sample_idxs`
+    """
+    
     # create new time index based on hardcoded (for now) input start and 
     # end years with an calendar occurance on the first of every year
     time_da = xr.cftime_range("2300-01-01", "2500-01-01",
@@ -65,15 +72,22 @@ def extend_forcing(src_ds, sample_idxs):
 
 
 def cli_parser(argv): 
-
+    """Command line interfacr parser
+    """
     parser = argparse.ArgumentParser(prog='ISMIP6 2500 Extensions')
 
-    parser.add_argument('-i', '--input', type=str)
-    parser.add_argument('-o', '--output_filename', type=str)
-    parser.add_argument('-s', '--seed', type=int, default=4727)
-    parser.add_argument('--sampling_start', type=int, default=2270)
-    parser.add_argument('--sampling_end', type=int, default=2300)
-    parser.add_argument('--repeat_period', type=int, default=200)
+    parser.add_argument('-i', '--input', type=str,
+                        help="input forcing to sample from")
+    parser.add_argument('-o', '--output_filename', type=str,
+                        help="output filename of extended forcing")
+    parser.add_argument('-s', '--seed', type=int, default=4727,
+                        help="seed for random number generator")
+    parser.add_argument('--sampling_start', type=int, default=2270,
+                        help="start of sampling window in reference dataset")
+    parser.add_argument('--sampling_end', type=int, default=2300,
+                        help="end of sampling window in reference dataset")
+    parser.add_argument('--repeat_period', type=int, default=200,
+                        help="length of extended forcing window")
     
     args, _ = parser.parse_known_args(argv)
     
@@ -89,15 +103,21 @@ def cli_parser(argv):
 
 if __name__ == "__main__": 
     
+    # parse the command line arguments
     input_fp, output_fp, seed, start, end, period = cli_parser(sys.argv[1:]) 
-
+    
+    # open the reference dataset and parse the xtime variable
     ref_forcing = xr.open_dataset(input_fp)
     ref_forcing = parse_xtime(ref_forcing)
-
+    
+    # initialize the random number generator and create sample index array
     rng = np.random.default_rng(seed)
     sample_idxs = generate_samples(ref_forcing, start, end, rng, period)
+    
+    # find the sample years from the sample indices
     sample_years = ref_forcing.isel(Time=sample_idxs).Time.dt.year.values
 
+    # generate the extended forcing file and write it to disk
     new_forcing = extend_forcing(ref_forcing, sample_idxs)
     write_netcdf(new_forcing, output_fp)
 
