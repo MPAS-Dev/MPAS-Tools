@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.ocean.coastal_tools &mdash; mpas_tools 0.34.0rc1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/documentation_options.js?v=415b2b9a"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+              <div class="version">
+                0.34.0rc1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vector.html">Vector Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.coastal_tools</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.ocean.coastal_tools</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">name: coastal_tools</span>
+<span class="sd">authors: Steven Brus</span>
+
+<span class="sd">last modified: 07/09/2018</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
+    <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">skimage</span> <span class="kn">import</span> <span class="n">measure</span>
+<span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">KDTree</span>
+<span class="kn">from</span> <span class="nn">scipy.io</span> <span class="kn">import</span> <span class="n">savemat</span>
+<span class="kn">import</span> <span class="nn">timeit</span>
+<span class="kn">import</span> <span class="nn">cartopy.crs</span> <span class="k">as</span> <span class="nn">ccrs</span>
+<span class="kn">import</span> <span class="nn">cartopy.feature</span> <span class="k">as</span> <span class="nn">cfeature</span>
+<span class="kn">import</span> <span class="nn">mpas_tools.mesh.creation.mesh_definition_tools</span> <span class="k">as</span> <span class="nn">mdt</span>
+<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.util</span> <span class="kn">import</span> <span class="n">lonlat2xyz</span>
+
+<span class="c1"># Constants</span>
+<span class="n">km</span> <span class="o">=</span> <span class="mf">1000.0</span>
+<span class="n">deg2rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">180.0</span>
+<span class="n">rad2deg</span> <span class="o">=</span> <span class="mf">180.0</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+
+<span class="n">call_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1">##########################################################################</span>
+<span class="c1"># Bounding box declarations (for coastal refinements)</span>
+<span class="c1">##########################################################################</span>
+
+<span class="c1"># ---------------</span>
+<span class="c1"># Region boxes</span>
+<span class="c1"># ---------------</span>
+
+<span class="c1"># Bays and estuaries</span>
+<span class="n">Delaware_Bay</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">75.61903</span><span class="p">,</span> <span class="o">-</span><span class="mf">74.22</span><span class="p">,</span> <span class="mf">37.8</span><span class="p">,</span> <span class="mf">40.312747</span><span class="p">])],</span>
+                <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+<span class="n">Galveston_Bay</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">95.45</span><span class="p">,</span> <span class="o">-</span><span class="mf">94.4</span><span class="p">,</span> <span class="mi">29</span><span class="p">,</span> <span class="mi">30</span><span class="p">])],</span>
+                 <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="c1"># Regions</span>
+<span class="n">Delaware_Region</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">77</span><span class="p">,</span> <span class="o">-</span><span class="mf">69.8</span><span class="p">,</span> <span class="mf">35.5</span><span class="p">,</span> <span class="mi">41</span><span class="p">])],</span>
+                   <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="c1"># Coastlines</span>
+<span class="n">US_East_Coast</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">81.7</span><span class="p">,</span> <span class="o">-</span><span class="mf">62.3</span><span class="p">,</span> <span class="mf">25.1</span><span class="p">,</span> <span class="mf">44.50</span><span class="p">])],</span>  <span class="c1"># East FL to Bay of Fundy</span>
+                 <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">66.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">64.0</span><span class="p">,</span> <span class="mf">31.5</span><span class="p">,</span> <span class="mf">33.0</span><span class="p">]),</span>    <span class="c1"># Bermuda</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">79.75</span><span class="p">,</span> <span class="o">-</span><span class="mf">70.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">,</span> <span class="mf">28.5</span><span class="p">]),</span>   <span class="c1"># Bahamas</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">65.15</span><span class="p">,</span> <span class="o">-</span><span class="mf">62.43</span><span class="p">,</span> <span class="mf">43.0</span><span class="p">,</span> <span class="mf">45.55</span><span class="p">]),</span> <span class="c1"># Gulf of St. Lawence</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">66.65</span><span class="p">,</span> <span class="o">-</span><span class="mf">62.43</span><span class="p">,</span> <span class="mf">43.0</span><span class="p">,</span> <span class="mf">45.0</span><span class="p">])]}</span> <span class="c1"># &#39;&#39;</span>
+
+<span class="n">US_Gulf_Coast</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">98.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">80.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">,</span> <span class="mf">31.0</span><span class="p">]),</span>    <span class="c1"># West FL to NE Mexico</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">98.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">95.5</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">,</span> <span class="mf">24.0</span><span class="p">]),</span>    <span class="c1"># East Mexico</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">91.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">86.0</span><span class="p">,</span> <span class="mf">20.0</span><span class="p">,</span> <span class="mf">22.0</span><span class="p">])</span>     <span class="c1"># Yucatan</span>
+                             <span class="p">],</span>
+                 <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="n">Caribbean</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">89.85</span><span class="p">,</span> <span class="o">-</span><span class="mf">59.73</span><span class="p">,</span> <span class="mf">9.35</span><span class="p">,</span> <span class="mf">20.86</span><span class="p">]),</span>
+                         <span class="p">],</span>
+             <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="n">US_West_Coast</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">127.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">116.0</span><span class="p">,</span> <span class="mf">32.5</span><span class="p">,</span> <span class="mf">49.0</span><span class="p">]),</span>  <span class="c1"># California</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">117.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">108.0</span><span class="p">,</span> <span class="mf">22.8</span><span class="p">,</span> <span class="mf">32.5</span><span class="p">])</span>   <span class="c1"># Baja and West Mexico</span>
+                             <span class="p">],</span>
+                 <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">116.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">115.0</span><span class="p">,</span> <span class="mf">32.8</span><span class="p">,</span> <span class="mf">33.8</span><span class="p">]),</span>  <span class="c1"># Salton Sea</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">120.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">116.5</span><span class="p">,</span> <span class="mf">35.5</span><span class="p">,</span> <span class="mf">40.5</span><span class="p">]),</span>  <span class="c1"># Lake Tahoe, etc.</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">111.89</span><span class="p">,</span> <span class="mf">21.24</span><span class="p">],</span>              <span class="c1"># Baja</span>
+                                       <span class="p">[</span><span class="o">-</span><span class="mf">107.17</span><span class="p">,</span> <span class="mf">22.48</span><span class="p">],</span>
+                                       <span class="p">[</span><span class="o">-</span><span class="mf">113.94</span><span class="p">,</span> <span class="mf">30.77</span><span class="p">],</span>
+                                       <span class="p">[</span><span class="o">-</span><span class="mf">119.44</span><span class="p">,</span> <span class="mf">33.09</span><span class="p">]])]}</span>
+
+<span class="n">Hawaii</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">161.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">154.0</span><span class="p">,</span> <span class="mf">18.0</span><span class="p">,</span> <span class="mf">23.0</span><span class="p">])],</span>
+          <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="n">Alaska</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">170.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">141.0</span><span class="p">,</span> <span class="mf">49.0</span><span class="p">,</span> <span class="mf">63.0</span><span class="p">]),</span>
+                      <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">141.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">129.5</span><span class="p">,</span> <span class="mf">49.0</span><span class="p">,</span> <span class="mf">61.0</span><span class="p">]),</span>  <span class="c1"># Southeast</span>
+                      <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">129.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">121.0</span><span class="p">,</span> <span class="mf">49.0</span><span class="p">,</span> <span class="mf">55.0</span><span class="p">])</span>   <span class="c1"># Connects AK to CA</span>
+                      <span class="p">],</span>
+          <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">171.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">151.79</span><span class="p">,</span> <span class="mf">49.54</span><span class="p">,</span> <span class="mf">58.83</span><span class="p">])]}</span>  <span class="c1"># Aleutian Islands</span>
+
+<span class="n">Bering_Sea_E</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">180.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">168.5</span><span class="p">,</span> <span class="mf">56.00</span><span class="p">,</span> <span class="mf">64.0</span><span class="p">])],</span>
+                <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="n">Bering_Sea_W</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">161.90</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">,</span> <span class="mf">57.85</span><span class="p">,</span> <span class="mf">66.63</span><span class="p">])],</span>
+                <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="n">Aleutian_Islands_E</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">180.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">151.79</span><span class="p">,</span> <span class="mf">49.54</span><span class="p">,</span> <span class="mf">58.83</span><span class="p">])],</span>
+                      <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">173.16</span><span class="p">,</span> <span class="o">-</span><span class="mf">164.37</span><span class="p">,</span> <span class="mf">55.81</span><span class="p">,</span> <span class="mf">57.55</span><span class="p">])]}</span>
+
+<span class="n">Aleutian_Islands_W</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">164.9</span><span class="p">,</span> <span class="mf">180.0</span><span class="p">,</span> <span class="mf">50.77</span><span class="p">,</span> <span class="mf">56.31</span><span class="p">])],</span>
+                      <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">178.5</span><span class="p">,</span> <span class="mf">179.5</span><span class="p">,</span> <span class="mf">51.25</span><span class="p">,</span> <span class="mf">51.75</span><span class="p">])]}</span>
+
+<span class="n">Greenland</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">81.5</span><span class="p">,</span><span class="o">-</span><span class="mf">12.5</span><span class="p">,</span><span class="mi">60</span><span class="p">,</span><span class="mi">85</span><span class="p">])],</span>
+             <span class="s2">&quot;exclude&quot;</span><span class="p">:[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">87.6</span><span class="p">,</span><span class="mf">58.7</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="o">-</span><span class="mf">51.9</span><span class="p">,</span><span class="mf">56.6</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="o">-</span><span class="mf">68.9</span><span class="p">,</span><span class="mf">75.5</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="o">-</span><span class="mf">107.0</span><span class="p">,</span><span class="mf">73.3</span><span class="p">]]),</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">119.0</span><span class="p">,</span><span class="mf">74.5</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="o">-</span><span class="mf">92.7</span><span class="p">,</span><span class="mf">75.9</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="o">-</span><span class="mf">52.84</span><span class="p">,</span><span class="mf">83.25</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="o">-</span><span class="mf">100.8</span><span class="p">,</span><span class="mf">84.0</span><span class="p">]]),</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">101.3</span><span class="p">,</span><span class="mf">68.5</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="o">-</span><span class="mf">82.4</span><span class="p">,</span><span class="mf">72.3</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="o">-</span><span class="mf">68.7</span><span class="p">,</span><span class="mf">81.24</span><span class="p">],</span>
+                                  <span class="p">[</span><span class="o">-</span><span class="mf">117.29</span><span class="p">,</span><span class="mf">77.75</span><span class="p">]]),</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">25.0</span><span class="p">,</span><span class="o">-</span><span class="mf">10.0</span><span class="p">,</span><span class="mf">62.5</span><span class="p">,</span><span class="mf">67.5</span><span class="p">])]}</span>
+<span class="n">Atlantic</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">78.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">77.5</span><span class="p">,</span> <span class="mf">23.5</span><span class="p">,</span> <span class="mf">25.25</span><span class="p">])],</span>  <span class="c1"># Bahamas, use with large transition start to fill Atlantic</span>
+            <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="c1"># Combined coastlines</span>
+<span class="n">CONUS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+<span class="n">CONUS</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">US_East_Coast</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">])</span>
+<span class="n">CONUS</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">US_Gulf_Coast</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">])</span>
+<span class="n">CONUS</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">US_West_Coast</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">])</span>
+<span class="n">CONUS</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">US_East_Coast</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">])</span>
+<span class="n">CONUS</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">US_West_Coast</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">])</span>
+
+<span class="n">Continental_US</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+<span class="n">Continental_US</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">CONUS</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">])</span>
+<span class="n">Continental_US</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">Alaska</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">])</span>
+<span class="n">Continental_US</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">CONUS</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">])</span>
+
+<span class="c1"># ----------------</span>
+<span class="c1"># Plotting boxes</span>
+<span class="c1"># ----------------</span>
+
+<span class="n">Western_Atlantic</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">98.186645</span><span class="p">,</span> <span class="o">-</span><span class="mf">59.832744</span><span class="p">,</span> <span class="mf">7.791301</span><span class="p">,</span> <span class="mf">45.942453</span><span class="p">])</span>
+<span class="n">Contiguous_US</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">132.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">59.832744</span><span class="p">,</span> <span class="mf">7.791301</span><span class="p">,</span> <span class="mf">51.0</span><span class="p">])</span>
+<span class="n">North_America</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">175.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">60.0</span><span class="p">,</span> <span class="mf">7.5</span><span class="p">,</span> <span class="mf">72.0</span><span class="p">])</span>
+<span class="n">Delaware</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">77</span><span class="p">,</span> <span class="o">-</span><span class="mf">69.8</span><span class="p">,</span> <span class="mf">35.5</span><span class="p">,</span> <span class="mi">41</span><span class="p">])</span>
+<span class="n">Entire_Globe</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">])</span>
+
+<span class="c1"># -----------------</span>
+<span class="c1"># Restrict Boxes</span>
+<span class="c1"># -----------------</span>
+
+<span class="n">Empty</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[],</span>
+         <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="n">Delaware_restrict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">75.853</span><span class="p">,</span> <span class="mf">39.732</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">74.939</span><span class="p">,</span> <span class="mf">36.678</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">71.519</span><span class="p">,</span> <span class="mf">40.156</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">75.153</span><span class="p">,</span> <span class="mf">40.077</span><span class="p">]]),</span>
+                                 <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">76.024</span><span class="p">,</span> <span class="mf">37.188</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">75.214</span><span class="p">,</span> <span class="mf">36.756</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">74.512</span><span class="p">,</span> <span class="mf">37.925</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">75.274</span><span class="p">,</span> <span class="mf">38.318</span><span class="p">]])],</span>
+                     <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="n">Gulf_restrict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">85.04</span><span class="p">,</span> <span class="mf">13.80</span><span class="p">],</span>
+                                       <span class="p">[</span><span class="o">-</span><span class="mf">76.90</span><span class="p">,</span> <span class="mf">16.60</span><span class="p">],</span>
+                                       <span class="p">[</span><span class="o">-</span><span class="mf">86.24</span><span class="p">,</span> <span class="mf">36.80</span><span class="p">],</span>
+                                       <span class="p">[</span><span class="o">-</span><span class="mf">105.55</span><span class="p">,</span> <span class="mf">22.63</span><span class="p">]])],</span>
+                 <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+
+<span class="n">Caribbean_restrict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">76.39</span><span class="p">,</span> <span class="mf">4.55</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="o">-</span><span class="mf">53.22</span><span class="p">,</span> <span class="mf">4.29</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="o">-</span><span class="mf">53.22</span><span class="p">,</span> <span class="mf">38.94</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="o">-</span><span class="mf">94.99</span><span class="p">,</span> <span class="mf">18.47</span><span class="p">]])],</span>
+                      <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">80.72</span><span class="p">,</span> <span class="mf">1.66</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="o">-</span><span class="mf">73.70</span><span class="p">,</span> <span class="mf">3.03</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="o">-</span><span class="mf">78.94</span><span class="p">,</span> <span class="mf">9.33</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="o">-</span><span class="mf">84.98</span><span class="p">,</span> <span class="mf">7.67</span><span class="p">]]),</span>
+                                  <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">100.18</span><span class="p">,</span> <span class="mf">13.76</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="o">-</span><span class="mf">82.93</span><span class="p">,</span> <span class="mf">6.51</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="o">-</span><span class="mf">85.08</span><span class="p">,</span> <span class="mf">13.74</span><span class="p">],</span>
+                                            <span class="p">[</span><span class="o">-</span><span class="mf">95.86</span><span class="p">,</span> <span class="mf">18.04</span><span class="p">]])]}</span>
+
+<span class="n">East_Coast_restrict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                       <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">72.0</span><span class="p">,</span> <span class="mf">46.69</span><span class="p">],</span>
+                                             <span class="p">[</span><span class="o">-</span><span class="mf">61.74</span><span class="p">,</span> <span class="mf">45.48</span><span class="p">],</span>
+                                             <span class="p">[</span><span class="o">-</span><span class="mf">44.07</span><span class="p">,</span> <span class="mf">49.49</span><span class="p">],</span>
+                                             <span class="p">[</span><span class="o">-</span><span class="mf">63.47</span><span class="p">,</span> <span class="mf">53.76</span><span class="p">]])]}</span>
+<span class="n">Bering_Sea_restrict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[],</span>
+                       <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">143.46</span><span class="p">,</span> <span class="mf">51.79</span><span class="p">],</span>
+                                             <span class="p">[</span><span class="mf">155.65</span><span class="p">,</span> <span class="mf">50.13</span><span class="p">],</span>
+                                             <span class="p">[</span><span class="mf">166.23</span><span class="p">,</span> <span class="mf">63.78</span><span class="p">],</span>
+                                             <span class="p">[</span><span class="mf">148.63</span><span class="p">,</span> <span class="mf">62.30</span><span class="p">]]),</span>
+                                   <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">154.36</span><span class="p">,</span> <span class="mf">68.22</span><span class="p">],</span>
+                                             <span class="p">[</span><span class="o">-</span><span class="mf">173.80</span><span class="p">,</span> <span class="mf">65.94</span><span class="p">],</span>
+                                             <span class="p">[</span><span class="o">-</span><span class="mf">161.81</span><span class="p">,</span> <span class="mf">72.02</span><span class="p">],</span>
+                                             <span class="p">[</span><span class="mf">163.64</span><span class="p">,</span> <span class="mf">73.70</span><span class="p">]])]}</span>
+
+<span class="n">Atlantic_restrict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">86.39</span><span class="p">,</span> <span class="mf">13.67</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">24.44</span><span class="p">,</span> <span class="mf">21.32</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">50.09</span><span class="p">,</span> <span class="mf">55.98</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">105.58</span><span class="p">,</span> <span class="mf">23.61</span><span class="p">]]),</span>
+                                 <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">76.39</span><span class="p">,</span> <span class="mf">4.55</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">30.74</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.66</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">30.83</span><span class="p">,</span> <span class="mf">43.95</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">94.99</span><span class="p">,</span> <span class="mf">18.47</span><span class="p">]])],</span>
+                     <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">80.72</span><span class="p">,</span> <span class="mf">1.66</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">73.70</span><span class="p">,</span> <span class="mf">3.03</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">78.94</span><span class="p">,</span> <span class="mf">9.33</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">84.98</span><span class="p">,</span> <span class="mf">7.67</span><span class="p">]]),</span>
+                                 <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">100.18</span><span class="p">,</span> <span class="mf">13.76</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">82.93</span><span class="p">,</span> <span class="mf">6.51</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">85.08</span><span class="p">,</span> <span class="mf">13.74</span><span class="p">],</span>
+                                           <span class="p">[</span><span class="o">-</span><span class="mf">95.86</span><span class="p">,</span> <span class="mf">18.04</span><span class="p">]])]}</span>
+
+<span class="c1">##########################################################################</span>
+<span class="c1"># User-defined inputs</span>
+<span class="c1">##########################################################################</span>
+
+<span class="n">default_params</span> <span class="o">=</span> <span class="p">{</span>
+
+    <span class="c1"># Path to bathymetry data and name of file</span>
+    <span class="s2">&quot;nc_file&quot;</span><span class="p">:</span> <span class="s2">&quot;./earth_relief_15s.nc&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;nc_vars&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">,</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span><span class="s2">&quot;z&quot;</span><span class="p">],</span>
+
+    <span class="c1"># Bounding box of coastal refinement region</span>
+    <span class="s2">&quot;region_box&quot;</span><span class="p">:</span> <span class="n">Continental_US</span><span class="p">,</span>
+    <span class="s2">&quot;origin&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">40</span><span class="p">]),</span>
+    <span class="s2">&quot;restrict_box&quot;</span><span class="p">:</span> <span class="n">Empty</span><span class="p">,</span>
+
+    <span class="c1"># Coastline extraction parameters</span>
+    <span class="s2">&quot;z_contour&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="s2">&quot;n_longest&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s2">&quot;smooth_coastline&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;point_list&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+
+    <span class="c1"># Global mesh parameters</span>
+    <span class="s2">&quot;grd_box&quot;</span><span class="p">:</span> <span class="n">Entire_Globe</span><span class="p">,</span>
+    <span class="s2">&quot;ddeg&quot;</span><span class="p">:</span> <span class="mf">.1</span><span class="p">,</span>
+    <span class="c1"># &#39;EC&#39; (defaults to 60to30), &#39;QU&#39; (uses dx_max_global), &#39;RRS&#39; (uses dx_max_global and dx_min_global)</span>
+    <span class="s2">&quot;mesh_type&quot;</span><span class="p">:</span> <span class="s1">&#39;EC&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;dx_max_global&quot;</span><span class="p">:</span> <span class="mf">30.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
+    <span class="s2">&quot;dx_min_global&quot;</span><span class="p">:</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
+
+    <span class="c1"># Coastal mesh parameters</span>
+    <span class="s2">&quot;dx_min_coastal&quot;</span><span class="p">:</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
+    <span class="s2">&quot;trans_width&quot;</span><span class="p">:</span> <span class="mf">600.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
+    <span class="s2">&quot;trans_start&quot;</span><span class="p">:</span> <span class="mf">400.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
+
+    <span class="c1"># Bounding box of plotting region</span>
+    <span class="s2">&quot;plot_box&quot;</span><span class="p">:</span> <span class="n">North_America</span><span class="p">,</span>
+
+    <span class="c1"># Options</span>
+    <span class="s2">&quot;nn_search&quot;</span><span class="p">:</span> <span class="s2">&quot;kdtree&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;plot_option&quot;</span><span class="p">:</span> <span class="kc">True</span>
+
+<span class="p">}</span>
+
+<span class="c1">##########################################################################</span>
+<span class="c1"># Functions</span>
+<span class="c1">##########################################################################</span>
+
+
+<div class="viewcode-block" id="coastal_refined_mesh">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html#mpas_tools.ocean.coastal_tools.coastal_refined_mesh">[docs]</a>
+<span class="k">def</span> <span class="nf">coastal_refined_mesh</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">cell_width</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lon_grd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">lat_grd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># {{{</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optionally create a background field of cell widths, then add a region of</span>
+<span class="sd">    refined resolution to the cell widths.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    params : dict</span>
+<span class="sd">        A dictionary of parameters determining how the mesh is constructed.</span>
+<span class="sd">        See ``mpas_tools.ocean.coastal_tools.default_params``.</span>
+
+<span class="sd">    cell_width : ndarray, optional</span>
+<span class="sd">        A 2D array of cell widths in meters.  If none is provided, one a base</span>
+<span class="sd">        ``cell_width`` field constructed using parameter values from ``params``</span>
+<span class="sd">        to call ``create_background_mesh``.</span>
+
+<span class="sd">    lon_grd : ndarray, optional</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180</span>
+
+<span class="sd">    lat_grd : ndarray, optional</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cell_width : ndarray</span>
+<span class="sd">        A 2D array of cell widths in meters.</span>
+
+<span class="sd">    lon_grd : ndarray</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180</span>
+
+<span class="sd">    lat_grd : ndarray</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">coastal_refined_mesh</span><span class="o">.</span><span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">call_count</span> <span class="o">=</span> <span class="n">coastal_refined_mesh</span><span class="o">.</span><span class="n">counter</span>
+
+    <span class="k">if</span> <span class="n">cell_width</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Create the background cell width array</span>
+        <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">cell_width</span> <span class="o">=</span> <span class="n">create_background_mesh</span><span class="p">(</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;grd_box&quot;</span><span class="p">],</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;ddeg&quot;</span><span class="p">],</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;mesh_type&quot;</span><span class="p">],</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;dx_min_global&quot;</span><span class="p">],</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;dx_max_global&quot;</span><span class="p">],</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_option&quot;</span><span class="p">],</span>
+            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_box&quot;</span><span class="p">],</span>
+            <span class="n">call_count</span><span class="p">)</span>
+
+    <span class="c1"># Get coastlines from bathy/topo  data set</span>
+    <span class="n">coastlines</span> <span class="o">=</span> <span class="n">extract_coastlines</span><span class="p">(</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;nc_file&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;nc_vars&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;region_box&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;z_contour&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;n_longest&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;point_list&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_option&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_box&quot;</span><span class="p">],</span>
+        <span class="n">call_count</span><span class="p">)</span>
+
+    <span class="c1"># Compute distance from background grid points to coastline</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">distance_to_coast</span><span class="p">(</span>
+        <span class="n">coastlines</span><span class="p">,</span>
+        <span class="n">lon_grd</span><span class="p">,</span>
+        <span class="n">lat_grd</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;nn_search&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;smooth_coastline&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_option&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_box&quot;</span><span class="p">],</span>
+        <span class="n">call_count</span><span class="p">)</span>
+
+    <span class="c1"># Blend coastline and background resolution, save cell_width array as .mat file</span>
+    <span class="n">cell_width</span> <span class="o">=</span> <span class="n">compute_cell_width</span><span class="p">(</span>
+        <span class="n">D</span><span class="p">,</span>
+        <span class="n">cell_width</span><span class="p">,</span>
+        <span class="n">lon_grd</span><span class="p">,</span>
+        <span class="n">lat_grd</span><span class="p">,</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;dx_min_coastal&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;trans_start&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;trans_width&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;restrict_box&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_option&quot;</span><span class="p">],</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_box&quot;</span><span class="p">],</span>
+        <span class="n">coastlines</span><span class="p">,</span>
+        <span class="n">call_count</span><span class="p">)</span>
+
+    <span class="c1"># Save matfile</span>
+    <span class="c1"># save_matfile(cell_width/km,lon_grd,lat_grd)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">cell_width</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">)</span></div>
+
+
+
+    <span class="c1"># }}}</span>
+<span class="n">coastal_refined_mesh</span><span class="o">.</span><span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1">##############################################################</span>
+
+
+<div class="viewcode-block" id="create_background_mesh">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.create_background_mesh.html#mpas_tools.ocean.coastal_tools.create_background_mesh">[docs]</a>
+<span class="k">def</span> <span class="nf">create_background_mesh</span><span class="p">(</span><span class="n">grd_box</span><span class="p">,</span> <span class="n">ddeg</span><span class="p">,</span> <span class="n">mesh_type</span><span class="p">,</span> <span class="n">dx_min</span><span class="p">,</span> <span class="n">dx_max</span><span class="p">,</span>  <span class="c1"># {{{</span>
+                           <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a background field of cell widths</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    grd_box : list of float</span>
+<span class="sd">        A list of 4 floats defining the bounds (min lon, max lon, min lat, max</span>
+<span class="sd">        lat) of the grid</span>
+
+<span class="sd">    ddeg : float</span>
+<span class="sd">        The resolution of the mesh in degrees</span>
+
+<span class="sd">    mesh_type : {&#39;QU&#39;, &#39;EC&#39;, &#39;RRS&#39;}</span>
+<span class="sd">        The type of mesh: quasi-uniform (QU), Eddy-closure (EC) or Rossby-radius</span>
+<span class="sd">        scaling (RRS)</span>
+
+<span class="sd">    dx_min : float</span>
+<span class="sd">        The resolution in meters of a QU mesh or the minimum resolution of of</span>
+<span class="sd">        an RRS mesh. This parameter is ignored for EC meshes and the default</span>
+<span class="sd">        function arguments to ``EC_CellWidthVsLat()`` are used instead.</span>
+
+<span class="sd">    dx_max : float</span>
+<span class="sd">        The maximum resolution in meters of of an RRS mesh. This parameter is</span>
+<span class="sd">        ignored for QU meshes and EC meshes.  For EC meshes, the default</span>
+<span class="sd">        function arguments are used instead.</span>
+
+<span class="sd">    plot_option : bool, optional</span>
+<span class="sd">        Whether to plot the resulting cell width and save it to files</span>
+<span class="sd">        named ``bckgrnd_grid_cell_width_vs_lat###.png`` and</span>
+<span class="sd">        ``bckgnd_grid_cell_width###.png``, where ``###`` is given by</span>
+<span class="sd">        ``call`` and is meant to indicate how many times this function has been</span>
+<span class="sd">        called during mesh creation.</span>
+
+<span class="sd">    plot_box : list of float, optional</span>
+<span class="sd">        The extent of the plot if ``plot_option=True``</span>
+
+<span class="sd">    call : int, optional</span>
+<span class="sd">        The number of times the function has been called, used to give the</span>
+<span class="sd">        plot a unique name.</span>
+
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cell_width : ndarray</span>
+<span class="sd">        A 2D array of cell widths in meters.</span>
+
+<span class="sd">    lon_grd : ndarray</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180</span>
+
+<span class="sd">    lat_grd : ndarray</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Create background mesh&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------------&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create cell width background grid</span>
+    <span class="n">ny_grd</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">grd_box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">-</span><span class="n">grd_box</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">/</span><span class="n">ddeg</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">nx_grd</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">grd_box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">-</span><span class="n">grd_box</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">/</span><span class="n">ddeg</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">lat_grd</span> <span class="o">=</span> <span class="n">grd_box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="n">ddeg</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ny_grd</span><span class="p">)</span>
+    <span class="n">lon_grd</span> <span class="o">=</span> <span class="n">grd_box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">ddeg</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nx_grd</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Background grid dimensions:&quot;</span><span class="p">,</span> <span class="n">ny_grd</span><span class="p">,</span> <span class="n">nx_grd</span><span class="p">)</span>
+
+    <span class="c1"># Assign background grid cell width values</span>
+    <span class="k">if</span> <span class="n">mesh_type</span> <span class="o">==</span> <span class="s1">&#39;QU&#39;</span><span class="p">:</span>
+        <span class="n">cell_width_lat</span> <span class="o">=</span> <span class="n">dx_max</span> <span class="o">/</span> <span class="n">km</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">lat_grd</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mesh_type</span> <span class="o">==</span> <span class="s1">&#39;EC&#39;</span><span class="p">:</span>
+        <span class="n">cell_width_lat</span> <span class="o">=</span> <span class="n">mdt</span><span class="o">.</span><span class="n">EC_CellWidthVsLat</span><span class="p">(</span><span class="n">lat_grd</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">mesh_type</span> <span class="o">==</span> <span class="s1">&#39;RRS&#39;</span><span class="p">:</span>
+        <span class="n">cell_width_lat</span> <span class="o">=</span> <span class="n">mdt</span><span class="o">.</span><span class="n">RRS_CellWidthVsLat</span><span class="p">(</span><span class="n">lat_grd</span><span class="p">,</span> <span class="n">dx_max</span> <span class="o">/</span> <span class="n">km</span><span class="p">,</span> <span class="n">dx_min</span> <span class="o">/</span> <span class="n">km</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown mesh_type </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mesh_type</span><span class="p">))</span>
+    <span class="n">cell_width</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">cell_width_lat</span><span class="p">,</span> <span class="p">(</span><span class="n">nx_grd</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">km</span>
+
+    <span class="c1"># Plot background cell width</span>
+    <span class="k">if</span> <span class="n">plot_option</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Plotting background cell width&quot;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lat_grd</span><span class="p">,</span> <span class="n">cell_width_lat</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;bckgrnd_grid_cell_width_vs_lat&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">call</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">cell_width</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+        <span class="n">plot_coarse_coast</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">plot_box</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="s1">&#39;bckgnd_grid_cell_width&#39;</span> <span class="o">+</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">call</span><span class="p">)</span> <span class="o">+</span>
+            <span class="s1">&#39;.png&#39;</span><span class="p">,</span>
+            <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Done&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">cell_width</span><span class="p">)</span>  <span class="c1"># }}}</span></div>
+
+
+<span class="c1">##############################################################</span>
+
+
+<div class="viewcode-block" id="extract_coastlines">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.extract_coastlines.html#mpas_tools.ocean.coastal_tools.extract_coastlines">[docs]</a>
+<span class="k">def</span> <span class="nf">extract_coastlines</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">nc_vars</span><span class="p">,</span> <span class="n">region_box</span><span class="p">,</span> <span class="n">z_contour</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_longest</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                       <span class="n">point_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                       <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>   <span class="c1"># {{{</span>
+
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts a set of coastline contours</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    nc_file : str</span>
+<span class="sd">        A bathymetry dataset on a lon/lat grid in NetCDF format</span>
+
+<span class="sd">    nc_vars : list of str</span>
+<span class="sd">        The names of the longitude (nc_vars[0]), latitude (nc_vars[1]) and</span>
+<span class="sd">        bathymetry (nc_vars[2]) variables.</span>
+
+<span class="sd">    region_box : dict of list of ndarrays</span>
+<span class="sd">        A region made up of a list of quadrilaterals to ``include`` and another</span>
+<span class="sd">        list to ``exclude``.  The quadrilaterals are either bounding rectangles</span>
+<span class="sd">        (min lon, max lon, min lat, max lat) or lists of 4 (lon, lat) points.</span>
+
+<span class="sd">    z_contour : float, optional</span>
+<span class="sd">        The isocontour of the bathymetry dataset to extract</span>
+
+<span class="sd">    n_longest : int, optional</span>
+<span class="sd">        The maximum number of contours to keep, after sorting from the longest</span>
+<span class="sd">        to the shortest</span>
+
+<span class="sd">    point_list : ndarray, optional</span>
+<span class="sd">        A list of points to add to the coastline</span>
+
+<span class="sd">    plot_option : bool, optional</span>
+<span class="sd">        Whether to plot the resulting coastline points and the plot to a file</span>
+<span class="sd">        named ``bathy_coastlines###.png``, where ``###`` is given by</span>
+<span class="sd">        ``call`` and is meant to indicate how many times this function has been</span>
+<span class="sd">        called during mesh creation.</span>
+
+<span class="sd">    plot_box : list of float, optional</span>
+<span class="sd">        The extent of the plot if ``plot_option=True``</span>
+
+<span class="sd">    call : int, optional</span>
+<span class="sd">        The number of times the function has been called, used to give the</span>
+<span class="sd">        plot a unique name.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    coastlines : ndarray</span>
+<span class="sd">        An n x 2 array of (longitude, latitude) points along the coastline</span>
+<span class="sd">        contours</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Extract coastlines&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Open NetCDF file and read cooordintes</span>
+    <span class="n">nc_fid</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">lon</span> <span class="o">=</span> <span class="n">nc_fid</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">nc_vars</span><span class="p">[</span><span class="mi">0</span><span class="p">]][:]</span>
+    <span class="n">lat</span> <span class="o">=</span> <span class="n">nc_fid</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">nc_vars</span><span class="p">[</span><span class="mi">1</span><span class="p">]][:]</span>
+    <span class="n">bathy_data</span> <span class="o">=</span> <span class="n">nc_fid</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">nc_vars</span><span class="p">[</span><span class="mi">2</span><span class="p">]]</span>
+
+    <span class="c1"># Get coastlines for refined region</span>
+    <span class="n">coastline_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">box</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">region_box</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]):</span>
+
+        <span class="c1"># Find coordinates and data inside bounding box</span>
+        <span class="n">xb</span><span class="p">,</span><span class="n">rect</span><span class="o">=</span> <span class="n">get_convex_hull_coordinates</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+        <span class="n">lon_region</span><span class="p">,</span> <span class="n">lat_region</span><span class="p">,</span> <span class="n">z_region</span> <span class="o">=</span> <span class="n">get_data_inside_box</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">bathy_data</span><span class="p">,</span> <span class="n">xb</span><span class="p">)</span>
+        <span class="n">z_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">z_region</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">z_data</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">get_indices_inside_quad</span><span class="p">(</span><span class="n">lon_region</span><span class="p">,</span><span class="n">lat_region</span><span class="p">,</span><span class="n">box</span><span class="p">)</span>
+        <span class="n">z_data</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_region</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Regional bathymetry data shape:&quot;</span><span class="p">,</span> <span class="n">z_region</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="c1"># Find coastline contours</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Extracting coastline &quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="s2">&quot;/&quot;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">region_box</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">])))</span>
+        <span class="n">contours</span> <span class="o">=</span> <span class="n">measure</span><span class="o">.</span><span class="n">find_contours</span><span class="p">(</span><span class="n">z_data</span><span class="p">,</span> <span class="n">z_contour</span><span class="p">)</span>
+
+        <span class="c1"># Keep only n_longest coastlines and those not within exclude areas</span>
+        <span class="n">contours</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="nb">len</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">contours</span><span class="p">[:</span><span class="n">n_longest</span><span class="p">]:</span>
+            <span class="c1"># Convert from pixel to lon,lat</span>
+            <span class="n">c</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">xb</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">-</span> <span class="n">xb</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lat_region</span><span class="p">))</span> <span class="o">*</span> <span class="n">c</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">xb</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">c</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">xb</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">xb</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lon_region</span><span class="p">))</span> <span class="o">*</span> <span class="n">c</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">xb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+            <span class="n">exclude</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">area</span> <span class="ow">in</span> <span class="n">region_box</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]:</span>
+                <span class="c1"># Determine coastline coordinates in exclude area</span>
+                <span class="n">idx</span> <span class="o">=</span> <span class="n">get_indices_inside_quad</span><span class="p">(</span>
+                    <span class="n">c</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">c</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">area</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+                <span class="c1"># Exlude coastlines that are entirely contained in exclude area</span>
+                <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">c</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">exclude</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+                <span class="k">elif</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="c1"># Keep coastlines not entirely contained in exclude areas</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exclude</span><span class="p">:</span>
+                <span class="n">cpad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">c</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]))</span>
+                <span class="n">coastline_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cpad</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Done&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Add in user-specified points</span>
+    <span class="k">if</span> <span class="n">point_list</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">points</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">point_list</span><span class="p">):</span>
+            <span class="n">cpad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">points</span><span class="p">,</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">]))</span>
+            <span class="n">coastline_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cpad</span><span class="p">)</span>
+
+    <span class="c1"># Combine coastlines</span>
+    <span class="n">coastlines</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">coastline_list</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">plot_option</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Plotting coastlines&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Find coordinates and data inside plotting box</span>
+        <span class="n">lon_plot</span><span class="p">,</span> <span class="n">lat_plot</span><span class="p">,</span> <span class="n">z_plot</span> <span class="o">=</span> <span class="n">get_data_inside_box</span><span class="p">(</span>
+            <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">bathy_data</span><span class="p">,</span> <span class="n">plot_box</span><span class="p">)</span>
+
+        <span class="c1"># Plot bathymetry data, coastlines and region boxes</span>
+
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">z_plot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">z_plot</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="mi">100</span>                               <span class="c1"># Downsample</span>
+        <span class="n">dsx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">lon_plot</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">ds</span><span class="p">)</span>  <span class="c1"># bathy data</span>
+        <span class="n">dsy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">lat_plot</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">ds</span><span class="p">)</span>  <span class="c1"># to speed up</span>
+        <span class="n">dsxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span><span class="n">dsy</span><span class="p">,</span> <span class="n">dsx</span><span class="p">)</span>                <span class="c1"># plotting</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">lon_plot</span><span class="p">[</span><span class="n">dsx</span><span class="p">],</span> <span class="n">lat_plot</span><span class="p">[</span><span class="n">dsy</span><span class="p">],</span> <span class="n">z_plot</span><span class="p">[</span><span class="n">dsxy</span><span class="p">],</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span>
+                     <span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+        <span class="n">plot_coarse_coast</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">plot_box</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">coastlines</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coastlines</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">region_box</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]:</span>
+            <span class="n">plot_region_box</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">region_box</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]:</span>
+            <span class="n">plot_region_box</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span>
+            <span class="s1">&#39;bathy_coastlines&#39;</span> <span class="o">+</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">call</span><span class="p">)</span> <span class="o">+</span>
+            <span class="s1">&#39;.png&#39;</span><span class="p">,</span>
+            <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Done&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">coastlines</span>  <span class="c1"># }}}</span></div>
+
+
+<span class="c1">##############################################################</span>
+
+
+<div class="viewcode-block" id="distance_to_coast">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.distance_to_coast.html#mpas_tools.ocean.coastal_tools.distance_to_coast">[docs]</a>
+<span class="k">def</span> <span class="nf">distance_to_coast</span><span class="p">(</span><span class="n">coastlines</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">nn_search</span><span class="o">=</span><span class="s1">&#39;kdtree&#39;</span><span class="p">,</span>
+                      <span class="n">smooth_window</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span>
+                      <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="c1"># {{{</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts a set of coastline contours</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    coastlines : ndarray</span>
+<span class="sd">        An n x 2 array of (longitude, latitude) points along the coastline</span>
+<span class="sd">        contours returned from ``extract_coastlines()``</span>
+
+<span class="sd">    lon_grd : ndarray</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180</span>
+
+<span class="sd">    lat_grd : ndarray</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
+
+<span class="sd">    nn_search : {&#39;kdtree&#39;}, optional</span>
+<span class="sd">        The algorithm to use for the nearest neightbor search.</span>
+
+<span class="sd">    smooth_window : int, optional</span>
+<span class="sd">        The number of adjacent coastline points to average together to smooth</span>
+<span class="sd">        the coastal contours.  Use ``0`` to indicate no smoothing.</span>
+
+<span class="sd">    plot_option : bool, optional</span>
+<span class="sd">        Whether to plot the resulting coastline points and the plot to a file</span>
+<span class="sd">        named ``bathy_coastlines###.png``, where ``###`` is given by</span>
+<span class="sd">        ``call`` and is meant to indicate how many times this function has been</span>
+<span class="sd">        called during mesh creation.</span>
+
+<span class="sd">    plot_box : list of float, optional</span>
+<span class="sd">        The extent of the plot if ``plot_option=True``</span>
+
+<span class="sd">    call : int, optional</span>
+<span class="sd">        The number of times the function has been called, used to give the</span>
+<span class="sd">        plot a unique name.</span>
+
+<span class="sd">    workers : int, optional</span>
+<span class="sd">        The number of threads used for finding nearest neighbors.  The default</span>
+<span class="sd">        is all available threads (``workers=-1``)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    D : ndarray</span>
+<span class="sd">        A len(lat_grd) x len(lon_grd) array of distances in meters on the</span>
+<span class="sd">        lon/lat grid to the closest point in the (smoothed) coastline contour.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">nn_search</span> <span class="o">!=</span> <span class="s1">&#39;kdtree&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;nn_search method </span><span class="si">{</span><span class="n">nn_search</span><span class="si">}</span><span class="s1"> not available.&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Distance to coast&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-----------------&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Remove Nan values separating coastlines</span>
+    <span class="n">coast_pts</span> <span class="o">=</span> <span class="n">coastlines</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">coastlines</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)]</span>
+
+    <span class="c1"># Smooth coast points if necessary</span>
+    <span class="k">if</span> <span class="n">smooth_window</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">coast_pts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coast_pts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">smooth_coastline</span><span class="p">(</span>
+            <span class="n">coast_pts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coast_pts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">smooth_window</span><span class="p">)</span>
+
+    <span class="c1"># Convert coastline points to x,y,z and create kd-tree</span>
+    <span class="n">npts</span> <span class="o">=</span> <span class="n">coast_pts</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">coast_pts_xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">npts</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+    <span class="n">coast_pts_xyz</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coast_pts_xyz</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">coast_pts_xyz</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">lonlat2xyz</span><span class="p">(</span><span class="n">coast_pts</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coast_pts</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">KDTree</span><span class="p">(</span><span class="n">coast_pts_xyz</span><span class="p">)</span>
+
+    <span class="c1"># Convert  backgound grid coordinates to x,y,z and put in a nx_grd x 3 array for kd-tree query</span>
+    <span class="n">Lon_grd</span><span class="p">,</span> <span class="n">Lat_grd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">)</span>
+    <span class="n">X_grd</span><span class="p">,</span> <span class="n">Y_grd</span><span class="p">,</span> <span class="n">Z_grd</span> <span class="o">=</span> <span class="n">lonlat2xyz</span><span class="p">(</span><span class="n">Lon_grd</span><span class="p">,</span><span class="n">Lat_grd</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">X_grd</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">Y_grd</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">Z_grd</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="c1"># Find distances of background grid coordinates to the coast</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Finding distance&quot;</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+    <span class="n">d</span><span class="p">,</span> <span class="n">idx</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Done&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; seconds&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Make distance array that corresponds with cell_width array</span>
+    <span class="n">D</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">Lon_grd</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">plot_option</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Plotting distance to coast&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Find coordinates and data inside plotting box</span>
+        <span class="n">lon_plot</span><span class="p">,</span> <span class="n">lat_plot</span><span class="p">,</span> <span class="n">D_plot</span> <span class="o">=</span> <span class="n">get_data_inside_box</span><span class="p">(</span>
+            <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">D</span><span class="p">,</span> <span class="n">plot_box</span><span class="p">)</span>
+
+        <span class="c1"># Plot distance to coast</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+        <span class="n">D_plot</span> <span class="o">=</span> <span class="n">D_plot</span> <span class="o">/</span> <span class="n">km</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">D_plot</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">D_plot</span><span class="p">),</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">lon_plot</span><span class="p">,</span> <span class="n">lat_plot</span><span class="p">,</span> <span class="n">D_plot</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span>
+                     <span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+        <span class="n">plot_coarse_coast</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">plot_box</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">coastlines</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coastlines</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span>
+            <span class="n">xdata</span><span class="o">=</span><span class="n">lon_plot</span><span class="p">,</span>
+            <span class="n">ydata</span><span class="o">=</span><span class="n">lat_plot</span><span class="p">,</span>
+            <span class="n">c</span><span class="o">=</span><span class="s1">&#39;k&#39;</span><span class="p">,</span>
+            <span class="n">ls</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span>
+            <span class="n">lw</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+            <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;distance&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">call</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Done&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">D</span>  <span class="c1"># }}}</span></div>
+
+
+<span class="c1">##############################################################</span>
+
+
+<div class="viewcode-block" id="compute_cell_width">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.compute_cell_width.html#mpas_tools.ocean.coastal_tools.compute_cell_width">[docs]</a>
+<span class="k">def</span> <span class="nf">compute_cell_width</span><span class="p">(</span><span class="n">D</span><span class="p">,</span> <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">dx_min</span><span class="p">,</span> <span class="n">trans_start</span><span class="p">,</span>
+                       <span class="n">trans_width</span><span class="p">,</span> <span class="n">restrict_box</span><span class="p">,</span> <span class="n">plot_option</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                       <span class="n">plot_box</span><span class="o">=</span><span class="p">[],</span> <span class="n">coastlines</span><span class="o">=</span><span class="p">[],</span> <span class="n">call</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Blend cell widths from the input field with the new resolution in the</span>
+<span class="sd">    refined region determined by the distance to the coastline contour.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    D : ndarray</span>
+<span class="sd">        A len(lat) x len(lon) array of distances in meters on the lon/lat grid</span>
+<span class="sd">        to the closest point in the (smoothed) coastline contour returned from</span>
+<span class="sd">        ``distance_to_coast()``</span>
+
+<span class="sd">    cell_width : ndarray</span>
+<span class="sd">        A len(lat) x len(lon) array of cell widths in meters</span>
+
+<span class="sd">    lon : ndarray</span>
+<span class="sd">        A 1D array of longitudes in degrees in the range from -180 to 180</span>
+
+<span class="sd">    lat : ndarray</span>
+<span class="sd">        A 1D array of latitudes in degrees in the range from -90 to 90</span>
+
+<span class="sd">    dx_min : float</span>
+<span class="sd">        The resolution in meters of the new refined region.</span>
+
+<span class="sd">    trans_start : float</span>
+<span class="sd">        The approximate value of ``D`` in meters at which the transition in</span>
+<span class="sd">        resolution should start</span>
+
+<span class="sd">    trans_width : float</span>
+<span class="sd">        The approximate width in meters over which the transition in resolution</span>
+<span class="sd">        should take place</span>
+
+<span class="sd">    restrict_box : dict of lists of ndarrays</span>
+<span class="sd">        A region of made up of quadrilaterals to ``include`` and ``exclude``</span>
+<span class="sd">        that defines where resolution may be altered.  Outside of the</span>
+<span class="sd">        ``restrict_box``, the resolution remains unchanged.</span>
+
+<span class="sd">    plot_option : bool, optional</span>
+<span class="sd">        Whether to plot the resulting coastline points and the plot to files</span>
+<span class="sd">        named ``cell_width###.png`` and ``trans_func###.png```, where ``###``</span>
+<span class="sd">        is given by ``call`` and is meant to indicate how many times this</span>
+<span class="sd">        function has been called during mesh creation.</span>
+
+<span class="sd">    plot_box : list of float, optional</span>
+<span class="sd">        The extent of the plot if ``plot_option=True``</span>
+
+<span class="sd">    coastlines : ndarray</span>
+<span class="sd">        An n x 2 array of (longitude, latitude) points along the coastline</span>
+<span class="sd">        contours returned from ``extract_coastlines()`` used in plotting if</span>
+<span class="sd">        ``plot_option=True``</span>
+
+<span class="sd">    call : int, optional</span>
+<span class="sd">        The number of times the function has been called, used to give the</span>
+<span class="sd">        plot a unique name.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    cell_width : ndarray</span>
+<span class="sd">        A len(lat) x len(lon) array of the new cell widths in meters</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Compute cell width&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;------------------&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Compute cell width based on distance</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Computing cell width&quot;</span><span class="p">)</span>
+    <span class="n">backgnd_weight</span> <span class="o">=</span> <span class="mf">.5</span> <span class="o">*</span> \
+        <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">((</span><span class="n">D</span> <span class="o">-</span> <span class="n">trans_start</span> <span class="o">-</span> <span class="mf">.5</span> <span class="o">*</span> <span class="n">trans_width</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mf">.2</span> <span class="o">*</span> <span class="n">trans_width</span><span class="p">))</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="n">dist_weight</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="n">backgnd_weight</span>
+    <span class="c1">## Use later for depth and slope dependent resolution</span>
+    <span class="c1">##hres = np.maximum(dx_min*bathy_grd/20,dx_min)</span>
+    <span class="c1">##hres = np.minimum(hres,dx_max)</span>
+    <span class="c1">#hw = np.zeros(Lon_grd.shape) + dx_max</span>
+    <span class="c1">#hw[ocn_idx] = np.sqrt(9.81*bathy_grd[ocn_idx])*12.42*3600/25</span>
+    <span class="c1">#hs = .20*1/dbathy_grd</span>
+    <span class="c1">#h = np.fmin(hs,hw)</span>
+    <span class="c1">#h = np.fmin(h,dx_max)</span>
+    <span class="c1">#h = np.fmax(dx_min,h)</span>
+
+    <span class="n">cell_width_old</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">cell_width</span><span class="p">)</span>
+
+    <span class="c1"># Apply cell width function</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">restrict_box</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># Only apply inside include regions</span>
+        <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">restrict_box</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">get_indices_inside_quad</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">box</span><span class="p">)</span>
+            <span class="n">cell_width</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">dx_min</span><span class="o">*</span><span class="n">dist_weight</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span>
+                               <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">cell_width_old</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">backgnd_weight</span><span class="p">[</span><span class="n">idx</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Apply everywhere</span>
+        <span class="n">cell_width</span> <span class="o">=</span> <span class="p">(</span><span class="n">dx_min</span><span class="o">*</span><span class="n">dist_weight</span> <span class="o">+</span>
+                      <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">cell_width_old</span><span class="p">,</span> <span class="n">backgnd_weight</span><span class="p">))</span>
+
+    <span class="c1"># Don&#39;t apply cell width function in exclude regions (revert to previous values)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">restrict_box</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">restrict_box</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">get_indices_inside_quad</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">box</span><span class="p">)</span>
+            <span class="n">cell_width</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_width_old</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Done&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">plot_option</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Plotting cell width&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Find coordinates and data inside plotting box</span>
+        <span class="n">lon_plot</span><span class="p">,</span> <span class="n">lat_plot</span><span class="p">,</span> <span class="n">cell_width_plot</span> <span class="o">=</span> <span class="n">get_data_inside_box</span><span class="p">(</span>
+            <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">cell_width</span> <span class="o">/</span> <span class="n">km</span><span class="p">,</span> <span class="n">plot_box</span><span class="p">)</span>
+
+        <span class="c1"># Plot cell width</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+        <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">cell_width_plot</span><span class="p">),</span>
+                             <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">cell_width_plot</span><span class="p">),</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">contourf</span><span class="p">(</span><span class="n">lon_plot</span><span class="p">,</span> <span class="n">lat_plot</span><span class="p">,</span> <span class="n">cell_width_plot</span><span class="p">,</span> <span class="n">levels</span><span class="o">=</span><span class="n">levels</span><span class="p">,</span>
+                     <span class="n">transform</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+        <span class="n">plot_coarse_coast</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">plot_box</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">coastlines</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">coastlines</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">restrict_box</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">restrict_box</span><span class="p">[</span><span class="s2">&quot;include&quot;</span><span class="p">]:</span>
+                <span class="n">plot_region_box</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">box</span> <span class="ow">in</span> <span class="n">restrict_box</span><span class="p">[</span><span class="s2">&quot;exclude&quot;</span><span class="p">]:</span>
+                <span class="n">plot_region_box</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;cell_width&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">call</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># Plot cell width transistion functions</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">trans_start</span><span class="o">/</span><span class="n">km</span>
+        <span class="n">tw</span> <span class="o">=</span> <span class="n">trans_width</span><span class="o">/</span><span class="n">km</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">ts</span><span class="o">+</span><span class="n">tw</span><span class="p">),</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="n">bw</span> <span class="o">=</span> <span class="mf">.5</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tanh</span><span class="p">((</span><span class="n">d</span><span class="o">-</span><span class="n">ts</span><span class="o">-</span><span class="mf">.5</span><span class="o">*</span><span class="n">tw</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">.2</span><span class="o">*</span><span class="n">tw</span><span class="p">))</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">dw</span> <span class="o">=</span> <span class="mi">1</span><span class="o">-</span><span class="n">bw</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">bw</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">d</span><span class="p">,</span><span class="n">dw</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">((</span><span class="s1">&#39;background&#39;</span><span class="p">,</span><span class="s1">&#39;coastal region&#39;</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">ts</span><span class="p">,</span><span class="n">ts</span><span class="p">],[</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">],</span><span class="s1">&#39;k-&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">ts</span><span class="o">+</span><span class="n">tw</span><span class="p">,</span><span class="n">ts</span><span class="o">+</span><span class="n">tw</span><span class="p">],[</span><span class="mf">0.0</span><span class="p">,</span><span class="mf">1.0</span><span class="p">],</span><span class="s1">&#39;k-&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;distance (km)&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;weight&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s1">&#39;trans_func&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">call</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;.png&#39;</span><span class="p">,</span><span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Done&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">cell_width</span>  <span class="c1"># }}}</span></div>
+
+
+<span class="c1">##############################################################</span>
+
+
+<div class="viewcode-block" id="save_matfile">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.save_matfile.html#mpas_tools.ocean.coastal_tools.save_matfile">[docs]</a>
+<span class="k">def</span> <span class="nf">save_matfile</span><span class="p">(</span><span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">):</span>
+
+    <span class="n">savemat</span><span class="p">(</span><span class="s1">&#39;cellWidthVsLatLon.mat&#39;</span><span class="p">,</span>
+            <span class="n">mdict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;cellWidth&#39;</span><span class="p">:</span> <span class="n">cell_width</span><span class="p">,</span>
+                   <span class="s1">&#39;lon&#39;</span><span class="p">:</span> <span class="n">lon</span><span class="p">,</span>
+                   <span class="s1">&#39;lat&#39;</span><span class="p">:</span> <span class="n">lat</span><span class="p">})</span></div>
+
+
+<span class="c1">##############################################################</span>
+
+
+<div class="viewcode-block" id="CPP_projection">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.CPP_projection.html#mpas_tools.ocean.coastal_tools.CPP_projection">[docs]</a>
+<span class="k">def</span> <span class="nf">CPP_projection</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">origin</span><span class="p">):</span>
+
+    <span class="n">R</span> <span class="o">=</span> <span class="mf">6378206.4</span>
+    <span class="n">origin</span> <span class="o">=</span> <span class="n">origin</span> <span class="o">*</span> <span class="n">deg2rad</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="p">(</span><span class="n">lon</span> <span class="o">*</span> <span class="n">deg2rad</span> <span class="o">-</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">R</span> <span class="o">*</span> <span class="n">lat</span> <span class="o">*</span> <span class="n">deg2rad</span>
+
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span></div>
+
+
+<span class="c1">##############################################################</span>
+
+
+<div class="viewcode-block" id="smooth_coastline">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.smooth_coastline.html#mpas_tools.ocean.coastal_tools.smooth_coastline">[docs]</a>
+<span class="k">def</span> <span class="nf">smooth_coastline</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">window</span><span class="p">):</span>
+    <span class="n">xs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">ys</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">offset</span> <span class="o">=</span> <span class="p">(</span><span class="n">window</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span>
+    <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">offset</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="o">-</span><span class="n">offset</span><span class="p">):</span>
+        <span class="n">xs</span><span class="p">[</span><span class="n">pt</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">pt</span><span class="o">-</span><span class="n">offset</span><span class="p">:</span><span class="n">pt</span><span class="o">+</span><span class="n">offset</span><span class="p">])</span>
+        <span class="n">ys</span><span class="p">[</span><span class="n">pt</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">pt</span><span class="o">-</span><span class="n">offset</span><span class="p">:</span><span class="n">pt</span><span class="o">+</span><span class="n">offset</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">xs</span><span class="p">,</span> <span class="n">ys</span></div>
+
+<span class="c1">##############################################################</span>
+
+
+<div class="viewcode-block" id="get_data_inside_box">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.get_data_inside_box.html#mpas_tools.ocean.coastal_tools.get_data_inside_box">[docs]</a>
+<span class="k">def</span> <span class="nf">get_data_inside_box</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+    <span class="c1"># Find indicies of coordinates inside bounding box</span>
+    <span class="n">lon_idx</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">lon</span> <span class="o">&gt;=</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">lon</span> <span class="o">&lt;=</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">lat_idx</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">lat</span> <span class="o">&gt;=</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">lat</span> <span class="o">&lt;=</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+
+    <span class="c1"># Get indicies inside bounding box</span>
+    <span class="n">lon_region</span> <span class="o">=</span> <span class="n">lon</span><span class="p">[</span><span class="n">lon_idx</span><span class="p">]</span>
+    <span class="n">lat_region</span> <span class="o">=</span> <span class="n">lat</span><span class="p">[</span><span class="n">lat_idx</span><span class="p">]</span>
+    <span class="n">latlon_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ix_</span><span class="p">(</span><span class="n">lat_idx</span><span class="p">,</span> <span class="n">lon_idx</span><span class="p">)</span>
+
+    <span class="c1"># Return data inside bounding box</span>
+    <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+
+        <span class="k">try</span><span class="p">:</span>     <span class="c1"># Numpy indexing</span>
+            <span class="n">z_region</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">latlon_idx</span><span class="p">]</span>
+        <span class="k">except</span><span class="p">:</span>  <span class="c1"># NetCDF indexing</span>
+            <span class="n">z_region</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">lat_idx</span><span class="p">,</span> <span class="n">lon_idx</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="p">(</span><span class="n">lon_region</span><span class="p">,</span> <span class="n">lat_region</span><span class="p">,</span> <span class="n">z_region</span><span class="p">)</span>
+
+    <span class="c1"># Return indicies of data inside bounding box</span>
+    <span class="k">elif</span> <span class="n">idx</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+
+        <span class="k">return</span> <span class="n">latlon_idx</span></div>
+
+
+<span class="c1">##############################################################</span>
+
+
+<div class="viewcode-block" id="get_indices_inside_quad">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.get_indices_inside_quad.html#mpas_tools.ocean.coastal_tools.get_indices_inside_quad">[docs]</a>
+<span class="k">def</span> <span class="nf">get_indices_inside_quad</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">box</span><span class="p">,</span> <span class="n">grid</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+
+    <span class="n">wrap</span> <span class="o">=</span> <span class="n">flag_wrap</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+
+    <span class="n">lon_adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">wrap</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">lon_adj</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">180.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">lon_adj</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">90.0</span><span class="p">))</span>
+        <span class="n">lon_adj</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">lon_adj</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">+</span> <span class="mf">360.0</span>
+
+    <span class="k">if</span> <span class="n">grid</span><span class="p">:</span>
+        <span class="c1"># Create vectors of all coordinates</span>
+        <span class="n">Lon_grd</span><span class="p">,</span> <span class="n">Lat_grd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">lon_adj</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">Lon_grd</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">Lat_grd</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">lon_adj</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">lat</span>
+
+    <span class="n">xb</span><span class="p">,</span><span class="n">rect</span> <span class="o">=</span> <span class="n">get_convex_hull_coordinates</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+
+    <span class="c1"># Find indices of coordinates in convex hull of quad region</span>
+    <span class="n">idxx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">X</span> <span class="o">&gt;=</span> <span class="n">xb</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">X</span> <span class="o">&lt;=</span> <span class="n">xb</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+    <span class="n">idxy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">Y</span> <span class="o">&gt;=</span> <span class="n">xb</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Y</span> <span class="o">&lt;=</span> <span class="n">xb</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+    <span class="n">idx_ch</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">idxx</span><span class="p">,</span> <span class="n">idxy</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">idx_ch</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">rect</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">grid</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">Lon_grd</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">idx</span>
+
+    <span class="c1"># Initialize the local coordinate vectors to be outside unit square</span>
+    <span class="n">R</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="o">*</span> <span class="n">X</span> <span class="o">-</span> <span class="mf">10.0</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="o">*</span> <span class="n">Y</span> <span class="o">-</span> <span class="mf">10.0</span>
+
+  <span class="c1"># Initialize the coordinate vectors for points inside convex hull of quad region</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="o">*</span> <span class="n">R</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="mf">0.0</span> <span class="o">*</span> <span class="n">S</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="c1"># Map all coordinates in convex hull of quad region to unit square</span>
+    <span class="c1">#   by solving inverse transformaion with Newton&#39;s method</span>
+    <span class="n">tol</span> <span class="o">=</span> <span class="mf">1e-8</span>
+    <span class="n">maxit</span> <span class="o">=</span> <span class="mi">25</span>
+    <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxit</span><span class="p">):</span>
+
+        <span class="c1"># Compute shape fuctions</span>
+        <span class="n">phi1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">s</span><span class="p">))</span>
+        <span class="n">phi2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">s</span><span class="p">))</span>
+        <span class="n">phi3</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">s</span><span class="p">))</span>
+        <span class="n">phi4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">r</span><span class="p">),</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">s</span><span class="p">))</span>
+
+        <span class="c1"># Compute functions that are being solved</span>
+        <span class="n">f1</span> <span class="o">=</span> <span class="mf">.25</span> <span class="o">*</span> <span class="p">(</span><span class="n">phi1</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">phi2</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span>
+                    <span class="n">phi3</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">phi4</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">x</span>
+        <span class="n">f2</span> <span class="o">=</span> <span class="mf">.25</span> <span class="o">*</span> <span class="p">(</span><span class="n">phi1</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">phi2</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span>
+                    <span class="n">phi3</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">phi4</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="n">y</span>
+
+        <span class="c1"># Compute Jacobian</span>
+        <span class="n">df1ds</span> <span class="o">=</span> <span class="mf">.25</span> <span class="o">*</span> <span class="p">((</span><span class="n">r</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">df1dr</span> <span class="o">=</span> <span class="mf">.25</span> <span class="o">*</span> <span class="p">((</span><span class="n">s</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">df2ds</span> <span class="o">=</span> <span class="mf">.25</span> <span class="o">*</span> <span class="p">((</span><span class="n">r</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">r</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">df2dr</span> <span class="o">=</span> <span class="mf">.25</span> <span class="o">*</span> <span class="p">((</span><span class="n">s</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">s</span><span class="p">)</span> <span class="o">*</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+        <span class="c1"># Inverse of 2x2 matrix</span>
+        <span class="n">det_recip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">df1dr</span><span class="p">,</span> <span class="n">df2ds</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">df2dr</span><span class="p">,</span> <span class="n">df1ds</span><span class="p">)</span>
+        <span class="n">det_recip</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">det_recip</span>
+        <span class="n">dr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">det_recip</span><span class="p">,</span>  <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">df2ds</span><span class="p">,</span> <span class="n">f1</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">df1ds</span><span class="p">,</span> <span class="n">f2</span><span class="p">))</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">det_recip</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">df2dr</span><span class="p">,</span> <span class="n">f1</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">df1dr</span><span class="p">,</span> <span class="n">f2</span><span class="p">))</span>
+
+        <span class="c1"># Apply Newton&#39;s method</span>
+        <span class="n">rnew</span> <span class="o">=</span> <span class="n">r</span> <span class="o">-</span> <span class="n">dr</span>
+        <span class="n">snew</span> <span class="o">=</span> <span class="n">s</span> <span class="o">-</span> <span class="n">ds</span>
+
+        <span class="c1"># Find converged values</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">rnew</span>
+        <span class="n">idxr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">)</span>
+        <span class="n">err</span> <span class="o">=</span> <span class="n">S</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">-</span> <span class="n">snew</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">err</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">tol</span><span class="p">)</span>
+        <span class="n">idx_conv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">idxr</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+
+        <span class="c1"># Update solution</span>
+        <span class="n">R</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">rnew</span>
+        <span class="n">S</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">snew</span>
+
+        <span class="c1"># Find indicies of unconverged values</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx_conv</span><span class="p">)</span>
+        <span class="c1"># print(&quot;Iteration: &quot;, it, &quot;unconverged values: &quot;, idx.size)</span>
+
+        <span class="c1"># Terminate once all values are converged</span>
+        <span class="k">if</span> <span class="n">idx</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">break</span>
+
+        <span class="c1"># Initialize to unconverged values for next iteration</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="n">R</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">S</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+
+    <span class="c1"># Find any remaining unconverged values</span>
+    <span class="k">if</span> <span class="n">grid</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">idx_nc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">Lon_grd</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">idx_nc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+    <span class="c1"># Find indicies of coordinates inside quad region</span>
+    <span class="n">lon_idx</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">R</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">R</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">))</span>
+    <span class="n">lat_idx</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">S</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">S</span> <span class="o">&lt;=</span> <span class="mf">1.0</span><span class="p">))</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">intersect1d</span><span class="p">(</span><span class="n">lon_idx</span><span class="p">,</span> <span class="n">lat_idx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">grid</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">Lon_grd</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="c1">## Plot values inside quad region</span>
+    <span class="c1"># plt.figure()</span>
+    <span class="c1"># plt.plot(X,Y,&#39;.&#39;)</span>
+    <span class="c1"># if grid == True:</span>
+    <span class="c1">#  plt.plot(Lon_grd[idx],Lat_grd[idx],&#39;.&#39;)</span>
+    <span class="c1">#  plt.plot(Lon_grd[idx_nc],Lat_grd[idx_nc],&#39;.&#39;)</span>
+    <span class="c1"># else:</span>
+    <span class="c1">#  plt.plot(lon[idx],lat[idx],&#39;.&#39;)</span>
+    <span class="c1">#  plt.plot(lon[idx_nc],lat[idx_nc],&#39;.&#39;)</span>
+    <span class="c1"># plt.plot(box[:,0],box[:,1],&#39;o&#39;)</span>
+    <span class="c1"># plt.savefig(&quot;restrict_box.png&quot;)</span>
+
+    <span class="k">return</span> <span class="n">idx</span></div>
+
+
+<span class="c1">##############################################################</span>
+
+<div class="viewcode-block" id="get_convex_hull_coordinates">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates.html#mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates">[docs]</a>
+<span class="k">def</span> <span class="nf">get_convex_hull_coordinates</span><span class="p">(</span><span class="n">box</span><span class="p">):</span>
+
+    <span class="n">wrap</span> <span class="o">=</span> <span class="n">flag_wrap</span><span class="p">(</span><span class="n">box</span><span class="p">)</span>
+
+    <span class="n">xb</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">box</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">wrap</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">box</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">180.0</span> <span class="ow">and</span> <span class="n">box</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">90.0</span><span class="p">:</span>
+                    <span class="n">box</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="mf">360.0</span>
+
+        <span class="n">xb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">xb</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">xb</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">xb</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">rect</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">wrap</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">box</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="mf">180.0</span> <span class="ow">and</span> <span class="n">box</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">90.0</span><span class="p">:</span>
+                    <span class="n">box</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">box</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">360.0</span>
+
+        <span class="n">xb</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">box</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">xb</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">box</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+        <span class="n">xb</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">box</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">xb</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">box</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">rect</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">return</span> <span class="n">xb</span><span class="p">,</span><span class="n">rect</span></div>
+
+
+<span class="c1">##############################################################</span>
+
+<span class="k">def</span> <span class="nf">flag_wrap</span><span class="p">(</span><span class="n">box</span><span class="p">):</span>
+
+    <span class="n">wrap</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">box</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="ow">and</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
+        <span class="n">wrap</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">box</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">box</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">):</span>
+        <span class="n">wrap</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">return</span> <span class="n">wrap</span>
+
+<span class="c1">##############################################################</span>
+
+<div class="viewcode-block" id="plot_coarse_coast">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.plot_coarse_coast.html#mpas_tools.ocean.coastal_tools.plot_coarse_coast">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_coarse_coast</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">plot_box</span><span class="p">):</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_extent</span><span class="p">(</span><span class="n">plot_box</span><span class="p">,</span> <span class="n">crs</span><span class="o">=</span><span class="n">ccrs</span><span class="o">.</span><span class="n">PlateCarree</span><span class="p">())</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">add_feature</span><span class="p">(</span><span class="n">cfeature</span><span class="o">.</span><span class="n">COASTLINE</span><span class="p">)</span></div>
+
+
+<span class="c1">##############################################################</span>
+
+
+<div class="viewcode-block" id="plot_region_box">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastal_tools.plot_region_box.html#mpas_tools.ocean.coastal_tools.plot_region_box">[docs]</a>
+<span class="k">def</span> <span class="nf">plot_region_box</span><span class="p">(</span><span class="n">box</span><span class="p">,</span> <span class="n">color</span><span class="p">):</span>
+    <span class="n">ls</span> <span class="o">=</span> <span class="n">color</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span>
+    <span class="k">if</span> <span class="n">box</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="n">ls</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span> <span class="n">ls</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">]],</span> <span class="n">ls</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">]],</span> <span class="n">ls</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">ls</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">ls</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">ls</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="n">box</span><span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">box</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">ls</span><span class="p">)</span></div>
+
+
+
+<span class="c1">##########################################################################</span>
+<span class="c1">#  Incorporate later for depth and slope dependent resolution</span>
+<span class="c1">##########################################################################</span>
+
+
+<span class="c1">##</span>
+<span class="c1">## Interpolate bathymetry onto background grid</span>
+<span class="c1">#Lon_grd = Lon_grd*deg2rad</span>
+<span class="c1">#Lat_grd = Lat_grd*deg2rad</span>
+<span class="c1">#bathy = inject_bathymetry.interpolate_bathymetry(data_path+nc_file,Lon_grd.ravel(),Lat_grd.ravel())</span>
+<span class="c1">#bathy_grd = -1.0*np.reshape(bathy,(ny_grd,nx_grd))</span>
+<span class="c1">#ocn_idx = np.where(bathy_grd &gt; 0)</span>
+<span class="c1">#</span>
+<span class="c1"># if plot_option:</span>
+<span class="c1">#  plt.figure()</span>
+<span class="c1">#  levels = np.linspace(0,11000,100)</span>
+<span class="c1">#  plt.contourf(lon_grd,lat_grd,bathy_grd,levels=levels)</span>
+<span class="c1">#  plot_coarse_coast(plot_box)</span>
+<span class="c1">#  plt.colorbar()</span>
+<span class="c1">#  plt.axis(&#39;equal&#39;)</span>
+<span class="c1">#  plt.savefig(&#39;bckgnd_grid_bathy.png&#39;,bbox_inches=&#39;tight&#39;)</span>
+
+<span class="c1">## Interpolate bathymetry gradient onto background grid</span>
+<span class="c1">#dbathy = inject_bathymetry.interpolate_bathymetry(data_path+nc_file,Lon_grd.ravel(),Lat_grd.ravel(),grad=True)</span>
+<span class="c1">#dbathy = np.reshape(dbathy,(ny_grd,nx_grd))</span>
+<span class="c1">#dbathy_grd = np.zeros((ny_grd,nx_grd))</span>
+<span class="c1">#dbathy_grd[ocn_idx] = dbathy[ocn_idx]</span>
+<span class="c1">#</span>
+<span class="c1"># if plot_option:</span>
+<span class="c1">#  plt.figure()</span>
+<span class="c1">#  plt.contourf(lon_grd,lat_grd,1/dbathy_grd)</span>
+<span class="c1">#  plot_coarse_coast(plot_box)</span>
+<span class="c1">#  plt.colorbar()</span>
+<span class="c1">#  plt.axis(&#39;equal&#39;)</span>
+<span class="c1">#  plt.savefig(&#39;bckgnd_grid_bathy_grad.png&#39;,bbox_inches=&#39;tight&#39;)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2019 Triad National Security, LLC. All rights reserved. Copyright (c) 2019 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2019 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
