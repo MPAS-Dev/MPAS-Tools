@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Plot time series of thermal forcing at specified
+Plot time series of thermal forcing and/or surface mass balance at specified
 locations and depths. 
 @author: trevorhillebrand
 """
@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 
 
-parser = OptionParser(description='Plot transect from MPAS netCDF')
+parser = OptionParser(description='Plot time series of thermal forcing and/or surface mass balance')
 parser.add_option("-t", "--tf", dest="thermal_forcing_file",
                   help="List of MPAS netCDF files that contains the ismip6shelfMelt_3dThermalForcing" \
                        " field and zOcean variable. Comma-separated, no spaces.")
@@ -24,7 +24,7 @@ parser.add_option("-s", "--smb", dest="smb_file",
                   help="List of MPAS netCDF files that contains the sfcMassBal" \
                        " field. Comma-separated, no spaces.")
 parser.add_option("-m", "--mesh", dest="mesh_file",
-                  help="the MPAS netCDF file that contains the mesh variable, as well as thickness and bedTopography")
+                  help="the MPAS netCDF file that contains the mesh variables, as well as thickness and bedTopography")
 parser.add_option("-r", "--regions", dest="regions_file", default=None,
                   help="the MPAS netCDF file that contains the region masks")
 parser.add_option("--start_time", dest="start_time", default="0",
@@ -43,7 +43,7 @@ parser.add_option('-d', dest='depth', default=None,
                   help='Depth in meters at which to plot thermal forcing.' \
                         ' If a single value, the script will use linear 1d' \
                         ' interpolation to determine the thermal forcing' \
-                        ' at that depth. If two values are given, the script' \
+                        ' at that depth. If two comma-delimited values are given, the script' \
                         ' will provide the average over that depth range.')
 parser.add_option('-n', dest='region_number', default=None,
                   help='Region number to plot. If None, use entire domain.')
