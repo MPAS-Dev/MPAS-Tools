@@ -376,18 +376,27 @@ pnt planarIntersect(const pnt &c1, const pnt &c2, const pnt &v1, const pnt &v2){
      * planarIntersect is intended to compute the point of intersection
      *    of the lines c1-c2 and v1-v2 in a plane.
      */
-    double alpha_numerator, beta_numerator, denom;
-    double alpha, beta;
+    double cx_numerator, cy_numerator, denom;
     pnt c;
 
-    alpha_numerator = (v2.x - v1.x) * (c1.y - v2.y) - (v2.y - v1.y) * (c1.x - v2.x);
-//    beta_numerator = (c1.x - v2.x) * (c2.y - c1.y) - (c1.y - v2.y) * (c2.x - c1.x);
-    denom = (c2.x - c1.x) * (v2.y - v1.y) - (c2.y - c1.y) * (v2.x - v1.x);
+    double x1 = v1.x;
+    double y1 = v1.y;
 
-    alpha = alpha_numerator / denom;
-//    beta = beta_numerator / demon;
+    double x2 = v2.x;
+    double y2 = v2.y;
 
-    c = alpha * (v2 - v1) + v1;
+    double x3 = c1.x;
+    double y3 = c1.y;
+
+    double x4 = c2.x;
+    double y4 = c2.y;
+
+    cx_numerator = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
+    cy_numerator = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
+    denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+
+    c.x = cx_numerator / denom;
+    c.y = cy_numerator / denom;
 
     return c;
 }/*}}}*/
