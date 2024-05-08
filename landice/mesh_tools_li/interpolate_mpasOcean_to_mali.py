@@ -4,139 +4,183 @@ import os
 import shutil
 import xarray as xr
 import subprocess
-
+import numpy as np
+from scipy import stats as st
 from mpas_tools.logging import check_call
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from optparse import OptionParser
 
-parser = OptionParser()
-parser.add_option("--oceanMesh", dest="mpasMeshFile", help="MPAS-Ocean mesh to be interpolated from", metavar="FILENAME")
-parser.add_option("--oceanDiag", dest="mpasDiagFile", help="MPAS-Ocean diagnostic output file", metavar="FILENAME")
-parser.add_option("--ice", dest="maliFile", help="MALI mesh to be interpolated onto", metavar="FILENAME")
-parser.add_option("-n", "--ntasks", dest="ntasks", help="Number of processors to use with ESMF_RegridWeightGen")
-parser.add_option("-m", "--method", dest="method", help="Remapping method, either 'bilinear' or 'neareststod'")
-parser.add_option("-o", "--outFile",dest="outputFile", help="Desired name of output file", metavar="FILENAME", default="mpas_to_mali_remapped.nc")
-options, args = parser.parse_args()
-
-#make copy of mpasMeshFile
-tmp_mpasMeshFile = "tmp_mpasMeshFile.nc"
-subprocess.run(["ncks", options.mpasMeshFile, tmp_mpasMeshFile]) 
-
-#Preprocessing:
-#TO DO: Create capability to read multiple files and time average over relavant fields
-
-#TO DO: Vertically interpolate between MPAS-O to MALI grids
-
-#main:
-#calculate thermal forcing
-calc_ocean_thermal_forcing(options.mpasMeshFile, options.mpasDiagFile)
-
-#TO DO: copy landIceFreshwaterFlux to mpas mesh file copy for interpolation. Make name relevant to MALI
-
-#remap mpas to mali
-remap_mpas_to_mali(options.mpasMeshFile, options.maliMeshFile, options.ntasks, options.method, options.outputFile)
-
-def calc_ocean_thermal_forcing(tmp_mpasMeshFile, mpasDiagFile)
-    print("Calculating Thermal Forcing")
-    print("... gathering data ...")
-    fM = xr.open_dataset(options.mpasMeshFile, decode_times=False, decode_cf=False)
-    minLevelCell = fM['minLevelCell'][:].data
-    maxLevelCell = fM['maxLevelCell'][:].data
-    layerThickness = fM['layerThickness'][:,:,:].data 
-    landIceFloatingMask = fM['landIceFloatingMask'][:,:].data
-    nCells = fM.sizes['nCells']
-
-    fD = xr.open_dataset(options.mpasDiagFile, decode_times=False, decode_cf=False)
-    temperature = fD['timeMonthly_avg_activeTracers_temperature'][:,:,:].data
-    salinity = fD['timeMonthly_avg_activeTracers_salinity'][:,:,:].data
-    density = fD['time_monthy_avg_density'][:,:,:].data
-    atmPressure = fD['time_monthly_avg_atmosphericPressure'][:,:].data
-    coeff_0_openOcean = fD.attrs['config_open_ocean_freezing_temperature_coeff_0']
-    coeff_S_openOcean = fD.attrs['config_open_ocean_freezing_temperature_coeff_S']
-    coeff_p_openOcean = fD.attrs['config_open_ocean_freezing_temperature_coeff_p']
-    coeff_pS_openOcean = fD.attrs['config_open_ocean_freezing_temperature_coeff_pS']
-    coeff_mushy_az1_liq = fD.attrs['config_open_ocean_freezing_temperature_coeff_mushy_az1_liq']
-    coeff_mushy_openOcean = 1/coeff_mushy_az1_liq 
-    coeff_0_cavity = fD.attrs['config_land_ice_cavity_freezing_temperature_coeff_0']
-    coeff_S_cavity = fD.attrs['config_land_ice_cavity_freezing_temperature_coeff_S']
-    coeff_p_cavity = fD.attrs['config_land_ice_cavity_temperature_coeff_p']
-    coeff_pS_cavity = fD.attrs['config_land_ice_cavity_freezing_temperature_coeff_pS']
-    coeff_mushy_az1_liq = fD.attrs['config_land_ice_cavity_freezing_temperature_coeff_mushy_az1_liq']
-    coeff_mushy_cavity = 1/coeff_mushy_az1_liq
-    Time = fD.sizes['Time']
-
-    gravity = 9.81
-
-    for iTime in range(Time-1):
-
-        #calculate pressure: NEED TO CHECK KMIN AND K INDEXING
-        for iCell in range(nCells-1):
-                kmin = minLevelCell[iCell]
-                kmax = maxLevelCell[iCell]
-                pressure[iTime,kmin,iCell] = atmPressure[iTime,iCell] + density[iTime,iCell,kmin]*gravity*0.5*layerThickness[iTime,iCell,kmin]
-
-                for k in np.arange(kmin, kmax):
-                    pressure[iTime,k,iCell] = pressure[iTime,iCell,k] + 0.5*gravity*(density[iTime,iCell,k]*layerThickness[iTime,iCell,k] + density[iTime,iCell,k-1]*layerThickness[iTime,iCell,k-1])
-
-                if (landIceFloatingMask[iTime,iCell] == 1):
-                    ocn_freezing_temperature[iTime,iCell,:] = coeff_0_openOcean + coeff_S_openOcean * salinity[iTime,iCell,:] + coeff_p_openOcean * pressure[iTime,iCell,:] \
-                            + coeff_pS_openOcean * pressure[iTime,iCell,:] * salinity[iTime,iCell,:] + coeff_mushy_openOcean * salinity[iTime,iCell,:] / (1.0 - salinity[iTime,iCell,:] / 1e3)
-                
-                elif (landIceFloatingMask[iTime,iCell] == 0):
-                    ocn_freezing_temperature[iTime,iCell,:] = coeff_0_cavity + coeff_S_cavity * salinity[iTime,iCell,:] + coeff_p_cavity * pressure[iTime,iCell,:] \
-                            + coeff_pS_cavity * pressure[iTime,iCell,:] * salinity[iTime,iCell,:] + coeff_mushy_cavity * salinity[iTime,iCell,:] / (1.0 - salinity[iTime,iCell,:] / 1e3)
-
-    # Calculate thermal forcing
-    oceanThermalForcing = temperature - ocn_freezing_temperature
+class mpasToMaliInterp:
     
-    # Save thermal forcing to mesh file
-    #TO DO: Change name to variable that MALI will recognize
-    tf = xr.DataArray(oceanThermalForcing, dims=('Time','nCells','nVertLevels') 
-    fM['oceanThermalForcing'] = tf
-    fM.to_netcdf(tmp_mpasMeshFile)
-    fM.close()
+    def __init__(self):
+        parser = OptionParser()
+        parser.add_option("--oceanMesh", dest="mpasMeshFile", help="MPAS-Ocean mesh to be interpolated from", metavar="FILENAME")
+        parser.add_option("--oceanDiags", dest="mpasDiagsDir", help="Directory path where MPAS-Ocean diagnostic files are stored. Should be only netcdf files in that directory", metavar="FILENAME")
+        parser.add_option("--ice", dest="maliFile", help="MALI mesh to be interpolated onto", metavar="FILENAME")
+        parser.add_option("-n", "--ntasks", dest="ntasks", help="Number of processors to use with ESMF_RegridWeightGen")
+        parser.add_option("-m", "--method", dest="method", help="Remapping method, either 'bilinear' or 'neareststod'")
+        parser.add_option("-o", "--outFile",dest="outputFile", help="Desired name of output file", metavar="FILENAME", default="mpas_to_mali_remapped.nc")
+        parser.add_option("-a","--yearlyAvg", dest="yearlyAvg", help="true or false option to average monthly output to yearly intervals", default="true")
+        self.options, args = parser.parse_args()
+        # << TO DO >>: Get rid of options sub-class, define options directly in self class
 
-def remap_mpas_to_mali(mpas_meshFile, mali_meshFile, ntasks, method, outputFile)
-    #create scrip files
-    print("Creating Scrip Files")
-    mali_scripfile = "tmp_mali_scrip.nc"
-    mpas_scripfile = "tmp_mpas_scrip.nc"
+        # open and concatenate diagnostic dataset
+        DS = xr.open_mfdataset(self.options.mpasDiagsDir + '/' + '*.nc', combine='nested', concat_dim='Time', decode_timedelta=False)        
+        #open mpas ocean mesh
+        OM = xr.open_dataset(tmp_mpasMeshFile, decode_times=False, decode_cf=False)
+        #open MALI mesh
+        IM = xr.open_dataset(options.maliMeshFile, decode_times=False, decode_cf=False)
+        
+        # variables for time averaging
+        # << TO DO >>: Adjust for variables with no time dimension after open_mfdataset (e.g., Matt's areaCell example)
+        self.temperature = DS['timeMonthly_avg_activeTracers_temperature'][:,:,:].data
+        self.salinity = DS['timeMonthly_avg_activeTracers_temperature'][:,:,:].data
+        self.density = DS['timeMonthly_avg_density'][:,:,:].data
+        self.daysSinceStart = DS['daysSinceStart'][:].data
+        self.stTime = DS.attrs['config_start_time']
+        self.landIceFloatingMask = OM['landIceFloatingMiask'][:,:,:].data
+        self.layerThickness = OM['layerThickness'][:,:].data 
+        # << TO DO >> : add landIceFreshwaterFlux field
+        # << TO DO >>: Figure out how to import xtime with xarray
 
-    scrip_from_mpas(mali_meshFile, mali_scripfile)
-    scrip_from_mpas(mpas_meshFile, mpas_scripfile)
+        # additional variables for computing thermal forcing
+        self.minLevelCell = OM['minLevelCell'][:].data
+        self.maxLevelCell = OM['maxLevelCell'][:].data
+        self.nCells = OM.sizes['nCells']
+        self.coeff_0_openOcean = DS.attrs['config_open_ocean_freezing_temperature_coeff_0']
+        self.coeff_S_openOcean = DS.attrs['config_open_ocean_freezing_temperature_coeff_S']
+        self.coeff_p_openOcean = DS.attrs['config_open_ocean_freezing_temperature_coeff_p']
+        self.coeff_pS_openOcean = DS.attrs['config_open_ocean_freezing_temperature_coeff_pS']
+        self.coeff_mushy_az1_liq = DS.attrs['config_open_ocean_freezing_temperature_coeff_mushy_az1_liq']
+        self.coeff_mushy_openOcean = 1/coeff_mushy_az1_liq 
+        self.coeff_0_cavity = DS.attrs['config_land_ice_cavity_freezing_temperature_coeff_0']
+        self.coeff_S_cavity = DS.attrs['config_land_ice_cavity_freezing_temperature_coeff_S']
+        self.coeff_p_cavity = DS.attrs['config_land_ice_cavity_temperature_coeff_p']
+        self.coeff_pS_cavity = DS.attrs['config_land_ice_cavity_freezing_temperature_coeff_pS']
+        self.coeff_mushy_az1_liq = DS.attrs['config_land_ice_cavity_freezing_temperature_coeff_mushy_az1_liq']
+        self.coeff_mushy_cavity = 1/coeff_mushy_az1_liq
+        self.Time = DS.sizes['Time']
 
-    #create mapping file
-    print("Creating Mapping File")
-    args_esmf = ['srun', 
-            '-n', ntasks, 'ESMF_RegridWeightGen',
-            '--source', mpas_scripfile,
-            '--destination', mali_scripfile,
-            '--weight', "tmp_mapping_file.nc",
-            '--method', method,
-            '-i', '-64bit_offset',
-            "--dst_regional", "--src_regional", '--ignore_unmapped']
-    check_call(args_esmf)
+    def time_average_output(self)
+        if (self.options.yearlyAvg == 'true'):
+            yearsSinceStart = self.daysSinceStart / 365.0
+            finalYear = np.floor(np.max(yearsSinceStart))
+            timeStride = 1 # 1 year average
 
-    #TO DO: Create mask indentifying valid overlapping ocean cells
+            years = np.arange(0, finalYear, timeStride)
+            for i in range(len(years)-1):
+                ind = np.where(yearsSinceStart >= years(i) and yearsSinceStart < years(i+1))
+                self.newTemp[i,:,:] = np.mean(self.temperature[ind,:,:], axis=0)
+                self.newSal[i,:,:] = np.mean(self.salinity[ind,:,:], axis=0)
+                self.newDens[i,:,:] = np.mean(self.density[ind,:,:], axis=0)
+                self.newLThick[i,:,:] = np.mean(self.layerThickness[ind,:,:], axis=0)
+                self.newAtmPr[i,:] = np.mean(self.atmPressure[ind,:], axis=0)
+                self.newFloatIceMask[i,:] = st.mode(self.landIceFloatingMask[ind,:], axis=0)
 
-    #permute to work with ncremap
-    shutil.copy(mpas_meshFile, "tmp_" + mpas_meshFile)
-    tmp_mpasFile = "tmp_" + mpas_meshFile
+            # Build new xtime string. Defined on first day of each year
+            stTime = np.datetime64(self.stTime[0:4])
+            stYear = np.datetime_as_string(stTime,unit='Y').astype('float64')
+            yearVec = yearsSinceStart + stYear
+            self.newXtime = np.array([f"{int(year)}-01-01_00:00:00" for year in yearVec],dtype=np.str_)
+        else #do nothing if not time averaging
+            self.newTemp = self.temperature
+            self.newSal = self.salinity
+            self.newDens= self.density
+            self.newLThick = self.layerThickness
+            self.newAtmPr = self.atmPressure
+            self.newFloatIceMask = self.landIceFloatingMask
+            # << TO DO >>: Figure out what to do with xtime if no change. How do we get xarray to load original xtime variable?            
+    
+    def calc_ocean_thermal_forcing(self)
 
-    subprocess.run(["ncpdq", "-O", "-a", "Time,nVertLevels,nCells", tmp_mpasFile, tmp_mpasFile])
-    subprocess.run(["ncpdq", "-O", "-a", "Time,nVertLevelsP1,nCells", tmp_mpasFile, tmp_mpasFile])
-    subprocess.run(["ncpdq", "-O", "-a", "Time,nVertInterfaces,nCells", tmp_mpasFile, tmp_mpasFile])
+        gravity = 9.81
 
-    # remap the input data
-    args_remap = ["ncremap",
-            "-i", tmp_mpasFile,
-            "-o", outputFile,
-            "-m", "tmp_mapping_file.nc"]
-    check_call(args_remap)
+        for iTime in range(self.Time-1): # << TO DO >>: "Time" here needs to change to be consistent with time averaging
 
-    #remove temporary files
-    os.remove(mpas_scripfile)
-    os.remove(mali_scripfile)
-    os.remove(tmp_mpasFile)
-    os.remove("tmp_mapping_file.nc")
+            #calculate pressure: 
+            # << TO DO >>: NEED TO CHECK KMIN AND K INDEXING
+            ## << TO DO >>: pre-allocate ocn_freezing_temperature
+            for iCell in range(self.nCells-1):
+                    kmin = self.minLevelCell[iCell]
+                    kmax = self.maxLevelCell[iCell]
+                    self.newPr[iTime,kmin,iCell] = self.newAtmPr[iTime,iCell] + self.newDens[iTime,iCell,kmin]*gravity*0.5*self.newLThick[iTime,iCell,kmin]
+
+                    for k in np.arange(kmin, kmax):
+                        self.newPr[iTime,k,iCell] = self.newPr[iTime,iCell,k] + 0.5*gravity*(self.newDens[iTime,iCell,k]*self.newLThick[iTime,iCell,k] \
+                                + self.newDens[iTime,iCell,k-1]*self.newLThick[iTime,iCell,k-1])
+
+                    if (self.newFloatIceMask[iTime,iCell] == 1):
+                        ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_openOcean + self.coeff_S_openOcean * self.newSal[iTime,iCell,:] + self.coeff_p_openOcean * self.newPr[iTime,iCell,:] \
+                                + self.coeff_pS_openOcean * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] + self.coeff_mushy_openOcean * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
+                    
+                    elif (self.newFloatingIceMask[iTime,iCell] == 0):
+                        ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_cavity + self.coeff_S_cavity * self.newSal[iTime,iCell,:] + self.coeff_p_cavity * self.newPr[iTime,iCell,:] \
+                                + self.coeff_pS_cavity * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] + self.coeff_mushy_cavity * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
+
+        # Calculate thermal forcing
+        self.oceanThermalForcing = self.newTemp - ocn_freezing_temperature
+        
+    def remap_mpas_to_mali(self)
+
+        # make copy of mpasMeshFile to save interpolated variable to
+        tmp_mpasFile = "tmp_" + self.options.mpasMeshFile
+        shutil.copy(self.options.mpasMeshFile, tmp_mpasMeshFile)
+        # << TO DO >>: populate tmp_mpasMeshFile with variables to be interpolated
+
+        #create scrip files
+        print("Creating Scrip Files")
+        mali_scripfile = "tmp_mali_scrip.nc"
+        mpas_scripfile = "tmp_mpas_scrip.nc"
+
+        scrip_from_mpas(self.options.maliFile, mali_scripfile)
+        scrip_from_mpas(tmp_mpasMeshFile, mpas_scripfile)
+
+        #create mapping file
+        print("Creating Mapping File")
+        args_esmf = ['srun', 
+                '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
+                '--source', mpas_scripfile,
+                '--destination', mali_scripfile,
+                '--weight', "tmp_mapping_file.nc",
+                '--method', self.options.method,
+                '-i', '-64bit_offset',
+                "--dst_regional", "--src_regional", '--ignore_unmapped']
+        check_call(args_esmf)
+
+        #<< TO DO >>: Create mask indentifying valid overlapping ocean cells
+
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertLevels,nCells", tmp_mpasMeshFile, tmp_mpasMeshFile])
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertLevelsP1,nCells", tmp_mpasMeshFile, tmp_mpasMeshFile])
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertInterfaces,nCells", tmp_mpasMeshFile, tmp_mpasMeshFile])
+
+        # remap the input data
+        args_remap = ["ncremap",
+                "-i", tmp_mpasMeshFile,
+                "-o", self.options.outputFile,
+                "-m", "tmp_mapping_file.nc"]
+        check_call(args_remap)
+
+        #remove temporary files
+        os.remove("tmp_*.nc")
+
+def main():
+        run = mpasToMaliInterp()
+        
+        #compute yearly time average if necessary 
+        run.time_average_output(self)
+  
+        #calculate thermal forcing
+        run.calc_ocean_thermal_forcing(self)
+
+        # << TO DO >>: copy landIceFreshwaterFlux to mpas mesh file copy for interpolation. Make name relevant to MALI
+
+        # << TO DO >>: Vertically interpolate between MPAS-O to MALI grids
+
+        #remap mpas to mali
+        run.remap_mpas_to_mali(self)
+
+if __name__ == "__main__":
+    main()
+
+
 
