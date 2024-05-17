@@ -155,7 +155,7 @@ class mpasToMaliInterp:
         nt,nc,nz = self.newTemp.shape
         ocn_freezing_temperature = np.zeros((nt,nc,nz))
         self.newPr = np.zeros((nt,nc,nz))
-
+        print("NewPr: {}".format(self.newPr.shape))
         print("floating ice mask: {}".format(self.landIceFloatingMask.shape))
         for iTime in range(nt):
 
@@ -163,13 +163,15 @@ class mpasToMaliInterp:
             for iCell in range(self.nCells):
                     kmin = self.minLevelCell[iCell] - 1
                     kmax = self.maxLevelCell[iCell] - 1
-                    self.newPr[iTime,kmin,iCell] = self.newAtmPr[iTime,iCell] + self.newDens[iTime,iCell,kmin]*gravity*0.5*self.newLThick[iTime,iCell,kmin]
+                    print("kmin: {}".format(kmin))
+                    print("iCell: {}".format(iCell))
+
+                    self.newPr[iTime,iCell,kmin] = self.newAtmPr[iTime,iCell] + self.newDens[iTime,iCell,kmin]*gravity*0.5*self.newLThick[iTime,iCell,kmin]
 
                     for k in np.arange(kmin + 1, kmax):
-                        self.newPr[iTime,k,iCell] = self.newPr[iTime,iCell,k-1] + 0.5*gravity*(self.newDens[iTime,iCell,k-1]*self.newLThick[iTime,iCell,k-1] \
+                        self.newPr[iTime,iCell,k] = self.newPr[iTime,iCell,k-1] + 0.5*gravity*(self.newDens[iTime,iCell,k-1]*self.newLThick[iTime,iCell,k-1] \
                                 + self.newDens[iTime,iCell,k]*self.newLThick[iTime,iCell,k])
 
-                    print("floating ice mask iCell: {}".format(self.landIceFloatingMask[iCell]))
                     if (self.landIceFloatingMask[iCell] == 1):
                         ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_openOcean + self.coeff_S_openOcean * self.newSal[iTime,iCell,:] + self.coeff_p_openOcean * self.newPr[iTime,iCell,:] \
                                 + self.coeff_pS_openOcean * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] + self.coeff_mushy_openOcean * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
