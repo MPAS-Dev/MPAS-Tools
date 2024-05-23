@@ -163,22 +163,26 @@ class mpasToMaliInterp:
             for iCell in range(self.nCells):
                     kmin = self.minLevelCell[iCell] - 1
                     kmax = self.maxLevelCell[iCell] - 1
-                    print("kmin: {}".format(kmin))
-                    print("iCell: {}".format(iCell))
 
-                    self.newPr[iTime,iCell,kmin] = self.newAtmPr[iTime,iCell] + self.newDens[iTime,iCell,kmin]*gravity*0.5*self.newLThick[iTime,iCell,kmin]
+                    self.newPr[iTime,iCell,kmin] = self.newAtmPr[iTime,iCell] + \
+                            self.newDens[iTime,iCell,kmin]*gravity*0.5*self.newLThick[iTime,iCell,kmin]
 
                     for k in np.arange(kmin + 1, kmax):
-                        self.newPr[iTime,iCell,k] = self.newPr[iTime,iCell,k-1] + 0.5*gravity*(self.newDens[iTime,iCell,k-1]*self.newLThick[iTime,iCell,k-1] \
+                        self.newPr[iTime,iCell,k] = self.newPr[iTime,iCell,k-1] + \
+                                0.5*gravity*(self.newDens[iTime,iCell,k-1]*self.newLThick[iTime,iCell,k-1] \
                                 + self.newDens[iTime,iCell,k]*self.newLThick[iTime,iCell,k])
 
                     if (self.landIceFloatingMask[iCell] == 1):
-                        ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_openOcean + self.coeff_S_openOcean * self.newSal[iTime,iCell,:] + self.coeff_p_openOcean * self.newPr[iTime,iCell,:] \
-                                + self.coeff_pS_openOcean * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] + self.coeff_mushy_openOcean * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
+                        ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_openOcean + \
+                                self.coeff_S_openOcean * self.newSal[iTime,iCell,:] + self.coeff_p_openOcean * self.newPr[iTime,iCell,:] \
+                                + self.coeff_pS_openOcean * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] \
+                                + self.coeff_mushy_openOcean * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
                     
                     elif (self.landIceFloatingMask[iCell] == 0):
-                        ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_cavity + self.coeff_S_cavity * self.newSal[iTime,iCell,:] + self.coeff_p_cavity * self.newPr[iTime,iCell,:] \
-                                + self.coeff_pS_cavity * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] + self.coeff_mushy_cavity * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
+                        ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_cavity + \
+                                self.coeff_S_cavity * self.newSal[iTime,iCell,:] + self.coeff_p_cavity * self.newPr[iTime,iCell,:] \
+                                + self.coeff_pS_cavity * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] \
+                                + self.coeff_mushy_cavity * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
 
         # Calculate thermal forcing
         self.oceanThermalForcing = self.newTemp - ocn_freezing_temperature
@@ -187,7 +191,7 @@ class mpasToMaliInterp:
         print("Start remapping ... ")
 
         # make copy of mpasMeshFile to save interpolated variable to
-        tmp_mpasFile = "tmp_" + self.options.mpasMeshFile
+        tmp_mpasMeshFile = self.options.mpasMeshFile + ".tmp"
         shutil.copy(self.options.mpasMeshFile, tmp_mpasMeshFile)
         
         # populate tmp_mpasMeshFile with variables to be interpolated
@@ -205,8 +209,8 @@ class mpasToMaliInterp:
 
         #create scrip files
         print("Creating Scrip Files")
-        mali_scripfile = "tmp_mali_scrip.nc"
-        mpas_scripfile = "tmp_mpas_scrip.nc"
+        mali_scripfile = "mali_scrip.nc.tmp"
+        mpas_scripfile = "mpas_scrip.tmp"
 
         scrip_from_mpas(self.options.maliFile, mali_scripfile)
         scrip_from_mpas(tmp_mpasMeshFile, mpas_scripfile)
@@ -217,7 +221,7 @@ class mpasToMaliInterp:
                 '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
                 '--source', mpas_scripfile,
                 '--destination', mali_scripfile,
-                '--weight', "tmp_mapping_file.nc",
+                '--weight', "mapping_file.nc.tmp",
                 '--method', self.options.method,
                 '-i', '-64bit_offset',
                 "--dst_regional", "--src_regional", '--ignore_unmapped']
@@ -231,13 +235,13 @@ class mpasToMaliInterp:
         # remap the input data
         args_remap = ["ncremap",
                 "-i", tmp_mpasMeshFile,
-                "-o", "tmp_" + self.options.outputFile,
-                "-m", "tmp_mapping_file.nc"]
+                "-o", self.options.outputFile + ".tmp",
+                "-m", "mapping_file.nc.tmp"]
         check_call(args_remap)
 
         print("Finishing processing and saving ...")
         # Create mask indentifying valid overlapping ocean cells. Combine all MALI terms in one input file
-        interpDS = xr.open_dataset("tmp_" + self.options.outputFile, decode_times=False, decode_cf=False)
+        interpDS = xr.open_dataset(self.options.outputFile + ".tmp", decode_times=False, decode_cf=False)
         interpTF = interpDS['ismip6shelfMelt_3dThermalForcing'][:,:,:]
         if (self.newLandIceFWFlux != 0):
             interpFWF = interpDS['floatingBasalMassBal'][:,:]
@@ -261,7 +265,7 @@ class mpasToMaliInterp:
         IM.close()
 
         #remove temporary files
-        os.remove("tmp_*.nc")
+        os.remove("*.tmp")
 
 def main():
         run = mpasToMaliInterp()
