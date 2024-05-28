@@ -183,9 +183,11 @@ def plot_transect(data_path, variable, ax, times=[0],
 
 def plot_map(data_path, variable, ax, time=0, cmap=None,
              vmin=None, vmax=None, log_plot=False, mesh_file=None,
-             triangles=None, plot_grounding_line=False):
+             triangles=None, plot_grounding_line=False,
+             variable_name=None):
     """
-    Plot map of MALI output
+    Plot map of MALI output either by specifying a variable name or
+    a pre-computed field.
 
     Parameters
     ----------
@@ -193,9 +195,10 @@ def plot_map(data_path, variable, ax, time=0, cmap=None,
         Path to .nc file containing variables to plot. May contain
         MALI mesh fields, or you can use the mesh_file argument.
 
-    variable : str
-        MALI variable to plot. Can also be "geometry", which will
-        calculate upper and lower surfaces from thickness and bed topography.
+    variable : str or numpy.ndarray
+        MALI variable to plot. If a string is specified, the variable with that
+        name will be read from the .nc file at data_path. If a numpy array is
+        given, that array will be plotted directly.
 
     ax : matplotlib.axes._axes.Axes
         Axes on which to plot variable
@@ -228,6 +231,9 @@ def plot_map(data_path, variable, ax, time=0, cmap=None,
     plot_grounding_line : boolean, optional
         Whether to plot the grounding line along with variable.
 
+    variable_name : str
+        Name to use for colorbar if specifying `variable` as a numpy array.
+
     Returns
     -------
     var_plot : matplotlib.collections.PolyCollection
@@ -254,11 +260,15 @@ def plot_map(data_path, variable, ax, time=0, cmap=None,
         triangles, tri_mask = _get_triangles(mesh)
         mesh.close()
 
-    if variable == 'observedSpeed':
-        var_to_plot = np.sqrt(dataset.variables['observedSurfaceVelocityX'][:]**2 +
-                              dataset.variables['observedSurfaceVelocityY'][:]**2)
+    if type(variable) is str:
+        variable_name = variable
+        if variable == 'observedSpeed':
+            var_to_plot = np.sqrt(dataset.variables['observedSurfaceVelocityX'][:]**2 +
+                                  dataset.variables['observedSurfaceVelocityY'][:]**2)
+        else:
+            var_to_plot = dataset.variables[variable][:]
     else:
-        var_to_plot = dataset.variables[variable][:]
+        var_to_plot = variable
 
     if len(np.shape(var_to_plot)) == 1:
        var_to_plot = var_to_plot.reshape((1, np.shape(var_to_plot)[0]))
@@ -268,9 +278,11 @@ def plot_map(data_path, variable, ax, time=0, cmap=None,
         var_to_plot *= sec_per_year
     else:
         try:
-            units = dataset.variables[variable].units
+            units = f'({dataset.variables[variable].units})'
         except AttributeError:
-            units='no-units'
+            units = "{}"  # This leaves out units on the colorbar
+        except TypeError:
+            units = "{}"
 
     default_colors = {'thickness' : 'Blues',
                      'surfaceSpeed' : 'plasma',
@@ -284,7 +296,7 @@ def plot_map(data_path, variable, ax, time=0, cmap=None,
                           'RdYlGn', 'Spectral', 'coolwarm', 'bwr', 'seismic']
 
     if cmap is None:
-        if variable in default_colors.keys():
+        if variable_name in default_colors.keys():
             cmap = default_colors[variable]
         else:
             cmap = "viridis"
@@ -309,7 +321,7 @@ def plot_map(data_path, variable, ax, time=0, cmap=None,
     if vmax is None:
         vmax = np.nanquantile(var_to_plot[time, :], 0.99)
     # Plot bedTopography on an asymmetric colorbar if appropriate
-    if ( (variable == 'bedTopography') and
+    if ( (variable_name == 'bedTopography') and
          (np.nanquantile(var_to_plot[time, :], 0.99) > 0.) and
          (cmap in div_color_maps) ):
         norm = TwoSlopeNorm(vmin=vmin, vmax=vmax, vcenter=0.)
@@ -323,7 +335,7 @@ def plot_map(data_path, variable, ax, time=0, cmap=None,
 
     cbar = plt.colorbar(ax=ax, mappable=var_plot,
                         orientation='vertical',
-                        label=f'{colorbar_label_prefix}{variable} (${units}$)')
+                        label=f'{colorbar_label_prefix}{variable_name} ${units}$')
     if plot_grounding_line:
         valid_masks, grounding_line_mask, _, _, _ = _calculate_masks(dataset)
         if valid_masks:
