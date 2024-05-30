@@ -502,8 +502,8 @@
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Regrid to desired mesh...&quot;</span><span class="p">)</span>
     <span class="n">filenameOut</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid.nc&quot;</span>
 
-    <span class="n">meshFilenameSrc</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;seaice_QU60km_polar.nc&#39;</span><span class="p">)</span>
-    <span class="n">filenameData</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">data_dir</span><span class="p">,</span> <span class="s1">&#39;icePresent_QU60km_polar.nc&#39;</span><span class="p">)</span>
+    <span class="n">meshFilenameSrc</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">dataDir</span><span class="p">,</span> <span class="s1">&#39;seaice_QU60km_polar.nc&#39;</span><span class="p">)</span>
+    <span class="n">filenameData</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">dataDir</span><span class="p">,</span> <span class="s1">&#39;icePresent_QU60km_polar.nc&#39;</span><span class="p">)</span>
 
     <span class="n">regrid_to_other_mesh</span><span class="p">(</span>
         <span class="n">meshFilenameSrc</span><span class="o">=</span><span class="n">meshFilenameSrc</span><span class="p">,</span>
