@@ -378,8 +378,8 @@ def simple_partitions():
     print("Regrid to desired mesh...")
     filenameOut = "icePresent_regrid.nc"
 
-    meshFilenameSrc = os.path.join(data_dir, 'seaice_QU60km_polar.nc')
-    filenameData = os.path.join(data_dir, 'icePresent_QU60km_polar.nc')
+    meshFilenameSrc = os.path.join(args.dataDir, 'seaice_QU60km_polar.nc')
+    filenameData = os.path.join(args.dataDir, 'icePresent_QU60km_polar.nc')
 
     regrid_to_other_mesh(
         meshFilenameSrc=meshFilenameSrc,
