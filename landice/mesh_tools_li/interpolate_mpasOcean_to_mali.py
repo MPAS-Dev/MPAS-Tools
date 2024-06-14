@@ -10,6 +10,7 @@ from mpas_tools.logging import check_call
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from mpas_tools.ocean.depth import compute_zmid
 from optparse import OptionParser
+import time
 
 class mpasToMaliInterp:
     
@@ -41,7 +42,12 @@ class mpasToMaliInterp:
         self.daysSinceStart = DS['timeMonthly_avg_daysSinceStartOfSim'][:].compute()
         self.stTime = DS.attrs['config_start_time']
         self.landIceFloatingMask = OM['landIceFloatingMask'][0,:].data #not letting floating ice mask evolve for now because it's only in the mesh file
-        self.layerThickness = DS['timeMonthly_avg_layerThickness'][:,:].data
+        avg_layerThickness = DS['timeMonthly_avg_layerThickness']
+        self.layerThickness = avg_layerThickness.data
+        alT = avg_layerThickness.compute().values
+        print("avg_layerThickness: {}".format(alT.shape))
+        print("avg_layerTHickness NaNs: {}".format(np.sum(np.isnan(alT))))
+
         xt = DS['xtime_startMonthly']
         xtime = np.array([xt],dtype=('S',64)) 
         # << NOTE >>: may need to eventually use: "xtime.data.tobytes().decode()" but not sure yet
@@ -51,9 +57,24 @@ class mpasToMaliInterp:
             print("No landIceFreshwaterFlux variable")
             self.landIceFreshwaterFlux = 0
 
-        # additional variables for computing thermal forcing
+        #check for nans in original data
+        if np.isnan(self.temperature).any():
+            print("Original temperature contains NaNs")
+        else:
+            print("Original temperature does not contain NaNs")
+
+        # additional variables for computing thermal forcing 
+        bottomDepth = OM['bottomDepth']
+        bD = bottomDepth.data
+        print("bottomDepth: {}".format(bD.shape))
+        print("bottomDepth NaNs: {}".format(np.sum(np.isnan(bD))))
+
         self.minLevelCell = OM['minLevelCell'][:].data
-        self.maxLevelCell = OM['maxLevelCell'][:].data
+        maxLevelCell = OM['maxLevelCell']
+        self.maxLevelCell = maxLevelCell.data
+        print("maxLevelCell: {}".format(self.maxLevelCell.shape))
+        print("maxLevelCell NaNs: {}".format(np.sum(np.isnan(self.maxLevelCell))))
+
         self.nCells = OM.sizes['nCells']
         self.coeff_0_openOcean = DS.attrs['config_open_ocean_freezing_temperature_coeff_0']
         self.coeff_S_openOcean = DS.attrs['config_open_ocean_freezing_temperature_coeff_S']
@@ -67,22 +88,20 @@ class mpasToMaliInterp:
         self.coeff_pS_cavity = DS.attrs['config_land_ice_cavity_freezing_temperature_coeff_pS']
         self.coeff_mushy_cavity = 0
 
-        #variables for interpolation << NOTE >>: a couple of these fields are redundant but we want them in xarray form for compute_zmid
-        self.bottomDepth_dataArray = OM['bottomDepth'][:]
-        self.maxLevelCell_dataArray = OM['maxLevelCell'][:]
-        self.layerThickness_dataArray = DS['timeMonthly_avg_layerThickness']
-        
+        # Define vertical coordinates of mpas output
+        mpas_cellCenterElev = compute_zmid(bottomDepth, maxLevelCell, avg_layerThickness)
+        self.mpas_cellCenterElev = mpas_cellCenterElev.data
+        print("mpas_cellCenterElev {}".format(self.mpas_cellCenterElev.shape))
+        mpas_cellCenterElev = mpas_cellCenterElev.compute().values
+        print("mpas_cellCenterElev number of NaNs: {}".format(np.sum(np.isnan(mpas_cellCenterElev))))
+
     def time_average_output(self):
         print("Time Averaging ...")
         if (self.options.yearlyAvg == 'true'):
 
-            print("daysSinceStart: {}".format(self.daysSinceStart))
             yearsSinceStart = self.daysSinceStart / 365.0
-            print("yearsSinceStart: {}".format(yearsSinceStart))
             finalYear = np.floor(np.max(yearsSinceStart))
             startYear = np.floor(np.min(yearsSinceStart))
-            print("final year: {}".format(finalYear))
-            print("start year: {}".format(startYear))
             timeStride = 1 # 1 year average
             
             if (startYear != finalYear):
@@ -92,8 +111,6 @@ class mpasToMaliInterp:
                 years = startYear
                 nt = 1
 
-            print("years {}: ".format(years))
-
             #pre-allocate
             _,nc,nz = self.temperature.shape
             self.newTemp = np.zeros((nt,nc,nz)) 
@@ -101,17 +118,19 @@ class mpasToMaliInterp:
             self.newDens = np.zeros((nt,nc,nz))
             self.newLThick= np.zeros((nt,nc,nz))
             self.newAtmPr = np.zeros((nt,nc))
+            self.newMpasCCE = np.zeros((nt,nc,nz))
             if (self.landIceFreshwaterFlux != 0):
                 self.newLandIceFWFlux = np.zeros((nt,nc))
 
             print("starting loop ...")
+            st = time.time()
             if (years.ndim == 0): 
-                print("Years: {}".format(years))
                 log = np.logical_and(yearsSinceStart >= years, yearsSinceStart < years + timeStride)
                 self.newTemp[0,:,:] = np.mean(self.temperature[log,:,:], axis=0)
                 self.newSal[0,:,:] = np.mean(self.salinity[log,:,:], axis=0)
                 self.newDens[0,:,:] = np.mean(self.density[log,:,:], axis=0)
                 self.newLThick[0,:,:] = np.mean(self.layerThickness[log,:,:], axis=0)
+                self.newMpasCCE[0,:,:] = np.mean(self.mpas_cellCenterElev[log,:,:], axis=0)
                 self.newAtmPr[0,:] = np.mean(self.atmPressure[log,:], axis=0)
                 if (self.landIceFreshwaterFlux != 0):
                     self.newLandIceFWFlux[0,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
@@ -120,18 +139,21 @@ class mpasToMaliInterp:
             else :
                 ct = 0
                 for i in years:
-                    print("Year: {}".format(years[i]))
                     log = np.logical_and(yearsSinceStart >= years[i], yearsSinceStart < years[i] + timeStride)
                     self.newTemp[ct,:,:] = np.mean(self.temperature[log,:,:], axis=0)
                     self.newSal[ct,:,:] = np.mean(self.salinity[log,:,:], axis=0)
                     self.newDens[ct,:,:] = np.mean(self.density[log,:,:], axis=0)
                     self.newLThick[ct,:,:] = np.mean(self.layerThickness[log,:,:], axis=0)
+                    self.newMpasCCE[ct,:,:] = np.mean(self.mpas_cellCenterElev[log,:,:], axis=0)
                     self.newAtmPr[ct,:] = np.mean(self.atmPressure[log,:], axis=0)
                     if (self.landIceFreshwaterFlux != 0):
                         self.newLandIceFWFlux[ct,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
                     else :
                         self.newLandIceFWFlux = 0
                     ct = ct + 1
+            nd = time.time()
+            tm = nd - st
+            print("Time averaging loop", tm, "seconds")
 
             # Build new xtime string. Defined on first day of each year
             stTime = np.datetime64(self.stTime[0:4])
@@ -143,9 +165,34 @@ class mpasToMaliInterp:
             self.newSal = self.salinity
             self.newDens= self.density
             self.newLThick = self.layerThickness
+            self.newMpasCCE = self.mpas_cellCenterElev
             self.newAtmPr = self.atmPressure
             self.newLandIceFWFlux = self.landIceFreshwaterFlux
             self.newXtime = xtime
+
+        print("neMPASCCE: {}".format(self.newMpasCCE.shape))
+        print("NaNs in newMpasCCE: {}".format(np.sum(np.isnan(self.newMpasCCE))))
+
+        #check for nans
+        if np.isnan(self.mpas_cellCenterElev).any():
+            print("mpas_cellCenterElev contains NaNs")
+        else:
+            print("mpas_cellCenterElev does not contain NaNs")
+
+        if np.isnan(self.newMpasCCE).any():
+            print("newMpasCCE contains NaNs")
+        else:
+            print("newMpasCCE does not contain NaNs")
+        
+        if np.isnan(self.temperature).any():
+            print("temperature contains NaNs")
+        else:
+            print("temperature does not contain NaNs")
+    
+        if np.isnan(self.newTemp).any():
+            print("newTemp contains NaNs")
+        else:
+            print("newTemp does not contain NaNs")
     
     def calc_ocean_thermal_forcing(self):
         print("Calculating thermal forcing ... ")
@@ -155,8 +202,7 @@ class mpasToMaliInterp:
         nt,nc,nz = self.newTemp.shape
         ocn_freezing_temperature = np.zeros((nt,nc,nz))
         self.newPr = np.zeros((nt,nc,nz))
-        print("NewPr: {}".format(self.newPr.shape))
-        print("floating ice mask: {}".format(self.landIceFloatingMask.shape))
+        st = time.time()
         for iTime in range(nt):
 
             #calculate pressure: 
@@ -183,34 +229,68 @@ class mpasToMaliInterp:
                                 self.coeff_S_cavity * self.newSal[iTime,iCell,:] + self.coeff_p_cavity * self.newPr[iTime,iCell,:] \
                                 + self.coeff_pS_cavity * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] \
                                 + self.coeff_mushy_cavity * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
-
+        nd = time.time()
+        tm = nd - st
+        print("Ocean thermal forcing loop", tm, "seconds")
         # Calculate thermal forcing
         self.oceanThermalForcing = self.newTemp - ocn_freezing_temperature
         
+        if np.isnan(self.oceanThermalForcing).any():
+            print("oceanThermalForcing contains NaNs")
+        else:
+            print("oceanThermalForcing does not contain NaNs")
+    
     def remap_mpas_to_mali(self):
         print("Start remapping ... ")
 
-        # make copy of mpasMeshFile to save interpolated variable to
-        tmp_mpasMeshFile = self.options.mpasMeshFile + ".tmp"
-        shutil.copy(self.options.mpasMeshFile, tmp_mpasMeshFile)
-        
         # populate tmp_mpasMeshFile with variables to be interpolated
-        f = xr.open_dataset(tmp_mpasMeshFile, decode_times=False, decode_cf=False)
+        f = xr.open_dataset(self.options.mpasMeshFile, decode_times=False, decode_cf=False)
         tf = xr.DataArray(self.oceanThermalForcing.astype('float64'),dims=('Time','nCells','nVertLevels'))
+        
         f['ismip6shelfMelt_3dThermalForcing'] = tf
 
-        if (self.newLandIceFWFlux != 0):
-            m = xr.DataArray(self.newLandIceFWFlux('float64'),dims=('Time','nCells'))
-            f['floatingBasalMassBal'] = m
+        mcce = xr.DataArray(self.newMpasCCE.astype('float64'),dims=('Time','nCells','nVertLevels'))
+        f['mpas_cellCenterElev'] = mcce
 
+        if (self.newLandIceFWFlux != 0):
+            m = xr.DataArray(self.newLandIceFWFlux.astype('float64'),dims=('Time','nCells'))
+            f['floatingBasalMassBal'] = m
+        
+        #delete unncessary variables with 'string1' dimension or will cause errors.
+        try:
+            f = f.drop_vars('simulationStartTime')
+        except ValueError:
+            f = f 
+
+        try:
+            f = f.drop_vars('forcingGroupNames')
+        except ValueError:
+            f = f 
+        
+        try:
+            f = f.drop_vars('forcingGroupRestartTimes')
+        except ValueError:
+            f = f 
+        
+        st = time.time()
         # save new mesh file
+        tmp_mpasMeshFile = "tmp_mpasMeshFile.nc"
         f.to_netcdf(tmp_mpasMeshFile)
         f.close()
+        nd = time.time()
+        tm = nd - st
+        print("saving updates mpas mesh file", tm, "seconds")
+
+        st = time.time()
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", tmp_mpasMeshFile])
+        nd = time.time()
+        tm = nd - st
+        print("Removing fill value:", tm, "seconds")
 
         #create scrip files
         print("Creating Scrip Files")
-        mali_scripfile = "mali_scrip.nc.tmp"
-        mpas_scripfile = "mpas_scrip.tmp"
+        mali_scripfile = "tmp_mali_scrip.nc"
+        mpas_scripfile = "tmp_mpas_scrip.nc"
 
         scrip_from_mpas(self.options.maliFile, mali_scripfile)
         scrip_from_mpas(tmp_mpasMeshFile, mpas_scripfile)
@@ -221,7 +301,7 @@ class mpasToMaliInterp:
                 '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
                 '--source', mpas_scripfile,
                 '--destination', mali_scripfile,
-                '--weight', "mapping_file.nc.tmp",
+                '--weight', "tmp_mapping_file.nc",
                 '--method', self.options.method,
                 '-i', '-64bit_offset',
                 "--dst_regional", "--src_regional", '--ignore_unmapped']
@@ -235,37 +315,126 @@ class mpasToMaliInterp:
         # remap the input data
         args_remap = ["ncremap",
                 "-i", tmp_mpasMeshFile,
-                "-o", self.options.outputFile + ".tmp",
-                "-m", "mapping_file.nc.tmp"]
+                "-o", "tmp_outputFile.nc",
+                "-m", "tmp_mapping_file.nc"]
         check_call(args_remap)
 
-        print("Finishing processing and saving ...")
+        #Vertical interpolation
+        print("Vertically interpolating onto mali grid")
+        interpDS = xr.open_dataset("tmp_outputFile.nc", decode_times=False, decode_cf=False)
+        TF = interpDS['ismip6shelfMelt_3dThermalForcing'][:,:,:].data
+        mpas_cellCenterElev = interpDS['mpas_cellCenterElev'][:,:,:].data
+
+        #Define vertical coordinates for mali grid
+        IM = xr.open_dataset(self.options.maliFile,decode_times=False,decode_cf=False)
+        layerThicknessFractions = IM['layerThicknessFractions'][:].data
+        bedTopography = IM['bedTopography'][:,:].data
+        thickness = IM['thickness'][:,:].data
+        
+        nz, = layerThicknessFractions.shape
+        nt,nc = thickness.shape
+
+        layerThicknessFractions = layerThicknessFractions.reshape((1,1,nz))
+        thickness = thickness.reshape((nt,nc,1))
+        bedTopography = bedTopography.reshape((nt,nc,1))
+
+        layerThickness = thickness * layerThicknessFractions
+        mali_cellCenterElev = np.cumsum(layerThickness,axis=2) - layerThickness/2 + bedTopography
+
+        # Reshape to (nt*nc, nz) before interpolation to avoid looping
+        mali_cellCenterElev = mali_cellCenterElev.reshape(nt*nc, -1)
+        TF = np.transpose(TF,(0,2,1))
+        TF = TF.reshape(nt*nc, -1)
+        mpas_cellCenterElev = np.transpose(mpas_cellCenterElev,(0,2,1))
+        mpas_cellCenterElev = mpas_cellCenterElev.reshape(nt*nc, -1)
+
+        print("Before Interpolation")
+        print("TF zeroth dim: {}".format(TF[0:5,0]))
+        print("TF first dim: {}".format(TF[0,0:5]))
+
+        print("mpas_cellCenterElev zeroth dim: {}".format(mpas_cellCenterElev[0:5,0]))
+        print("mpas_cellCenterElev first dim: {}".format(mpas_cellCenterElev[0,0:5]))
+
+        st = time.time()
+        # Linear interpolation 
+        
+        if np.isnan(mali_cellCenterElev).any():
+            print("mali_cellCenterElev contains NaNs")
+        else:
+            print("mali_cellCenterElev does not contain NaNs")
+
+        if np.isnan(mpas_cellCenterElev).any():
+            print("mpas_cellCenterElev contains NaNs")
+        else:
+            print("mpas_cellCenterElev does not contain NaNs")
+
+        if np.isnan(TF).any():
+            print("TF contains NaNs")
+        else:
+            print("TF does not contain NaNs")
+
+        nan_count = 0
+        for i in range(nt*nc):
+            ind = np.where(~np.isnan(TF[i,:].flatten() * mpas_cellCenterElev[i,:].flatten()))
+            
+            #if (ind.size != 0): #only interpolation where valid data
+            ct = 0
+            if len(ind[0]) != 0:
+                if (ct == 0):
+                    print("mali_cellCenterElev[i,:]".format(mali_cellCenterElev[i,:].flatten().shape))
+                    print("mpas_cellCenterElev[i,ind]".format(mpas_cellCenterElev[i,ind].flatten().shape))
+                    print("TF[i,ind]".format(mali_cellCenterElev[i,ind].flatten().shape))
+                    ct = ct + 1
+                interpTF = np.array(np.interp(mali_cellCenterElev[i,:].flatten(), mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten()))
+            else:
+                nan_count = nan_count + 1
+        print("NaN Count: {}; nt*nc = {}".format(nan_count, nt*nc))
+        nd = time.time()
+        tm = nd-st
+        print("vertical interpolation time: {}",tm, "seconds")
+
+        print("After interpolation:")
+        print("interpTF: {}".format(interpTF[0:5,0]))
+        
+        # Reshape interpTF back to (nt, nc, nz)
+        interpTF = interpTF.reshape(nt, nc, -1)
+
+        print("After Reshape:")
+        print("interpTF: {}".format(interpTF[0,0:5,0]))
+
         # Create mask indentifying valid overlapping ocean cells. Combine all MALI terms in one input file
-        interpDS = xr.open_dataset(self.options.outputFile + ".tmp", decode_times=False, decode_cf=False)
-        interpTF = interpDS['ismip6shelfMelt_3dThermalForcing'][:,:,:]
+        #Making this a 3-D variable for now, but may want to make 2-D eventually
+        validOpenOceanMask = np.zeros((nt,nc), dtype='int')
+        ind = np.where(interpTF[:,:,0].data != 0)
+        validOpenOceanMask[ind] = 1
+
         if (self.newLandIceFWFlux != 0):
             interpFWF = interpDS['floatingBasalMassBal'][:,:]
+            print("interpFWF: {}".format(interpFWF.data.shape))
 
-        validOceanMask = np.zeros(self.interpTF.data.shape, dtype='int')
-        ind = np.where(interpTF != 0)
-        validOceanMask[ind] = 1
+        print("Saving")
+        
+        print("interpTF: {}".format(interpTF.shape))
+        print("validOpenOceanMask: {}".format(validOpenOceanMask.shape))
 
-        mask = xr.dataArray(validOceanMask,dims=("Time","nCells"),long_name="Mask of MALI cells overlapping interpolated MPAS-Oceans cells")
-        IM = open_dataset(self.options.maliFile,decode_times=False,decode_cf=False)
+        mask = xr.DataArray(validOpenOceanMask,dims=("Time","nCells"),attrs={'long_name':'Mask of MALI cells overlapping interpolated MPAS-Oceans cells'})
+        interptf = xr.DataArray(interpTF, dims=("Time","nCells","nVertLevels"))
+
         IM['validOceanMask'] = mask
         if (self.newLandIceFWFlux != 0):
             IM['floatingBasalMassBal'] = interpFWF
-        IM['ismip6shelfMelt_3dThermalForcing'] = interpTF
-
-        # define zmid coordinate in MPAS-O and translate to ISMIP6 vertical coordinate
-        zmid = compute_zmid(self.bottomDepth_dataArray, self.maxLevelCell_dataArray, self.layerThickness_dataArray)
-        IM['ismip6shelfMelt_zOcean'] = zmid
+        IM['ismip6shelfMelt_3dThermalForcing'] = interptf
 
         IM.to_netcdf(self.options.outputFile)
         IM.close()
 
+#        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.options.outputFile])
+
         #remove temporary files
-        os.remove("*.tmp")
+        files = os.listdir()
+        for file in files:
+            if file.startswith("tmp"):
+                os.remove(file)
 
 def main():
         run = mpasToMaliInterp()
@@ -278,7 +447,8 @@ def main():
 
         #remap mpas to mali
         run.remap_mpas_to_mali()
-
+        
+        print("Finished.")
 if __name__ == "__main__":
     main()
 
