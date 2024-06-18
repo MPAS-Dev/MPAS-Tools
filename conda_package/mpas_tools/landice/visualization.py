@@ -413,7 +413,7 @@ def plot_grounding_lines(data_paths, ax, times=[0],
         else:
             yr = times
         plot_times.append(yr)
-        valid_masks, grounding_line_mask, _, _, _ = _calculate_masks(mesh)
+        valid_masks, grounding_line_mask, _, _, _ = _calculate_masks(f)
         if valid_masks:
             for time in times:
                 grounding_line_masks.append(grounding_line_mask[time, :])
