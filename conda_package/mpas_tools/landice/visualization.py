@@ -445,7 +445,7 @@ def plot_grounding_lines(data_paths, ax, times=[0],
         time_cbar.set_ticks(plot_times_norm)
         time_cbar.set_ticklabels(str(i) for i in plot_times)
 
-    return gl_plots
+    return gl_plots, time_cbar
 
 
 def _dist(i1, i2, xCell, yCell):
