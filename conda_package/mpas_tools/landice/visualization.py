@@ -182,9 +182,9 @@ def plot_transect(data_path, variable, ax, times=[0],
 
 
 def plot_map(data_path, variable, ax, time=0, cmap=None,
-             vmin=None, vmax=None, log_plot=False, mesh_file=None,
-             triangles=None, plot_grounding_line=False,
-             variable_name=None):
+             vmin=None, vmax=None, norm=None, log_plot=False,
+             mesh_file=None, triangles=None,
+             plot_grounding_line=False, variable_name=None):
     """
     Plot map of MALI output either by specifying a variable name or
     a pre-computed field.
@@ -321,12 +321,13 @@ def plot_map(data_path, variable, ax, time=0, cmap=None,
     if vmax is None:
         vmax = np.nanquantile(var_to_plot[time, :], 0.99)
     # Plot bedTopography on an asymmetric colorbar if appropriate
-    if ( (variable_name == 'bedTopography') and
-         (np.nanquantile(var_to_plot[time, :], 0.99) > 0.) and
-         (cmap in div_color_maps) ):
-        norm = TwoSlopeNorm(vmin=vmin, vmax=vmax, vcenter=0.)
-    else:
-        norm = Normalize(vmin=vmin, vmax=vmax)
+    if norm is None:
+        if ( (variable_name == 'bedTopography') and
+             (np.nanquantile(var_to_plot[time, :], 0.99) > 0.) and
+             (cmap in div_color_maps) ):
+            norm = TwoSlopeNorm(vmin=vmin, vmax=vmax, vcenter=0.)
+        else:
+            norm = Normalize(vmin=vmin, vmax=vmax)
 
     var_plot = ax.tripcolor(
         triangles, var_to_plot[time, :], cmap=cmap,
@@ -351,8 +352,8 @@ def plot_map(data_path, variable, ax, time=0, cmap=None,
 
 
 def plot_grounding_lines(data_paths, ax, times=[0],
-                         cmap="plasma_r", mesh_file=None,
-                         triangles=None):
+                         cmap="plasma_r", norm=None,
+                         mesh_file=None, triangles=None):
     """
     Plot MALI grounding line at arbitrary number of times.
 
@@ -439,7 +440,7 @@ def plot_grounding_lines(data_paths, ax, times=[0],
                                 colors=time_colors[ii, None]))
 
     if len(plot_times) > 1:
-        time_cbar = plt.colorbar(cm.ScalarMappable(cmap=cmap), ax=ax,
+        time_cbar = plt.colorbar(cm.ScalarMappable(norm=norm, cmap=cmap), ax=ax,
                                  location='bottom', label="Grounding line year")
         time_cbar.ax.tick_params(labelsize=12)
         time_cbar.set_ticks(plot_times_norm)
