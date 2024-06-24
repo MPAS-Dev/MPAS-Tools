@@ -11,6 +11,7 @@ from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from mpas_tools.ocean.depth import compute_zmid
 from optparse import OptionParser
 import time
+import cftime
 
 class mpasToMaliInterp:
     
@@ -45,9 +46,11 @@ class mpasToMaliInterp:
         avg_layerThickness = DS['timeMonthly_avg_layerThickness']
         self.layerThickness = avg_layerThickness.data
 
-        xt = DS['xtime_startMonthly']
-        xtime = np.array([xt],dtype=('S',64)) 
+        #xt = DS['xtime_startMonthly']
+        
+        #xtime = np.array([xt],dtype=('S',64)) 
         # << NOTE >>: may need to eventually use: "xtime.data.tobytes().decode()" but not sure yet
+        
         try:
             self.landIceFreshwaterFlux = DS['timeMonthly_avg_landIceFreshwaterFlux'][:,:].data
         except KeyError:
@@ -83,11 +86,11 @@ class mpasToMaliInterp:
         print("Time Averaging ...")
         if (self.options.yearlyAvg == 'true'):
 
-            yearsSinceStart = self.daysSinceStart / 365.0
+            yearsSinceStart = self.daysSinceStart.data / 365.0
             finalYear = np.floor(np.max(yearsSinceStart))
             startYear = np.floor(np.min(yearsSinceStart))
             timeStride = 1 # 1 year average
-            
+           
             if (startYear != finalYear):
                 years = np.arange(startYear, finalYear, timeStride, dtype=int)
                 nt = len(years)
@@ -105,8 +108,15 @@ class mpasToMaliInterp:
             self.newMpasCCE = np.zeros((nt,nc,nz))
             if (self.landIceFreshwaterFlux != 0):
                 self.newLandIceFWFlux = np.zeros((nt,nc))
-
+            yearVec = np.zeros((nt,))    
+            #prepare time vector
+            stTime = np.datetime64(self.stTime[0:4])
+            print("stTime = {}".format(stTime))
+            stYear = np.datetime_as_string(stTime,unit='Y').astype('float64')
+            print("stYear = {}".format(stYear))
+            
             print("starting loop ...")
+            
             st = time.time()
             if (years.ndim == 0): 
                 log = np.logical_and(yearsSinceStart >= years, yearsSinceStart < years + timeStride)
@@ -120,6 +130,12 @@ class mpasToMaliInterp:
                     self.newLandIceFWFlux[0,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
                 else :
                     self.newLandIceFWFlux = 0
+            
+                #Define time at the first of each year
+
+                print("Test A: {}".format(np.floor(np.min(yearsSinceStart[log])) + stYear))
+                yearVec[0] = np.floor(np.min(yearsSinceStart[log])) + stYear
+                print("yearVec = {}".format(yearVec))
             else :
                 ct = 0
                 for i in years:
@@ -134,16 +150,21 @@ class mpasToMaliInterp:
                         self.newLandIceFWFlux[ct,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
                     else :
                         self.newLandIceFWFlux = 0
+       
+                    yearVec[ct] = np.floor(np.min(yearsSinceStart[log])) + stYear
+                    print("yearVec = {}".format(yearVec))
                     ct = ct + 1
             nd = time.time()
             tm = nd - st
             print("Time averaging loop", tm, "seconds")
+            
+            #establish xtime
+            dates = []
+            xt = cftime.num2date(yearVec*365, units="days since 0000-01-01_00:00:00",calendar='noleap')
+            xt_reformat = [dt.strftime("%Y-%m-%d_%H:%M:%S") for dt in xt]
+            dates.append(xt_reformat)
+            self.newXtime = dates        
 
-            # Build new xtime string. Defined on first day of each year
-            stTime = np.datetime64(self.stTime[0:4])
-            stYear = np.datetime_as_string(stTime,unit='Y').astype('float64')
-            yearVec = yearsSinceStart + stYear
-            self.newXtime = np.array([f"{int(year)}-01-01_00:00:00" for year in yearVec],dtype=np.str_)
         else : #do nothing if not time averaging
             self.newTemp = self.temperature
             self.newSal = self.salinity
@@ -152,8 +173,9 @@ class mpasToMaliInterp:
             self.newMpasCCE = self.mpas_cellCenterElev
             self.newAtmPr = self.atmPressure
             self.newLandIceFWFlux = self.landIceFreshwaterFlux
-            self.newXtime = xtime
+            self.newXtime = np.nan #use as placeholder for now
 
+        print("New xtime: {}".format(self.newXtime))
     def calc_ocean_thermal_forcing(self):
         print("Calculating thermal forcing ... ")
         gravity = 9.81
@@ -281,37 +303,33 @@ class mpasToMaliInterp:
         mpas_cellCenterElev = interpDS['mpas_cellCenterElev'][:,:,:].data
 
         #Define vertical coordinates for mali grid
-        IM = xr.open_dataset(self.options.maliFile,decode_times=False,decode_cf=False)
-        layerThicknessFractions = IM['layerThicknessFractions'][:].data
-        bedTopography = IM['bedTopography'][:,:].data
-        thickness = IM['thickness'][:,:].data
-        nz, = layerThicknessFractions.shape
-        nt,nc = thickness.shape
-
-        layerThicknessFractions = layerThicknessFractions.reshape((1,1,nz))
-        thickness = thickness.reshape((nt,nc,1))
-        bedTopography = bedTopography.reshape((nt,nc,1))
-
-        layerThickness = thickness * layerThicknessFractions
-        mali_cellCenterElev = np.cumsum(layerThickness,axis=2) - layerThickness/2 + bedTopography
+        #For now, hardcode in depths from ISMIP6 AIS. Should work fine for our purposes
+        ismip6shelfMelt_zOcean = np.array((-30, -90, -150, -210, -270, -330, -390, -450, -510,\
+        -570, -630, -690, -750, -810, -870, -930, -990, -1050, -1110, -1170,\
+        -1230, -1290, -1350, -1410, -1470, -1530, -1590, -1650, -1710, -1770),dtype='float64')
+        
+        nz, = ismip6shelfMelt_zOcean.shape
 
         # Reshape to (nt*nc, nz) before interpolation to avoid looping
-        mali_cellCenterElev = mali_cellCenterElev.reshape(nt*nc, -1)
         TF = np.transpose(TF,(0,2,1))
-        TF = TF.reshape(nt*nc, -1)
         mpas_cellCenterElev = np.transpose(mpas_cellCenterElev,(0,2,1))
+        nt,nc,_ = mpas_cellCenterElev.shape
+        print("mpas_cellCenterElev: {}".format(mpas_cellCenterElev.shape))
+        print("TF: {}".format(TF.shape))
+        print("nz: {}:".format(nz))
+        TF = TF.reshape(nt*nc, -1)
         mpas_cellCenterElev = mpas_cellCenterElev.reshape(nt*nc, -1)
 
         # Linear interpolation 
         st = time.time()
         nan_count = 0
-        interpTF = np.zeros((mali_cellCenterElev.shape))
+        interpTF = np.zeros((nt*nc,nz))
         for i in range(nt*nc):
             ind = np.where(~np.isnan(TF[i,:].flatten() * mpas_cellCenterElev[i,:].flatten()))
             
             ct = 0
             if len(ind[0]) != 0:
-                interpTF[i,:] = np.array(np.interp(mali_cellCenterElev[i,:].flatten(), mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten()))
+                interpTF[i,:] = np.array(np.interp(ismip6shelfMelt_zOcean, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten()))
             else:
                 nan_count = nan_count + 1
         nd = time.time()
@@ -329,29 +347,78 @@ class mpasToMaliInterp:
         ind = np.where(surfaceTF != 0)
         validOpenOceanMask[ind] = 1
 
-        if (self.newLandIceFWFlux != 0):
-            interpFWF = interpDS['floatingBasalMassBal'][:,:]
-            print("interpFWF: {}".format(interpFWF.data.shape))
 
         print("Saving")
+        #open original mali file
+        IM = xr.open_dataset(self.options.maliFile,decode_times=False,decode_cf=False)
         
-        print("interpTF: {}".format(interpTF.shape))
-        print("validOpenOceanMask: {}".format(validOpenOceanMask.shape))
+        #create new mali forcing file that only desired forcing variables
+        ds_out = IM.copy(deep=False)
+        ds_out = ds_out.drop_vars(ds_out.data_vars)
+        
+        # introduce new ismip6 depth dimension
+        ds_out = ds_out.expand_dims(nISMIP6OceanLayers=ismip6shelfMelt_zOcean) # introduce new ismip6 depth dimension
 
-        mask = xr.DataArray(validOpenOceanMask,dims=("Time","nCells"),attrs={'long_name':'Mask of MALI cells overlapping interpolated MPAS-Oceans cells'})
-        
-        IM = IM.expand_dims(nISMIP6OceanLayers=mali_cellCenterElev)
+        # Save variables
+        mask = xr.DataArray(validOpenOceanMask,dims=("Time","nCells"),attrs={'long_name':'Mask of MALI cells overlapping interpolated MPAS-Oceans cells'})       
         interptf = xr.DataArray(interpTF, dims=("Time","nCells","nISMIP6OceanLayers"))
-        zlayers = xr.DataArray(mali_cellCenterElev, dims=("nISMIP6OceanLayers"))
+        zlayers = xr.DataArray(ismip6shelfMelt_zOcean, dims=("nISMIP6OceanLayers"))
 
-        IM['validOceanMask'] = mask
+        ds_out['angleEdge'] = IM['angleEdge']
+        ds_out['areaCell'] = IM['areaCell']
+        ds_out['areaTriangle'] = IM['areaTriangle']
+        ds_out['cellsOnCell'] = IM['cellsOnCell']
+        ds_out['cellsOnEdge'] = IM['cellsOnEdge']
+        ds_out['cellsOnVertex'] = IM['cellsOnVertex']
+        ds_out['dcEdge'] = IM['dcEdge']
+        ds_out['dvEdge'] = IM['dvEdge']
+        ds_out['edgesOnCell'] = IM['edgesOnCell']
+        ds_out['edgesOnEdge'] = IM['edgesOnEdge']
+        ds_out['edgesOnVertex'] = IM['edgesOnVertex']
+        ds_out['indexToCellID'] = IM['indexToCellID']
+        ds_out['indexToEdgeID'] = IM['indexToEdgeID']
+        ds_out['indexToVertexID'] = IM['indexToVertexID']
+        ds_out['kiteAreasOnVertex'] = IM['kiteAreasOnVertex']
+        ds_out['latCell'] = IM['latCell']
+        ds_out['latEdge'] = IM['latEdge']
+        ds_out['latVertex'] = IM['latVertex']
+        ds_out['lonCell'] = IM['lonCell']
+        ds_out['lonEdge'] = IM['lonEdge']
+        ds_out['lonVertex'] = IM['lonVertex']
+        ds_out['meshDensity'] = IM['meshDensity']
+        ds_out['nEdgesOnCell'] = IM['nEdgesOnCell']
+        ds_out['nEdgesOnEdge'] = IM['nEdgesOnEdge']
+        ds_out['verticesOnCell'] = IM['verticesOnCell']
+        ds_out['verticesOnEdge'] = IM['verticesOnEdge']
+        ds_out['weightsOnEdge'] = IM['weightsOnEdge']
+        ds_out['xCell'] = IM['xCell']
+        ds_out['xEdge'] = IM['xEdge']
+        ds_out['xVertex'] = IM['xVertex']
+        ds_out['yCell'] = IM['yCell']
+        ds_out['yEdge'] = IM['yEdge']
+        ds_out['yVertex'] = IM['yVertex']
+        ds_out['zCell'] = IM['zCell']
+        ds_out['zEdge'] = IM['zEdge']
+        ds_out['zVertex'] = IM['zVertex']
+        
+        ds_out['validOceanMask'] = mask
+        ds_out['ismip6shelfMelt_3dThermalForcing'] = interptf
+        ds_out['ismip6shelfMelt_zOcean'] = zlayers
         if (self.newLandIceFWFlux != 0):
-            IM['floatingBasalMassBal'] = interpFWF
-        IM['ismip6shelfMelt_3dThermalForcing'] = interptf
-        IM['ismip6shelfMelt_zOcean'] = zlayers
+            ds_out['floatingBasalMassBal'] = interpDS['floatingBasalMassBal'][:,:]
+       
+        # Save xtime
+        ds_out = ds_out.expand_dims({'StrLen': self.newXtime}, axis=1)
+        xtime = xr.DataArray(self.newXtime, dims=("Time", "StrLen"))
+        xtime.encoding.update({"char_dim_name":"StrLen"})
+        ds_out['xtime'] = xtime
 
-        IM.to_netcdf(self.options.outputFile)
-        IM.close()
+        #clean history for new file
+        if 'history' in ds_out.attrs:
+            del ds_out.attrs['history']
+
+        ds_out.to_netcdf(self.options.outputFile)
+        ds_out.close()
 
         subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.options.outputFile])
 
