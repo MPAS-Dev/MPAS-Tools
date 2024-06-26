@@ -161,7 +161,7 @@ class mpasToMaliInterp:
             #establish xtime
             dates = []
             xt = cftime.num2date(yearVec*365, units="days since 0000-01-01_00:00:00",calendar='noleap')
-            xt_reformat = [dt.strftime("%Y-%m-%d_%H:%M:%S") for dt in xt]
+            xt_reformat = [dt.strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in xt]
             dates.append(xt_reformat)
             #self.newXtime = dates        
             self.newXtime = xt_reformat
@@ -413,7 +413,7 @@ class mpasToMaliInterp:
         print("self.newXtime: {}".format(self.newXtime))
         #ds_out = ds_out.expand_dims({'StrLen': self.newXtime})
         xtime = xr.DataArray(np.array(self.newXtime, dtype = np.dtype('S64')), dims=["Time"])
-        xtime = xtime.encoding.update({"char_dim_name":"StrLen"})
+        xtime.encoding.update({"char_dim_name":"StrLen"})
         ds_out['xtime'] = xtime
 
         #clean history for new file
