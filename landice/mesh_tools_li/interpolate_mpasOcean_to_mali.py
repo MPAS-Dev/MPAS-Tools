@@ -163,8 +163,8 @@ class mpasToMaliInterp:
             xt = cftime.num2date(yearVec*365, units="days since 0000-01-01_00:00:00",calendar='noleap')
             xt_reformat = [dt.strftime("%Y-%m-%d_%H:%M:%S") for dt in xt]
             dates.append(xt_reformat)
-            self.newXtime = dates        
-
+            #self.newXtime = dates        
+            self.newXtime = xt_reformat
         else : #do nothing if not time averaging
             self.newTemp = self.temperature
             self.newSal = self.salinity
@@ -408,16 +408,19 @@ class mpasToMaliInterp:
             ds_out['floatingBasalMassBal'] = interpDS['floatingBasalMassBal'][:,:]
        
         # Save xtime
-        ds_out = ds_out.expand_dims({'StrLen': self.newXtime}, axis=1)
-        xtime = xr.DataArray(self.newXtime, dims=("Time", "StrLen"))
-        xtime.encoding.update({"char_dim_name":"StrLen"})
+        #ds_out = ds_out.expand_dims({'StrLen': self.newXtime}, axis=1)
+
+        print("self.newXtime: {}".format(self.newXtime))
+        #ds_out = ds_out.expand_dims({'StrLen': self.newXtime})
+        xtime = xr.DataArray(np.array(self.newXtime, dtype = np.dtype('S64')), dims=["Time"])
+        xtime = xtime.encoding.update({"char_dim_name":"StrLen"})
         ds_out['xtime'] = xtime
 
         #clean history for new file
         if 'history' in ds_out.attrs:
             del ds_out.attrs['history']
 
-        ds_out.to_netcdf(self.options.outputFile)
+        ds_out.to_netcdf(self.options.outputFile, mode='w', unlimited_dims=['Time'])
         ds_out.close()
 
         subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.options.outputFile])
