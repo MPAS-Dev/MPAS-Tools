@@ -342,7 +342,7 @@ class mpasToMaliInterp:
 
         # Create mask indentifying valid overlapping ocean cells. Combine all MALI terms in one input file
         #Making this a 3-D variable for now, but may want to make 2-D eventually
-        validOpenOceanMask = np.zeros((nt,nc), dtype='int')
+        validOpenOceanMask = np.zeros((nt,nc), dtype='int32')
         print("interpTF: {}".format(interpTF.data.shape))
         surfaceTF = interpTF[:,:,0]
         ind = np.where(surfaceTF != 0)
