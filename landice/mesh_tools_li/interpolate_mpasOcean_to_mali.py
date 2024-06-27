@@ -405,7 +405,8 @@ class mpasToMaliInterp:
         ds_out['validOceanMask'] = mask
         ds_out['ismip6shelfMelt_3dThermalForcing'] = interptf
         ds_out['ismip6shelfMelt_zOcean'] = zlayers
-        if (self.newLandIceFWFlux != 0):
+        
+        if self.have_landIceFreshwaterFlux:
             ds_out['floatingBasalMassBal'] = interpDS['floatingBasalMassBal'][:,:]
        
         # Save xtime
