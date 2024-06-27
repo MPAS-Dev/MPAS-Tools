@@ -61,10 +61,12 @@ class mpasToMaliInterp:
         # additional variables for computing thermal forcing 
         bottomDepth = OM['bottomDepth']
         bD = bottomDepth.data
-
-        self.minLevelCell = OM['minLevelCell'][:].data
         maxLevelCell = OM['maxLevelCell']
         self.maxLevelCell = maxLevelCell.data
+        if 'minLevelCell' in OM:
+           self.minLevelCell = OM['minLevelCell'][:].data
+        else:
+           self.minLevelCell = self.maxLevelCell * 0 + 1
 
         self.nCells = OM.sizes['nCells']
         self.coeff_0_openOcean = DS.attrs['config_open_ocean_freezing_temperature_coeff_0']
