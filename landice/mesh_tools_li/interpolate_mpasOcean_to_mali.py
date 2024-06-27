@@ -41,7 +41,8 @@ class mpasToMaliInterp:
         self.density = DS['timeMonthly_avg_density'][:,:,:].compute()
         self.atmPressure = DS['timeMonthly_avg_atmosphericPressure'][:,:].compute()
         self.daysSinceStart = DS['timeMonthly_avg_daysSinceStartOfSim'][:].compute()
-        self.stTime = DS.attrs['config_start_time']
+        self.stTime = OM['simulationStartTime'].data.tobytes().decode()
+        print(f'Using simulation start time of: {self.stTime}')
         self.landIceFloatingMask = OM['landIceFloatingMask'][0,:].data #not letting floating ice mask evolve for now because it's only in the mesh file
         avg_layerThickness = DS['timeMonthly_avg_layerThickness']
         self.layerThickness = avg_layerThickness.data
