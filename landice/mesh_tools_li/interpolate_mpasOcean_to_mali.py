@@ -132,8 +132,6 @@ class mpasToMaliInterp:
                 self.newAtmPr[0,:] = np.mean(self.atmPressure[log,:], axis=0)
                 if self.have_landIceFreshwaterFlux:
                     self.newLandIceFWFlux[0,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
-                else :
-                    self.newLandIceFWFlux = 0
             
                 #Define time at the first of each year
 
@@ -152,8 +150,6 @@ class mpasToMaliInterp:
                     self.newAtmPr[ct,:] = np.mean(self.atmPressure[log,:], axis=0)
                     if self.have_landIceFreshwaterFlux:
                         self.newLandIceFWFlux[ct,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
-                    else :
-                        self.newLandIceFWFlux = 0
        
                     yearVec[ct] = np.floor(np.min(yearsSinceStart[log])) + stYear
                     print("yearVec = {}".format(yearVec))
@@ -176,7 +172,8 @@ class mpasToMaliInterp:
             self.newLThick = self.layerThickness
             self.newMpasCCE = self.mpas_cellCenterElev
             self.newAtmPr = self.atmPressure
-            self.newLandIceFWFlux = self.landIceFreshwaterFlux
+            if self.have_landIceFreshwaterFlux:
+               self.newLandIceFWFlux = self.landIceFreshwaterFlux
             self.newXtime = np.nan #use as placeholder for now
 
         print("New xtime: {}".format(self.newXtime))
@@ -233,7 +230,7 @@ class mpasToMaliInterp:
         mcce = xr.DataArray(self.newMpasCCE.astype('float64'),dims=('Time','nCells','nVertLevels'))
         f['mpas_cellCenterElev'] = mcce
 
-        if (self.newLandIceFWFlux != 0):
+        if self.have_landIceFreshwaterFlux:
             m = xr.DataArray(self.newLandIceFWFlux.astype('float64'),dims=('Time','nCells'))
             f['floatingBasalMassBal'] = m
         
