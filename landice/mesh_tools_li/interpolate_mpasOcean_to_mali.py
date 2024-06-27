@@ -51,11 +51,12 @@ class mpasToMaliInterp:
         #xtime = np.array([xt],dtype=('S',64)) 
         # << NOTE >>: may need to eventually use: "xtime.data.tobytes().decode()" but not sure yet
         
+        self.have_landIceFreshwaterFlux = False
         try:
             self.landIceFreshwaterFlux = DS['timeMonthly_avg_landIceFreshwaterFlux'][:,:].data
+            self.have_landIceFreshwaterFlux = True
         except KeyError:
             print("No landIceFreshwaterFlux variable")
-            self.landIceFreshwaterFlux = 0
 
         # additional variables for computing thermal forcing 
         bottomDepth = OM['bottomDepth']
@@ -106,7 +107,7 @@ class mpasToMaliInterp:
             self.newLThick= np.zeros((nt,nc,nz))
             self.newAtmPr = np.zeros((nt,nc))
             self.newMpasCCE = np.zeros((nt,nc,nz))
-            if (self.landIceFreshwaterFlux != 0):
+            if self.have_landIceFreshwaterFlux:
                 self.newLandIceFWFlux = np.zeros((nt,nc))
             yearVec = np.zeros((nt,))    
             #prepare time vector
@@ -126,7 +127,7 @@ class mpasToMaliInterp:
                 self.newLThick[0,:,:] = np.mean(self.layerThickness[log,:,:], axis=0)
                 self.newMpasCCE[0,:,:] = np.mean(self.mpas_cellCenterElev[log,:,:], axis=0)
                 self.newAtmPr[0,:] = np.mean(self.atmPressure[log,:], axis=0)
-                if (self.landIceFreshwaterFlux != 0):
+                if self.have_landIceFreshwaterFlux:
                     self.newLandIceFWFlux[0,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
                 else :
                     self.newLandIceFWFlux = 0
@@ -146,7 +147,7 @@ class mpasToMaliInterp:
                     self.newLThick[ct,:,:] = np.mean(self.layerThickness[log,:,:], axis=0)
                     self.newMpasCCE[ct,:,:] = np.mean(self.mpas_cellCenterElev[log,:,:], axis=0)
                     self.newAtmPr[ct,:] = np.mean(self.atmPressure[log,:], axis=0)
-                    if (self.landIceFreshwaterFlux != 0):
+                    if self.have_landIceFreshwaterFlux:
                         self.newLandIceFWFlux[ct,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
                     else :
                         self.newLandIceFWFlux = 0
