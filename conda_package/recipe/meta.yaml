@@ -68,7 +68,7 @@ requirements:
     - netcdf-fortran
     - matplotlib-base
     - netcdf4
-    - numpy
+    - numpy >=2.0,<3.0
     - progressbar2
     - pyamg
     - pyevtk

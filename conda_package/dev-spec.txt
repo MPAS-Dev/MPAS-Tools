@@ -15,7 +15,7 @@ jigsawpy>=0.2.1
 libnetcdf
 matplotlib-base
 netcdf4
-numpy
+numpy>=2.0,<3.0
 progressbar2
 pyamg
 pyevtk
