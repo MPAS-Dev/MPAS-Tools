@@ -77,7 +77,7 @@ def write_netcdf(ds, fileName, fillValues=None, format=None, engine=None,
         else:
             encodingDict[variableName] = {'_FillValue': None}
 
-        isString = numpy.issubdtype(ds[variableName].dtype, numpy.string_)
+        isString = numpy.issubdtype(ds[variableName].dtype, numpy.bytes_)
         if isString and char_dim_name is not None:
             encodingDict[variableName] = {'char_dim_name': char_dim_name}
 
