@@ -1,9 +1,5 @@
 import xml.etree.ElementTree as ET
-try:
-    from importlib.resources import files as imp_res_files
-except ImportError:
-    # python<=3.8
-    from importlib_resources import files as imp_res_files
+from importlib.resources import files as imp_res_files
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.pyplot as plt
 
