@@ -60,7 +60,6 @@ requirements:
     - dask
     - geometric_features >=1.0.1,<2.0.0
     - hdf5
-    - importlib_resources  # [py<=38]
     - inpoly
     - jigsaw >=0.9.12
     - jigsawpy >=0.2.1

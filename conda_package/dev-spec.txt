@@ -2,13 +2,12 @@
 # $ conda create --name <env> --file <this file>
 
 # Base
-python>=3.8
+python>=3.9
 cartopy
 cmocean
 dask
 geometric_features>=1.0.1,<2.0.0
 hdf5
-importlib_resources
 inpoly
 jigsaw>=0.9.12
 jigsawpy>=0.2.1
