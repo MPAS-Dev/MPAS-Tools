@@ -170,6 +170,19 @@ CIME constants
 
    constants
 
+Landice Tools
+=============
+
+.. currentmodule:: mpas_tools.landice
+
+.. autosummary::
+   :toctree: generated/
+
+    visualization
+    visualization.plot_transect
+    visualization.plot_map
+    visualization.plot_grounding_lines
+
 Ocean Tools
 ===========
 
