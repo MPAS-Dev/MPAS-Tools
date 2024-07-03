@@ -65,7 +65,7 @@ requirements:
     - jigsawpy >=0.2.1
     - libnetcdf
     - netcdf-fortran
-    - matplotlib-base
+    - matplotlib-base >=3.9.0
     - netcdf4
     - numpy >=2.0,<3.0
     - progressbar2

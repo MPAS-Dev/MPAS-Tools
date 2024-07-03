@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 from importlib.resources import files as imp_res_files
 from matplotlib.colors import LinearSegmentedColormap
 import matplotlib.pyplot as plt
+from matplotlib import colormaps
 
 
 def register_sci_viz_colormaps():
@@ -43,5 +44,5 @@ def _read_xml_colormap(xmlFile, mapName):
 
 def _register_colormap_and_reverse(mapName, cmap):
     if mapName not in plt.colormaps():
-        plt.register_cmap(mapName, cmap)
-        plt.register_cmap('{}_r'.format(mapName), cmap.reversed())
+        colormaps.register(cmap=cmap, name=mapName)
+        colormaps.register(cmap=cmap.reversed(), name='{}_r'.format(mapName))
