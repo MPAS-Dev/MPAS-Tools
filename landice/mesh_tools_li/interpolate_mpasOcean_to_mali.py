@@ -47,11 +47,6 @@ class mpasToMaliInterp:
         avg_layerThickness = DS['timeMonthly_avg_layerThickness']
         self.layerThickness = avg_layerThickness.data
 
-        #xt = DS['xtime_startMonthly']
-        
-        #xtime = np.array([xt],dtype=('S',64)) 
-        # << NOTE >>: may need to eventually use: "xtime.data.tobytes().decode()" but not sure yet
-        
         self.have_landIceFreshwaterFlux = False
         try:
             self.landIceFreshwaterFlux = DS['timeMonthly_avg_landIceFreshwaterFlux'][:,:].data
@@ -113,15 +108,12 @@ class mpasToMaliInterp:
             if self.have_landIceFreshwaterFlux:
                 self.newLandIceFWFlux = np.zeros((nt,nc))
             yearVec = np.zeros((nt,))    
-            #prepare time vector
+           
+           #prepare time vector
             stTime = np.datetime64(self.stTime[0:4])
-            print("stTime = {}".format(stTime))
             stYear = np.datetime_as_string(stTime,unit='Y').astype('float64')
-            print("stYear = {}".format(stYear))
             
             print("starting loop ...")
-            
-            st = time.time()
             if (years.ndim == 0): 
                 log = np.logical_and(yearsSinceStart >= years, yearsSinceStart < years + timeStride)
                 self.newTemp[0,:,:] = np.mean(self.temperature[log,:,:], axis=0)
@@ -134,10 +126,7 @@ class mpasToMaliInterp:
                     self.newLandIceFWFlux[0,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
             
                 #Define time at the first of each year
-
-                print("Test A: {}".format(np.floor(np.min(yearsSinceStart[log])) + stYear))
                 yearVec[0] = np.floor(np.min(yearsSinceStart[log])) + stYear
-                print("yearVec = {}".format(yearVec))
             else :
                 ct = 0
                 for i in years:
@@ -152,11 +141,7 @@ class mpasToMaliInterp:
                         self.newLandIceFWFlux[ct,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
        
                     yearVec[ct] = np.floor(np.min(yearsSinceStart[log])) + stYear
-                    print("yearVec = {}".format(yearVec))
                     ct = ct + 1
-            nd = time.time()
-            tm = nd - st
-            print("Time averaging loop", tm, "seconds")
             
             #establish xtime
             dates = []
@@ -176,7 +161,6 @@ class mpasToMaliInterp:
                self.newLandIceFWFlux = self.landIceFreshwaterFlux
             self.newXtime = np.nan #use as placeholder for now
 
-        print("New xtime: {}".format(self.newXtime))
     def calc_ocean_thermal_forcing(self):
         print("Calculating thermal forcing ... ")
         gravity = 9.81
@@ -185,7 +169,6 @@ class mpasToMaliInterp:
         nt,nc,nz = self.newTemp.shape
         ocn_freezing_temperature = np.zeros((nt,nc,nz))
         self.newPr = np.zeros((nt,nc,nz))
-        st = time.time()
         for iTime in range(nt):
 
             #calculate pressure: 
@@ -212,9 +195,7 @@ class mpasToMaliInterp:
                                 self.coeff_S_cavity * self.newSal[iTime,iCell,:] + self.coeff_p_cavity * self.newPr[iTime,iCell,:] \
                                 + self.coeff_pS_cavity * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] \
                                 + self.coeff_mushy_cavity * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
-        nd = time.time()
-        tm = nd - st
-        print("Ocean thermal forcing loop", tm, "seconds")
+        
         # Calculate thermal forcing
         self.oceanThermalForcing = self.newTemp - ocn_freezing_temperature
     
@@ -250,20 +231,13 @@ class mpasToMaliInterp:
         except ValueError:
             f = f 
         
-        st = time.time()
         # save new mesh file
         tmp_mpasMeshFile = "tmp_mpasMeshFile.nc"
         f.to_netcdf(tmp_mpasMeshFile)
         f.close()
-        nd = time.time()
-        tm = nd - st
-        print("saving updates mpas mesh file", tm, "seconds")
 
-        st = time.time()
         subprocess.run(["ncatted", "-a", "_FillValue,,d,,", tmp_mpasMeshFile])
         nd = time.time()
-        tm = nd - st
-        print("Removing fill value:", tm, "seconds")
 
         #create scrip files
         print("Creating Scrip Files")
@@ -315,14 +289,10 @@ class mpasToMaliInterp:
         TF = np.transpose(TF,(0,2,1))
         mpas_cellCenterElev = np.transpose(mpas_cellCenterElev,(0,2,1))
         nt,nc,_ = mpas_cellCenterElev.shape
-        print("mpas_cellCenterElev: {}".format(mpas_cellCenterElev.shape))
-        print("TF: {}".format(TF.shape))
-        print("nz: {}:".format(nz))
         TF = TF.reshape(nt*nc, -1)
         mpas_cellCenterElev = mpas_cellCenterElev.reshape(nt*nc, -1)
 
         # Linear interpolation 
-        st = time.time()
         nan_count = 0
         interpTF = np.zeros((nt*nc,nz))
         for i in range(nt*nc):
@@ -333,9 +303,6 @@ class mpasToMaliInterp:
                 interpTF[i,:] = np.array(np.interp(ismip6shelfMelt_zOcean, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten()))
             else:
                 nan_count = nan_count + 1
-        nd = time.time()
-        tm = nd-st
-        print("vertical interpolation time: {}",tm, "seconds")
 
         # Reshape interpTF back to (nt, nc, nz)
         interpTF = interpTF.reshape(nt, nc, -1)
@@ -343,7 +310,6 @@ class mpasToMaliInterp:
         # Create mask indentifying valid overlapping ocean cells. Combine all MALI terms in one input file
         #Making this a 3-D variable for now, but may want to make 2-D eventually
         validOpenOceanMask = np.zeros((nt,nc), dtype='int32')
-        print("interpTF: {}".format(interpTF.data.shape))
         surfaceTF = interpTF[:,:,0]
         ind = np.where(surfaceTF != 0)
         validOpenOceanMask[ind] = 1
@@ -410,10 +376,6 @@ class mpasToMaliInterp:
             ds_out['floatingBasalMassBal'] = interpDS['floatingBasalMassBal'][:,:]
        
         # Save xtime
-        #ds_out = ds_out.expand_dims({'StrLen': self.newXtime}, axis=1)
-
-        print("self.newXtime: {}".format(self.newXtime))
-        #ds_out = ds_out.expand_dims({'StrLen': self.newXtime})
         xtime = xr.DataArray(np.array(self.newXtime, dtype = np.dtype('S64')), dims=["Time"])
         xtime.encoding.update({"char_dim_name":"StrLen"})
         ds_out['xtime'] = xtime
