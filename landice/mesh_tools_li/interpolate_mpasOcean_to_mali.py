@@ -29,7 +29,7 @@ class mpasToMaliInterp:
         self.options = options
 
         # open and concatenate diagnostic dataset
-        DS = xr.open_mfdataset(self.options.mpasDiagsDir + '/' + '*.nc', combine='nested', concat_dim='Time', decode_timedelta=False)        
+        DS = xr.open_mfdataset(self.options.mpasDiagsDir + '/' + '*.mpaso.hist.am.timeSeriesStatsMonthly.*.nc', combine='nested', concat_dim='Time', decode_timedelta=False)
         #open mpas ocean mesh
         OM = xr.open_dataset(self.options.mpasMeshFile, decode_times=False, decode_cf=False)
         #open MALI mesh
