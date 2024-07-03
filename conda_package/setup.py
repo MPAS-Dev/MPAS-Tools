@@ -11,7 +11,7 @@ install_requires = [
     'cmocean',
     'dask',
     'inpoly',
-    'matplotlib',
+    'matplotlib >=3.9.0',
     'netcdf4',
     'numpy',
     'progressbar2',
