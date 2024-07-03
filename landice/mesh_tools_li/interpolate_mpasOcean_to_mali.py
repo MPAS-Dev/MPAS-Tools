@@ -37,7 +37,7 @@ class mpasToMaliInterp:
         
         # variables for time averaging
         self.temperature = DS['timeMonthly_avg_activeTracers_temperature'][:,:,:].compute()
-        self.salinity = DS['timeMonthly_avg_activeTracers_temperature'][:,:,:].compute()
+        self.salinity = DS['timeMonthly_avg_activeTracers_salinity'][:,:,:].compute()
         self.density = DS['timeMonthly_avg_density'][:,:,:].compute()
         self.atmPressure = DS['timeMonthly_avg_atmosphericPressure'][:,:].compute()
         self.daysSinceStart = DS['timeMonthly_avg_daysSinceStartOfSim'][:].compute()
