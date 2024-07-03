@@ -121,6 +121,7 @@
 <span class="kn">from</span> <span class="nn">importlib.resources</span> <span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
 <span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">LinearSegmentedColormap</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">colormaps</span>
 
 
 <div class="viewcode-block" id="register_sci_viz_colormaps">
@@ -165,8 +166,8 @@
 
 <span class="k">def</span> <span class="nf">_register_colormap_and_reverse</span><span class="p">(</span><span class="n">mapName</span><span class="p">,</span> <span class="n">cmap</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">mapName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">plt</span><span class="o">.</span><span class="n">colormaps</span><span class="p">():</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">register_cmap</span><span class="p">(</span><span class="n">mapName</span><span class="p">,</span> <span class="n">cmap</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">register_cmap</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_r&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mapName</span><span class="p">),</span> <span class="n">cmap</span><span class="o">.</span><span class="n">reversed</span><span class="p">())</span>
+        <span class="n">colormaps</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">mapName</span><span class="p">)</span>
+        <span class="n">colormaps</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="o">.</span><span class="n">reversed</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_r&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mapName</span><span class="p">))</span>
 </pre></div>
 
            </div>
