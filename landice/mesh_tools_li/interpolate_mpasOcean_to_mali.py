@@ -231,8 +231,8 @@ class mpasToMaliInterp:
         f['mpas_cellCenterElev'] = mcce
 
         if self.have_landIceFreshwaterFlux:
-            m = xr.DataArray(self.newLandIceFWFlux.astype('float64'),dims=('Time','nCells'))
-            f['floatingBasalMassBal'] = m
+            melt = xr.DataArray(self.newLandIceFWFlux.astype('float64'),dims=('Time','nCells'))
+            f['floatingBasalMassBal'] = -1.0 * melt
         
         #delete unncessary variables with 'string1' dimension or will cause errors.
         try:
