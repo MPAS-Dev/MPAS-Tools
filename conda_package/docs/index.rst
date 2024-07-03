@@ -36,6 +36,12 @@ analyzing simulations, and in other MPAS-related workflows.
    visualization
 
 .. toctree::
+   :caption: Landice Tools
+   :maxdepth: 2
+
+   landice/visualization
+
+.. toctree::
    :caption: Ocean Tools
    :maxdepth: 2
 
