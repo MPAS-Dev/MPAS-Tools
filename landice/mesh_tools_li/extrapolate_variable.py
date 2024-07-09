@@ -43,6 +43,10 @@ nCells = len(dataset.dimensions['nCells'])
 if 'thickness' in dataset.variables.keys():
     thickness = dataset.variables['thickness'][0,:]
     bed = dataset.variables["bedTopography"][0,:]
+    geometry = True
+else:
+    geometry = False
+
 cellsOnCell = dataset.variables['cellsOnCell'][:]
 nEdgesOnCell = dataset.variables['nEdgesOnCell'][:]
 xCell = dataset.variables["yCell"][:]
@@ -88,8 +92,11 @@ for v in range(n_vert):
         # Get rid of invalid values
         keepCellMask *= (varValue < 1.e12)
     elif var_name in ["floatingBasalMassBal"]:
-        floatingMask = (thickness <= (-1028.0 / 910.0 * bed))
-        keepCellMask = floatingMask * (varValue != 0.0)
+        if geometry:
+            floatingMask = (thickness <= (-1028.0 / 910.0 * bed))
+            keepCellMask = floatingMask * (varValue != 0.0)
+        else:
+            keepCellMask = (varValue != 0.0)
         extrapolation == "idw"
     else:
         keepCellMask = (thickness > 0.0)
