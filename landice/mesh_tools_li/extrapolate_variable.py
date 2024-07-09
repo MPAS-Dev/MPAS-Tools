@@ -79,7 +79,6 @@ for v in range(n_vert):
     if var_name in ["effectivePressure", "beta", "muFriction"]:
         groundedMask = (thickness > (-1028.0 / 910.0 * bed))
         keepCellMask = np.copy(groundedMask) * np.isfinite(varValue)
-        extrapolation == "min"
 
         for iCell in range(nCells):
             for n in range(nEdgesOnCell[iCell]):
@@ -97,7 +96,6 @@ for v in range(n_vert):
             keepCellMask = floatingMask * (varValue != 0.0)
         else:
             keepCellMask = (varValue != 0.0)
-        extrapolation == "idw"
     else:
         keepCellMask = (thickness > 0.0)
 
