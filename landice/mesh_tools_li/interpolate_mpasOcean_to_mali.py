@@ -16,6 +16,7 @@ import cftime
 class mpasToMaliInterp:
     
     def __init__(self):
+
         print("Gathering Information ... ")
         parser = OptionParser()
         parser.add_option("--oceanMesh", dest="mpasMeshFile", help="MPAS-Ocean mesh to be interpolated from", metavar="FILENAME")
@@ -28,12 +29,48 @@ class mpasToMaliInterp:
         options, args = parser.parse_args()
         self.options = options
 
-        # open and concatenate diagnostic dataset
+        #determine number of years of output
         DS = xr.open_mfdataset(self.options.mpasDiagsDir + '/' + '*.mpaso.hist.am.timeSeriesStatsMonthly.*.nc', combine='nested', concat_dim='Time', decode_timedelta=False)
-        #open mpas ocean mesh
+        daysSinceStart = DS['timeMonthly_avg_daysSinceStartOfSim'][:].compute()
         OM = xr.open_dataset(self.options.mpasMeshFile, decode_times=False, decode_cf=False)
+        self.stTime = OM['simulationStartTime'].data.tobytes().decode()
+        stTime = np.datetime64(self.stTime[0:4])
+        stYear = np.datetime_as_string(stTime,unit='Y').astype('int32')
+        yrs = np.int32(np.unique(np.floor(daysSinceStart / 365))) + stYear
+        self.yrs = ["{:04d}".format(y) for y in yrs]    
+        DS.close()
+        OM.close()
+
+        for year in self.yrs:
+            print("YEAR: {}".format(year))
+            self.year = year
+            yrAvg = computeYearlyAverage(self)
+            yrAvg.time_average_output()
+            yrAvg.calc_ocean_thermal_forcing()
+            yrAvg.remap_mpas_to_mali()
+
+    def concatenateAverages(self):
+        print("concatenated yearly averages") 
+        DS = xr.open_mfdataset('yearlyAverage_*.nc', combine='nested', concat_dim='Time', decode_timedelta=False)
+        DS.to_netcdf(self.options.outputFile, mode='w', unlimited_dims=['Time'])
+        DS.close()
+
+        #remove temporary files
+        files = os.listdir()
+        for file in files:
+            if file.startswith("yearlyAverage"):
+                os.remove(file)
+
+class computeYearlyAverage:
+    def __init__(self, parent_self):
+        self.parent_self = parent_self
+        
+        # open and concatenate diagnostic dataset
+        DS = xr.open_mfdataset(self.parent_self.options.mpasDiagsDir + '/' + '*.mpaso.hist.am.timeSeriesStatsMonthly.*' + self.parent_self.year + '*.nc', combine='nested', concat_dim='Time', decode_timedelta=False)
+        #open mpas ocean mesh
+        OM = xr.open_dataset(self.parent_self.options.mpasMeshFile, decode_times=False, decode_cf=False)
         #open MALI mesh
-        IM = xr.open_dataset(self.options.maliFile, decode_times=False, decode_cf=False)
+        IM = xr.open_dataset(self.parent_self.options.maliFile, decode_times=False, decode_cf=False)
         
         # variables for time averaging
         self.temperature = DS['timeMonthly_avg_activeTracers_temperature'][:,:,:].compute()
@@ -41,8 +78,7 @@ class mpasToMaliInterp:
         self.density = DS['timeMonthly_avg_density'][:,:,:].compute()
         self.atmPressure = DS['timeMonthly_avg_atmosphericPressure'][:,:].compute()
         self.daysSinceStart = DS['timeMonthly_avg_daysSinceStartOfSim'][:].compute()
-        self.stTime = OM['simulationStartTime'].data.tobytes().decode()
-        print(f'Using simulation start time of: {self.stTime}')
+        print(f'Using simulation start time of: {self.parent_self.stTime}')
         self.landIceFloatingMask = OM['landIceFloatingMask'][0,:].data #not letting floating ice mask evolve for now because it's only in the mesh file
         avg_layerThickness = DS['timeMonthly_avg_layerThickness']
         self.layerThickness = avg_layerThickness.data
@@ -80,68 +116,45 @@ class mpasToMaliInterp:
         # Define vertical coordinates of mpas output
         mpas_cellCenterElev = compute_zmid(bottomDepth, maxLevelCell, avg_layerThickness)
         self.mpas_cellCenterElev = mpas_cellCenterElev.data
-
+        
+        DS.close()
+        IM.close()
+        OM.close()
+    
     def time_average_output(self):
         print("Time Averaging ...")
-        if (self.options.yearlyAvg == 'true'):
+        if (self.parent_self.options.yearlyAvg == 'true'):
 
             yearsSinceStart = self.daysSinceStart.data / 365.0
-            finalYear = np.floor(np.max(yearsSinceStart))
-            startYear = np.floor(np.min(yearsSinceStart))
-            timeStride = 1 # 1 year average
            
-            if (startYear != finalYear):
-                years = np.arange(startYear, finalYear, timeStride, dtype=int)
-                nt = len(years)
-            else :
-                years = startYear
-                nt = 1
-
             #pre-allocate
             _,nc,nz = self.temperature.shape
-            self.newTemp = np.zeros((nt,nc,nz)) 
-            self.newSal = np.zeros((nt,nc,nz))
-            self.newDens = np.zeros((nt,nc,nz))
-            self.newLThick= np.zeros((nt,nc,nz))
-            self.newAtmPr = np.zeros((nt,nc))
-            self.newMpasCCE = np.zeros((nt,nc,nz))
+            self.newTemp = np.zeros((1,nc,nz)) 
+            self.newSal = np.zeros((1,nc,nz))
+            self.newDens = np.zeros((1,nc,nz))
+            self.newLThick= np.zeros((1,nc,nz))
+            self.newAtmPr = np.zeros((1,nc))
+            self.newMpasCCE = np.zeros((1,nc,nz))
             if self.have_landIceFreshwaterFlux:
-                self.newLandIceFWFlux = np.zeros((nt,nc))
-            yearVec = np.zeros((nt,))    
+                self.newLandIceFWFlux = np.zeros((1,nc))
+            yearVec = np.zeros((1,))
            
            #prepare time vector
-            stTime = np.datetime64(self.stTime[0:4])
+            stTime = np.datetime64(self.parent_self.stTime[0:4])
             stYear = np.datetime_as_string(stTime,unit='Y').astype('float64')
             
             print("starting loop ...")
-            if (years.ndim == 0): 
-                log = np.logical_and(yearsSinceStart >= years, yearsSinceStart < years + timeStride)
-                self.newTemp[0,:,:] = np.mean(self.temperature[log,:,:], axis=0)
-                self.newSal[0,:,:] = np.mean(self.salinity[log,:,:], axis=0)
-                self.newDens[0,:,:] = np.mean(self.density[log,:,:], axis=0)
-                self.newLThick[0,:,:] = np.mean(self.layerThickness[log,:,:], axis=0)
-                self.newMpasCCE[0,:,:] = np.mean(self.mpas_cellCenterElev[log,:,:], axis=0)
-                self.newAtmPr[0,:] = np.mean(self.atmPressure[log,:], axis=0)
-                if self.have_landIceFreshwaterFlux:
-                    self.newLandIceFWFlux[0,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
-            
-                #Define time at the first of each year
-                yearVec[0] = np.floor(np.min(yearsSinceStart[log])) + stYear
-            else :
-                ct = 0
-                for i in years:
-                    log = np.logical_and(yearsSinceStart >= years[i], yearsSinceStart < years[i] + timeStride)
-                    self.newTemp[ct,:,:] = np.mean(self.temperature[log,:,:], axis=0)
-                    self.newSal[ct,:,:] = np.mean(self.salinity[log,:,:], axis=0)
-                    self.newDens[ct,:,:] = np.mean(self.density[log,:,:], axis=0)
-                    self.newLThick[ct,:,:] = np.mean(self.layerThickness[log,:,:], axis=0)
-                    self.newMpasCCE[ct,:,:] = np.mean(self.mpas_cellCenterElev[log,:,:], axis=0)
-                    self.newAtmPr[ct,:] = np.mean(self.atmPressure[log,:], axis=0)
-                    if self.have_landIceFreshwaterFlux:
-                        self.newLandIceFWFlux[ct,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
-       
-                    yearVec[ct] = np.floor(np.min(yearsSinceStart[log])) + stYear
-                    ct = ct + 1
+            self.newTemp[0,:,:] = np.mean(self.temperature, axis=0)
+            self.newSal[0,:,:] = np.mean(self.salinity, axis=0)
+            self.newDens[0,:,:] = np.mean(self.density, axis=0)
+            self.newLThick[0,:,:] = np.mean(self.layerThickness, axis=0)
+            self.newMpasCCE[0,:,:] = np.mean(self.mpas_cellCenterElev, axis=0)
+            self.newAtmPr[0,:] = np.mean(self.atmPressure, axis=0)
+            if self.have_landIceFreshwaterFlux:
+                self.newLandIceFWFlux[0,:] = np.mean(self.landIceFreshwaterFlux, axis=0)
+        
+            #Define time at the first of each year
+            yearVec[0] = np.floor(np.min(yearsSinceStart)) + stYear
             
             #establish xtime
             dates = []
@@ -150,6 +163,7 @@ class mpasToMaliInterp:
             dates.append(xt_reformat)
             #self.newXtime = dates        
             self.newXtime = xt_reformat
+        
         else : #do nothing if not time averaging
             self.newTemp = self.temperature
             self.newSal = self.salinity
@@ -198,12 +212,12 @@ class mpasToMaliInterp:
         
         # Calculate thermal forcing
         self.oceanThermalForcing = self.newTemp - ocn_freezing_temperature
-    
+
     def remap_mpas_to_mali(self):
         print("Start remapping ... ")
 
         # populate tmp_mpasMeshFile with variables to be interpolated
-        f = xr.open_dataset(self.options.mpasMeshFile, decode_times=False, decode_cf=False)
+        f = xr.open_dataset(self.parent_self.options.mpasMeshFile, decode_times=False, decode_cf=False)
         tf = xr.DataArray(self.oceanThermalForcing.astype('float64'),dims=('Time','nCells','nVertLevels'))
         
         f['ismip6shelfMelt_3dThermalForcing'] = tf
@@ -244,17 +258,17 @@ class mpasToMaliInterp:
         mali_scripfile = "tmp_mali_scrip.nc"
         mpas_scripfile = "tmp_mpas_scrip.nc"
 
-        scrip_from_mpas(self.options.maliFile, mali_scripfile)
+        scrip_from_mpas(self.parent_self.options.maliFile, mali_scripfile)
         scrip_from_mpas(tmp_mpasMeshFile, mpas_scripfile)
 
         #create mapping file
         print("Creating Mapping File")
         args_esmf = ['srun', 
-                '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
+                '-n', self.parent_self.options.ntasks, 'ESMF_RegridWeightGen',
                 '--source', mpas_scripfile,
                 '--destination', mali_scripfile,
                 '--weight', "tmp_mapping_file.nc",
-                '--method', self.options.method,
+                '--method', self.parent_self.options.method,
                 '-i', '-64bit_offset',
                 "--dst_regional", "--src_regional", '--ignore_unmapped']
         check_call(args_esmf)
@@ -314,10 +328,9 @@ class mpasToMaliInterp:
         ind = np.where(surfaceTF != 0)
         validOpenOceanMask[ind] = 1
 
-
         print("Saving")
         #open original mali file
-        IM = xr.open_dataset(self.options.maliFile,decode_times=False,decode_cf=False)
+        IM = xr.open_dataset(self.parent_self.options.maliFile,decode_times=False,decode_cf=False)
         
         #create new mali forcing file that only desired forcing variables
         ds_out = IM.copy(deep=False)
@@ -384,31 +397,21 @@ class mpasToMaliInterp:
         if 'history' in ds_out.attrs:
             del ds_out.attrs['history']
 
-        ds_out.to_netcdf(self.options.outputFile, mode='w', unlimited_dims=['Time'])
+        ds_out.to_netcdf('yearlyAverage_' + self.parent_self.year + '.nc', mode='w', unlimited_dims=['Time'])
         ds_out.close()
 
-        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.options.outputFile])
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.parent_self.options.outputFile])
 
         #remove temporary files
         files = os.listdir()
         for file in files:
             if file.startswith("tmp"):
                 os.remove(file)
-
 def main():
         run = mpasToMaliInterp()
         
-        #compute yearly time average if necessary 
-        run.time_average_output()
-  
-        #calculate thermal forcing
-        run.calc_ocean_thermal_forcing()
+        run.concatenateAverages()
 
-        #remap mpas to mali
-        run.remap_mpas_to_mali()
-        
         print("Finished.")
 if __name__ == "__main__":
     main()
-
-
