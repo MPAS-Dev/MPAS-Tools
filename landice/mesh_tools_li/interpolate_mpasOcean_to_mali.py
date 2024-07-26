@@ -9,7 +9,7 @@ from scipy import stats as st
 from mpas_tools.logging import check_call
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from mpas_tools.ocean.depth import compute_zmid
-from optparse import OptionParser
+from argparse import ArgumentParser
 import time
 import cftime
 
@@ -17,18 +17,21 @@ class mpasToMaliInterp:
     
     def __init__(self):
         print("Gathering Information ... ")
-        parser = OptionParser()
-        parser.add_option("--oceanMesh", dest="mpasMeshFile", help="MPAS-Ocean mesh to be interpolated from", metavar="FILENAME")
-        parser.add_option("--oceanDiags", dest="mpasDiagsDir", help="Directory path where MPAS-Ocean diagnostic files are stored. Should be only netcdf files in that directory", metavar="FILENAME")
-        parser.add_option("--ice", dest="maliFile", help="MALI mesh to be interpolated onto", metavar="FILENAME")
-        parser.add_option("-n", "--ntasks", dest="ntasks", help="Number of processors to use with ESMF_RegridWeightGen")
-        parser.add_option("-m", "--method", dest="method", help="Remapping method, either 'bilinear' or 'neareststod'")
-        parser.add_option("-o", "--outFile",dest="outputFile", help="Desired name of output file", metavar="FILENAME", default="mpas_to_mali_remapped.nc")
-        parser.add_option("-a","--yearlyAvg", dest="yearlyAvg", help="true or false option to average monthly output to yearly intervals", default="true")
-        parser.add_option("-s","--startYr", dest="startYr", type="int", help="starting year to process")
-        parser.add_option("-e","--endYr", dest="endYr", type="int", help="ending year to process (inclusive)")
-        options, args = parser.parse_args()
-        self.options = options
+        parser = ArgumentParser(
+                prog='interpolate_mpasOcean_to_mali.py',
+                description='Interpolates between MPAS-Ocean data to melt rates and thermal forcing on a MALI mesh')
+        parser.add_argument("--oceanMesh", dest="mpasMeshFile", help="MPAS-Ocean mesh to be interpolated from", metavar="FILENAME")
+        parser.add_argument("--oceanDiags", dest="mpasDiagsDir", help="Directory path where MPAS-Ocean diagnostic files are stored. Should be only netcdf files in that directory", metavar="FILENAME")
+        parser.add_argument("--ice", dest="maliFile", help="MALI mesh to be interpolated onto", metavar="FILENAME")
+        parser.add_argument("-n", "--ntasks", dest="ntasks", help="Number of processors to use with ESMF_RegridWeightGen")
+        parser.add_argument("-m", "--method", dest="method", help="Remapping method, either 'bilinear' or 'neareststod'")
+        parser.add_argument("-o", "--outFile", dest="outputFile", help="Desired name of output file", metavar="FILENAME", default="mpas_to_mali_remapped.nc")
+        parser.add_argument("-a","--yearlyAvg", dest="yearlyAvg", help="true or false option to average monthly output to yearly intervals", default="true")
+        parser.add_argument("-s","--startYr", dest="startYr", type=int, help="starting year to process")
+        parser.add_argument("-e","--endYr", dest="endYr", type=int, help="ending year to process (inclusive)")
+        parser.add_argument("--meshVars", dest="includeMeshVars", help="whether to include mesh variables in resulting MALI forcing file", action='store_true')
+        args = parser.parse_args()
+        self.options = args
 
         #open mpas ocean mesh
         OM = xr.open_dataset(self.options.mpasMeshFile, decode_times=False, decode_cf=False)
@@ -379,42 +382,43 @@ class mpasToMaliInterp:
         interptf = xr.DataArray(interpTF, dims=("Time","nCells","nISMIP6OceanLayers"))
         zlayers = xr.DataArray(ismip6shelfMelt_zOcean, dims=("nISMIP6OceanLayers"))
 
-        #ds_out['angleEdge'] = IM['angleEdge']
-        #ds_out['areaCell'] = IM['areaCell']
-        #ds_out['areaTriangle'] = IM['areaTriangle']
-        #ds_out['cellsOnCell'] = IM['cellsOnCell']
-        #ds_out['cellsOnEdge'] = IM['cellsOnEdge']
-        #ds_out['cellsOnVertex'] = IM['cellsOnVertex']
-        #ds_out['dcEdge'] = IM['dcEdge']
-        #ds_out['dvEdge'] = IM['dvEdge']
-        #ds_out['edgesOnCell'] = IM['edgesOnCell']
-        #ds_out['edgesOnEdge'] = IM['edgesOnEdge']
-        #ds_out['edgesOnVertex'] = IM['edgesOnVertex']
-        #ds_out['indexToCellID'] = IM['indexToCellID']
-        #ds_out['indexToEdgeID'] = IM['indexToEdgeID']
-        #ds_out['indexToVertexID'] = IM['indexToVertexID']
-        #ds_out['kiteAreasOnVertex'] = IM['kiteAreasOnVertex']
-        #ds_out['latCell'] = IM['latCell']
-        #ds_out['latEdge'] = IM['latEdge']
-        #ds_out['latVertex'] = IM['latVertex']
-        #ds_out['lonCell'] = IM['lonCell']
-        #ds_out['lonEdge'] = IM['lonEdge']
-        #ds_out['lonVertex'] = IM['lonVertex']
-        #ds_out['meshDensity'] = IM['meshDensity']
-        #ds_out['nEdgesOnCell'] = IM['nEdgesOnCell']
-        #ds_out['nEdgesOnEdge'] = IM['nEdgesOnEdge']
-        #ds_out['verticesOnCell'] = IM['verticesOnCell']
-        #ds_out['verticesOnEdge'] = IM['verticesOnEdge']
-        #ds_out['weightsOnEdge'] = IM['weightsOnEdge']
-        #ds_out['xCell'] = IM['xCell']
-        #ds_out['xEdge'] = IM['xEdge']
-        #ds_out['xVertex'] = IM['xVertex']
-        #ds_out['yCell'] = IM['yCell']
-        #ds_out['yEdge'] = IM['yEdge']
-        #ds_out['yVertex'] = IM['yVertex']
-        #ds_out['zCell'] = IM['zCell']
-        #ds_out['zEdge'] = IM['zEdge']
-        #ds_out['zVertex'] = IM['zVertex']
+        if self.options.includeMeshVars:
+            ds_out['angleEdge'] = IM['angleEdge']
+            ds_out['areaCell'] = IM['areaCell']
+            ds_out['areaTriangle'] = IM['areaTriangle']
+            ds_out['cellsOnCell'] = IM['cellsOnCell']
+            ds_out['cellsOnEdge'] = IM['cellsOnEdge']
+            ds_out['cellsOnVertex'] = IM['cellsOnVertex']
+            ds_out['dcEdge'] = IM['dcEdge']
+            ds_out['dvEdge'] = IM['dvEdge']
+            ds_out['edgesOnCell'] = IM['edgesOnCell']
+            ds_out['edgesOnEdge'] = IM['edgesOnEdge']
+            ds_out['edgesOnVertex'] = IM['edgesOnVertex']
+            ds_out['indexToCellID'] = IM['indexToCellID']
+            ds_out['indexToEdgeID'] = IM['indexToEdgeID']
+            ds_out['indexToVertexID'] = IM['indexToVertexID']
+            ds_out['kiteAreasOnVertex'] = IM['kiteAreasOnVertex']
+            ds_out['latCell'] = IM['latCell']
+            ds_out['latEdge'] = IM['latEdge']
+            ds_out['latVertex'] = IM['latVertex']
+            ds_out['lonCell'] = IM['lonCell']
+            ds_out['lonEdge'] = IM['lonEdge']
+            ds_out['lonVertex'] = IM['lonVertex']
+            ds_out['meshDensity'] = IM['meshDensity']
+            ds_out['nEdgesOnCell'] = IM['nEdgesOnCell']
+            ds_out['nEdgesOnEdge'] = IM['nEdgesOnEdge']
+            ds_out['verticesOnCell'] = IM['verticesOnCell']
+            ds_out['verticesOnEdge'] = IM['verticesOnEdge']
+            ds_out['weightsOnEdge'] = IM['weightsOnEdge']
+            ds_out['xCell'] = IM['xCell']
+            ds_out['xEdge'] = IM['xEdge']
+            ds_out['xVertex'] = IM['xVertex']
+            ds_out['yCell'] = IM['yCell']
+            ds_out['yEdge'] = IM['yEdge']
+            ds_out['yVertex'] = IM['yVertex']
+            ds_out['zCell'] = IM['zCell']
+            ds_out['zEdge'] = IM['zEdge']
+            ds_out['zVertex'] = IM['zVertex']
         
         ds_out['validOceanMask'] = mask
         ds_out['ismip6shelfMelt_3dThermalForcing'] = interptf
