@@ -20,8 +20,8 @@ class mpasToMaliInterp:
         parser = ArgumentParser(
                 prog='interpolate_mpasOcean_to_mali.py',
                 description='Interpolates between MPAS-Ocean data to melt rates and thermal forcing on a MALI mesh')
-        parser.add_argument("--oceanMesh", dest="mpasMeshFile", help="MPAS-Ocean mesh to be interpolated from", metavar="FILENAME")
-        parser.add_argument("--oceanDiags", dest="mpasDiagsDir", help="Directory path where MPAS-Ocean diagnostic files are stored. Should be only netcdf files in that directory", metavar="FILENAME")
+        parser.add_argument("--oceanMesh", dest="mpasoMeshFile", help="MPAS-Ocean mesh to be interpolated from", metavar="FILENAME")
+        parser.add_argument("--oceanDiags", dest="mpasoHistDir", help="Directory where MPAS-Ocean history files are stored. Should be only netcdf files in that directory", metavar="FILENAME")
         parser.add_argument("--ice", dest="maliFile", help="MALI mesh to be interpolated onto", metavar="FILENAME")
         parser.add_argument("-n", "--ntasks", dest="ntasks", help="Number of processors to use with ESMF_RegridWeightGen")
         parser.add_argument("-m", "--method", dest="method", help="Remapping method, either 'bilinear' or 'neareststod'")
@@ -34,7 +34,7 @@ class mpasToMaliInterp:
         self.options = args
 
         #open mpas ocean mesh
-        OM = xr.open_dataset(self.options.mpasMeshFile, decode_times=False, decode_cf=False)
+        OM = xr.open_dataset(self.options.mpasoMeshFile, decode_times=False, decode_cf=False)
         self.stTime = OM['simulationStartTime'].data.tobytes().decode()
         print(f'Using simulation start time of: {self.stTime}')
         self.landIceFloatingMask = OM['landIceFloatingMask'][0,:].data #not letting floating ice mask evolve for now because it's only in the mesh file
@@ -51,10 +51,12 @@ class mpasToMaliInterp:
 
         self.nCells = OM.sizes['nCells']
 
+        self.mapping_file_name = f'mpaso_to_mali_mapping_{self.options.method}.nc'
+
     def get_data(self, year):
 
         # open and concatenate diagnostic dataset
-        self.DS = xr.open_mfdataset(os.path.join(self.options.mpasDiagsDir,
+        self.DS = xr.open_mfdataset(os.path.join(self.options.mpasoHistDir,
             f'*.mpaso.hist.am.timeSeriesStatsMonthly.{year}-*-01.nc'), combine='nested', concat_dim='Time', decode_timedelta=False)
         
         # variables for time averaging
@@ -194,6 +196,7 @@ class mpasToMaliInterp:
             self.newXtime = np.nan #use as placeholder for now
 
         print("New xtime: {}".format(self.newXtime))
+
     def calc_ocean_thermal_forcing(self):
         print("Calculating thermal forcing ... ")
         gravity = 9.81
@@ -234,12 +237,34 @@ class mpasToMaliInterp:
         print("Ocean thermal forcing loop", tm, "seconds")
         # Calculate thermal forcing
         self.oceanThermalForcing = self.newTemp - ocn_freezing_temperature
+
+    def create_mapping_file(self):
+
+        #create scrip files
+        print("Creating Scrip Files")
+        mpaso_scripfile = "tmp_mpaso_scrip.nc"
+        mali_scripfile = "tmp_mali_scrip.nc"
+
+        scrip_from_mpas(self.options.mpasoMeshFile, mpaso_scripfile)
+        scrip_from_mpas(self.options.maliFile, mali_scripfile)
+
+        #create mapping file
+        print("Creating Mapping File")
+        args_esmf = ['srun',
+                '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
+                '--source', mpaso_scripfile,
+                '--destination', mali_scripfile,
+                '--weight', self.mapping_file_name,
+                '--method', self.options.method,
+                '-i', '-64bit_offset',
+                "--dst_regional", "--src_regional", '--ignore_unmapped']
+        check_call(args_esmf)
     
     def remap_mpas_to_mali(self, year):
         print("Start remapping ... ")
 
-        # populate tmp_mpasMeshFile with variables to be interpolated
-        f = xr.open_dataset(self.options.mpasMeshFile, decode_times=False, decode_cf=False)
+        # populate tmp_mpasoMeshFile with variables to be interpolated
+        f = xr.open_dataset(self.options.mpasoMeshFile, decode_times=False, decode_cf=False)
         tf = xr.DataArray(self.oceanThermalForcing.astype('float64'),dims=('Time','nCells','nVertLevels'))
         
         f['ismip6shelfMelt_3dThermalForcing'] = tf
@@ -269,49 +294,29 @@ class mpasToMaliInterp:
         
         st = time.time()
         # save new mesh file
-        tmp_mpasMeshFile = "tmp_mpasMeshFile.nc"
-        f.to_netcdf(tmp_mpasMeshFile)
+        tmp_mpasoMeshFile = "tmp_mpasoMeshFile.nc"
+        f.to_netcdf(tmp_mpasoMeshFile)
         f.close()
         nd = time.time()
         tm = nd - st
         print("saving updates mpas mesh file", tm, "seconds")
 
         st = time.time()
-        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", tmp_mpasMeshFile])
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", tmp_mpasoMeshFile])
         nd = time.time()
         tm = nd - st
         print("Removing fill value:", tm, "seconds")
 
-        #create scrip files
-        print("Creating Scrip Files")
-        mali_scripfile = "tmp_mali_scrip.nc"
-        mpas_scripfile = "tmp_mpas_scrip.nc"
-
-        scrip_from_mpas(self.options.maliFile, mali_scripfile)
-        scrip_from_mpas(tmp_mpasMeshFile, mpas_scripfile)
-
-        #create mapping file
-        print("Creating Mapping File")
-        args_esmf = ['srun', 
-                '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
-                '--source', mpas_scripfile,
-                '--destination', mali_scripfile,
-                '--weight', "tmp_mapping_file.nc",
-                '--method', self.options.method,
-                '-i', '-64bit_offset',
-                "--dst_regional", "--src_regional", '--ignore_unmapped']
-        check_call(args_esmf)
-
-        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertLevels,nCells", tmp_mpasMeshFile, tmp_mpasMeshFile])
-        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertLevelsP1,nCells", tmp_mpasMeshFile, tmp_mpasMeshFile])
-        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertInterfaces,nCells", tmp_mpasMeshFile, tmp_mpasMeshFile])
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertLevels,nCells", tmp_mpasoMeshFile, tmp_mpasoMeshFile])
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertLevelsP1,nCells", tmp_mpasoMeshFile, tmp_mpasoMeshFile])
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertInterfaces,nCells", tmp_mpasoMeshFile, tmp_mpasoMeshFile])
 
         print("ncremap ...")
         # remap the input data
         args_remap = ["ncremap",
-                "-i", tmp_mpasMeshFile,
+                "-i", tmp_mpasoMeshFile,
                 "-o", "tmp_outputFile.nc",
-                "-m", "tmp_mapping_file.nc"]
+                "-m", self.mapping_file_name]
         check_call(args_remap)
 
         #Vertical interpolation
@@ -454,6 +459,8 @@ class mpasToMaliInterp:
 
 def main():
         run = mpasToMaliInterp()
+
+        run.create_mapping_file()
 
         for yr in range(run.options.startYr, run.options.endYr+1):
            print(f'### Processing year {yr}')
