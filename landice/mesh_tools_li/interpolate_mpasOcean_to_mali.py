@@ -35,6 +35,12 @@ class mpasToMaliInterp:
 
         self.mapping_file_name = f'mpaso_to_mali_mapping_{self.options.method}.nc'
 
+        # Define ocean vertical coordinates for mali grid
+        # For now, hardcode in depths from ISMIP6 AIS. Should work fine for our purposes
+        self.ismip6shelfMelt_zOcean = np.array((-30, -90, -150, -210, -270, -330, -390, -450, -510,\
+        -570, -630, -690, -750, -810, -870, -930, -990, -1050, -1110, -1170,\
+        -1230, -1290, -1350, -1410, -1470, -1530, -1590, -1650, -1710, -1770), dtype='float64')
+
     def prepare_mpaso_mesh_data(self):
 
         #open mpas ocean mesh
@@ -282,124 +288,68 @@ class mpasToMaliInterp:
     def remap_mpas_to_mali(self, year):
 
         out_name = f'{self.options.outputFile}_{year}.nc'
+        tmp_mpasoSourceFile = "tmp_mpasoSourceFile.nc"
+        tmp_maliDestFile = "tmp_maliDestFile.nc"
 
         print("Start remapping ... ")
 
-        # populate tmp_mpasoMeshFile with variables to be interpolated
+        # Get data needed for remapping
         f = xr.open_dataset(self.options.mpasoMeshFile, decode_times=False, decode_cf=False)
         tf = xr.DataArray(self.oceanThermalForcing.astype('float64'),dims=('Time','nCells','nVertLevels'))
-        
-        f['ismip6shelfMelt_3dThermalForcing'] = tf
-
         mcce = xr.DataArray(self.newMpasCCE.astype('float64'),dims=('Time','nCells','nVertLevels'))
-        f['mpas_cellCenterElev'] = mcce
 
+        # perform vertical interpolation
+        # do this before horiz interp to avoid any horiz/vert "mixing" due to
+        # potential mpas-ocean hybrid coordinate.  Also should speed up ncremap
+        # because the number of ismip6 vert levels is less than most ocean meshes
+        st = time.time()
+        vertInterpTF = _vertical_interpolate(self, tf.data, mcce.data)
+        nd = time.time()
+        tm = nd - st
+        print("vertical interpolation:", tm, "seconds")
+
+        st = time.time()
+        # create new file of ocean data to be remapped
+        tf_DA = xr.DataArray(vertInterpTF.astype('float64'),
+                             dims=('Time','nCells','nISMIP6OceanLayers'))
+        dataOut = xr.Dataset(data_vars={'ismip6shelfMelt_3dThermalForcing': tf_DA})
         if self.have_landIceFreshwaterFlux:
             melt = xr.DataArray(self.newLandIceFWFlux.astype('float64'),dims=('Time','nCells'))
-            f['floatingBasalMassBal'] = -1.0 * melt
-        
-        #delete unncessary variables with 'string1' dimension or will cause errors.
-        try:
-            f = f.drop_vars('simulationStartTime')
-        except ValueError:
-            f = f 
-
-        try:
-            f = f.drop_vars('forcingGroupNames')
-        except ValueError:
-            f = f 
-        
-        try:
-            f = f.drop_vars('forcingGroupRestartTimes')
-        except ValueError:
-            f = f 
-        
-        st = time.time()
-        # save new mesh file
-        tmp_mpasoMeshFile = "tmp_mpasoMeshFile.nc"
-        f.to_netcdf(tmp_mpasoMeshFile)
+            dataOut['floatingBasalMassBal'] = -1.0 * melt
+        dataOut.to_netcdf(tmp_mpasoSourceFile, mode='w')
         f.close()
+
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", tmp_mpasoSourceFile])
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nISMIP6OceanLayers,nCells", tmp_mpasoSourceFile, tmp_mpasoSourceFile])
+
         nd = time.time()
         tm = nd - st
-        print("saving updates mpas mesh file", tm, "seconds")
-
-        st = time.time()
-        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", tmp_mpasoMeshFile])
-        nd = time.time()
-        tm = nd - st
-        print("Removing fill value:", tm, "seconds")
-
-        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertLevels,nCells", tmp_mpasoMeshFile, tmp_mpasoMeshFile])
-        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertLevelsP1,nCells", tmp_mpasoMeshFile, tmp_mpasoMeshFile])
-        subprocess.run(["ncpdq", "-O", "-a", "Time,nVertInterfaces,nCells", tmp_mpasoMeshFile, tmp_mpasoMeshFile])
+        print(f"saved modified mpaso data file for remapping and file prep: {tm} seconds")
 
         print("ncremap ...")
+        st = time.time()
         # remap the input data
         args_remap = ["ncremap",
-                "-i", tmp_mpasoMeshFile,
-                "-o", "tmp_outputFile.nc",
+                "-i", tmp_mpasoSourceFile,
+                "-o", tmp_maliDestFile,
                 "-m", self.mapping_file_name]
         check_call(args_remap)
-
-        #Vertical interpolation
-        print("Vertically interpolating onto mali grid")
-        interpDS = xr.open_dataset("tmp_outputFile.nc", decode_times=False, decode_cf=False)
-        TF = interpDS['ismip6shelfMelt_3dThermalForcing'][:,:,:].data
-        mpas_cellCenterElev = interpDS['mpas_cellCenterElev'][:,:,:].data
-
-        #Define vertical coordinates for mali grid
-        #For now, hardcode in depths from ISMIP6 AIS. Should work fine for our purposes
-        ismip6shelfMelt_zOcean = np.array((-30, -90, -150, -210, -270, -330, -390, -450, -510,\
-        -570, -630, -690, -750, -810, -870, -930, -990, -1050, -1110, -1170,\
-        -1230, -1290, -1350, -1410, -1470, -1530, -1590, -1650, -1710, -1770),dtype='float64')
-        
-        nz, = ismip6shelfMelt_zOcean.shape
-
-        # Reshape to (nt*nc, nz) before interpolation to avoid looping
-        TF = np.transpose(TF,(0,2,1))
-        mpas_cellCenterElev = np.transpose(mpas_cellCenterElev,(0,2,1))
-        nt,nc,_ = mpas_cellCenterElev.shape
-        print("mpas_cellCenterElev: {}".format(mpas_cellCenterElev.shape))
-        print("TF: {}".format(TF.shape))
-        print("nz: {}:".format(nz))
-        TF = TF.reshape(nt*nc, -1)
-        mpas_cellCenterElev = mpas_cellCenterElev.reshape(nt*nc, -1)
-
-        # Linear interpolation 
-        st = time.time()
-        nan_count = 0
-        interpTF = np.zeros((nt*nc,nz))
-        for i in range(nt*nc):
-            ind = np.where(~np.isnan(TF[i,:].flatten() * mpas_cellCenterElev[i,:].flatten()))
-            
-            ct = 0
-            if len(ind[0]) != 0:
-                interpTF[i,:] = np.array(np.interp(ismip6shelfMelt_zOcean, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten()))
-            else:
-                nan_count = nan_count + 1
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nCells,nISMIP6OceanLayers", tmp_maliDestFile, tmp_maliDestFile])
         nd = time.time()
-        tm = nd-st
-        print("vertical interpolation time: {}",tm, "seconds")
-
-        # Reshape interpTF back to (nt, nc, nz)
-        interpTF = interpTF.reshape(nt, nc, -1)
+        tm = nd - st
+        print(f"ncremap completed: {tm} seconds")
 
         print(f"Saving data to {out_name}")
-        #open original mali file
-        IM = xr.open_dataset(self.options.maliFile,decode_times=False,decode_cf=False)
-        
-        #create new mali forcing file that only desired forcing variables
-        ds_out = IM.copy(deep=False)
-        ds_out = ds_out.drop_vars(ds_out.data_vars)
-        
-        # introduce new ismip6 depth dimension
-        ds_out = ds_out.expand_dims(nISMIP6OceanLayers=ismip6shelfMelt_zOcean) # introduce new ismip6 depth dimension
 
-        # Save variables
-        interptf = xr.DataArray(interpTF, dims=("Time","nCells","nISMIP6OceanLayers"))
-        zlayers = xr.DataArray(ismip6shelfMelt_zOcean, dims=("nISMIP6OceanLayers"))
+        #create new mali forcing file that only contains desired forcing variables
+        ds_remapped = xr.open_dataset(tmp_maliDestFile, decode_times=False, decode_cf=False)
+        ds_out = xr.Dataset(data_vars={'ismip6shelfMelt_3dThermalForcing': ds_remapped['ismip6shelfMelt_3dThermalForcing']})
+        ds_out['ismip6shelfMelt_zOcean'] = xr.DataArray(self.ismip6shelfMelt_zOcean, dims=("nISMIP6OceanLayers"))
+        if self.have_landIceFreshwaterFlux:
+            ds_out['floatingBasalMassBal'] = ds_remapped['floatingBasalMassBal']
 
         if self.options.includeMeshVars:
+            IM = xr.open_dataset(self.options.maliFile,decode_times=False,decode_cf=False)
             ds_out['angleEdge'] = IM['angleEdge']
             ds_out['areaCell'] = IM['areaCell']
             ds_out['areaTriangle'] = IM['areaTriangle']
@@ -436,13 +386,8 @@ class mpasToMaliInterp:
             ds_out['zCell'] = IM['zCell']
             ds_out['zEdge'] = IM['zEdge']
             ds_out['zVertex'] = IM['zVertex']
+            IM.close()
         
-        ds_out['ismip6shelfMelt_3dThermalForcing'] = interptf
-        ds_out['ismip6shelfMelt_zOcean'] = zlayers
-        
-        if self.have_landIceFreshwaterFlux:
-            ds_out['floatingBasalMassBal'] = interpDS['floatingBasalMassBal'][:,:]
-       
         # Save xtime
         #ds_out = ds_out.expand_dims({'StrLen': self.newXtime}, axis=1)
 
@@ -451,10 +396,6 @@ class mpasToMaliInterp:
         xtime = xr.DataArray(np.array(self.newXtime, dtype = np.dtype('S64')), dims=["Time"])
         xtime.encoding.update({"char_dim_name":"StrLen"})
         ds_out['xtime'] = xtime
-
-        #clean history for new file
-        if 'history' in ds_out.attrs:
-            del ds_out.attrs['history']
 
         ds_out.to_netcdf(out_name, mode='w', unlimited_dims=['Time'])
         ds_out.close()
@@ -467,6 +408,36 @@ class mpasToMaliInterp:
             if file.startswith("tmp"):
                 os.remove(file)
 
+def _vertical_interpolate(self, TF, mpas_cellCenterElev):
+        #Vertical interpolation
+        print("Vertically interpolating onto standardized z-level grid")
+
+        nz2, = self.ismip6shelfMelt_zOcean.shape
+        nt,nc,nz1 = mpas_cellCenterElev.shape
+
+        # Reshape to (nt*nc, nz) before interpolation to avoid looping
+        #print("mpas_cellCenterElev: {}".format(mpas_cellCenterElev.shape))
+        #print("TF: {}".format(TF.shape))
+        #print(f"MPAS-Ocean nz: {nz1}; MALI ocean nz: {nz2}")
+        TF = TF.reshape(nt*nc, -1)
+        mpas_cellCenterElev = mpas_cellCenterElev.reshape(nt*nc, -1)
+
+        # Linear interpolation
+        nan_count = 0
+        vertInterpTF = np.zeros((nt*nc, nz2))
+        for i in range(nt*nc):
+            ind = np.where(~np.isnan(TF[i,:].flatten() * mpas_cellCenterElev[i,:].flatten()))
+
+            if len(ind[0]) != 0:
+                vertInterpTF[i,:] = np.interp(self.ismip6shelfMelt_zOcean, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten())
+            else:
+                nan_count = nan_count + 1
+
+        # Reshape vertInterpTF back to (nt, nc, nz)
+        vertInterpTF = vertInterpTF.reshape(nt, nc, nz2)
+
+        return vertInterpTF
+
 def main():
         run = mpasToMaliInterp()
 
@@ -475,7 +446,7 @@ def main():
         run.prepare_mpaso_mesh_data()
 
         for yr in range(run.options.startYr, run.options.endYr+1):
-           print(f'### Processing year {yr}')
+           st = time.time()
 
            run.get_data(yr)
         
@@ -490,7 +461,12 @@ def main():
 
            run.DS.close()
 
-        print("Finished.")
+
+           nd = time.time()
+           tm = nd-st
+           print(f"\n### Processed year {yr} in {tm} seconds\n")
+
+        print("Finished all years.")
 if __name__ == "__main__":
     main()
 
