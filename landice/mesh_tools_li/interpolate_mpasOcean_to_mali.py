@@ -33,13 +33,15 @@ class mpasToMaliInterp:
         args = parser.parse_args()
         self.options = args
 
+        self.mapping_file_name = f'mpaso_to_mali_mapping_{self.options.method}.nc'
+
+    def prepare_mpaso_mesh_data(self):
+
         #open mpas ocean mesh
         OM = xr.open_dataset(self.options.mpasoMeshFile, decode_times=False, decode_cf=False)
         self.stTime = OM['simulationStartTime'].data.tobytes().decode()
         print(f'Using simulation start time of: {self.stTime}')
         self.landIceFloatingMask = OM['landIceFloatingMask'][0,:].data #not letting floating ice mask evolve for now because it's only in the mesh file
-        #open MALI mesh
-        IM = xr.open_dataset(self.options.maliFile, decode_times=False, decode_cf=False)
 
         # variables needed from MPAS-Ocean mesh file
         self.bottomDepth = OM['bottomDepth']
@@ -51,7 +53,24 @@ class mpasToMaliInterp:
 
         self.nCells = OM.sizes['nCells']
 
-        self.mapping_file_name = f'mpaso_to_mali_mapping_{self.options.method}.nc'
+        # create needed masks and remap them in separate file
+        mpasoDomainMask = np.ones((self.nCells,), dtype=np.double)
+        mpasoDomainMaskDA = xr.DataArray(mpasoDomainMask, name='mpasoDomainMask', dims=("nCells"), attrs={'long_name':'MPAS-Ocean domain mask'})
+        mpasoOpenOceanMaskDA = xr.DataArray(np.logical_not(self.landIceFloatingMask).astype(np.double), name='mpasoOpenOceanMask', dims=("nCells"), attrs={'long_name':'MPAS-Ocean open ocean mask'})
+
+        # prepare file to be remapped
+        out_data_vars = xr.merge([mpasoDomainMaskDA, mpasoOpenOceanMaskDA])
+        dataOut = xr.Dataset(data_vars=out_data_vars)
+        mpaso_mask_file = 'mpaso_mask_file.nc'
+        dataOut.to_netcdf(mpaso_mask_file, mode='w')
+
+        print("Calling ncremap for masks...")
+        # remap the input data
+        args_remap = ["ncremap",
+                "-i", mpaso_mask_file,
+                "-o", "mpaso_masks_on_mali_mesh.nc",
+                "-m", self.mapping_file_name]
+        check_call(args_remap)
 
     def get_data(self, year):
 
@@ -261,6 +280,9 @@ class mpasToMaliInterp:
         check_call(args_esmf)
     
     def remap_mpas_to_mali(self, year):
+
+        out_name = f'{self.options.outputFile}_{year}.nc'
+
         print("Start remapping ... ")
 
         # populate tmp_mpasoMeshFile with variables to be interpolated
@@ -362,16 +384,7 @@ class mpasToMaliInterp:
         # Reshape interpTF back to (nt, nc, nz)
         interpTF = interpTF.reshape(nt, nc, -1)
 
-        # Create mask indentifying valid overlapping ocean cells. Combine all MALI terms in one input file
-        #Making this a 3-D variable for now, but may want to make 2-D eventually
-        validOpenOceanMask = np.zeros((nt,nc), dtype='int32')
-        print("interpTF: {}".format(interpTF.data.shape))
-        surfaceTF = interpTF[:,:,0]
-        ind = np.where(surfaceTF != 0)
-        validOpenOceanMask[ind] = 1
-
-
-        print("Saving")
+        print(f"Saving data to {out_name}")
         #open original mali file
         IM = xr.open_dataset(self.options.maliFile,decode_times=False,decode_cf=False)
         
@@ -383,7 +396,6 @@ class mpasToMaliInterp:
         ds_out = ds_out.expand_dims(nISMIP6OceanLayers=ismip6shelfMelt_zOcean) # introduce new ismip6 depth dimension
 
         # Save variables
-        mask = xr.DataArray(validOpenOceanMask,dims=("Time","nCells"),attrs={'long_name':'Mask of MALI cells overlapping interpolated MPAS-Oceans cells'})       
         interptf = xr.DataArray(interpTF, dims=("Time","nCells","nISMIP6OceanLayers"))
         zlayers = xr.DataArray(ismip6shelfMelt_zOcean, dims=("nISMIP6OceanLayers"))
 
@@ -425,7 +437,6 @@ class mpasToMaliInterp:
             ds_out['zEdge'] = IM['zEdge']
             ds_out['zVertex'] = IM['zVertex']
         
-        ds_out['validOceanMask'] = mask
         ds_out['ismip6shelfMelt_3dThermalForcing'] = interptf
         ds_out['ismip6shelfMelt_zOcean'] = zlayers
         
@@ -445,7 +456,6 @@ class mpasToMaliInterp:
         if 'history' in ds_out.attrs:
             del ds_out.attrs['history']
 
-        out_name = f'{self.options.outputFile}_{year}.nc'
         ds_out.to_netcdf(out_name, mode='w', unlimited_dims=['Time'])
         ds_out.close()
 
@@ -461,6 +471,8 @@ def main():
         run = mpasToMaliInterp()
 
         run.create_mapping_file()
+
+        run.prepare_mpaso_mesh_data()
 
         for yr in range(run.options.startYr, run.options.endYr+1):
            print(f'### Processing year {yr}')
