@@ -412,15 +412,25 @@ def _vertical_interpolate(self, TF, mpas_cellCenterElev):
         #Vertical interpolation
         print("Vertically interpolating onto standardized z-level grid")
 
-        nz2, = self.ismip6shelfMelt_zOcean.shape
         nt,nc,nz1 = mpas_cellCenterElev.shape
+        nz2, = self.ismip6shelfMelt_zOcean.shape
+
+        # numpy.interp expects the x-coordinate sequence to be increasing
+        # This is not explicitly enforced, and it's unclear if it is
+        # necessary, but we will follow that convention.
+        # So we need to flip the ordering of the zOcean array
+        z_target = np.flip(self.ismip6shelfMelt_zOcean, 0)
+        assert(np.all(np.diff(z_target) > 0))
 
         # Reshape to (nt*nc, nz) before interpolation to avoid looping
-        #print("mpas_cellCenterElev: {}".format(mpas_cellCenterElev.shape))
-        #print("TF: {}".format(TF.shape))
-        #print(f"MPAS-Ocean nz: {nz1}; MALI ocean nz: {nz2}")
-        TF = TF.reshape(nt*nc, -1)
+        # Also, flip the ordering of the z-dimension
+        # numpy.interp requires the independent variable to be increasing
+        # but cellCenterElev will be decreasing (it is indexed from ocean
+        # surface down with positive up)
+        TF = TF.reshape(nt*nc, -nz1)
+        TF = np.flip(TF, 1)
         mpas_cellCenterElev = mpas_cellCenterElev.reshape(nt*nc, -1)
+        mpas_cellCenterElev = np.flip(mpas_cellCenterElev, 1)
 
         # Linear interpolation
         nan_count = 0
@@ -429,12 +439,14 @@ def _vertical_interpolate(self, TF, mpas_cellCenterElev):
             ind = np.where(~np.isnan(TF[i,:].flatten() * mpas_cellCenterElev[i,:].flatten()))
 
             if len(ind[0]) != 0:
-                vertInterpTF[i,:] = np.interp(self.ismip6shelfMelt_zOcean, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten())
+                assert(np.all(np.diff(mpas_cellCenterElev[i,ind]) > 0))  # confirm correct ordering
+                vertInterpTF[i,:] = np.interp(z_target, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten())
             else:
                 nan_count = nan_count + 1
 
-        # Reshape vertInterpTF back to (nt, nc, nz)
+        # Reshape vertInterpTF back to (nt, nc, nz), flip back vertical coordinate
         vertInterpTF = vertInterpTF.reshape(nt, nc, nz2)
+        vertInterpTF = np.flip(vertInterpTF, 2)
 
         return vertInterpTF
 
