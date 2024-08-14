@@ -246,13 +246,13 @@ class mpasToMaliInterp:
                                 0.5*gravity*(self.newDens[iTime,iCell,k-1]*self.newLThick[iTime,iCell,k-1] \
                                 + self.newDens[iTime,iCell,k]*self.newLThick[iTime,iCell,k])
 
-                    if (self.landIceFloatingMask[iCell] == 1):
+                    if (self.landIceFloatingMask[iCell] == 0):
                         ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_openOcean + \
                                 self.coeff_S_openOcean * self.newSal[iTime,iCell,:] + self.coeff_p_openOcean * self.newPr[iTime,iCell,:] \
                                 + self.coeff_pS_openOcean * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] \
                                 + self.coeff_mushy_openOcean * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
                     
-                    elif (self.landIceFloatingMask[iCell] == 0):
+                    elif (self.landIceFloatingMask[iCell] == 1):
                         ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_cavity + \
                                 self.coeff_S_cavity * self.newSal[iTime,iCell,:] + self.coeff_p_cavity * self.newPr[iTime,iCell,:] \
                                 + self.coeff_pS_cavity * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] \
