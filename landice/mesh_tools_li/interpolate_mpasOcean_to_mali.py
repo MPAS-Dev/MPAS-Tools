@@ -440,7 +440,14 @@ def _vertical_interpolate(self, TF, mpas_cellCenterElev):
 
             if len(ind[0]) != 0:
                 assert(np.all(np.diff(mpas_cellCenterElev[i,ind]) > 0))  # confirm correct ordering
-                vertInterpTF[i,:] = np.interp(z_target, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten())
+                # Note: Setting locations outside the extent of valid ocean data to nan
+                # so that those locations can be avoided
+                # This linear interpolation approach means that any vertical levels on the destination
+                # vertical grid that are not bounded on both sides by valid vertical levels on the
+                # source grid will be marked as nan.  We may want to replace this method with one
+                # that uses and source data overlapping the range of the destination vertical level,
+                # as well as doing an area weighted remapping of the overlap.
+                vertInterpTF[i,:] = np.interp(z_target, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten(), right=np.nan, left=np.nan)
             else:
                 nan_count = nan_count + 1
 
