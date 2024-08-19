@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Script to extrapolate arbitrary variable
+Script to extrapolate arbitrary MALI variable
 
 Created on Mon Feb1 2021
 
