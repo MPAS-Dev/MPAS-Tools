@@ -22,7 +22,7 @@ parser = OptionParser(
 parser.add_option("-f", "--file", dest="nc_file",
                   help="the mpas file to write to")
 parser.add_option("-v", "--variable", dest="var_name",
-                  help="the mpas variable(s) you want to extrapolate")
+                  help="the MALI variable you want to extrapolate")
 parser.add_option("-m", "--method", dest="extrapolation", default='min',
                   help="idw, min, or value method of extrapolation")
 parser.add_option("-s", "--set_value", dest="set_value", default=None,
