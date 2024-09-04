@@ -46,6 +46,8 @@ Documentation    On GitHub
 `v0.31.0`_        `0.31.0`_
 `v0.32.0`_        `0.32.0`_
 `v0.33.0`_        `0.33.0`_
+`v0.34.0`_        `0.34.0`_
+`v0.34.1`_        `0.34.1`_
 ================ ===============
 
 .. _`stable`: ../stable/index.html
@@ -128,3 +130,7 @@ Documentation    On GitHub
 .. _`0.32.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.32.0
 .. _`v0.33.0`: ../0.33.0/index.html
 .. _`0.33.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.33.0
+.. _`v0.34.0`: ../0.34.0/index.html
+.. _`0.34.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.34.0
+.. _`v0.34.1`: ../0.34.1/index.html
+.. _`0.34.1`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.34.1

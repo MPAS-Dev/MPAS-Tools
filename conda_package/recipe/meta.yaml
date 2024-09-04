@@ -1,5 +1,5 @@
 {% set name = "mpas_tools" %}
-{% set version = "0.33.0" %}
+{% set version = "0.34.1" %}
 
 package:
   name: {{ name|lower }}
@@ -60,15 +60,14 @@ requirements:
     - dask
     - geometric_features >=1.0.1,<2.0.0
     - hdf5
-    - importlib_resources  # [py<=38]
     - inpoly
     - jigsaw >=0.9.12
     - jigsawpy >=0.2.1
     - libnetcdf
     - netcdf-fortran
-    - matplotlib-base
+    - matplotlib-base >=3.9.0
     - netcdf4
-    - numpy
+    - numpy >=2.0,<3.0
     - progressbar2
     - pyamg
     - pyevtk
