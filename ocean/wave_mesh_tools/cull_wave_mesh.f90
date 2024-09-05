@@ -20,6 +20,7 @@
       INTEGER :: nCells_dimid, nVertices_dimid
       INTEGER :: cellsOnVertex_varid, lonCell_varid, latCell_varid
       INTEGER :: bottomDepth_varid
+      INTEGER :: iceMask_varid
 
       CHARACTER(100) :: waves_mesh_file
       CHARACTER(100) :: waves_mesh_culled_vtk
@@ -44,6 +45,7 @@
 
       INTEGER :: ncells_ocean
       REAL(rp), DIMENSION(:), ALLOCATABLE :: depth_ocean
+      REAL(rp), DIMENSION(:), ALLOCATABLE :: icemask_ocean
 
       INTEGER :: el, nd, ged
       INTEGER :: i,j
@@ -116,6 +118,9 @@
       CALL check(NF90_INQ_VARID(ocean_ncid, 'bottomDepth', bottomDepth_varid))
       ALLOCATE(depth_ocean(ncells_ocean))
       CALL check(NF90_GET_VAR(ocean_ncid, bottomDepth_varid, depth_ocean))
+      CALL check(NF90_INQ_VARID(ocean_ncid, 'landIceMask', iceMask_varid))
+      ALLOCATE(icemask_ocean(ncells_ocean))
+      CALL check(NF90_GET_VAR(ocean_ncid, iceMask_varid, icemask_ocean))
       CALL check(NF90_CLOSE(ocean_ncid))
 
 
@@ -164,7 +169,7 @@ elems:DO el = 1,ne_waves
 
           CALL pt_in_cell(xy,in_cell)
 
-          IF (in_cell > 0) THEN
+          IF (in_cell > 0 .and. icemask_ocean(in_cell) == 0) THEN
             wave_node_in_ocean(nd) = 1
             depth_waves(nd) = depth_ocean(in_cell)
             IF (wave_elements_keep(el) == 0) THEN
