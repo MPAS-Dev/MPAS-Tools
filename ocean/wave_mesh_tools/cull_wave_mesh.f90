@@ -169,7 +169,7 @@ elems:DO el = 1,ne_waves
 
           CALL pt_in_cell(xy,in_cell)
 
-          IF (in_cell > 0 .and. icemask_ocean(in_cell) == 0) THEN
+          IF (icemask_ocean(in_cell) == 0) THEN
             wave_node_in_ocean(nd) = 1
             depth_waves(nd) = depth_ocean(in_cell)
             IF (wave_elements_keep(el) == 0) THEN
