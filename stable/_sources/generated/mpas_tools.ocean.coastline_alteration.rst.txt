@@ -4,11 +4,6 @@
 .. automodule:: mpas_tools.ocean.coastline_alteration
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,15 +12,3 @@
       add_land_locked_cells_to_mask
       widen_transect_edge_masks
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

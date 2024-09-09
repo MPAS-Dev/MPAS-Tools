@@ -4,11 +4,6 @@
 .. automodule:: mpas_tools.mesh.creation.signed_distance
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,15 +12,3 @@
       mask_from_geojson
       signed_distance_from_geojson
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

@@ -4,11 +4,6 @@
 .. automodule:: mpas_tools.mesh.creation.mesh_definition_tools
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -18,15 +13,3 @@
       RRS_CellWidthVsLat
       mergeCellWidthVsLat
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

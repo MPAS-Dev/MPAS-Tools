@@ -4,20 +4,3 @@
 .. automodule:: mpas_tools.cime.constants
 
    
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

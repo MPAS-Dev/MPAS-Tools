@@ -4,11 +4,6 @@
 .. automodule:: mpas_tools.landice.visualization
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -17,15 +12,3 @@
       plot_map
       plot_transect
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

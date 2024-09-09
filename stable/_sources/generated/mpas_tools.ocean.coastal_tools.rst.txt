@@ -4,11 +4,6 @@
 .. automodule:: mpas_tools.ocean.coastal_tools
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -28,15 +23,3 @@
       save_matfile
       smooth_coastline
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-

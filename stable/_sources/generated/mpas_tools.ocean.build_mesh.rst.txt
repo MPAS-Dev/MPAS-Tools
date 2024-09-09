@@ -4,11 +4,6 @@
 .. automodule:: mpas_tools.ocean.build_mesh
 
    
-   
-   
-
-   
-   
    .. rubric:: Functions
 
    .. autosummary::
@@ -16,15 +11,3 @@
       build_planar_mesh
       build_spherical_mesh
    
-   
-
-   
-   
-   
-
-   
-   
-   
-
-
-
