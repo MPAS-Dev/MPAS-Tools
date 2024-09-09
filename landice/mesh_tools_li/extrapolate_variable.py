@@ -29,6 +29,10 @@ parser.add_option("-s", "--set_value", dest="set_value", default=None,
                   help=("value to set variable to outside "
                         "keepCellMask when using -v value"))
 
+rho_ice = 910.
+rho_ocean = 1028.
+large_number = 1.e12
+
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
         option.help += (" " if option.help else "") + "[default: %default]"
@@ -38,11 +42,11 @@ dataset = Dataset(options.nc_file, 'r+')
 dataset.set_auto_mask(False)
 var_name = options.var_name
 extrapolation = options.extrapolation
-# Extrapolation
 nCells = len(dataset.dimensions['nCells'])
-if 'thickness' in dataset.variables.keys():
-    thickness = dataset.variables['thickness'][0,:]
-    bed = dataset.variables["bedTopography"][0,:]
+if all([geom_var in dataset.variables.keys() for
+       geom_var in ["thickness", "bedTopography"]]):
+    thickness = dataset.variables['thickness'][0, :]
+    bed = dataset.variables["bedTopography"][0, :]
     geometry = True
 else:
     geometry = False
@@ -77,7 +81,11 @@ for v in range(n_vert):
     # Define region of good data to extrapolate from.
     # Different methods for different variables
     if var_name in ["effectivePressure", "beta", "muFriction"]:
-        groundedMask = (thickness > (-1028.0 / 910.0 * bed))
+        if not geometry:
+            raise Exception(f"Extrapolating {var_name} requires thickness "
+                            "and bedTopography, but one or both of these "
+                            f"are missing from {options.nc_file}")
+        groundedMask = (thickness > (-1. * rho_ocean / rho_ice * bed))
         keepCellMask = np.copy(groundedMask) * np.isfinite(varValue)
 
         for iCell in range(nCells):
@@ -89,10 +97,10 @@ for v in range(n_vert):
         # ensure zero muFriction does not get extrapolated
         keepCellMask *= (varValue > 0)
         # Get rid of invalid values
-        keepCellMask *= (varValue < 1.e12)
+        keepCellMask *= (varValue < large_number)
     elif var_name in ["floatingBasalMassBal"]:
         if geometry:
-            floatingMask = (thickness <= (-1028.0 / 910.0 * bed))
+            floatingMask = (thickness <= (-1. * rho_ocean / rho_ice * bed))
             keepCellMask = floatingMask * (varValue != 0.0)
         else:
             keepCellMask = (varValue != 0.0)
@@ -120,14 +128,14 @@ for v in range(n_vert):
     else:
         while np.count_nonzero(keepCellMask) != nCells:
             keepCellMask = np.copy(keepCellMaskNew)
-            searchCells = np.where(keepCellMask==0)[0]
+            searchCells = np.where(keepCellMask == 0)[0]
             varValueOld = np.copy(varValue)
 
             for iCell in searchCells:
-                neighborcellID = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
+                neighborcellID = cellsOnCell[iCell, :nEdgesOnCell[iCell]]-1
                 # Important: ignore the phantom "neighbors" that are
                 # off the edge of the mesh (0 values in cellsOnCell)
-                neighborcellID = neighborcellID[neighborcellID>=0]
+                neighborcellID = neighborcellID[neighborcellID >= 0]
                 # active cell mask
                 mask_for_idx = keepCellMask[neighborcellID]
                 mask_nonzero_idx, = np.nonzero(mask_for_idx)
@@ -144,9 +152,9 @@ for v in range(n_vert):
                     y_adj = yCell[nonzero_id]
                     var_adj = varValueOld[nonzero_id]
                     if extrapolation == 'idw':
-                        ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
-                        assert np.count_nonzero(ds)==len(ds)
-                        var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
+                        ds = np.sqrt((x_i - x_adj)**2 + (y_i - y_adj)**2)
+                        assert np.count_nonzero(ds) == len(ds)
+                        var_interp = 1.0 / sum(1.0 / ds) * sum(1.0 / ds * var_adj)
                         varValue[iCell] = var_interp
                     elif extrapolation == 'min':
                         varValue[iCell] = np.min(var_adj)
@@ -161,9 +169,9 @@ for v in range(n_vert):
 
     # Write updated array to file
     if has_vertical_dim == True:
-        dataset.variables[var_name][0,:,v] = varValue
+        dataset.variables[var_name][0, :, v] = varValue
     else:
-        dataset.variables[var_name][0,:] = varValue
+        dataset.variables[var_name][0, :] = varValue
 
 # === Clean-up =============
 
