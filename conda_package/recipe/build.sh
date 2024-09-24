@@ -6,7 +6,7 @@ set -e
 cp -r ocean landice visualization mesh_tools conda_package
 
 cd conda_package
-${PYTHON} -m pip install . --no-deps -vv
+${PYTHON} -m pip install . --no-deps --no-build-isolation -vv
 
 # build and install ocean topography smoothing tool
 cd ${SRC_DIR}/conda_package/ocean/smooth_topo
