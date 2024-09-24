@@ -29,7 +29,7 @@ make them in your branch), run:
     cd conda_package
     conda env create -y -n mpas_tools_dev --file dev-spec.txt
     conda activate mpas_tools_dev
-    python -m pip install -e .
+    python -m pip install --no-deps --no-build-isolation -e .
 
 You should now find that ``mpas_tools`` can be imported in python codes and the
 various scripts and entry points are available in the path.
@@ -42,7 +42,7 @@ use:
 
     conda env update -f ./dev_environment
     conda activate mpas_tools_dev
-    python -m pip install -e .
+    python -m pip install --no-deps --no-build-isolation -e .
 
 to update the existing environment and make sure ``mpas_tools`` in the
 environment points to your current branch.
