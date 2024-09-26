@@ -1,0 +1,14 @@
+﻿mpas\_tools.ocean.coastline\_alteration
+=======================================
+
+.. automodule:: mpas_tools.ocean.coastline_alteration
+
+   
+   .. rubric:: Functions
+
+   .. autosummary::
+   
+      add_critical_land_blockages
+      add_land_locked_cells_to_mask
+      widen_transect_edge_masks
+   
