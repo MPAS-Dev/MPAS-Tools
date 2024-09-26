@@ -476,7 +476,14 @@ int readGridInput(const string inputFilename){/*{{{*/
 
     meshDensity.clear();
     meshDensity.resize(cells.size());
-    ncutil::get_var(inputFilename, "meshDensity", &meshDensity[0]);
+    try {
+        ncutil::get_var(inputFilename, "meshDensity", &meshDensity[0]);
+    } catch (...) {
+        // should be all ones by default
+        for(int i = 0; i < nCells; i++){
+            meshDensity[i] = 1.0;
+        }
+    }
 
     xCellDistance = fabs(xCellRange[1] - xCellRange[0]);
     yCellDistance = fabs(yCellRange[1] - yCellRange[0]);
