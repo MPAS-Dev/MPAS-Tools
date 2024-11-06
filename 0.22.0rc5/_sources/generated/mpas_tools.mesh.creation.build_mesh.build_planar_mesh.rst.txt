@@ -1,6 +1,0 @@
-﻿mpas\_tools.mesh.creation.build\_mesh.build\_planar\_mesh
-=========================================================
-
-.. currentmodule:: mpas_tools.mesh.creation.build_mesh
-
-.. autofunction:: build_planar_mesh

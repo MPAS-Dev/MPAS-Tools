@@ -1,6 +1,0 @@
-﻿mpas\_tools.seaice.partition.prepare\_partitions
-================================================
-
-.. currentmodule:: mpas_tools.seaice.partition
-
-.. autofunction:: prepare_partitions

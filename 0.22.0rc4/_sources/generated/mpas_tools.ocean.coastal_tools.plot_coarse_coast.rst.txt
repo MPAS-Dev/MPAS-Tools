@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.coastal\_tools.plot\_coarse\_coast
-====================================================
-
-.. currentmodule:: mpas_tools.ocean.coastal_tools
-
-.. autofunction:: plot_coarse_coast

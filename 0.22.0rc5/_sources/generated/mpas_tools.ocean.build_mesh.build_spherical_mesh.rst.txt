@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.build\_mesh.build\_spherical\_mesh
-====================================================
-
-.. currentmodule:: mpas_tools.ocean.build_mesh
-
-.. autofunction:: build_spherical_mesh

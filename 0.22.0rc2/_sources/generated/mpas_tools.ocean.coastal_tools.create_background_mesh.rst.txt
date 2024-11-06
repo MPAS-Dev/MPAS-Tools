@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.coastal\_tools.create\_background\_mesh
-=========================================================
-
-.. currentmodule:: mpas_tools.ocean.coastal_tools
-
-.. autofunction:: create_background_mesh

@@ -1,6 +1,0 @@
-﻿mpas\_tools.translate.translate
-===============================
-
-.. currentmodule:: mpas_tools.translate
-
-.. autofunction:: translate

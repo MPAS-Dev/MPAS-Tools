@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.inject\_meshDensity.inject\_meshDensity\_from\_file
-=====================================================================
-
-.. currentmodule:: mpas_tools.ocean.inject_meshDensity
-
-.. autofunction:: inject_meshDensity_from_file

@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.coastal\_tools.get\_convex\_hull\_coordinates
-===============================================================
-
-.. currentmodule:: mpas_tools.ocean.coastal_tools
-
-.. autofunction:: get_convex_hull_coordinates

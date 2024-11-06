@@ -1,6 +1,0 @@
-﻿mpas\_tools.config.MpasConfigParser.append
-==========================================
-
-.. currentmodule:: mpas_tools.config
-
-.. automethod:: MpasConfigParser.append

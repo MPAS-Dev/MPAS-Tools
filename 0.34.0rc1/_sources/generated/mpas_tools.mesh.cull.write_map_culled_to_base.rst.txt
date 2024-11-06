@@ -1,6 +1,0 @@
-﻿mpas\_tools.mesh.cull.write\_map\_culled\_to\_base
-==================================================
-
-.. currentmodule:: mpas_tools.mesh.cull
-
-.. autofunction:: write_map_culled_to_base

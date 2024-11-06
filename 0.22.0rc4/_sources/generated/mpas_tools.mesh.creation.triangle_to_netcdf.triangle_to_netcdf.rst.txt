@@ -1,6 +1,0 @@
-﻿mpas\_tools.mesh.creation.triangle\_to\_netcdf.triangle\_to\_netcdf
-===================================================================
-
-.. currentmodule:: mpas_tools.mesh.creation.triangle_to_netcdf
-
-.. autofunction:: triangle_to_netcdf

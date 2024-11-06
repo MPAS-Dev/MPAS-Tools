@@ -1,6 +1,0 @@
-﻿mpas\_tools.seaice.regrid.regrid\_to\_other\_mesh
-=================================================
-
-.. currentmodule:: mpas_tools.seaice.regrid
-
-.. autofunction:: regrid_to_other_mesh

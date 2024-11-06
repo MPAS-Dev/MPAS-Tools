@@ -1,6 +1,0 @@
-﻿mpas\_tools.vector.Vector.mag
-=============================
-
-.. currentmodule:: mpas_tools.vector
-
-.. automethod:: Vector.mag

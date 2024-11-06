@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.depth.compute\_depth
-======================================
-
-.. currentmodule:: mpas_tools.ocean.depth
-
-.. autofunction:: compute_depth

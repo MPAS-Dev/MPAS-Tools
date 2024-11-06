@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.coastal\_tools.save\_matfile
-==============================================
-
-.. currentmodule:: mpas_tools.ocean.coastal_tools
-
-.. autofunction:: save_matfile

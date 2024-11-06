@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.transects.interp\_transect\_grid\_to\_transect\_triangle\_nodes
-=================================================================================
-
-.. currentmodule:: mpas_tools.ocean.transects
-
-.. autofunction:: interp_transect_grid_to_transect_triangle_nodes

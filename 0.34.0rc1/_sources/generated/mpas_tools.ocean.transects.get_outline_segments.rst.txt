@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.transects.get\_outline\_segments
-==================================================
-
-.. currentmodule:: mpas_tools.ocean.transects
-
-.. autofunction:: get_outline_segments

@@ -1,6 +1,0 @@
-﻿mpas\_tools.viz.transects.find\_transect\_cells\_and\_weights
-=============================================================
-
-.. currentmodule:: mpas_tools.viz.transects
-
-.. autofunction:: find_transect_cells_and_weights

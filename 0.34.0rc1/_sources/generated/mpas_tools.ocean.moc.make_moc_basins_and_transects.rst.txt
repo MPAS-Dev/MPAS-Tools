@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.moc.make\_moc\_basins\_and\_transects
-=======================================================
-
-.. currentmodule:: mpas_tools.ocean.moc
-
-.. autofunction:: make_moc_basins_and_transects

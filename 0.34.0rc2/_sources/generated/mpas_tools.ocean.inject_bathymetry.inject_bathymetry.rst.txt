@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.inject\_bathymetry.inject\_bathymetry
-=======================================================
-
-.. currentmodule:: mpas_tools.ocean.inject_bathymetry
-
-.. autofunction:: inject_bathymetry

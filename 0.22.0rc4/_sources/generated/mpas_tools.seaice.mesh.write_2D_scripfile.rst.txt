@@ -1,6 +1,0 @@
-﻿mpas\_tools.seaice.mesh.write\_2D\_scripfile
-============================================
-
-.. currentmodule:: mpas_tools.seaice.mesh
-
-.. autofunction:: write_2D_scripfile

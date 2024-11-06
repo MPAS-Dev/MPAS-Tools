@@ -1,6 +1,0 @@
-﻿mpas\_tools.vector.Vector.intersection
-======================================
-
-.. currentmodule:: mpas_tools.vector
-
-.. automethod:: Vector.intersection

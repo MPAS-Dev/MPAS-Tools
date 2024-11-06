@@ -1,6 +1,0 @@
-﻿mpas\_tools.viz.mesh\_to\_triangles.mesh\_to\_triangles
-=======================================================
-
-.. currentmodule:: mpas_tools.viz.mesh_to_triangles
-
-.. autofunction:: mesh_to_triangles

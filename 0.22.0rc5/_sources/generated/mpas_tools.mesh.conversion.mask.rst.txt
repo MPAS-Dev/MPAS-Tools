@@ -1,6 +1,0 @@
-﻿mpas\_tools.mesh.conversion.mask
-================================
-
-.. currentmodule:: mpas_tools.mesh.conversion
-
-.. autofunction:: mask

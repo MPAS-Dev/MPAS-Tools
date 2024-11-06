@@ -1,6 +1,0 @@
-﻿mpas\_tools.tests.test\_cime\_constants.test\_cime\_constants
-=============================================================
-
-.. currentmodule:: mpas_tools.tests.test_cime_constants
-
-.. autofunction:: test_cime_constants

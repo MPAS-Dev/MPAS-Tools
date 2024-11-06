@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.coastal\_tools.compute\_cell\_width
-=====================================================
-
-.. currentmodule:: mpas_tools.ocean.coastal_tools
-
-.. autofunction:: compute_cell_width

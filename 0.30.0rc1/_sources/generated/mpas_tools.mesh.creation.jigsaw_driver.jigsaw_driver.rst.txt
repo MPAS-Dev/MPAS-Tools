@@ -1,6 +1,0 @@
-﻿mpas\_tools.mesh.creation.jigsaw\_driver.jigsaw\_driver
-=======================================================
-
-.. currentmodule:: mpas_tools.mesh.creation.jigsaw_driver
-
-.. autofunction:: jigsaw_driver

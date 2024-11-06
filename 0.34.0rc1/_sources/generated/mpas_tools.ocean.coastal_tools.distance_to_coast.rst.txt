@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.coastal\_tools.distance\_to\_coast
-====================================================
-
-.. currentmodule:: mpas_tools.ocean.coastal_tools
-
-.. autofunction:: distance_to_coast

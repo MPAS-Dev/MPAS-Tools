@@ -1,6 +1,0 @@
-﻿mpas\_tools.mesh.creation.mpas\_to\_triangle.mpas\_to\_triangle
-===============================================================
-
-.. currentmodule:: mpas_tools.mesh.creation.mpas_to_triangle
-
-.. autofunction:: mpas_to_triangle

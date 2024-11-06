@@ -1,6 +1,0 @@
-﻿mpas\_tools.ocean.coastal\_tools.CPP\_projection
-================================================
-
-.. currentmodule:: mpas_tools.ocean.coastal_tools
-
-.. autofunction:: CPP_projection
