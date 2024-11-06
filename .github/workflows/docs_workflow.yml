@@ -45,11 +45,10 @@ jobs:
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Install mpas_tools
         run: |
-          cd conda_package
           git config --global url."https://github.com/".insteadOf "git@github.com:"
-          conda create -n mpas_tools_dev --file dev-spec.txt
+          conda create -n mpas_tools_dev --file conda_package/dev-spec.txt
           conda activate mpas_tools_dev
-          python -m pip install -vv --no-deps --no-build-isolation -e .
+          python -m pip install -vv --no-deps --no-build-isolation -e conda_package
 
       - name: Build Sphinx Docs
         run: |
