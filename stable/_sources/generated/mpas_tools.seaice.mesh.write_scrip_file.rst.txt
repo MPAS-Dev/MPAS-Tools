@@ -1,6 +1,0 @@
-﻿mpas\_tools.seaice.mesh.write\_scrip\_file
-==========================================
-
-.. currentmodule:: mpas_tools.seaice.mesh
-
-.. autofunction:: write_scrip_file

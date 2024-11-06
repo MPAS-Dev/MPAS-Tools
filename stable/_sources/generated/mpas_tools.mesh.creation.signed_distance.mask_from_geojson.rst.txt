@@ -1,6 +1,0 @@
-﻿mpas\_tools.mesh.creation.signed\_distance.mask\_from\_geojson
-==============================================================
-
-.. currentmodule:: mpas_tools.mesh.creation.signed_distance
-
-.. autofunction:: mask_from_geojson

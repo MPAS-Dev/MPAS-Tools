@@ -1,6 +1,0 @@
-﻿mpas\_tools.landice.visualization.plot\_transect
-================================================
-
-.. currentmodule:: mpas_tools.landice.visualization
-
-.. autofunction:: plot_transect

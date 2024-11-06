@@ -1,6 +1,0 @@
-﻿mpas\_tools.translate.center
-============================
-
-.. currentmodule:: mpas_tools.translate
-
-.. autofunction:: center

@@ -1,6 +1,0 @@
-﻿mpas\_tools.mesh.cull.cull\_dataset
-===================================
-
-.. currentmodule:: mpas_tools.mesh.cull
-
-.. autofunction:: cull_dataset
