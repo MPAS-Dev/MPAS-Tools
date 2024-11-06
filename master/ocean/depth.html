@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Adding a Depth Coordinate &mdash; mpas_tools 0.35.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=ca1b380b"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Visualization" href="visualization.html" />
+    <link rel="prev" title="Meridional Overturning Circulation" href="moc.html" />
+    <link href="../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vector.html">Vector Operations</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Adding a Depth Coordinate</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-1d-depth-coordinate">Adding a 1D depth coordinate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#adding-a-3d-zmid-coordinate">Adding a 3D zMid coordinate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#writing-a-time-dependent-3d-zmid-variable">Writing a time-dependent, 3D zMid variable</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Adding a Depth Coordinate</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/ocean/depth.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="adding-a-depth-coordinate">
+<span id="ocean-depth"></span><h1>Adding a Depth Coordinate<a class="headerlink" href="#adding-a-depth-coordinate" title="Link to this heading"></a></h1>
+<section id="adding-a-1d-depth-coordinate">
+<h2>Adding a 1D depth coordinate<a class="headerlink" href="#adding-a-1d-depth-coordinate" title="Link to this heading"></a></h2>
+<p>The function <a class="reference internal" href="../generated/mpas_tools.ocean.depth.add_depth.html#mpas_tools.ocean.depth.add_depth" title="mpas_tools.ocean.depth.add_depth"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.add_depth()</span></code></a> can be used to add
+a 1D <code class="docutils literal notranslate"><span class="pre">depth</span></code> coordinate that is appropriate for runs with a z-star MPAS-Ocean
+mesh.  The coordinate is only approximately correct but is useful for
+visualization.</p>
+<p>Internally, the depth is computed with
+<a class="reference internal" href="../generated/mpas_tools.ocean.depth.compute_depth.html#mpas_tools.ocean.depth.compute_depth" title="mpas_tools.ocean.depth.compute_depth"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.compute_depth()</span></code></a>, which could also be called
+directly if one has a suitable <code class="docutils literal notranslate"><span class="pre">refBottomDepth</span></code> data array indicating the
+reference depth of the bottom of each layer in a 1D coordinate that is
+independent of both time and horizontal coordinate.</p>
+</section>
+<section id="adding-a-3d-zmid-coordinate">
+<h2>Adding a 3D zMid coordinate<a class="headerlink" href="#adding-a-3d-zmid-coordinate" title="Link to this heading"></a></h2>
+<p>The function <a class="reference internal" href="../generated/mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid" title="mpas_tools.ocean.depth.add_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.add_zmid()</span></code></a> can be used to add
+a time-independent, 3D <code class="docutils literal notranslate"><span class="pre">zMid</span></code> coordinate that is appropriate for runs with
+any MPAS-Ocean vertical coordinate that is not a significant function of time.
+This is appropriate for both z-star simulations and those with ice-shelf
+cavities, which have a more complex vertical coordinate. The coordinate is only
+approximately correct because MPAS-Ocean coordinates vary at least slightly
+in time (with the undulation of the sea surface).  The time-independent <code class="docutils literal notranslate"><span class="pre">zMid</span></code>
+is appropriate for visualization an analysis that does not need to account for
+this time variability.</p>
+<p>Internally, the <code class="docutils literal notranslate"><span class="pre">zMid</span></code> is computed with
+<a class="reference internal" href="../generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid" title="mpas_tools.ocean.depth.compute_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.compute_zmid()</span></code></a>, which could also be called
+directly if one has a suitable <code class="docutils literal notranslate"><span class="pre">bottomDepth</span></code>, <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code>,
+and (reference) <code class="docutils literal notranslate"><span class="pre">layerThickness</span></code> data arrays.</p>
+</section>
+<section id="writing-a-time-dependent-3d-zmid-variable">
+<h2>Writing a time-dependent, 3D zMid variable<a class="headerlink" href="#writing-a-time-dependent-3d-zmid-variable" title="Link to this heading"></a></h2>
+<p>The function <a class="reference internal" href="../generated/mpas_tools.ocean.depth.write_time_varying_zmid.html#mpas_tools.ocean.depth.write_time_varying_zmid" title="mpas_tools.ocean.depth.write_time_varying_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.write_time_varying_zmid()</span></code></a> can be
+used to write out a time-dependent, 3D <code class="docutils literal notranslate"><span class="pre">zMid</span></code> variable to its own file.
+This is the “true” MPAS-Ocean vertical coordinate, in contrast to the 1D and
+3D time-independent coordinates mentioned above.  However, it requires a
+significant amount of disk space so may not be desirable in many contexts.</p>
+<p>Internally, the <code class="docutils literal notranslate"><span class="pre">&lt;prefix&gt;zMid</span></code> is computed with
+<a class="reference internal" href="../generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid" title="mpas_tools.ocean.depth.compute_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.compute_zmid()</span></code></a> using the time-dependent
+<code class="docutils literal notranslate"><span class="pre">&lt;prefix&gt;layerThickness</span></code> variable, where <code class="docutils literal notranslate"><span class="pre">&lt;prefix&gt;</span></code> is a prefix such as
+<code class="docutils literal notranslate"><span class="pre">'timeMonthly_avg_'</span></code> or an empty string (<code class="docutils literal notranslate"><span class="pre">''</span></code>) for no prefix.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="moc.html" class="btn btn-neutral float-left" title="Meridional Overturning Circulation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="visualization.html" class="btn btn-neutral float-right" title="Visualization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    v: master
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    <dl>
+      <dt>Tags</dt>
+      <dd><a href="../../0.0.2/index.html">0.0.2</a></dd>
+      <dd><a href="../../0.0.3/index.html">0.0.3</a></dd>
+      <dd><a href="../../0.0.4/index.html">0.0.4</a></dd>
+      <dd><a href="../../0.0.5/index.html">0.0.5</a></dd>
+      <dd><a href="../../0.0.6/index.html">0.0.6</a></dd>
+      <dd><a href="../../0.0.7/index.html">0.0.7</a></dd>
+      <dd><a href="../../0.0.8/index.html">0.0.8</a></dd>
+      <dd><a href="../../0.0.9/index.html">0.0.9</a></dd>
+      <dd><a href="../../0.1.0/ocean/depth.html">0.1.0</a></dd>
+      <dd><a href="../../0.10.0/ocean/depth.html">0.10.0</a></dd>
+      <dd><a href="../../0.11.0/ocean/depth.html">0.11.0</a></dd>
+      <dd><a href="../../0.12.0/ocean/depth.html">0.12.0</a></dd>
+      <dd><a href="../../0.13.0/ocean/depth.html">0.13.0</a></dd>
+      <dd><a href="../../0.14.0/ocean/depth.html">0.14.0</a></dd>
+      <dd><a href="../../0.15.0/ocean/depth.html">0.15.0</a></dd>
+      <dd><a href="../../0.16.0/ocean/depth.html">0.16.0</a></dd>
+      <dd><a href="../../0.17.0/ocean/depth.html">0.17.0</a></dd>
+      <dd><a href="../../0.18.0/ocean/depth.html">0.18.0</a></dd>
+      <dd><a href="../../0.19.0/ocean/depth.html">0.19.0</a></dd>
+      <dd><a href="../../0.2.0/ocean/depth.html">0.2.0</a></dd>
+      <dd><a href="../../0.2.1/ocean/depth.html">0.2.1</a></dd>
+      <dd><a href="../../0.20.0/ocean/depth.html">0.20.0</a></dd>
+      <dd><a href="../../0.21.0/ocean/depth.html">0.21.0</a></dd>
+      <dd><a href="../../0.22.0/ocean/depth.html">0.22.0</a></dd>
+      <dd><a href="../../0.23.0/ocean/depth.html">0.23.0</a></dd>
+      <dd><a href="../../0.24.0/ocean/depth.html">0.24.0</a></dd>
+      <dd><a href="../../0.25.0/ocean/depth.html">0.25.0</a></dd>
+      <dd><a href="../../0.26.0/ocean/depth.html">0.26.0</a></dd>
+      <dd><a href="../../0.27.0/ocean/depth.html">0.27.0</a></dd>
+      <dd><a href="../../0.28.0/ocean/depth.html">0.28.0</a></dd>
+      <dd><a href="../../0.29.0/ocean/depth.html">0.29.0</a></dd>
+      <dd><a href="../../0.3.0/ocean/depth.html">0.3.0</a></dd>
+      <dd><a href="../../0.30.0/ocean/depth.html">0.30.0</a></dd>
+      <dd><a href="../../0.31.0/ocean/depth.html">0.31.0</a></dd>
+      <dd><a href="../../0.32.0/ocean/depth.html">0.32.0</a></dd>
+      <dd><a href="../../0.33.0/ocean/depth.html">0.33.0</a></dd>
+      <dd><a href="../../0.34.0/ocean/depth.html">0.34.0</a></dd>
+      <dd><a href="../../0.34.1/ocean/depth.html">0.34.1</a></dd>
+      <dd><a href="../../0.35.0/ocean/depth.html">0.35.0</a></dd>
+      <dd><a href="../../0.4.0/ocean/depth.html">0.4.0</a></dd>
+      <dd><a href="../../0.5.0/ocean/depth.html">0.5.0</a></dd>
+      <dd><a href="../../0.5.1/ocean/depth.html">0.5.1</a></dd>
+      <dd><a href="../../0.6.0/ocean/depth.html">0.6.0</a></dd>
+      <dd><a href="../../0.7.0/ocean/depth.html">0.7.0</a></dd>
+      <dd><a href="../../0.8.0/ocean/depth.html">0.8.0</a></dd>
+      <dd><a href="../../0.9.0/ocean/depth.html">0.9.0</a></dd>
+    </dl>
+    <dl>
+      <dt>Branches</dt>
+      <dd><a href="depth.html">master</a></dd>
+    </dl>
+  </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,437 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.vector &mdash; mpas_tools 0.35.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=ca1b380b"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link href="../../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.vector</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.vector</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+
+<div class="viewcode-block" id="Vector">
+<a class="viewcode-back" href="../../generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector">[docs]</a>
+<span class="k">class</span> <span class="nc">Vector</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class for representing Cartesian vectors with ``x``, ``y`` and ``z``</span>
+<span class="sd">    components that are either ``float`` or ``numpy.array`` objects of</span>
+<span class="sd">    identical size.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : float or numpy.ndarray</span>
+<span class="sd">        The x component(s)</span>
+
+<span class="sd">    y : float or numpy.ndarray</span>
+<span class="sd">        The y component(s)</span>
+
+<span class="sd">    z : float or numpy.ndarray</span>
+<span class="sd">        The z component(s)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Vector.__init__">
+<a class="viewcode-back" href="../../generated/mpas_tools.transects.Vector.html#mpas_tools.transects.Vector.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        A class for representing Cartesian vectors with ``x``, ``y`` and ``z``</span>
+<span class="sd">        components that are either ``float`` or ``numpy.array`` objects of</span>
+<span class="sd">        identical size.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        x : float or numpy.ndarray</span>
+<span class="sd">            The x component(s)</span>
+
+<span class="sd">        y : float or numpy.ndarray</span>
+<span class="sd">            The y component(s)</span>
+
+<span class="sd">        z : float or numpy.ndarray</span>
+<span class="sd">            The z component(s)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span></div>
+
+
+    <span class="k">def</span> <span class="nf">angular_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute angular distance between points on the sphere, following:</span>
+<span class="sd">        https://en.wikipedia.org/wiki/Great-circle_distance</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : mpas_tools.vector.Vector</span>
+<span class="sd">            The vector to compute the angular distance to</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        angularDistance : numpy.ndarray</span>
+<span class="sd">            The angular distance (in radians) between segments of the transect.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">angular_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">.</span><span class="n">mag</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">angular_distance</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">intersects</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Based on https://stackoverflow.com/a/26669130/7728169</span>
+<span class="sd">        Determine if the great circle arc from ``a1`` to ``a2`` intersects that</span>
+<span class="sd">        from ``b1`` to ``b2``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        a1 : mpas_tools.vector.Vector</span>
+<span class="sd">            Cartesian coordinates of the end point of a great circle arc.</span>
+<span class="sd">            The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
+<span class="sd">            ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
+<span class="sd">            intersections are found element-wise), or scalars for</span>
+<span class="sd">            at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.</span>
+
+<span class="sd">        a2 : mpas_tools.vector.Vector</span>
+<span class="sd">            Cartesian coordinates of the other end point of a great circle arc.</span>
+
+<span class="sd">        b1 : mpas_tools.vector.Vector</span>
+<span class="sd">            Cartesian coordinates of an end point of a second great circle arc.</span>
+
+<span class="sd">        b2 : mpas_tools.vector.Vector</span>
+<span class="sd">            Cartesian coordinates of the other end point of the second great</span>
+<span class="sd">            circle arc.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        intersect : numpy.ndarray</span>
+<span class="sd">            A boolean array of the same size as ``a1`` and ``a2`` or ``b1`` and</span>
+<span class="sd">            ``b2``, whichever is greater, indicating if the particular pair of</span>
+<span class="sd">            arcs intersects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">Vector</span><span class="o">.</span><span class="n">straddles</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">),</span>
+                              <span class="n">Vector</span><span class="o">.</span><span class="n">straddles</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">))</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">intersection</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Based on https://stackoverflow.com/a/26669130/7728169</span>
+<span class="sd">        Find the intersection point as a unit vector between great circle arc</span>
+<span class="sd">        from ``a1`` to ``a2`` and from ``b1`` to ``b2``.  The arcs should have</span>
+<span class="sd">        already have been found to intersect by calling ``intersects()``</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        a1 : mpas_tools.vector.Vector</span>
+<span class="sd">            Cartesian coordinates of the end point of a great circle arc.</span>
+<span class="sd">            The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
+<span class="sd">            ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
+<span class="sd">            intersections are found element-wise), or scalars for</span>
+<span class="sd">            at least one of either ``a1`` and ``a2`` or ``b1`` and ``b2``.</span>
+
+<span class="sd">        a2 : mpas_tools.vector.Vector</span>
+<span class="sd">            Cartesian coordinates of the other end point of a great circle arc.</span>
+
+<span class="sd">        b1 : mpas_tools.vector.Vector</span>
+<span class="sd">            Cartesian coordinates of an end point of a second great circle arc.</span>
+
+<span class="sd">        b2 : mpas_tools.vector.Vector</span>
+<span class="sd">            Cartesian coordinates of the other end point of the second great</span>
+<span class="sd">            circle arc.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        points : mpas_tools.vector.Vector</span>
+<span class="sd">            An array of Cartesian points *on the unit sphere* indicating where</span>
+<span class="sd">            the arcs intersect</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">a2</span><span class="p">))</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">b1</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">b2</span><span class="p">))</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">Vector</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">))</span><span class="o">/</span><span class="n">points</span><span class="o">.</span><span class="n">mag</span><span class="p">()</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>  <span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">points</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">straddles</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Based on https://stackoverflow.com/a/26669130/7728169</span>
+<span class="sd">        Determines if the great circle segment determined by (a1, a2)</span>
+<span class="sd">        straddles the great circle determined by (b1, b2)</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        a1 : mpas_tools.vector.Vector</span>
+<span class="sd">            Cartesian coordinates of first end point of first great circle arc.</span>
+<span class="sd">            The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
+<span class="sd">            ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
+<span class="sd">            intersections are found element-wise), or scalars for</span>
+<span class="sd">            at least one of either the a&#39;s or the b&#39;s.</span>
+
+<span class="sd">        a2 : mpas_tools.vector.Vector</span>
+<span class="sd">            Second end point of first great circle arc.</span>
+
+<span class="sd">        b1 : mpas_tools.vector.Vector</span>
+<span class="sd">            First end point of second great circle arc.</span>
+
+<span class="sd">        b2 : mpas_tools.vector.Vector</span>
+<span class="sd">            Second end point of second great circle arc.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        straddle : numpy.ndarray</span>
+<span class="sd">            A boolean array of the same size as the a&#39;s or the b&#39;s, whichever</span>
+<span class="sd">            is greater, indicating if the great circle segment determined by</span>
+<span class="sd">            (a1, a2) straddles the great circle determined by (b1, b2)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Vector</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="o">*</span> <span class="n">Vector</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the dot product between this vector and ``other``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : mpas_tools.vector.Vector</span>
+<span class="sd">            The other vector</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dot_product : numpy.ndarray</span>
+<span class="sd">            The dot product</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">z</span>
+
+    <span class="k">def</span> <span class="nf">cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the dot product between this vector and ``other``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : mpas_tools.vector.Vector</span>
+<span class="sd">            The other vector</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        cross_product : mpas_tools.vector.Vector</span>
+<span class="sd">            The cross product</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">det</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The determinant of the matrix defined by the three ``Vector`` objects</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        v1 : mpas_tools.vector.Vector</span>
+<span class="sd">            First row of the matrix</span>
+
+<span class="sd">        v2 : mpas_tools.vector.Vector</span>
+<span class="sd">            Second row</span>
+
+<span class="sd">        v3 : mpas_tools.vector.Vector</span>
+<span class="sd">            Third row</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        determinant : numpy.ndarray</span>
+<span class="sd">            The determinant of the matrix</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">v1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v2</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v3</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">mag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The magnitude of the vector</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        magnitude : numpy.ndarray</span>
+<span class="sd">            The magnitude of the vector</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    v: 0.15.0
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    <dl>
+      <dt>Tags</dt>
+      <dd><a href="../../../0.0.2/index.html">0.0.2</a></dd>
+      <dd><a href="../../../0.0.3/index.html">0.0.3</a></dd>
+      <dd><a href="../../../0.0.4/index.html">0.0.4</a></dd>
+      <dd><a href="../../../0.0.5/index.html">0.0.5</a></dd>
+      <dd><a href="../../../0.0.6/index.html">0.0.6</a></dd>
+      <dd><a href="../../../0.0.7/index.html">0.0.7</a></dd>
+      <dd><a href="../../../0.0.8/index.html">0.0.8</a></dd>
+      <dd><a href="../../../0.0.9/index.html">0.0.9</a></dd>
+      <dd><a href="../../../0.1.0/index.html">0.1.0</a></dd>
+      <dd><a href="../../../0.10.0/index.html">0.10.0</a></dd>
+      <dd><a href="../../../0.11.0/index.html">0.11.0</a></dd>
+      <dd><a href="../../../0.12.0/index.html">0.12.0</a></dd>
+      <dd><a href="../../../0.13.0/index.html">0.13.0</a></dd>
+      <dd><a href="../../../0.14.0/index.html">0.14.0</a></dd>
+      <dd><a href="vector.html">0.15.0</a></dd>
+      <dd><a href="../../../0.16.0/index.html">0.16.0</a></dd>
+      <dd><a href="../../../0.17.0/index.html">0.17.0</a></dd>
+      <dd><a href="../../../0.18.0/index.html">0.18.0</a></dd>
+      <dd><a href="../../../0.19.0/index.html">0.19.0</a></dd>
+      <dd><a href="../../../0.2.0/index.html">0.2.0</a></dd>
+      <dd><a href="../../../0.2.1/index.html">0.2.1</a></dd>
+      <dd><a href="../../../0.20.0/index.html">0.20.0</a></dd>
+      <dd><a href="../../../0.21.0/index.html">0.21.0</a></dd>
+      <dd><a href="../../../0.22.0/index.html">0.22.0</a></dd>
+      <dd><a href="../../../0.23.0/index.html">0.23.0</a></dd>
+      <dd><a href="../../../0.24.0/index.html">0.24.0</a></dd>
+      <dd><a href="../../../0.25.0/index.html">0.25.0</a></dd>
+      <dd><a href="../../../0.26.0/index.html">0.26.0</a></dd>
+      <dd><a href="../../../0.27.0/index.html">0.27.0</a></dd>
+      <dd><a href="../../../0.28.0/index.html">0.28.0</a></dd>
+      <dd><a href="../../../0.29.0/index.html">0.29.0</a></dd>
+      <dd><a href="../../../0.3.0/index.html">0.3.0</a></dd>
+      <dd><a href="../../../0.30.0/index.html">0.30.0</a></dd>
+      <dd><a href="../../../0.31.0/index.html">0.31.0</a></dd>
+      <dd><a href="../../../0.32.0/index.html">0.32.0</a></dd>
+      <dd><a href="../../../0.33.0/index.html">0.33.0</a></dd>
+      <dd><a href="../../../0.34.0/index.html">0.34.0</a></dd>
+      <dd><a href="../../../0.34.1/index.html">0.34.1</a></dd>
+      <dd><a href="../../../0.35.0/index.html">0.35.0</a></dd>
+      <dd><a href="../../../0.4.0/index.html">0.4.0</a></dd>
+      <dd><a href="../../../0.5.0/index.html">0.5.0</a></dd>
+      <dd><a href="../../../0.5.1/index.html">0.5.1</a></dd>
+      <dd><a href="../../../0.6.0/index.html">0.6.0</a></dd>
+      <dd><a href="../../../0.7.0/index.html">0.7.0</a></dd>
+      <dd><a href="../../../0.8.0/index.html">0.8.0</a></dd>
+      <dd><a href="../../../0.9.0/index.html">0.9.0</a></dd>
+    </dl>
+    <dl>
+      <dt>Branches</dt>
+      <dd><a href="../../../master/index.html">master</a></dd>
+    </dl>
+  </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

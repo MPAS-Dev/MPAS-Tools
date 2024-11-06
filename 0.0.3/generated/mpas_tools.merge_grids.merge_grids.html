@@ -1,0 +1,207 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.merge_grids.merge_grids &mdash; mpas_tools 0.35.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=ca1b380b"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mpas_tools.split_grids.split_grids" href="mpas_tools.split_grids.split_grids.html" />
+    <link rel="prev" title="mpas_tools.conversion.mask" href="mpas_tools.conversion.mask.html" />
+    <link href="../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.planar_hex.make_planar_hex_mesh.html">mpas_tools.planar_hex.make_planar_hex_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.translate.translate.html">mpas_tools.translate.translate</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.conversion.convert.html">mpas_tools.conversion.convert</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.conversion.cull.html">mpas_tools.conversion.cull</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.conversion.mask.html">mpas_tools.conversion.mask</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.merge_grids.merge_grids</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.merge_grids.merge_grids"><code class="docutils literal notranslate"><span class="pre">merge_grids()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.io.write_netcdf.html">mpas_tools.io.write_netcdf</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.merge_grids.merge_grids</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/mpas_tools.merge_grids.merge_grids.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mpas-tools-merge-grids-merge-grids">
+<h1>mpas_tools.merge_grids.merge_grids<a class="headerlink" href="#mpas-tools-merge-grids-merge-grids" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="mpas_tools.merge_grids.merge_grids">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.merge_grids.</span></span><span class="sig-name descname"><span class="pre">merge_grids</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">infile1</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">infile2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">runner</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/merge_grids.html#merge_grids"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.merge_grids.merge_grids" title="Link to this definition"></a></dt>
+<dd><p>Merges two MPAS non-contiguous meshes together into a single file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>infile1</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The file name for the first mesh to merge</p></li>
+<li><p><strong>infile2</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The file name for the second mesh to merge</p></li>
+<li><p><strong>outfile</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The file name for the first mesh to merge</p></li>
+<li><p><strong>runner</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The command to write into the global history attribute of the outfile</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mpas_tools.conversion.mask.html" class="btn btn-neutral float-left" title="mpas_tools.conversion.mask" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.split_grids.split_grids.html" class="btn btn-neutral float-right" title="mpas_tools.split_grids.split_grids" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    v: 0.0.3
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    <dl>
+      <dt>Tags</dt>
+      <dd><a href="../../0.0.2/index.html">0.0.2</a></dd>
+      <dd><a href="mpas_tools.merge_grids.merge_grids.html">0.0.3</a></dd>
+      <dd><a href="../../0.0.4/index.html">0.0.4</a></dd>
+      <dd><a href="../../0.0.5/index.html">0.0.5</a></dd>
+      <dd><a href="../../0.0.6/index.html">0.0.6</a></dd>
+      <dd><a href="../../0.0.7/index.html">0.0.7</a></dd>
+      <dd><a href="../../0.0.8/index.html">0.0.8</a></dd>
+      <dd><a href="../../0.0.9/index.html">0.0.9</a></dd>
+      <dd><a href="../../0.1.0/index.html">0.1.0</a></dd>
+      <dd><a href="../../0.10.0/index.html">0.10.0</a></dd>
+      <dd><a href="../../0.11.0/index.html">0.11.0</a></dd>
+      <dd><a href="../../0.12.0/index.html">0.12.0</a></dd>
+      <dd><a href="../../0.13.0/index.html">0.13.0</a></dd>
+      <dd><a href="../../0.14.0/index.html">0.14.0</a></dd>
+      <dd><a href="../../0.15.0/index.html">0.15.0</a></dd>
+      <dd><a href="../../0.16.0/index.html">0.16.0</a></dd>
+      <dd><a href="../../0.17.0/index.html">0.17.0</a></dd>
+      <dd><a href="../../0.18.0/index.html">0.18.0</a></dd>
+      <dd><a href="../../0.19.0/index.html">0.19.0</a></dd>
+      <dd><a href="../../0.2.0/index.html">0.2.0</a></dd>
+      <dd><a href="../../0.2.1/index.html">0.2.1</a></dd>
+      <dd><a href="../../0.20.0/index.html">0.20.0</a></dd>
+      <dd><a href="../../0.21.0/index.html">0.21.0</a></dd>
+      <dd><a href="../../0.22.0/index.html">0.22.0</a></dd>
+      <dd><a href="../../0.23.0/index.html">0.23.0</a></dd>
+      <dd><a href="../../0.24.0/index.html">0.24.0</a></dd>
+      <dd><a href="../../0.25.0/index.html">0.25.0</a></dd>
+      <dd><a href="../../0.26.0/index.html">0.26.0</a></dd>
+      <dd><a href="../../0.27.0/index.html">0.27.0</a></dd>
+      <dd><a href="../../0.28.0/index.html">0.28.0</a></dd>
+      <dd><a href="../../0.29.0/index.html">0.29.0</a></dd>
+      <dd><a href="../../0.3.0/index.html">0.3.0</a></dd>
+      <dd><a href="../../0.30.0/index.html">0.30.0</a></dd>
+      <dd><a href="../../0.31.0/index.html">0.31.0</a></dd>
+      <dd><a href="../../0.32.0/index.html">0.32.0</a></dd>
+      <dd><a href="../../0.33.0/index.html">0.33.0</a></dd>
+      <dd><a href="../../0.34.0/index.html">0.34.0</a></dd>
+      <dd><a href="../../0.34.1/index.html">0.34.1</a></dd>
+      <dd><a href="../../0.35.0/index.html">0.35.0</a></dd>
+      <dd><a href="../../0.4.0/index.html">0.4.0</a></dd>
+      <dd><a href="../../0.5.0/index.html">0.5.0</a></dd>
+      <dd><a href="../../0.5.1/index.html">0.5.1</a></dd>
+      <dd><a href="../../0.6.0/index.html">0.6.0</a></dd>
+      <dd><a href="../../0.7.0/index.html">0.7.0</a></dd>
+      <dd><a href="../../0.8.0/index.html">0.8.0</a></dd>
+      <dd><a href="../../0.9.0/index.html">0.9.0</a></dd>
+    </dl>
+    <dl>
+      <dt>Branches</dt>
+      <dd><a href="../../master/index.html">master</a></dd>
+    </dl>
+  </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
