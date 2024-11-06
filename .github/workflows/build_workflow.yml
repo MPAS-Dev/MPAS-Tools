@@ -68,11 +68,9 @@ jobs:
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Install mpas_tools
         run: |
-          cd conda_package
-          conda create -n mpas_tools_dev --file dev-spec.txt \
-              python=${{ matrix.python-version }}
-          conda activate mpas_tools_dev
-          python -m pip install --no-deps --no-build-isolation -vv -e .
+          conda create -y -n mpas_tools_dev --use-local mpas_tools \
+              python=${{ matrix.python-version }} \
+              sphinx sphinx-multiversion mock sphinx_rtd_theme
 
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Build Sphinx Docs
