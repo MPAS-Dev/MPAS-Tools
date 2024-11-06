@@ -1,0 +1,83 @@
+name: CI/CD Build Workflow
+
+on:
+  push:
+    branches:
+      - master
+
+  pull_request:
+    branches:
+      - master
+
+  workflow_dispatch:
+
+env:
+  CANCEL_OTHERS: false
+  PATHS_IGNORE: '["**/README.md", "**/docs/**"]'
+
+jobs:
+  build:
+    name: test mpas_tools - python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          cancel_others: ${{ env.CANCEL_OTHERS }}
+          paths_ignore: ${{ env.PATHS_IGNORE }}
+
+      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
+        uses: actions/checkout@v4
+
+      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
+        name: Cache Conda
+        uses: actions/cache@v4
+        env:
+          # Increase this value to reset cache if dev-spec and setup.py have not changed in the workflow
+          CACHE_NUMBER: 0
+        with:
+          path: ~/conda_pkgs_dir
+          key:
+            ${{ runner.os }}-${{ matrix.python-version }}-conda-${{ env.CACHE_NUMBER }}-${{
+            hashFiles('conda_package/dev-spec.txt,conda_package/setup.py') }}
+
+      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
+        name: Create Build Environment
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: "build"
+          miniforge-version: latest
+          channels: conda-forge
+          channel-priority: strict
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+
+      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
+        name: Finalize Build Environment
+        run: |
+          conda install conda conda-build
+          conda build -m "conda_package/ci/linux_64_python${{ matrix.python-version }}.____cpython.yaml" "conda_package/recipe"
+
+      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
+        name: Install mpas_tools
+        run: |
+          conda create -y -n mpas_tools_dev --use-local mpas_tools \
+              python=${{ matrix.python-version }} \
+              sphinx sphinx-multiversion mock sphinx_rtd_theme
+
+      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
+        name: Build Sphinx Docs
+        run: |
+          conda activate mpas_tools_dev
+          # sphinx-multiversion expects at least a "master" branch
+          git branch master || echo "branch master already exists."
+          cd conda_package/docs
+          sphinx-multiversion . _build/html
+
