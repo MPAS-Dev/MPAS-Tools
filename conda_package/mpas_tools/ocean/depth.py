@@ -37,7 +37,7 @@ def compute_depth(refBottomDepth):
     depth_bnds[0, 0] = 0.
     depth_bnds[1:, 0] = refBottomDepth[0:-1]
     depth_bnds[:, 1] = refBottomDepth
-    depth = 0.5*(depth_bnds[:, 0] + depth_bnds[:, 1])
+    depth = 0.5 * (depth_bnds[:, 0] + depth_bnds[:, 1])
 
     return depth, depth_bnds
 
@@ -82,11 +82,11 @@ def compute_zmid(bottomDepth, maxLevelCell, layerThickness,
 
     thicknessSum = layerThickness.sum(dim=depth_dim)
     thicknessCumSum = layerThickness.cumsum(dim=depth_dim)
-    zSurface = -bottomDepth+thicknessSum
+    zSurface = -bottomDepth + thicknessSum
 
     zLayerBot = zSurface - thicknessCumSum
 
-    zMid = zLayerBot + 0.5*layerThickness
+    zMid = zLayerBot + 0.5 * layerThickness
 
     zMid = zMid.where(vertIndex < maxLevelCell)
     if 'Time' in zMid.dims:
@@ -150,8 +150,7 @@ def add_depth(inFileName, outFileName, coordFileName=None):
     history = '{}: {}'.format(time, ' '.join(sys.argv))
 
     if 'history' in ds.attrs:
-        ds.attrs['history'] = '{}\n{}'.format(history,
-                                              ds.attrs['history'])
+        ds.attrs['history'] = f'{history}\n{ds.attrs["history"]}'
     else:
         ds.attrs['history'] = history
 
@@ -229,8 +228,7 @@ def add_zmid(inFileName, outFileName, coordFileName=None):
     history = '{}: {}'.format(time, ' '.join(sys.argv))
 
     if 'history' in ds.attrs:
-        ds.attrs['history'] = '{}\n{}'.format(history,
-                                              ds.attrs['history'])
+        ds.attrs['history'] = f'{history}\n{ds.attrs["history"]}'
     else:
         ds.attrs['history'] = history
 
@@ -288,8 +286,8 @@ def write_time_varying_zmid(inFileName, outFileName, coordFileName=None,
 
     dsIn = xarray.open_dataset(inFileName)
     dsIn = dsIn.rename({'nVertLevels': 'depth'})
-    inVarName = '{}layerThickness'.format(prefix)
-    outVarName = '{}zMid'.format(prefix)
+    inVarName = f'{prefix}layerThickness'
+    outVarName = f'{prefix}zMid'
     layerThickness = dsIn[inVarName]
 
     zMid = compute_zmid(dsCoord.bottomDepth, dsCoord.maxLevelCell,
