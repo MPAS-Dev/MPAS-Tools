@@ -50,6 +50,7 @@ analyzing simulations, and in other MPAS-related workflows.
    ocean/coastline_alteration
    ocean/moc
    ocean/depth
+   ocean/streamfunction
    ocean/visualization
 
 .. toctree::
