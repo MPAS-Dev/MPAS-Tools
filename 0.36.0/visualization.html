@@ -1,0 +1,747 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visualization &mdash; mpas_tools 0.36.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5864e6e0"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Visualization" href="landice/visualization.html" />
+    <link rel="prev" title="Vector Operations" href="vector.html" />
+    <link href="_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vector.html">Vector Operations</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Visualization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#paraview-vtk-extractor">ParaView VTK Extractor</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#extracting-a-temperature-time-series">Extracting a Temperature Time-series</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extracting-multiple-fields">Extracting Multiple Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extracting-all-fields">Extracting “All” Fields</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#indexing-dimensions">Indexing Dimensions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#indexing-time">Indexing Time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#ignoring-time">Ignoring Time</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#lon-lat-coordinates">Lon/Lat Coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#topographic-data">Topographic Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#extracting-a-region">Extracting a Region</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#paraview-macros">ParaView Macros</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#mpas-mesh-to-triangles">MPAS Mesh to Triangles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#colormaps">Colormaps</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/streamfunction.html">Computing streamfunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="versions.html">Versions</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Visualization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/visualization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="visualization">
+<span id="id1"></span><h1>Visualization<a class="headerlink" href="#visualization" title="Link to this heading"></a></h1>
+<p>MPAS-Tools has kind of a hodge-podge of unrelated visualization tools.  This is
+largely because MPAS-Tools is conceived of primarily as a repository for tools
+for manipulating MPAS meshes during their construction and initialization.</p>
+<section id="paraview-vtk-extractor">
+<span id="viz-paraview-extractor"></span><h2>ParaView VTK Extractor<a class="headerlink" href="#paraview-vtk-extractor" title="Link to this heading"></a></h2>
+<p>Data on MPAS meshes can be viewed directly in
+<a class="reference external" href="https://www.paraview.org/">ParaView</a>.  However, those of us who work with
+output from MPAS components on a regular basis have found that the built-in
+capability has a number of significant limitations.  These include:</p>
+<ul class="simple">
+<li><p>ParaView visualizes data on MPAS cell centers by connecting them to form
+triangles.  The data is linearly interpolated within each triangle and
+geometry associated with the parts of MPAS cells that are adjacent to
+boundaries (e.g. land in the ocean and sea-ice components) are not visualized.</p></li>
+<li><p>MPAS output may not contain the mesh information needed by ParaView.  This is
+typical of monthly output files, which do not include the mesh data for
+more efficient file storage.</p></li>
+<li><p>MPAS output files may contain significantly more data that is desired for
+visualization.  The data may contain full 3D fields, whereas a few slices at
+different depths may suffice for visualization.  There may also be many more
+variables in the output than are of interest.  This may be a problem if the
+datasets are quite large and therefore prohibitive to transfer to another
+machine where visualization may be more practical.</p></li>
+</ul>
+<p>For these reasons and more, we created a Python tool for extracting data on
+MPAS meshes in files in <a class="reference external" href="https://vtk.org/">VTK</a> format that can be read in by
+ParaView.  The VTK files provide the data as “cell”, rather than “point” data in
+ParaVeiw, meaning each cell has the correct polygonal geometry and will be
+visualized with a single, constant value for a given field.  The extractor,
+which is available either through the
+<a class="reference internal" href="generated/mpas_tools.viz.paraview_extractor.extract_vtk.html#mpas_tools.viz.paraview_extractor.extract_vtk" title="mpas_tools.viz.paraview_extractor.extract_vtk"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.paraview_extractor.extract_vtk()</span></code></a> function or the
+<code class="docutils literal notranslate"><span class="pre">paraview_vtk_field_extractor.py</span></code> command-line interface, can also be used to
+visualize data on MPAS vertices (visualized on triangles) and edges (visualized
+on quadrilaterals).</p>
+<p>The extractor also allows the user to select a subset of the indices along
+dimensions other than <code class="docutils literal notranslate"><span class="pre">Time</span></code>, <code class="docutils literal notranslate"><span class="pre">nCells</span></code>, <code class="docutils literal notranslate"><span class="pre">nVertices</span></code> and <code class="docutils literal notranslate"><span class="pre">nEdges</span></code>.  This
+can be useful for selecting, for example, only the top layer of a 3D field.
+This capability can also be used to ignore fields with a given dimension by
+selecting no indices along that dimension.</p>
+<p>By default, time-independent fields on cells are written to a file</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vtk_files/staticFieldsOnCells.vtp
+</pre></div>
+</div>
+<p>and time-dependent fields on cells are written to a series of files</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vtk_files/timeDependentFieldsOnCells.pvd
+vtk_files/time_series/timeDependentFieldsOnCells.0.vtp
+vtk_files/time_series/timeDependentFieldsOnCells.1.vtp
+...
+</pre></div>
+</div>
+<p>and similarly for edges and vertices.  Time-independent fields can be
+included in each time step of the time-dependent fields for with
+<code class="docutils literal notranslate"><span class="pre">combine=True</span></code>.  This allows time-dependent and -independent fields
+to be combined in filters within Paraview at the expense of considerable
+additional storage space.</p>
+<p>Since the extractor is fairly complex with a lot of possible use cases, we will
+describe its functionality in several examples.</p>
+<section id="extracting-a-temperature-time-series">
+<span id="extract-temperature"></span><h3>Extracting a Temperature Time-series<a class="headerlink" href="#extracting-a-temperature-time-series" title="Link to this heading"></a></h3>
+<p>To extract fields across multiple files, passing in a regular expression
+for the filename pattern, for example
+<code class="docutils literal notranslate"><span class="pre">filename_pattern=&quot;hist.mpaso.timeSeriesStatsMonthly.*.nc&quot;</span></code>. Since the mesh
+data is often excluded from time series output, you may need to supply a
+different file with mesh information, such as an initial condition or a restart
+file: <code class="docutils literal notranslate"><span class="pre">mesh_filename='mpaso.rst.0001-02-01_00000.nc'</span></code>.</p>
+<p>In the following example, we extract the temperature field from a time series
+of daily output from the MPAS-Ocean model:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+
+
+<span class="n">extract_vtk</span><span class="p">(</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The top index (<code class="docutils literal notranslate"><span class="pre">nVertLevels=0</span></code>) is extracted from the temperature time series.
+The output directory is <code class="docutils literal notranslate"><span class="pre">'vtk_files'</span></code>.  MPAS output typically includes time
+information in string format in a variable called <code class="docutils literal notranslate"><span class="pre">xtime</span></code>.  In this instance,
+we have time-averaged data and the output instead includes a start time
+<code class="docutils literal notranslate"><span class="pre">xtime_startDaily</span></code> that we need to supply instead.  (We could also supply the
+end time <code class="docutils literal notranslate"><span class="pre">xtime_endDaily</span></code> if that were preferred for some reason.)</p>
+<p>The result is:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vtk_files/fieldsOnCells.pvd
+vtk_files/time_series/fieldsOnCells.0.vtp
+...
+</pre></div>
+</div>
+<p>These files can be opened in ParaView with:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ paraview vtk_files/fieldsOnCells.pvd
+</pre></div>
+</div>
+<p>This will open all of the files in the <code class="docutils literal notranslate"><span class="pre">vtk_files/time_series</span></code> directory as
+they are requested within ParaView.  See <a class="reference internal" href="#paraview-macros"><span class="std std-ref">ParaView Macros</span></a> for some tips
+on filling in the continents and displaying the current date in ParaView.</p>
+<p>The same extraction could be accomplished with the command-line tool as follows:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ paraview_vtk_field_extractor.py \
+     -f &quot;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&quot; \
+     -v timeDaily_avg_activeTracers_temperature -d nVertLevels=0 \
+     -m init.nc -o vtk_files --xtime=xtime_startDaily
+</pre></div>
+</div>
+</section>
+<section id="extracting-multiple-fields">
+<h3>Extracting Multiple Fields<a class="headerlink" href="#extracting-multiple-fields" title="Link to this heading"></a></h3>
+<p>In this next example, we will extract <code class="docutils literal notranslate"><span class="pre">areaCell</span></code> in addition to temperature.
+First, we will extract it into a separate VTK file for time-independent
+variables, then we will demonstrate combining it with the time-dependent data.</p>
+<p>In the first instance, we add <code class="docutils literal notranslate"><span class="pre">areaCell</span></code> to the <code class="docutils literal notranslate"><span class="pre">variable_list</span></code> and
+explicitly include <code class="docutils literal notranslate"><span class="pre">combine=False</span></code>, the default, to indicate that we want to
+keep time-independent and time-dependent variables separate:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+
+
+<span class="n">extract_vtk</span><span class="p">(</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span> <span class="s1">&#39;areaCell&#39;</span><span class="p">],</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
+    <span class="n">combine</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files2&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The result is:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vtk_files2/staticFieldsOnCells.vtp
+vtk_files2/timeDependentFieldsOnCells.pvd
+vtk_files2/time_series/timeDependentFieldsOnCells.0.vtp
+  ...
+</pre></div>
+</div>
+<p>We can open both <code class="docutils literal notranslate"><span class="pre">vtk_files/staticFieldsOnCells.vtp</span></code> and
+<code class="docutils literal notranslate"><span class="pre">vtk_files/timeDependentFieldsOnCells.pvd</span></code> in the same ParaVeiw sesson and
+plot them as we like.  But we cannot perform calculations involving both
+temperature and cell area very easily.  If this were a necessity, it might be
+convenient to combine them into the same files:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+
+
+<span class="n">extract_vtk</span><span class="p">(</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span> <span class="s1">&#39;areaCell&#39;</span><span class="p">],</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
+    <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files3&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, the result is that <code class="docutils literal notranslate"><span class="pre">areaCell</span></code> is included in the time-series files</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vtk_files3/fieldsOnCells.pvd
+vtk_files3/time_series/fieldsOnCells.0.vtp
+...
+</pre></div>
+</div>
+</section>
+<section id="extracting-all-fields">
+<h3>Extracting “All” Fields<a class="headerlink" href="#extracting-all-fields" title="Link to this heading"></a></h3>
+<p>Sometimes, you want all of the fields from your input files to be extracted.
+For this purpose there is a special “variable” called <code class="docutils literal notranslate"><span class="pre">'all'</span></code> that gets
+translated into the full list of available variables.  More often, you want to
+extract all the variables on cells, edges or vertices, so there are special
+“variables” for this, too: <code class="docutils literal notranslate"><span class="pre">'allOnCells'</span></code>, <code class="docutils literal notranslate"><span class="pre">'allOnEdges'</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">'allOnVertices'</span></code>.  By default, only variables from the files found by
+<code class="docutils literal notranslate"><span class="pre">filename_pattern</span></code> are expanded by these special variables.  If you also want
+to include variables from the mesh file, you need to specify
+<code class="docutils literal notranslate"><span class="pre">include_mesh_vars=True</span></code>.</p>
+<p>The following example extracts all the variables on cells for both the
+time-series and the mesh data.  It specifies <code class="docutils literal notranslate"><span class="pre">maxEdges=</span></code> so that variables
+(such as <code class="docutils literal notranslate"><span class="pre">edgesOnCell</span></code> and <code class="docutils literal notranslate"><span class="pre">cellsOnCell</span></code>) that include this dimension are
+excluded:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+
+
+<span class="n">extract_vtk</span><span class="p">(</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;allOnCells&#39;</span><span class="p">],</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLevelsP1=0&#39;</span><span class="p">,</span> <span class="s1">&#39;maxEdges=&#39;</span><span class="p">],</span>
+    <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files4&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="indexing-dimensions">
+<h3>Indexing Dimensions<a class="headerlink" href="#indexing-dimensions" title="Link to this heading"></a></h3>
+<p>In the previous examples, we saw a basic example of indexing the “extra”
+dimensions (i.e. dimensions other than <code class="docutils literal notranslate"><span class="pre">Time</span></code>, <code class="docutils literal notranslate"><span class="pre">nCells</span></code>, <code class="docutils literal notranslate"><span class="pre">nVertices</span></code> and
+<code class="docutils literal notranslate"><span class="pre">nEdges</span></code>) from MPAS output.  Here, we show some slightly more involved
+examples.</p>
+<p>Indices for extra dimensions can either be supplied at runtime at a prompt (if
+<code class="docutils literal notranslate"><span class="pre">dimension_list=None</span></code>) or via a list of strings with the dimensions and
+associated indices.  For each extra dimension, you can specify nothing for the
+indices (an empty string, meaning skip any fields with this dimension), a single
+index, a comma-separated list of indices, or a range of indices (separated by 1
+or 2 colons).  For example,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;maxEdges=&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLeves=0:10:2&#39;</span><span class="p">,</span> <span class="s1">&#39;nParticles=0,2,4,6,8&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>will ignore any fields with dimension <code class="docutils literal notranslate"><span class="pre">maxEdges</span></code>, extract every other
+layer from the first 10 vertical levels (each into its own field) and
+extract the 5 specified particles.</p>
+<p>An index array can also be specified in this way (and these can be mixed
+with integer indices in a comma-separated list but not in a colon-separated
+range):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLeves=0,maxLevelCell&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>This will extract fields from the first vertical level and the vertical level
+with index given by <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> (the deepest layer in each ocean column).</p>
+<p>Here is a more complete example that extracts the temperature, salinity and
+layer thickness at the sea surface and seafloor.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+
+
+<span class="n">extract_vtk</span><span class="p">(</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;timeDaily_avg_activeTracers_salinity&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;timeDaily_avg_layerThickness&#39;</span><span class="p">],</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0,maxLevelCell&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files5&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The resulting fields are named:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>timeDaily_avg_activeTracers_temperature_0
+timeDaily_avg_activeTracers_temperature_maxLevelCell
+timeDaily_avg_activeTracers_salinity_0
+timeDaily_avg_activeTracers_salinity_maxLevelCell
+timeDaily_avg_layerThickness_0
+timeDaily_avg_layerThickness_maxLevelCell
+</pre></div>
+</div>
+</section>
+<section id="indexing-time">
+<h3>Indexing Time<a class="headerlink" href="#indexing-time" title="Link to this heading"></a></h3>
+<p>Time can also be indexed like the other dimensions, but it is not passed to the
+<code class="docutils literal notranslate"><span class="pre">dimension_list</span></code> argument but instead to the <code class="docutils literal notranslate"><span class="pre">time</span></code> argument.  The time
+index string can have any of the following formats:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">''</span></code> - no times are to be extracted (probably not useful for <code class="docutils literal notranslate"><span class="pre">time</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'n'</span></code> - the index n is to be extracted</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'m,n,p'</span></code> - the list of indices is to be extracted</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'m:n'</span></code> - all indices from m to n are to be extracted (including m but
+excluding n, in the typical python indexing convention)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">'m:n:s'</span></code> - all indices from m to n are to be extracted (including m but
+excluding n, in the typical python indexing convention) with stride s between
+indices</p></li>
+</ul>
+<p>In this example, we extract every 6 days from the daily data set starting with
+the beginning fo the data set and continuing to the end (by not specifying the
+end index <code class="docutils literal notranslate"><span class="pre">n</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+
+
+<span class="n">extract_vtk</span><span class="p">(</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">],</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
+    <span class="n">time</span><span class="o">=</span><span class="s1">&#39;0::6&#39;</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files6&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="ignoring-time">
+<h3>Ignoring Time<a class="headerlink" href="#ignoring-time" title="Link to this heading"></a></h3>
+<p>Some MPAS files, for example mesh files and initial conditions, contain a
+<code class="docutils literal notranslate"><span class="pre">Time</span></code> dimension but no <code class="docutils literal notranslate"><span class="pre">xtime</span></code> variable.  The extractor will complain about
+this unless you specify <code class="docutils literal notranslate"><span class="pre">ignore_time=True</span></code>.  In this case, only the first time
+index is used and all fields are considered to be time-independent, ending
+up in <code class="docutils literal notranslate"><span class="pre">staticFieldsOnCells.vtp</span></code>, etc.</p>
+</section>
+<section id="lon-lat-coordinates">
+<h3>Lon/Lat Coordinates<a class="headerlink" href="#lon-lat-coordinates" title="Link to this heading"></a></h3>
+<p>The extractor can produce files in lon/lat coordinates instead of 3D Cartesian
+space if <code class="docutils literal notranslate"><span class="pre">lonlat=True</span></code>.  Polygons near the prime meridian (0 or 360 degrees
+longitude) will end up on one side or the other based on the location of the
+cell center.  This leads to a “ragged” edge a the prime meridian, particularly
+for coarse-resolution meshes:</p>
+<a class="reference internal image-reference" href="_images/ragged.png"><img alt="_images/ragged.png" class="align-center" src="_images/ragged.png" style="width: 500px;" />
+</a>
+<p>Below, we will provide a method for handling this issue in ParaView.</p>
+<p>Here, we extract the temperature field as in <a class="reference internal" href="#extract-temperature"><span class="std std-ref">Extracting a Temperature Time-series</span></a>, but
+this time in lon/lat coordinates.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+
+
+<span class="n">extract_vtk</span><span class="p">(</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
+    <span class="n">lonlat</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files7&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In ParaView, the data lies approximately 0 and 360 degrees long the x axis but
+with some polygons extending partially beyond these bounds.  Since we typically
+wish to see the data between -180 and 180 degrees longitude, the proposed fix
+will take care of both the longitude range and the ragged edges in one go.</p>
+<p>First, we make a duplicate copy of the data, translated by -360 degrees. Open
+a Transform Filter in ParaView and enter <code class="docutils literal notranslate"><span class="pre">-360</span></code> in the first Translate cell
+(the x axis).  Uncheck “Show Box” and hit “Apply”.  The original data will
+disappear but you can simply click the eye icon next to it to make it reappear.</p>
+<p>Next, we want to combine the original and translated versions of the mesh into
+a single dataset.  Use the shift key to select both, then open the Group
+Datasets Filter, then hit “Apply”.</p>
+<p>Finally, we will crop the grouped dataset to the range of -180 to 180 degrees:</p>
+<ul class="simple">
+<li><p>Select the final of the three “GroupDataset1” items,</p></li>
+<li><p>open a Clip Filter,</p></li>
+<li><p>select “Plane” as the Clip Type,</p></li>
+<li><p>set the Origin to -180, 0, 0,</p></li>
+<li><p>set the Normal to -1, 0, 0</p></li>
+</ul>
+<p>This has clipped the extra data off the left edge.  Now for the right edge:</p>
+<ul class="simple">
+<li><p>Select the “Clip1” item,</p></li>
+<li><p>open a Clip Filter again,</p></li>
+<li><p>select “Plane” as the Clip Type,</p></li>
+<li><p>set the Origin to 180, 0, 0,</p></li>
+<li><p>set the Normal to 1, 0, 0,</p></li>
+<li><p>uncheck “Show Plane”</p></li>
+</ul>
+<p>Now, the data should have clean edges.  If you want, you can put a plane behind
+it to fill in the land:</p>
+<a class="reference internal image-reference" href="_images/clipped.png"><img alt="_images/clipped.png" class="align-center" src="_images/clipped.png" style="width: 500px;" />
+</a>
+</section>
+<section id="topographic-data">
+<h3>Topographic Data<a class="headerlink" href="#topographic-data" title="Link to this heading"></a></h3>
+<p>The extractor includes optional support for extracting geometry appropriate
+for displaying variables at the depth of a topographic feature (typically
+the top or bottom of the domain) for MPAS components with a spatially
+variable top or bottom index (e.g. <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> in MPAS-Ocean).  This is
+accomplished with arguments such as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topo_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">,</span> <span class="n">topo_cell_index</span><span class="o">=</span><span class="s1">&#39;maxLevelCell&#39;</span>
+</pre></div>
+</div>
+<p>Fields on cells are sampled at the topographic index and the geometry
+includes polygons corresponding to edges so that vertical faces between
+adjacent cells can be displayed.  Fields are extracted as normal except
+that they are sampled as point data rather than cell data, allowing
+computations in ParaView to display the topography.  A mask field is also
+included, indicating which parts of edge polygons correspond to the boundary
+of the domain (<code class="docutils literal notranslate"><span class="pre">boundaryMask</span> <span class="pre">==</span> <span class="pre">1</span></code>) and which parts of cell and edge
+polygons are interior (<code class="docutils literal notranslate"><span class="pre">boundaryMask</span> <span class="pre">==</span> <span class="pre">0</span></code>).</p>
+<p>In the following, we make sure to use <code class="docutils literal notranslate"><span class="pre">combine=True</span></code> and
+<code class="docutils literal notranslate"><span class="pre">include_mesh_vars=True</span></code> because we need <code class="docutils literal notranslate"><span class="pre">bottomDepth</span></code> from the mesh file
+to be included in the time-dependent output files.  We are not interested in
+variables with dimensions <code class="docutils literal notranslate"><span class="pre">nVertLevelsP1</span></code> or <code class="docutils literal notranslate"><span class="pre">maxEdges</span></code> so we remove those
+dimensions by leaving their index strings blank.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+
+
+<span class="n">extract_vtk</span><span class="p">(</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;allOnCells&#39;</span><span class="p">,</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevelsP1=&#39;</span><span class="p">,</span> <span class="s1">&#39;maxEdges=&#39;</span><span class="p">],</span>
+    <span class="n">topo_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">,</span> <span class="n">topo_cell_index</span><span class="o">=</span><span class="s1">&#39;maxLevelCell&#39;</span><span class="p">,</span>
+    <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files8&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Together, this can be used to plot topography by using a Calculator Filter in
+ParaView, checking the “Coordinate Result” box, and entering the following:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>coords*(1.0 + 100.0/mag(coords)*((1 - boundaryMask)*(-bottomDepth)
+                                 + 10.0*boundaryMask))
+</pre></div>
+</div>
+<p>The result is that the MPAS-Ocean topography is displayed with a vertical
+exaggeration of 100 and with a value equivalent to 10 m along boundary points of
+edge polygons (a “water-tight” surface).</p>
+<p>Here is what that looks like for a 240-km (very coarse) ocean mesh:</p>
+<a class="reference internal image-reference" href="_images/qu240_topo.png"><img alt="_images/qu240_topo.png" class="align-center" src="_images/qu240_topo.png" style="width: 500px;" />
+</a>
+<p>The same approach can be used with <code class="docutils literal notranslate"><span class="pre">lonlat=True</span></code>.  In this case, the
+Calculator Filter is a bit simpler:</p>
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>coords + 1e-3*(1 - boundaryMask)*(-bottomDepth)*kHat + 1.0*boundaryMask*kHat
+</pre></div>
+</div>
+<p>Here is the bottom temperature in such a plot:</p>
+<a class="reference internal image-reference" href="_images/qu240_topo_lonlat.png"><img alt="_images/qu240_topo_lonlat.png" class="align-center" src="_images/qu240_topo_lonlat.png" style="width: 500px;" />
+</a>
+</section>
+<section id="extracting-a-region">
+<h3>Extracting a Region<a class="headerlink" href="#extracting-a-region" title="Link to this heading"></a></h3>
+<p>Some simulations are focused on a small region, even though the entire globe is
+included in the mesh.  For such situations, we provide a way to extract a
+subset of the data over a region before converting it to VTK format.  The user
+specifies a
+<a class="reference external" href="http://mpas-dev.github.io/geometric_features/stable/feature_collection.html">FeatureCollection</a>
+from the <code class="docutils literal notranslate"><span class="pre">geometric_features</span></code> package as an argument.  The regions in this
+feature collection are used to define a mask, and the MPAS data is culled to
+lie within the mask before conversion to VTK proceeds.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The region should indicate the parts of the mesh to keep, not those to
+remove.</p>
+</div>
+<p>In this example, we extract sea surface temperature only in the Southern Ocean:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">GeometricFeatures</span>
+
+
+<span class="n">gf</span> <span class="o">=</span> <span class="n">GeometricFeatures</span><span class="p">()</span>
+<span class="n">fc</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">componentName</span><span class="o">=</span><span class="s1">&#39;ocean&#39;</span><span class="p">,</span> <span class="n">objectType</span><span class="o">=</span><span class="s1">&#39;region&#39;</span><span class="p">,</span>
+             <span class="n">featureNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Southern Ocean&#39;</span><span class="p">])</span>
+
+<span class="n">extract_vtk</span><span class="p">(</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
+    <span class="n">fc_region_mask</span><span class="o">=</span><span class="n">fc</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files9&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<a class="reference internal image-reference" href="_images/so_cropped.png"><img alt="_images/so_cropped.png" class="align-center" src="_images/so_cropped.png" style="width: 500px;" />
+</a>
+</section>
+<section id="paraview-macros">
+<span id="id2"></span><h3>ParaView Macros<a class="headerlink" href="#paraview-macros" title="Link to this heading"></a></h3>
+<p>We also provide two macros that can be imported into ParaView,
+<a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Tools/blob/master/visualization/paraview_vtk_field_extractor/add_earth_sphere.py">add_earth_sphere.py</a>
+and
+<a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Tools/blob/master/visualization/paraview_vtk_field_extractor/annotate_date.py">annotate_date.py</a>.
+Download them and then go to Macros &gt; Add New Macro, and select each file.</p>
+<p>The first of these adds a sphere that is just a bit smaller than the MPAS data
+on the sphere so that continents are not holes in the data.  The second can
+be used to display the current time (extracted from the <code class="docutils literal notranslate"><span class="pre">xtime</span></code> variable) in
+a ParaVeiw animation.</p>
+</section>
+</section>
+<section id="mpas-mesh-to-triangles">
+<span id="viz-mesh-tris"></span><h2>MPAS Mesh to Triangles<a class="headerlink" href="#mpas-mesh-to-triangles" title="Link to this heading"></a></h2>
+<p>A relatively new and under-explored functionality in MPAS-Tools is the
+capability to extract a triangle mesh for visualization from an MPAS mesh.
+This functionality comes from the function
+<a class="reference internal" href="generated/mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html#mpas_tools.viz.mesh_to_triangles.mesh_to_triangles" title="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()</span></code></a>. The function
+takes an MPAS mesh as an <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> object as its only required input
+and produces another <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> with the triangle mesh that connects
+pairs of adjacent vertices to cell centers as its output.  Thus, each hexagon
+becomes 6 triangles, each pentagon becomes 5, and so on.</p>
+<p>In addition to the points and connectivity data for defining these trinagles,
+the output dataset, <code class="docutils literal notranslate"><span class="pre">dsTris</span></code>, also includes the cell index that each triangle
+is in and cell indices and weights for interpolating data defined at cell
+centers to triangle nodes.  <code class="docutils literal notranslate"><span class="pre">dsTris</span></code> includes variables <code class="docutils literal notranslate"><span class="pre">triCellIndices</span></code>,
+the cell that each triangle is part of; <code class="docutils literal notranslate"><span class="pre">nodeCellIndices</span></code> and
+<code class="docutils literal notranslate"><span class="pre">nodeCellWeights</span></code>, the indices and weights used to interpolate from MPAS cell
+centers to triangle nodes; Cartesian coordinates <code class="docutils literal notranslate"><span class="pre">xNode</span></code>, <code class="docutils literal notranslate"><span class="pre">yNode</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">zNode</span></code>; and <code class="docutils literal notranslate"><span class="pre">lonNode`</span></code> and <code class="docutils literal notranslate"><span class="pre">latNode</span></code> in radians. <code class="docutils literal notranslate"><span class="pre">lonNode</span></code> is
+guaranteed to be within 180 degrees of the cell center corresponding to
+<code class="docutils literal notranslate"><span class="pre">triCellIndices</span></code>.  Nodes always have a counterclockwise winding.</p>
+<p>Here is an example workflow for using this function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xarray</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">matplotlib.tri</span> <span class="kn">import</span> <span class="n">Triangulation</span>
+
+<span class="kn">from</span> <span class="nn">mpas_tools.viz</span> <span class="kn">import</span> <span class="n">mesh_to_triangles</span>
+
+
+<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mpaso.rst.0501-01-01_00000.nc&#39;</span><span class="p">)</span>
+<span class="n">dsTris</span> <span class="o">=</span> <span class="n">mesh_to_triangles</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">periodicCopy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">sst</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nVertLevels</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+
+<span class="n">sstTri</span> <span class="o">=</span> <span class="n">sst</span><span class="p">[</span><span class="n">dsTris</span><span class="o">.</span><span class="n">triCellIndices</span><span class="p">]</span>
+
+<span class="n">sstNode</span> <span class="o">=</span> <span class="p">(</span><span class="n">sst</span><span class="p">[</span><span class="n">dsTris</span><span class="o">.</span><span class="n">nodeCellIndices</span><span class="p">]</span><span class="o">*</span><span class="n">dsTris</span><span class="o">.</span><span class="n">nodeCellWeights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;nInterp&#39;</span><span class="p">)</span>
+
+<span class="n">nTriangles</span> <span class="o">=</span> <span class="n">dsTris</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">]</span>
+<span class="n">tris</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">nTriangles</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nTriangles</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="n">lonNode</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dsTris</span><span class="o">.</span><span class="n">lonNode</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+<span class="n">latNode</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dsTris</span><span class="o">.</span><span class="n">latNode</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+<span class="n">sstNode</span> <span class="o">=</span> <span class="n">sstNode</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+<span class="n">triangles</span> <span class="o">=</span> <span class="n">Triangulation</span><span class="p">(</span><span class="n">lonNode</span><span class="p">,</span> <span class="n">latNode</span><span class="p">,</span> <span class="n">tris</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tripcolor</span><span class="p">(</span><span class="n">triangles</span><span class="p">,</span> <span class="n">sstNode</span><span class="p">,</span> <span class="n">shading</span><span class="o">=</span><span class="s1">&#39;gouraud&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mf">90.</span><span class="p">,</span> <span class="mf">90.</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tripcolor</span><span class="p">(</span><span class="n">triangles</span><span class="p">,</span> <span class="n">sstTri</span><span class="p">,</span> <span class="n">shading</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mf">90.</span><span class="p">,</span> <span class="mf">90.</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In this example, <code class="docutils literal notranslate"><span class="pre">mpaso.rst.0501-01-01_00000.nc</span></code> is a restart file from a
+simulation with an EC at the default 30 to 60 km resolution (see
+<a class="reference internal" href="mesh_creation.html#ec-mesh"><span class="std std-ref">Defining an Eddy-closure Mesh</span></a>); the restart file contains both mesh information and a snapshot
+of the 3D temperature field.</p>
+<p>Here are the resulting plots (which look nearly identical at this resolution):</p>
+<a class="reference internal image-reference" href="_images/ec60to30_tris_gouraud.png"><img alt="_images/ec60to30_tris_gouraud.png" class="align-center" src="_images/ec60to30_tris_gouraud.png" style="width: 500px;" />
+</a>
+<a class="reference internal image-reference" href="_images/ec60to30_tris_flat.png"><img alt="_images/ec60to30_tris_flat.png" class="align-center" src="_images/ec60to30_tris_flat.png" style="width: 500px;" />
+</a>
+</section>
+<section id="colormaps">
+<span id="viz-colormaps"></span><h2>Colormaps<a class="headerlink" href="#colormaps" title="Link to this heading"></a></h2>
+<p>Some MPAS-Tools routines include plots of mesh resolution and related variables.
+We have found it handy to use the
+<a class="reference external" href="https://sciviscolor.org/">SciVisColor Colormaps</a> for some of these plots.
+Unfortunately, there is not a standard python package for adding these
+colormaps to <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> (as is the case for
+<a class="reference external" href="https://matplotlib.org/cmocean/">cmocean</a>, for example).  To add the
+SciVisColor colormaps, call the function
+<a class="reference internal" href="generated/mpas_tools.viz.colormaps.register_sci_viz_colormaps.html#mpas_tools.viz.colormaps.register_sci_viz_colormaps" title="mpas_tools.viz.colormaps.register_sci_viz_colormaps"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.colormaps.register_sci_viz_colormaps()</span></code></a>.  No arguments
+are required, as the XML files for defining the colormaps are included in the
+package.</p>
+<p>In this example, we use the <code class="docutils literal notranslate"><span class="pre">3Wbgy5</span></code> colormap:</p>
+<a class="reference internal image-reference" href="_images/so60to12_res.png"><img alt="_images/so60to12_res.png" class="align-center" src="_images/so60to12_res.png" style="width: 500px;" />
+</a>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="vector.html" class="btn btn-neutral float-left" title="Vector Operations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="landice/visualization.html" class="btn btn-neutral float-right" title="Visualization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    <span class="fa fa-book"> Other Versions</span>
+    v: 0.36.0
+    <span class="fa fa-caret-down"></span>
+  </span>
+  <div class="rst-other-versions">
+    <dl>
+      <dt>Tags</dt>
+      <dd><a href="../0.0.2/index.html">0.0.2</a></dd>
+      <dd><a href="../0.0.3/index.html">0.0.3</a></dd>
+      <dd><a href="../0.0.4/index.html">0.0.4</a></dd>
+      <dd><a href="../0.0.5/index.html">0.0.5</a></dd>
+      <dd><a href="../0.0.6/index.html">0.0.6</a></dd>
+      <dd><a href="../0.0.7/index.html">0.0.7</a></dd>
+      <dd><a href="../0.0.8/index.html">0.0.8</a></dd>
+      <dd><a href="../0.0.9/index.html">0.0.9</a></dd>
+      <dd><a href="../0.1.0/visualization.html">0.1.0</a></dd>
+      <dd><a href="../0.10.0/visualization.html">0.10.0</a></dd>
+      <dd><a href="../0.11.0/visualization.html">0.11.0</a></dd>
+      <dd><a href="../0.12.0/visualization.html">0.12.0</a></dd>
+      <dd><a href="../0.13.0/visualization.html">0.13.0</a></dd>
+      <dd><a href="../0.14.0/visualization.html">0.14.0</a></dd>
+      <dd><a href="../0.15.0/visualization.html">0.15.0</a></dd>
+      <dd><a href="../0.16.0/visualization.html">0.16.0</a></dd>
+      <dd><a href="../0.17.0/visualization.html">0.17.0</a></dd>
+      <dd><a href="../0.18.0/visualization.html">0.18.0</a></dd>
+      <dd><a href="../0.19.0/visualization.html">0.19.0</a></dd>
+      <dd><a href="../0.2.0/visualization.html">0.2.0</a></dd>
+      <dd><a href="../0.2.1/visualization.html">0.2.1</a></dd>
+      <dd><a href="../0.20.0/visualization.html">0.20.0</a></dd>
+      <dd><a href="../0.21.0/visualization.html">0.21.0</a></dd>
+      <dd><a href="../0.22.0/visualization.html">0.22.0</a></dd>
+      <dd><a href="../0.23.0/visualization.html">0.23.0</a></dd>
+      <dd><a href="../0.24.0/visualization.html">0.24.0</a></dd>
+      <dd><a href="../0.25.0/visualization.html">0.25.0</a></dd>
+      <dd><a href="../0.26.0/visualization.html">0.26.0</a></dd>
+      <dd><a href="../0.27.0/visualization.html">0.27.0</a></dd>
+      <dd><a href="../0.28.0/visualization.html">0.28.0</a></dd>
+      <dd><a href="../0.29.0/visualization.html">0.29.0</a></dd>
+      <dd><a href="../0.3.0/visualization.html">0.3.0</a></dd>
+      <dd><a href="../0.30.0/visualization.html">0.30.0</a></dd>
+      <dd><a href="../0.31.0/visualization.html">0.31.0</a></dd>
+      <dd><a href="../0.32.0/visualization.html">0.32.0</a></dd>
+      <dd><a href="../0.33.0/visualization.html">0.33.0</a></dd>
+      <dd><a href="../0.34.0/visualization.html">0.34.0</a></dd>
+      <dd><a href="../0.34.1/visualization.html">0.34.1</a></dd>
+      <dd><a href="../0.35.0/visualization.html">0.35.0</a></dd>
+      <dd><a href="visualization.html">0.36.0</a></dd>
+      <dd><a href="../0.4.0/visualization.html">0.4.0</a></dd>
+      <dd><a href="../0.5.0/visualization.html">0.5.0</a></dd>
+      <dd><a href="../0.5.1/visualization.html">0.5.1</a></dd>
+      <dd><a href="../0.6.0/visualization.html">0.6.0</a></dd>
+      <dd><a href="../0.7.0/visualization.html">0.7.0</a></dd>
+      <dd><a href="../0.8.0/visualization.html">0.8.0</a></dd>
+      <dd><a href="../0.9.0/visualization.html">0.9.0</a></dd>
+    </dl>
+    <dl>
+      <dt>Branches</dt>
+      <dd><a href="../master/visualization.html">master</a></dd>
+    </dl>
+  </div>
+</div>
+<script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
