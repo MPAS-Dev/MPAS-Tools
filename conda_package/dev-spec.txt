@@ -28,6 +28,7 @@ xarray
 # Development
 pip
 pytest
+setuptools
 
 # Documentation
 sphinx
