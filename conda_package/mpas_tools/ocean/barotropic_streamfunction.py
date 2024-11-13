@@ -21,16 +21,23 @@ def compute_barotropic_streamfunction(ds_mesh, ds, logger=None,
         A dataset containing MPAS mesh variables
 
     ds : ``xarray.Dataset``
-        A dataset containing MPAS output variables
+        A dataset containing MPAS output variables ``normalVelocity`` and
+        ``layerThickness`` (possibly with a ``prefix``)
 
     logger : ``logging.Logger``, optional
         A logger for the output if not stdout
 
     min_depth : float, optional
-        The minimum depth to compute transport over
+        The minimum depth (positive down) to compute transport over
 
     max_depth : float, optional
-        The maximum depth to compute transport over
+        The maximum depth (positive down) to compute transport over
+
+    prefix : str, optional
+        The prefix on the ``normalVelocity`` and ``layerThickness`` variables
+
+    time_index : int, optional
+        The time at which to index ``ds`` (if it has ``Time`` as a dimension)
     """
 
     useStdout = logger is None
