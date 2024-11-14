@@ -69,8 +69,8 @@ jobs:
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Install mpas_tools
         run: |
-          conda create -y -n mpas_tools_dev --use-local mpas_tools \
-              python=${{ matrix.python-version }} \
+          conda create -y -n mpas_tools_dev -c ${CONDA_PREFIX}/conda-bld/ \
+              -c conda-forge mpas_tools python=${{ matrix.python-version }} \
               sphinx sphinx-multiversion mock sphinx_rtd_theme
 
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
