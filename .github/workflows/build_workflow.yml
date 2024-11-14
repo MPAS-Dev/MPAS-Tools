@@ -25,7 +25,8 @@ jobs:
         shell: bash -l {0}
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
+      fail-fast: false
     steps:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@master
@@ -57,7 +58,7 @@ jobs:
           channels: conda-forge
           channel-priority: strict
           auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.12
 
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Finalize Build Environment
@@ -68,8 +69,8 @@ jobs:
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Install mpas_tools
         run: |
-          conda create -y -n mpas_tools_dev --use-local mpas_tools \
-              python=${{ matrix.python-version }} \
+          conda create -y -n mpas_tools_dev -c ${CONDA_PREFIX}/conda-bld/ \
+              -c conda-forge mpas_tools python=${{ matrix.python-version }} \
               sphinx sphinx-multiversion mock sphinx_rtd_theme
 
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
