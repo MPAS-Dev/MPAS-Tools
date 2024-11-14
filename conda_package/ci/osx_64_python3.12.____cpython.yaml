@@ -9,21 +9,21 @@ c_stdlib_version:
 channel_sources:
 - conda-forge
 channel_targets:
-- conda-forge mpas_tools_dev
+- conda-forge main
 cxx_compiler:
 - clangxx
 cxx_compiler_version:
-- '16'
+- '18'
 fortran_compiler:
 - gfortran
 fortran_compiler_version:
-- '12'
+- '13'
 hdf5:
-- 1.14.3
+- 1.14.4
 libnetcdf:
 - 4.9.2
 llvm_openmp:
-- '16'
+- '18'
 macos_machine:
 - x86_64-apple-darwin13.4.0
 netcdf_fortran:
