@@ -56,6 +56,7 @@ class mpasToMaliInterp:
            self.minLevelCell = OM['minLevelCell'][:].values
         else:
            self.minLevelCell = self.maxLevelCell * 0 + 1
+        self.landIcePressure = OM['landIcePressure'][0,:].values
 
         self.nCells = OM.sizes['nCells']
 
@@ -105,17 +106,11 @@ class mpasToMaliInterp:
         except KeyError:
             print("No landIceFreshwaterFlux variable")
 
-        self.coeff_0_openOcean = self.DS.attrs['config_open_ocean_freezing_temperature_coeff_0']
-        self.coeff_S_openOcean = self.DS.attrs['config_open_ocean_freezing_temperature_coeff_S']
-        self.coeff_p_openOcean = self.DS.attrs['config_open_ocean_freezing_temperature_coeff_p']
-        self.coeff_pS_openOcean = self.DS.attrs['config_open_ocean_freezing_temperature_coeff_pS']
-        az1_liq = self.DS.attrs['config_open_ocean_freezing_temperature_coeff_mushy_az1_liq']
-        self.coeff_mushy_openOcean = 1/az1_liq 
         self.coeff_0_cavity = self.DS.attrs['config_land_ice_cavity_freezing_temperature_coeff_0']
         self.coeff_S_cavity = self.DS.attrs['config_land_ice_cavity_freezing_temperature_coeff_S']
         self.coeff_p_cavity = self.DS.attrs['config_land_ice_cavity_freezing_temperature_coeff_p']
         self.coeff_pS_cavity = self.DS.attrs['config_land_ice_cavity_freezing_temperature_coeff_pS']
-        self.coeff_mushy_cavity = 0
+        self.coeff_mushy_cavity = 0.0
 
         # Define vertical coordinates of mpas output
         mpas_cellCenterElev = compute_zmid(self.bottomDepth, self.maxLevelCell, avg_layerThickness)
@@ -239,24 +234,19 @@ class mpasToMaliInterp:
                     kmax = self.maxLevelCell[iCell].values - 1
 
                     self.newPr[iTime,iCell,kmin] = self.newAtmPr[iTime,iCell] + \
+                            self.landIcePressure[iCell] + \
                             self.newDens[iTime,iCell,kmin]*gravity*0.5*self.newLThick[iTime,iCell,kmin]
 
                     for k in np.arange(kmin + 1, kmax):
                         self.newPr[iTime,iCell,k] = self.newPr[iTime,iCell,k-1] + \
-                                0.5*gravity*(self.newDens[iTime,iCell,k-1]*self.newLThick[iTime,iCell,k-1] \
-                                + self.newDens[iTime,iCell,k]*self.newLThick[iTime,iCell,k])
+                                0.5 * gravity * (self.newDens[iTime,iCell,k-1] * self.newLThick[iTime,iCell,k-1] \
+                                + self.newDens[iTime,iCell,k] * self.newLThick[iTime,iCell,k])
 
-                    if (self.landIceFloatingMask[iCell] == 0):
-                        ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_openOcean + \
-                                self.coeff_S_openOcean * self.newSal[iTime,iCell,:] + self.coeff_p_openOcean * self.newPr[iTime,iCell,:] \
-                                + self.coeff_pS_openOcean * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] \
-                                + self.coeff_mushy_openOcean * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
-                    
-                    elif (self.landIceFloatingMask[iCell] == 1):
-                        ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_cavity + \
-                                self.coeff_S_cavity * self.newSal[iTime,iCell,:] + self.coeff_p_cavity * self.newPr[iTime,iCell,:] \
-                                + self.coeff_pS_cavity * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] \
-                                + self.coeff_mushy_cavity * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
+                    ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_cavity + \
+                            self.coeff_S_cavity * self.newSal[iTime,iCell,:] + \
+                            self.coeff_p_cavity * self.newPr[iTime,iCell,:] \
+                            + self.coeff_pS_cavity * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] \
+                            + self.coeff_mushy_cavity * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
         nd = time.time()
         tm = nd - st
         print("Ocean thermal forcing loop", tm, "seconds")
