@@ -81,8 +81,32 @@ class mpasToMaliInterp:
                                             dims=("nCells",),
                                             attrs={'long_name':'MPAS-Ocean open ocean mask'})
 
+        # create mask of 3d ocean data (including cavities)
+        # Note: Technically, the 3d ocean mask will vary with time because fluctuations in
+        # the layerThickess and surface pressure will cause the depths that are valid to
+        # change slightly over time.  Eventually, we may want orig3dOceanMask to vary every
+        # time step, but for now it is assumed to be constant in time.  To support the mask being
+        # constant in time while the depths of the TF data is not, we have to ensure there is
+        # valid TF data if any mismatch occurs (i.e. where the mask says valid data exists but
+        # due to changes in layerThickness, it is outside the depth range of valid TF data).
+        # This is handled by changing the vertical interpolation function to extrapolate instead
+        # of insert nan when TF is calculated.  But here where we calculate the mask we mark
+        # regions outside the valid depth range with nan so they can be masked.
+        layerThickness = OM['layerThickness']
+        mpas_cellCenterElev = compute_zmid(self.bottomDepth, self.maxLevelCell, layerThickness)
+        vertInterpResult = _vertical_interpolate(self, np.zeros(layerThickness.shape), mpas_cellCenterElev.data, markExtrap=True)
+        # the above commands follow the operations used for actual TF data below
+        # the result will have zero where there is valid data and nan where there is not
+        maskOcean3d = np.logical_not(np.isnan(vertInterpResult)).astype(np.double)
+        maskTmp = np.swapaxes(maskOcean3d[0,:,:], 0, 1)  # necessary for ncremap
+        mpaso3dOceanMaskDA = xr.DataArray(maskTmp,
+                                          name='mpaso3dOceanMask',
+                                          #dims=("nCells", "nISMIP6OceanLayers"),
+                                          dims=("nISMIP6OceanLayers", "nCells"),
+                                          attrs={'long_name':'MPAS-Ocean 3d ocean mask'})
+
         # prepare file to be remapped
-        out_data_vars = xr.merge([mpasoDomainMaskDA, mpasoOpenOceanMaskDA])
+        out_data_vars = xr.merge([mpasoDomainMaskDA, mpasoOpenOceanMaskDA, mpaso3dOceanMaskDA])
         dataOut = xr.Dataset(data_vars=out_data_vars)
         mpaso_mask_file = 'mpaso_mask_file.nc'
         dataOut.to_netcdf(mpaso_mask_file, mode='w')
@@ -95,7 +119,7 @@ class mpasToMaliInterp:
                 "-m", self.mapping_file_name]
         check_call(args_remap)
 
-        # Now on MALI mesh, clean up open ocean mask so it can be used by MALI extrap code
+        # Now on MALI mesh, clean up open ocean masks so they can be used by MALI extrap code
         ds = xr.open_dataset("mpaso_masks_on_mali_mesh.nc", decode_times=False, decode_cf=False)
         mask1d = ds.mpasoOpenOceanMask[:].values
         mask1d = np.where(mask1d > 0.99, 1.0, 0.0).astype(np.int32)  # only keep values close to 1
@@ -106,6 +130,16 @@ class mpasToMaliInterp:
                                             dims=("Time", "nCells", "nISMIP6OceanLayers"),
                                             attrs={'long_name':'MPAS-Ocean open ocean mask'})
         mpasoOpenOceanMaskDA.to_netcdf('orig3dOceanMask_open_ocean_mask.nc', mode='w')
+
+        mask = ds.mpaso3dOceanMask[:].values
+        mask = np.swapaxes(mask, 0, 1)  # undo swap prior to remapping
+        mask = np.where(mask > 0.99, 1.0, 0.0).astype(np.int32)  # only keep values close to 1
+        mask3d = mask[np.newaxis, :, :]  # add time dimension
+        mpaso3dOceanMaskDA = xr.DataArray(mask3d,
+                                          name='orig3dOceanMask',
+                                          dims=("Time", "nCells", "nISMIP6OceanLayers"),
+                                          attrs={'long_name':'MPAS-Ocean full 3d ocean mask'})
+        mpaso3dOceanMaskDA.to_netcdf('orig3dOceanMask_3d_ocean_mask_with_cavities.nc', mode='w')
 
 
     def get_data(self, year):
@@ -428,7 +462,7 @@ class mpasToMaliInterp:
             if file.startswith("tmp"):
                 os.remove(file)
 
-def _vertical_interpolate(self, TF, mpas_cellCenterElev):
+def _vertical_interpolate(self, TF, mpas_cellCenterElev, markExtrap=False):
         #Vertical interpolation
         print("Vertically interpolating onto standardized z-level grid")
 
@@ -467,7 +501,10 @@ def _vertical_interpolate(self, TF, mpas_cellCenterElev):
                 # source grid will be marked as nan.  We may want to replace this method with one
                 # that uses and source data overlapping the range of the destination vertical level,
                 # as well as doing an area weighted remapping of the overlap.
-                vertInterpTF[i,:] = np.interp(z_target, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten(), right=np.nan, left=np.nan)
+                if markExtrap:
+                    vertInterpTF[i,:] = np.interp(z_target, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten(), right=np.nan, left=np.nan)
+                else:
+                    vertInterpTF[i,:] = np.interp(z_target, mpas_cellCenterElev[i,ind].flatten(), TF[i,ind].flatten())
             else:
                 nan_count = nan_count + 1
 
