@@ -75,7 +75,11 @@ class mpasToMaliInterp:
         # create needed masks and remap them in separate file
         mpasoDomainMask = np.ones((self.nCells,), dtype=np.double)
         mpasoDomainMaskDA = xr.DataArray(mpasoDomainMask, name='mpasoDomainMask', dims=("nCells"), attrs={'long_name':'MPAS-Ocean domain mask'})
-        mpasoOpenOceanMaskDA = xr.DataArray(np.logical_not(self.landIceFloatingMask).astype(np.double), name='mpasoOpenOceanMask', dims=("nCells"), attrs={'long_name':'MPAS-Ocean open ocean mask'})
+        mask1d = np.logical_not(self.landIceFloatingMask).astype(np.double)
+        mpasoOpenOceanMaskDA = xr.DataArray(mask1d,
+                                            name='mpasoOpenOceanMask',
+                                            dims=("nCells",),
+                                            attrs={'long_name':'MPAS-Ocean open ocean mask'})
 
         # prepare file to be remapped
         out_data_vars = xr.merge([mpasoDomainMaskDA, mpasoOpenOceanMaskDA])
@@ -90,6 +94,19 @@ class mpasToMaliInterp:
                 "-o", "mpaso_masks_on_mali_mesh.nc",
                 "-m", self.mapping_file_name]
         check_call(args_remap)
+
+        # Now on MALI mesh, clean up open ocean mask so it can be used by MALI extrap code
+        ds = xr.open_dataset("mpaso_masks_on_mali_mesh.nc", decode_times=False, decode_cf=False)
+        mask1d = ds.mpasoOpenOceanMask[:].values
+        mask1d = np.where(mask1d > 0.99, 1.0, 0.0).astype(np.int32)  # only keep values close to 1
+        mask2d = np.tile(mask1d.reshape(-1, 1), (1, len(self.ismip6shelfMelt_zOcean)))  # tile mask across all vertical layers
+        mask3d = mask2d[np.newaxis, :, :]  # add time dimension
+        mpasoOpenOceanMaskDA = xr.DataArray(mask3d,
+                                            name='orig3dOceanMask',
+                                            dims=("Time", "nCells", "nISMIP6OceanLayers"),
+                                            attrs={'long_name':'MPAS-Ocean open ocean mask'})
+        mpasoOpenOceanMaskDA.to_netcdf('orig3dOceanMask_open_ocean_mask.nc', mode='w')
+
 
     def get_data(self, year):
 
