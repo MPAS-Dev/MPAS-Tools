@@ -1231,6 +1231,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
     double *dvEdgeOld, *dvEdgeNew;
     double *dcEdgeOld, *dcEdgeNew;
     double *angleEdgeOld, *angleEdgeNew;
+    bool *flipAngleEdge;
 
     bool hasWeightsOnEdge, hasAngleEdge;
 
@@ -1239,6 +1240,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
     cellsOnEdgeNew = new int[nEdgesNew*2];
     verticesOnEdgeOld = new int[nEdges*2];
     verticesOnEdgeNew = new int[nEdgesNew*2];
+    flipAngleEdge = new bool[nEdgesNew];
 
     ncutil::get_var(inputFilename, "cellsOnEdge", cellsOnEdgeOld);
     ncutil::get_var(inputFilename, "verticesOnEdge", verticesOnEdgeOld);
@@ -1269,18 +1271,21 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
 
                     verticesOnEdgeNew[edgeMap.at(iEdge)*2] = vertexMap.at(vertex1) + 1;
                     verticesOnEdgeNew[edgeMap.at(iEdge)*2+1] = vertexMap.at(vertex2) + 1;
+                    flipAngleEdge[edgeMap.at(iEdge)] = false;
                 } else if (cellMap.at(cell2) == -1){
                     cellsOnEdgeNew[edgeMap.at(iEdge)*2] = cellMap.at(cell1) + 1;
                     cellsOnEdgeNew[edgeMap.at(iEdge)*2+1] = 0;
 
                     verticesOnEdgeNew[edgeMap.at(iEdge)*2] = vertexMap.at(vertex1) + 1;
                     verticesOnEdgeNew[edgeMap.at(iEdge)*2+1] = vertexMap.at(vertex2) + 1;
+                    flipAngleEdge[edgeMap.at(iEdge)] = false;
                 } else if (cellMap.at(cell1) == -1){
                     cellsOnEdgeNew[edgeMap.at(iEdge)*2] = cellMap.at(cell2) + 1;
                     cellsOnEdgeNew[edgeMap.at(iEdge)*2+1] = 0;
 
                     verticesOnEdgeNew[edgeMap.at(iEdge)*2] = vertexMap.at(vertex2) + 1;
                     verticesOnEdgeNew[edgeMap.at(iEdge)*2+1] = vertexMap.at(vertex1) + 1;
+                    flipAngleEdge[edgeMap.at(iEdge)] = true;
                 }
             } else if(cell2 == -1){
                 if(cellMap.at(cell1) != -1){
@@ -1292,12 +1297,14 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
                 } else {
                     cout << "ERROR: Edge mask is 1, but has no cells." << endl;
                 }
+                flipAngleEdge[edgeMap.at(iEdge)] = false;
             } else if(cell1 == -1){
                 cellsOnEdgeNew[edgeMap.at(iEdge)*2] = cellMap.at(cell2) + 1;
                 cellsOnEdgeNew[edgeMap.at(iEdge)*2+1] = 0;
 
                 verticesOnEdgeNew[edgeMap.at(iEdge)*2] = vertexMap.at(vertex2) + 1;
                 verticesOnEdgeNew[edgeMap.at(iEdge)*2+1] = vertexMap.at(vertex1) + 1;
+                flipAngleEdge[edgeMap.at(iEdge)] = true;
             } else {
                 cout << "ERROR: Edge mask is 1, but has no cells." << endl;
             }
@@ -1441,7 +1448,13 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
             dvEdgeNew[edgeMap.at(iEdge)] = dvEdgeOld[iEdge];
             dcEdgeNew[edgeMap.at(iEdge)] = dcEdgeOld[iEdge];
             if(hasAngleEdge) {
-                angleEdgeNew[edgeMap.at(iEdge)] = angleEdgeOld[iEdge];
+                if(flipAngleEdge[edgeMap.at(iEdge)]) {
+                    angleEdgeNew[edgeMap.at(iEdge)] =
+                        fmod(angleEdgeOld[iEdge], 2.0*M_PI) - M_PI;
+                }
+                else {
+                    angleEdgeNew[edgeMap.at(iEdge)] = angleEdgeOld[iEdge];
+                }
             }
         }
     }
@@ -1465,6 +1478,7 @@ int mapAndOutputEdgeFields( const string inputFilename, const string outputFilen
     delete[] dcEdgeNew;
     delete[] angleEdgeOld;
     delete[] angleEdgeNew;
+    delete[] flipAngleEdge;
 
     return 0;
 }/*}}}*/
