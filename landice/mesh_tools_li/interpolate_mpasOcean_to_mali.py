@@ -42,16 +42,16 @@ class mpasToMaliInterp:
         -1230, -1290, -1350, -1410, -1470, -1530, -1590, -1650, -1710, -1770), dtype='float64')
 
         # create bnds array
-        self.ismip6shelfMelt_zBndsOcean = np.zeros((2, len(self.ismip6shelfMelt_zOcean)))
+        self.ismip6shelfMelt_zBndsOcean = np.zeros((len(self.ismip6shelfMelt_zOcean), 2))
         self.ismip6shelfMelt_zBndsOcean[0, 0] = 0.0
         for z in range(1, len(self.ismip6shelfMelt_zOcean)):
-            self.ismip6shelfMelt_zBndsOcean[0, z] = 0.5 * (self.ismip6shelfMelt_zOcean[z - 1] +
+            self.ismip6shelfMelt_zBndsOcean[z, 0] = 0.5 * (self.ismip6shelfMelt_zOcean[z - 1] +
                                                            self.ismip6shelfMelt_zOcean[z])
         for z in range(0, len(self.ismip6shelfMelt_zOcean) - 1):
-            self.ismip6shelfMelt_zBndsOcean[1, z] = 0.5 * (self.ismip6shelfMelt_zOcean[z] +
+            self.ismip6shelfMelt_zBndsOcean[z, 1] = 0.5 * (self.ismip6shelfMelt_zOcean[z] +
                                                            self.ismip6shelfMelt_zOcean[z + 1])
-        self.ismip6shelfMelt_zBndsOcean[1, -1] = self.ismip6shelfMelt_zOcean[-1] + \
-                (self.ismip6shelfMelt_zOcean[-1] - self.ismip6shelfMelt_zBndsOcean[0, -1])
+        self.ismip6shelfMelt_zBndsOcean[-1, 1] = self.ismip6shelfMelt_zOcean[-1] + \
+                (self.ismip6shelfMelt_zOcean[-1] - self.ismip6shelfMelt_zBndsOcean[-1, 0])
 
     def prepare_mpaso_mesh_data(self):
 
@@ -398,7 +398,7 @@ class mpasToMaliInterp:
         ds_remapped = xr.open_dataset(tmp_maliDestFile, decode_times=False, decode_cf=False)
         ds_out = xr.Dataset(data_vars={'ismip6shelfMelt_3dThermalForcing': ds_remapped['ismip6shelfMelt_3dThermalForcing']})
         ds_out['ismip6shelfMelt_zOcean'] = xr.DataArray(self.ismip6shelfMelt_zOcean, dims=("nISMIP6OceanLayers"))
-        ds_out['ismip6shelfMelt_zBndsOcean'] = xr.DataArray(self.ismip6shelfMelt_zBndsOcean, dims=("TWO", "nISMIP6OceanLayers"))
+        ds_out['ismip6shelfMelt_zBndsOcean'] = xr.DataArray(self.ismip6shelfMelt_zBndsOcean, dims=("nISMIP6OceanLayers", "TWO"))
         if self.have_landIceFreshwaterFlux:
             ds_out['floatingBasalMassBal'] = ds_remapped['floatingBasalMassBal']
 
