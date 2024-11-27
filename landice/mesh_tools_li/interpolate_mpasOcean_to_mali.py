@@ -255,7 +255,7 @@ class mpasToMaliInterp:
             maxLev = self.maxLevelCell.values - 1
             levMask = np.zeros((nc, nz))
             for k in np.arange(nz):
-                levMask[np.logical_and(k >= minLev, k < maxLev), k] = 1.0
+                levMask[np.logical_and(k >= minLev, k <= maxLev), k] = 1.0
 
             newPr = np.zeros((nc,nz))
             newPr[:, 0] = self.newAtmPr[iTime, :] + self.landIcePressure[:] + \
