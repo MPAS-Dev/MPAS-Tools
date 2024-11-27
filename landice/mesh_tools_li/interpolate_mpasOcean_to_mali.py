@@ -122,7 +122,7 @@ class mpasToMaliInterp:
         # Now on MALI mesh, clean up open ocean masks so they can be used by MALI extrap code
         ds = xr.open_dataset("mpaso_masks_on_mali_mesh.nc", decode_times=False, decode_cf=False)
         mask1d = ds.mpasoOpenOceanMask[:].values
-        mask1d = np.where(mask1d > 0.99, 1.0, 0.0).astype(np.int32)  # only keep values close to 1
+        mask1d = np.where(mask1d >= 1.0, 1.0, 0.0).astype(np.int32)  # only keep values of 1
         mask2d = np.tile(mask1d.reshape(-1, 1), (1, len(self.ismip6shelfMelt_zOcean)))  # tile mask across all vertical layers
         mask3d = mask2d[np.newaxis, :, :]  # add time dimension
         mpasoOpenOceanMaskDA = xr.DataArray(mask3d,
@@ -133,7 +133,7 @@ class mpasToMaliInterp:
 
         mask = ds.mpaso3dOceanMask[:].values
         mask = np.swapaxes(mask, 0, 1)  # undo swap prior to remapping
-        mask = np.where(mask > 0.99, 1.0, 0.0).astype(np.int32)  # only keep values close to 1
+        mask = np.where(mask >= 1.0, 1.0, 0.0).astype(np.int32)  # only keep values of 1
         mask3d = mask[np.newaxis, :, :]  # add time dimension
         mpaso3dOceanMaskDA = xr.DataArray(mask3d,
                                           name='orig3dOceanMask',
@@ -422,7 +422,7 @@ class mpasToMaliInterp:
             if file.startswith("tmp"):
                 os.remove(file)
 
-def _vertical_interpolate(self, TF, mpas_cellCenterElev, markExtrap=False):
+def _vertical_interpolate(self, TF, mpas_cellCenterElev, markExtrap=True):
         #Vertical interpolation
         print("Vertically interpolating onto standardized z-level grid")
 
