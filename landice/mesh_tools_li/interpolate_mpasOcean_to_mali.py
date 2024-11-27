@@ -181,25 +181,16 @@ class mpasToMaliInterp:
 
     def time_average_output(self):
         print("Time Averaging ...")
+
+        #prepare time vector
+        yearsSinceStart = self.daysSinceStart.values / 365.0
+        stTime = np.datetime64(self.stTime[0:4])
+        stYear = np.datetime_as_string(stTime,unit='Y').astype('float64')
+
         if (self.options.yearlyAvg == 'true'):
 
-            yearsSinceStart = self.daysSinceStart.values / 365.0
-            finalYear = np.floor(np.max(yearsSinceStart))
-            startYear = np.floor(np.min(yearsSinceStart))
-            timeStride = 1 # 1 year average
-
-            print(f'startYear={startYear}, finalYear={finalYear}')
-           
-            if (startYear != finalYear):
-                years = np.arange(startYear, finalYear, timeStride, dtype=int)
-                nt = len(years)
-            else :
-                years = startYear
-                nt = 1
-
-            print(f'years={years}', nt)
-
             #pre-allocate
+            nt = 1
             _,nc,nz = self.temperature.shape
             self.newTemp = np.zeros((nt,nc,nz)) 
             self.newSal = np.zeros((nt,nc,nz))
@@ -210,52 +201,21 @@ class mpasToMaliInterp:
             if self.have_landIceFreshwaterFlux:
                 self.newLandIceFWFlux = np.zeros((nt,nc))
             yearVec = np.zeros((nt,))    
-            #prepare time vector
-            stTime = np.datetime64(self.stTime[0:4])
-            print("stTime = {}".format(stTime))
-            stYear = np.datetime_as_string(stTime,unit='Y').astype('float64')
-            print("stYear = {}".format(stYear))
-            
-            print("starting loop ...")
             
             st = time.time()
-            if (years.ndim == 0): 
-                log = np.logical_and(yearsSinceStart >= years, yearsSinceStart < years + timeStride)
-                #ind1 = np.nonzero(yearsSinceStart >= years)[0][0]
-                #ind2 = np.nonzero(yearsSinceStart < years + timeStride)[0][-1]
-                #print(ind1, ind2)
-                #self.newTemp[0,:,:] = np.mean(self.temperature[ind1:ind2+1,:,:], axis=0)
-                #self.newTemp[0,:,:] = np.mean(self.temperature[log,:,:], axis=0)
-                self.newTemp[0,:,:] = np.mean(self.temperature[log,:,:].values, axis=0)
-                self.newSal[0,:,:] = np.mean(self.salinity[log,:,:].values, axis=0)
-                self.newDens[0,:,:] = np.mean(self.density[log,:,:].values, axis=0)
-                self.newLThick[0,:,:] = np.mean(self.layerThickness[log,:,:], axis=0)
-                self.newMpasCCE[0,:,:] = np.mean(self.mpas_cellCenterElev[log,:,:], axis=0)
-                self.newAtmPr[0,:] = np.mean(self.atmPressure[log,:].values, axis=0)
-                if self.have_landIceFreshwaterFlux:
-                    self.newLandIceFWFlux[0,:] = np.mean(self.landIceFreshwaterFlux[log,:].values, axis=0)
-            
-                #Define time at the first of each year
 
-                print("Test A: {}".format(np.floor(np.min(yearsSinceStart[log])) + stYear))
-                yearVec[0] = np.floor(np.min(yearsSinceStart[log])) + stYear
-                print("yearVec = {}".format(yearVec))
-            else :
-                ct = 0
-                for i in years:
-                    log = np.logical_and(yearsSinceStart >= years[i], yearsSinceStart < years[i] + timeStride)
-                    self.newTemp[ct,:,:] = np.mean(self.temperature[log,:,:], axis=0)
-                    self.newSal[ct,:,:] = np.mean(self.salinity[log,:,:], axis=0)
-                    self.newDens[ct,:,:] = np.mean(self.density[log,:,:], axis=0)
-                    self.newLThick[ct,:,:] = np.mean(self.layerThickness[log,:,:], axis=0)
-                    self.newMpasCCE[ct,:,:] = np.mean(self.mpas_cellCenterElev[log,:,:], axis=0)
-                    self.newAtmPr[ct,:] = np.mean(self.atmPressure[log,:], axis=0)
-                    if self.have_landIceFreshwaterFlux:
-                        self.newLandIceFWFlux[ct,:] = np.mean(self.landIceFreshwaterFlux[log,:], axis=0)
-       
-                    yearVec[ct] = np.floor(np.min(yearsSinceStart[log])) + stYear
-                    print("yearVec = {}".format(yearVec))
-                    ct = ct + 1
+            self.newTemp[0,:,:] = np.mean(self.temperature.values, axis=0)
+            self.newSal[0,:,:] = np.mean(self.salinity.values, axis=0)
+            self.newDens[0,:,:] = np.mean(self.density.values, axis=0)
+            self.newLThick[0,:,:] = np.mean(self.layerThickness, axis=0)
+            self.newMpasCCE[0,:,:] = np.mean(self.mpas_cellCenterElev, axis=0)
+            self.newAtmPr[0,:] = np.mean(self.atmPressure.values, axis=0)
+            if self.have_landIceFreshwaterFlux:
+                self.newLandIceFWFlux[0,:] = np.mean(self.landIceFreshwaterFlux.values, axis=0)
+            
+            #Define time at the first of each year
+            yearVec[0] = np.floor(np.min(yearsSinceStart)) + stYear
+
             nd = time.time()
             tm = nd - st
             print("Time averaging loop", tm, "seconds")
@@ -523,6 +483,7 @@ def main():
 
         for yr in range(run.options.startYr, run.options.endYr+1):
            st = time.time()
+           print(f'\n**** Processing year {yr} ****\n')
 
            run.get_data(yr)
         
