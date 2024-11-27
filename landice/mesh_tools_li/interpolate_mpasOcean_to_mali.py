@@ -240,41 +240,46 @@ class mpasToMaliInterp:
 
         print("New xtime: {}".format(self.newXtime))
 
+
     def calc_ocean_thermal_forcing(self):
         print("Calculating thermal forcing ... ")
+        st = time.time()
         gravity = 9.81
 
         #pre-allocate
-        nt,nc,nz = self.newTemp.shape
-        ocn_freezing_temperature = np.zeros((nt,nc,nz))
-        self.newPr = np.zeros((nt,nc,nz))
-        st = time.time()
+        nt, nc, nz = self.newTemp.shape
+        self.oceanThermalForcing = np.zeros((nt, nc, nz))
         for iTime in range(nt):
 
-            #calculate pressure: 
-            for iCell in range(self.nCells):
-                    kmin = self.minLevelCell[iCell] - 1
-                    kmax = self.maxLevelCell[iCell].values - 1
+            minLev = self.minLevelCell - 1
+            maxLev = self.maxLevelCell.values - 1
+            levMask = np.zeros((nc, nz))
+            for k in np.arange(nz):
+                levMask[np.logical_and(k >= minLev, k < maxLev), k] = 1.0
 
-                    self.newPr[iTime,iCell,kmin] = self.newAtmPr[iTime,iCell] + \
-                            self.landIcePressure[iCell] + \
-                            self.newDens[iTime,iCell,kmin]*gravity*0.5*self.newLThick[iTime,iCell,kmin]
+            newPr = np.zeros((nc,nz))
+            newPr[:, 0] = self.newAtmPr[iTime, :] + self.landIcePressure[:] + \
+                levMask[:, 0] * 0.5 * gravity * self.newDens[iTime, :, 0] * self.newLThick[iTime, :, 0]
+            for k in np.arange(1, nz):
+                newPr[:, k] = newPr[:, k - 1] + \
+                    levMask[:, k - 1] * 0.5 * gravity * self.newDens[iTime, :, k - 1] * self.newLThick[iTime, :, k - 1] \
+                    + levMask[:, k] * 0.5 * gravity * self.newDens[iTime, :, k] * self.newLThick[iTime, :, k]
 
-                    for k in np.arange(kmin + 1, kmax):
-                        self.newPr[iTime,iCell,k] = self.newPr[iTime,iCell,k-1] + \
-                                0.5 * gravity * (self.newDens[iTime,iCell,k-1] * self.newLThick[iTime,iCell,k-1] \
-                                + self.newDens[iTime,iCell,k] * self.newLThick[iTime,iCell,k])
+            ocn_freezing_temperature = np.zeros((nc,nz))
+            for k in np.arange(nz):
+                ocn_freezing_temperature[:, k] = self.coeff_0_cavity + \
+                    self.coeff_S_cavity * self.newSal[iTime, :, k] + \
+                    self.coeff_p_cavity * newPr[:, k] \
+                    + self.coeff_pS_cavity * newPr[:, k] * self.newSal[iTime, :, k] \
+                    + self.coeff_mushy_cavity * self.newSal[iTime, :, k] / (1.0 - self.newSal[iTime, :, k] / 1.e3)
 
-                    ocn_freezing_temperature[iTime,iCell,:] = self.coeff_0_cavity + \
-                            self.coeff_S_cavity * self.newSal[iTime,iCell,:] + \
-                            self.coeff_p_cavity * self.newPr[iTime,iCell,:] \
-                            + self.coeff_pS_cavity * self.newPr[iTime,iCell,:] * self.newSal[iTime,iCell,:] \
-                            + self.coeff_mushy_cavity * self.newSal[iTime,iCell,:] / (1.0 - self.newSal[iTime,iCell,:] / 1e3)
+            self.oceanThermalForcing[iTime, :, :]  = self.newTemp[iTime, :, :] - ocn_freezing_temperature[:, :]
+
         nd = time.time()
         tm = nd - st
         print("Ocean thermal forcing loop", tm, "seconds")
         # Calculate thermal forcing
-        self.oceanThermalForcing = self.newTemp - ocn_freezing_temperature
+
 
     def create_mapping_file(self):
 
