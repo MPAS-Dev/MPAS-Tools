@@ -15,16 +15,15 @@ Entry Points
 
 The best way to add new "scripts" to the package is to add a function without
 any arguments somewhere in the package, and then to add it as an "entry point"
-both in ``conda_package/setup.py`` and ``conda_package/recipe/meta.yaml``.
+both in ``conda_package/pyproject.toml`` and ``conda_package/recipe/meta.yaml``.
 
-As an example, the entry point ``planar_hex`` is defined in ``setup.py`` as:
+As an example, the entry point ``planar_hex`` is defined in ``pyproject.toml`` as:
 
 .. code-block:: python
 
-  setup(name='mpas_tools',
+  [project.scripts]
   ...
-        entry_points={'console_scripts':
-                    ['planar_hex = mpas_tools.planar_hex:main',
+  planar_hex = "mpas_tools.planar_hex:main"
   ...
 
 and in ``meta.yaml`` as:
