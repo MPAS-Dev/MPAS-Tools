@@ -3,6 +3,9 @@ latitude, longitude, and bird's eye rotations
 
 REVISION HISTORY:
 
+   22 Sept 2023 - Switch from nc-config to nf-config for detecting Fortran
+                  compiler and compilation flags
+
    10 July 2013 - Fix issue where angleEdge was overwritten in output files
                   for meshes that don't provide fEdge and fVertex fields.
 
@@ -27,10 +30,10 @@ II. BUILDING THE CODE
 
    Building requires NetCDF and a Fortran compiler.
 
-   Before building, ensure that the directory containing the 'nc-config' utility
+   Before building, ensure that the directory containing the 'nf-config' utility
    is in your $PATH; this directory is usually in bin/ subdirectory of your
-   NetCDF installation root directory. The 'nc-config' utility is part of most
-   modern NetCDF installations, and if you do not have nc-config, it will be
+   NetCDF installation root directory. The 'nf-config' utility is part of most
+   modern NetCDF installations, and if you do not have nf-config, it will be
    necessary to manually set the name of your Fortran compiler, as well as the
    library paths, in the Makefile; specifically, the following variables must be
    manually set: FC, FCINCLUDES, and FCLIBS.

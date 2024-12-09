@@ -1,5 +1,5 @@
 {% set name = "mpas_tools" %}
-{% set version = "0.20.0" %}
+{% set version = "0.36.0" %}
 
 package:
   name: {{ name|lower }}
@@ -33,6 +33,7 @@ build:
     - prepare_seaice_partitions = mpas_tools.seaice.partition:prepare_partitions
     - create_seaice_partitions = mpas_tools.seaice.partition:create_partitions
     - simple_seaice_partitions = mpas_tools.seaice.partition:simple_partitions
+    - sort_mesh = mpas_tools.mesh.creation.sort_mesh:main
 
 requirements:
   build:
@@ -59,15 +60,14 @@ requirements:
     - dask
     - geometric_features >=1.0.1,<2.0.0
     - hdf5
-    - importlib_resources  # [py<=38]
     - inpoly
     - jigsaw >=0.9.12
     - jigsawpy >=0.2.1
     - libnetcdf
     - netcdf-fortran
-    - matplotlib-base
+    - matplotlib-base >=3.9.0
     - netcdf4
-    - numpy
+    - numpy >=2.0,<3.0
     - progressbar2
     - pyamg
     - pyevtk
@@ -95,12 +95,16 @@ test:
     - mpas_tools.viz
     - mpas_tools.conversion
   commands:
+    - test -f "${PREFIX}/bin/ocean_smooth_topo_skip_land_ice"
+    - test -f "${PREFIX}/bin/ocean_smooth_topo_before_init"
+    - test -f "${PREFIX}/bin/ocean_smooth_topo_before_init_skip_land_ice"
     - planar_hex --nx=10 --ny=20 --dc=1000. --outFileName='periodic_mesh_10x20_1km.nc'
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -x 1000. -y 2000.
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -c
     - planar_hex --nx=20 --ny=40 --dc=1000. --outFileName='periodic_mesh_20x40_1km.nc'
     - translate_planar_grid -f 'periodic_mesh_10x20_1km.nc' -d 'periodic_mesh_20x40_1km.nc'
     - MpasMeshConverter.x mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc mesh.nc
+    - sort_mesh --mesh-file mesh.nc --sort-file sorted_mesh.nc
     - MpasCellCuller.x mesh.nc culled_mesh.nc -m mesh_tools/mesh_conversion_tools/test/land_mask_final.nc
     - MpasMaskCreator.x mesh.nc arctic_mask.nc -f mesh_tools/mesh_conversion_tools/test/Arctic_Ocean.geojson
     - planar_hex --nx=30 --ny=20 --dc=1000. --npx --npy --outFileName='nonperiodic_mesh_30x20_1km.nc'

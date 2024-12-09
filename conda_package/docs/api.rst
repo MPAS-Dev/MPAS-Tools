@@ -53,6 +53,16 @@ Mesh conversion
    cull
    mask
 
+.. currentmodule:: mpas_tools.mesh.cull
+
+.. autosummary::
+   :toctree: generated/
+
+   write_map_culled_to_base
+   map_culled_to_base
+   write_culled_dataset
+   cull_dataset
+
 .. currentmodule:: mpas_tools.mesh.mask
 
 .. autosummary::
@@ -116,6 +126,8 @@ Config
    MpasConfigParser.set
    MpasConfigParser.write
    MpasConfigParser.copy
+   MpasConfigParser.append
+   MpasConfigParser.prepend
    MpasConfigParser.__getitem__
 
 I/O
@@ -158,6 +170,19 @@ CIME constants
 
    constants
 
+Landice Tools
+=============
+
+.. currentmodule:: mpas_tools.landice
+
+.. autosummary::
+   :toctree: generated/
+
+    visualization
+    visualization.plot_transect
+    visualization.plot_map
+    visualization.plot_grounding_lines
+
 Ocean Tools
 ===========
 
@@ -199,6 +224,8 @@ Ocean Tools
    depth.write_time_varying_zmid
    depth.compute_depth
    depth.compute_zmid
+
+   compute_barotropic_streamfunction
 
 .. currentmodule:: mpas_tools.ocean.inject_bathymetry
 
@@ -310,11 +337,24 @@ Transects
    subdivide_planar
    lon_lat_to_cartesian
    cartesian_to_lon_lat
-   angular_distance
-   intersects
-   intersection
-   Vector
 
+Vector
+======
+
+.. currentmodule:: mpas_tools.vector
+
+.. autosummary::
+   :toctree: generated/
+
+   Vector
+   Vector.angular_distance
+   Vector.intersects
+   Vector.intersection
+   Vector.straddles
+   Vector.dot
+   Vector.cross
+   Vector.det
+   Vector.mag
 
 Visualization
 =============

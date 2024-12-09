@@ -27,9 +27,12 @@ An example of the typical workflow that uses this function would be:
     import xarray
 
     from geometric_features import GeometricFeatures
-    from mpas_tools.mesh import conversion
+    from mpas_tools.cime.constants import constants
+    from mpas_tools.mesh import mask
     from mpas_tools.ocean.coastline_alteration import add_critical_land_blockages
 
+
+    earthRadius = constants['SHR_CONST_REARTH']
 
     # an object used to read feature collections from the geometric_features
     # package
@@ -43,7 +46,9 @@ An example of the typical workflow that uses this function would be:
     dsBaseMesh = xarray.open_dataset('base_mesh.nc')
     # create a mask on the base mesh that is ones for land or grounded ice and
     # zeros for ocean
-    dsLandMask = conversion.mask(dsBaseMesh, fcMask=fcLandCoverage)
+    dsLandMask = mask.compute_mpas_region_masks(dsBaseMesh,
+                                                fcMask=fcLandCoverage,
+                                                maskTypes=('cell',))
 
     # get a collection of features from geometric_features that are meant for
     # use as critical land blockages
@@ -51,7 +56,9 @@ An example of the typical workflow that uses this function would be:
                               tags=['Critical_Land_Blockage'])
 
     # make masks from the transects
-    dsCritBlockMask = conversion.mask(dsBaseMesh, fcMask=fcCritBlockages)
+    dsCritBlockMask = mask.compute_mpas_transect_masks(dsBaseMesh,
+                                                       fcMask=fcCritBlockages,
+                                                       earthRadius=earthRadius)
 
     # add the masks to the "land" mask
     dsLandMask = add_critical_land_blockages(dsLandMask, dsCritBlockMask)
@@ -83,7 +90,7 @@ Here is an example workflow that removes land-locked cells:
     import xarray
 
     from geometric_features import GeometricFeatures
-    from mpas_tools.mesh import conversion
+    from mpas_tools.mesh import mask
     from mpas_tools.ocean.coastline_alteration import \
         add_land_locked_cells_to_mask
 
@@ -100,7 +107,9 @@ Here is an example workflow that removes land-locked cells:
     dsBaseMesh = xarray.open_dataset('base_mesh.nc')
     # create a mask on the base mesh that is ones for land or grounded ice and
     # zeros for ocean
-    dsLandMask = conversion.mask(dsBaseMesh, fcMask=fcLandCoverage)
+    dsLandMask = mask.compute_mpas_region_masks(dsBaseMesh,
+                                                fcMask=fcLandCoverage,
+                                                maskTypes=('cell',))
 
     # Find ocean cells that are land-locked, and alter the cell mask so that
     # they are counted as land cells
@@ -128,8 +137,11 @@ An example workflow that includes transect-widening is:
     import xarray
 
     from geometric_features import GeometricFeatures
-    from mpas_tools.mesh import conversion
+    from mpas_tools.cime.constants import constants
+    from mpas_tools.mesh import mask
     from mpas_tools.ocean.coastline_alteration import widen_transect_edge_masks
+
+    earthRadius = constants['SHR_CONST_REARTH']
 
     # an object used to read feature collections from the geometric_features
     # package
@@ -143,7 +155,9 @@ An example workflow that includes transect-widening is:
                              tags=['Critical_Passage'])
 
     # create masks from the transects
-    dsCritPassMask = conversion.mask(dsBaseMesh, fcMask=fcCritPassages)
+    dsCritPassMask = mask.compute_mpas_transect_masks(dsBaseMesh,
+                                                      fcMask=fcCritPassages,
+                                                      earthRadius=earthRadius)
 
     # Alter critical passages to be at least two cells wide, to avoid sea ice
     # blockage.

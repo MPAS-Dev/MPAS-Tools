@@ -413,10 +413,14 @@ Computing a Flood-fill Mask
 
 The function :py:func:`mpas_tools.mesh.mask.compute_mpas_flood_fill_mask()`
 and the command-line tool ``compute_mpas_flood_fill_mask``
-fill in a mask, starting with the ocean points closest to the seed points
+fill in a mask, starting with the cell centers closest to the seed points
 given in :py:class:`geometric_features.FeatureCollection` ``fcSeed``.  This
 algorithm runs in serial, and will be more efficient the more seed points
-are provided and the more widely scattered over the ocean they are.
+are provided and the more widely scattered over the mesh they are.
+
+An optional ``daGrow`` argument to the function (not currently available from
+the command-line tool) provides a mask into which the flood fill is allowed to
+grow.  The default is all ones.
 
 The resulting dataset contains a single variable:
 
@@ -493,6 +497,79 @@ The command-line tool takes the following arguments:
                             The multiprocessing method use for python mask
                             creation ('fork', 'spawn' or 'forkserver')
 
+
+.. _cull_mpas_dataset:
+
+Culling MPAS Datasets
+=====================
+
+The tools described in :ref:`cell_culler` can be used to create a culled
+horizontal MPAS mesh.  Once a culled MPAS mesh has been created, an MPAS
+dataset on the unculled mesh can be cropped to the culled mesh using the
+the :py:func:`mpas_tools.mesh.cull.cull_dataset()` or
+:py:func:`mpas_tools.mesh.cull.write_culled_dataset()` functions.  These
+functions take a dataset (or filename) to crop as well as datasets (or
+filenames) for the unculled and culled horizontal MPAS meshes.  They return
+(or write out) the culled version of the data set.  Fields that exist in
+the culled horizonal mesh are copied from the culled mesh, rather than cropped
+from the dataset.  This because we wish to keep the cropped horizontal mesh
+exactly as it was produced by the culling tool, which may not correspond to
+a cropped version of the field from the original mesh.  For example, fields
+are reindexed during culling and coordinates are recomputed.
+
+It may be useful to compute and store the maps from cells, edges and vertices
+on the culled mesh back to the unculled mesh for reuse.  This can be
+accomplished by calling the :py:func:`mpas_tools.mesh.cull.map_culled_to_base()`
+or :py:func:`mpas_tools.mesh.cull.write_map_culled_to_base()` functions.
+
+An example workflow that culls out ice-shelf cavities from an MPAS-Ocean
+initial condition might look like the following.  In this case the file
+``culled_mesh.nc`` is a mesh where land (and the grounded portion of the
+ice sheet) has been removed but where ice-shelf cavities are still present.
+It serves as the "base" mesh for the purposes of this example.
+``culled_mesh_no_isc.nc`` is created (if it doesn't already exist) with the
+ice-shelf cavities removed as well, so it is the "culled" mesh in this example.
+We store the mapping betwen the two horizontal meshes in
+``no_isc_to_culled_map.nc`` in case we want to resue it later.  The initial
+condition is read from ``initial_state.nc`` and the culled version is written
+to ``initial_state_no_isc.nc``:
+
+.. code-block:: python
+
+    import os
+
+    import xarray as xr
+
+    from mpas_tools.io import write_netcdf
+    from mpas_tools.mesh.conversion import cull
+    from mpas_tools.mesh.cull import write_map_culled_to_base, write_culled_dataset
+    from mpas_tools.logging import LoggingContext
+
+
+    in_filename = 'initial_state.nc'
+    out_filename = 'initial_state_no_isc.nc'
+    base_mesh_filename = 'culled_mesh.nc'
+    culled_mesh_filename = 'culled_mesh_no_isc.nc'
+    map_filename = 'no_isc_to_culled_map.nc'
+
+    if not os.path.exists(culled_mesh_filename):
+        ds_culled_mesh = xr.open_dataset(base_mesh_filename)
+        ds_init = xr.open_dataset(in_filename)
+        ds_culled_mesh['cullCell'] = ds_init.landIceMask
+        ds_culled_mesh_no_isc = cull(ds_culled_mesh)
+        write_netcdf(ds_culled_mesh_no_isc, culled_mesh_filename)
+
+    if not os.path.exists(map_filename):
+        write_map_culled_to_base(base_mesh_filename=base_mesh_filename,
+                                 culled_mesh_filename=culled_mesh_filename,
+                                 out_filename=map_filename)
+
+    with LoggingContext('test') as logger:
+        write_culled_dataset(in_filename=in_filename, out_filename=out_filename,
+                             base_mesh_filename=base_mesh_filename,
+                             culled_mesh_filename=culled_mesh_filename,
+                             map_culled_to_base_filename=map_filename,
+                             logger=logger)
 
 .. _merge_split:
 

@@ -1,12 +1,16 @@
+import matplotlib.pyplot as plt
 import numpy
 import xarray
-
 from scipy.spatial import cKDTree
 from shapely.geometry import LineString, Point
 
-from mpas_tools.transects import Vector, lon_lat_to_cartesian, \
-    cartesian_to_lon_lat, intersects, intersection, angular_distance, \
-    subdivide_great_circle, subdivide_planar
+from mpas_tools.transects import (
+    cartesian_to_lon_lat,
+    lon_lat_to_cartesian,
+    subdivide_great_circle,
+    subdivide_planar
+)
+from mpas_tools.vector import Vector
 
 
 def make_triangle_tree(dsTris):
@@ -18,7 +22,7 @@ def make_triangle_tree(dsTris):
     ----------
     dsTris : xarray.Dataset
         A dataset that defines triangles, the results of calling
-        :py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
+        :py:func:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
 
     Returns
     -------
@@ -62,7 +66,7 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
 
     dsTris : xarray.Dataset
         A dataset that defines triangles, the results of calling
-        :py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
+        :py:func:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
 
     dsMesh : xarray.Dataset
         A data set with the full MPAS mesh.
@@ -194,8 +198,8 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
                         yNode[n1IndicesCand],
                         zNode[n1IndicesCand])
 
-        intersect = intersects(n0Cand, n1Cand, transectv0,
-                               transectv1)
+        intersect = Vector.intersects(n0Cand, n1Cand, transectv0,
+                                      transectv1)
 
         n0Inter = Vector(n0Cand.x[intersect],
                          n0Cand.y[intersect],
@@ -208,24 +212,23 @@ def find_transect_cells_and_weights(lonTransect, latTransect, dsTris, dsMesh,
         n0IndicesInter = n0IndicesCand[intersect]
         n1IndicesInter = n1IndicesCand[intersect]
 
-        intersections = intersection(n0Inter, n1Inter, transectv0, transectv1)
+        intersections = Vector.intersection(n0Inter, n1Inter, transectv0,
+                                            transectv1)
         intersections = Vector(earth_radius*intersections.x,
                                earth_radius*intersections.y,
                                earth_radius*intersections.z)
 
-        angularDistance = angular_distance(first=transectv0,
-                                           second=intersections)
+        angularDistance = transectv0.angular_distance(intersections)
 
         dNodeLocal = dStart + earth_radius * angularDistance
 
-        dStart += earth_radius*angular_distance(first=transectv0,
-                                                second=transectv1)
+        dStart += earth_radius*transectv0.angular_distance(transectv1)
 
         node0Inter = numpy.mod(n0IndicesInter, nNodes)
         node1Inter = numpy.mod(n1IndicesInter, nNodes)
 
-        nodeWeights = (angular_distance(first=intersections, second=n1Inter) /
-                       angular_distance(first=n0Inter, second=n1Inter))
+        nodeWeights = (intersections.angular_distance(n1Inter) /
+                       n0Inter.angular_distance(n1Inter))
 
         weights = numpy.zeros((len(trisInter), nHorizWeights))
         cellIndices = numpy.zeros((len(trisInter), nHorizWeights), int)
@@ -348,7 +351,7 @@ def find_planar_transect_cells_and_weights(xTransect, yTransect, dsTris, dsMesh,
 
     dsTris : xarray.Dataset
         A dataset that defines triangles, the results of calling
-        `:py:fun:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
+        `:py:func:`mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()`
 
     dsMesh : xarray.Dataset
         A data set with the full MPAS mesh.
@@ -513,9 +516,9 @@ def find_planar_transect_cells_and_weights(xTransect, yTransect, dsTris, dsMesh,
         xIntersection = numpy.array(xIntersection)
         yIntersection = numpy.array(yIntersection)
         nodeWeights = numpy.array(nodeWeights)
-        node0Inter = numpy.array(node0Inter)
-        node1Inter = numpy.array(node1Inter)
-        trisInter = numpy.array(trisInter)
+        node0Inter = numpy.array(node0Inter, dtype=int)
+        node1Inter = numpy.array(node1Inter, dtype=int)
+        trisInter = numpy.array(trisInter, dtype=int)
 
         dNodeLocal = dStart + distances
 
@@ -622,6 +625,17 @@ def _sort_intersections(dNode, tris, nodes, xOut, yOut, zOut, interpCells,
     sortIndices = numpy.argsort(dNode)
     dSorted = dNode[sortIndices]
     trisSorted = tris[sortIndices]
+
+    # sometimes we end up with redundant intersections in the transect, and
+    # these need to be removed
+    unique_d_tris = dict()
+    for index in range(len(dSorted)):
+        unique_d_tris[(dSorted[index], trisSorted[index])] = index
+
+    unique_indices = list(unique_d_tris.values())
+    sortIndices = sortIndices[unique_indices]
+    dSorted = dSorted[unique_indices]
+    trisSorted = trisSorted[unique_indices]
 
     nodesAreSame = numpy.abs(dSorted[1:] - dSorted[:-1]) < epsilon
     if nodesAreSame[0]:

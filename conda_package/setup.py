@@ -11,7 +11,7 @@ install_requires = [
     'cmocean',
     'dask',
     'inpoly',
-    'matplotlib',
+    'matplotlib >=3.9.0',
     'netcdf4',
     'numpy',
     'progressbar2',
@@ -34,8 +34,10 @@ version = re.search(r'{}\s*=\s*[(]([^)]*)[)]'.format('__version_info__'),
 os.chdir(here)
 
 for path in ['ocean', 'landice', 'visualization', 'mesh_tools']:
-    if not os.path.exists(path):
-        shutil.copytree('../{}'.format(path), './{}'.format(path))
+    destPath = './{}'.format(path)
+    if os.path.exists(destPath):
+        shutil.rmtree(destPath)
+    shutil.copytree('../{}'.format(path), destPath)
 
 setup(name='mpas_tools',
       version=version,
@@ -53,10 +55,11 @@ setup(name='mpas_tools',
           'Intended Audience :: Science/Research',
           'Programming Language :: Python',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: 3.9',
           'Programming Language :: Python :: 3.10',
           'Programming Language :: Python :: 3.11',
+          'Programming Language :: Python :: 3.12',
+          'Programming Language :: Python :: 3.13',
           'Topic :: Scientific/Engineering',
       ],
       packages=find_packages(include=['mpas_tools', 'mpas_tools.*']),
@@ -89,6 +92,7 @@ setup(name='mpas_tools',
                      'mpas_to_triangle = mpas_tools.mesh.creation.mpas_to_triangle:main',
                      'triangle_to_netcdf = mpas_tools.mesh.creation.triangle_to_netcdf:main',
                      'jigsaw_to_netcdf = mpas_tools.mesh.creation.jigsaw_to_netcdf:main',
+                     'sort_mesh = mpas_tools.mesh.creation.sort_mesh:main',
                      'scrip_from_mpas = mpas_tools.scrip.from_mpas:main',
                      'compute_mpas_region_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_region_masks',
                      'compute_mpas_transect_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_transect_masks',
@@ -97,4 +101,5 @@ setup(name='mpas_tools',
                      'compute_projection_region_masks = mpas_tools.mesh.mask:entry_point_compute_projection_grid_region_masks',
                      'prepare_seaice_partitions = mpas_tools.seaice.partition:prepare_partitions',
                      'create_seaice_partitions = mpas_tools.seaice.partition:create_partitions',
-                     'simple_seaice_partitions = mpas_tools.seaice.partition:simple_partitions']})
+                     'simple_seaice_partitions = mpas_tools.seaice.partition:simple_partitions',
+                     'vector_reconstruct = mpas_tools.vector.reconstruct:main']})

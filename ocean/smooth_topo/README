@@ -1,0 +1,30 @@
+Authors: Adrian Turner, Mat Maltrud
+
+Tools for smoothing bathymetry in an MPAS-Ocean with a Gaussian filter with a
+characteristic length scale (stdDeviation) and cut-off distance
+(distanceLimit). Smoothing is applied over a given number of iterations
+(numSmoothingPasses). The tools do not currently work on meshes without
+ice-shelf cavities.
+
+The smooth_topo_skip_land_ice tool can be applied to topography after an
+initial condition has been created.  The smoothing is only applied if the
+original maxLevelCell is deeper than a given threshold (minLevelForSmoothing)
+and ice-shelf cavities are ignored.
+
+The smooth_topo_before_init tool is used to smooth topography data on the MPAS
+mesh before an initial condition has been created.
+
+An example namelist file (smooth_depth_in) is:
+
+&smooth
+    filename_depth_in  = "mpaso.IcoswISC30E3r2.20230901.nc"
+    filename_depth_out = "smooth.IcoswISC30E3r2.r200e100.1pass.min5.skipLandIce.231115.nc"
+    filename_mpas_mesh   = "mpaso.IcoswISC30E3r2.20230901.nc"
+    distanceLimit    = 200.
+    stdDeviation     = 100.
+    numSmoothingPasses = 1
+    minLevelForSmoothing = 5
+/
+
+The minLevelForSmoothing namelist option only applies to
+smooth_topo_skip_land_ice.

@@ -31,7 +31,15 @@ analyzing simulations, and in other MPAS-related workflows.
 
    transects
 
+   vector
+
    visualization
+
+.. toctree::
+   :caption: Landice Tools
+   :maxdepth: 2
+
+   landice/visualization
 
 .. toctree::
    :caption: Ocean Tools
@@ -42,6 +50,8 @@ analyzing simulations, and in other MPAS-related workflows.
    ocean/coastline_alteration
    ocean/moc
    ocean/depth
+   ocean/streamfunction
+   ocean/visualization
 
 .. toctree::
    :caption: Sea-ice Tools

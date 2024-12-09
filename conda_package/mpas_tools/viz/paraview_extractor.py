@@ -94,6 +94,7 @@ from io import StringIO
 from progressbar import ProgressBar, Percentage, Bar, ETA
 from mpas_tools.conversion import mask, cull
 from mpas_tools.io import write_netcdf
+from mpas_tools.logging import check_call
 
 
 def extract_vtk(filename_pattern, variable_list='all', dimension_list=None,
@@ -2146,12 +2147,14 @@ def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
         print('Making a region mask file')
         ds_mask = mask(dsMesh=ds_mesh, fcMask=fc_region_mask, logger=logger,
                        dir=temp_dir)
-        write_netcdf(ds_mask, '{}/mask.nc'.format(temp_dir))
+        write_netcdf(ds_mask, f'{temp_dir}/mask.nc')
         print('Cropping mesh to region')
         out_mesh_filename = '{}/mesh.nc'.format(temp_dir)
-        ds_culled = cull(dsIn=ds_mesh, dsInverse=ds_mask, logger=logger,
-                         dir=temp_dir)
-        write_netcdf(ds_culled, out_mesh_filename)
+        args = ['MpasCellCuller.x',
+                mesh_filename,
+                out_mesh_filename,
+                '-i', f'{temp_dir}/mask.nc']
+        check_call(args=args, logger=logger)
 
         region_masks = dict()
         cell_mask = ds_mask.regionCellMasks.sum(dim='nRegions') > 0
@@ -2173,9 +2176,13 @@ def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
         bar = None
 
     out_time_file_names = []
+    already_culled = []
     for index, filename in enumerate(time_file_names):
-        out_filename = '{}/time_series{:04d}.nc'.format(temp_dir, index)
+        file_index = len(already_culled)
+        out_filename = f'{temp_dir}/time_series{file_index:04d}.nc'
         out_time_file_names.append(out_filename)
+        if filename in already_culled:
+            continue
         ds_in = xarray.open_dataset(filename)
         ds_out = xarray.Dataset()
         if xtime is None:
@@ -2188,6 +2195,7 @@ def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
                 if dim in ds_in[var].dims:
                     ds_out[var] = ds_in[var].where(region_masks[dim], drop=True)
         write_netcdf(ds_out, out_filename)
+        already_culled.append(filename)
         if use_progress_bar:
             bar.update(index+1)
     bar.finish()
@@ -2196,5 +2204,3 @@ def _cull_files(fc_region_mask, temp_dir, mesh_filename, time_file_names,
     handler.close()
 
     return out_mesh_filename, out_time_file_names
-
-# vim: set expandtab:

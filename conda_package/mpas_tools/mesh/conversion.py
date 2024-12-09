@@ -1,10 +1,12 @@
 import os
-import xarray
-import subprocess
-from tempfile import TemporaryDirectory
+import numpy as np
+import xarray as xr
+from tempfile import TemporaryDirectory, mkdtemp
 import shutil
 
+import mpas_tools.io
 from mpas_tools.io import write_netcdf
+from mpas_tools.logging import check_call
 
 
 def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
@@ -37,26 +39,26 @@ def convert(dsIn, graphInfoFileName=None, logger=None, dir=None):
     """
     if dir is not None:
         dir = os.path.abspath(dir)
-    with TemporaryDirectory(dir=dir) as tempdir:
-        inFileName = '{}/mesh_in.nc'.format(tempdir)
-        write_netcdf(dsIn, inFileName)
 
-        outFileName = '{}/mesh_out.nc'.format(tempdir)
+    tempdir = mkdtemp(dir=dir)
+    inFileName = '{}/mesh_in.nc'.format(tempdir)
+    write_netcdf(dsIn, inFileName)
 
-        if graphInfoFileName is not None:
-            graphInfoFileName = os.path.abspath(graphInfoFileName)
+    outFileName = '{}/mesh_out.nc'.format(tempdir)
 
-        outDir = os.path.dirname(outFileName)
+    if graphInfoFileName is not None:
+        graphInfoFileName = os.path.abspath(graphInfoFileName)
 
-        _call_subprocess(['MpasMeshConverter.x', inFileName, outFileName],
-                         logger)
-        
-        dsOut = xarray.open_dataset(outFileName)
-        dsOut.load()
+    outDir = os.path.dirname(outFileName)
 
-        if graphInfoFileName is not None:
-            shutil.copyfile('{}/graph.info'.format(outDir),
-                            graphInfoFileName)
+    check_call(['MpasMeshConverter.x', inFileName, outFileName], logger)
+
+    dsOut = xr.open_dataset(outFileName)
+    dsOut.load()
+
+    if graphInfoFileName is not None:
+        shutil.copyfile('{}/graph.info'.format(outDir),
+                        graphInfoFileName)
 
     return dsOut
 
@@ -108,58 +110,62 @@ def cull(dsIn, dsMask=None, dsInverse=None, dsPreserve=None,
     """
     if dir is not None:
         dir = os.path.abspath(dir)
-    with TemporaryDirectory(dir=dir) as tempdir:
-        inFileName = '{}/ds_in.nc'.format(tempdir)
-        write_netcdf(dsIn, inFileName)
-        outFileName = '{}/ds_out.nc'.format(tempdir)
+    tempdir = mkdtemp(dir=dir)
+    inFileName = '{}/ds_in.nc'.format(tempdir)
+    dsIn = _masks_to_int(dsIn)
+    write_netcdf(dsIn, inFileName)
+    outFileName = '{}/ds_out.nc'.format(tempdir)
 
-        args = ['MpasCellCuller.x', inFileName, outFileName]
+    args = ['MpasCellCuller.x', inFileName, outFileName]
 
-        if dsMask is not None:
-            if not isinstance(dsMask, list):
-                dsMask = [dsMask]
-            for index, ds in enumerate(dsMask):
-                fileName = '{}/mask{}.nc'.format(tempdir, index)
-                write_netcdf(ds, fileName)
-                args.extend(['-m', fileName])
+    if dsMask is not None:
+        if not isinstance(dsMask, list):
+            dsMask = [dsMask]
+        for index, ds in enumerate(dsMask):
+            ds = _masks_to_int(ds)
+            fileName = '{}/mask{}.nc'.format(tempdir, index)
+            write_netcdf(ds, fileName)
+            args.extend(['-m', fileName])
 
-        if dsInverse is not None:
-            if not isinstance(dsInverse, list):
-                dsInverse = [dsInverse]
-            for index, ds in enumerate(dsInverse):
-                fileName = '{}/inverse{}.nc'.format(tempdir, index)
-                write_netcdf(ds, fileName)
-                args.extend(['-i', fileName])
+    if dsInverse is not None:
+        if not isinstance(dsInverse, list):
+            dsInverse = [dsInverse]
+        for index, ds in enumerate(dsInverse):
+            ds = _masks_to_int(ds)
+            fileName = '{}/inverse{}.nc'.format(tempdir, index)
+            write_netcdf(ds, fileName)
+            args.extend(['-i', fileName])
 
-        if dsPreserve is not None:
-            if not isinstance(dsPreserve, list):
-                dsPreserve = [dsPreserve]
-            for index, ds in enumerate(dsPreserve):
-                fileName = '{}/preserve{}.nc'.format(tempdir, index)
-                write_netcdf(ds, fileName)
-                args.extend(['-p', fileName])
+    if dsPreserve is not None:
+        if not isinstance(dsPreserve, list):
+            dsPreserve = [dsPreserve]
+        for index, ds in enumerate(dsPreserve):
+            ds = _masks_to_int(ds)
+            fileName = '{}/preserve{}.nc'.format(tempdir, index)
+            write_netcdf(ds, fileName)
+            args.extend(['-p', fileName])
 
-        if graphInfoFileName is not None:
-            graphInfoFileName = os.path.abspath(graphInfoFileName)
+    if graphInfoFileName is not None:
+        graphInfoFileName = os.path.abspath(graphInfoFileName)
 
-        outDir = os.path.dirname(outFileName)
+    outDir = os.path.dirname(outFileName)
 
-        _call_subprocess(args, logger)
-        
-        dsOut = xarray.open_dataset(outFileName)
-        dsOut.load()
+    check_call(args=args, logger=logger)
 
-        if graphInfoFileName is not None:
-            shutil.copyfile('{}/culled_graph.info'.format(outDir),
-                            graphInfoFileName)
+    dsOut = xr.open_dataset(outFileName)
+    dsOut.load()
+
+    if graphInfoFileName is not None:
+        shutil.copyfile('{}/culled_graph.info'.format(outDir),
+                        graphInfoFileName)
 
     return dsOut
 
 
-def mask(dsMesh, fcMask=None, fcSeed=None, logger=None, dir=None):
+def mask(dsMesh, fcMask=None, logger=None, dir=None, cores=1):
     """
-    Use ``MpasMaskCreator.x`` to create a set of region masks either from
-    mask feature collections or from seed points to be used to flood fill
+    Use ``compute_mpas_region_masks`` to create a set of region masks either
+    from mask feature collections
 
     Parameters
     ----------
@@ -169,16 +175,15 @@ def mask(dsMesh, fcMask=None, fcSeed=None, logger=None, dir=None):
     fcMask : geometric_features.FeatureCollection, optional
         A feature collection containing features to use to create the mask
 
-    fcSeed : geometric_features.FeatureCollection, optional
-        A feature collection with points to use a seeds for a flood fill that
-        will create a mask of all cells connected to the seed points
-
     logger : logging.Logger, optional
         A logger for the output if not stdout
 
     dir : str, optional
         A directory in which a temporary directory will be added with files
         produced during mask creation and then deleted upon completion.
+
+    cores : int, optional
+        The number of cores to use for python multiprocessing
 
     Returns
     -------
@@ -189,48 +194,40 @@ def mask(dsMesh, fcMask=None, fcSeed=None, logger=None, dir=None):
     if dir is not None:
         dir = os.path.abspath(dir)
     with TemporaryDirectory(dir=dir) as tempdir:
-        inFileName = '{}/mesh_in.nc'.format(tempdir)
+        inFileName = f'{tempdir}/mesh_in.nc'
         write_netcdf(dsMesh, inFileName)
-        outFileName = '{}/mesh_out.nc'.format(tempdir)
+        outFileName = f'{tempdir}/mask_out.nc'
 
-        args = ['MpasMaskCreator.x', inFileName, outFileName]
+        geojsonFileName = f'{tempdir}/mask.geojson'
+        fcMask.to_geojson(geojsonFileName)
+        args = ['compute_mpas_region_masks',
+                '-m', inFileName,
+                '-o', outFileName,
+                '-g', geojsonFileName,
+                '-t', 'cell',
+                '--process_count', f'{cores}',
+                '--format', mpas_tools.io.default_format,
+                ]
+        if mpas_tools.io.default_engine is not None:
+            args.extend(['--engine', mpas_tools.io.default_engine])
 
-        if fcMask is not None:
-            fileName = '{}/mask.geojson'.format(tempdir)
-            fcMask.to_geojson(fileName)
-            args.extend(['-f', fileName])
+        check_call(args=args, logger=logger)
 
-        if fcSeed is not None:
-            fileName = '{}/seed.geojson'.format(tempdir)
-            fcSeed.to_geojson(fileName)
-            args.extend(['-s', fileName])
-
-        _call_subprocess(args, logger)
-
-        dsOut = xarray.open_dataset(outFileName)
+        dsOut = xr.open_dataset(outFileName)
         dsOut.load()
 
     return dsOut
 
 
-def _call_subprocess(args, logger):
-    """Call the given subprocess and send the output to the logger"""
-    if logger is None:
-        subprocess.check_call(args)
-    else:
-        process = subprocess.Popen(args, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
-        stdout, stderr = process.communicate()
+def _masks_to_int(dsIn):
+    """ Convert masks to int type required by the cell culler """
+    var_list = ['regionCellMasks', 'transectCellMasks', 'cullCell',
+                'cellSeedMask']
+    dsOut = xr.Dataset(dsIn, attrs=dsIn.attrs)
+    for var in var_list:
+        if var in dsIn:
+            print(var)
+            dsOut[var] = dsIn[var].astype(np.int32)
+            print(dsOut[var].dtype)
 
-        if stdout:
-            stdout = stdout.decode('utf-8')
-            for line in stdout.split('\n'):
-                logger.info(line)
-        if stderr:
-            stderr = stderr.decode('utf-8')
-            for line in stderr.split('\n'):
-                logger.error(line)
-
-        if process.returncode != 0:
-            raise subprocess.CalledProcessError(process.returncode,
-                                                ' '.join(args))
+    return dsOut

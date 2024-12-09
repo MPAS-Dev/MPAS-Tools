@@ -1,4 +1,4 @@
-.. _seaice_partitions:
+.. _seaice_partition:
 
 Graph partitioning
 ==================
@@ -6,8 +6,6 @@ Graph partitioning
 The :py:mod:`mpas_tools.seaice.partition` module contains a function for
 creating graph partition files for MPAS-Seaice that are better balanced than
 those created from Metis tools directly.
-
-.. _seaice_partitions_:
 
 Running from compass
 --------------------

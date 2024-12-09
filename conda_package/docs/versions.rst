@@ -33,6 +33,22 @@ Documentation    On GitHub
 `v0.18.0`_        `0.18.0`_
 `v0.19.0`_        `0.19.0`_
 `v0.20.0`_        `0.20.0`_
+`v0.21.0`_        `0.21.0`_
+`v0.22.0`_        `0.22.0`_
+`v0.23.0`_        `0.23.0`_
+`v0.24.0`_        `0.24.0`_
+`v0.25.0`_        `0.25.0`_
+`v0.26.0`_        `0.26.0`_
+`v0.27.0`_        `0.27.0`_
+`v0.28.0`_        `0.28.0`_
+`v0.29.0`_        `0.29.0`_
+`v0.30.0`_        `0.30.0`_
+`v0.31.0`_        `0.31.0`_
+`v0.32.0`_        `0.32.0`_
+`v0.33.0`_        `0.33.0`_
+`v0.34.0`_        `0.34.0`_
+`v0.34.1`_        `0.34.1`_
+`v0.35.0`_        `0.35.0`_
 ================ ===============
 
 .. _`stable`: ../stable/index.html
@@ -89,3 +105,35 @@ Documentation    On GitHub
 .. _`0.19.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.19.0
 .. _`v0.20.0`: ../0.20.0/index.html
 .. _`0.20.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.20.0
+.. _`v0.21.0`: ../0.21.0/index.html
+.. _`0.21.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.21.0
+.. _`v0.22.0`: ../0.22.0/index.html
+.. _`0.22.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.22.0
+.. _`v0.23.0`: ../0.23.0/index.html
+.. _`0.23.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.23.0
+.. _`v0.24.0`: ../0.24.0/index.html
+.. _`0.24.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.24.0
+.. _`v0.25.0`: ../0.25.0/index.html
+.. _`0.25.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.25.0
+.. _`v0.26.0`: ../0.26.0/index.html
+.. _`0.26.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.26.0
+.. _`v0.27.0`: ../0.27.0/index.html
+.. _`0.27.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.27.0
+.. _`v0.28.0`: ../0.28.0/index.html
+.. _`0.28.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.28.0
+.. _`v0.29.0`: ../0.29.0/index.html
+.. _`0.29.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.29.0
+.. _`v0.30.0`: ../0.30.0/index.html
+.. _`0.30.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.30.0
+.. _`v0.31.0`: ../0.31.0/index.html
+.. _`0.31.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.31.0
+.. _`v0.32.0`: ../0.32.0/index.html
+.. _`0.32.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.32.0
+.. _`v0.33.0`: ../0.33.0/index.html
+.. _`0.33.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.33.0
+.. _`v0.34.0`: ../0.34.0/index.html
+.. _`0.34.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.34.0
+.. _`v0.34.1`: ../0.34.1/index.html
+.. _`0.34.1`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.34.1
+.. _`v0.35.0`: ../0.35.0/index.html
+.. _`0.35.0`: https://github.com/MPAS-Dev/MPAS-Tools/tree/0.35.0

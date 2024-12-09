@@ -1,0 +1,132 @@
+Readme for mpas_mesh_converter.cpp and mpas_cell_culler.cpp
+
+Author: Doug Jacobsen <douglasj@lanl.gov>
+
+Purpose:
+    mpas_mesh_converter.cpp is a piece of software designed create an MPAS mesh.
+    As input, this software takes the locations of MPAS cell centers, and cell
+    vertices, along with the connectivity array cellsOnVertex. If provided, it
+    will also migrate data from the meshDensity field, if it's not present it
+    will write 1.0 for every cell.
+
+    mpas_cell_culler.cpp is a piece of software designed remove
+    cells/edge/vertices from an MPAS mesh.  As input, this software takes a
+    valid MPAS mesh with one additional field "cullCell". This new field should
+    be nCells integers. A 1 means the cell should be kept, and a 0 means the
+    cell should be removed.
+
+    mpas_mask_creator.cpp is a piece of software designed to create cell masks
+    from region definitions. Region definitions are defined in geojson files,
+    and can be created using the tools contained within the repository located
+    at:
+    https://github.com/MPAS-Dev/geometric_features
+    Masks have a value of 0 or 1, and are integers.
+
+Requirements:
+    mpas_mesh_converter.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
+    It also requires the tr1 headers for c++, specifically unordered_set.
+    It has been tested using g++ version 4.8.1
+
+    mpas_cell_culler.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
+    It has been tested using g++ version 4.8.1
+
+    mpas_mask_creator.cpp requires the c++ netcdf libraries to be able to read/write NetCDF files.
+    It has been tested using g++ version 4.8.1
+
+Usage of mpas_mesh_converter.cpp:
+    ./MpasMeshConverter.x [input_name] [output_name]
+
+    input_name:
+        The input_name should be the name of a NetCDF file containing the following information.
+            Dimensions:
+                nCells - The number of cells described in the file.
+                nVertices - The number of vertices described in the file.
+                vertexDegree - The maximum number of cells that surround each vertex.
+            Variables:
+                xCell -- The x location of every cell center.
+                yCell -- The y location of every cell center.
+                zCell -- The z location of every cell center.
+                xVertex -- The x location of every vertex (cell corner).
+                yVertex -- The y location of every vertex (cell corner).
+                zVertex -- The z location of every vertex (cell corner).
+                cellsOnVertex -- A list of cell indices that border each vertex (Dimensioned vertexDegree * nVertices).
+                                 This list can contain -1 values if the dual cell is not complete (e.g. a line rather than a triangle).
+                meshDensity -- (Optional) The value of the generating density function at each cell center.
+                               If this variable is ommitted, it is filled with 1.0 on output.
+            Global Attributes:
+                on_a_sphere -- Should be "YES" if the cells/vertices are defined on a sphere and "NO" if they are defined in a plane.
+                history -- (Optional) Should be defined to a string describing how the input file was generated.
+                mesh_id -- (Optional) Should be a 40 character string (Alpha-Numeric) that can be used to identify the mesh.
+                           If ommitted, a random string will be placed in the output file.
+    output_name:
+        The output_name should be the name of the NetCDF file that will be generated. It will be a valid MPAS mesh.
+        No initial conditions are placed in this file. If input_name is specified, output_name defaults to mesh.nc.
+
+
+Usage of mpas_cell_culler.cpp:
+    ./MpasCellCuller.x [input_name] [output_name] [[-m/-i] mask_file] [-c]
+
+    input_name:
+        The input name should be the name of a NetCDF file that is a fully valid MPAS file.
+        It is required to have all of the fields an output file from MpasMeshConverter.x contains.
+        There is one additional field:
+        cullCell -- (Optional) Should be dimensioned nCells. Should contain a 1 for all cells that should be removed
+                    and a 0 for all cells that should be kept.
+
+    output_name:
+        The output_name should be the name of the NetCDF file that will be generated. It will be the same as the input file,
+        with cells, edges, and vertices removed where appropriate. Also, the cullCell field will be removed.
+        If input_name is specified, outputname defaults to culled_mesh.nc.
+
+    -m/-i:
+        These flags allow the addition of a masks file to be used to define
+        cells that should be culled.
+        If the -m flag is used, the masks file is used to cull the mesh.
+        Meaning, where any mask in the masks file is 1, the mesh will be
+        culled.
+        If the -i flag is used, the inverse of the masks file is used to cull
+        the mesh. Meaning where all masks in the masks file are 0, the mesh
+        will be culled.
+
+    mask_file:
+        The mask_file argument should be the name of a NetCDF file containing
+        the regionCellMasks field, which defines masks for culling cells.
+
+    -c:
+        Output the mapping from old to new mesh (cellMap) in cellMapForward.txt,
+        and output the reverse mapping from new to old mesh in cellMapBackward.txt.
+
+Usage of mpas_mask_creator.cpp:
+    ./MpasMaskCreator.x [input_mesh] [output_masks] [feature_group1] [feature_group2] ... [feature_groupN]
+
+    input_name:
+        The input name should be the path to a NetCDF file that is a fully valid MPAS file.
+
+    output_masks:
+        The output masks should be the path to a NetCDF file that will be
+        generated. It will contain all of the mask information after applying
+        the region specifications to the input name mesh file.
+
+    feature_groupN:
+        After the output masks argument, the mask creator can take an arbitrary
+        number of feature files. The mask creator assumes each file is a group
+        of features (regions, transects, point data, etc.). Each file must be
+        formatted as geojson, and the name of each group should be contained
+        within the file.
+
+        The mask creator assumes the latitude and longitude contained within
+        each geojson file are given in degrees, and that the latitude ranges
+        from -90 to 90, while the longitude ranges from -180 to 180.
+
+Notes for mpas_mesh_converter.cpp:
+    - The output mesh should have an attribute "mesh_spec" which defined which
+        version of the MPAS Mesh Specification this mesh conforms to.
+    - Cells that are not complete (e.g. are not surrounded by vertices) will be
+        given a negative area.
+    - Negative area cells can be removed at a later state to remove non-complete
+        cells.
+
+
+Notes for mpas_cell_culler.cpp:
+    - Cells that contain negative area will be removed in addition to all cells that have
+        a cullCell value of 1.

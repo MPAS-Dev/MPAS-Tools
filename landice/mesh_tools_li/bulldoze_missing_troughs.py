@@ -70,9 +70,9 @@ def smoothTrough(WCT, p1, p2, minWCT, maxWCT):
     WCTnew = WCT.copy()
 
     # find representative dCell for this area
-    ind = np.nonzero( (xEdge>p1[0]) * (xEdge<p2[0]) * (yEdge>p1[1]) * (yEdge<p1[2]) )[0]
+    ind = np.nonzero( (xEdge>p1[0]) * (xEdge<p2[0]) * (yEdge>p1[1]) * (yEdge<p2[1]) )[0]
     dCell = dcEdge[ind].mean()
-    print(f"using dCell={dCell}")
+    print(f"using dCell={dCell} averaged from {len(ind)} cells")
 
     mask = (WCT<maxWCT) * (floatMask==1) * (xCell>(p1[0]-2*dCell)) * (xCell<(p2[0]+2*dCell)) * (yCell>(p1[1]-2*dCell)) * (yCell<(p2[1]+2*dCell))
     ind = np.nonzero(mask==1)[0]
@@ -89,7 +89,7 @@ def smoothTrough(WCT, p1, p2, minWCT, maxWCT):
         dist2centerline = np.absolute(m1*xCell[ind2] + -1*yCell[ind2] + b1) / (m1**2 + (-1)**2)**0.5
         #dist2centerline = np.absolute( (p2[0]-p1[0]) * (p1[1] - yCell[ind2]) - (p1[0]-xCell[ind2])*(p2[1]-p1[1])) / ( (p2[0]-p1[0])**2 + (p2[1]-p1[1])**2)**0.5
         dist2centerline *= np.sign((m1*xCell[ind2]+b1) - yCell[ind2]) # make signed distance, assuming NE direction
-        print(dist2centerline)
+        #print(dist2centerline)
         width = dist2centerline.max()-dist2centerline.min()
 
         # find frac x along center line
@@ -102,7 +102,7 @@ def smoothTrough(WCT, p1, p2, minWCT, maxWCT):
         widthEndIdx = ind2[np.argmax(dist2centerline)] #idx of westmost
         widthEnd = (xCell[widthEndIdx], yCell[widthEndIdx]) # position of westmost
         widthMidpt = ((widthOrgn[0]+widthEnd[0])/2.0, (widthOrgn[1]+widthEnd[1])/2.0)
-        print(xCell[c], yCell[c], widthOrgn)
+        #print(xCell[c], yCell[c], widthOrgn)
         #dist2Orgn = ((widthOrgn[0]-xCell[c])**2 + (widthOrgn[1]-yCell[c])**2)**0.5
         #fracWidth = (dist2Orgn  / (width) - 0.5) * 2.0 # [-1,1] range
         dist2Mid = ((widthMidpt[0]-xCell[c])**2 + (widthMidpt[1]-yCell[c])**2)**0.5
@@ -117,8 +117,8 @@ def smoothTrough(WCT, p1, p2, minWCT, maxWCT):
 
 
 # Define maximum and minimum water column thickness along tough centerline
-maxWCT = 300.0
-minWCT = 50.0
+maxWCT = 400.0
+minWCT = 75.0
 
 # Specify start and end x/y coordinates for each trough to be bulldozed
 WCTnew = WCT.copy()

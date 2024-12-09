@@ -39,7 +39,7 @@ gamma0 = 14500.0 # MeanAnt
 # Increments of 0.05 seems than fine enough to get a smooth function for interpolating, but use larger increments
 # when testing for faster execution.
 #dTs = np.arange(-1.5, 2.0, 0.25)  # MeanAnt - coarse spacing for rapid testing
-dTs = np.arange(-1.0 1.5, 0.05)  # MeanAnt - fine spacing for accurate calculation
+dTs = np.arange(-1.0, 1.5, 0.05)  # MeanAnt - fine spacing for accurate calculation
 #dTs = np.arange(-1.5, 0.0, 0.05)  # PIGL
 # -----------------------
 
