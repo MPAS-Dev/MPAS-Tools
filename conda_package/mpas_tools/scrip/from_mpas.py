@@ -1,12 +1,12 @@
 # Create a SCRIP file from an MPAS mesh.
 # See for details: http://www.earthsystemmodeling.org/esmf_releases/public/ESMF_5_2_0rp1/ESMF_refdoc/node3.html#SECTION03024000000000000000
 
-import sys
 import netCDF4
 import numpy as np
 
 from optparse import OptionParser
 from mpas_tools.cime.constants import constants
+
 
 def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
     """
@@ -49,15 +49,15 @@ def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
 
     # check the longitude convention to use positive values [0 2pi]
     if np.any(np.logical_or(lonCell < 0, lonCell > 2.0 * np.pi)):
-       raise ValueError("lonCell is not in the desired range (0, 2pi)")
+        raise ValueError("lonCell is not in the desired range (0, 2pi)")
 
     if np.any(np.logical_or(lonVertex < 0, lonVertex > 2.0 * np.pi)):
-       raise ValueError("lonVertex is not in the desired range (0, 2pi)")
+        raise ValueError("lonVertex is not in the desired range (0, 2pi)")
 
     if sphereRadius <= 0:
-       sphereRadius =  constants['SHR_CONST_REARTH']
-       print(f" -- WARNING: sphereRadius<0 so setting sphereRadius = "
-             f"{constants['SHR_CONST_REARTH']}")
+        sphereRadius = constants['SHR_CONST_REARTH']
+        print(f" -- WARNING: sphereRadius<0 so setting sphereRadius = "
+              f"{constants['SHR_CONST_REARTH']}")
 
     if on_a_sphere == "NO":
         print(" -- WARNING: 'on_a_sphere' attribute is 'NO', which means that "
@@ -144,8 +144,8 @@ def scrip_from_mpas(mpasFile, scripFile, useLandIceMask=False):
 
 
 def main():
-    print("== Gathering information.  (Invoke with --help for more details. All"
-          " arguments are optional)")
+    print("== Gathering information.  (Invoke with --help for more details. "
+          "All arguments are optional)")
     parser = OptionParser()
     parser.description = "This script takes an MPAS grid file and generates " \
                          "a SCRIP grid file."
@@ -165,11 +165,11 @@ def main():
     options, args = parser.parse_args()
 
     if not options.mpasFile:
-        sys.exit('Error: MPAS input grid file is required.  Specify with -m '
-                 'command line argument.')
+        raise ValueError('MPAS input grid file is required.  Specify with -m '
+                         'command line argument.')
     if not options.scripFile:
-        sys.exit('Error: SCRIP output grid file is required.  Specify with -s '
-                 'command line argument.')
+        raise ValueError('SCRIP output grid file is required.  Specify with '
+                         '-s command line argument.')
 
     if not options.landiceMasks:
         options.landiceMasks = False
