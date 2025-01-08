@@ -3,13 +3,11 @@
 set -x
 set -e
 
-cp -r ocean landice visualization mesh_tools conda_package
-
 cd conda_package
 ${PYTHON} -m pip install . --no-deps --no-build-isolation -vv
 
 # build and install ocean topography smoothing tool
-cd ${SRC_DIR}/conda_package/ocean/smooth_topo
+cd ${SRC_DIR}/ocean/smooth_topo
 mkdir build
 cd build
 cmake \
@@ -20,7 +18,7 @@ cmake --build .
 cmake --install .
 
 # build and install sea ice partitioning tool
-cd ${SRC_DIR}/conda_package/mesh_tools/seaice_grid_tools
+cd ${SRC_DIR}/mesh_tools/seaice_grid_tools
 mkdir build
 cd build
 cmake \
@@ -31,7 +29,7 @@ cmake --build .
 cmake --install .
 
 # build and install legacy mask creator
-cd ${SRC_DIR}/conda_package/mesh_tools/mesh_conversion_tools
+cd ${SRC_DIR}/mesh_tools/mesh_conversion_tools
 mkdir build
 cd build
 cmake \
@@ -42,7 +40,7 @@ cmake --build .
 cp MpasMaskCreator.x ${PREFIX}/bin
 
 # build and install mesh conversion tools
-cd ${SRC_DIR}/conda_package/mesh_tools/mesh_conversion_tools_netcdf_c
+cd ${SRC_DIR}/mesh_tools/mesh_conversion_tools_netcdf_c
 mkdir build
 cd build
 cmake \
