@@ -86,17 +86,17 @@ test:
     - planar_hex --nx=30 --ny=20 --dc=1000. --npx --npy --outFileName='nonperiodic_mesh_30x20_1km.nc'
     - MpasCellCuller.x nonperiodic_mesh_30x20_1km.nc culled_nonperiodic_mesh_30x20_1km.nc
     - python -m pytest conda_package/mpas_tools/tests
-    - mark_horns_for_culling.py --help
-    - set_lat_lon_fields_in_planar_grid.py --help
-    - create_SCRIP_file_from_MPAS_mesh.py --help
-    - create_SCRIP_file_from_planar_rectangular_grid.py --help
+    - mark_horns_for_culling --help
+    - set_lat_lon_fields_in_planar_grid --help
+    - create_scrip_file_from_mpas_mesh --help
+    - create_scrip_file_from_planar_rectangular_grid --help
     - prepare_seaice_partitions --help
     - create_seaice_partitions --help
     - fix_regrid_output.exe
-    - create_landice_grid_from_generic_MPAS_grid.py --help
-    - define_cullMask.py --help
-    - interpolate_to_mpasli_grid.py --help
-    - mark_domain_boundaries_dirichlet.py --help
+    - create_landice_grid_from_generic_mpas_grid --help
+    - define_landice_cull_mask --help
+    - interpolate_to_mpasli_grid --help
+    - mark_domain_boundaries_dirichlet --help
     - add_critical_land_blockages_to_mask --help
     - add_land_locked_cells_to_mask --help
     - widen_transect_edge_masks --help
