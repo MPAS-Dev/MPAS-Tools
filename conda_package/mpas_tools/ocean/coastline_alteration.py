@@ -1,5 +1,4 @@
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+import argparse
 
 import numpy
 import xarray
@@ -35,10 +34,38 @@ def add_critical_land_blockages(dsMask, dsBlockages):
     return dsMask
 
 
+def main_add_critical_land_blockages():
+    """
+    Entry point for add_critical_land_blockages command-line tool
+    """
+    parser = \
+        argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-f", "--input_mask_file", dest="input_mask_filename",
+                        help="Mask file that includes cell and edge masks.",
+                        metavar="INPUTMASKFILE", required=True)
+    parser.add_argument("-o", "--output_mask_file",
+                        dest="output_mask_filename",
+                        help="Mask file that includes cell and edge masks.",
+                        metavar="OUTPUTMASKFILE", required=True)
+    parser.add_argument("-b", "--blockage_file", dest="blockage_file",
+                        help="Masks for each transect identifying critical "
+                             "land blockage.", metavar="BLOCKFILE",
+                        required=True)
+    args = parser.parse_args()
+
+    dsMask = xarray.open_dataset(args.input_mask_filename)
+
+    dsBlockages = xarray.open_dataset(args.blockage_file)
+
+    dsMask = add_critical_land_blockages(dsMask, dsBlockages)
+    dsMask.to_netcdf(args.output_mask_filename)
+
+
 def widen_transect_edge_masks(dsMask, dsMesh, latitude_threshold=43.0):
     """
-    Alter critical passages at polar latitudes to be at least two cells wide, to
-    avoid sea ice blockage
+    Alter critical passages at polar latitudes to be at least two cells wide,
+    to avoid sea ice blockage
 
     Parameters
     ----------
@@ -76,6 +103,39 @@ def widen_transect_edge_masks(dsMask, dsMesh, latitude_threshold=43.0):
             numpy.logical_not(mask), 1).astype(int)
 
     return dsMask
+
+
+def main_widen_transect_edge_masks():
+    """
+    Entry point for widen_transect_edge_masks command-line tool
+    """
+    parser = \
+        argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-f", "--mask_file", dest="mask_filename",
+                        help="Mask file with cell and edge transect masks.",
+                        metavar="MASKFILE",
+                        required=True)
+    parser.add_argument("-m", "--mesh_file", dest="mesh_filename",
+                        help="MPAS Mesh filename.", metavar="MESHFILE",
+                        required=True)
+    parser.add_argument("-o", "--out_file", dest="out_filename",
+                        help="Output mask file,different from input filename.",
+                        metavar="MASKFILE",
+                        required=True)
+    parser.add_argument("-l", "--latitude_threshold",
+                        dest="latitude_threshold",
+                        help="Minimum latitude, degrees, for transect "
+                             "widening.",
+                        required=False, type=float, default=43.0)
+    args = parser.parse_args()
+
+    dsMask = xarray.open_dataset(args.mask_filename)
+
+    dsMesh = xarray.open_dataset(args.mesh_filename)
+
+    dsMask = widen_transect_edge_masks(dsMask, dsMesh, args.latitude_threshold)
+    dsMask.to_netcdf(args.out_filename)
 
 
 def add_land_locked_cells_to_mask(dsMask, dsMesh, latitude_threshold=43.0,
@@ -141,6 +201,44 @@ def add_land_locked_cells_to_mask(dsMask, dsMesh, latitude_threshold=43.0,
         dsMask, dsMesh, oceanMask, landMask, removable, nSweeps)
 
     return dsMask
+
+
+def main_add_land_locked_cells_to_mask():
+    """
+    Entry point for add_land_locked_cells_to_mask command-line tool
+    """
+    parser = \
+        argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("-f", "--input_mask_file", dest="input_mask_filename",
+                        help="Mask file that includes cell and edge masks.",
+                        metavar="INPUTMASKFILE", required=True)
+    parser.add_argument("-o", "--output_mask_file",
+                        dest="output_mask_filename",
+                        help="Mask file that includes cell and edge masks.",
+                        metavar="OUTPUTMASKFILE", required=True)
+    parser.add_argument("-m", "--mesh_file", dest="mesh_filename",
+                        help="MPAS Mesh filename.", metavar="MESHFILE",
+                        required=True)
+    parser.add_argument("-l", "--latitude_threshold",
+                        dest="latitude_threshold",
+                        help="Minimum latitude, in degrees, for transect "
+                             "widening.",
+                        required=False, type=float, default=43.0)
+    parser.add_argument("-n", "--number_sweeps", dest="nSweeps",
+                        help="Maximum number of sweeps to search for "
+                             "land-locked cells.",
+                        required=False, type=int, default=10)
+    args = parser.parse_args()
+
+    dsMask = xarray.open_dataset(args.input_mask_filename)
+
+    dsMesh = xarray.open_dataset(args.mesh_filename)
+
+    dsMask = add_land_locked_cells_to_mask(dsMask, dsMesh,
+                                           args.latitude_threshold,
+                                           args.nSweeps)
+    dsMask.to_netcdf(args.output_mask_filename)
 
 
 def _remove_cells_with_isolated_edges1(dsMask, dsMesh, landMask,
@@ -307,7 +405,7 @@ def _flood_fill(dsMask, dsMesh, landMask, removable):
             filledNeighbors = numpy.logical_and(neighbors >= 0,
                                                 floodFill[neighbors] == 1)
             fillIndices = cellIndices[filledNeighbors.values]
-            if(len(fillIndices) > 0):
+            if len(fillIndices) > 0:
                 floodFill[fillIndices] = 1
                 newFloodCellsThisSweep += len(fillIndices)
 
