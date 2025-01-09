@@ -33,7 +33,7 @@ version = re.search(r'{}\s*=\s*[(]([^)]*)[)]'.format('__version_info__'),
 
 os.chdir(here)
 
-for path in ['ocean', 'landice', 'visualization', 'mesh_tools']:
+for path in ['landice', 'mesh_tools']:
     destPath = './{}'.format(path)
     if os.path.exists(destPath):
         shutil.rmtree(destPath)
@@ -71,12 +71,7 @@ setup(name='mpas_tools',
                'landice/mesh_tools_li/create_landice_grid_from_generic_MPAS_grid.py',
                'landice/mesh_tools_li/define_cullMask.py',
                'landice/mesh_tools_li/interpolate_to_mpasli_grid.py',
-               'landice/mesh_tools_li/mark_domain_boundaries_dirichlet.py',
-               'ocean/coastline_alteration/add_land_locked_cells_to_mask.py',
-               'ocean/coastline_alteration/widen_transect_edge_masks.py',
-               'ocean/coastline_alteration/add_critical_land_blockages_to_mask.py',
-               'ocean/moc_southern_boundary_extractor/moc_southern_boundary_extractor.py',
-               'visualization/paraview_vtk_field_extractor/paraview_vtk_field_extractor.py'],
+               'landice/mesh_tools_li/mark_domain_boundaries_dirichlet.py'],
       install_requires=install_requires,
       entry_points={'console_scripts':
                     ['planar_hex = mpas_tools.planar_hex:main',
@@ -102,4 +97,11 @@ setup(name='mpas_tools',
                      'prepare_seaice_partitions = mpas_tools.seaice.partition:prepare_partitions',
                      'create_seaice_partitions = mpas_tools.seaice.partition:create_partitions',
                      'simple_seaice_partitions = mpas_tools.seaice.partition:simple_partitions',
-                     'vector_reconstruct = mpas_tools.vector.reconstruct:main']})
+                     'vector_reconstruct = mpas_tools.vector.reconstruct:main',
+                     'add_critical_land_blockages_to_mask = mpas_tools.ocean.coastline_alteration:main_add_critical_land_blockages',
+                     'add_land_locked_cells_to_mask = mpas_tools.ocean.coastline_alteration:main_add_land_locked_cells_to_mask',
+                     'widen_transect_edge_masks = mpas_tools.ocean.coastline_alteration:main_widen_transect_edge_masks',
+                     'moc_southern_boundary_extractor = mpas_tools.ocean.moc:moc_southern_boundary_extractor',
+                     'paraview_vtk_field_extractor = mpas_tools.viz.paraview_extractor:main',
+          ]
+      })
