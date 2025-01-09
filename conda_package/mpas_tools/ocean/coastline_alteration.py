@@ -38,8 +38,13 @@ def main_add_critical_land_blockages():
     """
     Entry point for add_critical_land_blockages command-line tool
     """
+    description = """
+Add transects that identify critical regions where narrow strips of land block
+ocean flow.  These are, essentially, the opposite of critical passages, which
+must remain open for ocean flow.
+"""
     parser = \
-        argparse.ArgumentParser(description=__doc__,
+        argparse.ArgumentParser(description=description,
                                 formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("-f", "--input_mask_file", dest="input_mask_filename",
                         help="Mask file that includes cell and edge masks.",
@@ -109,8 +114,13 @@ def main_widen_transect_edge_masks():
     """
     Entry point for widen_transect_edge_masks command-line tool
     """
+    description = """
+Alter transects to be at least two cells wide.  This is used for critical
+passages, to avoid sea ice blockage.  Specifically, mark cells on both sides
+of each transect edge mask as a water cell.
+"""
     parser = \
-        argparse.ArgumentParser(description=__doc__,
+        argparse.ArgumentParser(description=description,
                                 formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("-f", "--mask_file", dest="mask_filename",
                         help="Mask file with cell and edge transect masks.",
@@ -207,8 +217,12 @@ def main_add_land_locked_cells_to_mask():
     """
     Entry point for add_land_locked_cells_to_mask command-line tool
     """
+    description = """
+Find ocean cells that are land-locked, and alter the cell
+mask so that they are counted as land cells.
+"""
     parser = \
-        argparse.ArgumentParser(description=__doc__,
+        argparse.ArgumentParser(description=description,
                                 formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument("-f", "--input_mask_file", dest="input_mask_filename",
                         help="Mask file that includes cell and edge masks.",
