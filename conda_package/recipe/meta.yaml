@@ -97,14 +97,14 @@ test:
     - define_landice_cull_mask --help
     - interpolate_to_mpasli_grid --help
     - mark_domain_boundaries_dirichlet --help
-    - add_land_locked_cells_to_mask.py --help
-    - widen_transect_edge_masks.py --help
-    - add_critical_land_blockages_to_mask.py --help
-    - moc_southern_boundary_extractor.py --help
+    - add_critical_land_blockages_to_mask --help
+    - add_land_locked_cells_to_mask --help
+    - widen_transect_edge_masks --help
+    - moc_southern_boundary_extractor --help
     - ocean_add_depth --help
     - ocean_add_zmid --help
     - ocean_write_time_varying_zmid --help
-    - paraview_vtk_field_extractor.py -f mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc -v latCell,lonCell --ignore_time -o vtk_test
+    - paraview_vtk_field_extractor -f mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc -v latCell,lonCell --ignore_time -o vtk_test
     - split_grids --help
     - merge_grids --help
     - inject_bathymetry mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc

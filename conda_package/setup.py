@@ -31,14 +31,6 @@ with open(os.path.join(here, 'mpas_tools', '__init__.py')) as f:
 version = re.search(r'{}\s*=\s*[(]([^)]*)[)]'.format('__version_info__'),
                     init_file).group(1).replace(', ', '.')
 
-os.chdir(here)
-
-for path in ['ocean', 'visualization']:
-    destPath = './{}'.format(path)
-    if os.path.exists(destPath):
-        shutil.rmtree(destPath)
-    shutil.copytree('../{}'.format(path), destPath)
-
 setup(name='mpas_tools',
       version=version,
       description='A set of tools for creating and manipulating meshes for the'
@@ -64,11 +56,6 @@ setup(name='mpas_tools',
       ],
       packages=find_packages(include=['mpas_tools', 'mpas_tools.*']),
       package_data={'mpas_tools.viz': ['SciVisColorColormaps/*.xml']},
-      scripts=['ocean/coastline_alteration/add_land_locked_cells_to_mask.py',
-               'ocean/coastline_alteration/widen_transect_edge_masks.py',
-               'ocean/coastline_alteration/add_critical_land_blockages_to_mask.py',
-               'ocean/moc_southern_boundary_extractor/moc_southern_boundary_extractor.py',
-               'visualization/paraview_vtk_field_extractor/paraview_vtk_field_extractor.py'],
       install_requires=install_requires,
       entry_points={
           'console_scripts': [
@@ -104,5 +91,10 @@ setup(name='mpas_tools',
               'define_landice_cull_mask = mpas_tools.landice.cull:define_cull_mask',
               'interpolate_to_mpasli_grid = mpas_tools.landice.interpolate:interpolate_to_mpasli_grid',
               'mark_domain_boundaries_dirichlet = mpas_tools.landice.boundary:mark_domain_boundaries_dirichlet',
+              'add_critical_land_blockages_to_mask = mpas_tools.ocean.coastline_alteration:main_add_critical_land_blockages',
+              'add_land_locked_cells_to_mask = mpas_tools.ocean.coastline_alteration:main_add_land_locked_cells_to_mask',
+              'widen_transect_edge_masks = mpas_tools.ocean.coastline_alteration:main_widen_transect_edge_masks',
+              'moc_southern_boundary_extractor = mpas_tools.ocean.moc:moc_southern_boundary_extractor',
+              'paraview_vtk_field_extractor = mpas_tools.viz.paraview_extractor:main',
           ]
       })
