@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.ocean.moc &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,22 +117,22 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.ocean.moc</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
-<span class="kn">import</span> <span class="nn">xarray</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">geometric_features.aggregation.ocean</span> <span class="kn">import</span> <span class="n">moc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features.aggregation.ocean</span><span class="w"> </span><span class="kn">import</span> <span class="n">moc</span>
 
-<span class="kn">import</span> <span class="nn">mpas_tools.mesh.conversion</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">mpas_tools.mesh.conversion</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
 
 
 <div class="viewcode-block" id="make_moc_basins_and_transects">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.moc.make_moc_basins_and_transects.html#mpas_tools.ocean.moc.make_moc_basins_and_transects">[docs]</a>
-<span class="k">def</span> <span class="nf">make_moc_basins_and_transects</span><span class="p">(</span><span class="n">gf</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_moc_basins_and_transects</span><span class="p">(</span><span class="n">gf</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">,</span>
                                   <span class="n">mask_and_transect_filename</span><span class="p">,</span>
                                   <span class="n">geojson_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                   <span class="n">mask_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -196,7 +196,7 @@
 
 <div class="viewcode-block" id="add_moc_southern_boundary_transects">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html#mpas_tools.ocean.moc.add_moc_southern_boundary_transects">[docs]</a>
-<span class="k">def</span> <span class="nf">add_moc_southern_boundary_transects</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_moc_southern_boundary_transects</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -238,7 +238,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_extract_southern_boundary</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mocMask</span><span class="p">,</span> <span class="n">latBuffer</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_extract_southern_boundary</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mocMask</span><span class="p">,</span> <span class="n">latBuffer</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Extracts the southern boundary of each region mask in mocMask.  Mesh info</span>
 <span class="sd">    is taken from mesh.  latBuffer is a number of radians above the southern-</span>
@@ -356,7 +356,7 @@
         <span class="n">southernBoundaryVertices</span>
 
 
-<span class="k">def</span> <span class="nf">_add_transects_to_moc</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mocMask</span><span class="p">,</span> <span class="n">southernBoundaryEdges</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_transects_to_moc</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mocMask</span><span class="p">,</span> <span class="n">southernBoundaryEdges</span><span class="p">,</span>
                           <span class="n">southernBoiundaryEdgeSigns</span><span class="p">,</span> <span class="n">southernBoundaryVertices</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates transect fields in mocMask from the edges, edge signs and</span>
@@ -460,7 +460,7 @@
         <span class="p">{</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransectGroups&#39;</span><span class="p">})</span>
 
 
-<span class="k">def</span> <span class="nf">_get_edge_sequence_on_boundary</span><span class="p">(</span><span class="n">startEdge</span><span class="p">,</span> <span class="n">edgeSign</span><span class="p">,</span> <span class="n">edgesOnVertex</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_edge_sequence_on_boundary</span><span class="p">(</span><span class="n">startEdge</span><span class="p">,</span> <span class="n">edgeSign</span><span class="p">,</span> <span class="n">edgesOnVertex</span><span class="p">,</span>
                                    <span class="n">verticesOnEdge</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Follows the boundary from a starting edge to produce a sequence of</span>
@@ -518,7 +518,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

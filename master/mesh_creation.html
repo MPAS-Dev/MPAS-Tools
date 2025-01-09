@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mesh Creation &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -146,7 +146,7 @@ command-line tool <code class="docutils literal notranslate"><span class="pre">p
 of hexagons that may optionally be periodic in either or both of the x and
 y directions.  A typical call to <code class="docutils literal notranslate"><span class="pre">make_planar_hex_mesh()</span></code> might look like
 the following:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.planar_hex</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
 
 <span class="n">dsMesh</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -166,8 +166,8 @@ you want a mesh that is not periodic in one or both directions, you first need
 to create a mesh and then cull the cells along the periodic boundary.  It
 doesn’t hurt to run the mesh converter as well, just to be sure the mesh
 conforms correctly to the MPAS mesh specification:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.conversion</span> <span class="kn">import</span> <span class="n">cull</span><span class="p">,</span> <span class="n">convert</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.planar_hex</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.conversion</span><span class="w"> </span><span class="kn">import</span> <span class="n">cull</span><span class="p">,</span> <span class="n">convert</span>
 
 <span class="n">dsMesh</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -205,11 +205,11 @@ several intermediate files: <code class="docutils literal notranslate"><span cla
 <p>Here is a simple example script for creating a uniform MPAS mesh with 240-km
 resolution:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.ocean</span> <span class="kn">import</span> <span class="n">build_spherical_mesh</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_spherical_mesh</span>
 
 
-<span class="k">def</span> <span class="nf">cellWidthVsLatLon</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cellWidthVsLatLon</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create cell width array for this mesh on a regular latitude-longitude grid.</span>
 <span class="sd">    Returns</span>
@@ -235,7 +235,7 @@ resolution:</p>
     <span class="k">return</span> <span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span>
 
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">cellWidthVsLatLon</span><span class="p">()</span>
     <span class="n">build_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">)</span>
 
@@ -284,8 +284,8 @@ transition latitude with a <code class="docutils literal notranslate"><span clas
 <p>For example, the following code snippet will produce cell widths as a function
 of latitude of about 30 km south of the Arctic Circle and 10 km north of that
 latitude, transitioning over a characteristic “distance” of about 5 degrees.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.mesh_definition_tools</span> <span class="kn">import</span> \
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation.mesh_definition_tools</span><span class="w"> </span><span class="kn">import</span> \
     <span class="n">mergeCellWidthVsLat</span>
 
 
@@ -318,8 +318,8 @@ made at 40 degrees N/S latitude, where the resolution is nearly constant and no
 appreciable discontinuity arises.  The default EC mesh can be obtained with the
 function
 <a class="reference internal" href="generated/mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat" title="mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat()</span></code></a>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.mesh_definition_tools</span> <span class="kn">import</span> \
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation.mesh_definition_tools</span><span class="w"> </span><span class="kn">import</span> \
     <span class="n">EC_CellWidthVsLat</span>
 
 <span class="n">lat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">90.</span><span class="p">,</span> <span class="mf">90.</span><span class="p">,</span> <span class="mi">181</span><span class="p">)</span>
@@ -338,8 +338,8 @@ three times finer than the resolution at the equator.  For example, the RRS mesh
 used in E3SMv1 high resolution simulations would be defined, using the function
 <a class="reference internal" href="generated/mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat" title="mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat()</span></code></a>
 by:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.mesh_definition_tools</span> <span class="kn">import</span> \
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation.mesh_definition_tools</span><span class="w"> </span><span class="kn">import</span> \
     <span class="n">RRS_CellWidthVsLat</span>
 
 <span class="n">lat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">90.</span><span class="p">,</span> <span class="mf">90.</span><span class="p">,</span> <span class="mi">181</span><span class="p">)</span>
@@ -384,12 +384,12 @@ to create a signed distance function from a <code class="docutils literal notran
 <a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Model/blob/ocean/develop/testing_and_setup/compass/ocean/global_ocean/SO60to10wISC/init/high_res_region.geojson">this geojson file</a>.
 The signed distance function is used to define a region of high resolution (12
 km) around Antarctica.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">mpas_tools.mesh.creation.mesh_definition_tools</span> <span class="k">as</span> <span class="nn">mdt</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.signed_distance</span> <span class="kn">import</span> \
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation.mesh_definition_tools</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mdt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation.signed_distance</span><span class="w"> </span><span class="kn">import</span> \
     <span class="n">signed_distance_from_geojson</span>
-<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">read_feature_collection</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_feature_collection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.cime.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 
 
 <span class="n">dlon</span> <span class="o">=</span> <span class="mf">0.1</span>
@@ -435,18 +435,18 @@ relatively complicated example where the highest resolution (1/100 degree) of
 the lon/lat grid is concentrated within +/- 10 degrees of 0 degrees longitude
 and 0 degrees latitude and the resolution is ~2 degrees elsewhere.  The shape
 <code class="docutils literal notranslate"><span class="pre">test.geojson</span></code> is given below, and is in the high-res region:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
-<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">read_feature_collection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_feature_collection</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.signed_distance</span> <span class="kn">import</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.cime.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation.signed_distance</span><span class="w"> </span><span class="kn">import</span> \
     <span class="n">distance_from_geojson</span><span class="p">,</span> <span class="n">mask_from_geojson</span><span class="p">,</span> <span class="n">signed_distance_from_geojson</span>
 
 
-<span class="k">def</span> <span class="nf">gaussian</span><span class="p">(</span><span class="n">dcoarse</span><span class="p">,</span> <span class="n">dfine</span><span class="p">,</span> <span class="n">cmin</span><span class="p">,</span> <span class="n">cmax</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">iter_count</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">get_res</span><span class="p">(</span><span class="n">xval</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">gaussian</span><span class="p">(</span><span class="n">dcoarse</span><span class="p">,</span> <span class="n">dfine</span><span class="p">,</span> <span class="n">cmin</span><span class="p">,</span> <span class="n">cmax</span><span class="p">,</span> <span class="n">center</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">iter_count</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_res</span><span class="p">(</span><span class="n">xval</span><span class="p">):</span>
         <span class="n">res</span> <span class="o">=</span> <span class="n">dcoarse</span> <span class="o">+</span> \
             <span class="p">(</span><span class="n">dfine</span> <span class="o">-</span> <span class="n">dcoarse</span><span class="p">)</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">xval</span> <span class="o">-</span> <span class="n">center</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span>
                                           <span class="p">(</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">width</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
@@ -466,7 +466,7 @@ and 0 degrees latitude and the resolution is ~2 degrees elsewhere.  The shape
     <span class="k">return</span> <span class="n">x</span>
 
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="n">dcoarse</span> <span class="o">=</span> <span class="mf">2.</span>
     <span class="n">dfine</span> <span class="o">=</span> <span class="mf">0.01</span>
     <span class="n">width</span> <span class="o">=</span> <span class="mf">10.</span>
@@ -568,7 +568,7 @@ and 0 degrees latitude and the resolution is ~2 degrees elsewhere.  The shape
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

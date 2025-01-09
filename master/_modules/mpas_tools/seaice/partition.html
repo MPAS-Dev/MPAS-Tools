@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.seaice.partition &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,24 +117,24 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.seaice.partition</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">Dataset</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">import</span> <span class="nn">errno</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">glob</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">netCDF4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">errno</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
 
-<span class="kn">from</span> <span class="nn">.regrid</span> <span class="kn">import</span> <span class="n">regrid_to_other_mesh</span>
-<span class="kn">from</span> <span class="nn">.mask</span> <span class="kn">import</span> <span class="n">extend_seaice_mask</span>
-<span class="kn">from</span> <span class="nn">.regions</span> <span class="kn">import</span> <span class="n">make_regions_file</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.regrid</span><span class="w"> </span><span class="kn">import</span> <span class="n">regrid_to_other_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">extend_seaice_mask</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.regions</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_regions_file</span>
 
 
 <div class="viewcode-block" id="gen_seaice_mesh_partition">
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.partition.gen_seaice_mesh_partition.html#mpas_tools.seaice.partition.gen_seaice_mesh_partition">[docs]</a>
-<span class="k">def</span> <span class="nf">gen_seaice_mesh_partition</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">regionFilename</span><span class="p">,</span> <span class="n">nProcsArray</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">gen_seaice_mesh_partition</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">regionFilename</span><span class="p">,</span> <span class="n">nProcsArray</span><span class="p">,</span>
                               <span class="n">mpasCullerLocation</span><span class="p">,</span> <span class="n">outputPrefix</span><span class="p">,</span> <span class="n">plotting</span><span class="p">,</span>
                               <span class="n">metis</span><span class="p">,</span> <span class="n">cullEquatorialRegion</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -308,7 +308,7 @@
 
 <div class="viewcode-block" id="prepare_partitions">
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.partition.prepare_partitions.html#mpas_tools.seaice.partition.prepare_partitions">[docs]</a>
-<span class="k">def</span> <span class="nf">prepare_partitions</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">prepare_partitions</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An entry point for performing preparatory work for making seaice partitions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -389,7 +389,7 @@
 
 <div class="viewcode-block" id="create_partitions">
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.partition.create_partitions.html#mpas_tools.seaice.partition.create_partitions">[docs]</a>
-<span class="k">def</span> <span class="nf">create_partitions</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_partitions</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An entry point for creating sea-ice partitions</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -451,7 +451,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">simple_partitions</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_partitions</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An entry point for creating sea-ice partitions on LCRC (Anvil and</span>
 <span class="sd">    Chrysalis)</span>
@@ -570,12 +570,12 @@
 <span class="c1"># Private functions</span>
 <span class="c1"># ---------------------------------------------------------------------</span>
 
-<span class="k">def</span> <span class="nf">_degree_to_radian</span><span class="p">(</span><span class="n">degree</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_degree_to_radian</span><span class="p">(</span><span class="n">degree</span><span class="p">):</span>
 
     <span class="k">return</span> <span class="p">(</span><span class="n">degree</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">180.0</span>
 
 
-<span class="k">def</span> <span class="nf">_add_cell_cull_array</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">cullCell</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_cell_cull_array</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">cullCell</span><span class="p">):</span>
 
     <span class="n">mesh</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
 
@@ -586,7 +586,7 @@
     <span class="n">mesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">_cull_mesh</span><span class="p">(</span><span class="n">meshToolsDir</span><span class="p">,</span> <span class="n">filenameIn</span><span class="p">,</span> <span class="n">filenameOut</span><span class="p">,</span> <span class="n">cullCell</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_cull_mesh</span><span class="p">(</span><span class="n">meshToolsDir</span><span class="p">,</span> <span class="n">filenameIn</span><span class="p">,</span> <span class="n">filenameOut</span><span class="p">,</span> <span class="n">cullCell</span><span class="p">):</span>
 
     <span class="n">_add_cell_cull_array</span><span class="p">(</span><span class="n">filenameIn</span><span class="p">,</span> <span class="n">cullCell</span><span class="p">)</span>
     <span class="n">executable</span> <span class="o">=</span> <span class="s2">&quot;MpasCellCuller.x&quot;</span>
@@ -596,7 +596,7 @@
     <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">executable</span><span class="p">,</span> <span class="n">filenameIn</span><span class="p">,</span> <span class="n">filenameOut</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">],</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_load_partition</span><span class="p">(</span><span class="n">graphFilename</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_partition</span><span class="p">(</span><span class="n">graphFilename</span><span class="p">):</span>
 
     <span class="n">graphFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">graphFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
     <span class="n">lines</span> <span class="o">=</span> <span class="n">graphFile</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
@@ -609,7 +609,7 @@
     <span class="k">return</span> <span class="n">partition</span>
 
 
-<span class="k">def</span> <span class="nf">_get_cell_ids</span><span class="p">(</span><span class="n">culledFilename</span><span class="p">,</span> <span class="n">originalFilename</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_cell_ids</span><span class="p">(</span><span class="n">culledFilename</span><span class="p">,</span> <span class="n">originalFilename</span><span class="p">):</span>
 
     <span class="n">culledFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">culledFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
     <span class="n">nCellsCulled</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">culledFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
@@ -644,7 +644,7 @@
     <span class="k">return</span> <span class="n">cellid</span>
 
 
-<span class="k">def</span> <span class="nf">_get_cell_ids_orig</span><span class="p">(</span><span class="n">culledFilename</span><span class="p">,</span> <span class="n">originalFilename</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_cell_ids_orig</span><span class="p">(</span><span class="n">culledFilename</span><span class="p">,</span> <span class="n">originalFilename</span><span class="p">):</span>
 
     <span class="n">culledFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">culledFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
     <span class="n">latCellCulled</span> <span class="o">=</span> <span class="n">culledFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;latCell&quot;</span><span class="p">][:]</span>
@@ -681,7 +681,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

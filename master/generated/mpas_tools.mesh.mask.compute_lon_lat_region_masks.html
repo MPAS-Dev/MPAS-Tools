@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.mesh.mask.compute_lon_lat_region_masks &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -169,9 +169,9 @@ collection made up of regions (polygons) on a tensor lon/lat grid</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lon</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.1)"><em>numpy.ndarray</em></a>) – A 1D array of longitudes in degrees between -180 and 180</p></li>
-<li><p><strong>lat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.1)"><em>numpy.ndarray</em></a>) – A 1D array of latitudes in degrees between -90 and 90</p></li>
-<li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.5.0)"><em>geometric_features.FeatureCollection</em></a>) – A feature collection containing features to use to create the mask</p></li>
+<li><p><strong>lon</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>numpy.ndarray</em></a>) – A 1D array of longitudes in degrees between -180 and 180</p></li>
+<li><p><strong>lat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.2)"><em>numpy.ndarray</em></a>) – A 1D array of latitudes in degrees between -90 and 90</p></li>
+<li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.6.1)"><em>geometric_features.FeatureCollection</em></a>) – A feature collection containing features to use to create the mask</p></li>
 <li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
 <li><p><strong>pool</strong> (<em>multiprocessing.Pool</em><em>, </em><em>optional</em>) – A pool for performing multiprocessing</p></li>
 <li><p><strong>chunkSize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – The number of cells, vertices or edges that are processed in one
@@ -202,7 +202,7 @@ be subdivided into smaller polygons for faster intersection checking</p></li>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

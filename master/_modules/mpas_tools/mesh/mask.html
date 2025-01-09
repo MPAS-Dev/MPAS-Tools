@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.mesh.mask &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,31 +117,31 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.mesh.mask</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">KDTree</span>
-<span class="kn">import</span> <span class="nn">shapely.geometry</span>
-<span class="kn">import</span> <span class="nn">shapely.ops</span>
-<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">box</span><span class="p">,</span> <span class="n">Polygon</span><span class="p">,</span> <span class="n">MultiPolygon</span><span class="p">,</span> <span class="n">GeometryCollection</span>
-<span class="kn">from</span> <span class="nn">shapely.strtree</span> <span class="kn">import</span> <span class="n">STRtree</span>
-<span class="kn">import</span> <span class="nn">progressbar</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">from</span> <span class="nn">igraph</span> <span class="kn">import</span> <span class="n">Graph</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">KDTree</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shapely.geometry</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shapely.ops</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shapely.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">box</span><span class="p">,</span> <span class="n">Polygon</span><span class="p">,</span> <span class="n">MultiPolygon</span><span class="p">,</span> <span class="n">GeometryCollection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shapely.strtree</span><span class="w"> </span><span class="kn">import</span> <span class="n">STRtree</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">progressbar</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">igraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">Graph</span>
 
-<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">read_feature_collection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_feature_collection</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.transects</span> <span class="kn">import</span> <span class="n">subdivide_great_circle</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.transects</span><span class="w"> </span><span class="kn">import</span> <span class="n">subdivide_great_circle</span><span class="p">,</span> \
     <span class="n">lon_lat_to_cartesian</span><span class="p">,</span> <span class="n">cartesian_to_lon_lat</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.parallel</span> <span class="kn">import</span> <span class="n">create_pool</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.logging</span> <span class="kn">import</span> <span class="n">LoggingContext</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.parallel</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_pool</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.cime.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
 
 
 <div class="viewcode-block" id="compute_mpas_region_masks">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_mpas_region_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">),</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_mpas_region_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">),</span>
                               <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
                               <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -247,7 +247,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">entry_point_compute_mpas_region_masks</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">entry_point_compute_mpas_region_masks</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_region_masks()``&quot;&quot;&quot;</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
@@ -314,7 +314,7 @@
 
 <div class="viewcode-block" id="compute_mpas_transect_masks">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_mpas_transect_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_mpas_transect_masks</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">,</span>
                                 <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;edge&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">),</span>
                                 <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
                                 <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionResolution</span><span class="o">=</span><span class="mf">10e3</span><span class="p">,</span>
@@ -441,7 +441,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">entry_point_compute_mpas_transect_masks</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">entry_point_compute_mpas_transect_masks</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_transect_masks()``&quot;&quot;&quot;</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
@@ -514,7 +514,7 @@
 
 <div class="viewcode-block" id="compute_mpas_flood_fill_mask">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_mpas_flood_fill_mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcSeed</span><span class="p">,</span> <span class="n">daGrow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_mpas_flood_fill_mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcSeed</span><span class="p">,</span> <span class="n">daGrow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                  <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Flood fill from the given set of seed points to create a contiguous mask.</span>
@@ -583,7 +583,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">entry_point_compute_mpas_flood_fill_mask</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">entry_point_compute_mpas_flood_fill_mask</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_mpas_flood_fill_mask()``&quot;&quot;&quot;</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
@@ -617,7 +617,7 @@
 
 <div class="viewcode-block" id="compute_lon_lat_region_masks">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.mask.compute_lon_lat_region_masks.html#mpas_tools.mesh.mask.compute_lon_lat_region_masks">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_lon_lat_region_masks</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_lon_lat_region_masks</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                  <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                  <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -715,7 +715,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">entry_point_compute_lon_lat_region_masks</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">entry_point_compute_lon_lat_region_masks</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_lon_lat_region_masks()``&quot;&quot;&quot;</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
@@ -779,7 +779,7 @@
                  <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">compute_projection_grid_region_masks</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_projection_grid_region_masks</span><span class="p">(</span>
         <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pool</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">chunkSize</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
         <span class="n">showProgress</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.</span><span class="p">,</span> <span class="n">xdim</span><span class="o">=</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="n">ydim</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -875,7 +875,7 @@
     <span class="k">return</span> <span class="n">dsMasks</span>
 
 
-<span class="k">def</span> <span class="nf">entry_point_compute_projection_grid_region_masks</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">entry_point_compute_projection_grid_region_masks</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Entry point for ``compute_projection_grid_region_masks()``&quot;&quot;&quot;</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
@@ -942,7 +942,7 @@
                  <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_compute_mask_from_shapes</span><span class="p">(</span><span class="n">shapes1</span><span class="p">,</span> <span class="n">shapes2</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_mask_from_shapes</span><span class="p">(</span><span class="n">shapes1</span><span class="p">,</span> <span class="n">shapes2</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
                               <span class="n">showProgress</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    If multiprocessing, break shapes2 into chunks and use multiprocessing to</span>
@@ -981,7 +981,7 @@
     <span class="k">return</span> <span class="n">mask</span>
 
 
-<span class="k">def</span> <span class="nf">_get_region_names_and_properties</span><span class="p">(</span><span class="n">fc</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_region_names_and_properties</span><span class="p">(</span><span class="n">fc</span><span class="p">):</span>
     <span class="n">regionNames</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
@@ -1007,7 +1007,7 @@
     <span class="k">return</span> <span class="n">regionNames</span><span class="p">,</span> <span class="n">properties</span>
 
 
-<span class="k">def</span> <span class="nf">_compute_region_masks</span><span class="p">(</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_region_masks</span><span class="p">(</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
                           <span class="n">showProgress</span><span class="p">,</span> <span class="n">threshold</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build a region mask file from the given mesh and geojson file defining</span>
@@ -1039,7 +1039,7 @@
     <span class="k">return</span> <span class="n">regionNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">nChar</span>
 
 
-<span class="k">def</span> <span class="nf">_contains</span><span class="p">(</span><span class="n">shapes</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_contains</span><span class="p">(</span><span class="n">shapes</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">STRtree</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
@@ -1048,7 +1048,7 @@
     <span class="k">return</span> <span class="n">mask</span>
 
 
-<span class="k">def</span> <span class="nf">_katana</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxcount</span><span class="o">=</span><span class="mi">250</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_katana</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxcount</span><span class="o">=</span><span class="mi">250</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    From https://snorfalorpagus.net/blog/2016/03/13/splitting-large-polygons-for-faster-intersections/</span>
 
@@ -1116,7 +1116,7 @@
     <span class="k">return</span> <span class="n">final_result</span>
 
 
-<span class="k">def</span> <span class="nf">_compute_transect_masks</span><span class="p">(</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">polygons</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_transect_masks</span><span class="p">(</span><span class="n">fcMask</span><span class="p">,</span> <span class="n">polygons</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span>
                             <span class="n">showProgress</span><span class="p">,</span> <span class="n">subdivisionResolution</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build a transect mask file from the given mesh and geojson file defining</span>
@@ -1175,7 +1175,7 @@
     <span class="k">return</span> <span class="n">transectNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">nChar</span><span class="p">,</span> <span class="n">shapes</span>
 
 
-<span class="k">def</span> <span class="nf">_intersects</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">polygons</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_intersects</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">polygons</span><span class="p">):</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">STRtree</span><span class="p">(</span><span class="n">polygons</span><span class="p">)</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">polygons</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="n">indicesInShape</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="s1">&#39;intersects&#39;</span><span class="p">)</span>
@@ -1183,7 +1183,7 @@
     <span class="k">return</span> <span class="n">mask</span>
 
 
-<span class="k">def</span> <span class="nf">_get_polygons</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">maskType</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_polygons</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">maskType</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">maskType</span> <span class="o">==</span> <span class="s1">&#39;cell&#39;</span><span class="p">:</span>
         <span class="c1"># polygons are vertices on cell</span>
         <span class="n">vertexIndices</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">verticesOnCell</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
@@ -1267,7 +1267,7 @@
     <span class="k">return</span> <span class="n">polygons</span><span class="p">,</span> <span class="n">nPolygons</span><span class="p">,</span> <span class="n">duplicatePolygons</span>
 
 
-<span class="k">def</span> <span class="nf">_copy_dateline_lon_lat_vertices</span><span class="p">(</span><span class="n">lonVertex</span><span class="p">,</span> <span class="n">latVertex</span><span class="p">,</span> <span class="n">lonCenter</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_copy_dateline_lon_lat_vertices</span><span class="p">(</span><span class="n">lonVertex</span><span class="p">,</span> <span class="n">latVertex</span><span class="p">,</span> <span class="n">lonCenter</span><span class="p">):</span>
 
     <span class="n">nPolygons</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">lonVertex</span><span class="o">.</span><span class="n">shape</span>
 
@@ -1302,7 +1302,7 @@
     <span class="k">return</span> <span class="n">lonVertex</span><span class="p">,</span> <span class="n">latVertex</span><span class="p">,</span> <span class="n">duplicatePolygons</span>
 
 
-<span class="k">def</span> <span class="nf">_compute_seed_mask</span><span class="p">(</span><span class="n">fcSeed</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">workers</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_seed_mask</span><span class="p">(</span><span class="n">fcSeed</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">workers</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find the cell centers (points) closes to the given seed points and set</span>
 <span class="sd">    the resulting mask to 1 there</span>
@@ -1325,7 +1325,7 @@
     <span class="k">return</span> <span class="n">mask</span>
 
 
-<span class="k">def</span> <span class="nf">_flood_fill_mask</span><span class="p">(</span><span class="n">seedMask</span><span class="p">,</span> <span class="n">growMask</span><span class="p">,</span> <span class="n">cellsOnCell</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_flood_fill_mask</span><span class="p">(</span><span class="n">seedMask</span><span class="p">,</span> <span class="n">growMask</span><span class="p">,</span> <span class="n">cellsOnCell</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Flood fill starting with a mask of seed points</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1352,7 +1352,7 @@
     <span class="k">return</span> <span class="n">seedMask</span>
 
 
-<span class="k">def</span> <span class="nf">_compute_edge_sign</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">edgeMask</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_edge_sign</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">edgeMask</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Compute the edge sign along a transect &quot;&quot;&quot;</span>
 
     <span class="n">edge_indices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">edgeMask</span><span class="p">)</span>
@@ -1465,7 +1465,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

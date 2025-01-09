@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mesh Conversion &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -160,9 +160,9 @@ resulting mesh adheres to the mesh specification.  <code class="docutils literal
 two arguments, the input and output mesh files, and will prompt the user for
 file names if these arguments are not supplied.</p>
 <p>The same example in a python script can be accomplished with:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.conversion</span> <span class="kn">import</span> <span class="n">convert</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.planar_hex</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.conversion</span><span class="w"> </span><span class="kn">import</span> <span class="n">convert</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
 
 <span class="n">ds</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">10e3</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                           <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -241,9 +241,9 @@ is one inside this region and zero outside.  Finally, it culls the base mesh
 to only those cells where the mask is zero (i.e. the mask indicates which cells
 are to be removed).</p>
 <p>The same example in a python script can be accomplished with:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xarray</span>
-<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">GeometricFeatures</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.conversion</span> <span class="kn">import</span> <span class="n">mask</span><span class="p">,</span> <span class="n">cull</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeometricFeatures</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.conversion</span><span class="w"> </span><span class="kn">import</span> <span class="n">mask</span><span class="p">,</span> <span class="n">cull</span>
 
 <span class="n">gf</span> <span class="o">=</span> <span class="n">GeometricFeatures</span><span class="p">()</span>
 
@@ -278,9 +278,9 @@ are to be removed).</p>
         <span class="n">If</span> <span class="n">this</span> <span class="n">argument</span> <span class="ow">is</span> <span class="n">specified</span><span class="p">,</span> <span class="n">the</span> <span class="n">masks_name</span> <span class="n">argument</span>
         <span class="ow">is</span> <span class="n">required</span>
     <span class="o">-</span><span class="n">c</span><span class="p">:</span>
-        <span class="n">Output</span> <span class="n">the</span> <span class="n">mapping</span> <span class="kn">from</span> <span class="nn">old</span> <span class="n">to</span> <span class="n">new</span> <span class="n">mesh</span> <span class="p">(</span><span class="n">cellMap</span><span class="p">)</span> <span class="ow">in</span>
+        <span class="n">Output</span> <span class="n">the</span> <span class="n">mapping</span> <span class="kn">from</span><span class="w"> </span><span class="nn">old</span> <span class="n">to</span> <span class="n">new</span> <span class="n">mesh</span> <span class="p">(</span><span class="n">cellMap</span><span class="p">)</span> <span class="ow">in</span>
             <span class="n">cellMapForward</span><span class="o">.</span><span class="n">txt</span><span class="p">,</span>
-        <span class="ow">and</span> <span class="n">output</span> <span class="n">the</span> <span class="n">reverse</span> <span class="n">mapping</span> <span class="kn">from</span> <span class="nn">new</span> <span class="n">to</span> <span class="n">old</span> <span class="n">mesh</span> <span class="ow">in</span>
+        <span class="ow">and</span> <span class="n">output</span> <span class="n">the</span> <span class="n">reverse</span> <span class="n">mapping</span> <span class="kn">from</span><span class="w"> </span><span class="nn">new</span> <span class="n">to</span> <span class="n">old</span> <span class="n">mesh</span> <span class="ow">in</span>
             <span class="n">cellMapBackward</span><span class="o">.</span><span class="n">txt</span><span class="o">.</span>
 </pre></div>
 </div>
@@ -296,16 +296,16 @@ fill a contiguous block of cells.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">MpasMaskCreator</span><span class="o">.</span><span class="n">x</span> <span class="n">in_file</span> <span class="n">out_file</span> <span class="p">[</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span><span class="o">/-</span><span class="n">s</span><span class="p">]</span> <span class="n">file</span><span class="o">.</span><span class="n">geojson</span> <span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">positive_lon</span><span class="p">]</span>
     <span class="n">in_file</span><span class="p">:</span> <span class="n">This</span> <span class="n">argument</span> <span class="n">defines</span> <span class="n">the</span> <span class="nb">input</span> <span class="n">file</span> <span class="n">that</span> <span class="n">masks</span> <span class="n">will</span> <span class="n">be</span> <span class="n">created</span> <span class="k">for</span><span class="o">.</span>
     <span class="n">out_file</span><span class="p">:</span> <span class="n">This</span> <span class="n">argument</span> <span class="n">defines</span> <span class="n">the</span> <span class="n">file</span> <span class="n">that</span> <span class="n">masks</span> <span class="n">will</span> <span class="n">be</span> <span class="n">written</span> <span class="n">to</span><span class="o">.</span>
-    <span class="o">-</span><span class="n">s</span> <span class="n">file</span><span class="o">.</span><span class="n">geojson</span><span class="p">:</span> <span class="n">This</span> <span class="n">argument</span> <span class="n">pair</span> <span class="n">defines</span> <span class="n">a</span> <span class="nb">set</span> <span class="n">of</span> <span class="n">points</span> <span class="p">(</span><span class="kn">from</span> <span class="nn">the</span> <span class="n">geojson</span> <span class="n">point</span> <span class="n">definition</span><span class="p">)</span>
-        <span class="n">that</span> <span class="n">will</span> <span class="n">be</span> <span class="n">used</span> <span class="k">as</span> <span class="n">seed</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">flood</span> <span class="n">fill</span> <span class="n">algorithim</span><span class="o">.</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">useful</span> <span class="n">when</span> <span class="n">trying</span> <span class="n">to</span> <span class="n">remove</span> <span class="n">isolated</span> <span class="n">cells</span> <span class="kn">from</span> <span class="nn">a</span> <span class="n">mesh</span><span class="o">.</span>
+    <span class="o">-</span><span class="n">s</span> <span class="n">file</span><span class="o">.</span><span class="n">geojson</span><span class="p">:</span> <span class="n">This</span> <span class="n">argument</span> <span class="n">pair</span> <span class="n">defines</span> <span class="n">a</span> <span class="nb">set</span> <span class="n">of</span> <span class="n">points</span> <span class="p">(</span><span class="kn">from</span><span class="w"> </span><span class="nn">the</span> <span class="n">geojson</span> <span class="n">point</span> <span class="n">definition</span><span class="p">)</span>
+        <span class="n">that</span> <span class="n">will</span> <span class="n">be</span> <span class="n">used</span> <span class="k">as</span> <span class="n">seed</span> <span class="n">points</span> <span class="ow">in</span> <span class="n">a</span> <span class="n">flood</span> <span class="n">fill</span> <span class="n">algorithim</span><span class="o">.</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">useful</span> <span class="n">when</span> <span class="n">trying</span> <span class="n">to</span> <span class="n">remove</span> <span class="n">isolated</span> <span class="n">cells</span> <span class="kn">from</span><span class="w"> </span><span class="nn">a</span> <span class="n">mesh</span><span class="o">.</span>
     <span class="o">-</span><span class="n">f</span> <span class="n">file</span><span class="o">.</span><span class="n">geojson</span><span class="p">:</span> <span class="n">This</span> <span class="n">argument</span> <span class="n">pair</span> <span class="n">defines</span> <span class="n">a</span> <span class="nb">set</span> <span class="n">of</span> <span class="n">geojson</span> <span class="n">features</span> <span class="p">(</span><span class="n">regions</span><span class="p">,</span> <span class="n">transects</span><span class="p">,</span> <span class="ow">or</span> <span class="n">points</span><span class="p">)</span>
         <span class="n">that</span> <span class="n">will</span> <span class="n">be</span> <span class="n">converted</span> <span class="n">into</span> <span class="n">masks</span> <span class="o">/</span> <span class="n">lists</span><span class="o">.</span>
     <span class="o">--</span><span class="n">positive_lon</span><span class="p">:</span> <span class="n">It</span> <span class="ow">is</span> <span class="n">unlikely</span> <span class="n">that</span> <span class="n">you</span> <span class="n">want</span> <span class="n">this</span> <span class="n">argument</span><span class="o">.</span>  <span class="n">In</span> <span class="n">rare</span> <span class="n">cases</span> <span class="n">when</span> <span class="n">using</span> <span class="n">a</span> <span class="n">non</span><span class="o">-</span><span class="n">standard</span> <span class="n">geojson</span>
-        <span class="n">file</span> <span class="n">where</span> <span class="n">the</span> <span class="n">logitude</span> <span class="n">ranges</span> <span class="kn">from</span> <span class="mi">0</span> <span class="n">to</span> <span class="mi">360</span> <span class="n">degrees</span> <span class="p">(</span><span class="k">with</span> <span class="n">the</span> <span class="n">prime</span> <span class="n">meridian</span> <span class="n">at</span> <span class="mi">0</span> <span class="n">degrees</span><span class="p">),</span> <span class="n">use</span> <span class="n">this</span> <span class="n">flag</span><span class="o">.</span>
+        <span class="n">file</span> <span class="n">where</span> <span class="n">the</span> <span class="n">logitude</span> <span class="n">ranges</span> <span class="kn">from</span><span class="w"> </span><span class="mi">0</span> <span class="n">to</span> <span class="mi">360</span> <span class="n">degrees</span> <span class="p">(</span><span class="k">with</span> <span class="n">the</span> <span class="n">prime</span> <span class="n">meridian</span> <span class="n">at</span> <span class="mi">0</span> <span class="n">degrees</span><span class="p">),</span> <span class="n">use</span> <span class="n">this</span> <span class="n">flag</span><span class="o">.</span>
         <span class="n">If</span> <span class="n">this</span> <span class="n">flag</span> <span class="ow">is</span> <span class="ow">not</span> <span class="nb">set</span><span class="p">,</span> <span class="n">the</span> <span class="n">logitude</span> <span class="nb">range</span> <span class="ow">is</span> <span class="o">-</span><span class="mi">180</span><span class="o">-</span><span class="mi">180</span> <span class="k">with</span> <span class="mi">0</span> <span class="n">degrees</span> <span class="n">being</span> <span class="n">the</span> <span class="n">prime</span> <span class="n">meridian</span><span class="p">,</span> <span class="n">which</span> <span class="ow">is</span> <span class="n">the</span>
-        <span class="n">case</span> <span class="k">for</span> <span class="n">standar</span> <span class="n">geojson</span> <span class="n">files</span> <span class="n">including</span> <span class="nb">all</span> <span class="n">features</span> <span class="kn">from</span> <span class="nn">the</span> <span class="n">geometric_feature</span> <span class="n">repo</span><span class="o">.</span>
-        <span class="n">The</span> <span class="n">fact</span> <span class="n">that</span> <span class="n">longitudes</span> <span class="ow">in</span> <span class="n">the</span> <span class="nb">input</span> <span class="n">MPAS</span> <span class="n">mesh</span> <span class="nb">range</span> <span class="kn">from</span> <span class="mi">0</span> <span class="n">to</span> <span class="mi">360</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">relevant</span> <span class="n">to</span> <span class="n">this</span> <span class="n">flag</span><span class="p">,</span>
-        <span class="k">as</span> <span class="n">latitude</span> <span class="ow">and</span> <span class="n">longitude</span> <span class="n">are</span> <span class="n">recomputed</span> <span class="n">internally</span> <span class="kn">from</span> <span class="nn">Cartesian</span> <span class="n">coordinates</span><span class="o">.</span>
+        <span class="n">case</span> <span class="k">for</span> <span class="n">standar</span> <span class="n">geojson</span> <span class="n">files</span> <span class="n">including</span> <span class="nb">all</span> <span class="n">features</span> <span class="kn">from</span><span class="w"> </span><span class="nn">the</span> <span class="n">geometric_feature</span> <span class="n">repo</span><span class="o">.</span>
+        <span class="n">The</span> <span class="n">fact</span> <span class="n">that</span> <span class="n">longitudes</span> <span class="ow">in</span> <span class="n">the</span> <span class="nb">input</span> <span class="n">MPAS</span> <span class="n">mesh</span> <span class="nb">range</span> <span class="kn">from</span><span class="w"> </span><span class="mi">0</span> <span class="n">to</span> <span class="mi">360</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">relevant</span> <span class="n">to</span> <span class="n">this</span> <span class="n">flag</span><span class="p">,</span>
+        <span class="k">as</span> <span class="n">latitude</span> <span class="ow">and</span> <span class="n">longitude</span> <span class="n">are</span> <span class="n">recomputed</span> <span class="n">internally</span> <span class="kn">from</span><span class="w"> </span><span class="nn">Cartesian</span> <span class="n">coordinates</span><span class="o">.</span>
         <span class="n">Whether</span> <span class="n">this</span> <span class="n">flag</span> <span class="ow">is</span> <span class="n">passed</span> <span class="ow">in</span> <span class="ow">or</span> <span class="ow">not</span><span class="p">,</span> <span class="nb">any</span> <span class="n">longitudes</span> <span class="n">written</span> <span class="n">are</span> <span class="ow">in</span> <span class="n">the</span> <span class="mi">0</span><span class="o">-</span><span class="mi">360</span> <span class="nb">range</span><span class="o">.</span>
 </pre></div>
 </div>
@@ -324,8 +324,8 @@ described above.</p>
 <p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks" title="mpas_tools.mesh.mask.compute_mpas_region_masks"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_region_masks()</span></code></a>
 or the <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code> command-line tool can
 be used to create region masks on cells, edges and/or vertices given an MPAS
-mesh <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2024.10.1.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.Dataset</span></code></a> <code class="docutils literal notranslate"><span class="pre">dsMesh</span></code> and a
-<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.5.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">geometric_features.FeatureCollection</span></code></a> <code class="docutils literal notranslate"><span class="pre">fcMask</span></code> containing regions.
+mesh <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.1.2.dev0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">xarray.Dataset</span></code></a> <code class="docutils literal notranslate"><span class="pre">dsMesh</span></code> and a
+<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.6.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">geometric_features.FeatureCollection</span></code></a> <code class="docutils literal notranslate"><span class="pre">fcMask</span></code> containing regions.
 The resulting masks, in the variable <code class="docutils literal notranslate"><span class="pre">regionCellMasks</span></code>, are 1 where the center
 of the polygon corresponding to the cell, edge or vertex (see the
 <a class="reference external" href="https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf">MPAS Mesh Specification</a>)
@@ -410,7 +410,7 @@ optional arguments:
 <p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks" title="mpas_tools.mesh.mask.compute_mpas_transect_masks"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_transect_masks()</span></code></a>
 and the <code class="docutils literal notranslate"><span class="pre">compute_mpas_transect_masks</span></code> command-line tool
 are similar to the function for computing region masks.  The function takes a
-<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.5.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">geometric_features.FeatureCollection</span></code></a> <code class="docutils literal notranslate"><span class="pre">fcMask</span></code> that is made up of
+<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.6.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">geometric_features.FeatureCollection</span></code></a> <code class="docutils literal notranslate"><span class="pre">fcMask</span></code> that is made up of
 transects, rather than regions.  One mask is produced for each feature in the
 collection, indicating where the transect
 intersects the cell, edge or vertex polygons (see the
@@ -500,7 +500,7 @@ optional arguments:
 <p>The function <a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask" title="mpas_tools.mesh.mask.compute_mpas_flood_fill_mask"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.mask.compute_mpas_flood_fill_mask()</span></code></a>
 and the command-line tool <code class="docutils literal notranslate"><span class="pre">compute_mpas_flood_fill_mask</span></code>
 fill in a mask, starting with the cell centers closest to the seed points
-given in <a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.5.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">geometric_features.FeatureCollection</span></code></a> <code class="docutils literal notranslate"><span class="pre">fcSeed</span></code>.  This
+given in <a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.6.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">geometric_features.FeatureCollection</span></code></a> <code class="docutils literal notranslate"><span class="pre">fcSeed</span></code>.  This
 algorithm runs in serial, and will be more efficient the more seed points
 are provided and the more widely scattered over the mesh they are.</p>
 <p>An optional <code class="docutils literal notranslate"><span class="pre">daGrow</span></code> argument to the function (not currently available from
@@ -609,14 +609,14 @@ We store the mapping betwen the two horizontal meshes in
 <code class="docutils literal notranslate"><span class="pre">no_isc_to_culled_map.nc</span></code> in case we want to resue it later.  The initial
 condition is read from <code class="docutils literal notranslate"><span class="pre">initial_state.nc</span></code> and the culled version is written
 to <code class="docutils literal notranslate"><span class="pre">initial_state_no_isc.nc</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 
-<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.conversion</span> <span class="kn">import</span> <span class="n">cull</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.cull</span> <span class="kn">import</span> <span class="n">write_map_culled_to_base</span><span class="p">,</span> <span class="n">write_culled_dataset</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.logging</span> <span class="kn">import</span> <span class="n">LoggingContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.conversion</span><span class="w"> </span><span class="kn">import</span> <span class="n">cull</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.cull</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_map_culled_to_base</span><span class="p">,</span> <span class="n">write_culled_dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingContext</span>
 
 
 <span class="n">in_filename</span> <span class="o">=</span> <span class="s1">&#39;initial_state.nc&#39;</span>
@@ -654,10 +654,10 @@ with both Greenland and Antarctica at the same time, tools have been added to
 support merging and splitting MPAS meshes.</p>
 <p>Merging two meshes can be accomplished with
 <a class="reference internal" href="generated/mpas_tools.merge_grids.merge_grids.html#mpas_tools.merge_grids.merge_grids" title="mpas_tools.merge_grids.merge_grids"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.merge_grids.merge_grids()</span></code></a>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">translate</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.merge_grids</span> <span class="kn">import</span> <span class="n">merge_grids</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.translate</span><span class="w"> </span><span class="kn">import</span> <span class="n">translate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.merge_grids</span><span class="w"> </span><span class="kn">import</span> <span class="n">merge_grids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.planar_hex</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
 
 
 <span class="n">dsMesh1</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -679,10 +679,10 @@ support merging and splitting MPAS meshes.</p>
 <p>Later, perhaps during analysis or visualization, it can be useful to split
 apart the merged meshes.  This can be done with
 <a class="reference internal" href="generated/mpas_tools.split_grids.split_grids.html#mpas_tools.split_grids.split_grids" title="mpas_tools.split_grids.split_grids"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.split_grids.split_grids()</span></code></a></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">translate</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.split_grids</span> <span class="kn">import</span> <span class="n">split_grids</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.translate</span><span class="w"> </span><span class="kn">import</span> <span class="n">translate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.split_grids</span><span class="w"> </span><span class="kn">import</span> <span class="n">split_grids</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.planar_hex</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
 
 
 <span class="n">dsMesh1</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -762,8 +762,8 @@ optional arguments:
 <span id="mesh-translation"></span><h2>Translation<a class="headerlink" href="#translation" title="Link to this heading"></a></h2>
 <p>A planar mesh can be translated in x, y or both by calling
 <a class="reference internal" href="generated/mpas_tools.translate.translate.html#mpas_tools.translate.translate" title="mpas_tools.translate.translate"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.translate.translate()</span></code></a>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">translate</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.translate</span><span class="w"> </span><span class="kn">import</span> <span class="n">translate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.planar_hex</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
 
 <span class="n">dsMesh</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -781,8 +781,8 @@ in contrast to typical <code class="docutils literal notranslate"><span class="p
 </div>
 <p>A mesh can be translated so that its center is at <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">0.</span></code>, <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">0.</span></code> with
 the function <a class="reference internal" href="generated/mpas_tools.translate.center.html#mpas_tools.translate.center" title="mpas_tools.translate.center"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.translate.center()</span></code></a>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">center</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.translate</span><span class="w"> </span><span class="kn">import</span> <span class="n">center</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.planar_hex</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
 
 <span class="n">dsMesh</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                               <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -792,8 +792,8 @@ the function <a class="reference internal" href="generated/mpas_tools.translate.
 </div>
 <p>A mesh can be translated so its center matches the center of another mesh by
 using <a class="reference internal" href="generated/mpas_tools.translate.center_on_mesh.html#mpas_tools.translate.center_on_mesh" title="mpas_tools.translate.center_on_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.translate.center_on_mesh()</span></code></a>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.translate</span> <span class="kn">import</span> <span class="n">center_on_mesh</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.planar_hex</span> <span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.translate</span><span class="w"> </span><span class="kn">import</span> <span class="n">center_on_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.planar_hex</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_planar_hex_mesh</span>
 
 <span class="n">dsMesh1</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">1000.</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -904,7 +904,7 @@ Options:
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

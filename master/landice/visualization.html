@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Visualization &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
 
   
@@ -133,9 +133,9 @@
 <p>The function <a class="reference internal" href="../generated/mpas_tools.landice.visualization.plot_transect.html#mpas_tools.landice.visualization.plot_transect" title="mpas_tools.landice.visualization.plot_transect"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.landice.visualization.plot_transect()</span></code></a> can be
 used to plot transects of various cell-centered MALI variables. The above figure
 was plotted with the code:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">Dataset</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.landice.visualization</span> <span class="kn">import</span> <span class="n">plot_transect</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">netCDF4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.landice.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_transect</span>
 
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -173,7 +173,7 @@ time level should be plotted per subplot:</p>
 <p>The function <a class="reference internal" href="../generated/mpas_tools.landice.visualization.plot_map.html#mpas_tools.landice.visualization.plot_map" title="mpas_tools.landice.visualization.plot_map"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.landice.visualization.plot_map()</span></code></a> can be
 used to plot maps of cell-centered MALI variables. The above
 figure was plotted using:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.landice.visualization</span> <span class="kn">import</span> <span class="n">plot_map</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.landice.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_map</span>
 
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">8</span><span class="p">),</span> <span class="n">layout</span><span class="o">=</span><span class="s1">&#39;constrained&#39;</span><span class="p">)</span>
@@ -206,7 +206,7 @@ figure was plotted using:</p>
 </a>
 <p>The function <a class="reference internal" href="../generated/mpas_tools.landice.visualization.plot_grounding_lines.html#mpas_tools.landice.visualization.plot_grounding_lines" title="mpas_tools.landice.visualization.plot_grounding_lines"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.landice.visualization.plot_grounding_lines()</span></code></a> can be
 used to add grounding lines to maps as countours.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.landice.visualization</span> <span class="kn">import</span> <span class="n">plot_grounding_lines</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.landice.visualization</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_grounding_lines</span>
 
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span><span class="mi">6</span><span class="p">),</span> <span class="n">layout</span><span class="o">=</span><span class="s1">&#39;constrained&#39;</span><span class="p">)</span>
@@ -233,7 +233,7 @@ used to add grounding lines to maps as countours.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

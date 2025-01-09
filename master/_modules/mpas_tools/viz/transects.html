@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.viz.transects &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,24 +117,24 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.viz.transects</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">xarray</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">cKDTree</span>
-<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">Point</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">cKDTree</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shapely.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">Point</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.transects</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.transects</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">cartesian_to_lon_lat</span><span class="p">,</span>
     <span class="n">lon_lat_to_cartesian</span><span class="p">,</span>
     <span class="n">subdivide_great_circle</span><span class="p">,</span>
     <span class="n">subdivide_planar</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.vector</span> <span class="kn">import</span> <span class="n">Vector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.vector</span><span class="w"> </span><span class="kn">import</span> <span class="n">Vector</span>
 
 
 <div class="viewcode-block" id="make_triangle_tree">
 <a class="viewcode-back" href="../../../generated/mpas_tools.viz.transects.make_triangle_tree.html#mpas_tools.viz.transects.make_triangle_tree">[docs]</a>
-<span class="k">def</span> <span class="nf">make_triangle_tree</span><span class="p">(</span><span class="n">dsTris</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_triangle_tree</span><span class="p">(</span><span class="n">dsTris</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Make a KD-Tree for finding triangle edges that are near enough to transect</span>
 <span class="sd">    segments that they might intersect</span>
@@ -174,7 +174,7 @@
 
 <div class="viewcode-block" id="find_transect_cells_and_weights">
 <a class="viewcode-back" href="../../../generated/mpas_tools.viz.transects.find_transect_cells_and_weights.html#mpas_tools.viz.transects.find_transect_cells_and_weights">[docs]</a>
-<span class="k">def</span> <span class="nf">find_transect_cells_and_weights</span><span class="p">(</span><span class="n">lonTransect</span><span class="p">,</span> <span class="n">latTransect</span><span class="p">,</span> <span class="n">dsTris</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_transect_cells_and_weights</span><span class="p">(</span><span class="n">lonTransect</span><span class="p">,</span> <span class="n">latTransect</span><span class="p">,</span> <span class="n">dsTris</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span>
                                     <span class="n">tree</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">subdivisionRes</span><span class="o">=</span><span class="mf">10e3</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find &quot;nodes&quot; where the transect intersects the edges of the triangles</span>
@@ -462,7 +462,7 @@
 
 <div class="viewcode-block" id="find_planar_transect_cells_and_weights">
 <a class="viewcode-back" href="../../../generated/mpas_tools.viz.transects.find_planar_transect_cells_and_weights.html#mpas_tools.viz.transects.find_planar_transect_cells_and_weights">[docs]</a>
-<span class="k">def</span> <span class="nf">find_planar_transect_cells_and_weights</span><span class="p">(</span><span class="n">xTransect</span><span class="p">,</span> <span class="n">yTransect</span><span class="p">,</span> <span class="n">dsTris</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_planar_transect_cells_and_weights</span><span class="p">(</span><span class="n">xTransect</span><span class="p">,</span> <span class="n">yTransect</span><span class="p">,</span> <span class="n">dsTris</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span>
                                            <span class="n">tree</span><span class="p">,</span> <span class="n">subdivisionRes</span><span class="o">=</span><span class="mf">10e3</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find &quot;nodes&quot; where the transect intersects the edges of the triangles</span>
@@ -746,7 +746,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_sort_intersections</span><span class="p">(</span><span class="n">dNode</span><span class="p">,</span> <span class="n">tris</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">xOut</span><span class="p">,</span> <span class="n">yOut</span><span class="p">,</span> <span class="n">zOut</span><span class="p">,</span> <span class="n">interpCells</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_sort_intersections</span><span class="p">(</span><span class="n">dNode</span><span class="p">,</span> <span class="n">tris</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">xOut</span><span class="p">,</span> <span class="n">yOut</span><span class="p">,</span> <span class="n">zOut</span><span class="p">,</span> <span class="n">interpCells</span><span class="p">,</span>
                         <span class="n">cellWeights</span><span class="p">,</span> <span class="n">epsilon</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; sort nodes by distance &quot;&quot;&quot;</span>
 
@@ -821,7 +821,7 @@
     <span class="k">return</span> <span class="n">dNode</span><span class="p">,</span> <span class="n">xOut</span><span class="p">,</span> <span class="n">yOut</span><span class="p">,</span> <span class="n">zOut</span><span class="p">,</span> <span class="n">tris</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">interpCells</span><span class="p">,</span> <span class="n">cellWeights</span>
 
 
-<span class="k">def</span> <span class="nf">_update_start_end_triangles</span><span class="p">(</span><span class="n">tris</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">interpCells</span><span class="p">,</span> <span class="n">cellWeights</span><span class="p">,</span> <span class="n">dNode</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_update_start_end_triangles</span><span class="p">(</span><span class="n">tris</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">interpCells</span><span class="p">,</span> <span class="n">cellWeights</span><span class="p">,</span> <span class="n">dNode</span><span class="p">,</span>
                                 <span class="n">xOut</span><span class="p">,</span> <span class="n">yOut</span><span class="p">,</span> <span class="n">zOut</span><span class="p">,</span> <span class="n">dStart</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    figure out if the end points of the transect are in a triangle and add tris,</span>
@@ -872,7 +872,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.ocean.depth &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,19 +117,19 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.ocean.depth</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">xarray</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">import</span> <span class="nn">netCDF4</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">netCDF4</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
 
 
 <div class="viewcode-block" id="compute_depth">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.compute_depth.html#mpas_tools.ocean.depth.compute_depth">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_depth</span><span class="p">(</span><span class="n">refBottomDepth</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_depth</span><span class="p">(</span><span class="n">refBottomDepth</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes depth and depth bounds given refBottomDepth</span>
 
@@ -166,7 +166,7 @@
 
 <div class="viewcode-block" id="compute_zmid">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid">[docs]</a>
-<span class="k">def</span> <span class="nf">compute_zmid</span><span class="p">(</span><span class="n">bottomDepth</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_zmid</span><span class="p">(</span><span class="n">bottomDepth</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span>
                  <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes zMid given data arrays for bottomDepth, maxLevelCell and</span>
@@ -224,7 +224,7 @@
 
 <div class="viewcode-block" id="add_depth">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.add_depth.html#mpas_tools.ocean.depth.add_depth">[docs]</a>
-<span class="k">def</span> <span class="nf">add_depth</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_depth</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a 1D depth coordinate to an MPAS-Ocean file.</span>
 
@@ -285,7 +285,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">main_add_depth</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main_add_depth</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--coordFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;coordFileName&quot;</span><span class="p">,</span>
@@ -307,7 +307,7 @@
 
 <div class="viewcode-block" id="add_zmid">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid">[docs]</a>
-<span class="k">def</span> <span class="nf">add_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</span>
 
@@ -366,7 +366,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">main_add_zmid</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main_add_zmid</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--coordFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;coordFileName&quot;</span><span class="p">,</span>
@@ -389,7 +389,7 @@
 
 <div class="viewcode-block" id="write_time_varying_zmid">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.write_time_varying_zmid.html#mpas_tools.ocean.depth.write_time_varying_zmid">[docs]</a>
-<span class="k">def</span> <span class="nf">write_time_varying_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_time_varying_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                             <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</span>
@@ -444,7 +444,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">main_write_time_varying_zmid</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main_write_time_varying_zmid</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--coordFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;coordFileName&quot;</span><span class="p">,</span>
@@ -478,7 +478,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

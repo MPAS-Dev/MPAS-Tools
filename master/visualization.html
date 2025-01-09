@@ -7,7 +7,7 @@
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Visualization &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
@@ -205,7 +205,7 @@ different file with mesh information, such as an initial condition or a restart
 file: <code class="docutils literal notranslate"><span class="pre">mesh_filename='mpaso.rst.0001-02-01_00000.nc'</span></code>.</p>
 <p>In the following example, we extract the temperature field from a time series
 of daily output from the MPAS-Ocean model:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
@@ -250,7 +250,7 @@ variables, then we will demonstrate combining it with the time-dependent data.</
 <p>In the first instance, we add <code class="docutils literal notranslate"><span class="pre">areaCell</span></code> to the <code class="docutils literal notranslate"><span class="pre">variable_list</span></code> and
 explicitly include <code class="docutils literal notranslate"><span class="pre">combine=False</span></code>, the default, to indicate that we want to
 keep time-independent and time-dependent variables separate:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
@@ -272,7 +272,7 @@ vtk_files2/time_series/timeDependentFieldsOnCells.0.vtp
 plot them as we like.  But we cannot perform calculations involving both
 temperature and cell area very easily.  If this were a necessity, it might be
 convenient to combine them into the same files:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
@@ -304,7 +304,7 @@ to include variables from the mesh file, you need to specify
 time-series and the mesh data.  It specifies <code class="docutils literal notranslate"><span class="pre">maxEdges=</span></code> so that variables
 (such as <code class="docutils literal notranslate"><span class="pre">edgesOnCell</span></code> and <code class="docutils literal notranslate"><span class="pre">cellsOnCell</span></code>) that include this dimension are
 excluded:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
@@ -344,7 +344,7 @@ range):</p>
 with index given by <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> (the deepest layer in each ocean column).</p>
 <p>Here is a more complete example that extracts the temperature, salinity and
 layer thickness at the sea surface and seafloor.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
@@ -384,7 +384,7 @@ indices</p></li>
 <p>In this example, we extract every 6 days from the daily data set starting with
 the beginning fo the data set and continuing to the end (by not specifying the
 end index <code class="docutils literal notranslate"><span class="pre">n</span></code>):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
@@ -415,7 +415,7 @@ for coarse-resolution meshes:</p>
 <p>Below, we will provide a method for handling this issue in ParaView.</p>
 <p>Here, we extract the temperature field as in <a class="reference internal" href="#extract-temperature"><span class="std std-ref">Extracting a Temperature Time-series</span></a>, but
 this time in lon/lat coordinates.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
@@ -481,7 +481,7 @@ polygons are interior (<code class="docutils literal notranslate"><span class="p
 to be included in the time-dependent output files.  We are not interested in
 variables with dimensions <code class="docutils literal notranslate"><span class="pre">nVertLevelsP1</span></code> or <code class="docutils literal notranslate"><span class="pre">maxEdges</span></code> so we remove those
 dimensions by leaving their index strings blank.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
@@ -530,8 +530,8 @@ lie within the mask before conversion to VTK proceeds.</p>
 remove.</p>
 </div>
 <p>In this example, we extract sea surface temperature only in the Southern Ocean:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
-<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">GeometricFeatures</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeometricFeatures</span>
 
 
 <span class="n">gf</span> <span class="o">=</span> <span class="n">GeometricFeatures</span><span class="p">()</span>
@@ -582,12 +582,12 @@ centers to triangle nodes; Cartesian coordinates <code class="docutils literal n
 guaranteed to be within 180 degrees of the cell center corresponding to
 <code class="docutils literal notranslate"><span class="pre">triCellIndices</span></code>.  Nodes always have a counterclockwise winding.</p>
 <p>Here is an example workflow for using this function:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">xarray</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib.tri</span> <span class="kn">import</span> <span class="n">Triangulation</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.tri</span><span class="w"> </span><span class="kn">import</span> <span class="n">Triangulation</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.viz</span> <span class="kn">import</span> <span class="n">mesh_to_triangles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_to_triangles</span>
 
 
 <span class="n">dsMesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mpaso.rst.0501-01-01_00000.nc&#39;</span><span class="p">)</span>
@@ -660,7 +660,7 @@ package.</p>
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

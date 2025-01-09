@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.mesh.cull &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,16 +117,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.mesh.cull</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">KDTree</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">KDTree</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
 
 
 <div class="viewcode-block" id="write_map_culled_to_base">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.cull.write_map_culled_to_base.html#mpas_tools.mesh.cull.write_map_culled_to_base">[docs]</a>
-<span class="k">def</span> <span class="nf">write_map_culled_to_base</span><span class="p">(</span><span class="n">base_mesh_filename</span><span class="p">,</span> <span class="n">culled_mesh_filename</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_map_culled_to_base</span><span class="p">(</span><span class="n">base_mesh_filename</span><span class="p">,</span> <span class="n">culled_mesh_filename</span><span class="p">,</span>
                              <span class="n">out_filename</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write out a file with maps from cells, edges and vertices on a culled mesh</span>
@@ -161,7 +161,7 @@
 
 <div class="viewcode-block" id="map_culled_to_base">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.cull.map_culled_to_base.html#mpas_tools.mesh.cull.map_culled_to_base">[docs]</a>
-<span class="k">def</span> <span class="nf">map_culled_to_base</span><span class="p">(</span><span class="n">ds_base</span><span class="p">,</span> <span class="n">ds_culled</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">map_culled_to_base</span><span class="p">(</span><span class="n">ds_base</span><span class="p">,</span> <span class="n">ds_culled</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create maps from cells, edges and vertices on a culled mesh to the same</span>
 <span class="sd">    elements on a base mesh.  All elements in the culled mesh must be in the</span>
@@ -200,7 +200,7 @@
 
 <div class="viewcode-block" id="write_culled_dataset">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.cull.write_culled_dataset.html#mpas_tools.mesh.cull.write_culled_dataset">[docs]</a>
-<span class="k">def</span> <span class="nf">write_culled_dataset</span><span class="p">(</span><span class="n">in_filename</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">,</span> <span class="n">base_mesh_filename</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_culled_dataset</span><span class="p">(</span><span class="n">in_filename</span><span class="p">,</span> <span class="n">out_filename</span><span class="p">,</span> <span class="n">base_mesh_filename</span><span class="p">,</span>
                          <span class="n">culled_mesh_filename</span><span class="p">,</span>
                          <span class="n">map_culled_to_base_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
                          <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -254,7 +254,7 @@
 
 <div class="viewcode-block" id="cull_dataset">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.cull.cull_dataset.html#mpas_tools.mesh.cull.cull_dataset">[docs]</a>
-<span class="k">def</span> <span class="nf">cull_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_base_mesh</span><span class="p">,</span> <span class="n">ds_culled_mesh</span><span class="p">,</span> <span class="n">ds_map_culled_to_base</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cull_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_base_mesh</span><span class="p">,</span> <span class="n">ds_culled_mesh</span><span class="p">,</span> <span class="n">ds_map_culled_to_base</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a new dataset in which all fields from ``ds`` have been culled</span>
@@ -325,7 +325,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_map_culled_to_base_grid_type</span><span class="p">(</span><span class="n">ds_base</span><span class="p">,</span> <span class="n">ds_culled</span><span class="p">,</span> <span class="n">ds_map_culled_to_base</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_map_culled_to_base_grid_type</span><span class="p">(</span><span class="n">ds_base</span><span class="p">,</span> <span class="n">ds_culled</span><span class="p">,</span> <span class="n">ds_map_culled_to_base</span><span class="p">,</span>
                                   <span class="n">dim</span><span class="p">,</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">workers</span><span class="p">):</span>
     <span class="n">x_base</span> <span class="o">=</span> <span class="n">ds_base</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;x</span><span class="si">{</span><span class="n">suffix</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     <span class="n">y_base</span> <span class="o">=</span> <span class="n">ds_base</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;y</span><span class="si">{</span><span class="n">suffix</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
@@ -355,7 +355,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

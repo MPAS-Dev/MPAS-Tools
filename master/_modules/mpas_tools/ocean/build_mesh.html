@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.ocean.build_mesh &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,25 +117,25 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.ocean.build_mesh</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation</span> <span class="kn">import</span> <span class="n">build_spherical_mesh</span> <span class="k">as</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_spherical_mesh</span> <span class="k">as</span> \
     <span class="n">create_spherical_mesh</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation</span> <span class="kn">import</span> <span class="n">build_planar_mesh</span> <span class="k">as</span> <span class="n">create_planar_mesh</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.cime.constants</span> <span class="kn">import</span> <span class="n">constants</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.ocean.inject_bathymetry</span> <span class="kn">import</span> <span class="n">inject_bathymetry</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.ocean.inject_meshDensity</span> <span class="kn">import</span> <span class="n">inject_spherical_meshDensity</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_planar_mesh</span> <span class="k">as</span> <span class="n">create_planar_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.cime.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.inject_bathymetry</span><span class="w"> </span><span class="kn">import</span> <span class="n">inject_bathymetry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.inject_meshDensity</span><span class="w"> </span><span class="kn">import</span> <span class="n">inject_spherical_meshDensity</span><span class="p">,</span> \
     <span class="n">inject_planar_meshDensity</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.ocean.inject_preserve_floodplain</span> <span class="kn">import</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.inject_preserve_floodplain</span><span class="w"> </span><span class="kn">import</span> \
     <span class="n">inject_preserve_floodplain</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.viz.paraview_extractor</span> <span class="kn">import</span> <span class="n">extract_vtk</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.logging</span> <span class="kn">import</span> <span class="n">LoggingContext</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingContext</span>
 
 
 <div class="viewcode-block" id="build_spherical_mesh">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.build_mesh.build_spherical_mesh.html#mpas_tools.ocean.build_mesh.build_spherical_mesh">[docs]</a>
-<span class="k">def</span> <span class="nf">build_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span>
                          <span class="n">plot_cellWidth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="o">=</span><span class="s1">&#39;base_mesh_vtk&#39;</span><span class="p">,</span>
                          <span class="n">preserve_floodplain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">floodplain_elevation</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
                          <span class="n">do_inject_bathymetry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -207,7 +207,7 @@
 
 <div class="viewcode-block" id="build_planar_mesh">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.build_mesh.build_planar_mesh.html#mpas_tools.ocean.build_mesh.build_planar_mesh">[docs]</a>
-<span class="k">def</span> <span class="nf">build_planar_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_planar_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span><span class="p">,</span>
                       <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="o">=</span><span class="s1">&#39;base_mesh_vtk&#39;</span><span class="p">,</span>
                       <span class="n">preserve_floodplain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">floodplain_elevation</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
                       <span class="n">do_inject_bathymetry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -269,7 +269,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_shared_steps</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="p">,</span> <span class="n">preserve_floodplain</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_shared_steps</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="p">,</span> <span class="n">preserve_floodplain</span><span class="p">,</span>
                   <span class="n">floodplain_elevation</span><span class="p">,</span> <span class="n">do_inject_bathymetry</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span>
                   <span class="n">use_progress_bar</span><span class="p">):</span>
     <span class="n">step</span> <span class="o">=</span> <span class="mi">5</span>
@@ -303,7 +303,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

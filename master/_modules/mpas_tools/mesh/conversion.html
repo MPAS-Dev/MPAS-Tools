@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.mesh.conversion &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,20 +117,20 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.mesh.conversion</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
-<span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">TemporaryDirectory</span><span class="p">,</span> <span class="n">mkdtemp</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tempfile</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemporaryDirectory</span><span class="p">,</span> <span class="n">mkdtemp</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
 
-<span class="kn">import</span> <span class="nn">mpas_tools.io</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.logging</span> <span class="kn">import</span> <span class="n">check_call</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">mpas_tools.io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_call</span>
 
 
 <div class="viewcode-block" id="convert">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert">[docs]</a>
-<span class="k">def</span> <span class="nf">convert</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use ``MpasMeshConverter.x`` to convert an input mesh to a valid MPAS</span>
 <span class="sd">    mesh that is fully compliant with the MPAS mesh specification.</span>
@@ -187,7 +187,7 @@
 
 <div class="viewcode-block" id="cull">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull">[docs]</a>
-<span class="k">def</span> <span class="nf">cull</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">dsMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsInverse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsPreserve</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cull</span><span class="p">(</span><span class="n">dsIn</span><span class="p">,</span> <span class="n">dsMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsInverse</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dsPreserve</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
          <span class="n">graphInfoFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use ``MpasCellCuller.x`` to cull cells from a mesh based on the</span>
@@ -289,7 +289,7 @@
 
 <div class="viewcode-block" id="mask">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask">[docs]</a>
-<span class="k">def</span> <span class="nf">mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mask</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cores</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Use ``compute_mpas_region_masks`` to create a set of region masks either</span>
 <span class="sd">    from mask feature collections</span>
@@ -347,7 +347,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_masks_to_int</span><span class="p">(</span><span class="n">dsIn</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_masks_to_int</span><span class="p">(</span><span class="n">dsIn</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot; Convert masks to int type required by the cell culler &quot;&quot;&quot;</span>
     <span class="n">var_list</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;regionCellMasks&#39;</span><span class="p">,</span> <span class="s1">&#39;transectCellMasks&#39;</span><span class="p">,</span> <span class="s1">&#39;cullCell&#39;</span><span class="p">,</span>
                 <span class="s1">&#39;cellSeedMask&#39;</span><span class="p">]</span>
@@ -368,7 +368,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

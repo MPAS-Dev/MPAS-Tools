@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.viz.paraview_extractor &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -187,38 +187,38 @@
 <span class="sd">points of edge polygons (a &quot;water-tight&quot; surface).</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
-<span class="kn">from</span> <span class="nn">pyevtk.vtk</span> <span class="kn">import</span> <span class="n">VtkFile</span><span class="p">,</span> <span class="n">VtkPolyData</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pyevtk.vtk</span><span class="w"> </span><span class="kn">import</span> <span class="n">VtkFile</span><span class="p">,</span> <span class="n">VtkPolyData</span>
 
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">glob</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">import</span> <span class="nn">argparse</span>
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">date2num</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">netCDF4</span><span class="w"> </span><span class="kn">import</span> <span class="n">date2num</span>
 
-<span class="kn">from</span> <span class="nn">builtins</span> <span class="kn">import</span> <span class="nb">input</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">builtins</span><span class="w"> </span><span class="kn">import</span> <span class="nb">input</span>
 
-<span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">Dataset</span> <span class="k">as</span> <span class="n">NetCDFFile</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">netCDF4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span> <span class="k">as</span> <span class="n">NetCDFFile</span>
 
-<span class="kn">import</span> <span class="nn">xarray</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">FeatureCollection</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features</span><span class="w"> </span><span class="kn">import</span> <span class="n">FeatureCollection</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
 
-<span class="kn">from</span> <span class="nn">progressbar</span> <span class="kn">import</span> <span class="n">ProgressBar</span><span class="p">,</span> <span class="n">Percentage</span><span class="p">,</span> <span class="n">Bar</span><span class="p">,</span> <span class="n">ETA</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.conversion</span> <span class="kn">import</span> <span class="n">mask</span><span class="p">,</span> <span class="n">cull</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.logging</span> <span class="kn">import</span> <span class="n">check_call</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">progressbar</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProgressBar</span><span class="p">,</span> <span class="n">Percentage</span><span class="p">,</span> <span class="n">Bar</span><span class="p">,</span> <span class="n">ETA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.conversion</span><span class="w"> </span><span class="kn">import</span> <span class="n">mask</span><span class="p">,</span> <span class="n">cull</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_call</span>
 
 
 <div class="viewcode-block" id="extract_vtk">
 <a class="viewcode-back" href="../../../generated/mpas_tools.viz.paraview_extractor.extract_vtk.html#mpas_tools.viz.paraview_extractor.extract_vtk">[docs]</a>
-<span class="k">def</span> <span class="nf">extract_vtk</span><span class="p">(</span><span class="n">filename_pattern</span><span class="p">,</span> <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">dimension_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_vtk</span><span class="p">(</span><span class="n">filename_pattern</span><span class="p">,</span> <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;all&#39;</span><span class="p">,</span> <span class="n">dimension_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">mesh_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">blocking</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">output_32bit</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="n">combine</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime&#39;</span><span class="p">,</span>
                 <span class="n">lonlat</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ignore_time</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">topo_dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -508,7 +508,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> \
         <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span>
                                 <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
@@ -616,7 +616,7 @@
                 <span class="n">temp_dir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">temp_dir</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">build_field_time_series</span><span class="p">(</span><span class="n">local_time_indices</span><span class="p">,</span> <span class="n">file_names</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_field_time_series</span><span class="p">(</span><span class="n">local_time_indices</span><span class="p">,</span> <span class="n">file_names</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">,</span>
                             <span class="n">out_dir</span><span class="p">,</span> <span class="n">blocking</span><span class="p">,</span> <span class="n">all_dim_vals</span><span class="p">,</span> <span class="n">blockDimName</span><span class="p">,</span>
                             <span class="n">variable_list</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">connectivity</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span>
                             <span class="n">valid_mask</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">combine_output</span><span class="p">,</span> <span class="n">append</span><span class="p">,</span>
@@ -897,7 +897,7 @@
         <span class="n">pvd_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">open_netcdf</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">open_netcdf</span><span class="p">(</span><span class="n">file_name</span><span class="p">):</span>
     <span class="n">nc_file</span> <span class="o">=</span> <span class="n">NetCDFFile</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
     <span class="c1"># turn off auto mask (if applicable)</span>
     <span class="k">try</span><span class="p">:</span>
@@ -907,7 +907,7 @@
     <span class="k">return</span> <span class="n">nc_file</span>
 
 
-<span class="k">def</span> <span class="nf">is_valid_mesh_var</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">is_valid_mesh_var</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">):</span>  <span class="c1"># {{{</span>
     <span class="k">if</span> <span class="n">mesh_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">False</span>
 
@@ -917,14 +917,14 @@
     <span class="k">return</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span><span class="o">.</span><span class="n">dimensions</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">get_var</span><span class="p">(</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">,</span> <span class="n">time_series_file</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_var</span><span class="p">(</span><span class="n">variable_name</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">,</span> <span class="n">time_series_file</span><span class="p">):</span>  <span class="c1"># {{{</span>
     <span class="k">if</span> <span class="n">is_valid_mesh_var</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">variable_name</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">mesh_file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">time_series_file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">variable_name</span><span class="p">]</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">setup_time_indices</span><span class="p">(</span><span class="n">fn_pattern</span><span class="p">,</span> <span class="n">xtimeName</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_time_indices</span><span class="p">(</span><span class="n">fn_pattern</span><span class="p">,</span> <span class="n">xtimeName</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="p">):</span>  <span class="c1"># {{{</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function finds a list of NetCDF files containing time-dependent</span>
 <span class="sd">    MPAS data and extracts the time indices in each file.  The routine</span>
@@ -1007,7 +1007,7 @@
     <span class="k">return</span> <span class="n">local_indices</span><span class="p">,</span> <span class="n">file_names</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">parse_extra_dim</span><span class="p">(</span><span class="n">dim_name</span><span class="p">,</span> <span class="n">index_string</span><span class="p">,</span> <span class="n">time_series_file</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_extra_dim</span><span class="p">(</span><span class="n">dim_name</span><span class="p">,</span> <span class="n">index_string</span><span class="p">,</span> <span class="n">time_series_file</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">):</span>
     <span class="c1"># {{{</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parses the indices to be extracted along a given dimension.</span>
@@ -1072,7 +1072,7 @@
 <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">parse_time_indices</span><span class="p">(</span><span class="n">index_string</span><span class="p">,</span> <span class="n">time_indices</span><span class="p">,</span> <span class="n">time_file_names</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_time_indices</span><span class="p">(</span><span class="n">index_string</span><span class="p">,</span> <span class="n">time_indices</span><span class="p">,</span> <span class="n">time_file_names</span><span class="p">):</span>  <span class="c1"># {{{</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parses the indices to be extracted along the Time dimension.</span>
 <span class="sd">    The index_string can be formatted as follows:</span>
@@ -1113,7 +1113,7 @@
     <span class="k">return</span> <span class="n">time_indices</span><span class="p">,</span> <span class="n">time_file_names</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">parse_index_string</span><span class="p">(</span><span class="n">index_string</span><span class="p">,</span> <span class="n">dim_size</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_index_string</span><span class="p">(</span><span class="n">index_string</span><span class="p">,</span> <span class="n">dim_size</span><span class="p">):</span>  <span class="c1"># {{{</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Parses an index string into a list of indices.</span>
 <span class="sd">    The index_string can be fomatted as follows:</span>
@@ -1192,7 +1192,7 @@
     <span class="k">return</span> <span class="n">indices</span><span class="p">,</span> <span class="n">numerical_indices</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">parse_extra_dims</span><span class="p">(</span><span class="n">dimension_list</span><span class="p">,</span> <span class="n">time_series_file</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">parse_extra_dims</span><span class="p">(</span><span class="n">dimension_list</span><span class="p">,</span> <span class="n">time_series_file</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">,</span>
                      <span class="n">topo_dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">topo_cell_index_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">max_index_count</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># {{{</span>
@@ -1241,7 +1241,7 @@
 <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">setup_dimension_values_and_sort_vars</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">setup_dimension_values_and_sort_vars</span><span class="p">(</span>
         <span class="n">time_series_file</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">,</span>  <span class="n">variable_list</span><span class="p">,</span> <span class="n">extra_dims</span><span class="p">,</span>
         <span class="n">include_mesh_vars</span><span class="p">,</span> <span class="n">basic_dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="s1">&#39;nEdges&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertices&#39;</span><span class="p">,</span> <span class="s1">&#39;Time&#39;</span><span class="p">),</span>
         <span class="n">include_dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="s1">&#39;nEdges&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertices&#39;</span><span class="p">)):</span>  <span class="c1"># {{{</span>
@@ -1361,7 +1361,7 @@
 <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">summarize_extraction</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">time_indices</span><span class="p">,</span> <span class="n">cellVars</span><span class="p">,</span> <span class="n">vertexVars</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">summarize_extraction</span><span class="p">(</span><span class="n">mesh_file</span><span class="p">,</span> <span class="n">time_indices</span><span class="p">,</span> <span class="n">cellVars</span><span class="p">,</span> <span class="n">vertexVars</span><span class="p">,</span>
                          <span class="n">edgeVars</span><span class="p">,</span> <span class="n">transects_file</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># {{{</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    print a summary of the time levels, mesh file, transects file (optional)</span>
@@ -1398,7 +1398,7 @@
 <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">write_pvd_header</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_pvd_header</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>  <span class="c1"># {{{</span>
     <span class="n">pvd_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">.pvd&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">prefix</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
     <span class="n">pvd_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&lt;?xml version=&quot;1.0&quot;?&gt;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">pvd_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;&lt;VTKFile type=&quot;Collection&quot; version=&quot;0.1&quot;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -1407,7 +1407,7 @@
     <span class="k">return</span> <span class="n">pvd_file</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">get_hyperslab_name_and_dims</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">extra_dim_vals</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_hyperslab_name_and_dims</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">extra_dim_vals</span><span class="p">):</span>  <span class="c1"># {{{</span>
     <span class="k">if</span> <span class="n">extra_dim_vals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">var_name</span><span class="p">],</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extra_dim_vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -1421,7 +1421,7 @@
 <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">write_vtp_header</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">active_var_index</span><span class="p">,</span> <span class="n">var_indices</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_vtp_header</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">active_var_index</span><span class="p">,</span> <span class="n">var_indices</span><span class="p">,</span>
                      <span class="n">variable_list</span><span class="p">,</span> <span class="n">all_dim_vals</span><span class="p">,</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">connectivity</span><span class="p">,</span>
                      <span class="n">offsets</span><span class="p">,</span> <span class="n">nPoints</span><span class="p">,</span> <span class="n">nPolygons</span><span class="p">,</span> <span class="n">outType</span><span class="p">,</span> <span class="n">cellData</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                      <span class="n">pointData</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># {{{</span>
@@ -1477,7 +1477,7 @@
     <span class="k">return</span> <span class="n">vtkFile</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">build_topo_point_and_polygon_lists</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_topo_point_and_polygon_lists</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">,</span>
                                        <span class="n">use_progress_bar</span><span class="p">):</span>  <span class="c1"># {{{</span>
 
     <span class="k">if</span> <span class="n">output_32bit</span><span class="p">:</span>
@@ -1640,7 +1640,7 @@
         <span class="n">cell_to_point_map</span><span class="p">,</span> <span class="n">boundary_mask</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">build_cell_geom_lists</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_cell_geom_lists</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">):</span>  <span class="c1"># {{{</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Build geometry for fields on cells...&quot;</span><span class="p">)</span>
 
@@ -1691,7 +1691,7 @@
     <span class="k">return</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">connectivity</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">valid_mask</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">build_vertex_geom_lists</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_vertex_geom_lists</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">):</span>  <span class="c1"># {{{</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Build geometry for fields on vertices....&quot;</span><span class="p">)</span>
 
     <span class="n">vertices</span> <span class="o">=</span> <span class="n">_build_location_list_xyz</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="s1">&#39;Cell&#39;</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">)</span>
@@ -1740,7 +1740,7 @@
     <span class="k">return</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">connectivity</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">valid_mask</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">build_edge_geom_lists</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_edge_geom_lists</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">):</span>  <span class="c1"># {{{</span>
     <span class="p">(</span><span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">,</span> <span class="n">zCell</span><span class="p">)</span> <span class="o">=</span> \
         <span class="n">_build_location_list_xyz</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="s1">&#39;Cell&#39;</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">)</span>
     <span class="p">(</span><span class="n">xVertex</span><span class="p">,</span> <span class="n">yVertex</span><span class="p">,</span> <span class="n">zVertex</span><span class="p">)</span> <span class="o">=</span> \
@@ -1807,7 +1807,7 @@
     <span class="k">return</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">connectivity</span><span class="p">,</span> <span class="n">offsets</span><span class="p">,</span> <span class="n">valid_mask</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">get_field_sign</span><span class="p">(</span><span class="n">field_name</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_field_sign</span><span class="p">(</span><span class="n">field_name</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">field_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;-&#39;</span><span class="p">:</span>
         <span class="n">field_name</span> <span class="o">=</span> <span class="n">field_name</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
         <span class="n">sign</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -1817,11 +1817,11 @@
     <span class="k">return</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">sign</span>
 
 
-<span class="k">def</span> <span class="nf">read_field</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">,</span> <span class="n">time_series_file</span><span class="p">,</span> <span class="n">extra_dim_vals</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">read_field</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">mesh_file</span><span class="p">,</span> <span class="n">time_series_file</span><span class="p">,</span> <span class="n">extra_dim_vals</span><span class="p">,</span>
                <span class="n">time_index</span><span class="p">,</span> <span class="n">block_indices</span><span class="p">,</span> <span class="n">outType</span><span class="p">,</span> <span class="n">sign</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                <span class="n">topo_dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">topo_cell_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">nTopoLevels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>  <span class="c1"># {{{</span>
 
-    <span class="k">def</span> <span class="nf">read_field_with_dims</span><span class="p">(</span><span class="n">field_var</span><span class="p">,</span> <span class="n">dim_vals</span><span class="p">,</span> <span class="n">temp_shape</span><span class="p">,</span> <span class="n">outType</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">read_field_with_dims</span><span class="p">(</span><span class="n">field_var</span><span class="p">,</span> <span class="n">dim_vals</span><span class="p">,</span> <span class="n">temp_shape</span><span class="p">,</span> <span class="n">outType</span><span class="p">,</span>
                              <span class="n">index_arrays</span><span class="p">):</span>  <span class="c1"># {{{</span>
         <span class="n">temp_field</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">temp_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">outType</span><span class="p">)</span>
         <span class="n">inDims</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dim_vals</span><span class="p">)</span>
@@ -1932,7 +1932,7 @@
     <span class="k">return</span> <span class="n">sign</span><span class="o">*</span><span class="n">field</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">compute_zInterface</span><span class="p">(</span><span class="n">minLevelCell</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">layerThicknessCell</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_zInterface</span><span class="p">(</span><span class="n">minLevelCell</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">layerThicknessCell</span><span class="p">,</span>
                        <span class="n">zMinCell</span><span class="p">,</span> <span class="n">zMaxCell</span><span class="p">,</span> <span class="n">dtype</span><span class="p">,</span> <span class="n">cellsOnEdge</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># {{{</span>
 
@@ -2036,7 +2036,7 @@
         <span class="k">return</span> <span class="n">zInterfaceCell</span><span class="p">,</span> <span class="n">zInterfaceEdge</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">_build_location_list_xyz</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">):</span>  <span class="c1"># {{{</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_location_list_xyz</span><span class="p">(</span><span class="n">nc_file</span><span class="p">,</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">output_32bit</span><span class="p">,</span> <span class="n">lonlat</span><span class="p">):</span>  <span class="c1"># {{{</span>
 
     <span class="k">if</span> <span class="n">lonlat</span><span class="p">:</span>
         <span class="n">X</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">nc_file</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;lon</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">suffix</span><span class="p">)][:])</span>
@@ -2055,7 +2055,7 @@
 <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">_fix_lon_lat_vertices</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">verticesOnCell</span><span class="p">,</span> <span class="n">validVertices</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_fix_lon_lat_vertices</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">verticesOnCell</span><span class="p">,</span> <span class="n">validVertices</span><span class="p">,</span>
                           <span class="n">lonCell</span><span class="p">):</span>  <span class="c1"># {{{</span>
 
     <span class="n">nCells</span> <span class="o">=</span> <span class="n">verticesOnCell</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -2098,7 +2098,7 @@
     <span class="k">return</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">verticesOnCell</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">_fix_periodic_vertices</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">verticesOnCell</span><span class="p">,</span> <span class="n">validVertices</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_fix_periodic_vertices</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">verticesOnCell</span><span class="p">,</span> <span class="n">validVertices</span><span class="p">,</span>
                            <span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">,</span> <span class="n">xperiod</span><span class="p">,</span> <span class="n">yperiod</span><span class="p">):</span>  <span class="c1"># {{{</span>
 
     <span class="n">vertices</span><span class="p">,</span> <span class="n">verticesOnCell</span> <span class="o">=</span> <span class="n">_fix_periodic_vertices_1D</span><span class="p">(</span>
@@ -2109,7 +2109,7 @@
     <span class="k">return</span> <span class="n">vertices</span><span class="p">,</span> <span class="n">verticesOnCell</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">_fix_periodic_vertices_1D</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">verticesOnCell</span><span class="p">,</span> <span class="n">validVertices</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_fix_periodic_vertices_1D</span><span class="p">(</span><span class="n">vertices</span><span class="p">,</span> <span class="n">verticesOnCell</span><span class="p">,</span> <span class="n">validVertices</span><span class="p">,</span>
                               <span class="n">coordCell</span><span class="p">,</span> <span class="n">coordPeriod</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>  <span class="c1"># {{{</span>
 
     <span class="n">nCells</span> <span class="o">=</span> <span class="n">verticesOnCell</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -2159,7 +2159,7 @@
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">outVertices</span><span class="p">),</span> <span class="n">verticesOnCell</span>  <span class="c1"># }}}</span>
 
 
-<span class="k">def</span> <span class="nf">_expand_variable_list</span><span class="p">(</span><span class="n">variable_list</span><span class="p">,</span> <span class="n">time_series_variables</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_expand_variable_list</span><span class="p">(</span><span class="n">variable_list</span><span class="p">,</span> <span class="n">time_series_variables</span><span class="p">,</span>
                           <span class="n">mesh_variables</span><span class="p">,</span> <span class="n">include_dims</span><span class="p">):</span>
 
 
@@ -2199,7 +2199,7 @@
     <span class="k">return</span> <span class="n">variable_names</span>
 
 
-<span class="k">def</span> <span class="nf">_add_var</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">inc_dims</span><span class="p">,</span> <span class="n">variable_names</span><span class="p">,</span> <span class="n">exc_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_var</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">inc_dims</span><span class="p">,</span> <span class="n">variable_names</span><span class="p">,</span> <span class="n">exc_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">variable_names</span><span class="p">:</span>
         <span class="k">return</span>
 
@@ -2216,7 +2216,7 @@
         <span class="n">variable_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var_name</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_cull_files</span><span class="p">(</span><span class="n">fc_region_mask</span><span class="p">,</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">,</span> <span class="n">time_file_names</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_cull_files</span><span class="p">(</span><span class="n">fc_region_mask</span><span class="p">,</span> <span class="n">temp_dir</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">,</span> <span class="n">time_file_names</span><span class="p">,</span>
                 <span class="n">separate_mesh_file</span><span class="p">,</span> <span class="n">variable_list</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="p">,</span> <span class="n">xtime</span><span class="p">,</span>
                 <span class="n">use_progress_bar</span><span class="p">):</span>
 
@@ -2335,7 +2335,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.mesh.creation.mesh_definition_tools &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -123,15 +123,15 @@
 <span class="sd">regular lat/lon grids.  The ``cellWidth`` variable is a ``jigsaw`` input that</span>
 <span class="sd">defines the mesh.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 
 <div class="viewcode-block" id="mergeCellWidthVsLat">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat">[docs]</a>
-<span class="k">def</span> <span class="nf">mergeCellWidthVsLat</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mergeCellWidthVsLat</span><span class="p">(</span>
         <span class="n">lat</span><span class="p">,</span>
         <span class="n">cellWidthInSouth</span><span class="p">,</span>
         <span class="n">cellWidthInNorth</span><span class="p">,</span>
@@ -186,7 +186,7 @@
 
 <div class="viewcode-block" id="EC_CellWidthVsLat">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.EC_CellWidthVsLat">[docs]</a>
-<span class="k">def</span> <span class="nf">EC_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">cellWidthEq</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">cellWidthMidLat</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">EC_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">cellWidthEq</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span> <span class="n">cellWidthMidLat</span><span class="o">=</span><span class="mf">60.0</span><span class="p">,</span>
                       <span class="n">cellWidthPole</span><span class="o">=</span><span class="mf">35.0</span><span class="p">,</span> <span class="n">latPosEq</span><span class="o">=</span><span class="mf">15.0</span><span class="p">,</span> <span class="n">latPosPole</span><span class="o">=</span><span class="mf">73.0</span><span class="p">,</span>
                       <span class="n">latTransition</span><span class="o">=</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">latWidthEq</span><span class="o">=</span><span class="mf">6.0</span><span class="p">,</span> <span class="n">latWidthPole</span><span class="o">=</span><span class="mf">9.0</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -258,7 +258,7 @@
 
 <div class="viewcode-block" id="RRS_CellWidthVsLat">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat.html#mpas_tools.mesh.creation.mesh_definition_tools.RRS_CellWidthVsLat">[docs]</a>
-<span class="k">def</span> <span class="nf">RRS_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">cellWidthEq</span><span class="p">,</span> <span class="n">cellWidthPole</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">RRS_CellWidthVsLat</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">cellWidthEq</span><span class="p">,</span> <span class="n">cellWidthPole</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create Rossby Radius Scaling as a function of lat.  This is intended  as</span>
 <span class="sd">    part of the workflow to make an MPAS global mesh.</span>
@@ -297,7 +297,7 @@
 
 <div class="viewcode-block" id="AtlanticPacificGrid">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid.html#mpas_tools.mesh.creation.mesh_definition_tools.AtlanticPacificGrid">[docs]</a>
-<span class="k">def</span> <span class="nf">AtlanticPacificGrid</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">cellWidthInAtlantic</span><span class="p">,</span> <span class="n">cellWidthInPacific</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">AtlanticPacificGrid</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">cellWidthInAtlantic</span><span class="p">,</span> <span class="n">cellWidthInPacific</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Combine two cell width distributions using a ``tanh`` function.</span>
 
@@ -350,7 +350,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

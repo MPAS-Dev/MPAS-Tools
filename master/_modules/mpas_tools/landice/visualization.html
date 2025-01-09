@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.landice.visualization &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,21 +117,21 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.landice.visualization</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">csv</span>
-<span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">Dataset</span>
-<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="kn">import</span> <span class="n">LinearNDInterpolator</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">import</span> <span class="n">cm</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">matplotlib.tri</span> <span class="k">as</span> <span class="nn">tri</span>
-<span class="kn">from</span> <span class="nn">matplotlib.colorbar</span> <span class="kn">import</span> <span class="n">Colorbar</span>
-<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">TwoSlopeNorm</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">netCDF4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.interpolate</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearNDInterpolator</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="kn">import</span> <span class="n">cm</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.tri</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tri</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colorbar</span><span class="w"> </span><span class="kn">import</span> <span class="n">Colorbar</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Normalize</span><span class="p">,</span> <span class="n">TwoSlopeNorm</span>
 
 
 <div class="viewcode-block" id="plot_transect">
 <a class="viewcode-back" href="../../../generated/mpas_tools.landice.visualization.plot_transect.html#mpas_tools.landice.visualization.plot_transect">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_transect</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_transect</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                   <span class="n">coords_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">time_cmap_name</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span>
                   <span class="n">temperature_cmap_name</span><span class="o">=</span><span class="s1">&#39;YlGnBu_r&#39;</span><span class="p">):</span>
@@ -305,7 +305,7 @@
 
 <div class="viewcode-block" id="plot_map">
 <a class="viewcode-back" href="../../../generated/mpas_tools.landice.visualization.plot_map.html#mpas_tools.landice.visualization.plot_map">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_map</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_map</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
              <span class="n">mesh_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">triangles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">plot_grounding_line</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -478,7 +478,7 @@
 
 <div class="viewcode-block" id="plot_grounding_lines">
 <a class="viewcode-back" href="../../../generated/mpas_tools.landice.visualization.plot_grounding_lines.html#mpas_tools.landice.visualization.plot_grounding_lines">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_grounding_lines</span><span class="p">(</span><span class="n">data_paths</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_grounding_lines</span><span class="p">(</span><span class="n">data_paths</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                          <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma_r&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">mesh_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">triangles</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -579,13 +579,13 @@
 
 
 
-<span class="k">def</span> <span class="nf">_dist</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_dist</span><span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">):</span>
 
     <span class="n">dist</span> <span class="o">=</span> <span class="p">((</span><span class="n">xCell</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span><span class="o">-</span><span class="n">xCell</span><span class="p">[</span><span class="n">i2</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="n">yCell</span><span class="p">[</span><span class="n">i1</span><span class="p">]</span><span class="o">-</span><span class="n">yCell</span><span class="p">[</span><span class="n">i2</span><span class="p">])</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
     <span class="k">return</span> <span class="n">dist</span>
 
 
-<span class="k">def</span> <span class="nf">_calculate_masks</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_calculate_masks</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
 
     <span class="c1"># Set bitmask values</span>
     <span class="n">initial_extent_value</span> <span class="o">=</span> <span class="mi">1</span>
@@ -623,7 +623,7 @@
     <span class="k">return</span> <span class="n">valid_masks</span><span class="p">,</span> <span class="n">grounding_line_mask</span><span class="p">,</span> <span class="n">float_mask</span><span class="p">,</span> <span class="n">dynamic_mask</span><span class="p">,</span> <span class="n">initial_extent_mask</span>
 
 
-<span class="k">def</span> <span class="nf">_get_triangles</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_triangles</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
 
     <span class="n">xCell</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;xCell&quot;</span><span class="p">][:]</span>
     <span class="n">yCell</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;yCell&quot;</span><span class="p">][:]</span>
@@ -655,7 +655,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.transects &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,15 +117,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.transects</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span>
-<span class="kn">from</span> <span class="nn">shapely.geometry</span> <span class="kn">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">Point</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">shapely.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">LineString</span><span class="p">,</span> <span class="n">Point</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.vector</span> <span class="kn">import</span> <span class="n">Vector</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.vector</span><span class="w"> </span><span class="kn">import</span> <span class="n">Vector</span>
 
 
 <div class="viewcode-block" id="subdivide_great_circle">
 <a class="viewcode-back" href="../../generated/mpas_tools.transects.subdivide_great_circle.html#mpas_tools.transects.subdivide_great_circle">[docs]</a>
-<span class="k">def</span> <span class="nf">subdivide_great_circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">maxRes</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">subdivide_great_circle</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">maxRes</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Subdivide each segment of the transect so the horizontal resolution</span>
 <span class="sd">    approximately matches the requested resolution</span>
@@ -215,7 +215,7 @@
 
 <div class="viewcode-block" id="cartesian_to_great_circle_distance">
 <a class="viewcode-back" href="../../generated/mpas_tools.transects.cartesian_to_great_circle_distance.html#mpas_tools.transects.cartesian_to_great_circle_distance">[docs]</a>
-<span class="k">def</span> <span class="nf">cartesian_to_great_circle_distance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cartesian_to_great_circle_distance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Cartesian transect points to great-circle distance</span>
 
@@ -250,7 +250,7 @@
 
 <div class="viewcode-block" id="subdivide_planar">
 <a class="viewcode-back" href="../../generated/mpas_tools.transects.subdivide_planar.html#mpas_tools.transects.subdivide_planar">[docs]</a>
-<span class="k">def</span> <span class="nf">subdivide_planar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">maxRes</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">subdivide_planar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">maxRes</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Subdivide each segment of the transect so the horizontal resolution</span>
 <span class="sd">    approximately matches the requested resolution</span>
@@ -323,7 +323,7 @@
 
 <div class="viewcode-block" id="lon_lat_to_cartesian">
 <a class="viewcode-back" href="../../generated/mpas_tools.transects.lon_lat_to_cartesian.html#mpas_tools.transects.lon_lat_to_cartesian">[docs]</a>
-<span class="k">def</span> <span class="nf">lon_lat_to_cartesian</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span> <span class="n">degrees</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">lon_lat_to_cartesian</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span> <span class="n">degrees</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert from lon/lat to Cartesian x, y, z&quot;&quot;&quot;</span>
 
     <span class="k">if</span> <span class="n">degrees</span><span class="p">:</span>
@@ -338,7 +338,7 @@
 
 <div class="viewcode-block" id="cartesian_to_lon_lat">
 <a class="viewcode-back" href="../../generated/mpas_tools.transects.cartesian_to_lon_lat.html#mpas_tools.transects.cartesian_to_lon_lat">[docs]</a>
-<span class="k">def</span> <span class="nf">cartesian_to_lon_lat</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span> <span class="n">degrees</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">cartesian_to_lon_lat</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span> <span class="n">degrees</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert from  Cartesian x, y, z to lon/lat&quot;&quot;&quot;</span>
     <span class="n">lon</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
     <span class="n">lat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arcsin</span><span class="p">(</span><span class="n">z</span><span class="o">/</span><span class="n">earth_radius</span><span class="p">)</span>
@@ -349,7 +349,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">angular_distance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">angular_distance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compute angular distance between points on the sphere, following:</span>
 <span class="sd">    https://en.wikipedia.org/wiki/Great-circle_distance</span>
@@ -385,7 +385,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

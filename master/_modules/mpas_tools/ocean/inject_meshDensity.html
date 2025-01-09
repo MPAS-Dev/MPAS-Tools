@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.ocean.inject_meshDensity &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -126,19 +126,19 @@
 <span class="c1">#   base_mesh.nc is the mpas netcdf file where meshDensity is added</span>
 <span class="c1"># Mark Petersen, 7/24/2018</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">netCDF4</span> <span class="k">as</span> <span class="nn">nc4</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">netCDF4</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nc4</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.interpolation</span> <span class="kn">import</span> <span class="n">interp_bilin</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.interpolation</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp_bilin</span>
 
 
 <div class="viewcode-block" id="inject_meshDensity_from_file">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html#mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file">[docs]</a>
-<span class="k">def</span> <span class="nf">inject_meshDensity_from_file</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">inject_meshDensity_from_file</span><span class="p">(</span><span class="n">cw_filename</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a ``meshDensity`` field into an MPAS mesh.  The mesh density is defined</span>
 <span class="sd">    as:</span>
@@ -175,7 +175,7 @@
 
 <div class="viewcode-block" id="inject_spherical_meshDensity">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html#mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity">[docs]</a>
-<span class="k">def</span> <span class="nf">inject_spherical_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">inject_spherical_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a ``meshDensity`` field into a spherical MPAS mesh.  The mesh density is</span>
 <span class="sd">    defined as:</span>
@@ -224,7 +224,7 @@
 
 <div class="viewcode-block" id="inject_planar_meshDensity">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html#mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity">[docs]</a>
-<span class="k">def</span> <span class="nf">inject_planar_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">inject_planar_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a ``meshDensity`` field into a planar MPAS mesh.  The mesh density is</span>
 <span class="sd">    defined as:</span>
@@ -275,7 +275,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

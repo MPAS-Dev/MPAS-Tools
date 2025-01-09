@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.ocean.transects &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,13 +117,13 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.ocean.transects</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">xarray</span>
-<span class="kn">import</span> <span class="nn">numpy</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
 
 
 <div class="viewcode-block" id="find_transect_levels_and_weights">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.transects.find_transect_levels_and_weights.html#mpas_tools.ocean.transects.find_transect_levels_and_weights">[docs]</a>
-<span class="k">def</span> <span class="nf">find_transect_levels_and_weights</span><span class="p">(</span><span class="n">dsTransect</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span> <span class="n">bottomDepth</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">find_transect_levels_and_weights</span><span class="p">(</span><span class="n">dsTransect</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span> <span class="n">bottomDepth</span><span class="p">,</span>
                                      <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">zTransect</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Construct a vertical coordinate for a transect produced by</span>
@@ -227,7 +227,7 @@
 
 <div class="viewcode-block" id="interp_mpas_to_transect_triangles">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangles.html#mpas_tools.ocean.transects.interp_mpas_to_transect_triangles">[docs]</a>
-<span class="k">def</span> <span class="nf">interp_mpas_to_transect_triangles</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">interp_mpas_to_transect_triangles</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interpolate a 3D (``nCells`` by ``nVertLevels``) MPAS-Ocean DataArray</span>
 <span class="sd">    to transect nodes with constant values in each MPAS cell</span>
@@ -261,7 +261,7 @@
 
 <div class="viewcode-block" id="interp_mpas_to_transect_triangle_nodes">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes.html#mpas_tools.ocean.transects.interp_mpas_to_transect_triangle_nodes">[docs]</a>
-<span class="k">def</span> <span class="nf">interp_mpas_to_transect_triangle_nodes</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">interp_mpas_to_transect_triangle_nodes</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interpolate a 3D (``nCells`` by ``nVertLevels``) MPAS-Ocean DataArray</span>
 <span class="sd">    to transect nodes, linearly interpolating fields between the closest</span>
@@ -299,7 +299,7 @@
 
 <div class="viewcode-block" id="interp_transect_grid_to_transect_triangle_nodes">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes.html#mpas_tools.ocean.transects.interp_transect_grid_to_transect_triangle_nodes">[docs]</a>
-<span class="k">def</span> <span class="nf">interp_transect_grid_to_transect_triangle_nodes</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">interp_transect_grid_to_transect_triangle_nodes</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Interpolate a DataArray on the original transect grid to triangle nodes on</span>
 <span class="sd">    the MPAS-Ocean transect.</span>
@@ -361,7 +361,7 @@
 
 <div class="viewcode-block" id="get_outline_segments">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.transects.get_outline_segments.html#mpas_tools.ocean.transects.get_outline_segments">[docs]</a>
-<span class="k">def</span> <span class="nf">get_outline_segments</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_outline_segments</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Get a set of line segments that outline the given transect&quot;&quot;&quot;</span>
 
     <span class="n">nSegments</span> <span class="o">=</span> <span class="n">dsTransectTriangles</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nSegments&#39;</span><span class="p">]</span>
@@ -417,7 +417,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_get_transect_cells_and_nodes</span><span class="p">(</span><span class="n">dsTransect</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span> <span class="n">bottomDepth</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_transect_cells_and_nodes</span><span class="p">(</span><span class="n">dsTransect</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span> <span class="n">bottomDepth</span><span class="p">,</span>
                                   <span class="n">maxLevelCell</span><span class="p">):</span>
 
     <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">layerThickness</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
@@ -483,7 +483,7 @@
     <span class="k">return</span> <span class="n">dsTransectCells</span>
 
 
-<span class="k">def</span> <span class="nf">_get_vertical_coordinate</span><span class="p">(</span><span class="n">dsTransect</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span> <span class="n">bottomDepth</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_vertical_coordinate</span><span class="p">(</span><span class="n">dsTransect</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span> <span class="n">bottomDepth</span><span class="p">,</span>
                              <span class="n">maxLevelCell</span><span class="p">):</span>
     <span class="n">nVertLevels</span> <span class="o">=</span> <span class="n">layerThickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">]</span>
     <span class="n">levelIndices</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nVertLevels</span><span class="p">),</span>
@@ -531,7 +531,7 @@
         <span class="n">interpCellWeights</span>
 
 
-<span class="k">def</span> <span class="nf">_add_valid_cells_and_levels</span><span class="p">(</span><span class="n">dsTransect</span><span class="p">,</span> <span class="n">cellIndices</span><span class="p">,</span> <span class="n">levelIndices</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_valid_cells_and_levels</span><span class="p">(</span><span class="n">dsTransect</span><span class="p">,</span> <span class="n">cellIndices</span><span class="p">,</span> <span class="n">levelIndices</span><span class="p">,</span>
                                 <span class="n">cellMask</span><span class="p">):</span>
 
     <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;nTransectCells&#39;</span><span class="p">,)</span>
@@ -554,7 +554,7 @@
     <span class="k">return</span> <span class="n">dsTransectCells</span>
 
 
-<span class="k">def</span> <span class="nf">_get_interp_indices_and_weights</span><span class="p">(</span><span class="n">layerThickness</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_interp_indices_and_weights</span><span class="p">(</span><span class="n">layerThickness</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span>
                                     <span class="n">interpCellIndices</span><span class="p">,</span> <span class="n">interpCellWeights</span><span class="p">):</span>
     <span class="n">interpCellIndices</span> <span class="o">=</span> <span class="n">interpCellIndices</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nHorizWeights&#39;</span><span class="p">:</span> <span class="s1">&#39;nWeights&#39;</span><span class="p">})</span>
     <span class="n">interpCellWeights</span> <span class="o">=</span> <span class="n">interpCellWeights</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nHorizWeights&#39;</span><span class="p">:</span> <span class="s1">&#39;nWeights&#39;</span><span class="p">})</span>
@@ -612,7 +612,7 @@
     <span class="k">return</span> <span class="n">interpCellIndices</span><span class="p">,</span> <span class="n">interpLevelIndices</span><span class="p">,</span> <span class="n">interpCellWeights</span>
 
 
-<span class="k">def</span> <span class="nf">_transect_cells_to_triangles</span><span class="p">(</span><span class="n">dsTransectCells</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_transect_cells_to_triangles</span><span class="p">(</span><span class="n">dsTransectCells</span><span class="p">):</span>
 
     <span class="n">nTransectCells</span> <span class="o">=</span> <span class="n">dsTransectCells</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nTransectCells&#39;</span><span class="p">]</span>
     <span class="n">nTransectTriangles</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="n">nTransectCells</span>
@@ -679,7 +679,7 @@
     <span class="k">return</span> <span class="n">dsTransectTriangles</span>
 
 
-<span class="k">def</span> <span class="nf">_add_vertical_interpolation_of_transect_points</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_vertical_interpolation_of_transect_points</span><span class="p">(</span><span class="n">dsTransectTriangles</span><span class="p">,</span>
                                                    <span class="n">zTransect</span><span class="p">):</span>
 
     <span class="n">dTransect</span> <span class="o">=</span> <span class="n">dsTransectTriangles</span><span class="o">.</span><span class="n">dTransect</span>
@@ -750,7 +750,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

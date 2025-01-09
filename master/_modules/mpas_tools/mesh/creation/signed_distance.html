@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.mesh.creation.signed_distance &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,22 +117,22 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.mesh.creation.signed_distance</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.spatial</span> <span class="kn">import</span> <span class="n">KDTree</span>
-<span class="kn">import</span> <span class="nn">timeit</span>
-<span class="kn">import</span> <span class="nn">shapely.geometry</span>
-<span class="kn">import</span> <span class="nn">shapely.ops</span>
-<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
-<span class="kn">from</span> <span class="nn">inpoly</span> <span class="kn">import</span> <span class="n">inpoly2</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">KDTree</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">timeit</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shapely.geometry</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shapely.ops</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">inpoly</span><span class="w"> </span><span class="kn">import</span> <span class="n">inpoly2</span>
 
-<span class="kn">from</span> <span class="nn">geometric_features.plot</span> <span class="kn">import</span> <span class="n">subdivide_geom</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">subdivide_geom</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.mesh.creation.util</span> <span class="kn">import</span> <span class="n">lonlat2xyz</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">lonlat2xyz</span>
 
 
 <div class="viewcode-block" id="signed_distance_from_geojson">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson">[docs]</a>
-<span class="k">def</span> <span class="nf">signed_distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">signed_distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
                                  <span class="n">max_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Get the distance for each point on a lon/lat grid from the closest point</span>
@@ -179,7 +179,7 @@
 
 <div class="viewcode-block" id="mask_from_geojson">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.mask_from_geojson.html#mpas_tools.mesh.creation.signed_distance.mask_from_geojson">[docs]</a>
-<span class="k">def</span> <span class="nf">mask_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">mask_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Make a rasterized mask on a lon/lat grid from shapes (geojson multipolygon</span>
 <span class="sd">    data).</span>
@@ -232,7 +232,7 @@
 
 <div class="viewcode-block" id="distance_from_geojson">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.distance_from_geojson">[docs]</a>
-<span class="k">def</span> <span class="nf">distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
                           <span class="n">nn_search</span><span class="o">=</span><span class="s1">&#39;kdtree&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                           <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
     <span class="c1"># {{{</span>
@@ -330,7 +330,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_subdivide_shapes</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">max_length</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_subdivide_shapes</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">max_length</span><span class="p">):</span>
 
     <span class="n">shapes</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
@@ -345,13 +345,13 @@
     <span class="k">return</span> <span class="n">shapes</span>
 
 
-<span class="k">def</span> <span class="nf">_is_uniform</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_uniform</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">vector</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">vector</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">diff</span> <span class="o">=</span> <span class="n">d</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_shapes_to_pixel_coords</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_shapes_to_pixel_coords</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
     <span class="n">intx</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_interpx</span><span class="p">,</span> <span class="n">lon</span><span class="p">)</span>
     <span class="n">inty</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_interpy</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
     <span class="n">new_shapes</span> <span class="o">=</span> <span class="p">[]</span>
@@ -362,21 +362,21 @@
     <span class="k">return</span> <span class="n">new_shapes</span>
 
 
-<span class="k">def</span> <span class="nf">_interpx</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_interpx</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="n">nlon</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
     <span class="n">lon_pixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nlon</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lon_pixels</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
 
 
-<span class="k">def</span> <span class="nf">_interpy</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_interpy</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
     <span class="n">nlat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
     <span class="n">lat_pixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nlat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lat_pixels</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
 
 
-<span class="k">def</span> <span class="nf">_add_poly</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_poly</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
     <span class="n">node_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
     <span class="n">edge_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
     <span class="n">poly_edges</span> <span class="o">=</span> <span class="p">[[</span><span class="n">node_count</span> <span class="o">+</span> <span class="n">edge</span><span class="p">,</span>
@@ -393,7 +393,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

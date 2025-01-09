@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.ocean.viz.transects &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -118,27 +118,27 @@
              
   <h1>Source code for mpas_tools.ocean.viz.transects</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
-<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 
-<span class="kn">import</span> <span class="nn">cmocean</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">xarray</span> <span class="k">as</span> <span class="nn">xr</span>
-<span class="kn">from</span> <span class="nn">geometric_features</span> <span class="kn">import</span> <span class="n">read_feature_collection</span><span class="p">,</span> <span class="n">FeatureCollection</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib.tri</span> <span class="kn">import</span> <span class="n">Triangulation</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.viz</span> <span class="kn">import</span> <span class="n">mesh_to_triangles</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.viz.transects</span> <span class="kn">import</span> <span class="n">find_transect_cells_and_weights</span><span class="p">,</span> \
+<span class="kn">import</span><span class="w"> </span><span class="nn">cmocean</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_feature_collection</span><span class="p">,</span> <span class="n">FeatureCollection</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.tri</span><span class="w"> </span><span class="kn">import</span> <span class="n">Triangulation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_to_triangles</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.transects</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_transect_cells_and_weights</span><span class="p">,</span> \
     <span class="n">make_triangle_tree</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.ocean.transects</span> <span class="kn">import</span> <span class="n">find_transect_levels_and_weights</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.transects</span><span class="w"> </span><span class="kn">import</span> <span class="n">find_transect_levels_and_weights</span><span class="p">,</span> \
     <span class="n">interp_mpas_to_transect_triangles</span><span class="p">,</span> <span class="n">get_outline_segments</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.ocean.viz.inset</span> <span class="kn">import</span> <span class="n">add_inset</span>
-<span class="kn">from</span> <span class="nn">mpas_tools.viz.colormaps</span> <span class="kn">import</span> <span class="n">register_sci_viz_colormaps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.viz.inset</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_inset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.colormaps</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_sci_viz_colormaps</span>
 
 
 <div class="viewcode-block" id="plot_ocean_transects">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.ocean.viz.plot_ocean_transects.html#mpas_tools.ocean.viz.plot_ocean_transects">[docs]</a>
-<span class="k">def</span> <span class="nf">plot_ocean_transects</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_ocean_transects</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">variable_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">flip</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot images of the given variables on the given transects.  One image</span>
@@ -200,7 +200,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span> <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
@@ -238,7 +238,7 @@
                          <span class="n">flip</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">flip</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_compute_transects</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">flip</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_transects</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">flip</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    build a sequence of triangles showing the transect intersecting mpas cells</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -294,7 +294,7 @@
     <span class="k">return</span> <span class="n">transects</span>
 
 
-<span class="k">def</span> <span class="nf">_plot_transect</span><span class="p">(</span><span class="n">ds_transect</span><span class="p">,</span> <span class="n">mpas_field</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">transect_name</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">fc</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_plot_transect</span><span class="p">(</span><span class="n">ds_transect</span><span class="p">,</span> <span class="n">mpas_field</span><span class="p">,</span> <span class="n">var_name</span><span class="p">,</span> <span class="n">transect_name</span><span class="p">,</span> <span class="n">cmap</span><span class="p">,</span> <span class="n">fc</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    plot a transect showing the field on the MPAS-Ocean mesh and save to a file</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -355,7 +355,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
 
-<span class="k">def</span> <span class="nf">_get_ds_triangulation_args</span><span class="p">(</span><span class="n">ds_transect</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_ds_triangulation_args</span><span class="p">(</span><span class="n">ds_transect</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    get arguments for matplotlib Triangulation from triangulation dataset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -387,7 +387,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

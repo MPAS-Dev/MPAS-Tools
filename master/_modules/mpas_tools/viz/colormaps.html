@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.viz.colormaps &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,16 +117,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.viz.colormaps</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
-<span class="kn">from</span> <span class="nn">importlib.resources</span> <span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
-<span class="kn">from</span> <span class="nn">matplotlib.colors</span> <span class="kn">import</span> <span class="n">LinearSegmentedColormap</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">colormaps</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">xml.etree.ElementTree</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">ET</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearSegmentedColormap</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">colormaps</span>
 
 
 <div class="viewcode-block" id="register_sci_viz_colormaps">
 <a class="viewcode-back" href="../../../generated/mpas_tools.viz.colormaps.register_sci_viz_colormaps.html#mpas_tools.viz.colormaps.register_sci_viz_colormaps">[docs]</a>
-<span class="k">def</span> <span class="nf">register_sci_viz_colormaps</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">register_sci_viz_colormaps</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Register all SciVisColor colormaps with matplotlib&quot;&quot;&quot;</span>
 
     <span class="k">for</span> <span class="n">mapName</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;3wave-yellow-grey-blue&#39;</span><span class="p">,</span> <span class="s1">&#39;3Wbgy5&#39;</span><span class="p">,</span>
@@ -142,7 +142,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">_read_xml_colormap</span><span class="p">(</span><span class="n">xmlFile</span><span class="p">,</span> <span class="n">mapName</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_read_xml_colormap</span><span class="p">(</span><span class="n">xmlFile</span><span class="p">,</span> <span class="n">mapName</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read in an XML colormap&quot;&quot;&quot;</span>
 
     <span class="n">xml</span> <span class="o">=</span> <span class="n">ET</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">xmlFile</span><span class="p">)</span>
@@ -164,7 +164,7 @@
         <span class="n">_register_colormap_and_reverse</span><span class="p">(</span><span class="n">mapName</span><span class="p">,</span> <span class="n">cmap</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_register_colormap_and_reverse</span><span class="p">(</span><span class="n">mapName</span><span class="p">,</span> <span class="n">cmap</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_register_colormap_and_reverse</span><span class="p">(</span><span class="n">mapName</span><span class="p">,</span> <span class="n">cmap</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">mapName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">plt</span><span class="o">.</span><span class="n">colormaps</span><span class="p">():</span>
         <span class="n">colormaps</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">mapName</span><span class="p">)</span>
         <span class="n">colormaps</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="o">.</span><span class="n">reversed</span><span class="p">(),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_r&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mapName</span><span class="p">))</span>
@@ -177,7 +177,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

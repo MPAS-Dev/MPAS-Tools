@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.seaice.mesh &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -117,9 +117,9 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.seaice.mesh</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">netCDF4</span> <span class="kn">import</span> <span class="n">Dataset</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">math</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">netCDF4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
 
 <span class="n">degreesToRadians</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">180.0</span>
 <span class="n">radiansToDegrees</span> <span class="o">=</span> <span class="mf">180.0</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span>
@@ -127,7 +127,7 @@
 
 <div class="viewcode-block" id="write_scrip_file">
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.write_scrip_file.html#mpas_tools.seaice.mesh.write_scrip_file">[docs]</a>
-<span class="k">def</span> <span class="nf">write_scrip_file</span><span class="p">(</span><span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_scrip_file</span><span class="p">(</span><span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">,</span>
                      <span class="n">latCell</span><span class="p">,</span> <span class="n">lonCell</span><span class="p">,</span> <span class="n">corner_lat</span><span class="p">,</span> <span class="n">corner_lon</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A low-level function for writing a SCRIP file for the given MPAS-Seaice</span>
@@ -211,7 +211,7 @@
 
 <div class="viewcode-block" id="write_2D_scripfile">
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.write_2D_scripfile.html#mpas_tools.seaice.mesh.write_2D_scripfile">[docs]</a>
-<span class="k">def</span> <span class="nf">write_2D_scripfile</span><span class="p">(</span><span class="n">filenameScripOut</span><span class="p">,</span> <span class="n">scripTitle</span><span class="p">,</span> <span class="n">nColumns</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_2D_scripfile</span><span class="p">(</span><span class="n">filenameScripOut</span><span class="p">,</span> <span class="n">scripTitle</span><span class="p">,</span> <span class="n">nColumns</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span>
                        <span class="n">latsCentre</span><span class="p">,</span> <span class="n">lonsCentre</span><span class="p">,</span> <span class="n">latsVertex</span><span class="p">,</span> <span class="n">lonsVertex</span><span class="p">,</span>
                        <span class="n">degrees</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -327,7 +327,7 @@
 
 <div class="viewcode-block" id="make_mpas_scripfile_on_cells">
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells">[docs]</a>
-<span class="k">def</span> <span class="nf">make_mpas_scripfile_on_cells</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_mpas_scripfile_on_cells</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write a SCRIP file for cel quantities on the given MPAS-Seaice mesh</span>
 
@@ -399,7 +399,7 @@
 
 <div class="viewcode-block" id="make_mpas_scripfile_on_vertices">
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices">[docs]</a>
-<span class="k">def</span> <span class="nf">make_mpas_scripfile_on_vertices</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">make_mpas_scripfile_on_vertices</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write a SCRIP file for vertex quantities on the given MPAS-Seaice mesh</span>
 
@@ -464,7 +464,7 @@
 <span class="c1"># Private functions</span>
 <span class="c1"># ---------------------------------------------------------------------</span>
 
-<span class="k">def</span> <span class="nf">_rotate_about_vector</span><span class="p">(</span><span class="n">vectorToRotate</span><span class="p">,</span> <span class="n">vectorAxis</span><span class="p">,</span> <span class="n">rotationAngle</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_rotate_about_vector</span><span class="p">(</span><span class="n">vectorToRotate</span><span class="p">,</span> <span class="n">vectorAxis</span><span class="p">,</span> <span class="n">rotationAngle</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Rotate the given Cartesian vector around the given axis by the given</span>
 <span class="sd">    angle.</span>
@@ -514,12 +514,12 @@
     <span class="k">return</span> <span class="n">rotatedVector</span>
 
 
-<span class="k">def</span> <span class="nf">_wrap_index</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_wrap_index</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
 
     <span class="k">return</span> <span class="n">i</span> <span class="o">%</span> <span class="n">n</span>
 
 
-<span class="k">def</span> <span class="nf">_rotate_about_vertex</span><span class="p">(</span><span class="n">latCell</span><span class="p">,</span> <span class="n">lonCell</span><span class="p">,</span> <span class="n">latVertex</span><span class="p">,</span> <span class="n">lonVertex</span><span class="p">,</span> <span class="n">angle</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_rotate_about_vertex</span><span class="p">(</span><span class="n">latCell</span><span class="p">,</span> <span class="n">lonCell</span><span class="p">,</span> <span class="n">latVertex</span><span class="p">,</span> <span class="n">lonVertex</span><span class="p">,</span> <span class="n">angle</span><span class="p">):</span>
 
     <span class="n">vertexPosition</span> <span class="o">=</span> <span class="n">_get_position_from_lat_lon</span><span class="p">(</span><span class="n">latVertex</span><span class="p">,</span> <span class="n">lonVertex</span><span class="p">)</span>
     <span class="n">cellPosition</span> <span class="o">=</span> <span class="n">_get_position_from_lat_lon</span><span class="p">(</span><span class="n">latCell</span><span class="p">,</span> <span class="n">lonCell</span><span class="p">)</span>
@@ -547,7 +547,7 @@
     <span class="k">return</span> <span class="n">latRotated</span><span class="p">,</span> <span class="n">lonRotated</span>
 
 
-<span class="k">def</span> <span class="nf">_estimate_missing_cell_latlon</span><span class="p">(</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_estimate_missing_cell_latlon</span><span class="p">(</span>
         <span class="n">iVertex</span><span class="p">,</span> <span class="n">iCellOnVertexNeeded</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">,</span> <span class="n">cellsOnVertex</span><span class="p">,</span> <span class="n">latCell</span><span class="p">,</span>
         <span class="n">lonCell</span><span class="p">,</span> <span class="n">latVertex</span><span class="p">,</span> <span class="n">lonVertex</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -629,7 +629,7 @@
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t find position!&quot;</span><span class="p">)</span>
 
 
-<span class="k">def</span> <span class="nf">_get_position_from_lat_lon</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_position_from_lat_lon</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">):</span>
 
     <span class="n">position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 
@@ -640,7 +640,7 @@
     <span class="k">return</span> <span class="n">position</span>
 
 
-<span class="k">def</span> <span class="nf">_get_lat_lon_from_position</span><span class="p">(</span><span class="n">position</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_lat_lon_from_position</span><span class="p">(</span><span class="n">position</span><span class="p">):</span>
 
     <span class="n">lat</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">asin</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
     <span class="n">lon</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span><span class="n">position</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">position</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -648,7 +648,7 @@
     <span class="k">return</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span>
 
 
-<span class="k">def</span> <span class="nf">_vector_magnitude</span><span class="p">(</span><span class="n">vector</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_vector_magnitude</span><span class="p">(</span><span class="n">vector</span><span class="p">):</span>
 
     <span class="n">magnitude</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">vector</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
                           <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">vector</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span> <span class="o">+</span>
@@ -657,7 +657,7 @@
     <span class="k">return</span> <span class="n">magnitude</span>
 
 
-<span class="k">def</span> <span class="nf">_normalize_vector</span><span class="p">(</span><span class="n">vector</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_normalize_vector</span><span class="p">(</span><span class="n">vector</span><span class="p">):</span>
 
     <span class="n">magnitude</span> <span class="o">=</span> <span class="n">_vector_magnitude</span><span class="p">(</span><span class="n">vector</span><span class="p">)</span>
 
@@ -666,7 +666,7 @@
     <span class="k">return</span> <span class="n">normalizedVector</span>
 
 
-<span class="k">def</span> <span class="nf">_cross_product</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_cross_product</span><span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
 
     <span class="n">cp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 
@@ -684,7 +684,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

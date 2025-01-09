@@ -6,7 +6,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.translate &mdash; mpas_tools 0.36.0 documentation</title>
-      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
@@ -119,19 +119,19 @@
   <h1>Source code for mpas_tools.translate</h1><div class="highlight"><pre>
 <span></span><span class="ch">#!/usr/bin/env python</span>
 
-<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
     <span class="n">unicode_literals</span>
 
-<span class="kn">from</span> <span class="nn">optparse</span> <span class="kn">import</span> <span class="n">OptionParser</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">optparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionParser</span>
 
-<span class="kn">import</span> <span class="nn">xarray</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
 
-<span class="kn">from</span> <span class="nn">mpas_tools.io</span> <span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
 
 
 <div class="viewcode-block" id="translate">
 <a class="viewcode-back" href="../../generated/mpas_tools.translate.translate.html#mpas_tools.translate.translate">[docs]</a>
-<span class="k">def</span> <span class="nf">translate</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">translate</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates the coordinate system of the planar MPAS mesh by an arbitrary</span>
 <span class="sd">    shift in x and/or y</span>
@@ -160,7 +160,7 @@
 
 <div class="viewcode-block" id="center_on_mesh">
 <a class="viewcode-back" href="../../generated/mpas_tools.translate.center_on_mesh.html#mpas_tools.translate.center_on_mesh">[docs]</a>
-<span class="k">def</span> <span class="nf">center_on_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">otherMesh</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">center_on_mesh</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">otherMesh</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates the coordinate system of the planar MPAS mesh by shifting the</span>
 <span class="sd">    origin to the center of the domain described in a separate mesh</span>
@@ -193,7 +193,7 @@
 
 <div class="viewcode-block" id="center">
 <a class="viewcode-back" href="../../generated/mpas_tools.translate.center.html#mpas_tools.translate.center">[docs]</a>
-<span class="k">def</span> <span class="nf">center</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">center</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Translates the coordinate system of the planar MPAS mesh by shifting the</span>
 <span class="sd">    origin to the center of the domain</span>
@@ -209,7 +209,7 @@
 
 
 
-<span class="k">def</span> <span class="nf">get_center</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">xVar</span><span class="o">=</span><span class="s1">&#39;xCell&#39;</span><span class="p">,</span> <span class="n">yVar</span><span class="o">=</span><span class="s1">&#39;yCell&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_center</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">xVar</span><span class="o">=</span><span class="s1">&#39;xCell&#39;</span><span class="p">,</span> <span class="n">yVar</span><span class="o">=</span><span class="s1">&#39;yCell&#39;</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Find the center of the mesh</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -220,7 +220,7 @@
     <span class="k">return</span> <span class="n">xCenter</span><span class="p">,</span> <span class="n">yCenter</span>
 
 
-<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== Gathering information.  (Invoke with --help for more details. &quot;</span>
           <span class="s2">&quot;All arguments are optional)&quot;</span><span class="p">)</span>
@@ -317,7 +317,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2024 Triad National Security, LLC. All rights reserved. Copyright (c) 2024 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2024 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
