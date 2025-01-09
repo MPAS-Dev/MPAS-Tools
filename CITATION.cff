@@ -1,0 +1,76 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: MPAS-Tools
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Douglas
+    family-names: Jacobsen
+    orcid: 'https://orcid.org/0000-0002-3836-207X'
+  - given-names: Michael
+    family-names: Duda
+    orcid: 'https://orcid.org/0009-0003-8376-5147'
+  - given-names: Xylar
+    family-names: Asay-Davis
+    orcid: 'https://orcid.org/0000-0002-1990-892X'
+    email: xylar@lanl.gov
+  - given-names: Matthew
+    family-names: Hoffman
+    orcid: 'https://orcid.org/0000-0001-5076-0540'
+  - given-names: Mark
+    family-names: Petersen
+    orcid: 'https://orcid.org/0000-0001-7170-7511'
+  - orcid: 'https://orcid.org/0000-0001-5971-4241'
+    given-names: Phillip
+    family-names: Wolfram
+  - orcid: 'https://orcid.org/0000-0003-3535-1540'
+    given-names: Trevor
+    family-names: Hillebrand
+  - given-names: Holly
+    family-names: Han
+    orcid: 'https://orcid.org/0000-0002-3819-5275'
+  - given-names: Joseph
+    family-names: Kennedy
+    orcid: 'https://orcid.org/0000-0002-9348-693X'
+  - given-names: Adrian
+    family-names: Turner
+    orcid: 'https://orcid.org/0000-0001-6796-4187'
+  - given-names: Miles
+    family-names: Curry
+  - given-names: Todd
+    family-names: Ringler
+    orcid: 'https://orcid.org/0000-0003-4433-4320'
+  - given-names: Stephen
+    family-names: Price
+    orcid: 'https://orcid.org/0000-0001-6878-2553'
+  - given-names: Tong
+    family-names: Zhang
+  - given-names: Darren
+    family-names: Engwirda
+    orcid: 'https://orcid.org/0000-0002-3379-9109'
+  - given-names: Alex
+    family-names: Hager
+  - given-names: Althea
+    family-names: Denlinger
+  - orcid: 'https://orcid.org/0000-0001-9828-1741'
+    given-names: Carolyn
+    family-names: Begeman
+  - given-names: Andrew
+    family-names: Nolan
+    orcid: 'https://orcid.org/0000-0002-9785-0196'
+  - family-names: Saenz
+    given-names: Juan
+  - given-names: Dominikus
+    family-names: Heinzeller
+    orcid: 'https://orcid.org/0000-0003-2962-1049'
+  - given-names: Cameron
+    family-names: Smith
+repository-code: 'https://github.com/MPAS-Dev/MPAS-Tools'
+url: 'https://mpas-dev.github.io/MPAS-Tools/master/'
+version: 0.36.0
+date-released: '2024-11-13'
+
