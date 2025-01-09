@@ -84,8 +84,3 @@ Indices and tables
 
    authors
 
-.. toctree::
-   :caption: Versions
-   :maxdepth: 1
-
-   versions
