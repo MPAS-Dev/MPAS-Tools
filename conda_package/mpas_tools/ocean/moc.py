@@ -1,10 +1,9 @@
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+import argparse
+import logging
+import sys
 
 import xarray
 import numpy
-import logging
-import sys
 from geometric_features.aggregation.ocean import moc
 
 import mpas_tools.mesh.conversion
@@ -88,8 +87,8 @@ def add_moc_southern_boundary_transects(dsMask, dsMesh, logger=None):
     Returns
     -------
     dsMask : ``xarray.Dataset``
-        Region masks defining MOC basins and the corresponding southern-boundary
-        transects
+        Region masks defining MOC basins and the corresponding
+        southern-boundary transects
     """
 
     useStdout = logger is None
@@ -113,6 +112,33 @@ def add_moc_southern_boundary_transects(dsMask, dsMesh, logger=None):
     return dsMask
 
 
+def moc_southern_boundary_extractor():
+    """
+    Entry point for moc_southern_boundary_extractor command-line tool
+    """
+    parser = \
+        argparse.ArgumentParser(description=__doc__,
+                                formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('-f', '--in_file', dest='in_file',
+                        help='Input file with MOC masks', metavar='IN_FILE',
+                        required=True)
+    parser.add_argument('-m', '--mesh_file', dest='mesh_file',
+                        help='Input mesh file', metavar='MESH_FILE',
+                        required=True)
+    parser.add_argument('-o', '--out_file', dest='out_file',
+                        help='Output file for MOC masks and southern-boundary '
+                        'transects', metavar='OUT_FILE',
+                        required=True)
+    args = parser.parse_args()
+
+    dsMasks = xarray.open_dataset(args.in_file)
+    dsMesh = xarray.open_dataset(args.mesh_file)
+
+    dsMasksAndTransects = add_moc_southern_boundary_transects(dsMasks, dsMesh)
+
+    write_netcdf(dsMasksAndTransects, args.out_file)
+
+
 def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
     """
     Extracts the southern boundary of each region mask in mocMask.  Mesh info
@@ -125,7 +151,7 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
     nEdges = mesh.sizes['nEdges']
 
     nRegions = mocMask.sizes['nRegions']
-    assert(mocMask.sizes['nCells'] == nCells)
+    assert mocMask.sizes['nCells'] == nCells
 
     # convert to python zero-based indices
     cellsOnEdge = mesh.variables['cellsOnEdge'].values-1
@@ -198,7 +224,7 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
         startIndices = numpy.arange(1, len(edgeSequence))[belowToAbove]
         endIndices = numpy.arange(1, len(edgeSequence))[aboveToBelow]
 
-        assert(len(startIndices) == len(endIndices))
+        assert len(startIndices) == len(endIndices)
 
         if len(startIndices) == 0:
             # the whole sequence is the southern boundary
@@ -232,7 +258,8 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
 
 
 def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
-                          southernBoiundaryEdgeSigns, southernBoundaryVertices):
+                          southernBoiundaryEdgeSigns,
+                          southernBoundaryVertices):
     """
     Creates transect fields in mocMask from the edges, edge signs and
     vertices defining the southern boundaries.  Mesh info (nEdges and
@@ -354,7 +381,7 @@ def _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
     edgeSequence = []
     vertexSequence = []
     while True:
-        assert(edgeSign[iEdge] == 1. or edgeSign[iEdge] == -1.)
+        assert edgeSign[iEdge] == 1. or edgeSign[iEdge] == -1.
         if edgeSign[iEdge] == 1.:
             v = 0
         else:
@@ -369,7 +396,7 @@ def _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
             if edge != -1 and edge != iEdge and edgeSign[edge] != 0:
                 nextEdge = edge
                 break
-        assert(nextEdge != -1)
+        assert nextEdge != -1
 
         edgeSequence.append(iEdge)
         vertexSequence.append(iVertex)
