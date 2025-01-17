@@ -8,6 +8,9 @@ on:
   release:
     types: [published]
 
+env:
+  PYTHON_VERSION: "3.10"
+
 jobs:
   publish-docs:
     runs-on: ubuntu-latest
@@ -40,7 +43,7 @@ jobs:
           channels: conda-forge
           channel-priority: strict
           auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Install mpas_tools
