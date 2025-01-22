@@ -321,7 +321,10 @@ class mpasToMaliInterp:
         # potential mpas-ocean hybrid coordinate.  Also should speed up ncremap
         # because the number of ismip6 vert levels is less than most ocean meshes
         st = time.time()
-        vertInterpTF = _vertical_interpolate(self, tf.data, mcce.data)
+        # allow vertical extrapolation.
+        # this avoids issues where small changes in vertical coordinate cause nans to
+        # occur in locations that the reference mask indicates are valid
+        vertInterpTF = _vertical_interpolate(self, tf.data, mcce.data, markExtrap=False)
         nd = time.time()
         tm = nd - st
         print("vertical interpolation:", tm, "seconds")
