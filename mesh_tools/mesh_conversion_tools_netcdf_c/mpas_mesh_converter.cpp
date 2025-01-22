@@ -23,7 +23,7 @@
 
 using namespace std;
 
-int nCells, nVertices, vertex_degree;
+size_t nCells, nVertices, vertex_degree;
 int maxEdges;
 int obtuseTriangles = 0;
 bool spherical, periodic;
@@ -460,7 +460,8 @@ int readGridInput(const string inputFilename){/*{{{*/
     delete[] zvertex;
 
     // Build unordered cellsOnVertex information
-    cellsonvertex_list = new int[nVertices * vertexDegree];
+    size_t arraySize = nVertices*vertexDegree;
+    cellsonvertex_list = new int[arraySize];
 
     ncutil::get_var(inputFilename, "cellsOnVertex", cellsonvertex_list);
     cellsOnVertex.resize(nVertices);
@@ -2509,9 +2510,9 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
      *
      * **********************************************************************/
 
-    int nCells = cells.size();
-    int nEdges = edges.size();
-    int nVertices = vertices.size();
+    size_t nCells = cells.size();
+    size_t nEdges = edges.size();
+    size_t nVertices = vertices.size();
 
     int i;
     double *x, *y, *z, *lat, *lon;
@@ -2706,13 +2707,14 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
      *
      * ***************************************************************/
 
-    int nCells = cells.size();
+    size_t nCells = cells.size();
     int i, j;
 
     int *tmp_arr;
 
     // Build and write COC array
-    tmp_arr = new int[nCells*maxEdges];
+    size_t arraySize = nCells*maxEdges;
+    tmp_arr = new int[arraySize];
 
     for(i = 0; i < nCells; i++){
         for(j = 0; j < maxEdges; j++){
@@ -2814,7 +2816,7 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
      *
      * ***************************************************************/
 
-    int nEdges = edges.size();
+    size_t nEdges = edges.size();
     int maxEdges2 = maxEdges * 2;
     int vertexDegree = vertex_degree;
     int two = 2;
@@ -2823,7 +2825,8 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
     int *tmp_arr;
 
     // Build and write EOE array
-    tmp_arr = new int[nEdges*maxEdges2];
+    size_t arraySize = nEdges*maxEdges2;
+    tmp_arr = new int[arraySize];
 
     for(i = 0; i < nEdges; i++){
         for(j = 0; j < maxEdges2; j++){
@@ -2850,7 +2853,8 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
     delete[] tmp_arr;
 
     // Build and write COE array
-    tmp_arr = new int[nEdges*two];
+    arraySize = nEdges*two;
+    tmp_arr = new int[arraySize];
     for(i = 0; i < nEdges; i++){
         for(j = 0; j < two; j++){
             tmp_arr[i*two + j] = 0;
@@ -2921,14 +2925,15 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
      *
      * ***************************************************************/
 
-    int nVertices = vertices.size();
+    size_t nVertices = vertices.size();
     int vertexDegree = vertex_degree;
     int i, j;
 
     int *tmp_arr;
 
     // Build and write COV array
-    tmp_arr = new int[nVertices*vertexDegree];
+    size_t arraySize = nVertices*vertexDegree;
+    tmp_arr = new int[arraySize];
 
     for(i = 0; i < nVertices; i++){
         for(j = 0; j < vertexDegree; j++){
@@ -3035,7 +3040,7 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
      *
      * *******************************************************/
 
-    int nVertices = vertices.size();
+    size_t nVertices = vertices.size();
     int vertexDegree = vertex_degree;
     int i, j;
     int count;
@@ -3055,7 +3060,8 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
 
     // Build and write kiteAreasOnVertex
     // TODO: Fix kite area for quads?
-    tmp_arr = new double[nVertices*vertexDegree];
+    size_t arraySize = nVertices*vertexDegree;
+    tmp_arr = new double[arraySize];
     for(i = 0; i < nVertices*vertexDegree; i++){
         tmp_arr[i] = 0.0;
     }
@@ -3098,7 +3104,7 @@ int outputEdgeParameters( const string outputFilename) {/*{{{*/
      *
      * *******************************************************/
 
-    int nEdges = edges.size();
+    size_t nEdges = edges.size();
     int maxEdges2 = maxEdges * 2;
     int i, j;
 
@@ -3125,7 +3131,8 @@ int outputEdgeParameters( const string outputFilename) {/*{{{*/
     ncutil::put_var(outputFilename, "dvEdge", &dvEdge[0]) ;
 
     //Build and write weightsOnEdge
-    tmp_arr = new double[nEdges*maxEdges2];
+    size_t arraySize = nEdges*maxEdges2;
+    tmp_arr = new double[arraySize];
 
     i = 0;
     for(vec_dbl_itr = weightsOnEdge.begin(); vec_dbl_itr != weightsOnEdge.end(); ++vec_dbl_itr){
