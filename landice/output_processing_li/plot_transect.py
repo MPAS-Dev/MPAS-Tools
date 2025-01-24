@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 """
 Plot bed and surface topography, surface speed, and
-(optionally) temperature from MPAS netCDF along a transect.
-@author: trevorhillebrand
+(optionally) temperature and thermal forcing from MPAS netCDF along a transect.
+@author: trevorhillebrand, edited by cashafer
 """
 
 import numpy as np
@@ -36,6 +36,9 @@ parser.add_option('-s', dest='save_filename', default=None,
 parser.add_option("--temperature", dest="interp_temp",
                   action="store_true", help="interpolate temperature")
 
+parser.add_option("--thermal_forcing", dest="interp_thermal_forcing",       
+                  action="store_true", help="interpolate thermal forcing")
+
 for option in parser.option_list:
     if option.default != ("NO", "DEFAULT"):
         option.help += (" " if option.help else "") + "[default: %default]"
@@ -66,11 +69,16 @@ if -1 in times:
 if '-1' in times_list:
     times_list[times_list.index('-1')] = str(dataset.dimensions['Time'].size - 1)
 
-# Cannot plot temperature for more than one time index.
+# Cannot plot temperature or thermal forcing for more than one time index.
 if options.interp_temp and (len(times) > 1):
     print('Cannot plot temperature for more than one time index.' +
           ' Skipping temperature interpolation and plotting.')
     options.interp_temp = False
+
+if options.interp_thermal_forcing and (len(times) > 1):
+    print('Cannot plot thermal forcing for more than one time index.' +
+          ' Skipping thermal forcing interpolation and plotting.')
+    options.interp_thermal_forcing = False
 
 li_mask_ValueDynamicIce = 2
 cellMask = dataset.variables['cellMask'][times,:]
@@ -91,9 +99,17 @@ else:
           ' Skipping velocity plot.')
     plot_speed = False
 
-
 if options.interp_temp:
     temperature = dataset.variables['temperature'][times,:]
+
+if options.interp_thermal_forcing:
+    # Ocean thermal forcing
+    thermal_forcing = dataset.variables['TFocean'][times,:]
+    thermal_forcing[thermal_forcing == 1.0e36] = np.nan # Large invalid TF values set to NaN
+    # Number of ocean layers
+    nISMIP6OceanLayers = dataset.dimensions['nISMIP6OceanLayers'].size  
+    # Depths associated with thermal forcing field
+    ismip6shelfMelt_zOcean = dataset.variables['ismip6shelfMelt_zOcean'][:]
     
 bedTopo = dataset.variables["bedTopography"][0,:]
 print('Reading bedTopography from the first time level only. If multiple',
@@ -185,6 +201,26 @@ for i, time in enumerate(times):
                                     temperature[i,:,lev])
             temp_transect[:, lev] = temp_interpolant(
                                         np.vstack((x_interp, y_interp)).T)
+ 
+    if options.interp_thermal_forcing:
+        ocean_layer_interfaces = np.zeros((len(thk_transect), nISMIP6OceanLayers + 1))  # Ocean layer depths
+        ocean_layer_interfaces[:,0] = 0.        # First interface is the topmost z = 0 sea level interface
+
+        # For the entire length of the transect, set the layer interface depths
+        for ii in range(len(thk_transect)):
+            ocean_layer_interfaces[ii,1:] = ismip6shelfMelt_zOcean[:] + ismip6shelfMelt_zOcean[0]
+
+        # Create the thermal forcing transect using the TF interpolator at each ocean lev
+        thermal_forcing_transect = np.zeros((len(x_interp), nISMIP6OceanLayers))
+        for ocean_lev in range(nISMIP6OceanLayers):
+            print(f'Interpolating ocean thermal forcing for ocean level {ocean_lev}')
+            thermal_forcing_interpolant = LinearNDInterpolator(
+                                               np.vstack((xCell, yCell)).T,
+                                               thermal_forcing[i,:,ocean_lev])
+            thermal_forcing_transect[:, ocean_lev] = thermal_forcing_interpolant(
+                                                         np.vstack( (x_interp, y_interp)).T)
+
+
 
 thickAx.plot(distance, bed_transect, color='black')
 
@@ -195,6 +231,15 @@ if options.interp_temp:
                                     cmap='YlGnBu_r',
                                     vmin=240., vmax=273.15)
 
+if options.interp_thermal_forcing:
+    thermal_forcing_plot = thickAx.pcolormesh( np.tile(distance, (nISMIP6OceanLayers+1,1)).T,
+                                               ocean_layer_interfaces[:,:], thermal_forcing_transect[1:,:],
+                                               cmap='RdYlBu_r', vmin=-2, vmax=2 )
+    thickAx.fill_between(distance, upper_surf_nan, lower_surf_nan, color='xkcd:ice blue')
+    thickAx.fill_between(distance, bed_transect, thickAx.get_ylim()[0], color='xkcd:greyish brown')
+    thickAx.grid(False)
+
+
 speedAx.set_xlabel('Distance (km)')
 speedAx.set_ylabel('Surface\nspeed (m/yr)')
 thickAx.set_ylabel('Elevation\n(m asl)')
@@ -203,6 +248,11 @@ if options.interp_temp:
     temp_cbar = plt.colorbar(temp_plot)
     temp_cbar.set_label('Temperature (K)')
     temp_cbar.ax.tick_params(labelsize=12)
+
+if options.interp_thermal_forcing:
+    tf_cbar = plt.colorbar(thermal_forcing_plot)
+    tf_cbar.set_label('Thermal Forcing (C)')
+    tf_cbar.ax.tick_params(labelsize=12)
 
 if (len(times) > 1):
     time_cbar = plt.colorbar(cm.ScalarMappable(cmap='plasma'), ax=thickAx)
@@ -220,3 +270,4 @@ if options.save_filename is not None:
 plt.show()
 
 dataset.close()
+
