@@ -70,14 +70,10 @@ if '-1' in times_list:
     times_list[times_list.index('-1')] = str(dataset.dimensions['Time'].size - 1)
 
 # Cannot plot temperature or thermal forcing for more than one time index.
-if options.interp_temp and (len(times) > 1):
-    print('Cannot plot temperature for more than one time index.' +
-          ' Skipping temperature interpolation and plotting.')
+if (options.interp_temp or options.interp_thermal_forcing) and (len(times) > 1):
+    print('Cannot plot temperature or thermal forcing for more than one time index.' +
+          ' Skipping temperature or TF interpolation and plotting.')
     options.interp_temp = False
-
-if options.interp_thermal_forcing and (len(times) > 1):
-    print('Cannot plot thermal forcing for more than one time index.' +
-          ' Skipping thermal forcing interpolation and plotting.')
     options.interp_thermal_forcing = False
 
 li_mask_ValueDynamicIce = 2
