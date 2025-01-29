@@ -185,11 +185,11 @@ each MOC basin.</p>
 <p>In this example, only the <code class="docutils literal notranslate"><span class="pre">mesh.nc</span></code> file is required as an input.  The
 resulting <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> contains both the basin and southern-transect
 masks.</p>
-<p>A command-line tool <code class="docutils literal notranslate"><span class="pre">moc_southern_boundary_extractor.py</span></code> is also available
+<p>A command-line tool <code class="docutils literal notranslate"><span class="pre">moc_southern_boundary_extractor</span></code> is also available
 for this purpose:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ moc_southern_boundary_extractor.py --help
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ moc_southern_boundary_extractor --help
 
-usage: moc_southern_boundary_extractor.py [-h] -f IN_FILE -m MESH_FILE -o
+usage: moc_southern_boundary_extractor [-h] -f IN_FILE -m MESH_FILE -o
                                           OUT_FILE
 
 This script takes a mesh file (-m flag) and a file with MOC regions masks
@@ -198,9 +198,6 @@ the contents of the MOC mask file, adding transects that mark the southern
 boundary of each region in a file indicated with the -o flag.  The transect
 is applied only to vertices and edges, not cells, because the need for southern
 boundary transect data on cells is not foreseen.
-
-Author: Xylar Asay-Davis
-last modified: 5/22/2018
 
 optional arguments:
   -h, --help            show this help message and exit

@@ -39,7 +39,7 @@ ParaVeiw, meaning each cell has the correct polygonal geometry and will be
 visualized with a single, constant value for a given field.  The extractor,
 which is available either through the
 :py:func:`mpas_tools.viz.paraview_extractor.extract_vtk()` function or the
-``paraview_vtk_field_extractor.py`` command-line interface, can also be used to
+``paraview_vtk_field_extractor`` command-line interface, can also be used to
 visualize data on MPAS vertices (visualized on triangles) and edges (visualized
 on quadrilaterals).
 
@@ -128,7 +128,7 @@ The same extraction could be accomplished with the command-line tool as follows:
 
 .. code-block:: none
 
-    $ paraview_vtk_field_extractor.py \
+    $ paraview_vtk_field_extractor \
          -f "analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc" \
          -v timeDaily_avg_activeTracers_temperature -d nVertLevels=0 \
          -m init.nc -o vtk_files --xtime=xtime_startDaily

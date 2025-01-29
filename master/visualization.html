@@ -169,7 +169,7 @@ ParaVeiw, meaning each cell has the correct polygonal geometry and will be
 visualized with a single, constant value for a given field.  The extractor,
 which is available either through the
 <a class="reference internal" href="generated/mpas_tools.viz.paraview_extractor.extract_vtk.html#mpas_tools.viz.paraview_extractor.extract_vtk" title="mpas_tools.viz.paraview_extractor.extract_vtk"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.paraview_extractor.extract_vtk()</span></code></a> function or the
-<code class="docutils literal notranslate"><span class="pre">paraview_vtk_field_extractor.py</span></code> command-line interface, can also be used to
+<code class="docutils literal notranslate"><span class="pre">paraview_vtk_field_extractor</span></code> command-line interface, can also be used to
 visualize data on MPAS vertices (visualized on triangles) and edges (visualized
 on quadrilaterals).</p>
 <p>The extractor also allows the user to select a subset of the indices along
@@ -235,7 +235,7 @@ vtk_files/time_series/fieldsOnCells.0.vtp
 they are requested within ParaView.  See <a class="reference internal" href="#paraview-macros"><span class="std std-ref">ParaView Macros</span></a> for some tips
 on filling in the continents and displaying the current date in ParaView.</p>
 <p>The same extraction could be accomplished with the command-line tool as follows:</p>
-<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ paraview_vtk_field_extractor.py \
+<div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ paraview_vtk_field_extractor \
      -f &quot;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&quot; \
      -v timeDaily_avg_activeTracers_temperature -d nVertLevels=0 \
      -m init.nc -o vtk_files --xtime=xtime_startDaily
