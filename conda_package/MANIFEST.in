@@ -1,1 +1,1 @@
-recursive-include ../mpas_tools*
+recursive-include mpas_tools *.xml
