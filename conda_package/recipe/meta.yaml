@@ -10,30 +10,6 @@ source:
 
 build:
   number: 0
-  entry_points:
-    - planar_hex = mpas_tools.planar_hex:main
-    - translate_planar_grid = mpas_tools.translate:main
-    - merge_grids = mpas_tools.merge_grids:main
-    - split_grids = mpas_tools.split_grids:main
-    - inject_bathymetry = mpas_tools.ocean.inject_bathymetry:main
-    - inject_preserve_floodplain = mpas_tools.ocean.inject_preserve_floodplain:main
-    - mpas_to_triangle = mpas_tools.mesh.creation.mpas_to_triangle:main
-    - triangle_to_netcdf = mpas_tools.mesh.creation.triangle_to_netcdf:main
-    - jigsaw_to_netcdf = mpas_tools.mesh.creation.jigsaw_to_netcdf:main
-    - scrip_from_mpas = mpas_tools.scrip.from_mpas:main
-    - ocean_add_depth = mpas_tools.ocean.depth:main_add_depth
-    - ocean_add_zmid = mpas_tools.ocean.depth:main_add_zmid
-    - ocean_write_time_varying_zmid = mpas_tools.ocean.depth:main_write_time_varying_zmid
-    - plot_ocean_transects = mpas_tools.ocean.viz.transects:main
-    - compute_mpas_region_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_region_masks
-    - compute_mpas_transect_masks = mpas_tools.mesh.mask:entry_point_compute_mpas_transect_masks
-    - compute_mpas_flood_fill_mask = mpas_tools.mesh.mask:entry_point_compute_mpas_flood_fill_mask
-    - compute_lon_lat_region_masks = mpas_tools.mesh.mask:entry_point_compute_lon_lat_region_masks
-    - compute_projection_region_masks = mpas_tools.mesh.mask:entry_point_compute_projection_grid_region_masks
-    - prepare_seaice_partitions = mpas_tools.seaice.partition:prepare_partitions
-    - create_seaice_partitions = mpas_tools.seaice.partition:create_partitions
-    - simple_seaice_partitions = mpas_tools.seaice.partition:simple_partitions
-    - sort_mesh = mpas_tools.mesh.creation.sort_mesh:main
 
 requirements:
   build:
@@ -121,14 +97,14 @@ test:
     - define_cullMask.py --help
     - interpolate_to_mpasli_grid.py --help
     - mark_domain_boundaries_dirichlet.py --help
-    - add_land_locked_cells_to_mask.py --help
-    - widen_transect_edge_masks.py --help
-    - add_critical_land_blockages_to_mask.py --help
-    - moc_southern_boundary_extractor.py --help
+    - add_critical_land_blockages_to_mask --help
+    - add_land_locked_cells_to_mask --help
+    - widen_transect_edge_masks --help
+    - moc_southern_boundary_extractor --help
     - ocean_add_depth --help
     - ocean_add_zmid --help
     - ocean_write_time_varying_zmid --help
-    - paraview_vtk_field_extractor.py -f mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc -v latCell,lonCell --ignore_time -o vtk_test
+    - paraview_vtk_field_extractor -f mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc -v latCell,lonCell --ignore_time -o vtk_test
     - split_grids --help
     - merge_grids --help
     - inject_bathymetry mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
