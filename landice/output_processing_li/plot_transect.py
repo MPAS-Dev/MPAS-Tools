@@ -131,8 +131,8 @@ else:
     y = np.array([float(i) for i in options.y_coords.split(',')])
 
 # increase sampling to match highest mesh resolution
-total_distance, = np.cumsum( np.sqrt( np.diff(x)**2. + np.diff(y)**2. ) )
-n_samples = int(round(total_distance / np.min(dataset.variables["dcEdge"][:])))
+total_distance = np.cumsum( np.sqrt( np.diff(x)**2. + np.diff(y)**2. ) )
+n_samples = int(round(total_distance[-1] / np.min(dataset.variables["dcEdge"][:])))
 x_interp = np.interp(np.linspace(0, len(x)-1, n_samples),
                      np.linspace(0, len(x)-1, len(x)), x)
 y_interp = np.interp(np.linspace(0, len(y)-1, n_samples),
@@ -230,11 +230,11 @@ if options.interp_temp:
 if options.interp_thermal_forcing:
     thermal_forcing_plot = thickAx.pcolormesh( np.tile(distance, (nISMIP6OceanLayers+1,1)).T,
                                                ocean_layer_interfaces[:,:], thermal_forcing_transect[1:,:],
-                                               cmap='RdYlBu_r', vmin=-2, vmax=2 )
+                                               cmap='YlOrRd', vmin=0, vmax=5.5)
     thickAx.fill_between(distance, upper_surf_nan, lower_surf_nan, color='xkcd:ice blue')
     thickAx.fill_between(distance, bed_transect, thickAx.get_ylim()[0], color='xkcd:greyish brown')
     thickAx.grid(False)
-
+    thickAx.set_ylim([None, 750])
 
 speedAx.set_xlabel('Distance (km)')
 speedAx.set_ylabel('Surface\nspeed (m/yr)')
