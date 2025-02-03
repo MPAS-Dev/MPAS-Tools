@@ -11,6 +11,7 @@ import csv
 from netCDF4 import Dataset
 from optparse import OptionParser
 from scipy.interpolate import LinearNDInterpolator
+from scipy.spatial import Delaunay
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import cm
 
@@ -44,15 +45,52 @@ for option in parser.option_list:
         option.help += (" " if option.help else "") + "[default: %default]"
 options, args = parser.parse_args()
 
+
+# Get list of times for plotting
 times_list = [i for i in options.times.split(',')]  # list of string times for plotting
 times = [int(i) for i in options.times.split(',')]  # list of integer time indices
 
+# Load MPAS netCDF file
 dataset = Dataset(options.data_file, 'r')
 dataset.set_always_mask(False)
+
+# Get x and y coordinates
+if options.coords_file is not None:
+    x = []
+    y = []
+    with open(options.coords_file, newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for row in reader:
+            x.append(float(row[0]))
+            y.append(float(row[1]))
+    if [options.x_coords, options.y_coords] != [None, None]:
+        print('-c and -x/-y options were both provided. Reading from ',
+              f'{options.coords_file} and ignoring -x and -y settings.')
+    x = np.asarray(x)
+    y = np.asarray(y)
+else:
+    x = np.array([float(i) for i in options.x_coords.split(',')])
+    y = np.array([float(i) for i in options.y_coords.split(',')])
+
+# Determine bounding box using max and min of user-provided coordinates
+pad = 5000
+x_max = np.max(x) + pad
+x_min = np.min(x) - pad
+y_max = np.max(y) + pad
+y_min = np.min(y) - pad
+
 xCell = dataset.variables["xCell"][:]
 yCell = dataset.variables["yCell"][:]
-nCells = dataset.dimensions['nCells'].size
-areaCell = dataset.variables["areaCell"][:]
+
+indices = np.where( np.logical_and(
+                    np.logical_and(xCell>=x_min, xCell<=x_max),
+                    np.logical_and(yCell>=y_min, yCell<=y_max)) )[0]
+
+xCell = xCell[indices]
+yCell = yCell[indices]
+
+tri_mesh = Delaunay( np.vstack((xCell,yCell)).T )
+
 layerThicknessFractions = dataset.variables["layerThicknessFractions"][:]
 nVertLevels = dataset.dimensions['nVertLevels'].size
 if "daysSinceStart" in dataset.variables.keys():
@@ -77,18 +115,19 @@ if (options.interp_temp or options.interp_thermal_forcing) and (len(times) > 1):
     options.interp_thermal_forcing = False
 
 li_mask_ValueDynamicIce = 2
-cellMask = dataset.variables['cellMask'][times,:]
+cellMask = dataset.variables['cellMask'][times,indices]
 cellMask_dynamicIce = (cellMask & li_mask_ValueDynamicIce) // li_mask_ValueDynamicIce
 # only take thickness of dynamic ice
-thk = dataset.variables["thickness"][times,:] * cellMask_dynamicIce
+thk = dataset.variables["thickness"][times,indices] * cellMask_dynamicIce
+
 plot_speed = True
 # Include speed on non-dynamic ice to avoid interpolation artifacts.
 if "surfaceSpeed" in dataset.variables.keys():
-    speed = dataset.variables["surfaceSpeed"][times,:] * 3600. * 24. * 365.
+    speed = dataset.variables["surfaceSpeed"][times,indices] * 3600. * 24. * 365.
 elif "surfaceSpeed" not in dataset.variables.keys() and \
     all([ii in dataset.variables.keys() for ii in ['uReconstructX', 'uReconstructY']]):
-        speed = np.sqrt(dataset.variables["uReconstructX"][times,:,0]**2. +
-                        dataset.variables["uReconstructY"][times,:,0]**2.)
+        speed = np.sqrt(dataset.variables["uReconstructX"][times,indices,0]**2. +
+                        dataset.variables["uReconstructY"][times,indices,0]**2.)
         speed *= 3600. * 24. * 365.  # convert from m/s to m/yr
 else:
     print('File does not contain surfaceSpeed or uReconstructX/Y.',
@@ -96,43 +135,26 @@ else:
     plot_speed = False
 
 if options.interp_temp:
-    temperature = dataset.variables['temperature'][times,:]
+    temperature = dataset.variables['temperature'][times,indices]
 
 if options.interp_thermal_forcing:
-    # Ocean thermal forcing
-    thermal_forcing = dataset.variables['TFocean'][times,:]
+    # Extrapolated Ocean thermal forcing
+    thermal_forcing = dataset.variables['TFocean'][times,indices]
     thermal_forcing[thermal_forcing == 1.0e36] = np.nan # Large invalid TF values set to NaN
     # Number of ocean layers
     nISMIP6OceanLayers = dataset.dimensions['nISMIP6OceanLayers'].size  
     # Depths associated with thermal forcing field
     ismip6shelfMelt_zOcean = dataset.variables['ismip6shelfMelt_zOcean'][:]
+
     
-bedTopo = dataset.variables["bedTopography"][0,:]
+bedTopo = dataset.variables["bedTopography"][0,indices]
 print('Reading bedTopography from the first time level only. If multiple',
       'times are needed, plot_transects.py will need to be updated.')
-# Use coordinates from CSV file or -x -y options, but not both.
-# CSV file takes precedent if both are present.
-if options.coords_file is not None:
-    x = []
-    y = []
-    with open(options.coords_file, newline='') as csvfile:
-        reader = csv.reader(csvfile, delimiter=',')
-     
-        for row in reader:
-            x.append(float(row[0]))
-            y.append(float(row[1]))
-    if [options.x_coords, options.y_coords] != [None, None]:
-        print('-c and -x/-y options were both provided. Reading from ',
-              f'{options.coords_file} and ignoring -x and -y settings.')
-    x = np.asarray(x)
-    y = np.asarray(y)
-else:
-    x = np.array([float(i) for i in options.x_coords.split(',')])
-    y = np.array([float(i) for i in options.y_coords.split(',')])
+
 
 # increase sampling to match highest mesh resolution
 total_distance = np.cumsum( np.sqrt( np.diff(x)**2. + np.diff(y)**2. ) )
-n_samples = int(round(total_distance[-1] / np.min(dataset.variables["dcEdge"][:])))
+n_samples = int(round(total_distance[-1] / np.min(dataset.variables["dcEdge"][indices])))
 x_interp = np.interp(np.linspace(0, len(x)-1, n_samples),
                      np.linspace(0, len(x)-1, len(x)), x)
 y_interp = np.interp(np.linspace(0, len(y)-1, n_samples),
@@ -154,12 +176,11 @@ timeColors = cm.plasma(np.linspace(0,1,len(times)))
 
 plt.rcParams.update({'font.size': 16})
 
-bed_interpolant = LinearNDInterpolator(np.vstack((xCell, yCell)).T, bedTopo)
+bed_interpolant = LinearNDInterpolator(tri_mesh, bedTopo)
 bed_transect = bed_interpolant(np.vstack((x_interp, y_interp)).T)
 
 for i, time in enumerate(times):
-    thk_interpolant = LinearNDInterpolator(
-                        np.vstack((xCell, yCell)).T, thk[i,:])
+    thk_interpolant = LinearNDInterpolator(tri_mesh, thk[i,:])
     thk_transect = thk_interpolant(np.vstack((x_interp, y_interp)).T)
     lower_surf = np.maximum( -910. / 1028. * thk_transect, bed_transect)
     lower_surf_nan = lower_surf.copy()  # for plotting
@@ -171,8 +192,7 @@ for i, time in enumerate(times):
     thickAx.plot(distance, upper_surf_nan, color=timeColors[i])
 
     if plot_speed:
-        speed_interpolant = LinearNDInterpolator(
-                                np.vstack((xCell, yCell)).T, speed[i,:])
+        speed_interpolant = LinearNDInterpolator(tri_mesh, speed[i,:])
         speed_transect = speed_interpolant(np.vstack((x_interp, y_interp)).T)
         speed_transect[thk_transect == 0.] = np.nan
         speedAx.plot(distance, speed_transect, color=timeColors[i])
@@ -192,9 +212,7 @@ for i, time in enumerate(times):
         temp_transect = np.zeros((len(x_interp), nVertLevels))
         for lev in range(nVertLevels):
             print(f'Interpolating temperature for level {lev}')
-            temp_interpolant = LinearNDInterpolator(
-                                    np.vstack((xCell, yCell)).T,
-                                    temperature[i,:,lev])
+            temp_interpolant = LinearNDInterpolator(tri_mesh, temperature[i,:,lev])
             temp_transect[:, lev] = temp_interpolant(
                                         np.vstack((x_interp, y_interp)).T)
  
@@ -208,15 +226,11 @@ for i, time in enumerate(times):
 
         # Create the thermal forcing transect using the TF interpolator at each ocean lev
         thermal_forcing_transect = np.zeros((len(x_interp), nISMIP6OceanLayers))
+
         for ocean_lev in range(nISMIP6OceanLayers):
             print(f'Interpolating ocean thermal forcing for ocean level {ocean_lev}')
-            thermal_forcing_interpolant = LinearNDInterpolator(
-                                               np.vstack((xCell, yCell)).T,
-                                               thermal_forcing[i,:,ocean_lev])
-            thermal_forcing_transect[:, ocean_lev] = thermal_forcing_interpolant(
-                                                         np.vstack( (x_interp, y_interp)).T)
-
-
+            thermal_forcing_interpolant = LinearNDInterpolator(tri_mesh, thermal_forcing[i,:,ocean_lev])
+            thermal_forcing_transect[:, ocean_lev] = thermal_forcing_interpolant(np.vstack( (x_interp,y_interp) ).T)
 
 thickAx.plot(distance, bed_transect, color='black')
 
