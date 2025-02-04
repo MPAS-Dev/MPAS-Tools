@@ -89,7 +89,7 @@ indices = np.where( np.logical_and(
 xCell = xCell[indices]
 yCell = yCell[indices]
 
-tri_mesh = Delaunay( np.vstack((xCell,yCell)).T )
+tri_mesh = Delaunay( np.vstack((xCell, yCell)).T )
 
 layerThicknessFractions = dataset.variables["layerThicknessFractions"][:]
 nVertLevels = dataset.dimensions['nVertLevels'].size
@@ -115,19 +115,19 @@ if (options.interp_temp or options.interp_thermal_forcing) and (len(times) > 1):
     options.interp_thermal_forcing = False
 
 li_mask_ValueDynamicIce = 2
-cellMask = dataset.variables['cellMask'][times,indices]
+cellMask = dataset.variables['cellMask'][times, indices]
 cellMask_dynamicIce = (cellMask & li_mask_ValueDynamicIce) // li_mask_ValueDynamicIce
 # only take thickness of dynamic ice
-thk = dataset.variables["thickness"][times,indices] * cellMask_dynamicIce
+thk = dataset.variables["thickness"][times, indices] * cellMask_dynamicIce
 
 plot_speed = True
 # Include speed on non-dynamic ice to avoid interpolation artifacts.
 if "surfaceSpeed" in dataset.variables.keys():
-    speed = dataset.variables["surfaceSpeed"][times,indices] * 3600. * 24. * 365.
+    speed = dataset.variables["surfaceSpeed"][times, indices] * 3600. * 24. * 365.
 elif "surfaceSpeed" not in dataset.variables.keys() and \
     all([ii in dataset.variables.keys() for ii in ['uReconstructX', 'uReconstructY']]):
-        speed = np.sqrt(dataset.variables["uReconstructX"][times,indices,0]**2. +
-                        dataset.variables["uReconstructY"][times,indices,0]**2.)
+        speed = np.sqrt(dataset.variables["uReconstructX"][times, indices, 0]**2. +
+                        dataset.variables["uReconstructY"][times, indices, 0]**2.)
         speed *= 3600. * 24. * 365.  # convert from m/s to m/yr
 else:
     print('File does not contain surfaceSpeed or uReconstructX/Y.',
@@ -135,11 +135,11 @@ else:
     plot_speed = False
 
 if options.interp_temp:
-    temperature = dataset.variables['temperature'][times,indices]
+    temperature = dataset.variables['temperature'][times, indices]
 
 if options.interp_thermal_forcing:
     # Extrapolated Ocean thermal forcing
-    thermal_forcing = dataset.variables['TFocean'][times,indices]
+    thermal_forcing = dataset.variables['TFocean'][times, indices]
     thermal_forcing[thermal_forcing == 1.0e36] = np.nan # Large invalid TF values set to NaN
     # Number of ocean layers
     nISMIP6OceanLayers = dataset.dimensions['nISMIP6OceanLayers'].size  
@@ -147,7 +147,7 @@ if options.interp_thermal_forcing:
     ismip6shelfMelt_zOcean = dataset.variables['ismip6shelfMelt_zOcean'][:]
 
     
-bedTopo = dataset.variables["bedTopography"][0,indices]
+bedTopo = dataset.variables["bedTopography"][0, indices]
 print('Reading bedTopography from the first time level only. If multiple',
       'times are needed, plot_transects.py will need to be updated.')
 
@@ -229,8 +229,8 @@ for i, time in enumerate(times):
 
         for ocean_lev in range(nISMIP6OceanLayers):
             print(f'Interpolating ocean thermal forcing for ocean level {ocean_lev}')
-            thermal_forcing_interpolant = LinearNDInterpolator(tri_mesh, thermal_forcing[i,:,ocean_lev])
-            thermal_forcing_transect[:, ocean_lev] = thermal_forcing_interpolant(np.vstack( (x_interp,y_interp) ).T)
+            thermal_forcing_interpolant = LinearNDInterpolator(tri_mesh, thermal_forcing[i, :, ocean_lev])
+            thermal_forcing_transect[:, ocean_lev] = thermal_forcing_interpolant(np.vstack( (x_interp, y_interp) ).T)
 
 thickAx.plot(distance, bed_transect, color='black')
 
@@ -242,8 +242,8 @@ if options.interp_temp:
                                     vmin=240., vmax=273.15)
 
 if options.interp_thermal_forcing:
-    thermal_forcing_plot = thickAx.pcolormesh( np.tile(distance, (nISMIP6OceanLayers+1,1)).T,
-                                               ocean_layer_interfaces[:,:], thermal_forcing_transect[1:,:],
+    thermal_forcing_plot = thickAx.pcolormesh(np.tile(distance, (nISMIP6OceanLayers+1, 1)).T,
+                                               ocean_layer_interfaces[:, :], thermal_forcing_transect[1:, :],
                                                cmap='YlOrRd', vmin=0, vmax=5.5)
     thickAx.fill_between(distance, upper_surf_nan, lower_surf_nan, color='xkcd:ice blue')
     thickAx.fill_between(distance, bed_transect, thickAx.get_ylim()[0], color='xkcd:greyish brown')
