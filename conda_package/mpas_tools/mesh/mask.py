@@ -1,31 +1,34 @@
-import xarray as xr
+import argparse
+from functools import partial
+
 import numpy
-from scipy.spatial import KDTree
+import progressbar
 import shapely.geometry
 import shapely.ops
-from shapely.geometry import box, Polygon, MultiPolygon, GeometryCollection
-from shapely.strtree import STRtree
-import progressbar
-from functools import partial
-import argparse
+import xarray as xr
 from igraph import Graph
+from scipy.spatial import KDTree
+from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
+from shapely.strtree import STRtree
 
 from geometric_features import read_feature_collection
-
-from mpas_tools.transects import subdivide_great_circle, \
-    lon_lat_to_cartesian, cartesian_to_lon_lat
-from mpas_tools.parallel import create_pool
+from mpas_tools.cime.constants import constants
 from mpas_tools.io import write_netcdf
 from mpas_tools.logging import LoggingContext
-from mpas_tools.cime.constants import constants
+from mpas_tools.parallel import create_pool
+from mpas_tools.transects import (
+    cartesian_to_lon_lat,
+    lon_lat_to_cartesian,
+    subdivide_great_circle,
+)
 
 
 def compute_mpas_region_masks(dsMesh, fcMask, maskTypes=('cell', 'vertex'),
                               logger=None, pool=None, chunkSize=1000,
                               showProgress=False, subdivisionThreshold=30.):
     """
-    Use shapely and processes to create a set of masks from a feature collection
-    made up of regions (polygons)
+    Use shapely and processes to create a set of masks from a feature
+    collection made up of regions (polygons)
 
     Parameters
     ----------
@@ -100,11 +103,13 @@ def compute_mpas_region_masks(dsMesh, fcMask, maskTypes=('cell', 'vertex'),
         # create a new data array for masks
         masksVarName = 'region{}Masks'.format(suffix)
         dsMasks[masksVarName] = \
-            ((dim, 'nRegions'), numpy.zeros((nPoints, nRegions), dtype=numpy.int32))
+            ((dim, 'nRegions'), numpy.zeros((nPoints, nRegions),
+                                            dtype=numpy.int32))
 
         for index in range(nRegions):
             mask = masks[index]
-            dsMasks[masksVarName][:, index] = numpy.array(mask, dtype=numpy.int32)
+            dsMasks[masksVarName][:, index] = numpy.array(mask,
+                                                          dtype=numpy.int32)
 
         if 'regionNames' not in dsMasks:
             # create a new data array for mask names
@@ -290,7 +295,8 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
             mask[duplicatePolygons] = \
                 numpy.logical_or(mask[duplicatePolygons],
                                  maskAndDuplicates[nPolygons:])
-            dsMasks[masksVarName][:, index] = numpy.array(mask, dtype=numpy.int32)
+            dsMasks[masksVarName][:, index] = numpy.array(mask,
+                                                          dtype=numpy.int32)
 
             if addEdgeSign and maskType == 'edge':
                 print(transectNames[index])
@@ -447,7 +453,8 @@ def compute_mpas_flood_fill_mask(dsMesh, fcSeed, daGrow=None, logger=None,
         logger.info('  Adding masks to dataset...')
     # create a new data array for the mask
     masksVarName = 'cellSeedMask'
-    dsMasks[masksVarName] = (('nCells',), numpy.array(seedMask, dtype=numpy.int32))
+    dsMasks[masksVarName] = (('nCells',), numpy.array(seedMask,
+                                                      dtype=numpy.int32))
 
     if logger is not None:
         logger.info('  Done.')
@@ -719,7 +726,8 @@ def compute_projection_grid_region_masks(
     # create a new data array for masks
     masksVarName = 'regionMasks'
     dsMasks[masksVarName] = \
-        ((ydim, xdim, 'nRegions'), numpy.zeros((ny, nx, nRegions), dtype=numpy.int32))
+        ((ydim, xdim, 'nRegions'), numpy.zeros((ny, nx, nRegions),
+                                               dtype=numpy.int32))
 
     for index in range(nRegions):
         mask = masks[index]
@@ -932,9 +940,9 @@ def _katana(geometry, threshold, count=0, maxcount=250):
 
     1. Redistributions of source code must retain the above copyright notice,
        this list of conditions and the following disclaimer.
-    2. Redistributions in binary form must reproduce the above copyright notice,
-       this list of conditions and the following disclaimer in the documentation
-       and/or other materials provided with the distribution.
+    2. Redistributions in binary form must reproduce the above copyright
+       notice, this list of conditions and the following disclaimer in the
+       documentation and/or other materials provided with the distribution.
 
     THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS “AS IS”
     AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1074,7 +1082,7 @@ def _get_polygons(dsMesh, maskType):
         for iVertex in range(1, maxVertices):
             mask = firstValid < 0
             firstValid[mask] = vertexIndices[mask, iVertex]
-        assert(numpy.all(firstValid >= 0))
+        assert numpy.all(firstValid >= 0)
         for iVertex in range(maxVertices):
             mask = vertexIndices[:, iVertex] < 0
             vertexIndices[mask, iVertex] = firstValid[mask]
