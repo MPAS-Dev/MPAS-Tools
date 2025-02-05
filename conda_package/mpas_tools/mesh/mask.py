@@ -100,11 +100,11 @@ def compute_mpas_region_masks(dsMesh, fcMask, maskTypes=('cell', 'vertex'),
         # create a new data array for masks
         masksVarName = 'region{}Masks'.format(suffix)
         dsMasks[masksVarName] = \
-            ((dim, 'nRegions'), numpy.zeros((nPoints, nRegions), dtype=int))
+            ((dim, 'nRegions'), numpy.zeros((nPoints, nRegions), dtype=numpy.int32))
 
         for index in range(nRegions):
             mask = masks[index]
-            dsMasks[masksVarName][:, index] = numpy.array(mask, dtype=int)
+            dsMasks[masksVarName][:, index] = numpy.array(mask, dtype=numpy.int32)
 
         if 'regionNames' not in dsMasks:
             # create a new data array for mask names
@@ -276,12 +276,12 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
         masksVarName = 'transect{}Masks'.format(suffix)
         dsMasks[masksVarName] = \
             ((dim, 'nTransects'),
-             numpy.zeros((nPolygons, nTransects), dtype=int))
+             numpy.zeros((nPolygons, nTransects), dtype=numpy.int32))
 
         if addEdgeSign and maskType == 'edge':
             dsMasks['transectEdgeMaskSigns'] = \
                 ((dim, 'nTransects'),
-                 numpy.zeros((nPolygons, nTransects), dtype=int))
+                 numpy.zeros((nPolygons, nTransects), dtype=numpy.int32))
 
         for index in range(nTransects):
             maskAndDuplicates = masks[index]
@@ -290,7 +290,7 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
             mask[duplicatePolygons] = \
                 numpy.logical_or(mask[duplicatePolygons],
                                  maskAndDuplicates[nPolygons:])
-            dsMasks[masksVarName][:, index] = numpy.array(mask, dtype=int)
+            dsMasks[masksVarName][:, index] = numpy.array(mask, dtype=numpy.int32)
 
             if addEdgeSign and maskType == 'edge':
                 print(transectNames[index])
@@ -447,7 +447,7 @@ def compute_mpas_flood_fill_mask(dsMesh, fcSeed, daGrow=None, logger=None,
         logger.info('  Adding masks to dataset...')
     # create a new data array for the mask
     masksVarName = 'cellSeedMask'
-    dsMasks[masksVarName] = (('nCells',), numpy.array(seedMask, dtype=int))
+    dsMasks[masksVarName] = (('nCells',), numpy.array(seedMask, dtype=numpy.int32))
 
     if logger is not None:
         logger.info('  Done.')
@@ -559,12 +559,12 @@ def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
     masksVarName = 'regionMasks'
     dsMasks[masksVarName] = \
         (('lat', 'lon', 'nRegions'), numpy.zeros((nlat, nlon, nRegions),
-                                                 dtype=int))
+                                                 dtype=numpy.int32))
 
     for index in range(nRegions):
         mask = masks[index]
         dsMasks[masksVarName][:, :, index] = \
-            numpy.array(mask.reshape(shape), dtype=int)
+            numpy.array(mask.reshape(shape), dtype=numpy.int32)
 
     # create a new data array for mask names
     dsMasks['regionNames'] = (('nRegions',),
@@ -719,12 +719,12 @@ def compute_projection_grid_region_masks(
     # create a new data array for masks
     masksVarName = 'regionMasks'
     dsMasks[masksVarName] = \
-        ((ydim, xdim, 'nRegions'), numpy.zeros((ny, nx, nRegions), dtype=int))
+        ((ydim, xdim, 'nRegions'), numpy.zeros((ny, nx, nRegions), dtype=numpy.int32))
 
     for index in range(nRegions):
         mask = masks[index]
         dsMasks[masksVarName][:, :, index] = \
-            numpy.array(mask.reshape((ny, nx)), dtype=int)
+            numpy.array(mask.reshape((ny, nx)), dtype=numpy.int32)
 
     # create a new data array for mask names
     dsMasks['regionNames'] = (('nRegions',),
@@ -1180,7 +1180,7 @@ def _compute_seed_mask(fcSeed, lon, lat, workers):
 
     tree = KDTree(points)
 
-    mask = numpy.zeros(len(lon), dtype=int)
+    mask = numpy.zeros(len(lon), dtype=numpy.int32)
 
     points = numpy.zeros((len(fcSeed.features), 2))
     for index, feature in enumerate(fcSeed.features):
@@ -1248,7 +1248,7 @@ def _compute_edge_sign(dsMesh, edgeMask, shape):
 
     unique_vertices = numpy.unique(voe.ravel())
 
-    local_voe = numpy.zeros(voe.shape, dtype=int)
+    local_voe = numpy.zeros(voe.shape, dtype=numpy.int32)
     distance = []
     unique_lon = []
     unique_lat = []
@@ -1272,7 +1272,7 @@ def _compute_edge_sign(dsMesh, edgeMask, shape):
     graph.es['edges'] = edge_indices
     graph.es['vertices'] = [(v0, v1) for v0, v1 in zip(voe[:, 0], voe[:, 1])]
 
-    edgeSign = numpy.zeros(edgeMask.shape, dtype=int)
+    edgeSign = numpy.zeros(edgeMask.shape, dtype=numpy.int32)
 
     clusters = graph.connected_components()
     for cluster_index in range(len(clusters)):
@@ -1300,7 +1300,7 @@ def _compute_edge_sign(dsMesh, edgeMask, shape):
                     sign = [-1]
             else:
                 verts = numpy.array(edges['vertices'])
-                sign = numpy.zeros(len(indices), dtype=int)
+                sign = numpy.zeros(len(indices), dtype=numpy.int32)
                 for index in range(len(indices)-1):
                     if verts[index, 1] in verts[index+1, :]:
                         sign[index] = 1
