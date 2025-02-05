@@ -2,8 +2,8 @@ import argparse
 import logging
 import sys
 
-import xarray
 import numpy
+import xarray
 from geometric_features.aggregation.ocean import moc
 
 import mpas_tools.mesh.conversion
@@ -328,8 +328,9 @@ def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
     if 'nRegionsInGroup' not in mocMask:
         nRegions = mocMask.sizes['nRegions']
         nRegionGroups = 2
-        nRegionsInGroup = nRegions*numpy.ones(nRegionGroups, dtype=int)
-        regionsInGroup = numpy.zeros((nRegionGroups, nRegions), dtype=int)
+        nRegionsInGroup = nRegions*numpy.ones(nRegionGroups, dtype=numpy.int32)
+        regionsInGroup = numpy.zeros((nRegionGroups, nRegions),
+                                     dtype=numpy.int32)
         regionGroupNames = ['MOCBasinRegionsGroup', 'all']
         regionNames = mocMask.regionNames.values
         nChar = 64
