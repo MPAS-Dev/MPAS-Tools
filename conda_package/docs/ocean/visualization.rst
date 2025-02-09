@@ -13,10 +13,16 @@ Plotting Ocean Transects
    :width: 500 px
    :align: center
 
-The function :py:func:`mpas_tools.ocean.viz.plot_ocean_transects()` and the
-associated ``plot_ocean_transects`` command-line tool can be used to plot
-transects of various MPAS-Ocean variables.  The arguments to the command-line
-tool are:
+The function :py:func:`mpas_tools.ocean.viz.transect.plot_transect()` is
+used to plot transects of various MPAS-Ocean variables. This function provide
+high-level plotting capabilities for visualizing transects of MPAS-Ocean
+data. It can create transect plots useful for visualizing test cases or
+analyzing global simulation output and comparing with observations.
+
+The function :py:func:`mpas_tools.ocean.viz.transect.plot_feature_transects()`
+and the associated ``plot_ocean_transects`` command-line tool can be used to
+plot transects of various MPAS-Ocean variables.  The arguments to the
+command-line tool are:
 
 .. code-block:: none
 
@@ -38,6 +44,9 @@ tool are:
       -c COLORMAP, --colormap COLORMAP
                             A colormap to use for the plots, default depends on the field name.
       --flip                Flip the x axis for all transects
+      --write_netcdf        Whether to write a NetCDF file for the transect in addition to the image
+      --method METHOD       The type of interpolation to use in plots. Options are "flat" and "bilinear"
+
 
 See `transects <https://github.com/MPAS-Dev/geometric_features/tree/main/geometric_data/ocean/transect>`_
 from ``geometric_features`` for a examples of what a geojson transect might
@@ -107,3 +116,43 @@ One way of customizing these visualizaitons is to make your own copy of
 `transects.py <https://github.com/MPAS-Dev/MPAS-Tools/blob/master/conda_package/mpas_tools/ocean/viz/transects.py>`_
 and change ``_plot_transect()`` to suite your needs, (changing figure size, dpi,
 colorbar, etc.)
+
+.. _ocean_viz_transects_interp:
+
+Ocean Transect Interpolation
+============================
+
+The ``mpas_tools.ocean.viz.transect.vert`` module provides functions for
+interpolating MPAS-Ocean data onto a vertical transect. This is useful for
+visualizing data along a specific path through the ocean, showing the
+vertical structure of ocean properties. These functions allow you to create
+cross-sectional plots of temperature, salinity, and other variables.
+
+The following functions are available:
+
+The function :py:func:`mpas_tools.ocean.viz.transect.compute_transect()`
+builds a sequence of quads showing the transect intersecting MPAS cells.
+This function takes horizontal and vertical mesh information and constructs
+a set of quadrilaterals that represent the transect's path through the
+MPAS-Ocean mesh. The resulting quads can then be used for plotting or
+further analysis.
+
+The remaining functions and those in :ref:`viz_transect_horiz` are lower level
+functions that are used by ``compute_transect()`` and are not typically called
+directly.
+
+The function
+:py:func:`mpas_tools.ocean.viz.transect.find_transect_levels_and_weights()`
+constructs a vertical coordinate for a transect and computes interpolation
+weights that can be used in ``interp_mpas_to_transect_nodes()`` to performed
+linear interpolation.
+
+The function
+:py:func:`mpas_tools.ocean.viz.transect.interp_mpas_to_transect_nodes()`
+interpolates an MPAS-Ocean DataArray to transect nodes, linearly
+interpolating fields between the closest neighboring cells. This function
+uses the interpolation weights computed by
+``find_transect_levels_and_weights()`` to map data from the MPAS-Ocean mesh
+onto the transect. The result is an ``xarray.DataArray`` with values
+interpolated to the transect's nodes.
+
