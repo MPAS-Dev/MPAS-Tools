@@ -155,7 +155,8 @@ def plot_transect(ds_transect, mpas_field=None, out_filename=None, ax=None,
 
 
 def plot_feature_transects(fc, ds, ds_mesh=None, variable_list=None, cmap=None,
-                           flip=False, write_netcdf=False, method='flat'):
+                           flip=False, write_netcdf=False, method='flat',
+                           add_z=False):
     """
     Plot images of the given variables on the given transects.  One image
     named ``<transect_name>_<variable_name>.png`` will be produced in the
@@ -190,12 +191,18 @@ def plot_feature_transects(fc, ds, ds_mesh=None, variable_list=None, cmap=None,
         values over each MPAS cell.  ``bilinear`` means smooth interpolation
         between horizontally between cell centers and vertical between the
         middle of layers.
+
+    add_z : bool, optional
+        Whether to add zMid and zInterface to the mesh dataset
     """
     if 'Time' in ds.dims:
         ds = ds.isel(Time=0)
 
     if 'Time' in ds_mesh.dims:
         ds_mesh = ds_mesh.isel(Time=0)
+
+    if add_z:
+        _add_z(ds_mesh)
 
     print('\nBuilding transect geometry...')
     transects = _compute_feature_transects(fc, ds_mesh, flip)
@@ -211,13 +218,21 @@ def plot_feature_transects(fc, ds, ds_mesh=None, variable_list=None, cmap=None,
         variable_list = list()
         for var_name in ds.data_vars:
             var = ds[var_name]
-            if 'nCells' in var.dims and 'nVertLevels' in var.dims:
+            if 'nCells' in var.dims and ('nVertLevels' in var.dims or
+                                         'nVertLevelsP1' in var.dims):
                 variable_list.append(var_name)
 
     print('\nPlotting...')
     for var_name in variable_list:
-        var = ds[var_name]
-        assert 'nCells' in var.dims and 'nVertLevels' in var.dims
+        if var_name in ds:
+            var = ds[var_name]
+        elif var_name in ds_mesh:
+            var = ds_mesh[var_name]
+        else:
+            raise ValueError(f'{var_name} not found in either the main or the '
+                             f'mesh dataset (if any)')
+        assert 'nCells' in var.dims and ('nVertLevels' in var.dims or
+                                         'nVertLevelsP1' in var.dims)
         for transect_name, ds_transect in transects.items():
             print(f'  {transect_name} {var_name}')
             _plot_feature_transect(ds_transect, var, var_name, transect_name,
@@ -253,6 +268,8 @@ def plot_feature_transects_main():
     parser.add_argument('--method', dest='method', default='flat',
                         help='The type of interpolation to use in plots. '
                              'Options are "flat" and "bilinear"')
+    parser.add_argument('--add_z', dest='add_z', action='store_true',
+                        help='Whether to add zMid and zInterface to the mesh')
 
     args = parser.parse_args()
 
@@ -274,7 +291,7 @@ def plot_feature_transects_main():
     plot_feature_transects(fc=fc, ds=ds, ds_mesh=ds_mesh,
                            variable_list=variable_list, cmap=args.colormap,
                            flip=args.flip, write_netcdf=args.write_netcdf,
-                           method=args.method)
+                           method=args.method, add_z=args.add_z)
 
 
 def _plot_interfaces(ds_transect, ax, interface_color, cell_boundary_color,
@@ -440,3 +457,55 @@ def _plot_feature_transect(ds_transect, mpas_field, var_name, transect_name,
     plt.close()
     if write_netcdf:
         ds_transect.to_netcdf(f'{transect_prefix}_{var_name}.nc')
+
+
+def _add_z(ds_mesh):
+    """
+    Add zMid and zInterface to ``ds_mesh``, useful for debugging
+    """
+
+    layer_thickness = ds_mesh.layerThickness
+    bottom_depth = ds_mesh.bottomDepth
+    max_level_cell = ds_mesh.maxLevelCell - 1
+    if 'minLevelCell' in ds_mesh:
+        min_level_cell = ds_mesh.minLevelCell - 1
+    else:
+        min_level_cell = xr.zeros_like(max_level_cell)
+
+    n_vert_levels = layer_thickness.sizes['nVertLevels']
+
+    vert_index = \
+        xr.DataArray.from_dict({'dims': ('nVertLevels',),
+                                'data': np.arange(n_vert_levels)})
+
+    cell_mask = np.logical_and(vert_index >= min_level_cell,
+                               vert_index <= max_level_cell)
+    layer_thickness = layer_thickness.where(cell_mask)
+
+    thickness_sum = layer_thickness.sum(dim='nVertLevels')
+    thickness_cum_sum = layer_thickness.cumsum(dim='nVertLevels')
+    z_surface = -bottom_depth + thickness_sum
+
+    z_layer_bot = z_surface - thickness_cum_sum
+
+    z_interface_list = [z_surface]
+    for z_index in range(n_vert_levels):
+        z_interface_list.append(z_layer_bot.isel(nVertLevels=z_index))
+
+    z_interface = xr.concat(z_interface_list, dim='nVertLevelsP1')
+
+    vert_index = \
+        xr.DataArray.from_dict({'dims': ('nVertLevelsP1',),
+                                'data': np.arange(n_vert_levels + 1)})
+    interface_mask = np.logical_and(vert_index >= min_level_cell,
+                                    vert_index <= max_level_cell + 1)
+
+    z_interface = z_interface.where(interface_mask).transpose(
+        'nCells', 'nVertLevelsP1')
+
+    z_mid = z_layer_bot + 0.5 * layer_thickness
+
+    z_mid = z_mid.where(cell_mask).transpose('nCells', 'nVertLevels')
+
+    ds_mesh.coords['zMid'] = z_mid
+    ds_mesh.coords['zInterface'] = z_interface
