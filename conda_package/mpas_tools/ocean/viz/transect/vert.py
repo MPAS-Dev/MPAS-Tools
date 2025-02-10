@@ -23,7 +23,7 @@ def compute_transect(
     """
     build a sequence of quads showing the transect intersecting mpas cells.
     This can be used to plot transects of fields with dimensions ``nCells`` and
-    ``nVertLevels``
+    either ``nVertLevels`` (levels) or ``nVertLevelsP1`` (interfaces).
 
     Parameters
     ----------
@@ -189,15 +189,7 @@ def find_transect_levels_and_weights(
 
     ds_transect_cells = ds_horiz_transect.rename({'nNodes': 'nHorizNodes'})
 
-    (
-        z_half_interface,
-        ssh,
-        z_seafloor,
-        interp_cell_indices,
-        interp_cell_weights,
-        valid_transect_cells,
-        level_indices,
-    ) = _get_vertical_coordinate(
+    _add_vert_coord_and_interp_data(
         ds_transect_cells,
         layer_thickness,
         bottom_depth,
@@ -205,46 +197,24 @@ def find_transect_levels_and_weights(
         max_level_cell,
     )
 
-    ds_transect_cells['zTransectNode'] = z_half_interface
-
-    ds_transect_cells['ssh'] = ssh
-    ds_transect_cells['zSeafloor'] = z_seafloor
-
-    ds_transect_cells['cellIndices'] = ds_transect_cells.horizCellIndices
-    ds_transect_cells['levelIndices'] = level_indices
-    ds_transect_cells['validCells'] = valid_transect_cells
-
     d_interface_seg, z_interface_seg = _get_interface_segments(
-        z_half_interface, ds_transect_cells.dNode, valid_transect_cells
+        ds_transect_cells.zTransectNode,
+        ds_transect_cells.dNode,
+        ds_transect_cells.validCells,
     )
 
     ds_transect_cells['dInterfaceSegment'] = d_interface_seg
     ds_transect_cells['zInterfaceSegment'] = z_interface_seg
 
     d_cell_boundary, z_cell_boundary = _get_cell_boundary_segments(
-        ssh,
-        z_seafloor,
+        ds_transect_cells.ssh,
+        ds_transect_cells.zSeafloor,
         ds_transect_cells.dNode,
         ds_transect_cells.horizCellIndices,
     )
 
     ds_transect_cells['dCellBoundary'] = d_cell_boundary
     ds_transect_cells['zCellBoundary'] = z_cell_boundary
-
-    interp_level_indices, interp_cell_weights, valid_nodes = (
-        _get_interp_indices_and_weights(
-            layer_thickness,
-            interp_cell_indices,
-            interp_cell_weights,
-            level_indices,
-            valid_transect_cells,
-        )
-    )
-
-    ds_transect_cells['interpCellIndices'] = interp_cell_indices
-    ds_transect_cells['interpLevelIndices'] = interp_level_indices
-    ds_transect_cells['interpCellWeights'] = interp_cell_weights
-    ds_transect_cells['validNodes'] = valid_nodes
 
     dims = [
         'nSegments',
@@ -274,7 +244,8 @@ def find_transect_levels_and_weights(
 def interp_mpas_to_transect_cells(ds_transect, da):
     """
     Interpolate an MPAS-Ocean DataArray with dimensions ``nCells`` by
-    ``nVertLevels`` to transect cells
+    either ``nVertLevels`` (levels) or ``nVertLevelsP1`` (interfaces) to
+    transect cells
 
     Parameters
     ----------
@@ -283,21 +254,33 @@ def interp_mpas_to_transect_cells(ds_transect, da):
         ``find_transect_levels_and_weights()``
 
     da : xarray.DataArray
-        An MPAS-Ocean field with dimensions `nCells`` and ``nVertLevels``
-        (possibly among others)
+        An MPAS-Ocean field with dimensions `nCells`` and either
+        ``nVertLevels`` or ``nVertLevelsP1`` (possibly among others)
 
     Returns
     -------
     da_cells : xarray.DataArray
         The data array interpolated to transect cells with dimensions
         ``nSegments`` and ``nHalfLevels`` (in addition to whatever
-        dimensions were in ``da`` besides ``nCells`` and ``nVertLevels``)
+        dimensions were in ``da`` besides ``nCells`` and either
+        ``nVertLevels`` or ``nVertLevelsP1``)
     """
 
     cell_indices = ds_transect.cellIndices
-    level_indices = ds_transect.levelIndices
+    if 'nVertLevels' in da.dims:
+        level_indices = ds_transect.levelIndices
+        da_cells = da.isel(nCells=cell_indices, nVertLevels=level_indices)
+    elif 'nVertLevelsP1' in da.dims:
+        intreface_indices = ds_transect.interfaceIndices
+        da_cells = da.isel(
+            nCells=cell_indices, nVertLevelsP1=intreface_indices
+        )
+    else:
+        raise ValueError(
+            'da must have dimensions nCells and either '
+            'nVertLevels or nVertLevelsP1'
+        )
 
-    da_cells = da.isel(nCells=cell_indices, nVertLevels=level_indices)
     da_cells = da_cells.where(ds_transect.validCells)
 
     return da_cells
@@ -306,8 +289,8 @@ def interp_mpas_to_transect_cells(ds_transect, da):
 def interp_mpas_to_transect_nodes(ds_transect, da):
     """
     Interpolate an MPAS-Ocean DataArray with dimensions ``nCells`` by
-    ``nVertLevels`` to transect nodes, linearly interpolating fields between
-    the closest neighboring cells
+    either ``nVertLevels`` or ``nVertLevelsP1`` to transect nodes, linearly
+    interpolating fields between the closest neighboring cells
 
     Parameters
     ----------
@@ -316,26 +299,42 @@ def interp_mpas_to_transect_nodes(ds_transect, da):
         ``find_transect_levels_and_weights()``
 
     da : xarray.DataArray
-        An MPAS-Ocean field with dimensions `nCells`` and ``nVertLevels``
-        (possibly among others)
+        An MPAS-Ocean field with dimensions `nCells`` and either
+        ``nVertLevels`` or ``nVertLevelsP1`` (possibly among others)
 
     Returns
     -------
     da_nodes : xarray.DataArray
         The data array interpolated to transect nodes with dimensions
         ``nHorizNodes`` and ``nVertNodes`` (in addition to whatever
-        dimensions were in ``da`` besides ``nCells`` and ``nVertLevels``)
+        dimensions were in ``da`` besides ``nCells`` and either
+        ``nVertLevels`` or ``nVertLevelsP1``)
     """
 
     interp_cell_indices = ds_transect.interpCellIndices
-    interp_level_indices = ds_transect.interpLevelIndices
-    interp_cell_weights = ds_transect.interpCellWeights
 
-    da = da.isel(nCells=interp_cell_indices, nVertLevels=interp_level_indices)
+    if 'nVertLevels' in da.dims:
+        interp_level_indices = ds_transect.interpLevelIndices
+        interp_weights = ds_transect.interpLevelWeights
 
-    da_nodes = (da * interp_cell_weights).sum(
-        dim=('nHorizWeights', 'nVertWeights')
-    )
+        da = da.isel(
+            nCells=interp_cell_indices, nVertLevels=interp_level_indices
+        )
+
+    elif 'nVertLevelsP1' in da.dims:
+        interp_interface_indices = ds_transect.interpInterfaceIndices
+        interp_weights = ds_transect.interpInterfaceWeights
+
+        da = da.isel(
+            nCells=interp_cell_indices, nVertLevelsP1=interp_interface_indices
+        )
+    else:
+        raise ValueError(
+            'da must have dimensions nCells and either '
+            'nVertLevels or nVertLevelsP1'
+        )
+
+    da_nodes = (da * interp_weights).sum(dim=('nHorizWeights', 'nVertWeights'))
 
     da_nodes = da_nodes.where(ds_transect.validNodes)
 
@@ -400,7 +399,109 @@ def interp_transect_grid_to_transect_nodes(ds_transect, da):
     return da_nodes
 
 
-def _get_vertical_coordinate(
+def _get_horiz_at_interp(field, interp_horiz_cell_indices):
+    field_interp = field.isel(nCells=interp_horiz_cell_indices)
+    return field_interp
+
+
+def _get_horiz_and_mask_at_interp(
+    field, interp_horiz_cell_indices, cell_mask_interp
+):
+    field_interp = _get_horiz_at_interp(field, interp_horiz_cell_indices)
+
+    field_interp = field_interp.where(cell_mask_interp, 0.0)
+    return field_interp
+
+
+def _get_interp_level_weights(
+    valid_cells,
+    n_horiz_nodes,
+    n_vert_levels,
+    interp_horiz_cell_indices,
+    interp_horiz_cell_weights,
+    cell_mask_interp,
+):
+    valid_nodes = np.zeros((n_horiz_nodes, n_vert_levels), dtype=bool)
+    valid_nodes[0:-1, :] = valid_cells
+    valid_nodes[1:, :] = np.logical_or(valid_nodes[1:, :], valid_cells)
+
+    valid_nodes = xr.DataArray(
+        dims=('nHorizNodes', 'nVertLevels'), data=valid_nodes
+    )
+
+    interp_mask = np.logical_and(
+        interp_horiz_cell_indices > 0, cell_mask_interp
+    )
+
+    interp_level_weights = interp_mask * interp_horiz_cell_weights
+    weight_sum = interp_level_weights.sum(dim='nHorizWeights')
+
+    valid_weights = valid_nodes.broadcast_like(interp_level_weights)
+    interp_level_weights = (interp_level_weights / weight_sum).where(
+        valid_weights
+    )
+
+    return interp_level_weights
+
+
+def _get_interp_interface_weights(
+    valid_cells,
+    n_horiz_nodes,
+    n_vert_levels,
+    interp_horiz_cell_indices,
+    interp_horiz_cell_weights,
+    cell_interface_interp,
+):
+    valid_nodes = np.zeros((n_horiz_nodes, n_vert_levels + 1), dtype=bool)
+    valid_nodes[0:-1, 0:-1] = valid_cells
+    valid_nodes[1:, 0:-1] = np.logical_or(valid_nodes[1:, 0:-1], valid_cells)
+    valid_nodes[0:-1, 1:] = np.logical_or(valid_nodes[0:-1, 1:], valid_cells)
+    valid_nodes[1:, 1:] = np.logical_or(valid_nodes[1:, 1:], valid_cells)
+
+    valid_nodes = xr.DataArray(
+        dims=('nHorizNodes', 'nVertLevelsP1'), data=valid_nodes
+    )
+
+    interp_mask = np.logical_and(
+        interp_horiz_cell_indices > 0, cell_interface_interp
+    )
+
+    interp_interface_weights = interp_mask * interp_horiz_cell_weights
+    weight_sum = interp_interface_weights.sum(dim='nHorizWeights')
+
+    valid_weights = valid_nodes.broadcast_like(interp_interface_weights)
+    interp_interface_weights = (interp_interface_weights / weight_sum).where(
+        valid_weights
+    )
+
+    return interp_interface_weights
+
+
+def _get_vert_coord_at_interp_cells(
+    layer_thickness, bottom_depth, interp_horiz_cell_indices, cell_mask_interp
+):
+    bottom_depth_interp = _get_horiz_at_interp(
+        bottom_depth, interp_horiz_cell_indices
+    )
+    layer_thickness_interp = _get_horiz_and_mask_at_interp(
+        layer_thickness, interp_horiz_cell_indices, cell_mask_interp
+    )
+
+    ssh_interp = -bottom_depth_interp + layer_thickness_interp.sum(
+        dim='nVertLevels'
+    )
+
+    return ssh_interp, layer_thickness_interp
+
+
+def _interp_horiz(field_at_interp, interp_weights):
+    field_transect = (field_at_interp * interp_weights).sum(
+        dim='nHorizWeights'
+    )
+    return field_transect
+
+
+def _add_vert_coord_and_interp_data(
     ds_transect, layer_thickness, bottom_depth, min_level_cell, max_level_cell
 ):
     n_horiz_nodes = ds_transect.sizes['nHorizNodes']
@@ -413,11 +514,7 @@ def _get_vertical_coordinate(
 
     interp_horiz_cell_indices = ds_transect.interpHorizCellIndices
     interp_horiz_cell_weights = ds_transect.interpHorizCellWeights
-
-    bottom_depth_interp = bottom_depth.isel(nCells=interp_horiz_cell_indices)
-    layer_thickness_interp = layer_thickness.isel(
-        nCells=interp_horiz_cell_indices
-    )
+    cell_indices = ds_transect.horizCellIndices
 
     cell_mask_interp = _get_cell_mask(
         interp_horiz_cell_indices,
@@ -425,22 +522,6 @@ def _get_vertical_coordinate(
         max_level_cell,
         n_vert_levels,
     )
-    layer_thickness_interp = layer_thickness_interp.where(
-        cell_mask_interp, 0.0
-    )
-
-    ssh_interp = -bottom_depth_interp + layer_thickness_interp.sum(
-        dim='nVertLevels'
-    )
-
-    interp_mask = np.logical_and(
-        interp_horiz_cell_indices > 0, cell_mask_interp
-    )
-
-    interp_cell_weights = interp_mask * interp_horiz_cell_weights
-    weight_sum = interp_cell_weights.sum(dim='nHorizWeights')
-
-    cell_indices = ds_transect.horizCellIndices
 
     valid_cells = _get_cell_mask(
         cell_indices, min_level_cell, max_level_cell, n_vert_levels
@@ -448,32 +529,27 @@ def _get_vertical_coordinate(
 
     valid_cells = valid_cells.transpose('nSegments', 'nVertLevels').values
 
-    valid_nodes = np.zeros((n_horiz_nodes, n_vert_levels), dtype=bool)
-    valid_nodes[0:-1, :] = valid_cells
-    valid_nodes[1:, :] = np.logical_or(valid_nodes[1:, :], valid_cells)
-
-    valid_nodes = xr.DataArray(
-        dims=('nHorizNodes', 'nVertLevels'), data=valid_nodes
+    interp_level_weights = _get_interp_level_weights(
+        valid_cells,
+        n_horiz_nodes,
+        n_vert_levels,
+        interp_horiz_cell_indices,
+        interp_horiz_cell_weights,
+        cell_mask_interp,
     )
 
-    valid_weights = valid_nodes.broadcast_like(interp_cell_weights)
-    interp_cell_weights = (interp_cell_weights / weight_sum).where(
-        valid_weights
+    (ssh_at_interp, layer_thickness_at_interp) = (
+        _get_vert_coord_at_interp_cells(
+            layer_thickness,
+            bottom_depth,
+            interp_horiz_cell_indices,
+            cell_mask_interp,
+        )
     )
 
-    layer_thickness_transect = (
-        layer_thickness_interp * interp_cell_weights
-    ).sum(dim='nHorizWeights')
-
-    interp_mask = max_level_cell.isel(nCells=interp_horiz_cell_indices) >= 0
-    interp_horiz_cell_weights = interp_mask * interp_horiz_cell_weights
-    weight_sum = interp_horiz_cell_weights.sum(dim='nHorizWeights')
-    interp_horiz_cell_weights = (interp_horiz_cell_weights / weight_sum).where(
-        interp_mask
-    )
-
-    ssh_transect = (ssh_interp * interp_horiz_cell_weights).sum(
-        dim='nHorizWeights'
+    ssh_transect = _interp_horiz(ssh_at_interp, interp_horiz_cell_weights)
+    layer_thickness_transect = _interp_horiz(
+        layer_thickness_at_interp, interp_level_weights
     )
 
     z_bot = ssh_transect - layer_thickness_transect.cumsum(dim='nVertLevels')
@@ -504,15 +580,121 @@ def _get_vertical_coordinate(
     level_indices[1::2] = np.arange(n_vert_levels)
     level_indices = xr.DataArray(dims=('nHalfLevels',), data=level_indices)
 
-    return (
-        z_half_interface,
-        ssh_transect,
-        z_seafloor,
-        interp_horiz_cell_indices,
-        interp_cell_weights,
-        valid_transect_cells,
-        level_indices,
+    interface_indices = np.zeros(2 * n_vert_levels, dtype=int)
+    interface_indices[0::2] = np.arange(n_vert_levels)
+    interface_indices[1::2] = np.arange(1, n_vert_levels + 1)
+    interface_indices = xr.DataArray(
+        dims=('nHalfLevels',), data=interface_indices
     )
+
+    ds_transect['zTransectNode'] = z_half_interface
+
+    ds_transect['ssh'] = ssh_transect
+    ds_transect['zSeafloor'] = z_seafloor
+
+    ds_transect['cellIndices'] = cell_indices
+    ds_transect['levelIndices'] = level_indices
+    ds_transect['interfaceIndices'] = interface_indices
+    ds_transect['validCells'] = valid_transect_cells
+
+    n_horiz_nodes = interp_horiz_cell_indices.sizes['nHorizNodes']
+    n_vert_levels = layer_thickness.sizes['nVertLevels']
+    n_vert_nodes = 2 * n_vert_levels + 1
+    n_vert_weights = 2
+
+    interp_level_indices = -1 * np.ones(
+        (n_vert_nodes, n_vert_weights), dtype=int
+    )
+    interp_level_indices[1:, 0] = level_indices.values
+    interp_level_indices[0:-1, 1] = level_indices.values
+
+    interp_level_indices = xr.DataArray(
+        dims=('nVertNodes', 'nVertWeights'), data=interp_level_indices
+    )
+
+    interp_interface_indices = -1 * np.ones(
+        (n_vert_nodes, n_vert_weights), dtype=int
+    )
+    interp_interface_indices[1:, 0] = interface_indices.values
+    interp_interface_indices[0:-1, 1] = interface_indices.values
+
+    interp_interface_indices = xr.DataArray(
+        dims=('nVertNodes', 'nVertWeights'), data=interp_interface_indices
+    )
+
+    half_level_thickness = 0.5 * layer_thickness.isel(
+        nCells=interp_horiz_cell_indices, nVertLevels=interp_level_indices
+    )
+    half_level_thickness = half_level_thickness.where(
+        interp_level_indices >= 0, other=0.0
+    )
+
+    # vertical weights are proportional to the half-level thickness
+    interp_half_level_weights = (
+        half_level_thickness
+        * interp_level_weights.isel(nVertLevels=interp_level_indices)
+    )
+
+    weight_sum = interp_half_level_weights.sum(
+        dim=('nHorizWeights', 'nVertWeights')
+    )
+    out_mask = (weight_sum > 0.0).broadcast_like(interp_half_level_weights)
+    interp_half_level_weights = (interp_half_level_weights / weight_sum).where(
+        out_mask
+    )
+
+    interface_mask_interp = _get_interface_mask(
+        interp_horiz_cell_indices,
+        min_level_cell,
+        max_level_cell,
+        n_vert_levels,
+    )
+
+    interp_interface_weights = _get_interp_interface_weights(
+        valid_cells,
+        n_horiz_nodes,
+        n_vert_levels,
+        interp_horiz_cell_indices,
+        interp_horiz_cell_weights,
+        interface_mask_interp,
+    )
+
+    # vertical weights are proportional to the half-level thickness
+    interp_half_interface_weights = (
+        half_level_thickness
+        * interp_interface_weights.isel(nVertLevelsP1=interp_interface_indices)
+    )
+
+    weight_sum = interp_half_interface_weights.sum(
+        dim=('nHorizWeights', 'nVertWeights')
+    )
+    out_mask = (weight_sum > 0.0).broadcast_like(interp_half_interface_weights)
+    interp_half_interface_weights = (
+        interp_half_interface_weights / weight_sum
+    ).where(out_mask)
+
+    valid_nodes = np.zeros((n_horiz_nodes, n_vert_nodes), dtype=bool)
+    valid_nodes[0:-1, 0:-1] = valid_transect_cells
+    valid_nodes[1:, 0:-1] = np.logical_or(
+        valid_nodes[1:, 0:-1], valid_transect_cells
+    )
+    valid_nodes[0:-1, 1:] = np.logical_or(
+        valid_nodes[0:-1, 1:], valid_transect_cells
+    )
+    valid_nodes[1:, 1:] = np.logical_or(
+        valid_nodes[1:, 1:], valid_transect_cells
+    )
+
+    valid_nodes = xr.DataArray(
+        dims=('nHorizNodes', 'nVertNodes'), data=valid_nodes
+    )
+
+    ds_transect['interpCellIndices'] = interp_horiz_cell_indices
+    ds_transect['interpLevelIndices'] = interp_level_indices
+    ds_transect['interpLevelWeights'] = interp_half_level_weights
+    ds_transect['interpInterfaceIndices'] = interp_interface_indices
+    ds_transect['interpInterfaceWeights'] = interp_half_interface_weights
+    ds_transect['validNodes'] = valid_nodes
 
 
 def _get_cell_mask(
@@ -531,6 +713,25 @@ def _get_cell_mask(
     cell_mask = np.logical_and(cell_mask, cell_indices >= 0)
 
     return cell_mask
+
+
+def _get_interface_mask(
+    cell_indices, min_level_cell, max_level_cell, n_vert_levels
+):
+    interface_indices = xr.DataArray(
+        data=np.arange(n_vert_levels + 1), dims='nVertLevelsP1'
+    )
+    min_level_cell = min_level_cell.isel(nCells=cell_indices)
+    max_level_cell = max_level_cell.isel(nCells=cell_indices)
+
+    interface_mask = np.logical_and(
+        interface_indices >= min_level_cell,
+        interface_indices <= max_level_cell + 1,
+    )
+
+    interface_mask = np.logical_and(interface_mask, cell_indices >= 0)
+
+    return interface_mask
 
 
 def _get_interface_segments(z_half_interface, d_node, valid_transect_cells):
