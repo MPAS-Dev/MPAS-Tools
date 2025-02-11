@@ -258,7 +258,9 @@ Ocean Tools
 
    compute_transect
    find_transect_levels_and_weights
+   interp_mpas_to_transect_cells
    interp_mpas_to_transect_nodes
+   interp_transect_grid_to_transect_nodes
    plot_feature_transects
    plot_transect
 

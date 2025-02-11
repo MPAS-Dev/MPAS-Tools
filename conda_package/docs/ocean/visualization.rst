@@ -148,6 +148,15 @@ weights that can be used in ``interp_mpas_to_transect_nodes()`` to performed
 linear interpolation.
 
 The function
+:py:func:`mpas_tools.ocean.viz.transect.interp_mpas_to_transect_cells()`
+interpolates an MPAS-Ocean DataArray to transect cells, keeping constant values
+over each MPAS-Ocean cell. This function uses the indices computed by
+``find_transect_levels_and_weights()`` to map data from the MPAS-Ocean mesh
+onto the transect. The result is an ``xarray.DataArray`` with values
+sampled to transect cells.
+
+
+The function
 :py:func:`mpas_tools.ocean.viz.transect.interp_mpas_to_transect_nodes()`
 interpolates an MPAS-Ocean DataArray to transect nodes, linearly
 interpolating fields between the closest neighboring cells. This function
@@ -156,3 +165,12 @@ uses the interpolation weights computed by
 onto the transect. The result is an ``xarray.DataArray`` with values
 interpolated to the transect's nodes.
 
+The function
+:py:func:`mpas_tools.ocean.viz.transect.interp_transect_grid_to_transect_nodes()`
+interpolates a 2D grid of data to transect nodes, linearly interpolating
+fields between the closest neighboring cells. This requires that the
+``z_transect`` parameter has been passed into function
+``find_transect_levels_and_weights()`` (or ``compute_transect()``) uses
+weights generated in ``find_transect_levels_and_weights()`` to interpolate data
+from the MPAS-Ocean mesh to transect nodes the transect, resulting an
+``xarray.DataArray`` with values.
