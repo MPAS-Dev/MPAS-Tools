@@ -552,8 +552,7 @@ def find_planar_transect_cells_and_weights(
 
     subdivision_res : float, optional
         Resolution in m to use to subdivide the transect when looking for
-        intersection candidates.  Should be small enough that curvature is
-        small.
+        intersection candidates.
 
     Returns
     -------
