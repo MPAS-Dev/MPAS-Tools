@@ -18,6 +18,7 @@ def compute_transect(
     min_level_cell,
     max_level_cell,
     spherical=False,
+    z_transect=None,
 ):
     """
     build a sequence of quads showing the transect intersecting mpas cells.
@@ -51,6 +52,10 @@ def compute_transect(
 
     spherical : bool, optional
         Whether the x and y coordinates are latitude and longitude in degrees
+
+    z_transect : xarray.DataArray, optional
+        the z coordinate of the transect (1D or 2D).  If 2D, it must have the
+        same along-transect dimension as ``x`` and ``y``
 
     Returns
     -------
@@ -90,6 +95,7 @@ def compute_transect(
         bottom_depth=bottom_depth,
         min_level_cell=min_level_cell,
         max_level_cell=max_level_cell,
+        z_transect=z_transect,
     )
 
     ds_transect.compute()
@@ -103,6 +109,7 @@ def find_transect_levels_and_weights(
     bottom_depth,
     min_level_cell,
     max_level_cell,
+    z_transect=None,
 ):
     """
     Construct a vertical coordinate for a transect produced by
@@ -128,6 +135,10 @@ def find_transect_levels_and_weights(
 
     max_level_cell : xarray.DataArray
         the vertical zero-based index of the bathymetry on the MPAS mesh
+
+    z_transect : xarray.DataArray, optional
+        the z coordinate of the transect (1D or 2D).  If 2D, it must have the
+        same along-transect dimension as ``ds_horiz_transect.dTransect``.
 
     Returns
     -------
@@ -252,6 +263,11 @@ def find_transect_levels_and_weights(
             dims.insert(0, dim)
     ds_transect_cells = ds_transect_cells.transpose(*dims)
 
+    if z_transect is not None:
+        _add_vertical_interpolation_of_transect_points(
+            ds_transect_cells, z_transect
+        )
+
     return ds_transect_cells
 
 
@@ -322,6 +338,64 @@ def interp_mpas_to_transect_nodes(ds_transect, da):
     )
 
     da_nodes = da_nodes.where(ds_transect.validNodes)
+
+    return da_nodes
+
+
+def interp_transect_grid_to_transect_nodes(ds_transect, da):
+    """
+        Interpolate a DataArray on the original transect grid to nodes on the
+        MPAS-Ocean transect.
+
+        Parameters
+        ----------
+        ds_transect : xarray.Dataset
+            A dataset that defines an MPAS-Ocean transect, the
+            results of calling ``find_transect_levels_and_weights()`` with the
+            ``z_transect`` parameter.
+
+        da : xarray.DataArray
+            An field on the original transect (defined at vertical locations
+            corresponding to ``z_transect``)
+
+        Returns
+        -------
+        da_nodes : xarray.DataArray
+            The data array interpolated to transect nodes with dimensions
+            ``nHorizNodes`` and ``nVertNodes``
+    ·"""
+
+    horiz_dim = ds_transect.dTransect.dims[0]
+    z_transect = ds_transect.zTransect
+    vert_dim = None
+    for dim in z_transect.dims:
+        if dim != horiz_dim:
+            vert_dim = dim
+            break
+
+    assert vert_dim is not None
+
+    horiz_indices = ds_transect.transectIndicesOnHorizNode
+    horiz_weights = ds_transect.transectWeightsOnHorizNode
+
+    vert_indices = ds_transect.transectInterpVertIndices
+    vert_weights = ds_transect.transectInterpVertWeights
+
+    kwargs00 = {horiz_dim: horiz_indices, vert_dim: vert_indices}
+    kwargs01 = {horiz_dim: horiz_indices, vert_dim: vert_indices + 1}
+    kwargs10 = {horiz_dim: horiz_indices + 1, vert_dim: vert_indices}
+    kwargs11 = {horiz_dim: horiz_indices + 1, vert_dim: vert_indices + 1}
+
+    da_nodes = (
+        horiz_weights * vert_weights * da.isel(**kwargs00)
+        + horiz_weights * (1.0 - vert_weights) * da.isel(**kwargs01)
+        + (1.0 - horiz_weights) * vert_weights * da.isel(**kwargs10)
+        + (1.0 - horiz_weights) * (1.0 - vert_weights) * da.isel(**kwargs11)
+    )
+
+    mask = np.logical_and(horiz_indices != -1, vert_indices != -1)
+
+    da_nodes = da_nodes.where(mask)
 
     return da_nodes
 
@@ -571,3 +645,62 @@ def _get_interp_indices_and_weights(
     interp_cell_weights = (interp_cell_weights / weight_sum).where(out_mask)
 
     return interp_level_indices, interp_cell_weights, valid_nodes
+
+
+def _add_vertical_interpolation_of_transect_points(ds_transect, z_transect):
+    d_transect = ds_transect.dTransect
+    # make sure z_transect is 2D
+    z_transect, _ = xr.broadcast(z_transect, d_transect)
+
+    assert len(z_transect.dims) == 2
+
+    horiz_dim = d_transect.dims[0]
+    vert_dim = None
+    for dim in z_transect.dims:
+        if dim != horiz_dim:
+            vert_dim = dim
+            break
+
+    assert vert_dim is not None
+
+    nz_transect = z_transect.sizes[vert_dim]
+
+    horiz_indices = ds_transect.transectIndicesOnHorizNode
+    horiz_weights = ds_transect.transectWeightsOnHorizNode
+    kwargs0 = {horiz_dim: horiz_indices}
+    kwargs1 = {horiz_dim: horiz_indices + 1}
+    z_transect_at_horiz_nodes = horiz_weights * z_transect.isel(**kwargs0) + (
+        1.0 - horiz_weights
+    ) * z_transect.isel(**kwargs1)
+
+    z_transect_node = ds_transect.zTransectNode
+
+    transect_interp_vert_indices = -1 * np.ones(
+        z_transect_node.shape, dtype=np.int32
+    )
+    transect_interp_vert_weights = np.zeros(z_transect_node.shape)
+
+    kwargs = {vert_dim: 0}
+    z0 = z_transect_at_horiz_nodes.isel(**kwargs)
+    for z_index in range(nz_transect - 1):
+        kwargs = {vert_dim: z_index + 1}
+        z1 = z_transect_at_horiz_nodes.isel(**kwargs)
+        mask = np.logical_and(z_transect_node <= z0, z_transect_node > z1)
+        mask = mask.values
+        weights = (z1 - z_transect_node) / (z1 - z0)
+
+        transect_interp_vert_indices[mask] = z_index
+        transect_interp_vert_weights[mask] = weights.values[mask]
+        z0 = z1
+
+    ds_transect['transectInterpVertIndices'] = (
+        z_transect_node.dims,
+        transect_interp_vert_indices,
+    )
+
+    ds_transect['transectInterpVertWeights'] = (
+        z_transect_node.dims,
+        transect_interp_vert_weights,
+    )
+
+    ds_transect['zTransect'] = z_transect
