@@ -6,8 +6,11 @@ from mpas_tools.planar_hex import make_planar_hex_mesh
 from mpas_tools.translate import center
 from mpas_tools.cime.constants import constants
 from mpas_tools.viz.mesh_to_triangles import mesh_to_triangles
-from mpas_tools.viz.transects import make_triangle_tree, \
-    find_transect_cells_and_weights, find_planar_transect_cells_and_weights
+from mpas_tools.viz.transect import (
+    make_triangle_tree,
+    find_spherical_transect_cells_and_weights,
+    find_planar_transect_cells_and_weights
+)
 
 
 def test_mesh_to_triangles():
@@ -26,15 +29,17 @@ def test_make_triangle_tree():
     assert tree.n == ds_tris.sizes['nTriangles']*ds_tris.sizes['nNodes']
 
 
-def test_find_transect_cells_and_weights():
+def test_find_spherical_transect_cells_and_weights():
     ds_mesh, ds_tris = _get_triangles()
     tree = make_triangle_tree(ds_tris)
     lon_transect = xr.DataArray([-10., 0., 10.], dims=('nPoints',))
     lat_transect = xr.DataArray([-10., 0., 10.], dims=('nPoints',))
-    ds_transect = find_transect_cells_and_weights(
+    ds_transect = find_spherical_transect_cells_and_weights(
         lon_transect, lat_transect, ds_tris, ds_mesh, tree, degrees=True,
-        subdivisionRes=10e3)
-    for dim in ['nSegments', 'nBounds', 'nHorizWeights', 'nPoints']:
+        subdivision_res=10e3)
+
+    for dim in ['nSegments',  'nNodes', 'nHorizBounds', 'nHorizWeights',
+                'nPoints']:
         assert dim in ds_transect.dims
 
     for var in ['xCartNode', 'yCartNode', 'zCartNode', 'dNode', 'lonNode',
@@ -59,9 +64,10 @@ def test_find_planar_transect_cells_and_weights():
     y_transect = 1e3*xr.DataArray([-10., 0., 10.], dims=('nPoints',))
 
     ds_transect = find_planar_transect_cells_and_weights(
-        x_transect, y_transect, ds_tris, ds_mesh, tree, subdivisionRes=1e3)
+        x_transect, y_transect, ds_tris, ds_mesh, tree, subdivision_res=1e3)
 
-    for dim in ['nSegments', 'nBounds', 'nHorizWeights', 'nPoints']:
+    for dim in ['nSegments',  'nNodes', 'nHorizBounds', 'nHorizWeights',
+                'nPoints']:
         assert dim in ds_transect.dims
 
     for var in ['xNode', 'yNode', 'dNode', 'horizTriangleIndices',
@@ -88,5 +94,5 @@ def _get_triangles():
 if __name__ == '__main__':
     test_mesh_to_triangles()
     test_make_triangle_tree()
-    test_find_transect_cells_and_weights()
+    test_find_spherical_transect_cells_and_weights()
     test_find_planar_transect_cells_and_weights()
