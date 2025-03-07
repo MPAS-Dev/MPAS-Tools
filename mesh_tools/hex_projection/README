@@ -1,0 +1,38 @@
+MPAS-Atmosphere utility for creating regional meshes by projecting a
+Cartesian mesh of perfect hexagons to the sphere using standard map
+projections
+
+The current implementation uses a rectangular Cartesian mesh, with the
+corners slightly rounded, and projects this mesh to the sphere using a
+Lambert Conformal projection.  Executing "make" with the included
+Makefile produces an executable named "project_hexes".  The inputs
+to this executable are given in the ascii file "namelist.projections"
+(a standard Fortran namelist file). The inputs variables should be
+obvious from their names, and some further information is given in
+"Notes" below. The utility produces a netcdf file "mpas_hex_mesh.nc"
+describing the regional mesh in the form of a standard MPAS grid file,
+with the projection existing on the unit sphere (as is the case with
+all MPAS grid files for spheres).  The utility also produces a
+graph.info file that serves as input to METIS to produce a partion
+file for use by MPAS as described in the MPAS-A Users Guide.
+
+Notes:
+
+The (x,y) extent of the domain is in meters on the earth-radius sphere,
+but as noted the MPAS grid file that is produced is on the unit sphere.
+
+Following WRF, the longitudinal center of the project is given by the
+namelist parameter "standard_longitude_degrees".  The center of the
+projected mesh is given by the namelist parameter
+"reference_longitude_degrees".
+
+The hexagons are oriented pointing west-east.
+
+A python script is included that can plot the resulting mesh.
+An NCL script (a depricated language) is also provided to plot
+the mesh.
+
+The mesh can be moved and rotated to any place on the sphere using
+the MPAS grid_rotate tool (see the MPAS Users Guide).
+
+WCS, 4 March 2025
