@@ -1,10 +1,11 @@
-import xarray as xr
-import numpy as np
-import scipy.sparse
-import scipy.sparse.linalg
-
 import logging
 import sys
+
+import scipy.sparse
+import scipy.sparse.linalg
+import numpy as np
+import xarray as xr
+
 from mpas_tools.ocean.depth import compute_zmid
 
 
@@ -108,6 +109,7 @@ def compute_barotropic_streamfunction(ds_mesh, ds, logger=None,
                               dims=('nVertices',))
 
     return bsf_vertex
+
 
 def _compute_transport(ds_mesh, ds, min_depth, max_depth, prefix,
                        time_index):
