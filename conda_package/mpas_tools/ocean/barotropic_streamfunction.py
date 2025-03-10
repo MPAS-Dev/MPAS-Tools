@@ -59,7 +59,11 @@ def compute_barotropic_streamfunction(ds_mesh, ds, logger=None,
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(logging.INFO)
 
-    if time_index is not None:
+    if time_index is None:
+        if 'Time' in ds.dims:
+            raise ValueError('time_index must be provided if "Time" is a '
+                             'dimension of ds')
+    else:
         ds = ds.isel(Time=time_index)
 
     bsf_vertex = _compute_barotropic_streamfunction_vertex(
@@ -96,15 +100,12 @@ def shift_barotropic_streamfunction(bsf_vertex, lat_range, cells_on_vertex,
         The shifted barotropic streamfunction in Sv on vertices
     """
     is_boundary_cov = cells_on_vertex == -1
-    boundary_vertices = is_boundary_cov.sum(dim='vertexDegree') > 0
-
     boundary_vertices = np.logical_and(
-        boundary_vertices,
-        lat_vertex >= np.deg2rad(lat_range[0])
-    )
-    boundary_vertices = np.logical_and(
-        boundary_vertices,
-        lat_vertex <= np.deg2rad(lat_range[1])
+        is_boundary_cov.sum(dim='vertexDegree') > 0,
+        np.logical_and(
+            lat_vertex >= np.deg2rad(lat_range[0]),
+            lat_vertex <= np.deg2rad(lat_range[1])
+        )
     )
 
     # convert from boolean mask to indices
@@ -188,8 +189,10 @@ def _compute_edge_sign_on_vertex(ds_mesh):
 
         v0_on_edge = vertices_on_edge.isel(nEdges=eov, TWO=0)
         v1_on_edge = vertices_on_edge.isel(nEdges=eov, TWO=1)
-        valid_edge = np.logical_and(valid_edge, v0_on_edge >= 0)
-        valid_edge = np.logical_and(valid_edge, v1_on_edge >= 0)
+        valid_edge = np.logical_and(
+            eov >= 0,
+            np.logical_and(v0_on_edge >= 0, v1_on_edge >= 0)
+        )
 
         mask = np.logical_and(valid_edge, v0_on_edge == vertices)
         edge_sign_on_vertex[mask, iedge] = -1
@@ -287,7 +290,7 @@ def _compute_barotropic_streamfunction_vertex(ds_mesh, ds, prefix,
         data[idata_other] = -this_data
 
     # Now, the boundary condition: To begin with, we set the BSF at the
-    # frist vertext to zero
+    # first vertext to zero
     indices[0, -2] = nvertices
     indices[1, -2] = 0
     data[-2] = 1.
