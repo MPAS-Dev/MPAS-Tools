@@ -121,8 +121,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features.aggregation.ocean</span><span class="w"> </span><span class="kn">import</span> <span class="n">moc</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">mpas_tools.mesh.conversion</span>
@@ -453,8 +453,9 @@
     <span class="k">if</span> <span class="s1">&#39;nRegionsInGroup&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mocMask</span><span class="p">:</span>
         <span class="n">nRegions</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nRegions&#39;</span><span class="p">]</span>
         <span class="n">nRegionGroups</span> <span class="o">=</span> <span class="mi">2</span>
-        <span class="n">nRegionsInGroup</span> <span class="o">=</span> <span class="n">nRegions</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nRegionGroups</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-        <span class="n">regionsInGroup</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nRegionGroups</span><span class="p">,</span> <span class="n">nRegions</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">nRegionsInGroup</span> <span class="o">=</span> <span class="n">nRegions</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nRegionGroups</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+        <span class="n">regionsInGroup</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nRegionGroups</span><span class="p">,</span> <span class="n">nRegions</span><span class="p">),</span>
+                                     <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
         <span class="n">regionGroupNames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MOCBasinRegionsGroup&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">]</span>
         <span class="n">regionNames</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionNames</span><span class="o">.</span><span class="n">values</span>
         <span class="n">nChar</span> <span class="o">=</span> <span class="mi">64</span>
