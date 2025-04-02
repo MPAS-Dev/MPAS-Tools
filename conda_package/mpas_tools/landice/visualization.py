@@ -477,7 +477,7 @@ def _calculate_masks(dataset):
     elif ( 'cellMask' not in dataset.variables.keys() and
          'thickness' in dataset.variables.keys() and
          'bedTopography' in dataset.variables.keys() ):
-        print(f'cellMask is not present in output file {run};'
+        print(f'cellMask is not present in output file;'
                ' calculating masks from ice thickness')
         valid_masks = True
         grounded_mask = (dataset.variables['thickness'][:] >
@@ -488,7 +488,7 @@ def _calculate_masks(dataset):
         initial_extent_mask = (dataset.variables['thickness'][:] > 0.)
     else:
         print('cellMask and thickness and/or bedTopography'
-              f' not present in output file {run};'
+              f' not present in output file;'
                ' Skipping mask calculation.')
         valid_masks = False
 
