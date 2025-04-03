@@ -477,18 +477,22 @@ def _calculate_masks(dataset):
     elif ( 'cellMask' not in dataset.variables.keys() and
          'thickness' in dataset.variables.keys() and
          'bedTopography' in dataset.variables.keys() ):
-        print(f'cellMask is not present in output file {run};'
+        print(f'cellMask is not present in output file;'
                ' calculating masks from ice thickness')
         valid_masks = True
         grounded_mask = (dataset.variables['thickness'][:] >
                         (-rhosw / rhoi *
                          dataset.variables['bedTopography'][:]))
+        float_mask = np.logical_and(
+                         np.logical_not(grounded_mask),
+                         dataset.variables['thickness'][:] > 1.0)
+        dynamic_mask = np.logical_or(grounded_mask, float_mask)
         # This isn't technically correct, but works for plotting
         grounding_line_mask = grounded_mask.copy()
         initial_extent_mask = (dataset.variables['thickness'][:] > 0.)
     else:
         print('cellMask and thickness and/or bedTopography'
-              f' not present in output file {run};'
+              f' not present in output file;'
                ' Skipping mask calculation.')
         valid_masks = False
 
