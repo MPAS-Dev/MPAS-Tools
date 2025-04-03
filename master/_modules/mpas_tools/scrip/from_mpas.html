@@ -120,12 +120,12 @@
 <span></span><span class="c1"># Create a SCRIP file from an MPAS mesh.</span>
 <span class="c1"># See for details: http://www.earthsystemmodeling.org/esmf_releases/public/ESMF_5_2_0rp1/ESMF_refdoc/node3.html#SECTION03024000000000000000</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">netCDF4</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">optparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptionParser</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.cime.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+
 
 <div class="viewcode-block" id="scrip_from_mpas">
 <a class="viewcode-back" href="../../../generated/mpas_tools.scrip.from_mpas.scrip_from_mpas.html#mpas_tools.scrip.from_mpas.scrip_from_mpas">[docs]</a>
@@ -170,15 +170,15 @@
 
     <span class="c1"># check the longitude convention to use positive values [0 2pi]</span>
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)):</span>
-       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;lonCell is not in the desired range (0, 2pi)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;lonCell is not in the desired range (0, 2pi)&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">lonVertex</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">lonVertex</span> <span class="o">&gt;</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)):</span>
-       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;lonVertex is not in the desired range (0, 2pi)&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;lonVertex is not in the desired range (0, 2pi)&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">sphereRadius</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-       <span class="n">sphereRadius</span> <span class="o">=</span>  <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
-       <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -- WARNING: sphereRadius&lt;0 so setting sphereRadius = &quot;</span>
-             <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">sphereRadius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -- WARNING: sphereRadius&lt;0 so setting sphereRadius = &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">on_a_sphere</span> <span class="o">==</span> <span class="s2">&quot;NO&quot;</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -- WARNING: &#39;on_a_sphere&#39; attribute is &#39;NO&#39;, which means that &quot;</span>
@@ -266,8 +266,8 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== Gathering information.  (Invoke with --help for more details. All&quot;</span>
-          <span class="s2">&quot; arguments are optional)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;== Gathering information.  (Invoke with --help for more details. &quot;</span>
+          <span class="s2">&quot;All arguments are optional)&quot;</span><span class="p">)</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">OptionParser</span><span class="p">()</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;This script takes an MPAS grid file and generates &quot;</span> \
                          <span class="s2">&quot;a SCRIP grid file.&quot;</span>
@@ -287,11 +287,11 @@
     <span class="n">options</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">mpasFile</span><span class="p">:</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s1">&#39;Error: MPAS input grid file is required.  Specify with -m &#39;</span>
-                 <span class="s1">&#39;command line argument.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;MPAS input grid file is required.  Specify with -m &#39;</span>
+                         <span class="s1">&#39;command line argument.&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">scripFile</span><span class="p">:</span>
-        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="s1">&#39;Error: SCRIP output grid file is required.  Specify with -s &#39;</span>
-                 <span class="s1">&#39;command line argument.&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;SCRIP output grid file is required.  Specify with &#39;</span>
+                         <span class="s1">&#39;-s command line argument.&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">options</span><span class="o">.</span><span class="n">landiceMasks</span><span class="p">:</span>
         <span class="n">options</span><span class="o">.</span><span class="n">landiceMasks</span> <span class="o">=</span> <span class="kc">False</span>
