@@ -35,6 +35,7 @@ requirements:
     - cmocean
     - dask
     - geometric_features >=1.0.1,<2.0.0
+    - h5py
     - hdf5
     - inpoly
     - jigsaw >=0.9.12
@@ -105,6 +106,7 @@ test:
     - ocean_add_zmid --help
     - ocean_write_time_varying_zmid --help
     - paraview_vtk_field_extractor -f mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc -v latCell,lonCell --ignore_time -o vtk_test
+    - mpas_to_xdmf -m mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc -v latCell lonCell -o xdmf_test
     - split_grids --help
     - merge_grids --help
     - inject_bathymetry mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc
