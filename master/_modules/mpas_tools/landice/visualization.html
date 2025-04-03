@@ -605,18 +605,22 @@
     <span class="k">elif</span> <span class="p">(</span> <span class="s1">&#39;cellMask&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span>
          <span class="s1">&#39;thickness&#39;</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span>
          <span class="s1">&#39;bedTopography&#39;</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;cellMask is not present in output file </span><span class="si">{</span><span class="n">run</span><span class="si">}</span><span class="s1">;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;cellMask is not present in output file;&#39;</span>
                <span class="s1">&#39; calculating masks from ice thickness&#39;</span><span class="p">)</span>
         <span class="n">valid_masks</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">grounded_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;thickness&#39;</span><span class="p">][:]</span> <span class="o">&gt;</span>
                         <span class="p">(</span><span class="o">-</span><span class="n">rhosw</span> <span class="o">/</span> <span class="n">rhoi</span> <span class="o">*</span>
                          <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;bedTopography&#39;</span><span class="p">][:]))</span>
+        <span class="n">float_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+                         <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">grounded_mask</span><span class="p">),</span>
+                         <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;thickness&#39;</span><span class="p">][:]</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">dynamic_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">grounded_mask</span><span class="p">,</span> <span class="n">float_mask</span><span class="p">)</span>
         <span class="c1"># This isn&#39;t technically correct, but works for plotting</span>
         <span class="n">grounding_line_mask</span> <span class="o">=</span> <span class="n">grounded_mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="n">initial_extent_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;thickness&#39;</span><span class="p">][:]</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;cellMask and thickness and/or bedTopography&#39;</span>
-              <span class="sa">f</span><span class="s1">&#39; not present in output file </span><span class="si">{</span><span class="n">run</span><span class="si">}</span><span class="s1">;&#39;</span>
+              <span class="sa">f</span><span class="s1">&#39; not present in output file;&#39;</span>
                <span class="s1">&#39; Skipping mask calculation.&#39;</span><span class="p">)</span>
         <span class="n">valid_masks</span> <span class="o">=</span> <span class="kc">False</span>
 
