@@ -1,15 +1,25 @@
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import numpy
-import jigsawpy
-from jigsawpy.savejig import savejig
 
 from mpas_tools.logging import check_call
 
 
-def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0e3,
-                  geom_points=None, geom_edges=None, logger=None):
+def jigsaw_driver(
+    cellWidth,
+    x,
+    y,
+    on_sphere=True,
+    earth_radius=6371.0e3,
+    geom_points=None,
+    geom_edges=None,
+    logger=None,
+):
     """
     A function for building a jigsaw mesh
 
@@ -32,11 +42,20 @@ def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0e3,
         list of point coordinates for bounding polygon for planar mesh
 
     geom_edges : ndarray, optional
-        list of edges between points in geom_points that define the bounding polygon
+        list of edges between points in geom_points that define the bounding
+        polygon
 
     logger : logging.Logger, optional
         A logger for the output if not stdout
     """
+    try:
+        import jigsawpy
+        from jigsawpy.savejig import savejig
+    except ImportError as err:
+        raise ImportError(
+            'JIGSAW and/or jigsaw-python is not installed. '
+            'Please install them in the conda environment.'
+        ) from err
     # Authors
     # -------
     # Mark Petersen, Phillip Wolfram, Xylar Asay-Davis
@@ -51,30 +70,30 @@ def jigsaw_driver(cellWidth, x, y, on_sphere=True, earth_radius=6371.0e3,
     # save HFUN data to file
     hmat = jigsawpy.jigsaw_msh_t()
     if on_sphere:
-       hmat.mshID = 'ELLIPSOID-GRID'
-       hmat.xgrid = numpy.radians(x)
-       hmat.ygrid = numpy.radians(y)
+        hmat.mshID = 'ELLIPSOID-GRID'
+        hmat.xgrid = numpy.radians(x)
+        hmat.ygrid = numpy.radians(y)
     else:
-       hmat.mshID = 'EUCLIDEAN-GRID'
-       hmat.xgrid = x
-       hmat.ygrid = y
+        hmat.mshID = 'EUCLIDEAN-GRID'
+        hmat.xgrid = x
+        hmat.ygrid = y
     hmat.value = cellWidth
     jigsawpy.savemsh(opts.hfun_file, hmat)
 
     # define JIGSAW geometry
     geom = jigsawpy.jigsaw_msh_t()
     if on_sphere:
-       geom.mshID = 'ELLIPSOID-MESH'
-       geom.radii = earth_radius*1e-3*numpy.ones(3, float)
+        geom.mshID = 'ELLIPSOID-MESH'
+        geom.radii = earth_radius * 1e-3 * numpy.ones(3, float)
     else:
-       geom.mshID = 'EUCLIDEAN-MESH'
-       geom.vert2 = geom_points
-       geom.edge2 = geom_edges
+        geom.mshID = 'EUCLIDEAN-MESH'
+        geom.vert2 = geom_points
+        geom.edge2 = geom_edges
     jigsawpy.savemsh(opts.geom_file, geom)
 
     # build mesh via JIGSAW!
     opts.hfun_scal = 'absolute'
-    opts.hfun_hmax = float("inf")
+    opts.hfun_hmax = float('inf')
     opts.hfun_hmin = 0.0
     opts.mesh_dims = +2  # 2-dim. simplexes
     opts.optm_qlim = 0.9375
