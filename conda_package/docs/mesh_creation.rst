@@ -161,6 +161,66 @@ function :py:func:`mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver()`.  Thi
 function is used to setup data structures and then build a JIGSAW mesh using
 ``jigsawpy``.
 
+**Note:** The ``jigsaw`` and ``jigsawpy`` packages are no longer being updated
+on conda-forge and must be installed from source into your conda environment.
+This happens automatically if you use ``compass`` or ``polaris`` but needs
+to be done manually otherwise.
+
+There is a `build_jigsaw` command and the equvalent function
+:py:func:`mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw()` that can be
+used to build JIGSAW and JIGSAW-Python from source and install them in the
+current conda envrionment.
+
+Alternatively, here are the instructions:
+
+1. Clone the jigsaw-python repository:
+
+   .. code-block:: bash
+
+       git clone https://github.com/dengwirda/jigsaw-python.git
+       cd jigsaw-python
+
+2. Install the required build tools in your conda environment:
+
+   .. code-block:: bash
+
+       conda install -y cxx-compiler cmake make libnetcdf setuptools numpy scipy
+
+   If you are on Linux, also install:
+
+   .. code-block:: bash
+
+       conda install -y sysroot_linux-64=2.17
+
+   If you are on macOS, also install:
+
+   .. code-block:: bash
+
+       conda install -y macosx_deployment_target_osx-64=10.13
+
+3. Build JIGSAW:
+
+   .. code-block:: bash
+
+       cd external/jigsaw
+       rm -rf tmp
+       mkdir tmp
+       cd tmp
+       cmake .. -DCMAKE_BUILD_TYPE=Release -DNETCDF_LIBRARY=$CONDA_PREFIX/lib/libnetcdf.so
+       cmake --build . --config Release --target install --parallel 4
+
+4. Install JIGSAW-Python:
+
+   .. code-block:: bash
+
+       cd ../../../
+       rm -rf jigsawpy/_bin jigsawpy/_lib
+       cp -r external/jigsaw/bin/ jigsawpy/_bin
+       cp -r external/jigsaw/lib/ jigsawpy/_lib
+       python -m pip install --no-deps --no-build-isolation -e .
+       cp jigsawpy/_bin/* $CONDA_PREFIX/bin
+
+
 Mesh Definition Tools
 =====================
 
@@ -470,4 +530,3 @@ Here is ``test.geojson``:
         }
       ]
     }
-
