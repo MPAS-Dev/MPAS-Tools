@@ -135,12 +135,11 @@ the package.</p>
 <h2>Entry Points<a class="headerlink" href="#entry-points" title="Link to this heading"></a></h2>
 <p>The best way to add new “scripts” to the package is to add a function without
 any arguments somewhere in the package, and then to add it as an “entry point”
-both in <code class="docutils literal notranslate"><span class="pre">conda_package/setup.py</span></code> and <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code>.</p>
-<p>As an example, the entry point <code class="docutils literal notranslate"><span class="pre">planar_hex</span></code> is defined in <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> as:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">setup</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;mpas_tools&#39;</span><span class="p">,</span>
+both in <code class="docutils literal notranslate"><span class="pre">conda_package/pyproject.toml</span></code> and <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code>.</p>
+<p>As an example, the entry point <code class="docutils literal notranslate"><span class="pre">planar_hex</span></code> is defined in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> as:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">scripts</span><span class="p">]</span>
 <span class="o">...</span>
-      <span class="n">entry_points</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;console_scripts&#39;</span><span class="p">:</span>
-                  <span class="p">[</span><span class="s1">&#39;planar_hex = mpas_tools.planar_hex:main&#39;</span><span class="p">,</span>
+<span class="n">planar_hex</span> <span class="o">=</span> <span class="s2">&quot;mpas_tools.planar_hex:main&quot;</span>
 <span class="o">...</span>
 </pre></div>
 </div>
