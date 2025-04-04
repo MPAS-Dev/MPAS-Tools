@@ -1,0 +1,67 @@
+name: Pre-commit auto-update
+
+on:
+  schedule:
+    # Cron syntax:
+    # 1. Entry: Minute when the process will be started [0-60]
+    # 2. Entry: Hour when the process will be started [0-23]
+    # 3. Entry: Day of the month when the process will be started [1-28/29/30/31]
+    # 4. Entry: Month of the year when the process will be started [1-12]
+    # 5. Entry: Weekday when the process will be started [0-6] [0 is Sunday]
+    - cron: '0 8 * * 3'
+
+env:
+  UP_TO_DATE: false
+  PYTHON_VERSION: "3.10"
+
+jobs:
+  auto-update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Apply and commit updates
+        run: |
+          git clone https://github.com/MPAS-Dev/MPAS-Tools.git update-pre-commit-deps
+          cd update-pre-commit-deps
+          # Configure git using GitHub Actions credentials.
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git checkout -b update-pre-commit-deps
+          pre-commit autoupdate
+          git add .
+          # The second command will fail if no changes were present, so we ignore it
+          git commit -m "Update pre-commit dependencies" || ( echo "UP_TO_DATE=true" >> "$GITHUB_ENV")
+
+      - name: Push Changes
+        if: ${{ env.UP_TO_DATE == 'false' }}
+        uses: ad-m/github-push-action@master
+        with:
+          branch: update-pre-commit-deps
+          directory: update-pre-commit-deps
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Make PR and add reviewers and labels
+        if: ${{ env.UP_TO_DATE == 'false' }}
+        run: |
+          cd update-pre-commit-deps
+          gh pr create \
+          --title "Update pre-commit and its dependencies" \
+          --body "This PR was auto-generated to update pre-commit and its dependencies." \
+          --head update-pre-commit-deps \
+          --reviewer altheaden,xylar \
+          --label ci
+        env:
+          GH_TOKEN: ${{ github.token }}
+
