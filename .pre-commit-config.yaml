@@ -1,0 +1,32 @@
+files: "conda_package"
+default_stages: [pre-commit]
+fail_fast: true
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+
+  # Can run individually with `flynt [file]` or `flynt [source]`
+  - repo: https://github.com/ikamensh/flynt
+    rev: '1.0.1'
+    hooks:
+      - id: flynt
+        args: ["--fail-on-change", "--verbose"]
+        require_serial: true
+
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.4
+    hooks:
+      # Sort the imports
+      - id: ruff
+        name: ruff-sort-imports
+        args: [--select, I, --fix]
+      # Run the linter.
+      - id: ruff
+        args: [--fix]
+      # Run the formatter.
+      - id: ruff-format
+
