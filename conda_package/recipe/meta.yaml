@@ -37,8 +37,6 @@ requirements:
     - geometric_features >=1.0.1,<2.0.0
     - hdf5
     - inpoly
-    - jigsaw >=0.9.12
-    - jigsawpy >=0.2.1
     - libnetcdf
     - netcdf-fortran
     - matplotlib-base >=3.9.0
