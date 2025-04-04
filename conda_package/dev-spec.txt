@@ -26,8 +26,11 @@ shapely>=2.0,<3.0
 xarray
 
 # Development
+flynt
 pip
+pre-commit
 pytest
+ruff
 setuptools
 
 # Documentation
