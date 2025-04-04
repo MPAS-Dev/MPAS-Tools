@@ -1,6 +1,6 @@
-import sys
 import logging
 import subprocess
+import sys
 
 
 def check_call(args, logger=None, log_command=True, timeout=None, **kwargs):
@@ -37,13 +37,20 @@ def check_call(args, logger=None, log_command=True, timeout=None, **kwargs):
     else:
         print_args = ' '.join(args)
 
+    # break the print command into multiple lines
+    if '&&' in print_args:
+        print_args = '\n  ' + print_args.replace('&& ', '&&').replace(
+            '&&', '&&\n  '
+        )
+
     # make a logger if there isn't already one
     with LoggingContext(print_args, logger=logger) as logger:
         if log_command:
             logger.info(f'Running: {print_args}')
 
-        process = subprocess.Popen(args, stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE, **kwargs)
+        process = subprocess.Popen(
+            args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+        )
         stdout, stderr = process.communicate(timeout=timeout)
 
         if stdout:
@@ -56,12 +63,10 @@ def check_call(args, logger=None, log_command=True, timeout=None, **kwargs):
                 logger.error(line)
 
         if process.returncode != 0:
-            raise subprocess.CalledProcessError(process.returncode,
-                                                print_args)
+            raise subprocess.CalledProcessError(process.returncode, print_args)
 
 
 class LoggingContext(object):
-
     """
     A context manager for creating a logger or using an existing logger
 
@@ -147,21 +152,21 @@ class MpasFormatter(logging.Formatter):
     https://stackoverflow.com/a/8349076/7728169
     https://stackoverflow.com/a/14859558/7728169
     """
+
     # Authors
     # -------
     # Xylar Asay-Davis
 
     # printing error messages without a prefix because they are sometimes
     # errors and sometimes only warnings sent to stderr
-    dbg_fmt = "DEBUG: %(module)s: %(lineno)d: %(msg)s"
-    info_fmt = "%(msg)s"
+    dbg_fmt = 'DEBUG: %(module)s: %(lineno)d: %(msg)s'
+    info_fmt = '%(msg)s'
     err_fmt = info_fmt
 
     def __init__(self, fmt=info_fmt):
         logging.Formatter.__init__(self, fmt)
 
     def format(self, record):
-
         # Save the original format configured by the user
         # when the logger formatter was instantiated
         format_orig = self._fmt
