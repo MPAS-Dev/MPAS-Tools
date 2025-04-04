@@ -10,6 +10,51 @@ New python functions and modules (``.py`` files) can be added within the
 ``__init__.py`` file (which can be empty) to indicate that they are also part of
 the package.
 
+Code Styling and Linting
+========================
+``mpas_tools`` utilizes ``pre-commit`` to lint incoming code when you make a
+commit (as long as you have your environment set up correctly), and on GitHub
+whenever you make a pull request to the ``mpas_tools`` repository. Linting makes sure
+your code follows the formatting guidelines of PEP8, and cleans up additional
+things like whitespace at the end of lines.
+
+The first time you set up the ``mpas_tools_dev`` environment, you will need to set up
+``pre-commit``. This is done by running:
+
+```bash
+pre-commit install
+```
+
+You only need to do this once when you create the ``mpas_tools_dev``
+environment. If you create a new version of ``mpas_tools_dev``, then you will
+need to run it again.
+
+When you run ``git commit <filename>``, ``pre-commit`` will automatically lint
+your code before committing. Some formatting will be updated by ``pre-commit``
+automatically, in which case it will terminate the commit and inform you of the
+change. Then you can run ``git commit <filename>`` again to continue the
+linting process until your commit is successful. Some changes need to be made
+manually, such as a line being too long. When this happens, you must update the
+file to ``pre-commit``'s standards, and then attempt to re-commit the file.
+
+Internally, ``pre-commit``  uses `ruff <https://docs.astral.sh/ruff/>` to check
+PEP8 compliance, as well as sort, check and format imports,
+`flynt <https://github.com/ikamensh/flynt>` to change any format strings to
+f-strings, and `mypy <https://mypy-lang.org/>` to check for consistent variable
+types. An example error might be:
+
+```bash
+example.py:77:1: E302 expected 2 blank lines, found 1
+```
+
+For this example, we would just add an additional blank line after line 77 and
+try the commit again to make sure we've resolved the issue.
+
+You may also find it useful to use an IDE with a PEP8 style checker built in,
+such as `VS Code <https://code.visualstudio.com/>`. See
+`Formatting Python in VS Code <https://code.visualstudio.com/docs/python/formatting>`
+for some tips on checking code style in VS Code.
+
 Entry Points
 ============
 

@@ -81,6 +81,7 @@
 <p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Making Changes to mpas_tools</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#code-styling-and-linting">Code Styling and Linting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#entry-points">Entry Points</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#updating-the-version">Updating the Version</a></li>
@@ -131,6 +132,43 @@
 <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> package.  New directories with python modules should include an
 <code class="docutils literal notranslate"><span class="pre">__init__.py</span></code> file (which can be empty) to indicate that they are also part of
 the package.</p>
+<section id="code-styling-and-linting">
+<h2>Code Styling and Linting<a class="headerlink" href="#code-styling-and-linting" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> utilizes <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> to lint incoming code when you make a
+commit (as long as you have your environment set up correctly), and on GitHub
+whenever you make a pull request to the <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> repository. Linting makes sure
+your code follows the formatting guidelines of PEP8, and cleans up additional
+things like whitespace at the end of lines.</p>
+<p>The first time you set up the <code class="docutils literal notranslate"><span class="pre">mpas_tools_dev</span></code> environment, you will need to set up
+<code class="docutils literal notranslate"><span class="pre">pre-commit</span></code>. This is done by running:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">pre-commit</span> <span class="pre">install</span>
+<span class="pre">`</span></code></p>
+<p>You only need to do this once when you create the <code class="docutils literal notranslate"><span class="pre">mpas_tools_dev</span></code>
+environment. If you create a new version of <code class="docutils literal notranslate"><span class="pre">mpas_tools_dev</span></code>, then you will
+need to run it again.</p>
+<p>When you run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">&lt;filename&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code> will automatically lint
+your code before committing. Some formatting will be updated by <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code>
+automatically, in which case it will terminate the commit and inform you of the
+change. Then you can run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">commit</span> <span class="pre">&lt;filename&gt;</span></code> again to continue the
+linting process until your commit is successful. Some changes need to be made
+manually, such as a line being too long. When this happens, you must update the
+file to <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code>’s standards, and then attempt to re-commit the file.</p>
+<p>Internally, <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code>  uses <cite>ruff &lt;https://docs.astral.sh/ruff/&gt;</cite> to check
+PEP8 compliance, as well as sort, check and format imports,
+<cite>flynt &lt;https://github.com/ikamensh/flynt&gt;</cite> to change any format strings to
+f-strings, and <cite>mypy &lt;https://mypy-lang.org/&gt;</cite> to check for consistent variable
+types. An example error might be:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
+<span class="pre">example.py:77:1:</span> <span class="pre">E302</span> <span class="pre">expected</span> <span class="pre">2</span> <span class="pre">blank</span> <span class="pre">lines,</span> <span class="pre">found</span> <span class="pre">1</span>
+<span class="pre">`</span></code></p>
+<p>For this example, we would just add an additional blank line after line 77 and
+try the commit again to make sure we’ve resolved the issue.</p>
+<p>You may also find it useful to use an IDE with a PEP8 style checker built in,
+such as <cite>VS Code &lt;https://code.visualstudio.com/&gt;</cite>. See
+<cite>Formatting Python in VS Code &lt;https://code.visualstudio.com/docs/python/formatting&gt;</cite>
+for some tips on checking code style in VS Code.</p>
+</section>
 <section id="entry-points">
 <h2>Entry Points<a class="headerlink" href="#entry-points" title="Link to this heading"></a></h2>
 <p>The best way to add new “scripts” to the package is to add a function without
