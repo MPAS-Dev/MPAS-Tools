@@ -16,6 +16,42 @@ env:
   PATHS_IGNORE: '["**/README.md", "**/docs/**"]'
 
 jobs:
+  pre-commit-hooks:
+    name: lint with pre-commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@master
+        with:
+          cancel_others: ${{ env.CANCEL_OTHERS }}
+          paths_ignore: ${{ env.PATHS_IGNORE }}
+
+      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
+        name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
+        name: Set up Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
+        id: file_changes
+        uses: trilom/file-changes-action@1.2.4
+        with:
+          output: ' '
+
+      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
+        # Run all pre-commit hooks on all the files.
+        # Getting only staged files can be tricky in case a new PR is opened
+        # since the action is run on a branch in detached head state
+        name: Install and Run Pre-commit
+        uses: pre-commit/action@v3.0.1
+        with:
+          extra_args: --files ${{ steps.file_changes.outputs.files}}
+
   build:
     name: test mpas_tools - python ${{ matrix.python-version }}
     runs-on: ubuntu-latest

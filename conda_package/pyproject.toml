@@ -31,7 +31,7 @@ authors = [
     { name="Riley Brady" },
 ]
 description = """\
-    A set of tools for creating and manipulating meshes for the climate 
+    A set of tools for creating and manipulating meshes for the climate
     components based on the Model for Prediction Across Scales (MPAS) framework
     """
 license = { file = "LICENSE" }
@@ -83,7 +83,37 @@ dev = [
     # testing
     "pip",
     "pytest",
+    "flynt",
+    "pre-commit",
+    "ruff",
 ]
+
+[tool.ruff]
+# Exclude a variety of commonly ignored directories.
+exclude = ["docs", "conda"]
+line-length = 79
+
+[tool.ruff.lint]
+# E501 - max line-length
+# E4 - whitespace
+# E7 - multiple-statements
+# E9 - trailing-whitespace
+# F - Enable Pyflakes
+# B - Enable flake8-bugbear
+# W - Enable pycodestyle
+# C901 - complex-structure
+# D - Enable flake8-docstrings
+select = ["E501", "E4", "E7", "E9", "F", "B", "W", "C901"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint.mccabe]
+# Flag errors (`C901`) whenever the complexity level exceeds 18.
+max-complexity = 18
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
 
 [build-system]
 requires = ["setuptools>=60"]
@@ -106,7 +136,7 @@ inject_preserve_floodplain = "mpas_tools.ocean.inject_preserve_floodplain:main"
 ocean_add_depth = "mpas_tools.ocean.depth:main_add_depth"
 ocean_add_zmid = "mpas_tools.ocean.depth:main_add_zmid"
 ocean_write_time_varying_zmid = "mpas_tools.ocean.depth:main_write_time_varying_zmid"
-plot_ocean_transects = "mpas_tools.ocean.viz.transects:main"
+plot_ocean_transects = "mpas_tools.ocean.viz.transect.plot:plot_feature_transects_main"
 mpas_to_triangle = "mpas_tools.mesh.creation.mpas_to_triangle:main"
 triangle_to_netcdf = "mpas_tools.mesh.creation.triangle_to_netcdf:main"
 jigsaw_to_netcdf = "mpas_tools.mesh.creation.jigsaw_to_netcdf:main"
