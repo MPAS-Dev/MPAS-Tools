@@ -1501,36 +1501,29 @@ int mapAndOutputVertexFields( const string inputFilename, const string outputFil
     ncutil::get_var(inputFilename, "kiteAreasOnVertex", kiteAreasOnVertexOld);
     ncutil::get_var(inputFilename, "areaTriangle", areaTriangleOld);
 
-    for(int iVertex = 0; iVertex < nVertices; iVertex++){
-        double area = 0.0;
-        if(vertexMap.at(iVertex) != -1){
-            for(int j = 0; j < vertexDegree; j++){
-                int iCell, iEdge;
+    for(int iVertex = 0; iVertex < nVertices; iVertex++) {
+        if(vertexMap.at(iVertex) != -1) {
+            double area = 0.0;
+            for(int j = 0; j < vertexDegree; j++) {
+                int iCell = cellsOnVertexOld[iVertex * vertexDegree + j] - 1;
+                int iEdge = edgesOnVertexOld[iVertex * vertexDegree + j] - 1;
 
-                iCell = cellsOnVertexOld[iVertex*vertexDegree + j] - 1;
-                iEdge = edgesOnVertexOld[iVertex*vertexDegree + j] - 1;
-
-                if(iCell != -1){
-                    cellsOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = cellMap.at(iCell) + 1;
-                    if(cellMap.at(iCell) == -1){
-                        kiteAreasOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = 0.0;
-                    } else {
-                        kiteAreasOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] =
-                            kiteAreasOnVertexOld[iVertex*vertexDegree + j];
-                    }
-                    area += kiteAreasOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j];
+                // Preserve the original order, even if invalid
+                if(iCell != -1 && cellMap.at(iCell) != -1) {
+                    cellsOnVertexNew[vertexMap.at(iVertex) * vertexDegree + j] = cellMap.at(iCell) + 1;
+                    kiteAreasOnVertexNew[vertexMap.at(iVertex) * vertexDegree + j] = kiteAreasOnVertexOld[iVertex * vertexDegree + j];
+                    area += kiteAreasOnVertexNew[vertexMap.at(iVertex) * vertexDegree + j];
                 } else {
-                    cellsOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = 0;
-                    kiteAreasOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = 0.0;
+                    cellsOnVertexNew[vertexMap.at(iVertex) * vertexDegree + j] = 0;
+                    kiteAreasOnVertexNew[vertexMap.at(iVertex) * vertexDegree + j] = 0.0;
                 }
 
-                if(iEdge != -1){
-                    edgesOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = edgeMap.at(iEdge) + 1;
+                if(iEdge != -1 && edgeMap.at(iEdge) != -1) {
+                    edgesOnVertexNew[vertexMap.at(iVertex) * vertexDegree + j] = edgeMap.at(iEdge) + 1;
                 } else {
-                    edgesOnVertexNew[ vertexMap.at(iVertex) * vertexDegree + j] = 0;
+                    edgesOnVertexNew[vertexMap.at(iVertex) * vertexDegree + j] = 0;
                 }
             }
-
             areaTriangleNew[vertexMap.at(iVertex)] = area;
         }
     }
@@ -1540,17 +1533,16 @@ int mapAndOutputVertexFields( const string inputFilename, const string outputFil
     ncutil::def_var(outputFilename, "cellsOnVertex",
         NC_INT, "cells adj. to each vertex", {"nVertices", "vertexDegree"});
 
-    ncutil::put_var(outputFilename, "edgesOnVertex", &edgesOnVertexNew [0]);
-    ncutil::put_var(outputFilename, "cellsOnVertex", &cellsOnVertexNew [0]);
+    ncutil::put_var(outputFilename, "edgesOnVertex", &edgesOnVertexNew[0]);
+    ncutil::put_var(outputFilename, "cellsOnVertex", &cellsOnVertexNew[0]);
 
     ncutil::def_var(outputFilename, "areaTriangle",
         NC_DOUBLE, "surface area of dual cells", {"nVertices"});
     ncutil::def_var(outputFilename, "kiteAreasOnVertex",
-        NC_DOUBLE,
-    "surface areas of overlap between cells and dual cells", {"nVertices", "vertexDegree"});
+        NC_DOUBLE, "surface areas of overlap between cells and dual cells", {"nVertices", "vertexDegree"});
 
-    ncutil::put_var(outputFilename, "areaTriangle", &areaTriangleNew [0]);
-    ncutil::put_var(outputFilename, "kiteAreasOnVertex", &kiteAreasOnVertexNew [0]);
+    ncutil::put_var(outputFilename, "areaTriangle", &areaTriangleNew[0]);
+    ncutil::put_var(outputFilename, "kiteAreasOnVertex", &kiteAreasOnVertexNew[0]);
 
     delete[] cellsOnVertexOld;
     delete[] cellsOnVertexNew;
