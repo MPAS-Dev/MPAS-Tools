@@ -28,6 +28,7 @@ Mesh creation
    build_mesh.build_spherical_mesh
    build_mesh.build_planar_mesh
    jigsaw_driver.jigsaw_driver
+   jigsaw_driver.build_jigsaw
    jigsaw_to_netcdf.jigsaw_to_netcdf
    mesh_definition_tools
    mesh_definition_tools.mergeCellWidthVsLat
@@ -398,4 +399,3 @@ Tests
    :toctree: generated/
 
    test_cime_constants
-
