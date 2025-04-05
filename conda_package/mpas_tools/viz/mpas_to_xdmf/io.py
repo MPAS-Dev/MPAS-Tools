@@ -199,3 +199,135 @@ def _write_xdmf(ds_geom, ds_data, out_dir, suffix):
 
     with open(xdmf_filename, 'w') as xdmf_file:
         xdmf_file.write(xdmf_content)
+
+
+def _parse_extra_dims(dimension_list, ds):
+    """
+    Parse and prompt for indices of extra dimensions.
+
+    Parameters
+    ----------
+    dimension_list : list of str
+        List of dimensions and indices in the format <dimension>=<indices>.
+    ds : xarray.Dataset
+        Dataset to extract dimensions from.
+
+    Returns
+    -------
+    extra_dims : dict
+        Dictionary mapping dimensions to their selected indices.
+    """
+    extra_dims = {}
+    unspecified_dims = []
+
+    for dim in ds.dims:
+        if dim in ['Time', 'nCells', 'nEdges', 'nVertices']:
+            continue
+
+        # Check if the dimension is specified in the dimension_list
+        specified = False
+        if dimension_list:
+            for dim_spec in dimension_list:
+                if dim_spec.startswith(f'{dim}='):
+                    indices = dim_spec.split('=')[1]
+                    extra_dims[dim] = _parse_indices(indices, ds.sizes[dim])
+                    specified = True
+                    break
+
+        if not specified:
+            unspecified_dims.append(dim)
+
+    # If there are unspecified dimensions, display a detailed prompt
+    if unspecified_dims:
+        print('\nThe following dimensions require indices to be specified:')
+        print('You can enter indices in one of the following formats:')
+        print("  - A single index (e.g., '0')")
+        print("  - A comma-separated list of indices (e.g., '0,1,2')")
+        print("  - A range with optional stride (e.g., ':' or '0:10:2')")
+        print('  - Leave blank to skip fields with this dimension.')
+        print()
+
+        for dim in unspecified_dims:
+            print(f"Dimension '{dim}' has size {ds.sizes[dim]}.")
+            indices = input(f"Enter indices to keep for '{dim}': ")
+            extra_dims[dim] = _parse_indices(indices, ds.sizes[dim])
+
+    return extra_dims
+
+
+def _parse_indices(index_string, dim_size):
+    """
+    Parse an index string into a list of indices.
+
+    Parameters
+    ----------
+    index_string : str
+        Index string (e.g., "0,1,2", "0:10:2", ":").
+    dim_size : int
+        Size of the dimension.
+
+    Returns
+    -------
+    indices : list of int
+        Parsed indices.
+    """
+    if not index_string:
+        return []
+    if ':' in index_string:
+        parts = [int(p) if p else None for p in index_string.split(':')]
+        return list(range(parts[0] or 0, parts[1] or dim_size, parts[2] or 1))
+    return [int(i) for i in index_string.split(',')]
+
+
+def _process_extra_dims(ds, extra_dims):
+    """
+    Process extra dimensions in the dataset by ensuring all are covered,
+    unwrapping variables with extra dimensions into multiple variables with
+    basic dimensions, and applying slicing or dropping variables as needed.
+
+    Parameters
+    ----------
+    ds : xarray.Dataset
+        Dataset to process for extra dimensions.
+    extra_dims : dict
+        Dictionary mapping dimensions to their selected indices.
+
+    Returns
+    -------
+    ds : xarray.Dataset
+        The processed dataset with extra dimensions handled.
+
+    Raises
+    ------
+    ValueError
+        If any extra dimensions are not covered by the extra_dims dictionary.
+    """
+    basic_dims = ['Time', 'nCells', 'nEdges', 'nVertices']
+    for dim in ds.dims:
+        if dim not in basic_dims and dim not in (extra_dims or {}):
+            raise ValueError(
+                f"Dimension '{dim}' is not covered by the extra_dims "
+                f'dictionary.'
+            )
+
+    if extra_dims:
+        for dim, indices in extra_dims.items():
+            if not indices:
+                # Drop variables with the given dimension if the list is empty
+                ds = ds.drop_vars(
+                    [var for var in ds.data_vars if dim in ds[var].dims]
+                )
+            else:
+                # Unwrap variables with the extra dimension
+                vars_to_unwrap = [
+                    var for var in ds.data_vars if dim in ds[var].dims
+                ]
+                for var in vars_to_unwrap:
+                    for index in indices:
+                        # Create a new variable with the suffix `_index`
+                        new_var_name = f'{var}_{index}'
+                        ds[new_var_name] = ds[var].isel({dim: index})
+                    # Drop the original variable with the extra dimension
+                    ds = ds.drop_vars(var)
+
+    return ds

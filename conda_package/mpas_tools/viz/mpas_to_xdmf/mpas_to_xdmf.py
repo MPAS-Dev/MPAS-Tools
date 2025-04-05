@@ -1,4 +1,9 @@
-from mpas_tools.viz.mpas_to_xdmf.io import _convert_to_xdmf, _load_dataset
+from mpas_tools.viz.mpas_to_xdmf.io import (
+    _convert_to_xdmf,
+    _load_dataset,
+    _parse_extra_dims,
+    _process_extra_dims,
+)
 from mpas_tools.viz.mpas_to_xdmf.mesh import _get_ds_mesh
 from mpas_tools.viz.mpas_to_xdmf.time import _set_time
 
@@ -71,7 +76,7 @@ class MpasToXdmf:
             xtime_var=xtime_var,
         )
 
-    def convert_to_xdmf(self, out_dir):
+    def convert_to_xdmf(self, out_dir, extra_dims=None):
         """
         Convert an xarray Dataset to XDMF + HDF5 format.
 
@@ -79,7 +84,19 @@ class MpasToXdmf:
         ----------
         out_dir : str
             Directory where XDMF and HDF5 files will be saved.
+        extra_dims : dict, optional
+            Dictionary mapping extra dimensions to their selected indices.
+            The keys are the names of the extra dimensions (e.g.,
+            'nVertLevels'), and the values are lists of indices to keep for
+            each dimension. For example:
+                {
+                    'nVertLevels': [0, 1, 2],
+                    'nParticles': [0, 2, 4, 6]
+                }
+            This allows slicing of fields along these dimensions.
         """
+        # Process extra dimensions
+        self.ds = _process_extra_dims(self.ds, extra_dims)
 
         _convert_to_xdmf(
             ds=self.ds,
@@ -134,6 +151,15 @@ def main():
         '--xtime',
         help='Name of the variable containing time information.',
     )
+    parser.add_argument(
+        '-d',
+        '--dim-list',
+        nargs='+',
+        help=(
+            'List of dimensions and indices to slice '
+            '(e.g., nVertLevels=0:10:2).'
+        ),
+    )
 
     args = parser.parse_args()
 
@@ -144,4 +170,8 @@ def main():
         variables=args.variables,
         xtime_var=args.xtime,
     )
-    converter.convert_to_xdmf(out_dir=args.output_dir)
+
+    # Parse extra dimensions
+    extra_dims = _parse_extra_dims(args.dim_list, converter.ds)
+
+    converter.convert_to_xdmf(out_dir=args.output_dir, extra_dims=extra_dims)
