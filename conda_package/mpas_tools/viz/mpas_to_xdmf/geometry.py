@@ -144,27 +144,43 @@ def _build_vertex_geometry(ds_mesh):
 
     vertex_degree = ds_mesh.sizes['vertexDegree']
 
-    cells = []
-    # offset because of how we concatenated the vertices above
-    verts = xr.DataArray(
-        np.arange(nvertices) + ncells + nedges, dims=['nVertices']
+    assert vertex_degree == 3, (
+        'Currently only supporting vertex degree 3 meshes'
     )
-    # fill in invalid cells with the last in the polygon
-    for ivert in range(vertex_degree):
-        eov = edges_on_vertex.isel(vertexDegree=ivert)
-        mask = eov >= 0
-        # offset the edge index by ncells because of how we concatenated the
-        # vertices above
-        cells.append(xr.where(mask, eov + ncells, verts))
-        cov = cells_on_vertex.isel(vertexDegree=ivert)
-        mask = cov >= 0
-        cells.append(xr.where(mask, cov, verts))
+
+    cov = cells_on_vertex
+    e0ov = edges_on_vertex
+    e1ov = edges_on_vertex.isel(vertexDegree=[1, 2, 0])
+    verts = xr.DataArray(
+        np.arange(nvertices), dims=['nVertices']
+    ).broadcast_like(cov)
+
+    mask = (cov >= 0).values
+
+    # cells to visualize are the kites connecting the vertex to each cell via
+    # the 2 shared edges
+    npoly = np.count_nonzero(mask)
+    cells = np.zeros((npoly, 4), dtype=np.int32)
+    # offsets for vertices adn edges are because of concatenation of points
+    # above
+    cells[:, 0] = verts.values[mask] + ncells + nedges
+    cells[:, 1] = e0ov.values[mask] + ncells
+    cells[:, 2] = cov.values[mask]
+    cells[:, 3] = e1ov.values[mask] + ncells
+
+    vert_to_kite_map = xr.DataArray(
+        verts.values[mask],
+        dims=['nKites'],
+    )
+
+    cells_array = xr.DataArray(
+        cells,
+        dims=['nKites', 'nv'],
+    )
+    points_array = xr.concat(points, dim='R3').transpose('nPoints', 'R3')
 
     ds_vertex_geom = xr.Dataset()
-    ds_vertex_geom['points'] = xr.concat(points, dim='R3').transpose(
-        'nPoints', 'R3'
-    )
-    ds_vertex_geom['cells'] = xr.concat(cells, dim='nv').transpose(
-        'nVertices', 'nv'
-    )
+    ds_vertex_geom['points'] = points_array
+    ds_vertex_geom['cells'] = cells_array
+    ds_vertex_geom['vert_to_kite_map'] = vert_to_kite_map
     return ds_vertex_geom

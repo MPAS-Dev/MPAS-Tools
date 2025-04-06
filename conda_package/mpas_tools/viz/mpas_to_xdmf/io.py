@@ -129,7 +129,8 @@ def _convert_vertices_to_xdmf(ds, ds_mesh, out_dir):
     """
     ds_vertex_geom = _build_vertex_geometry(ds_mesh)
     vertex_vars = [var for var in ds.data_vars if 'nVertices' in ds[var].dims]
-    ds_vertices = ds[vertex_vars]
+    vert_to_kite_map = ds_vertex_geom['vert_to_kite_map']
+    ds_vertices = ds[vertex_vars].isel(nVertices=vert_to_kite_map)
     _write_xdmf(ds_vertex_geom, ds_vertices, out_dir, suffix='Vertices')
 
 
