@@ -165,6 +165,7 @@ add_land_locked_cells_to_mask = "mpas_tools.ocean.coastline_alteration:main_add_
 widen_transect_edge_masks = "mpas_tools.ocean.coastline_alteration:main_widen_transect_edge_masks"
 moc_southern_boundary_extractor = "mpas_tools.ocean.moc:moc_southern_boundary_extractor"
 paraview_vtk_field_extractor = "mpas_tools.viz.paraview_extractor:main"
+mpas_to_xdmf = "mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf:main"
 
 [project.urls]
 Documentation = "http://mpas-dev.github.io/MPAS-Tools/master/"

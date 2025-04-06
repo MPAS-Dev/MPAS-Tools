@@ -1,0 +1,49 @@
+<?xml version="1.0" ?>
+<Xdmf Version="3.0" xmlns:xi="http://www.w3.org/2001/XInclude">
+  <Domain>
+    <Grid Name="TimeSeries" GridType="Collection" CollectionType="Temporal">
+      {% if times|length > 0 %}
+      {% set t_index = 0 %}
+      {% for t_val in times %}
+      <Grid Name="Step{{ t_index }}" GridType="Uniform">
+        <Time Value="{{ t_val }}"/>
+        <Topology TopologyType="Polygon" NumberOfElements="{{ num_elements }}" NodesPerElement="{{ num_verts }}">
+          <DataItem Format="HDF" Dimensions="{{ num_elements }} {{ num_verts }}">{{ h5_basename }}:/Cells</DataItem>
+        </Topology>
+        <Geometry GeometryType="XYZ">
+          <DataItem Format="HDF" Dimensions="{{ num_points }} 3">{{ h5_basename }}:/Points</DataItem>
+        </Geometry>
+        {% for var in variables %}
+        {% if var.has_time %}
+        <Attribute Name="{{ var.name }}" AttributeType="Scalar" Center="Cell">
+          <DataItem Format="HDF" Dimensions="{{ num_elements }}">{{ h5_basename }}:/{{ var.name }}_t{{ t_index }}</DataItem>
+        </Attribute>
+        {% else %}
+        <Attribute Name="{{ var.name }}" AttributeType="Scalar" Center="Cell">
+          <DataItem Format="HDF" Dimensions="{{ num_elements }}">{{ h5_basename }}:/{{ var.name }}</DataItem>
+        </Attribute>
+        {% endif %}
+        {% endfor %}
+      </Grid>
+      {% set t_index = t_index + 1 %}
+      {% endfor %}
+      {% else %}
+      <Grid Name="Static" GridType="Uniform">
+        <Topology TopologyType="Polygon" NumberOfElements="{{ num_elements }}" NodesPerElement="{{ num_verts }}">
+          <DataItem Format="HDF" Dimensions="{{ num_elements }} {{ num_verts }}">{{ h5_basename }}:/Cells</DataItem>
+        </Topology>
+        <Geometry GeometryType="XYZ">
+          <DataItem Format="HDF" Dimensions="{{ num_points }} 3">{{ h5_basename }}:/Points</DataItem>
+        </Geometry>
+        {% for var in variables %}
+        {% if not var.has_time %}
+        <Attribute Name="{{ var.name }}" AttributeType="Scalar" Center="Cell">
+          <DataItem Format="HDF" Dimensions="{{ num_elements }}">{{ h5_basename }}:/{{ var.name }}</DataItem>
+        </Attribute>
+        {% endif %}
+        {% endfor %}
+      </Grid>
+      {% endif %}
+    </Grid>
+  </Domain>
+</Xdmf>
