@@ -76,7 +76,7 @@ class MpasToXdmf:
             xtime_var=xtime_var,
         )
 
-    def convert_to_xdmf(self, out_dir, extra_dims=None):
+    def convert_to_xdmf(self, out_dir, extra_dims=None, quiet=False):
         """
         Convert an xarray Dataset to XDMF + HDF5 format.
 
@@ -94,6 +94,8 @@ class MpasToXdmf:
                     'nParticles': [0, 2, 4, 6]
                 }
             This allows slicing of fields along these dimensions.
+        quiet : bool, optional
+            If True, suppress progress output.
         """
         # Process extra dimensions
         self.ds = _process_extra_dims(self.ds, extra_dims)
@@ -102,6 +104,7 @@ class MpasToXdmf:
             ds=self.ds,
             ds_mesh=self.ds_mesh,
             out_dir=out_dir,
+            quiet=quiet,
         )
 
 
@@ -160,6 +163,12 @@ def main():
             '(e.g., nVertLevels=0:10:2).'
         ),
     )
+    parser.add_argument(
+        '-q',
+        '--quiet',
+        action='store_true',
+        help='Suppress progress output.',
+    )
 
     args = parser.parse_args()
 
@@ -174,4 +183,8 @@ def main():
     # Parse extra dimensions
     extra_dims = _parse_extra_dims(args.dim_list, converter.ds)
 
-    converter.convert_to_xdmf(out_dir=args.output_dir, extra_dims=extra_dims)
+    converter.convert_to_xdmf(
+        out_dir=args.output_dir,
+        extra_dims=extra_dims,
+        quiet=args.quiet,
+    )

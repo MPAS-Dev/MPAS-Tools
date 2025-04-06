@@ -67,6 +67,7 @@ dependencies = [
     "scikit-image",
     "scipy",
     "shapely >=2.0,<3.0",
+    "tqdm",
     "xarray"
 ]
 

@@ -4,6 +4,7 @@ import os
 import h5py
 import xarray as xr
 from jinja2 import Template
+from tqdm import tqdm
 
 from mpas_tools.viz.mpas_to_xdmf.geometry import (
     _build_cell_geometry,
@@ -80,7 +81,7 @@ def _load_dataset(mesh_filename, time_series_filenames, variables, xtime_var):
     return ds_mesh, ds
 
 
-def _convert_to_xdmf(ds, ds_mesh, out_dir):
+def _convert_to_xdmf(ds, ds_mesh, out_dir, quiet=False):
     """
     Convert an xarray Dataset to XDMF + HDF5 format.
 
@@ -92,38 +93,40 @@ def _convert_to_xdmf(ds, ds_mesh, out_dir):
         The mesh dataset.
     out_dir : str
         Directory where XDMF and HDF5 files will be saved.
+    quiet : bool, optional
+        If True, suppress progress output. Default is False.
     """
     os.makedirs(out_dir, exist_ok=True)
 
     if 'nCells' in ds.dims:
-        _convert_cells_to_xdmf(ds, ds_mesh, out_dir)
+        _convert_cells_to_xdmf(ds, ds_mesh, out_dir, quiet)
     if 'nEdges' in ds.dims:
-        _convert_edges_to_xdmf(ds, ds_mesh, out_dir)
+        _convert_edges_to_xdmf(ds, ds_mesh, out_dir, quiet)
     if 'nVertices' in ds.dims:
-        _convert_vertices_to_xdmf(ds, ds_mesh, out_dir)
+        _convert_vertices_to_xdmf(ds, ds_mesh, out_dir, quiet)
 
 
-def _convert_cells_to_xdmf(ds, ds_mesh, out_dir):
+def _convert_cells_to_xdmf(ds, ds_mesh, out_dir, quiet):
     """
     Convert cell-centered data to XDMF + HDF5 format.
     """
     ds_cell_geom = _build_cell_geometry(ds_mesh)
     cell_vars = [var for var in ds.data_vars if 'nCells' in ds[var].dims]
     ds_cells = ds[cell_vars]
-    _write_xdmf(ds_cell_geom, ds_cells, out_dir, suffix='Cells')
+    _write_xdmf(ds_cell_geom, ds_cells, out_dir, suffix='Cells', quiet=quiet)
 
 
-def _convert_edges_to_xdmf(ds, ds_mesh, out_dir):
+def _convert_edges_to_xdmf(ds, ds_mesh, out_dir, quiet):
     """
     Convert edge-centered data to XDMF + HDF5 format.
     """
     ds_edge_geom = _build_edge_geometry(ds_mesh)
     edge_vars = [var for var in ds.data_vars if 'nEdges' in ds[var].dims]
     ds_edges = ds[edge_vars]
-    _write_xdmf(ds_edge_geom, ds_edges, out_dir, suffix='Edges')
+    _write_xdmf(ds_edge_geom, ds_edges, out_dir, suffix='Edges', quiet=quiet)
 
 
-def _convert_vertices_to_xdmf(ds, ds_mesh, out_dir):
+def _convert_vertices_to_xdmf(ds, ds_mesh, out_dir, quiet):
     """
     Convert vertex-centered data to XDMF + HDF5 format.
     """
@@ -131,10 +134,12 @@ def _convert_vertices_to_xdmf(ds, ds_mesh, out_dir):
     vertex_vars = [var for var in ds.data_vars if 'nVertices' in ds[var].dims]
     vert_to_kite_map = ds_vertex_geom['vert_to_kite_map']
     ds_vertices = ds[vertex_vars].isel(nVertices=vert_to_kite_map)
-    _write_xdmf(ds_vertex_geom, ds_vertices, out_dir, suffix='Vertices')
+    _write_xdmf(
+        ds_vertex_geom, ds_vertices, out_dir, suffix='Vertices', quiet=quiet
+    )
 
 
-def _write_xdmf(ds_geom, ds_data, out_dir, suffix):
+def _write_xdmf(ds_geom, ds_data, out_dir, suffix, quiet=False):
     """
     Write data to HDF5 and metadata to XDMF format.
 
@@ -148,6 +153,8 @@ def _write_xdmf(ds_geom, ds_data, out_dir, suffix):
         Directory where XDMF and HDF5 files will be saved.
     suffix : str
         Suffix to append to output filenames (e.g., 'Cells', 'Edges').
+    quiet : bool, optional
+        If True, suppress progress output. Default is False.
     """
     h5_basename = f'fieldsOn{suffix}.h5'
     h5_filename = os.path.join(out_dir, h5_basename)
@@ -159,15 +166,33 @@ def _write_xdmf(ds_geom, ds_data, out_dir, suffix):
         h5_file.create_dataset('Points', data=ds_geom['points'].values)
         h5_file.create_dataset('Cells', data=ds_geom['cells'].values)
 
-        # Write time-varying and static data
+        # Calculate total progress steps
+        total_steps = sum(
+            ds_data.sizes['Time'] if 'Time' in ds_data[var].dims else 1
+            for var in ds_data.data_vars
+        )
+
+        # Write time-varying and static data with progress bar
+        if quiet:
+            iterator = None
+        else:
+            iterator = tqdm(
+                ds_data.data_vars, total=total_steps, desc=f'Writing {suffix}'
+            )
         for var_name in ds_data.data_vars:
+            if not quiet:
+                iterator.set_description(f'Processing {var_name}')
             if 'Time' in ds_data[var_name].dims:
                 for t_idx in range(ds_data.sizes['Time']):
                     dataset_name = f'{var_name}_t{t_idx}'
                     da = ds_data[var_name].isel(Time=t_idx)
                     h5_file.create_dataset(dataset_name, data=da.values)
+                    if not quiet:
+                        iterator.update(1)
             else:
                 h5_file.create_dataset(var_name, data=ds_data[var_name].values)
+                if not quiet:
+                    iterator.update(1)
 
     # Preprocess variable metadata for the template
     variables_metadata = [

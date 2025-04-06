@@ -24,6 +24,7 @@ python-igraph
 scikit-image!=0.20.0
 scipy
 shapely>=2.0,<3.0
+tqdm
 xarray
 
 # Development
