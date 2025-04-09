@@ -87,14 +87,16 @@ jobs:
 
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Create Build Environment
-        uses: conda-incubator/setup-miniconda@v3
+        uses: mamba-org/setup-micromamba@v2
         with:
-          activate-environment: "build"
-          miniforge-version: latest
-          channels: conda-forge
-          channel-priority: strict
-          auto-update-conda: true
-          python-version: 3.12
+          environment-name: mpas_tools_dev
+          init-shell: bash
+          condarc: |
+            channel_priority: strict
+            channels: 
+                - conda-forge
+          create-args: >-
+            python=${{ matrix.python-version }}
 
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Finalize Build Environment
@@ -105,16 +107,13 @@ jobs:
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Install mpas_tools
         run: |
-          conda create -y -n mpas_tools_dev -c ${CONDA_PREFIX}/conda-bld/ \
-              -c conda-forge mpas_tools python=${{ matrix.python-version }} \
-              sphinx sphinx-multiversion mock sphinx_rtd_theme
+          conda install -y -c ${CONDA_PREFIX}/conda-bld/ \
+            mpas_tools python=${{ matrix.python-version }} \
+            sphinx mock sphinx_rtd_theme
 
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Build Sphinx Docs
         run: |
-          conda activate mpas_tools_dev
-          # sphinx-multiversion expects at least a "master" branch
-          git branch master || echo "branch master already exists."
           cd conda_package/docs
-          sphinx-multiversion . _build/html
+          DOCS_VERSION=test make versioned-html
 
