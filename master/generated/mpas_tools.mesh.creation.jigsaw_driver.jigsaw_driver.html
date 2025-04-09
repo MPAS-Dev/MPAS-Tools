@@ -19,7 +19,7 @@
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf" href="mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html" />
+    <link rel="next" title="mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw" href="mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw.html" />
     <link rel="prev" title="mpas_tools.mesh.creation.build_mesh.build_planar_mesh" href="mpas_tools.mesh.creation.build_mesh.build_planar_mesh.html" />
     <link href="../_static/style.css" rel="stylesheet" type="text/css">
 
@@ -91,6 +91,7 @@
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.build_mesh.build_spherical_mesh.html">mpas_tools.mesh.creation.build_mesh.build_spherical_mesh</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.build_mesh.build_planar_mesh.html">mpas_tools.mesh.creation.build_mesh.build_planar_mesh</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw.html">mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html">mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.html">mpas_tools.mesh.creation.mesh_definition_tools</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat.html">mpas_tools.mesh.creation.mesh_definition_tools.mergeCellWidthVsLat</a></li>
@@ -176,7 +177,8 @@ lat for spherical mesh)</p></li>
 <li><p><strong>on_sphere</strong> (<em>logical</em><em>, </em><em>optional</em>) – Whether this mesh is spherical or planar</p></li>
 <li><p><strong>earth_radius</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Earth radius in meters</p></li>
 <li><p><strong>geom_points</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – list of point coordinates for bounding polygon for planar mesh</p></li>
-<li><p><strong>geom_edges</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – list of edges between points in geom_points that define the bounding polygon</p></li>
+<li><p><strong>geom_edges</strong> (<em>ndarray</em><em>, </em><em>optional</em>) – list of edges between points in geom_points that define the bounding
+polygon</p></li>
 <li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
 </ul>
 </dd>
@@ -190,7 +192,7 @@ lat for spherical mesh)</p></li>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="mpas_tools.mesh.creation.build_mesh.build_planar_mesh.html" class="btn btn-neutral float-left" title="mpas_tools.mesh.creation.build_mesh.build_planar_mesh" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html" class="btn btn-neutral float-right" title="mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw.html" class="btn btn-neutral float-right" title="mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

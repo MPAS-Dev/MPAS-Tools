@@ -117,20 +117,29 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.mesh.creation.jigsaw_driver</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
-    <span class="n">unicode_literals</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">jigsawpy</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">jigsawpy.savejig</span><span class="w"> </span><span class="kn">import</span> <span class="n">savejig</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_call</span>
 
 
 <div class="viewcode-block" id="jigsaw_driver">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver.html#mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">jigsaw_driver</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">earth_radius</span><span class="o">=</span><span class="mf">6371.0e3</span><span class="p">,</span>
-                  <span class="n">geom_points</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">geom_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">jigsaw_driver</span><span class="p">(</span>
+    <span class="n">cellWidth</span><span class="p">,</span>
+    <span class="n">x</span><span class="p">,</span>
+    <span class="n">y</span><span class="p">,</span>
+    <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">earth_radius</span><span class="o">=</span><span class="mf">6371.0e3</span><span class="p">,</span>
+    <span class="n">geom_points</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">geom_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A function for building a jigsaw mesh</span>
 
@@ -153,11 +162,20 @@
 <span class="sd">        list of point coordinates for bounding polygon for planar mesh</span>
 
 <span class="sd">    geom_edges : ndarray, optional</span>
-<span class="sd">        list of edges between points in geom_points that define the bounding polygon</span>
+<span class="sd">        list of edges between points in geom_points that define the bounding</span>
+<span class="sd">        polygon</span>
 
 <span class="sd">    logger : logging.Logger, optional</span>
 <span class="sd">        A logger for the output if not stdout</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">jigsawpy</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">jigsawpy.savejig</span><span class="w"> </span><span class="kn">import</span> <span class="n">savejig</span>
+    <span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+            <span class="s1">&#39;JIGSAW and/or jigsaw-python is not installed. &#39;</span>
+            <span class="s1">&#39;Please install them in the conda environment.&#39;</span>
+        <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">err</span>
     <span class="c1"># Authors</span>
     <span class="c1"># -------</span>
     <span class="c1"># Mark Petersen, Phillip Wolfram, Xylar Asay-Davis</span>
@@ -172,30 +190,30 @@
     <span class="c1"># save HFUN data to file</span>
     <span class="n">hmat</span> <span class="o">=</span> <span class="n">jigsawpy</span><span class="o">.</span><span class="n">jigsaw_msh_t</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">on_sphere</span><span class="p">:</span>
-       <span class="n">hmat</span><span class="o">.</span><span class="n">mshID</span> <span class="o">=</span> <span class="s1">&#39;ELLIPSOID-GRID&#39;</span>
-       <span class="n">hmat</span><span class="o">.</span><span class="n">xgrid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-       <span class="n">hmat</span><span class="o">.</span><span class="n">ygrid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">hmat</span><span class="o">.</span><span class="n">mshID</span> <span class="o">=</span> <span class="s1">&#39;ELLIPSOID-GRID&#39;</span>
+        <span class="n">hmat</span><span class="o">.</span><span class="n">xgrid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">hmat</span><span class="o">.</span><span class="n">ygrid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-       <span class="n">hmat</span><span class="o">.</span><span class="n">mshID</span> <span class="o">=</span> <span class="s1">&#39;EUCLIDEAN-GRID&#39;</span>
-       <span class="n">hmat</span><span class="o">.</span><span class="n">xgrid</span> <span class="o">=</span> <span class="n">x</span>
-       <span class="n">hmat</span><span class="o">.</span><span class="n">ygrid</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="n">hmat</span><span class="o">.</span><span class="n">mshID</span> <span class="o">=</span> <span class="s1">&#39;EUCLIDEAN-GRID&#39;</span>
+        <span class="n">hmat</span><span class="o">.</span><span class="n">xgrid</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">hmat</span><span class="o">.</span><span class="n">ygrid</span> <span class="o">=</span> <span class="n">y</span>
     <span class="n">hmat</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">cellWidth</span>
     <span class="n">jigsawpy</span><span class="o">.</span><span class="n">savemsh</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">hfun_file</span><span class="p">,</span> <span class="n">hmat</span><span class="p">)</span>
 
     <span class="c1"># define JIGSAW geometry</span>
     <span class="n">geom</span> <span class="o">=</span> <span class="n">jigsawpy</span><span class="o">.</span><span class="n">jigsaw_msh_t</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">on_sphere</span><span class="p">:</span>
-       <span class="n">geom</span><span class="o">.</span><span class="n">mshID</span> <span class="o">=</span> <span class="s1">&#39;ELLIPSOID-MESH&#39;</span>
-       <span class="n">geom</span><span class="o">.</span><span class="n">radii</span> <span class="o">=</span> <span class="n">earth_radius</span><span class="o">*</span><span class="mf">1e-3</span><span class="o">*</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
+        <span class="n">geom</span><span class="o">.</span><span class="n">mshID</span> <span class="o">=</span> <span class="s1">&#39;ELLIPSOID-MESH&#39;</span>
+        <span class="n">geom</span><span class="o">.</span><span class="n">radii</span> <span class="o">=</span> <span class="n">earth_radius</span> <span class="o">*</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-       <span class="n">geom</span><span class="o">.</span><span class="n">mshID</span> <span class="o">=</span> <span class="s1">&#39;EUCLIDEAN-MESH&#39;</span>
-       <span class="n">geom</span><span class="o">.</span><span class="n">vert2</span> <span class="o">=</span> <span class="n">geom_points</span>
-       <span class="n">geom</span><span class="o">.</span><span class="n">edge2</span> <span class="o">=</span> <span class="n">geom_edges</span>
+        <span class="n">geom</span><span class="o">.</span><span class="n">mshID</span> <span class="o">=</span> <span class="s1">&#39;EUCLIDEAN-MESH&#39;</span>
+        <span class="n">geom</span><span class="o">.</span><span class="n">vert2</span> <span class="o">=</span> <span class="n">geom_points</span>
+        <span class="n">geom</span><span class="o">.</span><span class="n">edge2</span> <span class="o">=</span> <span class="n">geom_edges</span>
     <span class="n">jigsawpy</span><span class="o">.</span><span class="n">savemsh</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">geom_file</span><span class="p">,</span> <span class="n">geom</span><span class="p">)</span>
 
     <span class="c1"># build mesh via JIGSAW!</span>
     <span class="n">opts</span><span class="o">.</span><span class="n">hfun_scal</span> <span class="o">=</span> <span class="s1">&#39;absolute&#39;</span>
-    <span class="n">opts</span><span class="o">.</span><span class="n">hfun_hmax</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s2">&quot;inf&quot;</span><span class="p">)</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">hfun_hmax</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
     <span class="n">opts</span><span class="o">.</span><span class="n">hfun_hmin</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">opts</span><span class="o">.</span><span class="n">mesh_dims</span> <span class="o">=</span> <span class="o">+</span><span class="mi">2</span>  <span class="c1"># 2-dim. simplexes</span>
     <span class="n">opts</span><span class="o">.</span><span class="n">optm_qlim</span> <span class="o">=</span> <span class="mf">0.9375</span>
@@ -204,6 +222,151 @@
     <span class="n">savejig</span><span class="p">(</span><span class="n">opts</span><span class="o">.</span><span class="n">jcfg_file</span><span class="p">,</span> <span class="n">opts</span><span class="p">)</span>
     <span class="n">check_call</span><span class="p">([</span><span class="s1">&#39;jigsaw&#39;</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">jcfg_file</span><span class="p">],</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span></div>
 
+
+
+<div class="viewcode-block" id="build_jigsaw">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw.html#mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_jigsaw</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build the JIGSAW and JIGSAW-Python tools using conda-forge compilers</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger for the output if not stdout</span>
+
+<span class="sd">    clone : bool, optional</span>
+<span class="sd">        If True, clone the jigsaw-python repository from github</span>
+<span class="sd">        and build it. If False, just build the existing repository.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conda_env_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;CONDA_PREFIX&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">conda_env_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">EnvironmentError</span><span class="p">(</span>
+            <span class="s1">&#39;The CONDA_PREFIX environment variable is not defined. &#39;</span>
+            <span class="s1">&#39;Please activate a conda environment where you want to install &#39;</span>
+            <span class="s1">&#39;jigsaw and jigsawpy before running this function.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">conda_exe</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;CONDA_EXE&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">conda_exe</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">EnvironmentError</span><span class="p">(</span>
+            <span class="s1">&#39;The CONDA_EXE environment variable is not defined. &#39;</span>
+            <span class="s1">&#39;Please ensure conda is installed and accessible.&#39;</span>
+        <span class="p">)</span>
+    <span class="n">conda_base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">conda_exe</span><span class="p">))</span>
+
+    <span class="n">conda_sh_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">conda_base</span><span class="p">,</span> <span class="s1">&#39;etc&#39;</span><span class="p">,</span> <span class="s1">&#39;profile.d&#39;</span><span class="p">,</span> <span class="s1">&#39;conda.sh&#39;</span><span class="p">)</span>
+    <span class="n">conda_env_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;CONDA_DEFAULT_ENV&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">conda_env_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">EnvironmentError</span><span class="p">(</span>
+            <span class="s1">&#39;The CONDA_DEFAULT_ENV environment variable is not defined. &#39;</span>
+            <span class="s1">&#39;Please ensure a conda environment is activated.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">activate_env</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;source </span><span class="si">{</span><span class="n">conda_sh_path</span><span class="si">}</span><span class="s1"> &amp;&amp; conda activate </span><span class="si">{</span><span class="n">conda_env_name</span><span class="si">}</span><span class="s1"> &amp;&amp; &#39;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># remove conda jigsaw and jigsaw-python</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">commands</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">conda remove -y --force-remove jigsaw jigsawpy&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">check_call</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">executable</span><span class="o">=</span><span class="s1">&#39;/bin/bash&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">:</span>
+        <span class="c1"># ignore errors if not installed</span>
+        <span class="k">pass</span>
+
+    <span class="k">if</span> <span class="n">clone</span><span class="p">:</span>
+        <span class="n">commands</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;rm -rf jigsaw-python &amp;&amp; &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;git clone https://github.com/dengwirda/jigsaw-python.git&#39;</span>
+        <span class="p">)</span>
+        <span class="n">check_call</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">executable</span><span class="o">=</span><span class="s1">&#39;/bin/bash&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># add build tools to deployment env, not polaris env</span>
+    <span class="n">jigsaw_build_deps</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s1">&#39;cxx-compiler cmake make libnetcdf setuptools numpy scipy&#39;</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Linux&#39;</span><span class="p">:</span>
+        <span class="n">jigsaw_build_deps</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">jigsaw_build_deps</span><span class="si">}</span><span class="s1"> sysroot_linux-64=2.17&#39;</span>
+        <span class="n">netcdf_lib</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conda_env_path</span><span class="si">}</span><span class="s1">/lib/libnetcdf.so&#39;</span>
+    <span class="k">elif</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Darwin&#39;</span><span class="p">:</span>
+        <span class="n">jigsaw_build_deps</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">jigsaw_build_deps</span><span class="si">}</span><span class="s1"> macosx_deployment_target_osx-64=10.13&#39;</span>
+        <span class="p">)</span>
+        <span class="n">netcdf_lib</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conda_env_path</span><span class="si">}</span><span class="s1">/lib/libnetcdf.dylib&#39;</span>
+
+    <span class="n">cmake_args</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;-DCMAKE_BUILD_TYPE=Release -DNETCDF_LIBRARY=</span><span class="si">{</span><span class="n">netcdf_lib</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Install dependencies</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="c1"># Install dependencies</span>
+    <span class="n">commands</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">conda install -y </span><span class="si">{</span><span class="n">jigsaw_build_deps</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">check_call</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">executable</span><span class="o">=</span><span class="s1">&#39;/bin/bash&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Building JIGSAW</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="c1"># Build JIGSAW</span>
+    <span class="n">commands</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cd jigsaw-python/external/jigsaw &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;rm -rf tmp &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;mkdir tmp &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cd tmp &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cmake .. </span><span class="si">{</span><span class="n">cmake_args</span><span class="si">}</span><span class="s1"> &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cmake --build . --config Release --target install --parallel 4&#39;</span>
+    <span class="p">)</span>
+    <span class="n">check_call</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">executable</span><span class="o">=</span><span class="s1">&#39;/bin/bash&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Installing JIGSAW into JIGSAW-Python</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="c1"># Set up JIGSAW-Python</span>
+    <span class="n">commands</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cd jigsaw-python &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;rm -rf jigsawpy/_bin jigsawpy/_lib &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cp -r external/jigsaw/bin/ jigsawpy/_bin &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cp -r external/jigsaw/lib/ jigsawpy/_lib&#39;</span>
+    <span class="p">)</span>
+    <span class="n">check_call</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">executable</span><span class="o">=</span><span class="s1">&#39;/bin/bash&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Installing JIGSAW-Python</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">commands</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cd jigsaw-python &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;python -m pip install --no-deps --no-build-isolation -e . &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cp jigsawpy/_bin/* $</span><span class="se">{{</span><span class="s1">CONDA_PREFIX</span><span class="se">}}</span><span class="s1">/bin&#39;</span>
+    <span class="p">)</span>
+    <span class="n">check_call</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">executable</span><span class="o">=</span><span class="s1">&#39;/bin/bash&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;JIGSAW install took </span><span class="si">{</span><span class="n">total</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> s.&#39;</span>
+    <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main_build_jigsaw</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Entry point for building JIGSAW and JIGSAW-Python tools.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Build JIGSAW and JIGSAW-Python tools.&#39;</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--clone&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;clone&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;Clone the jigsaw-python repository into the jigsaw-python dir &#39;</span>
+            <span class="s1">&#39;for you.  Otherwise, you must already have cloned it.&#39;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">build_jigsaw</span><span class="p">(</span><span class="n">clone</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">clone</span><span class="p">)</span>
 </pre></div>
 
            </div>

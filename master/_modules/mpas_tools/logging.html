@@ -117,9 +117,9 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.logging</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 
 
 <div class="viewcode-block" id="check_call">
@@ -158,13 +158,20 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">print_args</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
+    <span class="c1"># break the print command into multiple lines</span>
+    <span class="k">if</span> <span class="s1">&#39;&amp;&amp;&#39;</span> <span class="ow">in</span> <span class="n">print_args</span><span class="p">:</span>
+        <span class="n">print_args</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">  &#39;</span> <span class="o">+</span> <span class="n">print_args</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&amp;&amp; &#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;&amp;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+            <span class="s1">&#39;&amp;&amp;&#39;</span><span class="p">,</span> <span class="s1">&#39;&amp;&amp;</span><span class="se">\n</span><span class="s1">  &#39;</span>
+        <span class="p">)</span>
+
     <span class="c1"># make a logger if there isn&#39;t already one</span>
     <span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="n">print_args</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">log_command</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Running: </span><span class="si">{</span><span class="n">print_args</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
-        <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
-                                   <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">process</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+            <span class="n">args</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span>
+        <span class="p">)</span>
         <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">communicate</span><span class="p">(</span><span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">stdout</span><span class="p">:</span>
@@ -177,15 +184,13 @@
                 <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">process</span><span class="o">.</span><span class="n">returncode</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">returncode</span><span class="p">,</span>
-                                                <span class="n">print_args</span><span class="p">)</span></div>
+            <span class="k">raise</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">(</span><span class="n">process</span><span class="o">.</span><span class="n">returncode</span><span class="p">,</span> <span class="n">print_args</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="LoggingContext">
 <a class="viewcode-back" href="../../generated/mpas_tools.logging.LoggingContext.html#mpas_tools.logging.LoggingContext">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">LoggingContext</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A context manager for creating a logger or using an existing logger</span>
 
@@ -275,21 +280,21 @@
 <span class="sd">    https://stackoverflow.com/a/8349076/7728169</span>
 <span class="sd">    https://stackoverflow.com/a/14859558/7728169</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="c1"># Authors</span>
     <span class="c1"># -------</span>
     <span class="c1"># Xylar Asay-Davis</span>
 
     <span class="c1"># printing error messages without a prefix because they are sometimes</span>
     <span class="c1"># errors and sometimes only warnings sent to stderr</span>
-    <span class="n">dbg_fmt</span> <span class="o">=</span> <span class="s2">&quot;DEBUG: </span><span class="si">%(module)s</span><span class="s2">: </span><span class="si">%(lineno)d</span><span class="s2">: </span><span class="si">%(msg)s</span><span class="s2">&quot;</span>
-    <span class="n">info_fmt</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%(msg)s</span><span class="s2">&quot;</span>
+    <span class="n">dbg_fmt</span> <span class="o">=</span> <span class="s1">&#39;DEBUG: </span><span class="si">%(module)s</span><span class="s1">: </span><span class="si">%(lineno)d</span><span class="s1">: </span><span class="si">%(msg)s</span><span class="s1">&#39;</span>
+    <span class="n">info_fmt</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(msg)s</span><span class="s1">&#39;</span>
     <span class="n">err_fmt</span> <span class="o">=</span> <span class="n">info_fmt</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="n">info_fmt</span><span class="p">):</span>
         <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fmt</span><span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record</span><span class="p">):</span>
-
         <span class="c1"># Save the original format configured by the user</span>
         <span class="c1"># when the logger formatter was instantiated</span>
         <span class="n">format_orig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fmt</span>

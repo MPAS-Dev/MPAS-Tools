@@ -268,6 +268,56 @@ and <code class="docutils literal notranslate"><span class="pre">mesh_triangles.
 function <a class="reference internal" href="generated/mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver.html#mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver" title="mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.jigsaw_driver.jigsaw_driver()</span></code></a>.  This
 function is used to setup data structures and then build a JIGSAW mesh using
 <code class="docutils literal notranslate"><span class="pre">jigsawpy</span></code>.</p>
+<p><strong>Note:</strong> The <code class="docutils literal notranslate"><span class="pre">jigsaw</span></code> and <code class="docutils literal notranslate"><span class="pre">jigsawpy</span></code> packages are no longer being updated
+on conda-forge and must be installed from source into your conda environment.
+This happens automatically if you use <code class="docutils literal notranslate"><span class="pre">compass</span></code> or <code class="docutils literal notranslate"><span class="pre">polaris</span></code> but needs
+to be done manually otherwise.</p>
+<p>There is a <cite>build_jigsaw</cite> command and the equvalent function
+<a class="reference internal" href="generated/mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw.html#mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw" title="mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw()</span></code></a> that can be
+used to build JIGSAW and JIGSAW-Python from source and install them in the
+current conda envrionment.</p>
+<p>Alternatively, here are the instructions:</p>
+<ol class="arabic">
+<li><p>Clone the jigsaw-python repository:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/dengwirda/jigsaw-python.git
+<span class="nb">cd</span><span class="w"> </span>jigsaw-python
+</pre></div>
+</div>
+</li>
+<li><p>Install the required build tools in your conda environment:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>cxx-compiler<span class="w"> </span>cmake<span class="w"> </span>make<span class="w"> </span>libnetcdf<span class="w"> </span>setuptools<span class="w"> </span>numpy<span class="w"> </span>scipy
+</pre></div>
+</div>
+<p>If you are on Linux, also install:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>sysroot_linux-64<span class="o">=</span><span class="m">2</span>.17
+</pre></div>
+</div>
+<p>If you are on macOS, also install:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-y<span class="w"> </span>macosx_deployment_target_osx-64<span class="o">=</span><span class="m">10</span>.13
+</pre></div>
+</div>
+</li>
+<li><p>Build JIGSAW:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>external/jigsaw
+rm<span class="w"> </span>-rf<span class="w"> </span>tmp
+mkdir<span class="w"> </span>tmp
+<span class="nb">cd</span><span class="w"> </span>tmp
+cmake<span class="w"> </span>..<span class="w"> </span>-DCMAKE_BUILD_TYPE<span class="o">=</span>Release<span class="w"> </span>-DNETCDF_LIBRARY<span class="o">=</span><span class="nv">$CONDA_PREFIX</span>/lib/libnetcdf.so
+cmake<span class="w"> </span>--build<span class="w"> </span>.<span class="w"> </span>--config<span class="w"> </span>Release<span class="w"> </span>--target<span class="w"> </span>install<span class="w"> </span>--parallel<span class="w"> </span><span class="m">4</span>
+</pre></div>
+</div>
+</li>
+<li><p>Install JIGSAW-Python:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>../../../
+rm<span class="w"> </span>-rf<span class="w"> </span>jigsawpy/_bin<span class="w"> </span>jigsawpy/_lib
+cp<span class="w"> </span>-r<span class="w"> </span>external/jigsaw/bin/<span class="w"> </span>jigsawpy/_bin
+cp<span class="w"> </span>-r<span class="w"> </span>external/jigsaw/lib/<span class="w"> </span>jigsawpy/_lib
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>--no-deps<span class="w"> </span>--no-build-isolation<span class="w"> </span>-e<span class="w"> </span>.
+cp<span class="w"> </span>jigsawpy/_bin/*<span class="w"> </span><span class="nv">$CONDA_PREFIX</span>/bin
+</pre></div>
+</div>
+</li>
+</ol>
 </section>
 </section>
 <section id="mesh-definition-tools">
