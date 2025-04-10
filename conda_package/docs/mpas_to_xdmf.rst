@@ -139,10 +139,13 @@ ParaView for visualization. Follow these steps:
 
 2. **Choose the Correct Reader**: When opening the ``.xdmf`` file, ParaView
    will prompt you to select one of three readers:
+
    - **Xdmf3 Reader S**: This reader is optimized for static datasets without
      time information. It is not suitable for time-varying MPAS data.
+
    - **Xdmf3 Reader T**: This reader is designed for time-varying datasets and
      is the preferred choice for MPAS data converted with this tool.
+
    - **XDMF Reader**: This is an older reader that may not fully support modern
      XDMF features and should generally be avoided.
 

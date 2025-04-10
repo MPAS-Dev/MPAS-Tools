@@ -12,7 +12,7 @@ needed to build the documentation. Simply run:
 .. code-block:: bash
 
   cd conda_package/docs
-  DOC_VERSION=master make versioned-html
+  DOCS_VERSION=master make versioned-html
 
 ****************************
 Previewing the Documentation

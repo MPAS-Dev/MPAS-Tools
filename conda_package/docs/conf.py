@@ -191,5 +191,5 @@ github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
 html_static_path = ["_static"]
 
 html_context = {
-    "current_version": os.getenv("DOC_VERSION", "master"),
+    "current_version": os.getenv("DOCS_VERSION", "master"),
 }

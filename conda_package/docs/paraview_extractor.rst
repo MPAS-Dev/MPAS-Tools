@@ -64,6 +64,8 @@ additional storage space.
 Since the extractor is fairly complex with a lot of possible use cases, we will
 describe its functionality in several examples.
 
+.. _extract_temperature:
+
 Extracting a Temperature Time-series
 ------------------------------------
 
@@ -273,7 +275,7 @@ The resulting fields are named:
     timeDaily_avg_layerThickness_maxLevelCell
 
 Indexing Time
-------------------------------------
+-------------
 
 Time can also be indexed like the other dimensions, but it is not passed to the
 ``dimension_list`` argument but instead to the ``time`` argument.  The time
@@ -453,7 +455,7 @@ Here is the bottom temperature in such a plot:
    :align: center
 
 Extracting a Region
-------------------------------------
+-------------------
 
 Some simulations are focused on a small region, even though the entire globe is
 included in the mesh.  For such situations, we provide a way to extract a
@@ -491,6 +493,8 @@ In this example, we extract sea surface temperature only in the Southern Ocean:
 .. image:: images/so_cropped.png
    :width: 500 px
    :align: center
+
+.. _paraview_macros:
 
 ParaView Macros
 ---------------
