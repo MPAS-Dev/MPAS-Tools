@@ -343,26 +343,26 @@ def interp_mpas_to_transect_nodes(ds_transect, da):
 
 def interp_transect_grid_to_transect_nodes(ds_transect, da):
     """
-        Interpolate a DataArray on the original transect grid to nodes on the
-        MPAS-Ocean transect.
+    Interpolate a DataArray on the original transect grid to nodes on the
+    MPAS-Ocean transect.
 
-        Parameters
-        ----------
-        ds_transect : xarray.Dataset
-            A dataset that defines an MPAS-Ocean transect, the
-            results of calling ``find_transect_levels_and_weights()`` with the
-            ``z_transect`` parameter.
+    Parameters
+    ----------
+    ds_transect : xarray.Dataset
+        A dataset that defines an MPAS-Ocean transect, the
+        results of calling ``find_transect_levels_and_weights()`` with the
+        ``z_transect`` parameter.
 
-        da : xarray.DataArray
-            An field on the original transect (defined at vertical locations
-            corresponding to ``z_transect``)
+    da : xarray.DataArray
+        An field on the original transect (defined at vertical locations
+        corresponding to ``z_transect``)
 
-        Returns
-        -------
-        da_nodes : xarray.DataArray
-            The data array interpolated to transect nodes with dimensions
-            ``nHorizNodes`` and ``nVertNodes``
-    ·"""
+    Returns
+    -------
+    da_nodes : xarray.DataArray
+        The data array interpolated to transect nodes with dimensions
+        ``nHorizNodes`` and ``nVertNodes``
+    """
 
     horiz_dim = ds_transect.dTransect.dims[0]
     z_transect = ds_transect.zTransect
