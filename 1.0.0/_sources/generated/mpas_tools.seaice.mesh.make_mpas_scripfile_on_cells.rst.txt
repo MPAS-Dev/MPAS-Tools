@@ -1,0 +1,6 @@
+﻿mpas\_tools.seaice.mesh.make\_mpas\_scripfile\_on\_cells
+========================================================
+
+.. currentmodule:: mpas_tools.seaice.mesh
+
+.. autofunction:: make_mpas_scripfile_on_cells
