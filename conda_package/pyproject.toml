@@ -77,7 +77,6 @@ docs = [
     "sphinx >=7.0.0",
     "sphinx_rtd_theme",
     "myst-parser",
-    "sphinx-multiversion",
 ]
 
 dev = [

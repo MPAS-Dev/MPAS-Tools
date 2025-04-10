@@ -33,7 +33,13 @@ analyzing simulations, and in other MPAS-related workflows.
 
    vector
 
+.. toctree::
+   :caption: Visualization
+   :maxdepth: 2
+
    visualization
+   mpas_to_xdmf
+   paraview_extractor
 
 .. toctree::
    :caption: Landice Tools

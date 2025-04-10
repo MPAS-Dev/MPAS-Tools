@@ -35,20 +35,7 @@ You should now find that ``mpas_tools`` can be imported in python codes and the
 various scripts and entry points are available in the path.
 
 If you have already created the ``mpas_tools_dev`` environment, it may be best
-to remove it (see below) and create it again.  If you are in a rush, you can
-use:
-
-.. code-block:: bash
-
-    conda env update -f ./dev_environment
-    conda activate mpas_tools_dev
-    python -m pip install --no-deps --no-build-isolation -e .
-
-to update the existing environment and make sure ``mpas_tools`` in the
-environment points to your current branch.
-
-There is no need to build a conda package, as previous instructions had
-suggested.
+to remove it (see below) and create it again.
 
 Removing the test environment
 *****************************
