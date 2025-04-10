@@ -35,6 +35,5 @@ setuptools
 
 # Documentation
 sphinx
-sphinx-multiversion
 mock
 sphinx_rtd_theme

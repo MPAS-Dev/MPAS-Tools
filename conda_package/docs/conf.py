@@ -27,7 +27,6 @@ import mpas_tools
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx_rtd_theme',
-              'sphinx_multiversion',
               'sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'sphinx.ext.intersphinx',
@@ -191,14 +190,6 @@ github_doc_root = 'https://github.com/rtfd/recommonmark/tree/master/doc/'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
 
-html_sidebars = {
-    "**": [
-        "versions.html",
-    ],
+html_context = {
+    "current_version": os.getenv("DOC_VERSION", "master"),
 }
-
-# -- Options sphinx-multiversion -------------------------------------------
-# Include tags like "tags/1.0.0" -- 0.0.1, 0.0.10 don't build
-smv_tag_whitelist = r'^(?!(0.0.1|0.0.10))\d+\.\d+.\d+$'
-smv_branch_whitelist = 'master'
-smv_remote_whitelist = 'origin'
