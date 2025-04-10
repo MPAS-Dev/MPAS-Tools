@@ -2,6 +2,17 @@
 import argparse
 import json
 import os
+import re
+
+
+def version_key(name):
+    """Key function for sorting versions."""
+    match = re.match(r'^(\d+)\.(\d+)\.(\d+)$', name)
+    if match:
+        # Sort by major, minor, patch
+        return tuple(map(int, match.groups()))
+    return ()
+
 
 # Mode: local or production
 parser = argparse.ArgumentParser(
@@ -22,7 +33,25 @@ if not os.path.exists(base_dir) or not os.listdir(base_dir):
     raise FileNotFoundError(
         f"Base directory '{base_dir}' does not exist or is empty.")
 
-versions = sorted(os.listdir(base_dir), reverse=True)
+versions = os.listdir(base_dir)
+numeric_versions = []
+non_numeric_versions = []
+
+for version in versions:
+    # Check if it matches version pattern
+    if re.match(r'^\d+\.\d+\.\d+$', version):
+        numeric_versions.append(version)
+    else:
+        non_numeric_versions.append(version)
+
+# Sort numeric versions by major, minor, patch
+numeric_versions.sort(key=version_key)
+# Sort non-numeric versions alphabetically
+non_numeric_versions.sort()
+
+# Combine the sorted lists
+versions = non_numeric_versions + numeric_versions
+
 if 'master' in versions:
     versions.insert(0, versions.pop(versions.index('master')))
 
