@@ -1,6 +1,0 @@
-﻿mpas\_tools.viz.transects.make\_triangle\_tree
-==============================================
-
-.. currentmodule:: mpas_tools.viz.transects
-
-.. autofunction:: make_triangle_tree

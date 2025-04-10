@@ -162,20 +162,3 @@ needs to match:
 
   {% set name = "mpas_tools" %}
   {% set version = "0.6.0" %}
-
-Third, Add the new version to the :ref:`versions` in the documentation.
-
-.. code-block::
-
-    `v0.6.0`_         `0.6.0`_
-    ================ ===============
-
-    ...
-
-    .. _`v0.6.0`: ../0.6.0/index.html
-    .. _`0.6.0`: https://github.com/MPAS-Dev/MPAS-Analysis/tree/0.6.0
-
-
-The new links won't be valid until a new release is made and Azure Pipelines
-has generated the associated documentation.  Eventually, it should be possible
-to do this automatically but that has not yet been implemented.

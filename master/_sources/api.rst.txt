@@ -252,23 +252,24 @@ Ocean Tools
    inject_preserve_floodplain
 
 
-.. currentmodule:: mpas_tools.ocean.transects
+.. currentmodule:: mpas_tools.ocean.viz.transect
 
 .. autosummary::
    :toctree: generated/
 
+   compute_transect
    find_transect_levels_and_weights
-   interp_mpas_to_transect_triangles
-   interp_mpas_to_transect_triangle_nodes
-   interp_transect_grid_to_transect_triangle_nodes
-   get_outline_segments
+   interp_mpas_to_transect_cells
+   interp_mpas_to_transect_nodes
+   interp_transect_grid_to_transect_nodes
+   plot_feature_transects
+   plot_transect
 
 .. currentmodule:: mpas_tools.ocean.viz
 
 .. autosummary::
    :toctree: generated/
 
-   plot_ocean_transects
    add_inset
 
 Sea-ice Tools
@@ -374,14 +375,16 @@ Visualization
 
    mesh_to_triangles
 
-.. currentmodule:: mpas_tools.viz.transects
+.. currentmodule:: mpas_tools.viz.transect
 
 .. autosummary::
    :toctree: generated/
 
-   make_triangle_tree
-   find_transect_cells_and_weights
    find_planar_transect_cells_and_weights
+   find_spherical_transect_cells_and_weights
+   interp_mpas_horiz_to_transect_nodes
+   make_triangle_tree
+   mesh_to_triangles
 
 .. currentmodule:: mpas_tools.viz.colormaps
 

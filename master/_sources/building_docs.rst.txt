@@ -9,10 +9,21 @@ To make a local test build of the documentation, it is easiest to follow the
 ``mpas_tools`` package.  The development environment includes the packages
 needed to build the documentation. Simply run:
 
-code-block::
+.. code-block:: bash
 
-  export DOCS_VERSION="test"
   cd conda_package/docs
-  make html
+  DOCS_VERSION=master make versioned-html
 
-Then, you can view the documentation by opening ``_build/html/index.html``.
+****************************
+Previewing the Documentation
+****************************
+
+To preview the documentation locally, open the ``index.html`` file in the
+``_build/html/master`` directory with your browser or try:
+
+.. code-block:: bash
+
+  cd _build/html
+  python -m http.server 8000
+
+Then, open http://0.0.0.0:8000/master/ in your browser.

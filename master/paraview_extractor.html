@@ -6,19 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ParaView VTK Extractor &mdash; mpas_tools 0.36.0 documentation</title>
+  <title>ParaView VTK Extractor &mdash; mpas_tools master documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=5864e6e0"></script>
+      <script src="_static/documentation_options.js?v=30d551ce"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Visualization" href="landice/visualization.html" />
+    <link rel="prev" title="MPAS to XDMF Converter" href="mpas_to_xdmf.html" />
     <link href="_static/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -52,7 +54,24 @@
 <li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="vector.html">Vector Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Visualization</span></p>
+<ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mpas_to_xdmf.html">MPAS to XDMF Converter</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ParaView VTK Extractor</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#extracting-a-temperature-time-series">Extracting a Temperature Time-series</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extracting-multiple-fields">Extracting Multiple Fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extracting-all-fields">Extracting “All” Fields</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#indexing-dimensions">Indexing Dimensions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#indexing-time">Indexing Time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#ignoring-time">Ignoring Time</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#lon-lat-coordinates">Lon/Lat Coordinates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#topographic-data">Topographic Data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extracting-a-region">Extracting a Region</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#paraview-macros">ParaView Macros</a></li>
+</ul>
+</li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
 <ul>
@@ -81,16 +100,13 @@
 <li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Authors</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="authors.html">Main Authors</a></li>
 <li class="toctree-l1"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
-</ul>
-<p class="caption" role="heading"><span class="caption-text">Versions</span></p>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="versions.html">Versions</a></li>
 </ul>
 
         </div>
@@ -172,7 +188,7 @@ additional storage space.</p>
 <p>Since the extractor is fairly complex with a lot of possible use cases, we will
 describe its functionality in several examples.</p>
 <section id="extracting-a-temperature-time-series">
-<h2>Extracting a Temperature Time-series<a class="headerlink" href="#extracting-a-temperature-time-series" title="Link to this heading"></a></h2>
+<span id="extract-temperature"></span><h2>Extracting a Temperature Time-series<a class="headerlink" href="#extracting-a-temperature-time-series" title="Link to this heading"></a></h2>
 <p>To extract fields across multiple files, passing in a regular expression
 for the filename pattern, for example
 <code class="docutils literal notranslate"><span class="pre">filename_pattern=&quot;hist.mpaso.timeSeriesStatsMonthly.*.nc&quot;</span></code>. Since the mesh
@@ -208,7 +224,7 @@ vtk_files/time_series/fieldsOnCells.0.vtp
 </pre></div>
 </div>
 <p>This will open all of the files in the <code class="docutils literal notranslate"><span class="pre">vtk_files/time_series</span></code> directory as
-they are requested within ParaView.  See <span class="xref std std-ref">paraview_macros</span> for some tips
+they are requested within ParaView.  See <a class="reference internal" href="#paraview-macros"><span class="std std-ref">ParaView Macros</span></a> for some tips
 on filling in the continents and displaying the current date in ParaView.</p>
 <p>The same extraction could be accomplished with the command-line tool as follows:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ paraview_vtk_field_extractor \
@@ -389,7 +405,7 @@ for coarse-resolution meshes:</p>
 <a class="reference internal image-reference" href="_images/ragged.png"><img alt="_images/ragged.png" class="align-center" src="_images/ragged.png" style="width: 500px;" />
 </a>
 <p>Below, we will provide a method for handling this issue in ParaView.</p>
-<p>Here, we extract the temperature field as in <span class="xref std std-ref">extract_temperature</span>, but
+<p>Here, we extract the temperature field as in <a class="reference internal" href="#extract-temperature"><span class="std std-ref">Extracting a Temperature Time-series</span></a>, but
 this time in lon/lat coordinates.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
 
@@ -525,7 +541,7 @@ remove.</p>
 </a>
 </section>
 <section id="paraview-macros">
-<h2>ParaView Macros<a class="headerlink" href="#paraview-macros" title="Link to this heading"></a></h2>
+<span id="id1"></span><h2>ParaView Macros<a class="headerlink" href="#paraview-macros" title="Link to this heading"></a></h2>
 <p>We also provide two macros that can be imported into ParaView,
 <a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Tools/blob/master/visualization/paraview_vtk_field_extractor/add_earth_sphere.py">add_earth_sphere.py</a>
 and
@@ -541,7 +557,10 @@ a ParaVeiw animation.</p>
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mpas_to_xdmf.html" class="btn btn-neutral float-left" title="MPAS to XDMF Converter" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="landice/visualization.html" class="btn btn-neutral float-right" title="Visualization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 
@@ -559,75 +578,31 @@ a ParaVeiw animation.</p>
       </div>
     </section>
   </div>
-  
-<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
-  <span class="rst-current-version" data-toggle="rst-current-version">
-    <span class="fa fa-book"> Other Versions</span>
-    v: master
-    <span class="fa fa-caret-down"></span>
-  </span>
-  <div class="rst-other-versions">
-    <dl>
-      <dt>Tags</dt>
-      <dd><a href="../0.0.2/index.html">0.0.2</a></dd>
-      <dd><a href="../0.0.3/index.html">0.0.3</a></dd>
-      <dd><a href="../0.0.4/index.html">0.0.4</a></dd>
-      <dd><a href="../0.0.5/index.html">0.0.5</a></dd>
-      <dd><a href="../0.0.6/index.html">0.0.6</a></dd>
-      <dd><a href="../0.0.7/index.html">0.0.7</a></dd>
-      <dd><a href="../0.0.8/index.html">0.0.8</a></dd>
-      <dd><a href="../0.0.9/index.html">0.0.9</a></dd>
-      <dd><a href="../0.1.0/index.html">0.1.0</a></dd>
-      <dd><a href="../0.10.0/index.html">0.10.0</a></dd>
-      <dd><a href="../0.11.0/index.html">0.11.0</a></dd>
-      <dd><a href="../0.12.0/index.html">0.12.0</a></dd>
-      <dd><a href="../0.13.0/index.html">0.13.0</a></dd>
-      <dd><a href="../0.14.0/index.html">0.14.0</a></dd>
-      <dd><a href="../0.15.0/index.html">0.15.0</a></dd>
-      <dd><a href="../0.16.0/index.html">0.16.0</a></dd>
-      <dd><a href="../0.17.0/index.html">0.17.0</a></dd>
-      <dd><a href="../0.18.0/index.html">0.18.0</a></dd>
-      <dd><a href="../0.19.0/index.html">0.19.0</a></dd>
-      <dd><a href="../0.2.0/index.html">0.2.0</a></dd>
-      <dd><a href="../0.2.1/index.html">0.2.1</a></dd>
-      <dd><a href="../0.20.0/index.html">0.20.0</a></dd>
-      <dd><a href="../0.21.0/index.html">0.21.0</a></dd>
-      <dd><a href="../0.22.0/index.html">0.22.0</a></dd>
-      <dd><a href="../0.23.0/index.html">0.23.0</a></dd>
-      <dd><a href="../0.24.0/index.html">0.24.0</a></dd>
-      <dd><a href="../0.25.0/index.html">0.25.0</a></dd>
-      <dd><a href="../0.26.0/index.html">0.26.0</a></dd>
-      <dd><a href="../0.27.0/index.html">0.27.0</a></dd>
-      <dd><a href="../0.28.0/index.html">0.28.0</a></dd>
-      <dd><a href="../0.29.0/index.html">0.29.0</a></dd>
-      <dd><a href="../0.3.0/index.html">0.3.0</a></dd>
-      <dd><a href="../0.30.0/index.html">0.30.0</a></dd>
-      <dd><a href="../0.31.0/index.html">0.31.0</a></dd>
-      <dd><a href="../0.32.0/index.html">0.32.0</a></dd>
-      <dd><a href="../0.33.0/index.html">0.33.0</a></dd>
-      <dd><a href="../0.34.0/index.html">0.34.0</a></dd>
-      <dd><a href="../0.34.1/index.html">0.34.1</a></dd>
-      <dd><a href="../0.35.0/index.html">0.35.0</a></dd>
-      <dd><a href="../0.36.0/index.html">0.36.0</a></dd>
-      <dd><a href="../0.4.0/index.html">0.4.0</a></dd>
-      <dd><a href="../0.5.0/index.html">0.5.0</a></dd>
-      <dd><a href="../0.5.1/index.html">0.5.1</a></dd>
-      <dd><a href="../0.6.0/index.html">0.6.0</a></dd>
-      <dd><a href="../0.7.0/index.html">0.7.0</a></dd>
-      <dd><a href="../0.8.0/index.html">0.8.0</a></dd>
-      <dd><a href="../0.9.0/index.html">0.9.0</a></dd>
-    </dl>
-    <dl>
-      <dt>Branches</dt>
-      <dd><a href="paraview_extractor.html">master</a></dd>
-    </dl>
-  </div>
-</div>
-<script>
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+   
+
+  <!-- Meta tags for JS to use -->
+  <meta name="doc-version" content="master">
+  <meta name="doc-site-root" content="./">
+
+  <!-- Create version switcher container -->
+  <script>
+    const sidebar = document.querySelector('.wy-side-nav-search');
+    if (sidebar) {
+      const versionDiv = document.createElement('div');
+      versionDiv.id = 'version-switcher';
+      versionDiv.style.marginTop = '1em';
+      sidebar.appendChild(versionDiv);
+    }
+  </script>
+
+  <!-- Load version-switcher.js using the correct relative path -->
+  <script src="../shared/version-switcher.js"></script>
+
 
 </body>
 </html>
