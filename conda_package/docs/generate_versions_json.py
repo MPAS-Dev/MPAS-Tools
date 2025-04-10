@@ -44,8 +44,8 @@ for version in versions:
     else:
         non_numeric_versions.append(version)
 
-# Sort numeric versions by major, minor, patch
-numeric_versions.sort(key=version_key)
+# Sort numeric versions by major, minor, patch in descending order
+numeric_versions.sort(key=version_key, reverse=True)
 # Sort non-numeric versions alphabetically
 non_numeric_versions.sort()
 
