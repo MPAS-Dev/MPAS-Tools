@@ -36,34 +36,34 @@ jobs:
 
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Set up Conda Environment
-        uses: conda-incubator/setup-miniconda@v3
+        uses: mamba-org/setup-micromamba@v2
         with:
-          activate-environment: "mpas_tools_ci"
-          miniforge-version: latest
-          channels: conda-forge
-          channel-priority: strict
-          auto-update-conda: true
-          python-version: ${{ env.PYTHON_VERSION }}
+          environment-name: mpas_tools_dev
+          init-shell: bash
+          condarc: |
+            channel_priority: strict
+            channels:
+                - conda-forge
+          create-args: >-
+            python=${{ env.PYTHON_VERSION }}
 
       - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
         name: Install mpas_tools
         run: |
           git config --global url."https://github.com/".insteadOf "git@github.com:"
-          conda create -n mpas_tools_dev --file conda_package/dev-spec.txt
-          conda activate mpas_tools_dev
+          conda install -y --file conda_package/dev-spec.txt \
+            python=${{ env.PYTHON_VERSION }}
           python -m pip install -vv --no-deps --no-build-isolation -e conda_package
 
       - name: Build Sphinx Docs
         run: |
           set -e
           cd conda_package/docs
-          conda activate mpas_tools_dev
           DOCS_VERSION=${{ github.ref_name }} make versioned-html
       - name: Copy Docs and Commit
         run: |
           set -e
           cd conda_package/docs
-          conda activate mpas_tools_dev
           # gh-pages branch must already exist
           git clone https://github.com/MPAS-Dev/MPAS-Tools.git --branch gh-pages --single-branch gh-pages
 
