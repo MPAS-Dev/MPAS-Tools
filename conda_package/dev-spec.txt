@@ -13,6 +13,7 @@ inpoly
 libnetcdf
 matplotlib-base>=3.9.0
 netcdf4
+networkx
 numpy>=2.0,<3.0
 progressbar2
 pyamg
