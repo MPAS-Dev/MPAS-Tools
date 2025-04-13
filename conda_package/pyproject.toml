@@ -58,6 +58,7 @@ dependencies = [
     "inpoly",
     "matplotlib >=3.9.0",
     "netcdf4",
+    "networkx",
     "numpy",
     "progressbar2",
     "pyamg",
