@@ -39,6 +39,7 @@ requirements:
     - hdf5
     - inpoly
     - libnetcdf
+    - networkx
     - netcdf-fortran
     - matplotlib-base >=3.9.0
     - netcdf4
