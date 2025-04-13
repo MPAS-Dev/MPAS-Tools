@@ -1,0 +1,334 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Visualization &mdash; mpas_tools 1.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=fc837d61"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="MPAS to XDMF Converter" href="mpas_to_xdmf.html" />
+    <link rel="prev" title="Vector Operations" href="vector.html" />
+    <link href="_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vector.html">Vector Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Visualization</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Visualization</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#mpas-to-xdmf-converter">MPAS to XDMF Converter</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#paraview-vtk-extractor">ParaView VTK Extractor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mpas-mesh-to-triangles">MPAS Mesh to Triangles</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#colormaps">Colormaps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#horizontal-transect-interpolation">Horizontal Transect Interpolation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mpas_to_xdmf.html">MPAS to XDMF Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="paraview_extractor.html">ParaView VTK Extractor</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/streamfunction.html">Computing streamfunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Visualization</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/visualization.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="visualization">
+<span id="id1"></span><h1>Visualization<a class="headerlink" href="#visualization" title="Link to this heading"></a></h1>
+<p>MPAS-Tools has kind of a hodge-podge of unrelated visualization tools.  This is
+largely because MPAS-Tools is conceived of primarily as a repository for tools
+for manipulating MPAS meshes during their construction and initialization.</p>
+<section id="mpas-to-xdmf-converter">
+<span id="viz-mpas-to-xdmf"></span><h2>MPAS to XDMF Converter<a class="headerlink" href="#mpas-to-xdmf-converter" title="Link to this heading"></a></h2>
+<p>The MPAS to XDMF Converter offers a cutting-edge solution for converting MPAS
+data into a ParaView-friendly format. It is not only significantly faster but
+also more efficient in terms of disk usage, making it a better alternative to
+the VTK extractor.</p>
+<p>Please refer to <a class="reference internal" href="mpas_to_xdmf.html"><span class="doc">MPAS to XDMF Converter</span></a> for detailed information.</p>
+</section>
+<section id="paraview-vtk-extractor">
+<span id="viz-paraview-extractor"></span><h2>ParaView VTK Extractor<a class="headerlink" href="#paraview-vtk-extractor" title="Link to this heading"></a></h2>
+<p>Documentation for the ParaView VTK Extractor has been moved to its own page.
+Please refer to <a class="reference internal" href="paraview_extractor.html"><span class="doc">ParaView VTK Extractor</span></a> for detailed information.</p>
+</section>
+<section id="mpas-mesh-to-triangles">
+<span id="viz-mesh-tris"></span><h2>MPAS Mesh to Triangles<a class="headerlink" href="#mpas-mesh-to-triangles" title="Link to this heading"></a></h2>
+<p>A relatively new and under-explored functionality in MPAS-Tools is the
+capability to extract a triangle mesh for visualization from an MPAS mesh.
+This functionality comes from the function
+<a class="reference internal" href="generated/mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html#mpas_tools.viz.mesh_to_triangles.mesh_to_triangles" title="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.mesh_to_triangles.mesh_to_triangles()</span></code></a>. The function
+takes an MPAS mesh as an <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> object as its only required input
+and produces another <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> with the triangle mesh that connects
+pairs of adjacent vertices to cell centers as its output.  Thus, each hexagon
+becomes 6 triangles, each pentagon becomes 5, and so on.</p>
+<p>In addition to the points and connectivity data for defining these trinagles,
+the output dataset, <code class="docutils literal notranslate"><span class="pre">dsTris</span></code>, also includes the cell index that each triangle
+is in and cell indices and weights for interpolating data defined at cell
+centers to triangle nodes.  <code class="docutils literal notranslate"><span class="pre">dsTris</span></code> includes variables <code class="docutils literal notranslate"><span class="pre">triCellIndices</span></code>,
+the cell that each triangle is part of; <code class="docutils literal notranslate"><span class="pre">nodeCellIndices</span></code> and
+<code class="docutils literal notranslate"><span class="pre">nodeCellWeights</span></code>, the indices and weights used to interpolate from MPAS cell
+centers to triangle nodes; Cartesian coordinates <code class="docutils literal notranslate"><span class="pre">xNode</span></code>, <code class="docutils literal notranslate"><span class="pre">yNode</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">zNode</span></code>; and <code class="docutils literal notranslate"><span class="pre">lonNode`</span></code> and <code class="docutils literal notranslate"><span class="pre">latNode</span></code> in radians. <code class="docutils literal notranslate"><span class="pre">lonNode</span></code> is
+guaranteed to be within 180 degrees of the cell center corresponding to
+<code class="docutils literal notranslate"><span class="pre">triCellIndices</span></code>.  Nodes always have a counterclockwise winding.</p>
+<p>Here is an example workflow for using this function:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.tri</span><span class="w"> </span><span class="kn">import</span> <span class="n">Triangulation</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz</span><span class="w"> </span><span class="kn">import</span> <span class="n">mesh_to_triangles</span>
+
+
+<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mpaso.rst.0501-01-01_00000.nc&#39;</span><span class="p">)</span>
+<span class="n">dsTris</span> <span class="o">=</span> <span class="n">mesh_to_triangles</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">periodicCopy</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">sst</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">temperature</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">nVertLevels</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+
+<span class="n">sstTri</span> <span class="o">=</span> <span class="n">sst</span><span class="p">[</span><span class="n">dsTris</span><span class="o">.</span><span class="n">triCellIndices</span><span class="p">]</span>
+
+<span class="n">sstNode</span> <span class="o">=</span> <span class="p">(</span><span class="n">sst</span><span class="p">[</span><span class="n">dsTris</span><span class="o">.</span><span class="n">nodeCellIndices</span><span class="p">]</span><span class="o">*</span><span class="n">dsTris</span><span class="o">.</span><span class="n">nodeCellWeights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s1">&#39;nInterp&#39;</span><span class="p">)</span>
+
+<span class="n">nTriangles</span> <span class="o">=</span> <span class="n">dsTris</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">]</span>
+<span class="n">tris</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">nTriangles</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">nTriangles</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="n">lonNode</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dsTris</span><span class="o">.</span><span class="n">lonNode</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+<span class="n">latNode</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dsTris</span><span class="o">.</span><span class="n">latNode</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+<span class="n">sstNode</span> <span class="o">=</span> <span class="n">sstNode</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+<span class="n">triangles</span> <span class="o">=</span> <span class="n">Triangulation</span><span class="p">(</span><span class="n">lonNode</span><span class="p">,</span> <span class="n">latNode</span><span class="p">,</span> <span class="n">tris</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tripcolor</span><span class="p">(</span><span class="n">triangles</span><span class="p">,</span> <span class="n">sstNode</span><span class="p">,</span> <span class="n">shading</span><span class="o">=</span><span class="s1">&#39;gouraud&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mf">90.</span><span class="p">,</span> <span class="mf">90.</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tripcolor</span><span class="p">(</span><span class="n">triangles</span><span class="p">,</span> <span class="n">sstTri</span><span class="p">,</span> <span class="n">shading</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">360.</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="o">-</span><span class="mf">90.</span><span class="p">,</span> <span class="mf">90.</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>In this example, <code class="docutils literal notranslate"><span class="pre">mpaso.rst.0501-01-01_00000.nc</span></code> is a restart file from a
+simulation with an EC at the default 30 to 60 km resolution (see
+<a class="reference internal" href="mesh_creation.html#ec-mesh"><span class="std std-ref">Defining an Eddy-closure Mesh</span></a>); the restart file contains both mesh information and a snapshot
+of the 3D temperature field.</p>
+<p>Here are the resulting plots (which look nearly identical at this resolution):</p>
+<a class="reference internal image-reference" href="_images/ec60to30_tris_gouraud.png"><img alt="_images/ec60to30_tris_gouraud.png" class="align-center" src="_images/ec60to30_tris_gouraud.png" style="width: 500px;" />
+</a>
+<a class="reference internal image-reference" href="_images/ec60to30_tris_flat.png"><img alt="_images/ec60to30_tris_flat.png" class="align-center" src="_images/ec60to30_tris_flat.png" style="width: 500px;" />
+</a>
+</section>
+<section id="colormaps">
+<span id="viz-colormaps"></span><h2>Colormaps<a class="headerlink" href="#colormaps" title="Link to this heading"></a></h2>
+<p>Some MPAS-Tools routines include plots of mesh resolution and related variables.
+We have found it handy to use the
+<a class="reference external" href="https://sciviscolor.org/">SciVisColor Colormaps</a> for some of these plots.
+Unfortunately, there is not a standard python package for adding these
+colormaps to <code class="docutils literal notranslate"><span class="pre">matplotlib</span></code> (as is the case for
+<a class="reference external" href="https://matplotlib.org/cmocean/">cmocean</a>, for example).  To add the
+SciVisColor colormaps, call the function
+<a class="reference internal" href="generated/mpas_tools.viz.colormaps.register_sci_viz_colormaps.html#mpas_tools.viz.colormaps.register_sci_viz_colormaps" title="mpas_tools.viz.colormaps.register_sci_viz_colormaps"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.colormaps.register_sci_viz_colormaps()</span></code></a>.  No arguments
+are required, as the XML files for defining the colormaps are included in the
+package.</p>
+<p>In this example, we use the <code class="docutils literal notranslate"><span class="pre">3Wbgy5</span></code> colormap:</p>
+<a class="reference internal image-reference" href="_images/so60to12_res.png"><img alt="_images/so60to12_res.png" class="align-center" src="_images/so60to12_res.png" style="width: 500px;" />
+</a>
+</section>
+<section id="horizontal-transect-interpolation">
+<span id="viz-transect-horiz"></span><h2>Horizontal Transect Interpolation<a class="headerlink" href="#horizontal-transect-interpolation" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">mpas_tools.viz.transect.horiz</span></code> module provides functions for
+interpolating MPAS data onto a horizontal transect. This is useful for
+visualizing data along a specific path on the horizontal plane of the
+mesh.</p>
+<p>The function
+<a class="reference internal" href="generated/mpas_tools.viz.transect.mesh_to_triangles.html#mpas_tools.viz.transect.mesh_to_triangles" title="mpas_tools.viz.transect.mesh_to_triangles"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.transect.mesh_to_triangles()</span></code></a> converts an MPAS
+mesh to a triangle mesh by decomposing each cell into one triangle connecting
+the cell center to each edge. The resulting triangle mesh can then be used
+for visualization or for other spatial analysis tasks.</p>
+<p>The function
+<a class="reference internal" href="generated/mpas_tools.viz.transect.make_triangle_tree.html#mpas_tools.viz.transect.make_triangle_tree" title="mpas_tools.viz.transect.make_triangle_tree"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.transect.make_triangle_tree()</span></code></a> creates a triangle
+tree for efficient point location. This function is used internally to
+speed up the process of finding which triangle a given point lies within.
+It constructs a data structure that allows for fast spatial queries,
+making it more efficient to determine the location of points relative to
+the mesh. This is especially useful for high-resolution meshes or when
+performing a large number of point location operations.</p>
+<p>The function
+<a class="reference internal" href="generated/mpas_tools.viz.transect.find_planar_transect_cells_and_weights.html#mpas_tools.viz.transect.find_planar_transect_cells_and_weights" title="mpas_tools.viz.transect.find_planar_transect_cells_and_weights"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.transect.find_planar_transect_cells_and_weights()</span></code></a>
+finds the cells that intersect a planar transect and the weights for
+interpolating data from cell centers to the transect nodes. The function
+takes the MPAS mesh as an <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> object and the start and end
+points of the transect as Cartesian coordinates. The function
+returns the cell indices and weights for interpolating data from cell
+centers to the transect nodes, the indices of the cells that intersect
+the transect, and the Cartesian coordinates of the transect nodes. This
+is a key step in creating transect plots of MPAS data.</p>
+<p>The function
+<a class="reference internal" href="generated/mpas_tools.viz.transect.find_spherical_transect_cells_and_weights.html#mpas_tools.viz.transect.find_spherical_transect_cells_and_weights" title="mpas_tools.viz.transect.find_spherical_transect_cells_and_weights"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.transect.find_spherical_transect_cells_and_weights()</span></code></a>
+does the same for a transect on the sphere. It
+identifies the cells intersected by a great circle path defined by
+longitude and latitude coordinates. Like its planar counterpart, it
+returns cell indices, interpolation weights, intersected cell indices,
+and transect node coordinates, but all calculations are performed on the
+sphere.</p>
+<p>The function
+<a class="reference internal" href="generated/mpas_tools.viz.transect.interp_mpas_horiz_to_transect_nodes.html#mpas_tools.viz.transect.interp_mpas_horiz_to_transect_nodes" title="mpas_tools.viz.transect.interp_mpas_horiz_to_transect_nodes"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.transect.interp_mpas_horiz_to_transect_nodes()</span></code></a>
+interpolates MPAS data to transect nodes. This function takes the MPAS
+data field and the transect node information (cell indices and weights)
+generated by either the planar or spherical transect finding functions.
+It then performs a weighted average of the data values at the cell
+centers to estimate the data values at the transect nodes. The result is
+a 1D array of interpolated data values along the transect.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="vector.html" class="btn btn-neutral float-left" title="Vector Operations" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_to_xdmf.html" class="btn btn-neutral float-right" title="MPAS to XDMF Converter" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <!-- Meta tags for JS to use -->
+  <meta name="doc-version" content="1.1.0">
+  <meta name="doc-site-root" content="./">
+
+  <!-- Create version switcher container -->
+  <script>
+    const sidebar = document.querySelector('.wy-side-nav-search');
+    if (sidebar) {
+      const versionDiv = document.createElement('div');
+      versionDiv.id = 'version-switcher';
+      versionDiv.style.marginTop = '1em';
+      sidebar.appendChild(versionDiv);
+    }
+  </script>
+
+  <!-- Load version-switcher.js using the correct relative path -->
+  <script src="../shared/version-switcher.js"></script>
+
+
+</body>
+</html>
