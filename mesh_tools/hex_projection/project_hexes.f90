@@ -57,7 +57,7 @@ program project_hexes
   integer, allocatable, dimension(:) :: indexToCellID, indexToVertexID, indexToEdgeID
 
   real(dp), allocatable, dimension(:) :: dcEdge, dvEdge
-  real(dp), parameter :: earth_radius = 6378.14_dp*1000.0_dp  ! meters
+  real(dp) :: earth_radius
   real(dp) :: invRadius, invRadius2
 
   real(dp) :: nominalMinDc
@@ -878,6 +878,7 @@ program project_hexes
 
   ! set mesh on a unit sphere - this is what init_atmosphere expects - it will expand it to the full sphere.
 
+  earth_radius = 1000.0_dp*earth_radius_km
   invRadius = 1.0_dp/earth_radius
   invRadius2 = invRadius*invRadius
   
