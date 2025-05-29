@@ -1,5 +1,6 @@
-from mpas_tools.cime.constants import constants
 import requests
+
+from mpas_tools.cime.constants import constants
 
 
 def test_cime_constants(e3sm_tag='master'):
@@ -14,7 +15,8 @@ def test_cime_constants(e3sm_tag='master'):
 
     resp = requests.get(
         f'https://raw.githubusercontent.com/E3SM-Project/E3SM/{e3sm_tag}/'
-        f'share/util/shr_const_mod.F90')
+        f'share/util/shr_const_mod.F90'
+    )
 
     text = resp.text
 
@@ -32,10 +34,10 @@ def test_cime_constants(e3sm_tag='master'):
         print(f'parsed: {constant} = {value}')
         if constant in constants:
             if isinstance(value, float):
-                print('verifying {}'.format(constant))
+                print(f'verifying {constant}')
                 assert value == constants[constant]
             else:
-                print('skipping verification for {}'.format(constant))
+                print(f'skipping verification for {constant}')
 
             found[constant] = True
         else:
@@ -46,7 +48,7 @@ def test_cime_constants(e3sm_tag='master'):
     all_found = True
     for constant in found:
         if not found[constant]:
-            print('{} was not found!'.format(constant))
+            print(f'{constant} was not found!')
             all_found = False
 
     assert all_found
@@ -60,7 +62,7 @@ def _parse_value(line):
     end = line.find('=')
 
     key = line[start:end]
-    line = line[end+1:]
+    line = line[end + 1 :]
 
     if '!' in line:
         line, _ = line.split('!', 1)
