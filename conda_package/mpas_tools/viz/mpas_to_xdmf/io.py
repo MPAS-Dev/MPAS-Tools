@@ -302,6 +302,12 @@ def _parse_indices(index_string, dim_size):
     if ':' in index_string:
         # Support slice notation like ':', '0:10', '0:10:2', etc.
         parts = index_string.split(':')
+        # Validate that parts has at most 3 elements
+        if len(parts) > 3:
+            raise ValueError(
+                f"Invalid index string '{index_string}': too many colons. "
+                'Expected at most two colons.'
+            )
         # Pad parts to length 3 with empty strings if needed
         while len(parts) < 3:
             parts.append('')
