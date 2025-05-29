@@ -392,13 +392,3 @@ Visualization
    :toctree: generated/
 
    register_sci_viz_colormaps
-
-Tests
-=====
-
-.. currentmodule:: mpas_tools.tests.test_cime_constants
-
-.. autosummary::
-   :toctree: generated/
-
-   test_cime_constants

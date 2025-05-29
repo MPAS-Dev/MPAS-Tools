@@ -8,8 +8,7 @@ sync with `CIME <https://github.com/ESMCI/cime>`_, which provides infrastructure
 and utilities for Earth System Models such at E3SM.  Currently, we sync only
 those constants given numerical values in CIME, not those that are derivied
 from other constants.  Constants are checked against their values on CIME's
-master branch during tests of the conda build.  See
-:py:func:`mpas_tools.tests.test_cime_constants.test_cime_constants`.
+master branch during tests of the conda build.
 
 Some of the constants most likely to be useful in MPAS-Tools, COMPASS and other
 related projects are:
