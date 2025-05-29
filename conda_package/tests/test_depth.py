@@ -13,6 +13,8 @@ from mpas_tools.ocean.depth import (
     write_time_varying_zmid,
 )
 
+from .util import get_test_data_file
+
 
 def create_3d_mesh():
     outFileName = 'test_depth_mesh.nc'
@@ -20,7 +22,7 @@ def create_3d_mesh():
         dsMesh = xarray.open_dataset(outFileName)
     else:
         dsMesh = xarray.open_dataset(
-            'mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc'
+            get_test_data_file('mesh.QU.1920km.151026.nc')
         )
         nCells = dsMesh.sizes['nCells']
         nVertLevels = 10

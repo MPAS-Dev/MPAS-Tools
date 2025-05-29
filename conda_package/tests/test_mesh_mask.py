@@ -18,6 +18,8 @@ from mpas_tools.mesh.mask import (
     compute_projection_grid_region_masks,
 )
 
+from .util import get_test_data_file
+
 
 def test_compute_mpas_region_masks():
     ds_mesh, _ = _get_mesh()
@@ -205,9 +207,7 @@ def _get_pool():
 
 
 def _get_mesh():
-    ds_mesh = xr.open_dataset(
-        'mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc'
-    )
+    ds_mesh = xr.open_dataset(get_test_data_file('mesh.QU.1920km.151026.nc'))
     earth_radius = constants['SHR_CONST_REARTH']
     ds_mesh.attrs['sphere_radius'] = earth_radius
     for coord in [

@@ -12,6 +12,8 @@ from mpas_tools.viz.transect import (
     make_triangle_tree,
 )
 
+from .util import get_test_data_file
+
 
 def test_mesh_to_triangles():
     _, ds_tris = _get_triangles()
@@ -129,9 +131,7 @@ def test_find_planar_transect_cells_and_weights():
 
 
 def _get_triangles():
-    ds_mesh = xr.open_dataset(
-        'mesh_tools/mesh_conversion_tools/test/mesh.QU.1920km.151026.nc'
-    )
+    ds_mesh = xr.open_dataset(get_test_data_file('mesh.QU.1920km.151026.nc'))
     earth_radius = constants['SHR_CONST_REARTH']
     ds_mesh.attrs['sphere_radius'] = earth_radius
     for coord in [
