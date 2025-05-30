@@ -1,7 +1,4 @@
-import collections
 import numpy as np
-
-point = collections.namedtuple('Point', ['x', 'y', 'z'])
 
 
 def circumcenter(on_sphere, x1, y1, z1, x2, y2, z2, x3, y3, z3):
@@ -9,43 +6,65 @@ def circumcenter(on_sphere, x1, y1, z1, x2, y2, z2, x3, y3, z3):
     Compute the circumcenter of the triangle (possibly on a sphere)
     with the three given vertices in Cartesian coordinates.
 
+    Parameters
+    ----------
+    on_sphere : bool
+        If True, the circumcenter is computed on a sphere.
+        If False, the circumcenter is computed in Cartesian coordinates.
+
+    x1, y1, z1 : float or numpy.ndarray
+        Cartesian coordinates of the first vertex
+
+    x2, y2, z2 : float or numpy.ndarray
+        Cartesian coordinates of the second vertex
+
+    x3, y3, z3 : float or numpy.ndarray
+        Cartesian coordinates of the third vertex
+
     Returns
     -------
-    center : point
-        The circumcenter of the triangle with x, y and z attributes
-
+    xv, yv, zv : float or numpy.ndarray
+        The circumcenter(s) of the triangle(s)
     """
-    p1 = point(x1, y1, z1)
-    p2 = point(x2, y2, z2)
-    p3 = point(x3, y3, z3)
+    x1 = np.asarray(x1)
+    y1 = np.asarray(y1)
+    z1 = np.asarray(z1)
+    x2 = np.asarray(x2)
+    y2 = np.asarray(y2)
+    z2 = np.asarray(z2)
+    x3 = np.asarray(x3)
+    y3 = np.asarray(y3)
+    z3 = np.asarray(z3)
+
     if on_sphere:
-        a = (p2.x - p3.x)**2 + (p2.y - p3.y)**2 + (p2.z - p3.z)**2
-        b = (p3.x - p1.x)**2 + (p3.y - p1.y)**2 + (p3.z - p1.z)**2
-        c = (p1.x - p2.x)**2 + (p1.y - p2.y)**2 + (p1.z - p2.z)**2
+        a = (x2 - x3) ** 2 + (y2 - y3) ** 2 + (z2 - z3) ** 2
+        b = (x3 - x1) ** 2 + (y3 - y1) ** 2 + (z3 - z1) ** 2
+        c = (x1 - x2) ** 2 + (y1 - y2) ** 2 + (z1 - z2) ** 2
 
         pbc = a * (-a + b + c)
         apc = b * (a - b + c)
         abp = c * (a + b - c)
 
-        xv = (pbc * p1.x + apc * p2.x + abp * p3.x) / (pbc + apc + abp)
-        yv = (pbc * p1.y + apc * p2.y + abp * p3.y) / (pbc + apc + abp)
-        zv = (pbc * p1.z + apc * p2.z + abp * p3.z) / (pbc + apc + abp)
+        denom = pbc + apc + abp
+        xv = (pbc * x1 + apc * x2 + abp * x3) / denom
+        yv = (pbc * y1 + apc * y2 + abp * y3) / denom
+        zv = (pbc * z1 + apc * z2 + abp * z3) / denom
     else:
-        d = 2 * (p1.x * (p2.y - p3.y) + p2.x *
-                 (p3.y - p1.y) + p3.x * (p1.y - p2.y))
+        d = 2 * (x1 * (y2 - y3) + x2 * (y3 - y1) + x3 * (y1 - y2))
 
-        xv = ((p1.x**2 + p1.y**2) * (p2.y - p3.y) + (p2.x**2 + p2.y**2)
-              * (p3.y - p1.y) + (p3.x**2 + p3.y**2) * (p1.y - p2.y)) / d
-        yv = ((p1.x**2 + p1.y**2) * (p3.x - p2.x) + (p2.x**2 + p2.y**2)
-              * (p1.x - p3.x) + (p3.x**2 + p3.y**2) * (p2.x - p1.x)) / d
-        zv = 0.0
+        xv = (
+            (x1**2 + y1**2) * (y2 - y3)
+            + (x2**2 + y2**2) * (y3 - y1)
+            + (x3**2 + y3**2) * (y1 - y2)
+        ) / d
+        yv = (
+            (x1**2 + y1**2) * (x3 - x2)
+            + (x2**2 + y2**2) * (x1 - x3)
+            + (x3**2 + y3**2) * (x2 - x1)
+        ) / d
+        zv = np.zeros_like(xv)
 
-        # Optional method to use barycenter instead.
-        # xv = p1.x + p2.x + p3.x
-        # xv = xv / 3.0
-        # yv = p1.y + p2.y + p3.y
-        # yv = yv / 3.0
-    return point(xv, yv, zv)
+    return xv, yv, zv
 
 
 def lonlat2xyz(lon, lat, R=6378206.4):
@@ -69,8 +88,8 @@ def lonlat2xyz(lon, lat, R=6378206.4):
 
     lon = np.deg2rad(lon)
     lat = np.deg2rad(lat)
-    x = R*np.multiply(np.cos(lon), np.cos(lat))
-    y = R*np.multiply(np.sin(lon), np.cos(lat))
-    z = R*np.sin(lat)
+    x = R * np.multiply(np.cos(lon), np.cos(lat))
+    y = R * np.multiply(np.sin(lon), np.cos(lat))
+    z = R * np.sin(lat)
 
     return x, y, z
