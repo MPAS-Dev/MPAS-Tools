@@ -27,6 +27,8 @@ analyzing simulations, and in other MPAS-related workflows.
 
    config
 
+   io
+
    logging
 
    transects
