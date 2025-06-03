@@ -34,6 +34,8 @@ def write_netcdf(
     Then, the `ncks` command is used to convert the file to the
     `NETCDF3_64BIT_DATA` format.
 
+    Note: All int64 variables are automatically converted to int32 for MPAS
+    compatibility.
 
     Parameters
     ----------
@@ -81,6 +83,13 @@ def write_netcdf(
 
     if char_dim_name is None:
         char_dim_name = default_char_dim_name
+
+    # Convert int64 variables to int32 for MPAS compatibility
+    for var in list(ds.data_vars.keys()) + list(ds.coords.keys()):
+        if ds[var].dtype == numpy.int64:
+            attrs = ds[var].attrs.copy()
+            ds[var] = ds[var].astype(numpy.int32)
+            ds[var].attrs = attrs
 
     encodingDict = {}
     variableNames = list(ds.data_vars.keys()) + list(ds.coords.keys())
