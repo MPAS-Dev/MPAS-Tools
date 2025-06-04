@@ -100,7 +100,7 @@ def compute_mpas_region_masks(
 
         # create shapely geometry for lon and lat
         points = [shapely.geometry.Point(x, y) for x, y in zip(lon, lat)]
-        regionNames, masks, properties, nChar = _compute_region_masks(
+        regionNames, masks, properties, nchar = _compute_region_masks(
             fcMask,
             points,
             logger,
@@ -128,22 +128,14 @@ def compute_mpas_region_masks(
                 mask, dtype=numpy.int32
             )
 
-        if 'regionNames' not in dsMasks:
-            # create a new data array for mask names
-            dsMasks['regionNames'] = (
-                ('nRegions',),
-                numpy.zeros((nRegions,), dtype=f'|S{nChar}'),
-            )
+        properties['regionNames'] = regionNames
+        _add_properties(
+            ds=dsMasks,
+            properties=properties,
+            dim='nRegions',
+            nchar=nchar,
+        )
 
-            for index in range(nRegions):
-                dsMasks['regionNames'][index] = regionNames[index]
-
-        for propertyName in properties:
-            if propertyName not in dsMasks:
-                dsMasks[propertyName] = (
-                    ('nRegions',),
-                    properties[propertyName],
-                )
     if logger is not None:
         logger.info('  Done.')
 
@@ -343,7 +335,7 @@ def compute_mpas_transect_masks(
         polygons, nPolygons, duplicatePolygons = _get_polygons(
             dsMesh, maskType
         )
-        transectNames, masks, properties, nChar, shapes = (
+        transectNames, masks, properties, nchar, shapes = (
             _compute_transect_masks(
                 fcMask,
                 polygons,
@@ -392,22 +384,14 @@ def compute_mpas_transect_masks(
                     _compute_edge_sign(dsMesh, mask, shapes[index])
                 )
 
-        if 'transectNames' not in dsMasks:
-            # create a new data array for mask names
-            dsMasks['transectNames'] = (
-                ('nTransects',),
-                numpy.zeros((nTransects,), dtype=f'|S{nChar}'),
-            )
+        properties['transectNames'] = transectNames
+        _add_properties(
+            ds=dsMasks,
+            properties=properties,
+            dim='nTransects',
+            nchar=nchar,
+        )
 
-            for index in range(nTransects):
-                dsMasks['transectNames'][index] = transectNames[index]
-
-        for propertyName in properties:
-            if propertyName not in dsMasks:
-                dsMasks[propertyName] = (
-                    ('nTransects',),
-                    properties[propertyName],
-                )
     if logger is not None:
         logger.info('  Done.')
 
@@ -727,7 +711,7 @@ def compute_lon_lat_region_masks(
 
     # create shapely geometry for lon and lat
     points = [shapely.geometry.Point(x, y) for x, y in zip(Lon, Lat)]
-    regionNames, masks, properties, nChar = _compute_region_masks(
+    regionNames, masks, properties, nchar = _compute_region_masks(
         fcMask,
         points,
         logger,
@@ -756,18 +740,14 @@ def compute_lon_lat_region_masks(
             mask.reshape(shape), dtype=numpy.int32
         )
 
-    # create a new data array for mask names
-    dsMasks['regionNames'] = (
-        ('nRegions',),
-        numpy.zeros((nRegions,), dtype=f'|S{nChar}'),
+    properties['regionNames'] = regionNames
+    _add_properties(
+        ds=dsMasks,
+        properties=properties,
+        dim='nRegions',
+        nchar=nchar,
     )
 
-    for index in range(nRegions):
-        dsMasks['regionNames'][index] = regionNames[index]
-
-    for propertyName in properties:
-        if propertyName not in dsMasks:
-            dsMasks[propertyName] = (('nRegions',), properties[propertyName])
     if logger is not None:
         logger.info('  Done.')
 
@@ -963,7 +943,7 @@ def compute_projection_grid_region_masks(
     points = [
         shapely.geometry.Point(x, y) for x, y in zip(lon.ravel(), lat.ravel())
     ]
-    regionNames, masks, properties, nChar = _compute_region_masks(
+    regionNames, masks, properties, nchar = _compute_region_masks(
         fcMask,
         points,
         logger,
@@ -989,18 +969,14 @@ def compute_projection_grid_region_masks(
             mask.reshape((ny, nx)), dtype=numpy.int32
         )
 
-    # create a new data array for mask names
-    dsMasks['regionNames'] = (
-        ('nRegions',),
-        numpy.zeros((nRegions,), dtype=f'|S{nChar}'),
+    properties['regionNames'] = regionNames
+    _add_properties(
+        ds=dsMasks,
+        properties=properties,
+        dim='nRegions',
+        nchar=nchar,
     )
 
-    for index in range(nRegions):
-        dsMasks['regionNames'][index] = regionNames[index]
-
-    for propertyName in properties:
-        if propertyName not in dsMasks:
-            dsMasks[propertyName] = (('nRegions',), properties[propertyName])
     if logger is not None:
         logger.info('  Done.')
 
@@ -1175,6 +1151,24 @@ def _compute_mask_from_shapes(
     return mask
 
 
+def _add_properties(ds, properties, dim, nchar):
+    """
+    Add properties to the dataset from a dictionary of properties
+    """
+    for name, prop_list in properties.items():
+        if name not in ds:
+            if isinstance(prop_list[0], str):
+                ds[name] = (
+                    (dim,),
+                    numpy.zeros((len(prop_list),), dtype=f'|S{nchar}'),
+                )
+
+                for index, value in enumerate(prop_list):
+                    ds[name][index] = value
+            else:
+                ds[name] = ((dim,), properties[prop_list])
+
+
 def _get_region_names_and_properties(fc):
     regionNames = []
     for feature in fc.features:
@@ -1194,16 +1188,19 @@ def _get_region_names_and_properties(fc):
                 propertyNames.add(propertyName)
 
     properties = {}
+    nchar = 0
     for propertyName in propertyNames:
         properties[propertyName] = []
         for feature in fc.features:
             if propertyName in feature['properties']:
                 propertyVal = feature['properties'][propertyName]
                 properties[propertyName].append(propertyVal)
+                if isinstance(propertyVal, str):
+                    nchar = max(nchar, len(propertyVal))
             else:
                 properties[propertyName].append('')
 
-    return regionNames, properties
+    return regionNames, properties, nchar
 
 
 def _compute_region_masks(
@@ -1214,11 +1211,10 @@ def _compute_region_masks(
     a set of regions.
     """
 
-    regionNames, properties = _get_region_names_and_properties(fcMask)
+    regionNames, properties, nchar = _get_region_names_and_properties(fcMask)
 
     masks = []
 
-    nChar = 0
     for feature in fcMask.features:
         name = feature['properties']['name']
 
@@ -1237,11 +1233,11 @@ def _compute_region_masks(
             showProgress=showProgress,
         )
 
-        nChar = max(nChar, len(name))
+        nchar = max(nchar, len(name))
 
         masks.append(mask)
 
-    return regionNames, masks, properties, nChar
+    return regionNames, masks, properties, nchar
 
 
 def _contains(shapes, points):
@@ -1339,12 +1335,11 @@ def _compute_transect_masks(
     a set of transects.
     """
 
-    transectNames, properties = _get_region_names_and_properties(fcMask)
+    transectNames, properties, nchar = _get_region_names_and_properties(fcMask)
 
     masks = []
     shapes = []
 
-    nChar = 0
     for feature in fcMask.features:
         name = feature['properties']['name']
 
@@ -1390,12 +1385,12 @@ def _compute_transect_masks(
             showProgress=showProgress,
         )
 
-        nChar = max(nChar, len(name))
+        nchar = max(nchar, len(name))
 
         masks.append(mask)
         shapes.append(shape)
 
-    return transectNames, masks, properties, nChar, shapes
+    return transectNames, masks, properties, nchar, shapes
 
 
 def _intersects(shape, polygons):
