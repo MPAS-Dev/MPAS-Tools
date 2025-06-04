@@ -6,12 +6,12 @@ import progressbar
 import shapely.geometry
 import shapely.ops
 import xarray as xr
+from geometric_features import read_feature_collection
 from igraph import Graph
 from scipy.spatial import KDTree
 from shapely.geometry import GeometryCollection, MultiPolygon, Polygon, box
 from shapely.strtree import STRtree
 
-from geometric_features import read_feature_collection
 from mpas_tools.cime.constants import constants
 from mpas_tools.io import write_netcdf
 from mpas_tools.logging import LoggingContext
@@ -23,9 +23,16 @@ from mpas_tools.transects import (
 )
 
 
-def compute_mpas_region_masks(dsMesh, fcMask, maskTypes=('cell', 'vertex'),
-                              logger=None, pool=None, chunkSize=1000,
-                              showProgress=False, subdivisionThreshold=30.):
+def compute_mpas_region_masks(
+    dsMesh,
+    fcMask,
+    maskTypes=('cell', 'vertex'),
+    logger=None,
+    pool=None,
+    chunkSize=1000,
+    showProgress=False,
+    subdivisionThreshold=30.0,
+):
     """
     Use shapely and processes to create a set of masks from a feature
     collection made up of regions (polygons)
@@ -78,22 +85,30 @@ def compute_mpas_region_masks(dsMesh, fcMask, maskTypes=('cell', 'vertex'),
     for maskType in maskTypes:
         suffix = suffixes[maskType]
         dim = dims[maskType]
-        lonName = 'lon{}'.format(suffix)
-        latName = 'lat{}'.format(suffix)
+        lonName = f'lon{suffix}'
+        latName = f'lat{suffix}'
         lat = numpy.rad2deg(dsMesh[latName].values)
 
         # transform longitudes to [-180, 180)
-        lon = numpy.mod(numpy.rad2deg(dsMesh[lonName].values) + 180.,
-                        360.) - 180.
+        lon = (
+            numpy.mod(numpy.rad2deg(dsMesh[lonName].values) + 180.0, 360.0)
+            - 180.0
+        )
 
         if logger is not None:
-            logger.info('  Computing {} masks:'.format(maskType))
+            logger.info(f'  Computing {maskType} masks:')
 
         # create shapely geometry for lon and lat
         points = [shapely.geometry.Point(x, y) for x, y in zip(lon, lat)]
         regionNames, masks, properties, nChar = _compute_region_masks(
-            fcMask, points, logger, pool, chunkSize, showProgress,
-            subdivisionThreshold)
+            fcMask,
+            points,
+            logger,
+            pool,
+            chunkSize,
+            showProgress,
+            subdivisionThreshold,
+        )
 
         nPoints = len(points)
 
@@ -101,29 +116,34 @@ def compute_mpas_region_masks(dsMesh, fcMask, maskTypes=('cell', 'vertex'),
             logger.info('  Adding masks to dataset...')
         nRegions = len(regionNames)
         # create a new data array for masks
-        masksVarName = 'region{}Masks'.format(suffix)
-        dsMasks[masksVarName] = \
-            ((dim, 'nRegions'), numpy.zeros((nPoints, nRegions),
-                                            dtype=numpy.int32))
+        masksVarName = f'region{suffix}Masks'
+        dsMasks[masksVarName] = (
+            (dim, 'nRegions'),
+            numpy.zeros((nPoints, nRegions), dtype=numpy.int32),
+        )
 
         for index in range(nRegions):
             mask = masks[index]
-            dsMasks[masksVarName][:, index] = numpy.array(mask,
-                                                          dtype=numpy.int32)
+            dsMasks[masksVarName][:, index] = numpy.array(
+                mask, dtype=numpy.int32
+            )
 
         if 'regionNames' not in dsMasks:
             # create a new data array for mask names
-            dsMasks['regionNames'] = (('nRegions',),
-                                      numpy.zeros((nRegions,),
-                                                  dtype='|S{}'.format(nChar)))
+            dsMasks['regionNames'] = (
+                ('nRegions',),
+                numpy.zeros((nRegions,), dtype=f'|S{nChar}'),
+            )
 
             for index in range(nRegions):
                 dsMasks['regionNames'][index] = regionNames[index]
 
         for propertyName in properties:
             if propertyName not in dsMasks:
-                dsMasks[propertyName] = (('nRegions',),
-                                         properties[propertyName])
+                dsMasks[propertyName] = (
+                    ('nRegions',),
+                    properties[propertyName],
+                )
     if logger is not None:
         logger.info('  Done.')
 
@@ -131,75 +151,131 @@ def compute_mpas_region_masks(dsMesh, fcMask, maskTypes=('cell', 'vertex'),
 
 
 def entry_point_compute_mpas_region_masks():
-    """ Entry point for ``compute_mpas_region_masks()``"""
+    """Entry point for ``compute_mpas_region_masks()``"""
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--mesh_file_name", dest="mesh_file_name",
-                        type=str, required=True,
-                        help="An MPAS mesh file")
-    parser.add_argument("-g", "--geojson_file_name",
-                        dest="geojson_file_name", type=str, required=True,
-                        help="An Geojson file containing mask regions")
-    parser.add_argument("-o", "--mask_file_name", dest="mask_file_name",
-                        type=str, required=True,
-                        help="An output MPAS region masks file")
-    parser.add_argument("-t", "--mask_types", nargs='+', dest="mask_types",
-                        type=str,
-                        help="Which type(s) of masks to make: cell, edge or "
-                             "vertex.  Default is cell and vertex.")
-    parser.add_argument("-c", "--chunk_size", dest="chunk_size", type=int,
-                        default=1000,
-                        help="The number of cells, vertices or edges that are "
-                             "processed in one operation")
-    parser.add_argument("--show_progress", dest="show_progress",
-                        action="store_true",
-                        help="Whether to show a progress bar")
-    parser.add_argument("-s", "--subdivision", dest="subdivision", type=float,
-                        default=30.,
-                        help="A threshold in degrees (lon or lat) above which "
-                             "the mask region will be subdivided into smaller "
-                             "polygons for faster intersection checking")
     parser.add_argument(
-        "--process_count", required=False, dest="process_count", type=int,
-        help="The number of processes to use to compute masks.  The "
-             "default is to use all available cores")
+        '-m',
+        '--mesh_file_name',
+        dest='mesh_file_name',
+        type=str,
+        required=True,
+        help='An MPAS mesh file',
+    )
     parser.add_argument(
-        "--multiprocessing_method", dest="multiprocessing_method",
+        '-g',
+        '--geojson_file_name',
+        dest='geojson_file_name',
+        type=str,
+        required=True,
+        help='An Geojson file containing mask regions',
+    )
+    parser.add_argument(
+        '-o',
+        '--mask_file_name',
+        dest='mask_file_name',
+        type=str,
+        required=True,
+        help='An output MPAS region masks file',
+    )
+    parser.add_argument(
+        '-t',
+        '--mask_types',
+        nargs='+',
+        dest='mask_types',
+        type=str,
+        help='Which type(s) of masks to make: cell, edge or '
+        'vertex.  Default is cell and vertex.',
+    )
+    parser.add_argument(
+        '-c',
+        '--chunk_size',
+        dest='chunk_size',
+        type=int,
+        default=1000,
+        help='The number of cells, vertices or edges that are '
+        'processed in one operation',
+    )
+    parser.add_argument(
+        '--show_progress',
+        dest='show_progress',
+        action='store_true',
+        help='Whether to show a progress bar',
+    )
+    parser.add_argument(
+        '-s',
+        '--subdivision',
+        dest='subdivision',
+        type=float,
+        default=30.0,
+        help='A threshold in degrees (lon or lat) above which '
+        'the mask region will be subdivided into smaller '
+        'polygons for faster intersection checking',
+    )
+    parser.add_argument(
+        '--process_count',
+        required=False,
+        dest='process_count',
+        type=int,
+        help='The number of processes to use to compute masks.  The '
+        'default is to use all available cores',
+    )
+    parser.add_argument(
+        '--multiprocessing_method',
+        dest='multiprocessing_method',
         default='forkserver',
-        help="The multiprocessing method use for python mask creation "
-             "('fork', 'spawn' or 'forkserver')")
-    parser.add_argument("--format", dest="format", type=str,
-                        help="NetCDF file format")
-    parser.add_argument("--engine", dest="engine", type=str,
-                        help="NetCDF output engine")
+        help='The multiprocessing method use for python mask creation '
+        "('fork', 'spawn' or 'forkserver')",
+    )
+    parser.add_argument(
+        '--format', dest='format', type=str, help='NetCDF file format'
+    )
+    parser.add_argument(
+        '--engine', dest='engine', type=str, help='NetCDF output engine'
+    )
     args = parser.parse_args()
 
-    dsMesh = xr.open_dataset(args.mesh_file_name, decode_cf=False,
-                             decode_times=False)
+    dsMesh = xr.open_dataset(
+        args.mesh_file_name, decode_cf=False, decode_times=False
+    )
     fcMask = read_feature_collection(args.geojson_file_name)
 
-    pool = create_pool(process_count=args.process_count,
-                       method=args.multiprocessing_method)
+    pool = create_pool(
+        process_count=args.process_count, method=args.multiprocessing_method
+    )
 
     if args.mask_types is None:
         args.mask_types = ('cell', 'vertex')
 
     with LoggingContext('compute_mpas_region_masks') as logger:
         dsMasks = compute_mpas_region_masks(
-            dsMesh=dsMesh, fcMask=fcMask, maskTypes=args.mask_types,
-            logger=logger, pool=pool, chunkSize=args.chunk_size,
+            dsMesh=dsMesh,
+            fcMask=fcMask,
+            maskTypes=args.mask_types,
+            logger=logger,
+            pool=pool,
+            chunkSize=args.chunk_size,
             showProgress=args.show_progress,
-            subdivisionThreshold=args.subdivision)
+            subdivisionThreshold=args.subdivision,
+        )
 
-    write_netcdf(dsMasks, args.mask_file_name, format=args.format,
-                 engine=args.engine)
+    write_netcdf(
+        dsMasks, args.mask_file_name, format=args.format, engine=args.engine
+    )
 
 
-def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
-                                maskTypes=('cell', 'edge', 'vertex'),
-                                logger=None, pool=None, chunkSize=1000,
-                                showProgress=False, subdivisionResolution=10e3,
-                                addEdgeSign=False):
+def compute_mpas_transect_masks(
+    dsMesh,
+    fcMask,
+    earthRadius,
+    maskTypes=('cell', 'edge', 'vertex'),
+    logger=None,
+    pool=None,
+    chunkSize=1000,
+    showProgress=False,
+    subdivisionResolution=10e3,
+    addEdgeSign=False,
+):
     """
     Use shapely and processes to create a set of masks from a feature
     collection made up of transects (line strings)
@@ -262,14 +338,23 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
         dim = dims[maskType]
 
         if logger is not None:
-            logger.info('  Computing {} masks:'.format(maskType))
+            logger.info(f'  Computing {maskType} masks:')
 
-        polygons, nPolygons, duplicatePolygons = \
-            _get_polygons(dsMesh, maskType)
-        transectNames, masks, properties, nChar, shapes = \
-            _compute_transect_masks(fcMask, polygons, logger, pool, chunkSize,
-                                    showProgress, subdivisionResolution,
-                                    earthRadius)
+        polygons, nPolygons, duplicatePolygons = _get_polygons(
+            dsMesh, maskType
+        )
+        transectNames, masks, properties, nChar, shapes = (
+            _compute_transect_masks(
+                fcMask,
+                polygons,
+                logger,
+                pool,
+                chunkSize,
+                showProgress,
+                subdivisionResolution,
+                earthRadius,
+            )
+        )
 
         if logger is not None:
             if addEdgeSign and maskType == 'edge':
@@ -278,44 +363,51 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
                 logger.info('  Adding masks to dataset...')
         nTransects = len(transectNames)
         # create a new data array for masks
-        masksVarName = 'transect{}Masks'.format(suffix)
-        dsMasks[masksVarName] = \
-            ((dim, 'nTransects'),
-             numpy.zeros((nPolygons, nTransects), dtype=numpy.int32))
+        masksVarName = f'transect{suffix}Masks'
+        dsMasks[masksVarName] = (
+            (dim, 'nTransects'),
+            numpy.zeros((nPolygons, nTransects), dtype=numpy.int32),
+        )
 
         if addEdgeSign and maskType == 'edge':
-            dsMasks['transectEdgeMaskSigns'] = \
-                ((dim, 'nTransects'),
-                 numpy.zeros((nPolygons, nTransects), dtype=numpy.int32))
+            dsMasks['transectEdgeMaskSigns'] = (
+                (dim, 'nTransects'),
+                numpy.zeros((nPolygons, nTransects), dtype=numpy.int32),
+            )
 
         for index in range(nTransects):
             maskAndDuplicates = masks[index]
             mask = maskAndDuplicates[0:nPolygons]
 
-            mask[duplicatePolygons] = \
-                numpy.logical_or(mask[duplicatePolygons],
-                                 maskAndDuplicates[nPolygons:])
-            dsMasks[masksVarName][:, index] = numpy.array(mask,
-                                                          dtype=numpy.int32)
+            mask[duplicatePolygons] = numpy.logical_or(
+                mask[duplicatePolygons], maskAndDuplicates[nPolygons:]
+            )
+            dsMasks[masksVarName][:, index] = numpy.array(
+                mask, dtype=numpy.int32
+            )
 
             if addEdgeSign and maskType == 'edge':
                 print(transectNames[index])
-                dsMasks['transectEdgeMaskSigns'][:, index] = \
+                dsMasks['transectEdgeMaskSigns'][:, index] = (
                     _compute_edge_sign(dsMesh, mask, shapes[index])
+                )
 
         if 'transectNames' not in dsMasks:
             # create a new data array for mask names
-            dsMasks['transectNames'] = \
-                (('nTransects',), numpy.zeros((nTransects,),
-                                              dtype='|S{}'.format(nChar)))
+            dsMasks['transectNames'] = (
+                ('nTransects',),
+                numpy.zeros((nTransects,), dtype=f'|S{nChar}'),
+            )
 
             for index in range(nTransects):
                 dsMasks['transectNames'][index] = transectNames[index]
 
         for propertyName in properties:
             if propertyName not in dsMasks:
-                dsMasks[propertyName] = (('nTransects',),
-                                         properties[propertyName])
+                dsMasks[propertyName] = (
+                    ('nTransects',),
+                    properties[propertyName],
+                )
     if logger is not None:
         logger.info('  Done.')
 
@@ -323,58 +415,103 @@ def compute_mpas_transect_masks(dsMesh, fcMask, earthRadius,
 
 
 def entry_point_compute_mpas_transect_masks():
-    """ Entry point for ``compute_mpas_transect_masks()``"""
+    """Entry point for ``compute_mpas_transect_masks()``"""
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--mesh_file_name", dest="mesh_file_name",
-                        type=str, required=True,
-                        help="An MPAS mesh file")
-    parser.add_argument("-g", "--geojson_file_name",
-                        dest="geojson_file_name", type=str, required=True,
-                        help="An Geojson file containing transects")
-    parser.add_argument("-o", "--mask_file_name", dest="mask_file_name",
-                        type=str, required=True,
-                        help="An output MPAS transect masks file")
-    parser.add_argument("-t", "--mask_types", nargs='+', dest="mask_types",
-                        type=str,
-                        help="Which type(s) of masks to make: cell, edge or "
-                             "vertex.  Default is cell, edge and vertex.")
-    parser.add_argument("-c", "--chunk_size", dest="chunk_size", type=int,
-                        default=1000,
-                        help="The number of cells, vertices or edges that are "
-                             "processed in one operation")
-    parser.add_argument("--show_progress", dest="show_progress",
-                        action="store_true",
-                        help="Whether to show a progress bar")
-    parser.add_argument("-s", "--subdivision", dest="subdivision", type=float,
-                        help="The maximum resolution (in meters) of segments "
-                             "in a transect.  If a transect is too coarse, it "
-                             "will be subdivided.  Default is no subdivision.")
     parser.add_argument(
-        "--process_count", required=False, dest="process_count", type=int,
-        help="The number of processes to use to compute masks.  The "
-             "default is to use all available cores")
+        '-m',
+        '--mesh_file_name',
+        dest='mesh_file_name',
+        type=str,
+        required=True,
+        help='An MPAS mesh file',
+    )
     parser.add_argument(
-        "--multiprocessing_method", dest="multiprocessing_method",
+        '-g',
+        '--geojson_file_name',
+        dest='geojson_file_name',
+        type=str,
+        required=True,
+        help='An Geojson file containing transects',
+    )
+    parser.add_argument(
+        '-o',
+        '--mask_file_name',
+        dest='mask_file_name',
+        type=str,
+        required=True,
+        help='An output MPAS transect masks file',
+    )
+    parser.add_argument(
+        '-t',
+        '--mask_types',
+        nargs='+',
+        dest='mask_types',
+        type=str,
+        help='Which type(s) of masks to make: cell, edge or '
+        'vertex.  Default is cell, edge and vertex.',
+    )
+    parser.add_argument(
+        '-c',
+        '--chunk_size',
+        dest='chunk_size',
+        type=int,
+        default=1000,
+        help='The number of cells, vertices or edges that are '
+        'processed in one operation',
+    )
+    parser.add_argument(
+        '--show_progress',
+        dest='show_progress',
+        action='store_true',
+        help='Whether to show a progress bar',
+    )
+    parser.add_argument(
+        '-s',
+        '--subdivision',
+        dest='subdivision',
+        type=float,
+        help='The maximum resolution (in meters) of segments '
+        'in a transect.  If a transect is too coarse, it '
+        'will be subdivided.  Default is no subdivision.',
+    )
+    parser.add_argument(
+        '--process_count',
+        required=False,
+        dest='process_count',
+        type=int,
+        help='The number of processes to use to compute masks.  The '
+        'default is to use all available cores',
+    )
+    parser.add_argument(
+        '--multiprocessing_method',
+        dest='multiprocessing_method',
         default='forkserver',
-        help="The multiprocessing method use for python mask creation "
-             "('fork', 'spawn' or 'forkserver')")
-    parser.add_argument("--add_edge_sign", dest="add_edge_sign",
-                        action="store_true",
-                        help="Whether to add the transectEdgeMaskSigns "
-                             "variable")
-    parser.add_argument("--format", dest="format", type=str,
-                        help="NetCDF file format")
-    parser.add_argument("--engine", dest="engine", type=str,
-                        help="NetCDF output engine")
+        help='The multiprocessing method use for python mask creation '
+        "('fork', 'spawn' or 'forkserver')",
+    )
+    parser.add_argument(
+        '--add_edge_sign',
+        dest='add_edge_sign',
+        action='store_true',
+        help='Whether to add the transectEdgeMaskSigns variable',
+    )
+    parser.add_argument(
+        '--format', dest='format', type=str, help='NetCDF file format'
+    )
+    parser.add_argument(
+        '--engine', dest='engine', type=str, help='NetCDF output engine'
+    )
     args = parser.parse_args()
 
-    dsMesh = xr.open_dataset(args.mesh_file_name, decode_cf=False,
-                             decode_times=False)
+    dsMesh = xr.open_dataset(
+        args.mesh_file_name, decode_cf=False, decode_times=False
+    )
     fcMask = read_feature_collection(args.geojson_file_name)
 
-    pool = create_pool(process_count=args.process_count,
-                       method=args.multiprocessing_method)
+    pool = create_pool(
+        process_count=args.process_count, method=args.multiprocessing_method
+    )
 
     if args.mask_types is None:
         args.mask_types = ('cell', 'edge', 'vertex')
@@ -383,18 +520,26 @@ def entry_point_compute_mpas_transect_masks():
 
     with LoggingContext('compute_mpas_transect_masks') as logger:
         dsMasks = compute_mpas_transect_masks(
-            dsMesh=dsMesh, fcMask=fcMask, earthRadius=earth_radius,
-            maskTypes=args.mask_types, logger=logger, pool=pool,
-            chunkSize=args.chunk_size, showProgress=args.show_progress,
+            dsMesh=dsMesh,
+            fcMask=fcMask,
+            earthRadius=earth_radius,
+            maskTypes=args.mask_types,
+            logger=logger,
+            pool=pool,
+            chunkSize=args.chunk_size,
+            showProgress=args.show_progress,
             subdivisionResolution=args.subdivision,
-            addEdgeSign=args.add_edge_sign)
+            addEdgeSign=args.add_edge_sign,
+        )
 
-    write_netcdf(dsMasks, args.mask_file_name, format=args.format,
-                 engine=args.engine)
+    write_netcdf(
+        dsMasks, args.mask_file_name, format=args.format, engine=args.engine
+    )
 
 
-def compute_mpas_flood_fill_mask(dsMesh, fcSeed, daGrow=None, logger=None,
-                                 workers=-1):
+def compute_mpas_flood_fill_mask(
+    dsMesh, fcSeed, daGrow=None, logger=None, workers=-1
+):
     """
     Flood fill from the given set of seed points to create a contiguous mask.
     The flood fill operates using cellsOnCell, starting from the cells
@@ -432,8 +577,9 @@ def compute_mpas_flood_fill_mask(dsMesh, fcSeed, daGrow=None, logger=None,
     lat = numpy.rad2deg(dsMesh.latCell.values)
 
     # transform longitudes to [-180, 180)
-    lon = numpy.mod(numpy.rad2deg(dsMesh.lonCell.values) + 180.,
-                    360.) - 180.
+    lon = (
+        numpy.mod(numpy.rad2deg(dsMesh.lonCell.values) + 180.0, 360.0) - 180.0
+    )
 
     if logger is not None:
         logger.info('  Computing flood fill mask on cells:')
@@ -453,8 +599,10 @@ def compute_mpas_flood_fill_mask(dsMesh, fcSeed, daGrow=None, logger=None,
         logger.info('  Adding masks to dataset...')
     # create a new data array for the mask
     masksVarName = 'cellSeedMask'
-    dsMasks[masksVarName] = (('nCells',), numpy.array(seedMask,
-                                                      dtype=numpy.int32))
+    dsMasks[masksVarName] = (
+        ('nCells',),
+        numpy.array(seedMask, dtype=numpy.int32),
+    )
 
     if logger is not None:
         logger.info('  Done.')
@@ -463,40 +611,67 @@ def compute_mpas_flood_fill_mask(dsMesh, fcSeed, daGrow=None, logger=None,
 
 
 def entry_point_compute_mpas_flood_fill_mask():
-    """ Entry point for ``compute_mpas_flood_fill_mask()``"""
+    """Entry point for ``compute_mpas_flood_fill_mask()``"""
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--mesh_file_name", dest="mesh_file_name",
-                        type=str, required=True,
-                        help="An MPAS mesh file")
-    parser.add_argument("-g", "--geojson_file_name",
-                        dest="geojson_file_name", type=str, required=True,
-                        help="An Geojson file containing points at which to "
-                             "start the flood fill")
-    parser.add_argument("-o", "--mask_file_name", dest="mask_file_name",
-                        type=str, required=True,
-                        help="An output MPAS region masks file")
-    parser.add_argument("--format", dest="format", type=str,
-                        help="NetCDF file format")
-    parser.add_argument("--engine", dest="engine", type=str,
-                        help="NetCDF output engine")
+    parser.add_argument(
+        '-m',
+        '--mesh_file_name',
+        dest='mesh_file_name',
+        type=str,
+        required=True,
+        help='An MPAS mesh file',
+    )
+    parser.add_argument(
+        '-g',
+        '--geojson_file_name',
+        dest='geojson_file_name',
+        type=str,
+        required=True,
+        help='An Geojson file containing points at which to '
+        'start the flood fill',
+    )
+    parser.add_argument(
+        '-o',
+        '--mask_file_name',
+        dest='mask_file_name',
+        type=str,
+        required=True,
+        help='An output MPAS region masks file',
+    )
+    parser.add_argument(
+        '--format', dest='format', type=str, help='NetCDF file format'
+    )
+    parser.add_argument(
+        '--engine', dest='engine', type=str, help='NetCDF output engine'
+    )
     args = parser.parse_args()
 
-    dsMesh = xr.open_dataset(args.mesh_file_name, decode_cf=False,
-                             decode_times=False)
+    dsMesh = xr.open_dataset(
+        args.mesh_file_name, decode_cf=False, decode_times=False
+    )
     fcSeed = read_feature_collection(args.geojson_file_name)
 
     with LoggingContext('compute_mpas_flood_fill_mask') as logger:
         dsMasks = compute_mpas_flood_fill_mask(
-            dsMesh=dsMesh, fcSeed=fcSeed, logger=logger)
+            dsMesh=dsMesh, fcSeed=fcSeed, logger=logger
+        )
 
-    write_netcdf(dsMasks, args.mask_file_name, format=args.format,
-                 engine=args.engine)
+    write_netcdf(
+        dsMasks, args.mask_file_name, format=args.format, engine=args.engine
+    )
 
 
-def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
-                                 chunkSize=1000, showProgress=False,
-                                 subdivisionThreshold=30.):
+def compute_lon_lat_region_masks(
+    lon,
+    lat,
+    fcMask,
+    logger=None,
+    pool=None,
+    chunkSize=1000,
+    showProgress=False,
+    subdivisionThreshold=30.0,
+):
     """
     Use shapely and processes to create a set of masks from a feature
     collection made up of regions (polygons) on a tensor lon/lat grid
@@ -541,7 +716,7 @@ def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
     dsMasks = xr.Dataset()
 
     # make sure lon is between -180 and 180
-    lon = numpy.mod(lon + 180., 360.) - 180.
+    lon = numpy.mod(lon + 180.0, 360.0) - 180.0
 
     Lon, Lat = numpy.meshgrid(lon, lat)
 
@@ -553,8 +728,14 @@ def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
     # create shapely geometry for lon and lat
     points = [shapely.geometry.Point(x, y) for x, y in zip(Lon, Lat)]
     regionNames, masks, properties, nChar = _compute_region_masks(
-        fcMask, points, logger, pool, chunkSize, showProgress,
-        subdivisionThreshold)
+        fcMask,
+        points,
+        logger,
+        pool,
+        chunkSize,
+        showProgress,
+        subdivisionThreshold,
+    )
 
     nlon = len(lon)
     nlat = len(lat)
@@ -564,27 +745,29 @@ def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
     nRegions = len(regionNames)
     # create a new data array for masks
     masksVarName = 'regionMasks'
-    dsMasks[masksVarName] = \
-        (('lat', 'lon', 'nRegions'), numpy.zeros((nlat, nlon, nRegions),
-                                                 dtype=numpy.int32))
+    dsMasks[masksVarName] = (
+        ('lat', 'lon', 'nRegions'),
+        numpy.zeros((nlat, nlon, nRegions), dtype=numpy.int32),
+    )
 
     for index in range(nRegions):
         mask = masks[index]
-        dsMasks[masksVarName][:, :, index] = \
-            numpy.array(mask.reshape(shape), dtype=numpy.int32)
+        dsMasks[masksVarName][:, :, index] = numpy.array(
+            mask.reshape(shape), dtype=numpy.int32
+        )
 
     # create a new data array for mask names
-    dsMasks['regionNames'] = (('nRegions',),
-                              numpy.zeros((nRegions,),
-                                          dtype='|S{}'.format(nChar)))
+    dsMasks['regionNames'] = (
+        ('nRegions',),
+        numpy.zeros((nRegions,), dtype=f'|S{nChar}'),
+    )
 
     for index in range(nRegions):
         dsMasks['regionNames'][index] = regionNames[index]
 
     for propertyName in properties:
         if propertyName not in dsMasks:
-            dsMasks[propertyName] = (('nRegions',),
-                                     properties[propertyName])
+            dsMasks[propertyName] = (('nRegions',), properties[propertyName])
     if logger is not None:
         logger.info('  Done.')
 
@@ -592,72 +775,135 @@ def compute_lon_lat_region_masks(lon, lat, fcMask, logger=None, pool=None,
 
 
 def entry_point_compute_lon_lat_region_masks():
-    """ Entry point for ``compute_lon_lat_region_masks()``"""
+    """Entry point for ``compute_lon_lat_region_masks()``"""
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--grid_file_name", dest="grid_file_name",
-                        type=str, required=True,
-                        help="An input lon/lat grid file")
-    parser.add_argument("--lon", dest="lon", default="lon", type=str,
-                        help="The name of the longitude coordinate")
-    parser.add_argument("--lat", dest="lat", default="lat", type=str,
-                        help="The name of the latitude coordinate")
-    parser.add_argument("-g", "--geojson_file_name",
-                        dest="geojson_file_name", type=str, required=True,
-                        help="An Geojson file containing mask regions")
-    parser.add_argument("-o", "--mask_file_name", dest="mask_file_name",
-                        type=str, required=True,
-                        help="An output MPAS region masks file")
-    parser.add_argument("-c", "--chunk_size", dest="chunk_size", type=int,
-                        default=1000,
-                        help="The number of grid points that are "
-                             "processed in one operation")
-    parser.add_argument("--show_progress", dest="show_progress",
-                        action="store_true",
-                        help="Whether to show a progress bar")
-    parser.add_argument("-s", "--subdivision", dest="subdivision", type=float,
-                        default=30.,
-                        help="A threshold in degrees (lon or lat) above which "
-                             "the mask region will be subdivided into smaller "
-                             "polygons for faster intersection checking")
     parser.add_argument(
-        "--process_count", required=False, dest="process_count", type=int,
-        help="The number of processes to use to compute masks.  The "
-             "default is to use all available cores")
+        '-i',
+        '--grid_file_name',
+        dest='grid_file_name',
+        type=str,
+        required=True,
+        help='An input lon/lat grid file',
+    )
     parser.add_argument(
-        "--multiprocessing_method", dest="multiprocessing_method",
+        '--lon',
+        dest='lon',
+        default='lon',
+        type=str,
+        help='The name of the longitude coordinate',
+    )
+    parser.add_argument(
+        '--lat',
+        dest='lat',
+        default='lat',
+        type=str,
+        help='The name of the latitude coordinate',
+    )
+    parser.add_argument(
+        '-g',
+        '--geojson_file_name',
+        dest='geojson_file_name',
+        type=str,
+        required=True,
+        help='An Geojson file containing mask regions',
+    )
+    parser.add_argument(
+        '-o',
+        '--mask_file_name',
+        dest='mask_file_name',
+        type=str,
+        required=True,
+        help='An output MPAS region masks file',
+    )
+    parser.add_argument(
+        '-c',
+        '--chunk_size',
+        dest='chunk_size',
+        type=int,
+        default=1000,
+        help='The number of grid points that are processed in one operation',
+    )
+    parser.add_argument(
+        '--show_progress',
+        dest='show_progress',
+        action='store_true',
+        help='Whether to show a progress bar',
+    )
+    parser.add_argument(
+        '-s',
+        '--subdivision',
+        dest='subdivision',
+        type=float,
+        default=30.0,
+        help='A threshold in degrees (lon or lat) above which '
+        'the mask region will be subdivided into smaller '
+        'polygons for faster intersection checking',
+    )
+    parser.add_argument(
+        '--process_count',
+        required=False,
+        dest='process_count',
+        type=int,
+        help='The number of processes to use to compute masks.  The '
+        'default is to use all available cores',
+    )
+    parser.add_argument(
+        '--multiprocessing_method',
+        dest='multiprocessing_method',
         default='forkserver',
-        help="The multiprocessing method use for python mask creation "
-             "('fork', 'spawn' or 'forkserver')")
-    parser.add_argument("--format", dest="format", type=str,
-                        help="NetCDF file format")
-    parser.add_argument("--engine", dest="engine", type=str,
-                        help="NetCDF output engine")
+        help='The multiprocessing method use for python mask creation '
+        "('fork', 'spawn' or 'forkserver')",
+    )
+    parser.add_argument(
+        '--format', dest='format', type=str, help='NetCDF file format'
+    )
+    parser.add_argument(
+        '--engine', dest='engine', type=str, help='NetCDF output engine'
+    )
     args = parser.parse_args()
 
-    dsGrid = xr.open_dataset(args.grid_file_name, decode_cf=False,
-                             decode_times=False)
+    dsGrid = xr.open_dataset(
+        args.grid_file_name, decode_cf=False, decode_times=False
+    )
     lon = dsGrid[args.lon].values
     lat = dsGrid[args.lat].values
 
     fcMask = read_feature_collection(args.geojson_file_name)
 
-    pool = create_pool(process_count=args.process_count,
-                       method=args.multiprocessing_method)
+    pool = create_pool(
+        process_count=args.process_count, method=args.multiprocessing_method
+    )
 
     with LoggingContext('compute_lon_lat_region_masks') as logger:
         dsMasks = compute_lon_lat_region_masks(
-            lon=lon, lat=lat, fcMask=fcMask, logger=logger, pool=pool,
-            chunkSize=args.chunk_size, showProgress=args.show_progress,
-            subdivisionThreshold=args.subdivision)
+            lon=lon,
+            lat=lat,
+            fcMask=fcMask,
+            logger=logger,
+            pool=pool,
+            chunkSize=args.chunk_size,
+            showProgress=args.show_progress,
+            subdivisionThreshold=args.subdivision,
+        )
 
-    write_netcdf(dsMasks, args.mask_file_name, format=args.format,
-                 engine=args.engine)
+    write_netcdf(
+        dsMasks, args.mask_file_name, format=args.format, engine=args.engine
+    )
 
 
 def compute_projection_grid_region_masks(
-        lon, lat, fcMask, logger=None, pool=None, chunkSize=1000,
-        showProgress=False, subdivisionThreshold=30., xdim='x', ydim='y'):
+    lon,
+    lat,
+    fcMask,
+    logger=None,
+    pool=None,
+    chunkSize=1000,
+    showProgress=False,
+    subdivisionThreshold=30.0,
+    xdim='x',
+    ydim='y',
+):
     """
     Use shapely and processes to create a set of masks from a feature
     collection made up of regions (polygons) on a projection grid such as
@@ -709,43 +955,52 @@ def compute_projection_grid_region_masks(
     dsMasks = xr.Dataset()
 
     # make sure -180 <= lon < 180
-    lon = numpy.mod(lon + 180., 360.) - 180.
+    lon = numpy.mod(lon + 180.0, 360.0) - 180.0
 
     ny, nx = lon.shape
 
     # create shapely geometry for lon and lat
-    points = [shapely.geometry.Point(x, y) for x, y in
-              zip(lon.ravel(), lat.ravel())]
+    points = [
+        shapely.geometry.Point(x, y) for x, y in zip(lon.ravel(), lat.ravel())
+    ]
     regionNames, masks, properties, nChar = _compute_region_masks(
-        fcMask, points, logger, pool, chunkSize, showProgress,
-        subdivisionThreshold)
+        fcMask,
+        points,
+        logger,
+        pool,
+        chunkSize,
+        showProgress,
+        subdivisionThreshold,
+    )
 
     if logger is not None:
         logger.info('  Adding masks to dataset...')
     nRegions = len(regionNames)
     # create a new data array for masks
     masksVarName = 'regionMasks'
-    dsMasks[masksVarName] = \
-        ((ydim, xdim, 'nRegions'), numpy.zeros((ny, nx, nRegions),
-                                               dtype=numpy.int32))
+    dsMasks[masksVarName] = (
+        (ydim, xdim, 'nRegions'),
+        numpy.zeros((ny, nx, nRegions), dtype=numpy.int32),
+    )
 
     for index in range(nRegions):
         mask = masks[index]
-        dsMasks[masksVarName][:, :, index] = \
-            numpy.array(mask.reshape((ny, nx)), dtype=numpy.int32)
+        dsMasks[masksVarName][:, :, index] = numpy.array(
+            mask.reshape((ny, nx)), dtype=numpy.int32
+        )
 
     # create a new data array for mask names
-    dsMasks['regionNames'] = (('nRegions',),
-                              numpy.zeros((nRegions,),
-                                          dtype='|S{}'.format(nChar)))
+    dsMasks['regionNames'] = (
+        ('nRegions',),
+        numpy.zeros((nRegions,), dtype=f'|S{nChar}'),
+    )
 
     for index in range(nRegions):
         dsMasks['regionNames'][index] = regionNames[index]
 
     for propertyName in properties:
         if propertyName not in dsMasks:
-            dsMasks[propertyName] = (('nRegions',),
-                                     properties[propertyName])
+            dsMasks[propertyName] = (('nRegions',), properties[propertyName])
     if logger is not None:
         logger.info('  Done.')
 
@@ -753,51 +1008,97 @@ def compute_projection_grid_region_masks(
 
 
 def entry_point_compute_projection_grid_region_masks():
-    """ Entry point for ``compute_projection_grid_region_masks()``"""
+    """Entry point for ``compute_projection_grid_region_masks()``"""
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-i", "--grid_file_name", dest="grid_file_name",
-                        type=str, required=True,
-                        help="An input lon/lat grid file")
-    parser.add_argument("--lon", dest="lon", default="lon", type=str,
-                        help="The name of the 2D longitude coordinate")
-    parser.add_argument("--lat", dest="lat", default="lat", type=str,
-                        help="The name of the 2D latitude coordinate")
-    parser.add_argument("-g", "--geojson_file_name",
-                        dest="geojson_file_name", type=str, required=True,
-                        help="An Geojson file containing mask regions")
-    parser.add_argument("-o", "--mask_file_name", dest="mask_file_name",
-                        type=str, required=True,
-                        help="An output MPAS region masks file")
-    parser.add_argument("-c", "--chunk_size", dest="chunk_size", type=int,
-                        default=1000,
-                        help="The number of grid points that are "
-                             "processed in one operation")
-    parser.add_argument("--show_progress", dest="show_progress",
-                        action="store_true",
-                        help="Whether to show a progress bar")
-    parser.add_argument("-s", "--subdivision", dest="subdivision", type=float,
-                        default=30.,
-                        help="A threshold in degrees (lon or lat) above which "
-                             "the mask region will be subdivided into smaller "
-                             "polygons for faster intersection checking")
     parser.add_argument(
-        "--process_count", required=False, dest="process_count", type=int,
-        help="The number of processes to use to compute masks.  The "
-             "default is to use all available cores")
+        '-i',
+        '--grid_file_name',
+        dest='grid_file_name',
+        type=str,
+        required=True,
+        help='An input lon/lat grid file',
+    )
     parser.add_argument(
-        "--multiprocessing_method", dest="multiprocessing_method",
+        '--lon',
+        dest='lon',
+        default='lon',
+        type=str,
+        help='The name of the 2D longitude coordinate',
+    )
+    parser.add_argument(
+        '--lat',
+        dest='lat',
+        default='lat',
+        type=str,
+        help='The name of the 2D latitude coordinate',
+    )
+    parser.add_argument(
+        '-g',
+        '--geojson_file_name',
+        dest='geojson_file_name',
+        type=str,
+        required=True,
+        help='An Geojson file containing mask regions',
+    )
+    parser.add_argument(
+        '-o',
+        '--mask_file_name',
+        dest='mask_file_name',
+        type=str,
+        required=True,
+        help='An output MPAS region masks file',
+    )
+    parser.add_argument(
+        '-c',
+        '--chunk_size',
+        dest='chunk_size',
+        type=int,
+        default=1000,
+        help='The number of grid points that are processed in one operation',
+    )
+    parser.add_argument(
+        '--show_progress',
+        dest='show_progress',
+        action='store_true',
+        help='Whether to show a progress bar',
+    )
+    parser.add_argument(
+        '-s',
+        '--subdivision',
+        dest='subdivision',
+        type=float,
+        default=30.0,
+        help='A threshold in degrees (lon or lat) above which '
+        'the mask region will be subdivided into smaller '
+        'polygons for faster intersection checking',
+    )
+    parser.add_argument(
+        '--process_count',
+        required=False,
+        dest='process_count',
+        type=int,
+        help='The number of processes to use to compute masks.  The '
+        'default is to use all available cores',
+    )
+    parser.add_argument(
+        '--multiprocessing_method',
+        dest='multiprocessing_method',
         default='forkserver',
-        help="The multiprocessing method use for python mask creation "
-             "('fork', 'spawn' or 'forkserver')")
-    parser.add_argument("--format", dest="format", type=str,
-                        help="NetCDF file format")
-    parser.add_argument("--engine", dest="engine", type=str,
-                        help="NetCDF output engine")
+        help='The multiprocessing method use for python mask creation '
+        "('fork', 'spawn' or 'forkserver')",
+    )
+    parser.add_argument(
+        '--format', dest='format', type=str, help='NetCDF file format'
+    )
+    parser.add_argument(
+        '--engine', dest='engine', type=str, help='NetCDF output engine'
+    )
     args = parser.parse_args()
 
-    dsGrid = xr.open_dataset(args.grid_file_name, decode_cf=False,
-                             decode_times=False)
+    dsGrid = xr.open_dataset(
+        args.grid_file_name, decode_cf=False, decode_times=False
+    )
     lon = dsGrid[args.lon]
     lat = dsGrid[args.lat]
 
@@ -805,22 +1106,32 @@ def entry_point_compute_projection_grid_region_masks():
 
     fcMask = read_feature_collection(args.geojson_file_name)
 
-    pool = create_pool(process_count=args.process_count,
-                       method=args.multiprocessing_method)
+    pool = create_pool(
+        process_count=args.process_count, method=args.multiprocessing_method
+    )
 
     with LoggingContext('compute_lon_lat_region_masks') as logger:
         dsMasks = compute_projection_grid_region_masks(
-            lon=lon.values, lat=lat.values, fcMask=fcMask, logger=logger,
-            pool=pool, chunkSize=args.chunk_size,
+            lon=lon.values,
+            lat=lat.values,
+            fcMask=fcMask,
+            logger=logger,
+            pool=pool,
+            chunkSize=args.chunk_size,
             showProgress=args.show_progress,
-            subdivisionThreshold=args.subdivision, xdim=xdim, ydim=ydim)
+            subdivisionThreshold=args.subdivision,
+            xdim=xdim,
+            ydim=ydim,
+        )
 
-    write_netcdf(dsMasks, args.mask_file_name, format=args.format,
-                 engine=args.engine)
+    write_netcdf(
+        dsMasks, args.mask_file_name, format=args.format, engine=args.engine
+    )
 
 
-def _compute_mask_from_shapes(shapes1, shapes2, func, pool, chunkSize,
-                              showProgress):
+def _compute_mask_from_shapes(
+    shapes1, shapes2, func, pool, chunkSize, showProgress
+):
     """
     If multiprocessing, break shapes2 into chunks and use multiprocessing to
     apply the given function one chunk at a time
@@ -840,17 +1151,23 @@ def _compute_mask_from_shapes(shapes1, shapes2, func, pool, chunkSize,
 
         partial_func = partial(func, shapes1)
         if showProgress:
-            widgets = ['    ', progressbar.Percentage(), ' ',
-                       progressbar.Bar(), ' ', progressbar.ETA()]
-            bar = progressbar.ProgressBar(widgets=widgets,
-                                          maxval=nChunks).start()
+            widgets = [
+                '    ',
+                progressbar.Percentage(),
+                ' ',
+                progressbar.Bar(),
+                ' ',
+                progressbar.ETA(),
+            ]
+            bar = progressbar.ProgressBar(
+                widgets=widgets, maxval=nChunks
+            ).start()
         else:
             bar = None
 
         mask = numpy.zeros((nShapes2,), bool)
-        for iChunk, maskChunk in \
-                enumerate(pool.imap(partial_func, chunks)):
-            mask[indices[iChunk]:indices[iChunk + 1]] = maskChunk
+        for iChunk, maskChunk in enumerate(pool.imap(partial_func, chunks)):
+            mask[indices[iChunk] : indices[iChunk + 1]] = maskChunk
             if showProgress:
                 bar.update(iChunk + 1)
         if showProgress:
@@ -867,8 +1184,13 @@ def _get_region_names_and_properties(fc):
     propertyNames = set()
     for feature in fc.features:
         for propertyName in feature['properties']:
-            if propertyName not in ['name', 'author', 'tags', 'component',
-                                    'object']:
+            if propertyName not in [
+                'name',
+                'author',
+                'tags',
+                'component',
+                'object',
+            ]:
                 propertyNames.add(propertyName)
 
     properties = {}
@@ -884,8 +1206,9 @@ def _get_region_names_and_properties(fc):
     return regionNames, properties
 
 
-def _compute_region_masks(fcMask, points, logger, pool, chunkSize,
-                          showProgress, threshold):
+def _compute_region_masks(
+    fcMask, points, logger, pool, chunkSize, showProgress, threshold
+):
     """
     Build a region mask file from the given mesh and geojson file defining
     a set of regions.
@@ -900,14 +1223,19 @@ def _compute_region_masks(fcMask, points, logger, pool, chunkSize,
         name = feature['properties']['name']
 
         if logger is not None:
-            logger.info('    {}'.format(name))
+            logger.info(f'    {name}')
 
         shape = shapely.geometry.shape(feature['geometry'])
         shapes = _katana(shape, threshold=threshold)
 
         mask = _compute_mask_from_shapes(
-            shapes1=shapes, shapes2=points, func=_contains,
-            pool=pool, chunkSize=chunkSize, showProgress=showProgress)
+            shapes1=shapes,
+            shapes2=points,
+            func=_contains,
+            pool=pool,
+            chunkSize=chunkSize,
+            showProgress=showProgress,
+        )
 
         nChar = max(nChar, len(name))
 
@@ -965,14 +1293,17 @@ def _katana(geometry, threshold, count=0, maxcount=250):
         return [geometry]
     if height >= width:
         # split left to right
-        a = box(bounds[0], bounds[1], bounds[2], bounds[1]+height/2)
-        b = box(bounds[0], bounds[1]+height/2, bounds[2], bounds[3])
+        a = box(bounds[0], bounds[1], bounds[2], bounds[1] + height / 2)
+        b = box(bounds[0], bounds[1] + height / 2, bounds[2], bounds[3])
     else:
         # split top to bottom
-        a = box(bounds[0], bounds[1], bounds[0]+width/2, bounds[3])
-        b = box(bounds[0]+width/2, bounds[1], bounds[2], bounds[3])
+        a = box(bounds[0], bounds[1], bounds[0] + width / 2, bounds[3])
+        b = box(bounds[0] + width / 2, bounds[1], bounds[2], bounds[3])
     result = []
-    for d in (a, b,):
+    for d in (
+        a,
+        b,
+    ):
         c = geometry.intersection(d)
         if isinstance(c, GeometryCollection):
             c = c.geoms
@@ -980,7 +1311,7 @@ def _katana(geometry, threshold, count=0, maxcount=250):
             c = [c]
         for e in c:
             if isinstance(e, (Polygon, MultiPolygon)):
-                result.extend(_katana(e, threshold, count+1, maxcount))
+                result.extend(_katana(e, threshold, count + 1, maxcount))
     if count > 0:
         return result
     # convert multipart into singlepart
@@ -993,8 +1324,16 @@ def _katana(geometry, threshold, count=0, maxcount=250):
     return final_result
 
 
-def _compute_transect_masks(fcMask, polygons, logger, pool, chunkSize,
-                            showProgress, subdivisionResolution, earthRadius):
+def _compute_transect_masks(
+    fcMask,
+    polygons,
+    logger,
+    pool,
+    chunkSize,
+    showProgress,
+    subdivisionResolution,
+    earthRadius,
+):
     """
     Build a transect mask file from the given mesh and geojson file defining
     a set of transects.
@@ -1010,7 +1349,7 @@ def _compute_transect_masks(fcMask, polygons, logger, pool, chunkSize,
         name = feature['properties']['name']
 
         if logger is not None:
-            logger.info('    {}'.format(name))
+            logger.info(f'    {name}')
 
         geom_type = feature['geometry']['type']
         if geom_type == 'LineString':
@@ -1018,21 +1357,23 @@ def _compute_transect_masks(fcMask, polygons, logger, pool, chunkSize,
         elif geom_type == 'MultiLineString':
             coordinates = feature['geometry']['coordinates']
         else:
-            raise ValueError('Unexpected geometry type {}'.format(geom_type))
+            raise ValueError(f'Unexpected geometry type {geom_type}')
 
         new_coords = []
-        for coord_index, coords in enumerate(coordinates):
-
+        for coords in coordinates:
             if subdivisionResolution is None:
                 new_coords.append(coords)
             else:
                 lon, lat = zip(*coords)
                 x, y, z = lon_lat_to_cartesian(
-                    lon, lat, earthRadius, degrees=True)
+                    lon, lat, earthRadius, degrees=True
+                )
                 x, y, z, _, _ = subdivide_great_circle(
-                    x, y, z, subdivisionResolution, earthRadius)
+                    x, y, z, subdivisionResolution, earthRadius
+                )
                 lon, lat = cartesian_to_lon_lat(
-                    x, y, z, earthRadius, degrees=True)
+                    x, y, z, earthRadius, degrees=True
+                )
                 new_coords.append([list(a) for a in zip(lon, lat)])
 
         if geom_type == 'LineString':
@@ -1041,8 +1382,13 @@ def _compute_transect_masks(fcMask, polygons, logger, pool, chunkSize,
             shape = shapely.geometry.MultiLineString(new_coords)
 
         mask = _compute_mask_from_shapes(
-            shapes1=shape, shapes2=polygons, func=_intersects,
-            pool=pool, chunkSize=chunkSize, showProgress=showProgress)
+            shapes1=shape,
+            shapes2=polygons,
+            func=_intersects,
+            pool=pool,
+            chunkSize=chunkSize,
+            showProgress=showProgress,
+        )
 
         nChar = max(nChar, len(name))
 
@@ -1069,8 +1415,9 @@ def _get_polygons(dsMesh, maskType):
         for iVertex in range(maxVertices):
             mask = iVertex >= nVerticesOnCell
             # copy the last valid vertex
-            vertexIndices[mask, iVertex] = \
-                vertexIndices[mask, nVerticesOnCell[mask]-1]
+            vertexIndices[mask, iVertex] = vertexIndices[
+                mask, nVerticesOnCell[mask] - 1
+            ]
         lonVertex = dsMesh.lonVertex.values
         latVertex = dsMesh.latVertex.values
         lonCenter = dsMesh.lonCell.values
@@ -1111,28 +1458,31 @@ def _get_polygons(dsMesh, maskType):
         mask = vertexIndices[:, 2] < 0
         vertexIndices[mask, 2] = vertexIndices[mask, 3]
 
-        lonVertex = numpy.append(dsMesh.lonCell.values,
-                                 dsMesh.lonVertex.values)
-        latVertex = numpy.append(dsMesh.latCell.values,
-                                 dsMesh.latVertex.values)
+        lonVertex = numpy.append(
+            dsMesh.lonCell.values, dsMesh.lonVertex.values
+        )
+        latVertex = numpy.append(
+            dsMesh.latCell.values, dsMesh.latVertex.values
+        )
 
         lonCenter = dsMesh.lonEdge.values
 
     else:
-        raise ValueError('Unknown mask type {}'.format(maskType))
+        raise ValueError(f'Unknown mask type {maskType}')
 
     assert numpy.all(vertexIndices >= 0)
 
     latVertex = numpy.rad2deg(latVertex)
     # transform longitudes to [-180, 180)
-    lonVertex = numpy.mod(numpy.rad2deg(lonVertex) + 180., 360.) - 180.
-    lonCenter = numpy.mod(numpy.rad2deg(lonCenter) + 180., 360.) - 180.
+    lonVertex = numpy.mod(numpy.rad2deg(lonVertex) + 180.0, 360.0) - 180.0
+    lonCenter = numpy.mod(numpy.rad2deg(lonCenter) + 180.0, 360.0) - 180.0
 
     lon = lonVertex[vertexIndices]
     lat = latVertex[vertexIndices]
 
-    lon, lat, duplicatePolygons = _copy_dateline_lon_lat_vertices(lon, lat,
-                                                                  lonCenter)
+    lon, lat, duplicatePolygons = _copy_dateline_lon_lat_vertices(
+        lon, lat, lonCenter
+    )
 
     nPolygons = len(lonCenter)
 
@@ -1145,34 +1495,34 @@ def _get_polygons(dsMesh, maskType):
 
 
 def _copy_dateline_lon_lat_vertices(lonVertex, latVertex, lonCenter):
-
     nPolygons, _ = lonVertex.shape
 
     lonDiff = lonVertex - lonCenter.reshape(nPolygons, 1)
 
     # which polygons have vertices that are out of range to the west?
-    outOfRange = lonDiff < -180.
+    outOfRange = lonDiff < -180.0
     duplicatePolygonsEast = numpy.flatnonzero(numpy.any(outOfRange, axis=1))
-    lonVertex[outOfRange] += 360.
-    lonVertexToAdd = lonVertex[duplicatePolygonsEast, :] - 360.
+    lonVertex[outOfRange] += 360.0
+    lonVertexToAdd = lonVertex[duplicatePolygonsEast, :] - 360.0
     latVertexToAdd = latVertex[duplicatePolygonsEast, :]
 
     # which polygons have vertices that are out of range to the east?
-    outOfRange = lonDiff >= 180.
+    outOfRange = lonDiff >= 180.0
     duplicatePolygonsWest = numpy.flatnonzero(numpy.any(outOfRange, axis=1))
-    lonVertex[outOfRange] -= 360.
-    lonVertexToAdd = numpy.append(lonVertexToAdd,
-                                  lonVertex[duplicatePolygonsWest, :] + 360.,
-                                  axis=0)
-    latVertexToAdd = numpy.append(latVertexToAdd,
-                                  latVertex[duplicatePolygonsWest, :],
-                                  axis=0)
+    lonVertex[outOfRange] -= 360.0
+    lonVertexToAdd = numpy.append(
+        lonVertexToAdd, lonVertex[duplicatePolygonsWest, :] + 360.0, axis=0
+    )
+    latVertexToAdd = numpy.append(
+        latVertexToAdd, latVertex[duplicatePolygonsWest, :], axis=0
+    )
 
     lonVertex = numpy.append(lonVertex, lonVertexToAdd, axis=0)
     latVertex = numpy.append(latVertex, latVertexToAdd, axis=0)
 
-    duplicatePolygons = numpy.append(duplicatePolygonsEast,
-                                     duplicatePolygonsWest)
+    duplicatePolygons = numpy.append(
+        duplicatePolygonsEast, duplicatePolygonsWest
+    )
 
     # TODO: we still need to do something about cells that contain the poles
 
@@ -1217,8 +1567,9 @@ def _flood_fill_mask(seedMask, growMask, cellsOnCell):
             # we only want to mask valid neighbors, locations that aren't
             # already masked, and locations that we're allowed to flood
             indices = indices[indices >= 0]
-            localMask = numpy.logical_and(seedMask[indices] == 0,
-                                          growMask[indices] == 1)
+            localMask = numpy.logical_and(
+                seedMask[indices] == 0, growMask[indices] == 1
+            )
             maskCount += numpy.count_nonzero(localMask)
             indices = indices[localMask]
             seedMask[indices] = 1
@@ -1230,27 +1581,29 @@ def _flood_fill_mask(seedMask, growMask, cellsOnCell):
 
 
 def _compute_edge_sign(dsMesh, edgeMask, shape):
-    """ Compute the edge sign along a transect """
+    """Compute the edge sign along a transect"""
 
     edge_indices = numpy.flatnonzero(edgeMask)
     voe = dsMesh.verticesOnEdge.isel(nEdges=edge_indices).values - 1
 
     lon = numpy.rad2deg(dsMesh.lonVertex.values[voe])
-    lon = numpy.mod(lon + 180., 360.) - 180.
+    lon = numpy.mod(lon + 180.0, 360.0) - 180.0
     lat = numpy.rad2deg(dsMesh.latVertex.values[voe])
 
     lonEdge = numpy.rad2deg(dsMesh.lonEdge.values[edge_indices])
-    lonEdge = numpy.mod(lonEdge + 180., 360.) - 180.
+    lonEdge = numpy.mod(lonEdge + 180.0, 360.0) - 180.0
 
-    lon, lat, duplicate_edges = \
-        _copy_dateline_lon_lat_vertices(lon, lat, lonEdge)
+    lon, lat, duplicate_edges = _copy_dateline_lon_lat_vertices(
+        lon, lat, lonEdge
+    )
 
     nEdges = dsMesh.sizes['nEdges']
     nVertices = dsMesh.sizes['nVertices']
 
     # give periodic copies unique edge and vertex indices
-    edge_indices = numpy.append(edge_indices,
-                                edge_indices[duplicate_edges] + nEdges)
+    edge_indices = numpy.append(
+        edge_indices, edge_indices[duplicate_edges] + nEdges
+    )
 
     voe = numpy.append(voe, voe[duplicate_edges, :] + nVertices, axis=0)
 
@@ -1271,8 +1624,9 @@ def _compute_edge_sign(dsMesh, edgeMask, shape):
 
         local_voe[local_mask] = local_v
 
-    graph = Graph(n=len(unique_vertices),
-                  edges=zip(local_voe[:, 0], local_voe[:, 1]))
+    graph = Graph(
+        n=len(unique_vertices), edges=zip(local_voe[:, 0], local_voe[:, 1])
+    )
     graph.vs['distance'] = distance
     graph.vs['lon'] = unique_lon
     graph.vs['lat'] = unique_lat
@@ -1296,27 +1650,29 @@ def _compute_edge_sign(dsMesh, edgeMask, shape):
         else:
             start = numpy.argmin(distance)
             end = numpy.argmax(distance)
-            indices = \
-                cluster.get_shortest_paths(v=start, to=end, output='epath')[0]
+            indices = cluster.get_shortest_paths(
+                v=start, to=end, output='epath'
+            )[0]
             edges = cluster.es.select(indices)
             if len(edges) == 1:
                 edge = edges[0]
-                if edge.source_vertex['distance'] < \
-                        edge.target_vertex['distance']:
+                if (
+                    edge.source_vertex['distance']
+                    < edge.target_vertex['distance']
+                ):
                     sign = [1]
                 else:
                     sign = [-1]
             else:
                 verts = numpy.array(edges['vertices'])
                 sign = numpy.zeros(len(indices), dtype=numpy.int32)
-                for index in range(len(indices)-1):
-                    if verts[index, 1] in verts[index+1, :]:
+                for index in range(len(indices) - 1):
+                    if verts[index, 1] in verts[index + 1, :]:
                         sign[index] = 1
-                    elif verts[index, 0] in verts[index+1, :]:
+                    elif verts[index, 0] in verts[index + 1, :]:
                         sign[index] = -1
                     else:
-                        raise ValueError('could not find vertex '
-                                         '{}'.format(index))
+                        raise ValueError(f'could not find vertex {index}')
 
                 if verts[-1, 0] in verts[-2, :]:
                     sign[-1] = 1
