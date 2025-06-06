@@ -24,6 +24,9 @@ authors:
   - given-names: Mark
     family-names: Petersen
     orcid: 'https://orcid.org/0000-0001-7170-7511'
+  - given-names: William
+    family-names: Skamarock
+    orcid: 'https://orcid.org/0000-0002-6667-2446'
   - orcid: 'https://orcid.org/0000-0001-5971-4241'
     given-names: Phillip
     family-names: Wolfram
@@ -49,13 +52,13 @@ authors:
     orcid: 'https://orcid.org/0000-0001-6878-2553'
   - given-names: Tong
     family-names: Zhang
+  - given-names: Althea
+    family-names: Denlinger
   - given-names: Darren
     family-names: Engwirda
     orcid: 'https://orcid.org/0000-0002-3379-9109'
   - given-names: Alex
     family-names: Hager
-  - given-names: Althea
-    family-names: Denlinger
   - orcid: 'https://orcid.org/0000-0001-9828-1741'
     given-names: Carolyn
     family-names: Begeman
@@ -64,6 +67,8 @@ authors:
     orcid: 'https://orcid.org/0000-0002-9785-0196'
   - family-names: Saenz
     given-names: Juan
+  - given-names: Maciej
+    family-names: Waruszewski
   - given-names: Dominikus
     family-names: Heinzeller
     orcid: 'https://orcid.org/0000-0003-2962-1049'
@@ -71,6 +76,6 @@ authors:
     family-names: Smith
 repository-code: 'https://github.com/MPAS-Dev/MPAS-Tools'
 url: 'https://mpas-dev.github.io/MPAS-Tools/master/'
-version: 0.36.0
-date-released: '2024-11-13'
+version: 1.2.0
+date-released: '2025-06-06'
 
