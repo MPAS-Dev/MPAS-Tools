@@ -2,6 +2,7 @@ import os
 import subprocess
 import sys
 from datetime import datetime
+from pathlib import Path
 
 import netCDF4
 import numpy
@@ -121,8 +122,10 @@ def write_netcdf(
     convert = format == 'NETCDF3_64BIT_DATA'
 
     if convert:
-        basename, extension = os.path.splitext(fileName)
-        out_filename = f'{basename}.netcdf4{extension}'
+        out_path = Path(fileName)
+        out_filename = (
+            out_path.parent / f'_tmp_{out_path.stem}.netcdf4{out_path.suffix}'
+        )
         format = 'NETCDF4'
         if engine == 'scipy':
             # that's not going to work
@@ -151,6 +154,8 @@ def write_netcdf(
             )
         else:
             check_call(args, logger=logger)
+        # delete the temporary NETCDF4 file
+        os.remove(out_filename)
 
 
 def update_history(ds):

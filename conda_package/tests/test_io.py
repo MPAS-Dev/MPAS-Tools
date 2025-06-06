@@ -43,10 +43,52 @@ def test_write_netcdf_cdf5_format(tmp_path):
     )
     # Should be cdf5 for NETCDF3_64BIT_DATA
     assert result.stdout.strip() == 'cdf5'
+    # Check that the temporary file was deleted
+    tmp_file = (
+        out_file.parent / f'_tmp_{out_file.stem}.netcdf4{out_file.suffix}'
+    )
+    assert not os.path.exists(tmp_file)
 
 
 def test_write_netcdf_int64_conversion_and_attr(tmp_path):
     # Create a dataset with int64 variable and an attribute
+    arr = np.array([1, 2, 3], dtype=np.int64)
+    ds = xr.Dataset({'foo': (('x',), arr)})
+    ds['foo'].attrs['myattr'] = 'testattr'
+    out_file = tmp_path / 'test_int64.nc'
+    write_netcdf(ds, str(out_file))
+    ds2 = xr.open_dataset(out_file)
+    # Should be int32, not int64
+    assert ds2['foo'].dtype == np.int32
+    # Attribute should be preserved
+    assert ds2['foo'].attrs['myattr'] == 'testattr'
+    ds2.close()
+
+
+def test_write_netcdf_fill_value(tmp_path):
+    # Test that NaN values are written with correct fill value
+    arr = np.array([1.0, np.nan, 3.0], dtype=np.float32)
+    ds = xr.Dataset({'bar': (('x',), arr)})
+    out_file = tmp_path / 'test_fill.nc'
+    write_netcdf(ds, str(out_file))
+    ds2 = xr.open_dataset(out_file)
+    # The second value should be the default fill value for float32
+    fill_value = ds2['bar'].encoding.get('_FillValue', None)
+    assert fill_value is not None
+    assert np.isnan(ds2['bar'].values[1])
+    ds2.close()
+
+
+def test_write_netcdf_string_dim_name(tmp_path):
+    # Test that custom char_dim_name is used in encoding
+    arr = np.array([b'abc', b'def'])
+    ds = xr.Dataset({'baz': (('x',), arr)})
+    out_file = tmp_path / 'test_strdim.nc'
+    write_netcdf(ds, str(out_file), char_dim_name='CustomStrLen')
+    ds2 = xr.open_dataset(out_file)
+    # Should have the variable and correct shape
+    assert 'baz' in ds2.variables
+    ds2.close()
     arr = np.array([1, 2, 3], dtype=np.int64)
     ds = xr.Dataset({'foo': (('x',), arr)})
     ds['foo'].attrs['myattr'] = 'testattr'
