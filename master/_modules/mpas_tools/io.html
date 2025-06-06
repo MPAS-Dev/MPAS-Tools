@@ -48,6 +48,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../io.html">I/O Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../vector.html">Vector Operations</a></li>
@@ -119,14 +120,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.io</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
-    <span class="n">unicode_literals</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">netCDF4</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">netCDF4</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_call</span>
 
 <span class="n">default_format</span> <span class="o">=</span> <span class="s1">&#39;NETCDF3_64BIT&#39;</span>
 <span class="n">default_engine</span> <span class="o">=</span> <span class="kc">None</span>
@@ -136,12 +139,28 @@
 
 <div class="viewcode-block" id="write_netcdf">
 <a class="viewcode-back" href="../../generated/mpas_tools.io.write_netcdf.html#mpas_tools.io.write_netcdf">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">write_netcdf</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">fillValues</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">char_dim_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_netcdf</span><span class="p">(</span>
+    <span class="n">ds</span><span class="p">,</span>
+    <span class="n">fileName</span><span class="p">,</span>
+    <span class="n">fillValues</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="nb">format</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">char_dim_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write an xarray.Dataset to a file with NetCDF4 fill values and the given</span>
 <span class="sd">    name of the string dimension.  Also adds the time and command-line to the</span>
 <span class="sd">    history attribute.</span>
+
+<span class="sd">    Note: the ``NETCDF3_64BIT_DATA`` format is handled as a special case</span>
+<span class="sd">    because xarray output with this format is not performant. First, the file</span>
+<span class="sd">    is written in `NETCDF4` format, which supports larger files and variables.</span>
+<span class="sd">    Then, the `ncks` command is used to convert the file to the</span>
+<span class="sd">    `NETCDF3_64BIT_DATA` format.</span>
+
+<span class="sd">    Note: All int64 variables are automatically converted to int32 for MPAS</span>
+<span class="sd">    compatibility.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -173,7 +192,11 @@
 <span class="sd">        ``mpas_tools.io.default_char_dim_name``, which can be modified but</span>
 <span class="sd">        which defaults to ``&#39;StrLen&#39;``</span>
 
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger to write messages to write the output of `ncks` conversion</span>
+<span class="sd">        calls to.  If None, `ncks` output is suppressed.  This is only</span>
+<span class="sd">        relevant if `format` is &#39;NETCDF3_64BIT_DATA&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
     <span class="k">if</span> <span class="nb">format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">format</span> <span class="o">=</span> <span class="n">default_format</span>
 
@@ -186,6 +209,13 @@
     <span class="k">if</span> <span class="n">char_dim_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">char_dim_name</span> <span class="o">=</span> <span class="n">default_char_dim_name</span>
 
+    <span class="c1"># Convert int64 variables to int32 for MPAS compatibility</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">data_vars</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="n">ds</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">ds</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+            <span class="n">ds</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="n">attrs</span>
+
     <span class="n">encodingDict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">variableNames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">data_vars</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="k">for</span> <span class="n">variableName</span> <span class="ow">in</span> <span class="n">variableNames</span><span class="p">:</span>
@@ -194,8 +224,9 @@
             <span class="n">dtype</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span>
             <span class="k">for</span> <span class="n">fillType</span> <span class="ow">in</span> <span class="n">fillValues</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">numpy</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">fillType</span><span class="p">):</span>
-                    <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span> <span class="o">=</span> \
-                        <span class="p">{</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">:</span> <span class="n">fillValues</span><span class="p">[</span><span class="n">fillType</span><span class="p">]}</span>
+                    <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="s1">&#39;_FillValue&#39;</span><span class="p">:</span> <span class="n">fillValues</span><span class="p">[</span><span class="n">fillType</span><span class="p">]</span>
+                    <span class="p">}</span>
                     <span class="k">break</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
@@ -211,15 +242,55 @@
         <span class="c1"># reading Time otherwise</span>
         <span class="n">ds</span><span class="o">.</span><span class="n">encoding</span><span class="p">[</span><span class="s1">&#39;unlimited_dims&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Time&#39;</span><span class="p">}</span>
 
-    <span class="n">ds</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encodingDict</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span></div>
+    <span class="c1"># for performance, we have to handle this as a special case</span>
+    <span class="n">convert</span> <span class="o">=</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;NETCDF3_64BIT_DATA&#39;</span>
+
+    <span class="k">if</span> <span class="n">convert</span><span class="p">:</span>
+        <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
+        <span class="n">out_filename</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s1">&#39;_tmp_</span><span class="si">{</span><span class="n">out_path</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s1">.netcdf4</span><span class="si">{</span><span class="n">out_path</span><span class="o">.</span><span class="n">suffix</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="p">)</span>
+        <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;NETCDF4&#39;</span>
+        <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s1">&#39;scipy&#39;</span><span class="p">:</span>
+            <span class="c1"># that&#39;s not going to work</span>
+            <span class="n">engine</span> <span class="o">=</span> <span class="s1">&#39;netcdf4&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">out_filename</span> <span class="o">=</span> <span class="n">fileName</span>
+
+    <span class="n">ds</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span>
+        <span class="n">out_filename</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="n">encodingDict</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="nb">format</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">convert</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s1">&#39;ncks&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-O&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;-5&#39;</span><span class="p">,</span>
+            <span class="n">out_filename</span><span class="p">,</span>
+            <span class="n">fileName</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
+                <span class="n">args</span><span class="p">,</span>
+                <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span>
+                <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">DEVNULL</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">check_call</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+        <span class="c1"># delete the temporary NETCDF4 file</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">out_filename</span><span class="p">)</span></div>
 
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">update_history</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&#39;&#39;&#39;Add or append history to attributes of a data set&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add or append history to attributes of a data set&quot;&quot;&quot;</span>
 
-    <span class="n">thiscommand</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%a</span><span class="s2"> %b </span><span class="si">%d</span><span class="s2"> %H:%M:%S %Y&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;: &quot;</span> <span class="o">+</span> \
-        <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:])</span>
+    <span class="n">thiscommand</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%a</span><span class="s1"> %b </span><span class="si">%d</span><span class="s1"> %H:%M:%S %Y&#39;</span><span class="p">)</span>
+        <span class="o">+</span> <span class="s1">&#39;: &#39;</span>
+        <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:])</span>
+    <span class="p">)</span>
     <span class="k">if</span> <span class="s1">&#39;history&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
         <span class="n">newhist</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">thiscommand</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]])</span>
     <span class="k">else</span><span class="p">:</span>

@@ -51,6 +51,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">I/O Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../vector.html">Vector Operations</a></li>
@@ -148,10 +149,17 @@
 <h1>mpas_tools.io.write_netcdf<a class="headerlink" href="#mpas-tools-io-write-netcdf" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.io.write_netcdf">
-<span class="sig-prename descclassname"><span class="pre">mpas_tools.io.</span></span><span class="sig-name descname"><span class="pre">write_netcdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillValues</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">char_dim_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/io.html#write_netcdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.io.write_netcdf" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.io.</span></span><span class="sig-name descname"><span class="pre">write_netcdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fillValues</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">char_dim_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/io.html#write_netcdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.io.write_netcdf" title="Link to this definition"></a></dt>
 <dd><p>Write an xarray.Dataset to a file with NetCDF4 fill values and the given
 name of the string dimension.  Also adds the time and command-line to the
 history attribute.</p>
+<p>Note: the <code class="docutils literal notranslate"><span class="pre">NETCDF3_64BIT_DATA</span></code> format is handled as a special case
+because xarray output with this format is not performant. First, the file
+is written in <cite>NETCDF4</cite> format, which supports larger files and variables.
+Then, the <cite>ncks</cite> command is used to convert the file to the
+<cite>NETCDF3_64BIT_DATA</cite> format.</p>
+<p>Note: All int64 variables are automatically converted to int32 for MPAS
+compatibility.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
@@ -171,6 +179,9 @@ You can override the default by setting
 xarray figure this out. Default is
 <code class="docutils literal notranslate"><span class="pre">mpas_tools.io.default_char_dim_name</span></code>, which can be modified but
 which defaults to <code class="docutils literal notranslate"><span class="pre">'StrLen'</span></code></p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger to write messages to write the output of <cite>ncks</cite> conversion
+calls to.  If None, <cite>ncks</cite> output is suppressed.  This is only
+relevant if <cite>format</cite> is ‘NETCDF3_64BIT_DATA’</p></li>
 </ul>
 </dd>
 </dl>

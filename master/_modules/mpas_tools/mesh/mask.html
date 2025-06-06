@@ -48,6 +48,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../io.html">I/O Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../vector.html">Vector Operations</a></li>
@@ -375,9 +376,13 @@
             <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">subdivision</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="n">write_netcdf</span><span class="p">(</span>
-        <span class="n">dsMasks</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span>
-    <span class="p">)</span>
+        <span class="n">write_netcdf</span><span class="p">(</span>
+            <span class="n">dsMasks</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+            <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span>
+            <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
+        <span class="p">)</span>
 
 
 <div class="viewcode-block" id="compute_mpas_transect_masks">
@@ -643,9 +648,13 @@
             <span class="n">addEdgeSign</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">add_edge_sign</span><span class="p">,</span>
         <span class="p">)</span>
 
-    <span class="n">write_netcdf</span><span class="p">(</span>
-        <span class="n">dsMasks</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span>
-    <span class="p">)</span>
+        <span class="n">write_netcdf</span><span class="p">(</span>
+            <span class="n">dsMasks</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+            <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span>
+            <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
+        <span class="p">)</span>
 
 
 <div class="viewcode-block" id="compute_mpas_flood_fill_mask">
@@ -771,9 +780,13 @@
             <span class="n">dsMesh</span><span class="o">=</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcSeed</span><span class="o">=</span><span class="n">fcSeed</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span>
         <span class="p">)</span>
 
-    <span class="n">write_netcdf</span><span class="p">(</span>
-        <span class="n">dsMasks</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span>
-    <span class="p">)</span>
+        <span class="n">write_netcdf</span><span class="p">(</span>
+            <span class="n">dsMasks</span><span class="p">,</span>
+            <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">,</span>
+            <span class="nb">format</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+            <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span>
+            <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
+        <span class="p">)</span>
 
 
 <div class="viewcode-block" id="compute_lon_lat_region_masks">
@@ -1001,7 +1014,11 @@
         <span class="p">)</span>
 
     <span class="n">write_netcdf</span><span class="p">(</span>
-        <span class="n">dsMasks</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span>
+        <span class="n">dsMasks</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">,</span>
+        <span class="nb">format</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+        <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span>
+        <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
     <span class="p">)</span>
 
 
@@ -1234,7 +1251,11 @@
         <span class="p">)</span>
 
     <span class="n">write_netcdf</span><span class="p">(</span>
-        <span class="n">dsMasks</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span>
+        <span class="n">dsMasks</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">mask_file_name</span><span class="p">,</span>
+        <span class="nb">format</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">format</span><span class="p">,</span>
+        <span class="n">engine</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span>
+        <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
     <span class="p">)</span>
 
 
