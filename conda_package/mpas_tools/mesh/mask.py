@@ -251,9 +251,13 @@ def entry_point_compute_mpas_region_masks():
             subdivisionThreshold=args.subdivision,
         )
 
-    write_netcdf(
-        dsMasks, args.mask_file_name, format=args.format, engine=args.engine
-    )
+        write_netcdf(
+            dsMasks,
+            args.mask_file_name,
+            format=args.format,
+            engine=args.engine,
+            logger=logger,
+        )
 
 
 def compute_mpas_transect_masks(
@@ -516,9 +520,13 @@ def entry_point_compute_mpas_transect_masks():
             addEdgeSign=args.add_edge_sign,
         )
 
-    write_netcdf(
-        dsMasks, args.mask_file_name, format=args.format, engine=args.engine
-    )
+        write_netcdf(
+            dsMasks,
+            args.mask_file_name,
+            format=args.format,
+            engine=args.engine,
+            logger=logger,
+        )
 
 
 def compute_mpas_flood_fill_mask(
@@ -641,9 +649,13 @@ def entry_point_compute_mpas_flood_fill_mask():
             dsMesh=dsMesh, fcSeed=fcSeed, logger=logger
         )
 
-    write_netcdf(
-        dsMasks, args.mask_file_name, format=args.format, engine=args.engine
-    )
+        write_netcdf(
+            dsMasks,
+            args.mask_file_name,
+            format=args.format,
+            engine=args.engine,
+            logger=logger,
+        )
 
 
 def compute_lon_lat_region_masks(
@@ -868,7 +880,11 @@ def entry_point_compute_lon_lat_region_masks():
         )
 
     write_netcdf(
-        dsMasks, args.mask_file_name, format=args.format, engine=args.engine
+        dsMasks,
+        args.mask_file_name,
+        format=args.format,
+        engine=args.engine,
+        logger=logger,
     )
 
 
@@ -1101,7 +1117,11 @@ def entry_point_compute_projection_grid_region_masks():
         )
 
     write_netcdf(
-        dsMasks, args.mask_file_name, format=args.format, engine=args.engine
+        dsMasks,
+        args.mask_file_name,
+        format=args.format,
+        engine=args.engine,
+        logger=logger,
     )
 
 

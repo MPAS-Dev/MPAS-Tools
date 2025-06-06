@@ -12,6 +12,7 @@ hdf5
 inpoly
 libnetcdf
 matplotlib-base>=3.9.0
+nco
 netcdf4
 networkx
 numpy>=2.0,<3.0

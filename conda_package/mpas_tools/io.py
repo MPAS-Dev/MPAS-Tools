@@ -1,11 +1,13 @@
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
-
-import numpy
-import netCDF4
-from datetime import datetime
+import os
+import subprocess
 import sys
+from datetime import datetime
+from pathlib import Path
 
+import netCDF4
+import numpy
+
+from mpas_tools.logging import check_call
 
 default_format = 'NETCDF3_64BIT'
 default_engine = None
@@ -13,12 +15,28 @@ default_char_dim_name = 'StrLen'
 default_fills = netCDF4.default_fillvals
 
 
-def write_netcdf(ds, fileName, fillValues=None, format=None, engine=None,
-                 char_dim_name=None):
+def write_netcdf(
+    ds,
+    fileName,
+    fillValues=None,
+    format=None,
+    engine=None,
+    char_dim_name=None,
+    logger=None,
+):
     """
     Write an xarray.Dataset to a file with NetCDF4 fill values and the given
     name of the string dimension.  Also adds the time and command-line to the
     history attribute.
+
+    Note: the ``NETCDF3_64BIT_DATA`` format is handled as a special case
+    because xarray output with this format is not performant. First, the file
+    is written in `NETCDF4` format, which supports larger files and variables.
+    Then, the `ncks` command is used to convert the file to the
+    `NETCDF3_64BIT_DATA` format.
+
+    Note: All int64 variables are automatically converted to int32 for MPAS
+    compatibility.
 
     Parameters
     ----------
@@ -50,7 +68,11 @@ def write_netcdf(ds, fileName, fillValues=None, format=None, engine=None,
         ``mpas_tools.io.default_char_dim_name``, which can be modified but
         which defaults to ``'StrLen'``
 
-    """
+    logger : logging.Logger, optional
+        A logger to write messages to write the output of `ncks` conversion
+        calls to.  If None, `ncks` output is suppressed.  This is only
+        relevant if `format` is 'NETCDF3_64BIT_DATA'
+    """  # noqa: E501
     if format is None:
         format = default_format
 
@@ -63,6 +85,13 @@ def write_netcdf(ds, fileName, fillValues=None, format=None, engine=None,
     if char_dim_name is None:
         char_dim_name = default_char_dim_name
 
+    # Convert int64 variables to int32 for MPAS compatibility
+    for var in list(ds.data_vars.keys()) + list(ds.coords.keys()):
+        if ds[var].dtype == numpy.int64:
+            attrs = ds[var].attrs.copy()
+            ds[var] = ds[var].astype(numpy.int32)
+            ds[var].attrs = attrs
+
     encodingDict = {}
     variableNames = list(ds.data_vars.keys()) + list(ds.coords.keys())
     for variableName in variableNames:
@@ -71,8 +100,9 @@ def write_netcdf(ds, fileName, fillValues=None, format=None, engine=None,
             dtype = ds[variableName].dtype
             for fillType in fillValues:
                 if dtype == numpy.dtype(fillType):
-                    encodingDict[variableName] = \
-                        {'_FillValue': fillValues[fillType]}
+                    encodingDict[variableName] = {
+                        '_FillValue': fillValues[fillType]
+                    }
                     break
         else:
             encodingDict[variableName] = {'_FillValue': None}
@@ -88,14 +118,54 @@ def write_netcdf(ds, fileName, fillValues=None, format=None, engine=None,
         # reading Time otherwise
         ds.encoding['unlimited_dims'] = {'Time'}
 
-    ds.to_netcdf(fileName, encoding=encodingDict, format=format, engine=engine)
+    # for performance, we have to handle this as a special case
+    convert = format == 'NETCDF3_64BIT_DATA'
+
+    if convert:
+        out_path = Path(fileName)
+        out_filename = (
+            out_path.parent / f'_tmp_{out_path.stem}.netcdf4{out_path.suffix}'
+        )
+        format = 'NETCDF4'
+        if engine == 'scipy':
+            # that's not going to work
+            engine = 'netcdf4'
+    else:
+        out_filename = fileName
+
+    ds.to_netcdf(
+        out_filename, encoding=encodingDict, format=format, engine=engine
+    )
+
+    if convert:
+        args = [
+            'ncks',
+            '-O',
+            '-5',
+            out_filename,
+            fileName,
+        ]
+        if logger is None:
+            subprocess.run(
+                args,
+                check=True,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        else:
+            check_call(args, logger=logger)
+        # delete the temporary NETCDF4 file
+        os.remove(out_filename)
 
 
 def update_history(ds):
-    '''Add or append history to attributes of a data set'''
+    """Add or append history to attributes of a data set"""
 
-    thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + \
-        " ".join(sys.argv[:])
+    thiscommand = (
+        datetime.now().strftime('%a %b %d %H:%M:%S %Y')
+        + ': '
+        + ' '.join(sys.argv[:])
+    )
     if 'history' in ds.attrs:
         newhist = '\n'.join([thiscommand, ds.attrs['history']])
     else:
