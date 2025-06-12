@@ -1,0 +1,439 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.mesh.creation.signed_distance &mdash; mpas_tools 1.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=ca842793"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../io.html">I/O Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../vector.html">Vector Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Visualization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../mpas_to_xdmf.html">MPAS to XDMF Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../paraview_extractor.html">ParaView VTK Extractor</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/streamfunction.html">Computing streamfunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authors.html#contributors">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.mesh.creation.signed_distance</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.mesh.creation.signed_distance</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">KDTree</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">timeit</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shapely.geometry</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shapely.ops</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">inpoly</span><span class="w"> </span><span class="kn">import</span> <span class="n">inpoly2</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features.plot</span><span class="w"> </span><span class="kn">import</span> <span class="n">subdivide_geom</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation.util</span><span class="w"> </span><span class="kn">import</span> <span class="n">lonlat2xyz</span>
+
+
+<div class="viewcode-block" id="signed_distance_from_geojson">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.signed_distance_from_geojson">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">signed_distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
+                                 <span class="n">max_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the distance for each point on a lon/lat grid from the closest point</span>
+<span class="sd">    on the boundary of the geojson regions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fc : geometrics_features.FeatureCollection</span>
+<span class="sd">        The regions to be rasterized</span>
+
+<span class="sd">    lon_grd : numpy.ndarray</span>
+<span class="sd">        A 1D array of longitude values</span>
+
+<span class="sd">    lat_grd : numpy.ndarray</span>
+<span class="sd">        A 1D array of latitude values</span>
+
+<span class="sd">    earth_radius : float</span>
+<span class="sd">        Earth radius in meters</span>
+
+<span class="sd">    max_length : float, optional</span>
+<span class="sd">        The maximum distance (in degrees) between points on the boundary of the</span>
+<span class="sd">        geojson region.  If the boundary is too coarse, it will be subdivided.</span>
+
+<span class="sd">    workers : int, optional</span>
+<span class="sd">        The number of threads used for finding nearest neighbors.  The default</span>
+<span class="sd">        is all available threads (``workers=-1``)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    signed_distance : numpy.ndarray</span>
+<span class="sd">       A 2D field of distances (negative inside the region, positive outside)</span>
+<span class="sd">       to the shape boundary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
+                                     <span class="n">nn_search</span><span class="o">=</span><span class="s1">&#39;kdtree&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="n">max_length</span><span class="p">,</span>
+                                     <span class="n">workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">mask_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">)</span>
+
+    <span class="n">signed_distance</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">mask</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">distance</span>
+    <span class="k">return</span> <span class="n">signed_distance</span></div>
+
+
+
+<div class="viewcode-block" id="mask_from_geojson">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.mask_from_geojson.html#mpas_tools.mesh.creation.signed_distance.mask_from_geojson">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mask_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make a rasterized mask on a lon/lat grid from shapes (geojson multipolygon</span>
+<span class="sd">    data).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fc : geometrics_features.FeatureCollection</span>
+<span class="sd">        The regions to be rasterized</span>
+
+<span class="sd">    lon_grd : numpy.ndarray</span>
+<span class="sd">        A 1D array of longitude values</span>
+
+<span class="sd">    lat_grd : numpy.ndarray</span>
+<span class="sd">        A 1D array of latitude values</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mask : numpy.ndarray</span>
+<span class="sd">       A 2D mask with the shapes rasterized (0.0 outside, 1.0 inside)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Mask from geojson&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-----------------&quot;</span><span class="p">)</span>
+
+    <span class="n">nodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;Polygon&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;coordinates&#39;</span><span class="p">]:</span>
+                <span class="n">_add_poly</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;MultiPolygon&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">mpoly</span> <span class="ow">in</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;coordinates&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">poly</span> <span class="ow">in</span> <span class="n">mpoly</span><span class="p">:</span>
+                    <span class="n">_add_poly</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">nodes</span><span class="p">)</span>
+
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+
+    <span class="n">Lon</span><span class="p">,</span> <span class="n">Lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">)</span>
+
+    <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">Lon</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">Lat</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="n">in_shape</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">inpoly2</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">edges</span><span class="p">)</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">in_shape</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">Lon</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mask</span></div>
+
+
+
+<div class="viewcode-block" id="distance_from_geojson">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.signed_distance.distance_from_geojson.html#mpas_tools.mesh.creation.signed_distance.distance_from_geojson">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
+                          <span class="n">nn_search</span><span class="o">=</span><span class="s1">&#39;kdtree&#39;</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span><span class="p">):</span>
+    <span class="c1"># {{{</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the distance for each point on a lon/lat grid from the closest point</span>
+<span class="sd">    on the boundary of the geojson regions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fc : geometrics_features.FeatureCollection</span>
+<span class="sd">        The regions to be rasterized</span>
+
+<span class="sd">    lon_grd : numpy.ndarray</span>
+<span class="sd">        A 1D array of longitude values</span>
+
+<span class="sd">    lat_grd : numpy.ndarray</span>
+<span class="sd">        A 1D array of latitude values</span>
+
+<span class="sd">    earth_radius : float</span>
+<span class="sd">        Earth radius in meters</span>
+
+<span class="sd">    nn_search: {&#39;kdtree&#39;}, optional</span>
+<span class="sd">        The method used to find the nearest point on the shape boundary</span>
+
+<span class="sd">    max_length : float, optional</span>
+<span class="sd">        The maximum distance (in degrees) between points on the boundary of the</span>
+<span class="sd">        geojson region.  If the boundary is too coarse, it will be subdivided.</span>
+
+<span class="sd">    workers : int, optional</span>
+<span class="sd">        The number of threads used for finding nearest neighbors.  The default</span>
+<span class="sd">        is all available threads (``workers=-1``)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    distance : numpy.ndarray</span>
+<span class="sd">       A 2D field of distances to the shape boundary</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">nn_search</span> <span class="o">!=</span> <span class="s1">&#39;kdtree&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;nn_search method </span><span class="si">{</span><span class="n">nn_search</span><span class="si">}</span><span class="s1"> not available.&#39;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Distance from geojson&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;---------------------&quot;</span><span class="p">)</span>
+
+    <span class="n">shapes</span> <span class="o">=</span> <span class="n">_subdivide_shapes</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">max_length</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Finding region boundaries&quot;</span><span class="p">)</span>
+    <span class="n">boundary_lon</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">boundary_lat</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
+        <span class="c1"># get the boundary of each shape</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">boundary</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">xy</span>
+        <span class="n">boundary_lon</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">boundary_lat</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+    <span class="n">boundary_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">boundary_lon</span><span class="p">)</span>
+    <span class="n">boundary_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">boundary_lat</span><span class="p">)</span>
+
+    <span class="c1"># Remove point at +/- 180 lon and +/- 90 lat because these are &quot;fake&quot;.</span>
+    <span class="c1"># Need a little buffer (0.01 degrees) to avoid misses due to rounding.</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">boundary_lon</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">179.99</span><span class="p">,</span> <span class="n">boundary_lon</span> <span class="o">&gt;=</span> <span class="mf">179.99</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">boundary_lat</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mf">89.99</span><span class="p">,</span> <span class="n">boundary_lat</span> <span class="o">&gt;=</span> <span class="mf">89.99</span><span class="p">)))</span>
+
+    <span class="n">boundary_lon</span> <span class="o">=</span> <span class="n">boundary_lon</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+    <span class="n">boundary_lat</span> <span class="o">=</span> <span class="n">boundary_lat</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;    Mean boundary latitude: </span><span class="si">{0:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">boundary_lat</span><span class="p">)))</span>
+
+    <span class="c1"># Convert coastline points to x,y,z and create kd-tree</span>
+    <span class="n">npoints</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">boundary_lon</span><span class="p">)</span>
+    <span class="n">boundary_xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">npoints</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">boundary_xyz</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">boundary_xyz</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">boundary_xyz</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> \
+        <span class="n">lonlat2xyz</span><span class="p">(</span><span class="n">boundary_lon</span><span class="p">,</span> <span class="n">boundary_lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">)</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">KDTree</span><span class="p">(</span><span class="n">boundary_xyz</span><span class="p">)</span>
+
+    <span class="c1"># Convert background grid coordinates to x,y,z and put in a nx_grd x 3</span>
+    <span class="c1"># array for kd-tree query</span>
+    <span class="n">Lon_grd</span><span class="p">,</span> <span class="n">Lat_grd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">lon_grd</span><span class="p">,</span> <span class="n">lat_grd</span><span class="p">)</span>
+    <span class="n">X_grd</span><span class="p">,</span> <span class="n">Y_grd</span><span class="p">,</span> <span class="n">Z_grd</span> <span class="o">=</span> <span class="n">lonlat2xyz</span><span class="p">(</span><span class="n">Lon_grd</span><span class="p">,</span> <span class="n">Lat_grd</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">)</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">X_grd</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">Y_grd</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">Z_grd</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="c1"># Find distances of background grid coordinates to the coast</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Finding distance&quot;</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+    <span class="n">distance</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">pts</span><span class="p">,</span> <span class="n">workers</span><span class="o">=</span><span class="n">workers</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">timeit</span><span class="o">.</span><span class="n">default_timer</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   Done&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   </span><span class="si">{0:.0f}</span><span class="s2"> seconds&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">end</span><span class="o">-</span><span class="n">start</span><span class="p">))</span>
+
+    <span class="c1"># Make distance array that corresponds with cell_width array</span>
+    <span class="n">distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">Lon_grd</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">distance</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_subdivide_shapes</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">max_length</span><span class="p">):</span>
+
+    <span class="n">shapes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+        <span class="c1"># get the boundary of each shape</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">max_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># subdivide the shape if it&#39;s too coarse</span>
+            <span class="n">geom_type</span> <span class="o">=</span> <span class="n">shape</span><span class="o">.</span><span class="n">geom_type</span>
+            <span class="n">shape</span> <span class="o">=</span> <span class="n">subdivide_geom</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">geom_type</span><span class="p">,</span> <span class="n">max_length</span><span class="p">)</span>
+        <span class="n">shapes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">shapes</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_uniform</span><span class="p">(</span><span class="n">vector</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">):</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">vector</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">vector</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">d</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">diff</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_shapes_to_pixel_coords</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">shapes</span><span class="p">):</span>
+    <span class="n">intx</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_interpx</span><span class="p">,</span> <span class="n">lon</span><span class="p">)</span>
+    <span class="n">inty</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_interpy</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
+    <span class="n">new_shapes</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">intx</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">ops</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">inty</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="n">new_shapes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">new_shapes</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_interpx</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="n">nlon</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lon</span><span class="p">)</span>
+    <span class="n">lon_pixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nlon</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lon_pixels</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_interpy</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="n">nlat</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lat</span><span class="p">)</span>
+    <span class="n">lat_pixels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nlat</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lat_pixels</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_poly</span><span class="p">(</span><span class="n">poly</span><span class="p">,</span> <span class="n">edges</span><span class="p">,</span> <span class="n">nodes</span><span class="p">):</span>
+    <span class="n">node_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nodes</span><span class="p">)</span>
+    <span class="n">edge_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+    <span class="n">poly_edges</span> <span class="o">=</span> <span class="p">[[</span><span class="n">node_count</span> <span class="o">+</span> <span class="n">edge</span><span class="p">,</span>
+                   <span class="n">node_count</span> <span class="o">+</span> <span class="p">(</span><span class="n">edge</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">edge_count</span><span class="p">]</span> <span class="k">for</span> <span class="n">edge</span> <span class="ow">in</span>
+                  <span class="nb">range</span><span class="p">(</span><span class="n">edge_count</span><span class="p">)]</span>
+    <span class="n">edges</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">poly_edges</span><span class="p">)</span>
+    <span class="n">nodes</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">poly</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <!-- Meta tags for JS to use -->
+  <meta name="doc-version" content="1.2.1">
+  <meta name="doc-site-root" content="../../../../">
+
+  <!-- Create version switcher container -->
+  <script>
+    const sidebar = document.querySelector('.wy-side-nav-search');
+    if (sidebar) {
+      const versionDiv = document.createElement('div');
+      versionDiv.id = 'version-switcher';
+      versionDiv.style.marginTop = '1em';
+      sidebar.appendChild(versionDiv);
+    }
+  </script>
+
+  <!-- Load version-switcher.js using the correct relative path -->
+  <script src="../../../../../shared/version-switcher.js"></script>
+
+
+</body>
+</html>

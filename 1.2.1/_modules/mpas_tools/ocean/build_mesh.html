@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.ocean.build_mesh &mdash; mpas_tools 1.2.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=ca842793"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../io.html">I/O Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vector.html">Vector Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Visualization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mpas_to_xdmf.html">MPAS to XDMF Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../paraview_extractor.html">ParaView VTK Extractor</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/streamfunction.html">Computing streamfunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.build_mesh</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.ocean.build_mesh</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span><span class="p">,</span> \
+    <span class="n">unicode_literals</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_spherical_mesh</span> <span class="k">as</span> \
+    <span class="n">create_spherical_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.creation</span><span class="w"> </span><span class="kn">import</span> <span class="n">build_planar_mesh</span> <span class="k">as</span> <span class="n">create_planar_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.cime.constants</span><span class="w"> </span><span class="kn">import</span> <span class="n">constants</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.inject_bathymetry</span><span class="w"> </span><span class="kn">import</span> <span class="n">inject_bathymetry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.inject_meshDensity</span><span class="w"> </span><span class="kn">import</span> <span class="n">inject_spherical_meshDensity</span><span class="p">,</span> \
+    <span class="n">inject_planar_meshDensity</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.inject_preserve_floodplain</span><span class="w"> </span><span class="kn">import</span> \
+    <span class="n">inject_preserve_floodplain</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.paraview_extractor</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_vtk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingContext</span>
+
+
+<div class="viewcode-block" id="build_spherical_mesh">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.build_mesh.build_spherical_mesh.html#mpas_tools.ocean.build_mesh.build_spherical_mesh">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span>
+                         <span class="n">plot_cellWidth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="o">=</span><span class="s1">&#39;base_mesh_vtk&#39;</span><span class="p">,</span>
+                         <span class="n">preserve_floodplain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">floodplain_elevation</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+                         <span class="n">do_inject_bathymetry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">use_progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build an MPAS mesh using JIGSAW with the given cell sizes as a function of</span>
+<span class="sd">    latitude and longitude</span>
+
+<span class="sd">    The result is a mesh file stored in ``out_filename`` as well as several</span>
+<span class="sd">    intermediate files: ``mesh.log``, ``mesh-HFUN.msh``, ``mesh.jig``,</span>
+<span class="sd">    ``mesh-MESH.msh``, ``mesh.msh``, and ``mesh_triangles.nc``.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cellWidth : ndarray</span>
+<span class="sd">        m x n array of cell width in km</span>
+
+<span class="sd">    lon : ndarray</span>
+<span class="sd">        longitude in degrees (length n and between -180 and 180)</span>
+
+<span class="sd">    lat : ndarray</span>
+<span class="sd">        longitude in degrees (length m and between -90 and 90)</span>
+
+<span class="sd">    out_filename : str, optional</span>
+<span class="sd">        The file name of the resulting MPAS mesh</span>
+
+<span class="sd">    plot_cellWidth : bool, optional</span>
+<span class="sd">        Whether to produce a plot of ``cellWidth``. If so, it will be written</span>
+<span class="sd">        to ``cellWidthGlobal.png``.</span>
+
+<span class="sd">    vtk_dir : str, optional</span>
+<span class="sd">        The name of the directory where mesh data will be extracted for viewing</span>
+<span class="sd">        in ParaVeiw.</span>
+
+<span class="sd">    preserve_floodplain : bool, optional</span>
+<span class="sd">        Whether a flood plain (bathymetry above z = 0) should  be preserved in</span>
+<span class="sd">        the mesh</span>
+
+<span class="sd">    floodplain_elevation : float, optional</span>
+<span class="sd">        The elevation in meters to which the flood plain is preserved</span>
+
+<span class="sd">    do_inject_bathymetry : bool, optional</span>
+<span class="sd">        Whether one of the default bathymetry datasets, ``earth_relief_15s.nc``</span>
+<span class="sd">        or ``topo.msh``, should be added to the MPAS mesh</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger for the output if not stdout</span>
+
+<span class="sd">    use_progress_bar : bool, optional</span>
+<span class="sd">        Whether to display progress bars (problematic in logging to a file)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
+
+        <span class="n">earth_radius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
+
+        <span class="n">create_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>  <span class="n">out_filename</span><span class="p">,</span>
+                              <span class="n">plot_cellWidth</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 4. Inject meshDensity into the mesh file&#39;</span><span class="p">)</span>
+        <span class="n">inject_spherical_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span>
+                                     <span class="n">mesh_filename</span><span class="o">=</span><span class="n">out_filename</span><span class="p">)</span>
+
+        <span class="n">_shared_steps</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="p">,</span> <span class="n">preserve_floodplain</span><span class="p">,</span>
+                      <span class="n">floodplain_elevation</span><span class="p">,</span> <span class="n">do_inject_bathymetry</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span>
+                      <span class="n">use_progress_bar</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="build_planar_mesh">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.build_mesh.build_planar_mesh.html#mpas_tools.ocean.build_mesh.build_planar_mesh">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_planar_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span><span class="p">,</span>
+                      <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="o">=</span><span class="s1">&#39;base_mesh_vtk&#39;</span><span class="p">,</span>
+                      <span class="n">preserve_floodplain</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">floodplain_elevation</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span>
+                      <span class="n">do_inject_bathymetry</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">use_progress_bar</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Build a planar MPAS mesh</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    cellWidth : ndarray</span>
+<span class="sd">        m x n array of cell width in km</span>
+
+<span class="sd">    x, y : ndarray</span>
+<span class="sd">        arrays defining planar coordinates in meters</span>
+
+<span class="sd">    geom_points : ndarray</span>
+<span class="sd">        list of point coordinates for bounding polygon for the planar mesh</span>
+
+<span class="sd">    geom_edges : ndarray</span>
+<span class="sd">        list of edges between points in ``geom_points`` that define the</span>
+<span class="sd">        bounding polygon</span>
+
+<span class="sd">    out_filename : str, optional</span>
+<span class="sd">        The file name of the resulting MPAS mesh</span>
+
+<span class="sd">    vtk_dir : str, optional</span>
+<span class="sd">        The name of the directory where mesh data will be extracted for viewing</span>
+<span class="sd">        in ParaVeiw.</span>
+
+<span class="sd">    preserve_floodplain : bool, optional</span>
+<span class="sd">        Whether a flood plain (bathymetry above z = 0) should  be preserved in</span>
+<span class="sd">        the mesh</span>
+
+<span class="sd">    floodplain_elevation : float, optional</span>
+<span class="sd">        The elevation in meters to which the flood plain is preserved</span>
+
+<span class="sd">    do_inject_bathymetry : bool, optional</span>
+<span class="sd">        Whether one of the default bathymetry datasets, ``earth_relief_15s.nc``</span>
+<span class="sd">        or ``topo.msh``, should be added to the MPAS mesh</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger for the output if not stdout</span>
+
+<span class="sd">    use_progress_bar : bool, optional</span>
+<span class="sd">        Whether to display progress bars (problematic in logging to a file)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
+
+        <span class="n">create_planar_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">geom_points</span><span class="p">,</span> <span class="n">geom_edges</span><span class="p">,</span>
+                           <span class="n">out_filename</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 4. Inject meshDensity into the mesh file&#39;</span><span class="p">)</span>
+        <span class="n">inject_planar_meshDensity</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="n">out_filename</span><span class="p">)</span>
+
+        <span class="n">_shared_steps</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="p">,</span> <span class="n">preserve_floodplain</span><span class="p">,</span>
+                      <span class="n">floodplain_elevation</span><span class="p">,</span> <span class="n">do_inject_bathymetry</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span>
+                      <span class="n">use_progress_bar</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_shared_steps</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">vtk_dir</span><span class="p">,</span> <span class="n">preserve_floodplain</span><span class="p">,</span>
+                  <span class="n">floodplain_elevation</span><span class="p">,</span> <span class="n">do_inject_bathymetry</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span>
+                  <span class="n">use_progress_bar</span><span class="p">):</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="mi">5</span>
+
+    <span class="k">if</span> <span class="n">do_inject_bathymetry</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step </span><span class="si">{}</span><span class="s1">. Injecting bathymetry&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">))</span>
+        <span class="n">inject_bathymetry</span><span class="p">(</span><span class="n">mesh_file</span><span class="o">=</span><span class="n">out_filename</span><span class="p">)</span>
+        <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">preserve_floodplain</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step </span><span class="si">{}</span><span class="s1">. Injecting flag to preserve floodplain&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">step</span><span class="p">))</span>
+        <span class="n">inject_preserve_floodplain</span><span class="p">(</span><span class="n">mesh_file</span><span class="o">=</span><span class="n">out_filename</span><span class="p">,</span>
+                                   <span class="n">floodplain_elevation</span><span class="o">=</span><span class="n">floodplain_elevation</span><span class="p">)</span>
+        <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step </span><span class="si">{}</span><span class="s1">. Create vtk file for visualization&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">))</span>
+    <span class="n">extract_vtk</span><span class="p">(</span><span class="n">ignore_time</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">lonlat</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;maxEdges=&#39;</span><span class="p">],</span>
+                <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;allOnCells&#39;</span><span class="p">],</span> <span class="n">filename_pattern</span><span class="o">=</span><span class="n">out_filename</span><span class="p">,</span>
+                <span class="n">out_dir</span><span class="o">=</span><span class="n">vtk_dir</span><span class="p">,</span> <span class="n">use_progress_bar</span><span class="o">=</span><span class="n">use_progress_bar</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;***********************************************&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;**    The global mesh file is </span><span class="si">{}</span><span class="s2">   **&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">out_filename</span><span class="p">))</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;***********************************************&quot;</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <!-- Meta tags for JS to use -->
+  <meta name="doc-version" content="1.2.1">
+  <meta name="doc-site-root" content="../../../">
+
+  <!-- Create version switcher container -->
+  <script>
+    const sidebar = document.querySelector('.wy-side-nav-search');
+    if (sidebar) {
+      const versionDiv = document.createElement('div');
+      versionDiv.id = 'version-switcher';
+      versionDiv.style.marginTop = '1em';
+      sidebar.appendChild(versionDiv);
+    }
+  </script>
+
+  <!-- Load version-switcher.js using the correct relative path -->
+  <script src="../../../../shared/version-switcher.js"></script>
+
+
+</body>
+</html>
