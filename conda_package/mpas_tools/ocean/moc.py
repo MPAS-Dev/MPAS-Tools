@@ -7,7 +7,7 @@ import xarray
 from geometric_features.aggregation.ocean import moc
 
 import mpas_tools.mesh.conversion
-from mpas_tools.io import write_netcdf
+from mpas_tools.io import default_nchar, write_netcdf
 
 
 def make_moc_basins_and_transects(
@@ -399,7 +399,6 @@ def _add_transects_to_moc(
         )
         regionGroupNames = ['MOCBasinRegionsGroup', 'all']
         regionNames = mocMask.regionNames.values
-        nChar = 64
         for index in range(nRegionGroups):
             regionsInGroup[index, :] = numpy.arange(1, nRegions + 1)
 
@@ -412,7 +411,7 @@ def _add_transects_to_moc(
 
         mocMask['regionGroupNames'] = (
             ('nRegionGroups',),
-            numpy.zeros((nRegionGroups,), dtype=f'|S{nChar}'),
+            numpy.zeros((nRegionGroups,), dtype=f'|S{default_nchar}'),
         )
 
         for index in range(nRegionGroups):
@@ -421,7 +420,7 @@ def _add_transects_to_moc(
         # we need to make sure the region names use the same string length
         mocMask['regionNames'] = (
             ('nRegions',),
-            numpy.zeros((nRegions,), dtype=f'|S{nChar}'),
+            numpy.zeros((nRegions,), dtype=f'|S{default_nchar}'),
         )
 
         for index in range(nRegions):
