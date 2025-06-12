@@ -10,12 +10,15 @@ import mpas_tools.mesh.conversion
 from mpas_tools.io import write_netcdf
 
 
-def make_moc_basins_and_transects(gf, mesh_filename,
-                                  mask_and_transect_filename,
-                                  geojson_filename=None,
-                                  mask_filename=None,
-                                  logger=None,
-                                  dir=None):
+def make_moc_basins_and_transects(
+    gf,
+    mesh_filename,
+    mask_and_transect_filename,
+    geojson_filename=None,
+    mask_filename=None,
+    logger=None,
+    dir=None,
+):
     """
     Builds features defining the ocean basins and southern transects used in
     computing the meridional overturning circulation (MOC)
@@ -59,16 +62,19 @@ def make_moc_basins_and_transects(gf, mesh_filename,
         fcMOC.to_geojson(geojson_filename)
 
     dsMesh = xarray.open_dataset(mesh_filename)
-    dsMasks = mpas_tools.mesh.conversion.mask(dsMesh=dsMesh, fcMask=fcMOC,
-                                              logger=logger, dir=dir)
+    dsMasks = mpas_tools.mesh.conversion.mask(
+        dsMesh=dsMesh, fcMask=fcMOC, logger=logger, dir=dir
+    )
 
     if mask_filename is not None:
         write_netcdf(dsMasks, mask_filename, char_dim_name='StrLen')
 
-    dsMasksAndTransects = add_moc_southern_boundary_transects(dsMasks, dsMesh,
-                                                              logger=logger)
-    write_netcdf(dsMasksAndTransects, mask_and_transect_filename,
-                 char_dim_name='StrLen')
+    dsMasksAndTransects = add_moc_southern_boundary_transects(
+        dsMasks, dsMesh, logger=logger
+    )
+    write_netcdf(
+        dsMasksAndTransects, mask_and_transect_filename, char_dim_name='StrLen'
+    )
 
 
 def add_moc_southern_boundary_transects(dsMask, dsMesh, logger=None):
@@ -97,14 +103,21 @@ def add_moc_southern_boundary_transects(dsMask, dsMesh, logger=None):
         logger.addHandler(logging.StreamHandler(sys.stdout))
         logger.setLevel(logging.INFO)
 
-    southernBoundaryEdges, southernBoundaryEdgeSigns, \
-        southernBoundaryVertices = \
-        _extract_southern_boundary(dsMesh, dsMask, latBuffer=3.*numpy.pi/180.,
-                                   logger=logger)
+    (
+        southernBoundaryEdges,
+        southernBoundaryEdgeSigns,
+        southernBoundaryVertices,
+    ) = _extract_southern_boundary(
+        dsMesh, dsMask, latBuffer=3.0 * numpy.pi / 180.0, logger=logger
+    )
 
-    _add_transects_to_moc(dsMesh, dsMask, southernBoundaryEdges,
-                          southernBoundaryEdgeSigns,
-                          southernBoundaryVertices)
+    _add_transects_to_moc(
+        dsMesh,
+        dsMask,
+        southernBoundaryEdges,
+        southernBoundaryEdgeSigns,
+        southernBoundaryVertices,
+    )
 
     if useStdout:
         logger.handlers = []
@@ -124,19 +137,33 @@ boundary of each region in a file indicated with the -o flag.  The transect
 is applied only to vertices and edges, not cells, because the need for southern
 boundary transect data on cells is not foreseen.
 """
-    parser = \
-        argparse.ArgumentParser(description=description,
-                                formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-f', '--in_file', dest='in_file',
-                        help='Input file with MOC masks', metavar='IN_FILE',
-                        required=True)
-    parser.add_argument('-m', '--mesh_file', dest='mesh_file',
-                        help='Input mesh file', metavar='MESH_FILE',
-                        required=True)
-    parser.add_argument('-o', '--out_file', dest='out_file',
-                        help='Output file for MOC masks and southern-boundary '
-                        'transects', metavar='OUT_FILE',
-                        required=True)
+    parser = argparse.ArgumentParser(
+        description=description, formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        '-f',
+        '--in_file',
+        dest='in_file',
+        help='Input file with MOC masks',
+        metavar='IN_FILE',
+        required=True,
+    )
+    parser.add_argument(
+        '-m',
+        '--mesh_file',
+        dest='mesh_file',
+        help='Input mesh file',
+        metavar='MESH_FILE',
+        required=True,
+    )
+    parser.add_argument(
+        '-o',
+        '--out_file',
+        dest='out_file',
+        help='Output file for MOC masks and southern-boundary transects',
+        metavar='OUT_FILE',
+        required=True,
+    )
     args = parser.parse_args()
 
     dsMasks = xarray.open_dataset(args.in_file)
@@ -162,14 +189,15 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
     assert mocMask.sizes['nCells'] == nCells
 
     # convert to python zero-based indices
-    cellsOnEdge = mesh.variables['cellsOnEdge'].values-1
-    verticesOnEdge = mesh.variables['verticesOnEdge'].values-1
-    edgesOnVertex = mesh.variables['edgesOnVertex'].values-1
+    cellsOnEdge = mesh.variables['cellsOnEdge'].values - 1
+    verticesOnEdge = mesh.variables['verticesOnEdge'].values - 1
+    edgesOnVertex = mesh.variables['edgesOnVertex'].values - 1
 
     latEdge = mesh.variables['latEdge'].values
 
-    cellsOnEdgeInRange = numpy.logical_and(cellsOnEdge >= 0,
-                                           cellsOnEdge < nCells)
+    cellsOnEdgeInRange = numpy.logical_and(
+        cellsOnEdge >= 0, cellsOnEdge < nCells
+    )
 
     southernBoundaryEdges = []
     southernBoundaryEdgeSigns = []
@@ -183,20 +211,23 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
         # land cells are outside not in the MOC region
         cellsOnEdgeMask = numpy.zeros(cellsOnEdge.shape, bool)
         # set mask values for cells that are in range (not land)
-        cellsOnEdgeMask[cellsOnEdgeInRange] = \
+        cellsOnEdgeMask[cellsOnEdgeInRange] = (
             cellMask[cellsOnEdge[cellsOnEdgeInRange]] == 1
+        )
 
         logger.info('  computing edge sign...')
         edgeSign = numpy.zeros(nEdges)
         # positive sign if the first cell on edge is in the region
-        mask = numpy.logical_and(cellsOnEdgeMask[:, 0],
-                                 numpy.logical_not(cellsOnEdgeMask[:, 1]))
-        edgeSign[mask] = -1.
+        mask = numpy.logical_and(
+            cellsOnEdgeMask[:, 0], numpy.logical_not(cellsOnEdgeMask[:, 1])
+        )
+        edgeSign[mask] = -1.0
         # negative sign if the second cell on edge is in the region
-        mask = numpy.logical_and(cellsOnEdgeMask[:, 1],
-                                 numpy.logical_not(cellsOnEdgeMask[:, 0]))
-        edgeSign[mask] = 1.
-        isMOCBoundaryEdge = edgeSign != 0.
+        mask = numpy.logical_and(
+            cellsOnEdgeMask[:, 1], numpy.logical_not(cellsOnEdgeMask[:, 0])
+        )
+        edgeSign[mask] = 1.0
+        isMOCBoundaryEdge = edgeSign != 0.0
         edgesMOCBoundary = numpy.arange(nEdges)[isMOCBoundaryEdge]
         logger.info('  done.')
 
@@ -209,9 +240,11 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
         # Note: it is possible but unlikely that the southern-most point is
         # not within bulk region of the MOC mask if the region is not a single
         # shape
-        edgeSequence, edgeSequenceSigns, vertexSequence = \
-            _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
-                                           verticesOnEdge)
+        edgeSequence, edgeSequenceSigns, vertexSequence = (
+            _get_edge_sequence_on_boundary(
+                startEdge, edgeSign, edgesOnVertex, verticesOnEdge
+            )
+        )
 
         logger.info(f'  done: {len(edgeSequence)} edges in transect.')
 
@@ -221,13 +254,15 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
         # edge sequence that is above the possible region of the soutehrn
         # boundary
 
-        belowToAbove = \
-            numpy.logical_and(numpy.logical_not(aboveSouthernBoundary[0:-1]),
-                              aboveSouthernBoundary[1:])
+        belowToAbove = numpy.logical_and(
+            numpy.logical_not(aboveSouthernBoundary[0:-1]),
+            aboveSouthernBoundary[1:],
+        )
 
-        aboveToBelow = \
-            numpy.logical_and(aboveSouthernBoundary[0:-1],
-                              numpy.logical_not(aboveSouthernBoundary[1:]))
+        aboveToBelow = numpy.logical_and(
+            aboveSouthernBoundary[0:-1],
+            numpy.logical_not(aboveSouthernBoundary[1:]),
+        )
 
         startIndices = numpy.arange(1, len(edgeSequence))[belowToAbove]
         endIndices = numpy.arange(1, len(edgeSequence))[aboveToBelow]
@@ -247,27 +282,36 @@ def _extract_southern_boundary(mesh, mocMask, latBuffer, logger):
         aboveLength = endIndices - startIndices
         longest = numpy.argmax(aboveLength)
         # we want all the indices in the sequence *not* part of the longest
-        indices = numpy.arange(endIndices[longest],
-                               startIndices[longest] + len(edgeSequence))
+        indices = numpy.arange(
+            endIndices[longest], startIndices[longest] + len(edgeSequence)
+        )
         indices = numpy.mod(indices, len(edgeSequence))
 
         southernBoundaryEdges.append(edgeSequence[indices])
         southernBoundaryEdgeSigns.append(edgeSequenceSigns[indices])
 
         # we want one extra vertex in the vertex sequence
-        indices = numpy.arange(endIndices[longest],
-                               startIndices[longest] + len(edgeSequence) + 1)
+        indices = numpy.arange(
+            endIndices[longest], startIndices[longest] + len(edgeSequence) + 1
+        )
         indices = numpy.mod(indices, len(edgeSequence))
 
         southernBoundaryVertices.append(vertexSequence[indices])
 
-    return southernBoundaryEdges, southernBoundaryEdgeSigns, \
-        southernBoundaryVertices
+    return (
+        southernBoundaryEdges,
+        southernBoundaryEdgeSigns,
+        southernBoundaryVertices,
+    )
 
 
-def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
-                          southernBoiundaryEdgeSigns,
-                          southernBoundaryVertices):
+def _add_transects_to_moc(
+    mesh,
+    mocMask,
+    southernBoundaryEdges,
+    southernBoiundaryEdgeSigns,
+    southernBoundaryVertices,
+):
     """
     Creates transect fields in mocMask from the edges, edge signs and
     vertices defining the southern boundaries.  Mesh info (nEdges and
@@ -279,100 +323,133 @@ def _add_transects_to_moc(mesh, mocMask, southernBoundaryEdges,
     nEdges = mesh.sizes['nEdges']
     nVertices = mesh.sizes['nVertices']
 
-    maxEdgesInTransect = numpy.amax([len(southernBoundaryEdges[iTransect])
-                                     for iTransect in range(nTransects)])
+    maxEdgesInTransect = numpy.amax(
+        [
+            len(southernBoundaryEdges[iTransect])
+            for iTransect in range(nTransects)
+        ]
+    )
 
-    maxVerticesInTransect = \
-        numpy.amax([len(southernBoundaryVertices[iTransect])
-                    for iTransect in range(nTransects)])
+    maxVerticesInTransect = numpy.amax(
+        [
+            len(southernBoundaryVertices[iTransect])
+            for iTransect in range(nTransects)
+        ]
+    )
 
-    transectEdgeMasks = numpy.zeros((nEdges, nTransects),
-                                    numpy.int32)
-    transectEdgeMaskSigns = numpy.zeros((nEdges, nTransects),
-                                        numpy.int32)
-    transectEdgeGlobalIDs = numpy.zeros((nTransects, maxEdgesInTransect),
-                                        numpy.int32)
-    transectVertexMasks = numpy.zeros((nVertices, nTransects),
-                                      numpy.int32)
-    transectVertexGlobalIDs = numpy.zeros((nTransects, maxVerticesInTransect),
-                                          numpy.int32)
+    transectEdgeMasks = numpy.zeros((nEdges, nTransects), numpy.int32)
+    transectEdgeMaskSigns = numpy.zeros((nEdges, nTransects), numpy.int32)
+    transectEdgeGlobalIDs = numpy.zeros(
+        (nTransects, maxEdgesInTransect), numpy.int32
+    )
+    transectVertexMasks = numpy.zeros((nVertices, nTransects), numpy.int32)
+    transectVertexGlobalIDs = numpy.zeros(
+        (nTransects, maxVerticesInTransect), numpy.int32
+    )
 
     for iTransect in range(nTransects):
         transectEdgeMasks[southernBoundaryEdges[iTransect], iTransect] = 1
 
-        transectEdgeMaskSigns[southernBoundaryEdges[iTransect], iTransect] \
-            = southernBoiundaryEdgeSigns[iTransect]
+        transectEdgeMaskSigns[southernBoundaryEdges[iTransect], iTransect] = (
+            southernBoiundaryEdgeSigns[iTransect]
+        )
 
         transectCount = len(southernBoundaryEdges[iTransect])
-        transectEdgeGlobalIDs[iTransect, 0:transectCount] \
-            = southernBoundaryEdges[iTransect] + 1
+        transectEdgeGlobalIDs[iTransect, 0:transectCount] = (
+            southernBoundaryEdges[iTransect] + 1
+        )
 
         transectVertexMasks[southernBoundaryVertices[iTransect], iTransect] = 1
 
         transectCount = len(southernBoundaryVertices[iTransect])
-        transectVertexGlobalIDs[iTransect, 0:transectCount] \
-            = southernBoundaryVertices[iTransect] + 1
+        transectVertexGlobalIDs[iTransect, 0:transectCount] = (
+            southernBoundaryVertices[iTransect] + 1
+        )
 
-    mocMask['transectEdgeMasks'] = \
-        (('nEdges', 'nTransects'), transectEdgeMasks)
-    mocMask['transectEdgeMaskSigns'] = (('nEdges', 'nTransects'),
-                                        transectEdgeMaskSigns)
-    mocMask['transectEdgeGlobalIDs'] = (('nTransects', 'maxEdgesInTransect'),
-                                        transectEdgeGlobalIDs)
+    mocMask['transectEdgeMasks'] = (
+        ('nEdges', 'nTransects'),
+        transectEdgeMasks,
+    )
+    mocMask['transectEdgeMaskSigns'] = (
+        ('nEdges', 'nTransects'),
+        transectEdgeMaskSigns,
+    )
+    mocMask['transectEdgeGlobalIDs'] = (
+        ('nTransects', 'maxEdgesInTransect'),
+        transectEdgeGlobalIDs,
+    )
 
-    mocMask['transectVertexMasks'] = (('nVertices', 'nTransects'),
-                                      transectVertexMasks)
-    mocMask['transectVertexGlobalIDs'] = \
-        (('nTransects', 'maxVerticesInTransect'), transectVertexGlobalIDs)
+    mocMask['transectVertexMasks'] = (
+        ('nVertices', 'nTransects'),
+        transectVertexMasks,
+    )
+    mocMask['transectVertexGlobalIDs'] = (
+        ('nTransects', 'maxVerticesInTransect'),
+        transectVertexGlobalIDs,
+    )
 
     if 'nRegionsInGroup' not in mocMask:
         nRegions = mocMask.sizes['nRegions']
         nRegionGroups = 2
-        nRegionsInGroup = nRegions*numpy.ones(nRegionGroups, dtype=numpy.int32)
-        regionsInGroup = numpy.zeros((nRegionGroups, nRegions),
-                                     dtype=numpy.int32)
+        nRegionsInGroup = nRegions * numpy.ones(
+            nRegionGroups, dtype=numpy.int32
+        )
+        regionsInGroup = numpy.zeros(
+            (nRegionGroups, nRegions), dtype=numpy.int32
+        )
         regionGroupNames = ['MOCBasinRegionsGroup', 'all']
         regionNames = mocMask.regionNames.values
         nChar = 64
         for index in range(nRegionGroups):
-            regionsInGroup[index, :] = numpy.arange(1, nRegions+1)
+            regionsInGroup[index, :] = numpy.arange(1, nRegions + 1)
 
         mocMask['nRegionsInGroup'] = (('nRegionGroups',), nRegionsInGroup)
 
-        mocMask['regionsInGroup'] = (('nRegionGroups', 'maxRegionsInGroup'),
-                                     regionsInGroup)
+        mocMask['regionsInGroup'] = (
+            ('nRegionGroups', 'maxRegionsInGroup'),
+            regionsInGroup,
+        )
 
-        mocMask['regionGroupNames'] = \
-            (('nRegionGroups',), numpy.zeros((nRegionGroups,),
-                                             dtype=f'|S{nChar}'))
+        mocMask['regionGroupNames'] = (
+            ('nRegionGroups',),
+            numpy.zeros((nRegionGroups,), dtype=f'|S{nChar}'),
+        )
 
         for index in range(nRegionGroups):
             mocMask['regionGroupNames'][index] = regionGroupNames[index]
 
         # we need to make sure the region names use the same string length
-        mocMask['regionNames'] = \
-            (('nRegions',), numpy.zeros((nRegions,),
-                                        dtype=f'|S{nChar}'))
+        mocMask['regionNames'] = (
+            ('nRegions',),
+            numpy.zeros((nRegions,), dtype=f'|S{nChar}'),
+        )
 
         for index in range(nRegions):
             mocMask['regionNames'][index] = regionNames[index]
 
     mocMask['transectNames'] = mocMask.regionNames.rename(
-        {'nRegions': 'nTransects'})
+        {'nRegions': 'nTransects'}
+    )
 
     mocMask['nTransectsInGroup'] = mocMask.nRegionsInGroup.rename(
-        {'nRegionGroups': 'nTransectGroups'})
+        {'nRegionGroups': 'nTransectGroups'}
+    )
 
     mocMask['transectsInGroup'] = mocMask.regionsInGroup.rename(
-        {'nRegionGroups': 'nTransectGroups',
-         'maxRegionsInGroup': 'maxTransectsInGroup'})
+        {
+            'nRegionGroups': 'nTransectGroups',
+            'maxRegionsInGroup': 'maxTransectsInGroup',
+        }
+    )
 
     mocMask['transectGroupNames'] = mocMask.regionGroupNames.rename(
-        {'nRegionGroups': 'nTransectGroups'})
+        {'nRegionGroups': 'nTransectGroups'}
+    )
 
 
-def _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
-                                   verticesOnEdge):
+def _get_edge_sequence_on_boundary(
+    startEdge, edgeSign, edgesOnVertex, verticesOnEdge
+):
     """
     Follows the boundary from a starting edge to produce a sequence of
     edges that form a closed loop.
@@ -390,8 +467,8 @@ def _get_edge_sequence_on_boundary(startEdge, edgeSign, edgesOnVertex,
     edgeSequence = []
     vertexSequence = []
     while True:
-        assert edgeSign[iEdge] == 1. or edgeSign[iEdge] == -1.
-        if edgeSign[iEdge] == 1.:
+        assert edgeSign[iEdge] == 1.0 or edgeSign[iEdge] == -1.0
+        if edgeSign[iEdge] == 1.0:
             v = 0
         else:
             v = 1
