@@ -13,6 +13,7 @@ default_format = 'NETCDF3_64BIT'
 default_engine = None
 default_char_dim_name = 'StrLen'
 default_fills = netCDF4.default_fillvals
+default_nchar = 64
 
 
 def write_netcdf(
@@ -23,6 +24,7 @@ def write_netcdf(
     engine=None,
     char_dim_name=None,
     logger=None,
+    nchar=None,
 ):
     """
     Write an xarray.Dataset to a file with NetCDF4 fill values and the given
@@ -31,9 +33,9 @@ def write_netcdf(
 
     Note: the ``NETCDF3_64BIT_DATA`` format is handled as a special case
     because xarray output with this format is not performant. First, the file
-    is written in `NETCDF4` format, which supports larger files and variables.
-    Then, the `ncks` command is used to convert the file to the
-    `NETCDF3_64BIT_DATA` format.
+    is written in ``NETCDF4`` format, which supports larger files and
+    variables. Then, the ``ncks`` command is used to convert the file to the
+    ``NETCDF3_64BIT_DATA`` format.
 
     Note: All int64 variables are automatically converted to int32 for MPAS
     compatibility.
@@ -63,15 +65,19 @@ def write_netcdf(
         ``mpas_tools.io.default_engine``
 
     char_dim_name : str, optional
-        The name of the dimension used for character strings, or None to let
-        xarray figure this out. Default is
+        The name of the dimension used for character strings. Default is
         ``mpas_tools.io.default_char_dim_name``, which can be modified but
         which defaults to ``'StrLen'``
 
+    nchar : int, optional
+        The number of characters to use for string variables.  If None, the
+        default is ``mpas_tools.io.default_nchar``, which can be modified but
+        which defaults to 64.
+
     logger : logging.Logger, optional
-        A logger to write messages to write the output of `ncks` conversion
-        calls to.  If None, `ncks` output is suppressed.  This is only
-        relevant if `format` is 'NETCDF3_64BIT_DATA'
+        A logger to write messages to write the output of ``ncks`` conversion
+        calls to.  If None, ``ncks`` output is suppressed.  This is only
+        relevant if ``format`` is 'NETCDF3_64BIT_DATA'
     """  # noqa: E501
     if format is None:
         format = default_format
@@ -85,31 +91,43 @@ def write_netcdf(
     if char_dim_name is None:
         char_dim_name = default_char_dim_name
 
-    # Convert int64 variables to int32 for MPAS compatibility
-    for var in list(ds.data_vars.keys()) + list(ds.coords.keys()):
-        if ds[var].dtype == numpy.int64:
-            attrs = ds[var].attrs.copy()
-            ds[var] = ds[var].astype(numpy.int32)
-            ds[var].attrs = attrs
+    if nchar is None:
+        nchar = default_nchar
+
+    numpyFillValues = {}
+    for fillType in fillValues:
+        # drop string fill values
+        if not fillType.startswith('S'):
+            numpyFillValues[numpy.dtype(fillType)] = fillValues[fillType]
 
     encodingDict = {}
     variableNames = list(ds.data_vars.keys()) + list(ds.coords.keys())
     for variableName in variableNames:
-        isNumeric = numpy.issubdtype(ds[variableName].dtype, numpy.number)
-        if isNumeric and numpy.any(numpy.isnan(ds[variableName])):
-            dtype = ds[variableName].dtype
-            for fillType in fillValues:
-                if dtype == numpy.dtype(fillType):
-                    encodingDict[variableName] = {
-                        '_FillValue': fillValues[fillType]
-                    }
-                    break
-        else:
-            encodingDict[variableName] = {'_FillValue': None}
+        var = ds[variableName]
+        encodingDict[variableName] = {}
+        dtype = var.dtype
 
-        isString = numpy.issubdtype(ds[variableName].dtype, numpy.bytes_)
-        if isString and char_dim_name is not None:
-            encodingDict[variableName] = {'char_dim_name': char_dim_name}
+        # Convert int64 variables to int32 for MPAS compatibility
+        if dtype == numpy.int64:
+            encodingDict[variableName]['dtype'] = 'int32'
+
+        # add fill values
+        if dtype in numpyFillValues:
+            if numpy.any(numpy.isnan(var)):
+                # only add fill values if they're needed
+                fill = numpyFillValues[dtype]
+            else:
+                fill = None
+            encodingDict[variableName]['_FillValue'] = fill
+
+        isString = numpy.issubdtype(dtype, numpy.bytes_) or numpy.issubdtype(
+            dtype, numpy.str_
+        )
+        if isString:
+            # set the encoding for string variables
+            encodingDict[variableName].update(
+                {'dtype': f'|S{nchar}', 'char_dim_name': char_dim_name}
+            )
 
     update_history(ds)
 
