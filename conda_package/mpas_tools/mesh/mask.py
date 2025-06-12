@@ -1181,7 +1181,7 @@ def _add_properties(ds, properties, dim):
                 for index, value in enumerate(prop_list):
                     ds[name][index] = value
             else:
-                ds[name] = ((dim,), properties[prop_list])
+                ds[name] = ((dim,), prop_list)
 
 
 def _get_region_names_and_properties(fc):
