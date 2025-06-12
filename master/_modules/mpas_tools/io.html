@@ -135,6 +135,7 @@
 <span class="n">default_engine</span> <span class="o">=</span> <span class="kc">None</span>
 <span class="n">default_char_dim_name</span> <span class="o">=</span> <span class="s1">&#39;StrLen&#39;</span>
 <span class="n">default_fills</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">default_fillvals</span>
+<span class="n">default_nchar</span> <span class="o">=</span> <span class="mi">64</span>
 
 
 <div class="viewcode-block" id="write_netcdf">
@@ -147,6 +148,7 @@
     <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">char_dim_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">nchar</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Write an xarray.Dataset to a file with NetCDF4 fill values and the given</span>
@@ -155,9 +157,9 @@
 
 <span class="sd">    Note: the ``NETCDF3_64BIT_DATA`` format is handled as a special case</span>
 <span class="sd">    because xarray output with this format is not performant. First, the file</span>
-<span class="sd">    is written in `NETCDF4` format, which supports larger files and variables.</span>
-<span class="sd">    Then, the `ncks` command is used to convert the file to the</span>
-<span class="sd">    `NETCDF3_64BIT_DATA` format.</span>
+<span class="sd">    is written in ``NETCDF4`` format, which supports larger files and</span>
+<span class="sd">    variables. Then, the ``ncks`` command is used to convert the file to the</span>
+<span class="sd">    ``NETCDF3_64BIT_DATA`` format.</span>
 
 <span class="sd">    Note: All int64 variables are automatically converted to int32 for MPAS</span>
 <span class="sd">    compatibility.</span>
@@ -187,15 +189,19 @@
 <span class="sd">        ``mpas_tools.io.default_engine``</span>
 
 <span class="sd">    char_dim_name : str, optional</span>
-<span class="sd">        The name of the dimension used for character strings, or None to let</span>
-<span class="sd">        xarray figure this out. Default is</span>
+<span class="sd">        The name of the dimension used for character strings. Default is</span>
 <span class="sd">        ``mpas_tools.io.default_char_dim_name``, which can be modified but</span>
 <span class="sd">        which defaults to ``&#39;StrLen&#39;``</span>
 
+<span class="sd">    nchar : int, optional</span>
+<span class="sd">        The number of characters to use for string variables.  If None, the</span>
+<span class="sd">        default is ``mpas_tools.io.default_nchar``, which can be modified but</span>
+<span class="sd">        which defaults to 64.</span>
+
 <span class="sd">    logger : logging.Logger, optional</span>
-<span class="sd">        A logger to write messages to write the output of `ncks` conversion</span>
-<span class="sd">        calls to.  If None, `ncks` output is suppressed.  This is only</span>
-<span class="sd">        relevant if `format` is &#39;NETCDF3_64BIT_DATA&#39;</span>
+<span class="sd">        A logger to write messages to write the output of ``ncks`` conversion</span>
+<span class="sd">        calls to.  If None, ``ncks`` output is suppressed.  This is only</span>
+<span class="sd">        relevant if ``format`` is &#39;NETCDF3_64BIT_DATA&#39;</span>
 <span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
     <span class="k">if</span> <span class="nb">format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">format</span> <span class="o">=</span> <span class="n">default_format</span>
@@ -209,31 +215,43 @@
     <span class="k">if</span> <span class="n">char_dim_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">char_dim_name</span> <span class="o">=</span> <span class="n">default_char_dim_name</span>
 
-    <span class="c1"># Convert int64 variables to int32 for MPAS compatibility</span>
-    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">data_vars</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
-        <span class="k">if</span> <span class="n">ds</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
-            <span class="n">attrs</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-            <span class="n">ds</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-            <span class="n">ds</span><span class="p">[</span><span class="n">var</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span> <span class="o">=</span> <span class="n">attrs</span>
+    <span class="k">if</span> <span class="n">nchar</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nchar</span> <span class="o">=</span> <span class="n">default_nchar</span>
+
+    <span class="n">numpyFillValues</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">fillType</span> <span class="ow">in</span> <span class="n">fillValues</span><span class="p">:</span>
+        <span class="c1"># drop string fill values</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fillType</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">):</span>
+            <span class="n">numpyFillValues</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">fillType</span><span class="p">)]</span> <span class="o">=</span> <span class="n">fillValues</span><span class="p">[</span><span class="n">fillType</span><span class="p">]</span>
 
     <span class="n">encodingDict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">variableNames</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">data_vars</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="k">for</span> <span class="n">variableName</span> <span class="ow">in</span> <span class="n">variableNames</span><span class="p">:</span>
-        <span class="n">isNumeric</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">isNumeric</span> <span class="ow">and</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="n">variableName</span><span class="p">])):</span>
-            <span class="n">dtype</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span>
-            <span class="k">for</span> <span class="n">fillType</span> <span class="ow">in</span> <span class="n">fillValues</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">numpy</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">fillType</span><span class="p">):</span>
-                    <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                        <span class="s1">&#39;_FillValue&#39;</span><span class="p">:</span> <span class="n">fillValues</span><span class="p">[</span><span class="n">fillType</span><span class="p">]</span>
-                    <span class="p">}</span>
-                    <span class="k">break</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+        <span class="n">var</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span>
+        <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">dtype</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">dtype</span>
 
-        <span class="n">isString</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">bytes_</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">isString</span> <span class="ow">and</span> <span class="n">char_dim_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;char_dim_name&#39;</span><span class="p">:</span> <span class="n">char_dim_name</span><span class="p">}</span>
+        <span class="c1"># Convert int64 variables to int32 for MPAS compatibility</span>
+        <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
+            <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">][</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;int32&#39;</span>
+
+        <span class="c1"># add fill values</span>
+        <span class="k">if</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">numpyFillValues</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">var</span><span class="p">)):</span>
+                <span class="c1"># only add fill values if they&#39;re needed</span>
+                <span class="n">fill</span> <span class="o">=</span> <span class="n">numpyFillValues</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fill</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">][</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fill</span>
+
+        <span class="n">isString</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">bytes_</span><span class="p">)</span> <span class="ow">or</span> <span class="n">numpy</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span>
+            <span class="n">dtype</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">str_</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">isString</span><span class="p">:</span>
+            <span class="c1"># set the encoding for string variables</span>
+            <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="p">{</span><span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;|S</span><span class="si">{</span><span class="n">nchar</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;char_dim_name&#39;</span><span class="p">:</span> <span class="n">char_dim_name</span><span class="p">}</span>
+            <span class="p">)</span>
 
     <span class="n">update_history</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
