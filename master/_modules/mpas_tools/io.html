@@ -287,6 +287,8 @@
             <span class="n">out_filename</span><span class="p">,</span>
             <span class="n">fileName</span><span class="p">,</span>
         <span class="p">]</span>
+        <span class="c1"># Ensure all args are strings (important for Path objects)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">args</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
                 <span class="n">args</span><span class="p">,</span>
