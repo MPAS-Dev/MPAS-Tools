@@ -1,4 +1,5 @@
 import logging
+import os
 import sys
 
 import networkx as nx
@@ -7,7 +8,13 @@ import scipy.sparse
 import scipy.sparse.linalg
 import xarray as xr
 
-from mpas_tools.ocean.depth import compute_zmid
+from mpas_tools.io import write_netcdf
+from mpas_tools.ocean.streamfunction.velocity import (
+    compute_vertically_integrated_velocity,
+)
+from mpas_tools.ocean.streamfunction.vorticity import (
+    compute_vertically_integrated_vorticity,
+)
 
 
 def compute_barotropic_streamfunction(
@@ -21,7 +28,8 @@ def compute_barotropic_streamfunction(
     include_bolus=False,
     include_submesoscale=False,
     quiet=False,
-    nvertlevels_chunk=1,
+    horiz_chunk=10000,
+    tmp_dir=None,
 ):
     """
     Compute barotropic streamfunction
@@ -60,10 +68,16 @@ def compute_barotropic_streamfunction(
         If True, suppress all logging output
         If False, log all output to the logger
 
-    nvertlevels_chunk : int, optional
-        The number of vertical levels to chunk the dataset by. This is
-        useful for large datasets to avoid memory issues. The default is 1,
-        which means no chunking. Set this to ``None`` to disable chunking.
+    horiz_chunk : int, optional
+        The number of edges to chunk the dataset by when computing
+        the vertically integrated velocity. This is useful for
+        large datasets to avoid memory issues. Set this to ``None`` to disable
+        chunking.
+
+    tmp_dir : str, optional
+        A temporary directory to use for intermediate files. This is useful
+        for large datasets to avoid memory issues. If None, no temporary
+        directory is used.
 
     Returns
     -------
@@ -86,9 +100,6 @@ def compute_barotropic_streamfunction(
     else:
         ds = ds.isel(Time=time_index)
 
-    if nvertlevels_chunk is not None:
-        ds = ds.chunk(nVertLevels=nvertlevels_chunk)
-
     if logger:
         logger.info('Computing barotropic streamfunction.')
 
@@ -101,6 +112,8 @@ def compute_barotropic_streamfunction(
         min_depth,
         max_depth,
         logger,
+        horiz_chunk,
+        tmp_dir,
     )
 
     if logger:
@@ -214,236 +227,22 @@ def _build_minimal_boundary_constraints(
     return minimal_constraints
 
 
-def _compute_vert_integ_velocity(
-    ds_mesh,
-    ds,
-    prefix,
-    include_bolus,
-    include_submesoscale,
-    min_depth,
-    max_depth,
-    logger,
-):
-    if logger:
-        logger.info('    Identifying inner edges.')
-    cells_on_edge = ds_mesh.cellsOnEdge - 1
-    inner_edges = np.logical_and(
-        cells_on_edge.isel(TWO=0) >= 0, cells_on_edge.isel(TWO=1) >= 0
-    )
-
-    # convert from boolean mask to indices
-    inner_edges = np.flatnonzero(inner_edges.values)
-
-    cell0 = cells_on_edge.isel(nEdges=inner_edges, TWO=0)
-    cell1 = cells_on_edge.isel(nEdges=inner_edges, TWO=1)
-    n_vert_levels = ds.sizes['nVertLevels']
-
-    layer_thickness = ds[f'{prefix}layerThickness']
-    max_level_cell = ds_mesh.maxLevelCell - 1
-
-    vert_index = xr.DataArray.from_dict(
-        {'dims': ('nVertLevels',), 'data': np.arange(n_vert_levels)}
-    )
-
-    if logger:
-        logger.info('    Computing z_mid and z_mid_edge.')
-    z_mid = compute_zmid(
-        ds_mesh.bottomDepth, ds_mesh.maxLevelCell, layer_thickness
-    )
-    z_mid_edge = 0.5 * (z_mid.isel(nCells=cell0) + z_mid.isel(nCells=cell1))
-
-    if logger:
-        logger.info('    Adding up constituents of normal velocity.')
-    normal_velocity = ds[f'{prefix}normalVelocity']
-    if include_bolus:
-        normal_velocity += ds[f'{prefix}normalGMBolusVelocity']
-    if include_submesoscale:
-        normal_velocity += ds[f'{prefix}normalMLEvelocity']
-    normal_velocity = normal_velocity.isel(nEdges=inner_edges)
-
-    thickness0 = layer_thickness.isel(nCells=cell0)
-    thickness1 = layer_thickness.isel(nCells=cell1)
-    layer_thickness_edge = 0.5 * (thickness0 + thickness1)
-
-    if logger:
-        logger.info('    Computing bottom mask.')
-
-    mask_bottom = (vert_index <= max_level_cell).T
-    mask_bottom_edge = np.logical_and(
-        mask_bottom.isel(nCells=cell0), mask_bottom.isel(nCells=cell1)
-    )
-
-    if logger:
-        logger.info('    Applying depth masks.')
-    masks = [mask_bottom_edge]
-    if min_depth is not None:
-        masks.append(z_mid_edge <= min_depth)
-    if max_depth is not None:
-        masks.append(z_mid_edge >= max_depth)
-    for mask in masks:
-        normal_velocity = normal_velocity.where(mask)
-        layer_thickness_edge = layer_thickness_edge.where(mask)
-
-    if logger:
-        logger.info('    Computing vertically integrated velocity.')
-    vert_integ_velocity = np.zeros(ds_mesh.sizes['nEdges'], dtype=float)
-    inner_vert_integ_vel = (layer_thickness_edge * normal_velocity).sum(
-        dim='nVertLevels'
-    )
-    vert_integ_velocity[inner_edges] = inner_vert_integ_vel.values
-
-    if logger:
-        logger.info('    Finalizing vertically integrated velocity.')
-    vert_integ_velocity = xr.DataArray(vert_integ_velocity, dims=('nEdges',))
-
-    return vert_integ_velocity
-
-
-def _compute_edge_sign_on_vertex(ds_mesh):
-    edges_on_vertex = ds_mesh.edgesOnVertex - 1
-    vertices_on_edge = ds_mesh.verticesOnEdge - 1
-
-    nvertices = ds_mesh.sizes['nVertices']
-    vertex_degree = ds_mesh.sizes['vertexDegree']
-
-    edge_sign_on_vertex = np.zeros((nvertices, vertex_degree), dtype=int)
-    vertices = np.arange(nvertices)
-    for iedge in range(vertex_degree):
-        eov = edges_on_vertex.isel(vertexDegree=iedge)
-        valid_edge = eov >= 0
-
-        v0_on_edge = vertices_on_edge.isel(nEdges=eov, TWO=0)
-        v1_on_edge = vertices_on_edge.isel(nEdges=eov, TWO=1)
-        valid_edge = np.logical_and(
-            eov >= 0, np.logical_and(v0_on_edge >= 0, v1_on_edge >= 0)
-        )
-
-        mask = np.logical_and(valid_edge, v0_on_edge == vertices)
-        edge_sign_on_vertex[mask, iedge] = -1
-
-        mask = np.logical_and(valid_edge, v1_on_edge == vertices)
-        edge_sign_on_vertex[mask, iedge] = 1
-
-    edge_sign_on_vertex = xr.DataArray(
-        edge_sign_on_vertex,
-        dims=('nVertices', 'vertexDegree'),
-    )
-    return edge_sign_on_vertex
-
-
-def _compute_vert_integ_vorticity(
-    ds_mesh, vert_integ_velocity, edge_sign_on_vertex
-):
-    area_vertex = ds_mesh.areaTriangle
-    dc_edge = ds_mesh.dcEdge
-    edges_on_vertex = ds_mesh.edgesOnVertex - 1
-
-    vertex_degree = ds_mesh.sizes['vertexDegree']
-
-    vert_integ_vorticity = xr.zeros_like(ds_mesh.latVertex)
-    for iedge in range(vertex_degree):
-        eov = edges_on_vertex.isel(vertexDegree=iedge)
-        edge_sign = edge_sign_on_vertex.isel(vertexDegree=iedge)
-        dc = dc_edge.isel(nEdges=eov)
-        vert_integ_vel = vert_integ_velocity.isel(nEdges=eov)
-        vert_integ_vorticity += dc / area_vertex * edge_sign * vert_integ_vel
-
-    return vert_integ_vorticity
-
-
-def _compute_barotropic_streamfunction_vertex(
-    ds_mesh,
-    ds,
-    prefix,
-    include_bolus,
-    include_submesoscale,
-    min_depth,
-    max_depth,
-    logger=None,
-):
+def _identify_boundary_vertices(ds_mesh, logger, all_vertices):
     """
-    Compute the barotropic streamfunction on vertices.
-
-    This function solves a Poisson equation to compute the barotropic
-    streamfunction, which integrates vertically integrated velocity
-    divergence to obtain the streamfunction.
-
-    Parameters
-    ----------
-    ds_mesh : xarray.Dataset
-        The dataset containing mesh variables.
-
-    ds : xarray.Dataset
-        The dataset containing velocity and layer thickness variables.
-
-    prefix : str
-        Prefix for variable names in `ds`.
-
-    include_bolus : bool
-        Whether to include bolus velocity in the computation.
-
-    include_submesoscale : bool
-        Whether to include submesoscale velocity in the computation.
-
-    min_depth : float
-        Minimum depth for integration.
-
-    max_depth : float
-        Maximum depth for integration.
-
-    logger : logging.Logger, optional
-        Logger for logging messages.
-
-    Returns
-    -------
-    bsf_vertex : xarray.DataArray
-        The barotropic streamfunction on vertices.
+    Identify boundary vertices and edges in the mesh, and remove redundant
+    vertices that lead to overdetermined constraints.
     """
-    if logger:
-        logger.info('  Computing edge signs on vertices.')
-    # Compute the sign of edges on vertices to determine flow direction
-    edge_sign_on_vertex = _compute_edge_sign_on_vertex(ds_mesh)
-
-    if logger:
-        logger.info('  Computing vertically integrated velocity.')
-    # Compute the vertically integrated velocity on edges
-    vert_integ_velocity = _compute_vert_integ_velocity(
-        ds_mesh,
-        ds,
-        prefix,
-        include_bolus,
-        include_submesoscale,
-        min_depth,
-        max_depth,
-        logger,
-    )
-
-    if logger:
-        logger.info('  Computing vertically integrated vorticity.')
-    # Compute the vorticity on vertices from the integrated velocity
-    vert_integ_vorticity = _compute_vert_integ_vorticity(
-        ds_mesh, vert_integ_velocity, edge_sign_on_vertex
-    )
 
     if logger:
         logger.info('  Identifying boundary vertices.')
     # Identify boundary vertices
-    nvertices = ds_mesh.sizes['nVertices']
     nedges = ds_mesh.sizes['nEdges']
-    vertex_degree = ds_mesh.sizes['vertexDegree']
-    edges_on_vertex = ds_mesh.edgesOnVertex - 1
     cells_on_vertex = ds_mesh.cellsOnVertex - 1
     cells_on_edge = ds_mesh.cellsOnEdge - 1
     vertices_on_edge = ds_mesh.verticesOnEdge - 1
-    area_vertex = ds_mesh.areaTriangle
-    dc_edge = ds_mesh.dcEdge
-    dv_edge = ds_mesh.dvEdge
 
     boundary_mask = (cells_on_vertex == -1).any(dim='vertexDegree')
 
-    all_vertices = xr.DataArray(
-        np.arange(nvertices, dtype=int), dims=('nVertices',)
-    )
     boundary_vertices = all_vertices.where(boundary_mask, drop=True).astype(
         int
     )
@@ -481,6 +280,46 @@ def _compute_barotropic_streamfunction_vertex(
             f'  Removed {nboundary_removed} redundant boundary vertices.'
         )
 
+    return boundary_vertex0, boundary_vertex1, nboundary
+
+
+def _assemble_matrix(
+    ds_mesh, logger, edge_sign_on_vertex, vert_integ_vorticity
+):
+    """
+    Assemble the sparse matrix for the Poisson equation.
+    """
+
+    var_list = [
+        'edgesOnVertex',
+        'verticesOnEdge',
+        'areaTriangle',
+        'dcEdge',
+        'dvEdge',
+        'cellsOnVertex',
+        'cellsOnEdge',
+    ]
+    ds_mesh = ds_mesh[var_list].as_numpy()
+    edge_sign_on_vertex = edge_sign_on_vertex.as_numpy()
+    vert_integ_vorticity = vert_integ_vorticity.as_numpy()
+
+    nvertices = ds_mesh.sizes['nVertices']
+    vertex_degree = ds_mesh.sizes['vertexDegree']
+    edges_on_vertex = ds_mesh.edgesOnVertex - 1
+    vertices_on_edge = ds_mesh.verticesOnEdge - 1
+    area_vertex = ds_mesh.areaTriangle
+    dc_edge = ds_mesh.dcEdge
+    dv_edge = ds_mesh.dvEdge
+
+    all_vertices = xr.DataArray(
+        np.arange(nvertices, dtype=int), dims=('nVertices',)
+    )
+
+    boundary_vertex0, boundary_vertex1, nboundary = (
+        _identify_boundary_vertices(ds_mesh, logger, all_vertices)
+    )
+
+    if logger:
         logger.info('  Assembling sparse matrix for the Poisson equation.')
     # Assemble the sparse matrix for solving the Poisson equation:
     #   * the Poisson equation at each vertex involves vertex degree + 1 terms
@@ -573,6 +412,86 @@ def _compute_barotropic_streamfunction_vertex(
     rhs = np.zeros(nmatrix, dtype=float)
     rhs[0:nvertices] = vert_integ_vorticity.values
 
+    return indices, data, rhs, nmatrix
+
+
+def _compute_barotropic_streamfunction_vertex(
+    ds_mesh,
+    ds,
+    prefix,
+    include_bolus,
+    include_submesoscale,
+    min_depth,
+    max_depth,
+    logger,
+    horiz_chunk,
+    tmp_dir,
+):
+    """
+    Compute the barotropic streamfunction on vertices.
+
+    This function solves a Poisson equation to compute the barotropic
+    streamfunction, which integrates vertically integrated velocity
+    divergence to obtain the streamfunction.
+    """
+    if logger:
+        logger.info('  Computing vertically integrated velocity.')
+    # Compute the vertically integrated velocity on edges
+    vert_integ_velocity = compute_vertically_integrated_velocity(
+        ds_mesh=ds_mesh,
+        ds=ds,
+        logger=logger,
+        min_depth=min_depth,
+        max_depth=max_depth,
+        prefix=prefix,
+        include_bolus=include_bolus,
+        include_submesoscale=include_submesoscale,
+        nedges_chunk=horiz_chunk,
+    )
+
+    if tmp_dir is not None:
+        if logger:
+            logger.info(
+                '  Writing out and reading in vertically integrated velocity.'
+            )
+        # write out and read back the vertically integrated velocity
+        ds_out = xr.Dataset()
+        ds_out['vertIntegNormalVelocity'] = vert_integ_velocity
+        filename = os.path.join(tmp_dir, 'bsf_vert_integ_normal_vel.nc')
+        write_netcdf(ds_out, filename, logger=logger)
+        ds_in = xr.open_dataset(filename)
+        vert_integ_velocity = ds_in['vertIntegNormalVelocity']
+
+    vert_integ_vorticity, edge_sign_on_vertex = (
+        compute_vertically_integrated_vorticity(
+            ds_mesh=ds_mesh,
+            vert_integ_velocity=vert_integ_velocity,
+            logger=logger,
+        )
+    )
+
+    if tmp_dir is not None:
+        if logger:
+            logger.info(
+                '  Writing out and reading in vertically integrated vorticity.'
+            )
+        # write out and read back the vertically integrated velocity
+        ds_out = xr.Dataset()
+        ds_out['vertIntegVorticity'] = vert_integ_vorticity
+        ds_out['edgeSignOnVertex'] = edge_sign_on_vertex
+        filename = os.path.join(tmp_dir, 'bsf_vert_integ_vorticity.nc')
+        write_netcdf(ds_out, filename, logger=logger)
+        ds_in = xr.open_dataset(filename)
+        vert_integ_vorticity = ds_in['vertIntegVorticity']
+        edge_sign_on_vertex = ds_in['edgeSignOnVertex']
+
+    indices, data, rhs, nmatrix = _assemble_matrix(
+        ds_mesh,
+        logger,
+        edge_sign_on_vertex,
+        vert_integ_vorticity,
+    )
+
     if logger:
         logger.info('  Solving the sparse linear system.')
     # Solve the sparse linear system
@@ -582,6 +501,7 @@ def _compute_barotropic_streamfunction_vertex(
     if logger:
         logger.info('  Finalizing the barotropic streamfunction.')
     # Convert the solution to the barotropic streamfunction
+    nvertices = ds_mesh.sizes['nVertices']
     bsf_vertex = xr.DataArray(
         -1e-6 * solution[0:nvertices], dims=('nVertices',)
     )

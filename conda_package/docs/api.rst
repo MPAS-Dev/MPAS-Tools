@@ -227,6 +227,7 @@ Ocean Tools
    depth.compute_zmid
 
    compute_barotropic_streamfunction
+   shift_barotropic_streamfunction
 
 .. currentmodule:: mpas_tools.ocean.inject_bathymetry
 
