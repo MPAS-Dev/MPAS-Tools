@@ -22,3 +22,6 @@ from mpas_tools.ocean.inject_preserve_floodplain import (
 from mpas_tools.ocean.streamfunction.barotropic import (
     compute_barotropic_streamfunction as compute_barotropic_streamfunction,
 )
+from mpas_tools.ocean.streamfunction.barotropic import (
+    shift_barotropic_streamfunction as shift_barotropic_streamfunction,
+)
