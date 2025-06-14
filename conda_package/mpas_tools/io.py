@@ -163,6 +163,8 @@ def write_netcdf(
             out_filename,
             fileName,
         ]
+        # Ensure all args are strings (important for Path objects)
+        args = [str(arg) for arg in args]
         if logger is None:
             subprocess.run(
                 args,
