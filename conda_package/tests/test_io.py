@@ -6,6 +6,7 @@ import pytest
 import xarray as xr
 
 from mpas_tools.io import write_netcdf
+from mpas_tools.logging import LoggingContext
 
 from .util import get_test_data_file
 
@@ -31,9 +32,17 @@ def test_write_netcdf_basic(tmp_path):
     not os.path.exists(TEST_MESH), reason='Test mesh not available'
 )
 def test_write_netcdf_cdf5_format(tmp_path):
-    ds = xr.open_dataset(TEST_MESH)
-    out_file = tmp_path / 'test_cdf5.nc'
-    write_netcdf(ds, str(out_file), format='NETCDF3_64BIT_DATA')
+    with LoggingContext('test_write_netcdf_cdf5_format') as logger:
+        ds = xr.open_dataset(TEST_MESH)
+        out_file = tmp_path / 'test_cdf5.nc'
+        # test with and without logging
+        for logger_arg in [None, logger]:
+            write_netcdf(
+                ds,
+                str(out_file),
+                format='NETCDF3_64BIT_DATA',
+                logger=logger_arg,
+            )
     # Use ncdump -k to check format
     result = subprocess.run(
         ['ncdump', '-k', str(out_file)],
