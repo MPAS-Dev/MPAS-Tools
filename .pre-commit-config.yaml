@@ -21,11 +21,11 @@ repos:
     rev: v0.12.0
     hooks:
       # Sort the imports
-      - id: ruff
+      - id: ruff-check
         name: ruff-sort-imports
         args: [--select, I, --fix]
       # Run the linter.
-      - id: ruff
+      - id: ruff-check
         args: [--fix]
       # Run the formatter.
       - id: ruff-format
