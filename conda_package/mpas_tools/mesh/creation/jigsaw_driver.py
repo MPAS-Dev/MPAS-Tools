@@ -102,7 +102,7 @@ def jigsaw_driver(
     check_call(['jigsaw', opts.jcfg_file], logger=logger)
 
 
-def build_jigsaw(logger=None, clone=False):
+def build_jigsaw(logger=None, clone=False, subdir='jigsaw-python', hash=None):
     """
     Build the JIGSAW and JIGSAW-Python tools using conda-forge compilers
 
@@ -114,6 +114,15 @@ def build_jigsaw(logger=None, clone=False):
     clone : bool, optional
         If True, clone the jigsaw-python repository from github
         and build it. If False, just build the existing repository.
+
+    subdir : str, optional
+        The subdirectory where the jigsaw-python repository is located or will
+        be cloned. Default is 'jigsaw-python'.
+
+    hash : str, optional
+        A git hash to checkout after cloning the repository.
+        Ignored if `clone` is False.
+        If None and `clone` is True, the latest version will be used.
     """
     conda_env_path = os.getenv('CONDA_PREFIX')
     if conda_env_path is None:
@@ -145,7 +154,11 @@ def build_jigsaw(logger=None, clone=False):
 
     # remove conda jigsaw and jigsaw-python
     t0 = time.time()
-    commands = f'{activate_env}conda remove -y --force-remove jigsaw jigsawpy'
+    commands = (
+        f'{activate_env}'
+        f'pip uninstall -y jigsawpy; '
+        f'conda remove -y --force-remove jigsaw jigsawpy'
+    )
     try:
         check_call(commands, logger=logger, executable='/bin/bash', shell=True)
     except subprocess.CalledProcessError:
@@ -153,11 +166,13 @@ def build_jigsaw(logger=None, clone=False):
         pass
 
     if clone:
-        commands = (
-            f'{activate_env}'
-            f'rm -rf jigsaw-python && '
-            f'git clone https://github.com/dengwirda/jigsaw-python.git'
-        )
+        url = 'https://github.com/dengwirda/jigsaw-python.git'
+        commands = f'{activate_env}rm -rf {subdir} && git clone {url} {subdir}'
+        if hash is not None:
+            commands += (
+                f' && cd {subdir} && '
+                f'git -c advice.detachedHead=false checkout {hash}'
+            )
         check_call(commands, logger=logger, executable='/bin/bash', shell=True)
 
     # add build tools to deployment env, not polaris env
@@ -184,7 +199,7 @@ def build_jigsaw(logger=None, clone=False):
     # Build JIGSAW
     commands = (
         f'{activate_env}'
-        f'cd jigsaw-python/external/jigsaw && '
+        f'cd {subdir}/external/jigsaw && '
         f'rm -rf tmp && '
         f'mkdir tmp && '
         f'cd tmp && '
@@ -197,7 +212,7 @@ def build_jigsaw(logger=None, clone=False):
     # Set up JIGSAW-Python
     commands = (
         f'{activate_env}'
-        f'cd jigsaw-python && '
+        f'cd {subdir} && '
         f'rm -rf jigsawpy/_bin jigsawpy/_lib && '
         f'cp -r external/jigsaw/bin/ jigsawpy/_bin && '
         f'cp -r external/jigsaw/lib/ jigsawpy/_lib'
@@ -207,7 +222,7 @@ def build_jigsaw(logger=None, clone=False):
     print('Installing JIGSAW-Python\n')
     commands = (
         f'{activate_env}'
-        f'cd jigsaw-python && '
+        f'cd {subdir} && '
         f'python -m pip install --no-deps --no-build-isolation -e . && '
         f'cp jigsawpy/_bin/* ${{CONDA_PREFIX}}/bin'
     )
@@ -215,7 +230,8 @@ def build_jigsaw(logger=None, clone=False):
 
     t1 = time.time()
     total = int(t1 - t0 + 0.5)
-    message = f'JIGSAW install took {total:.1f} s.'
+    minutes, seconds = divmod(total, 60)
+    message = f'JIGSAW install took {minutes} min {seconds} s.'
     if logger is None:
         print(message)
     else:
@@ -235,10 +251,30 @@ def main_build_jigsaw():
         dest='clone',
         action='store_true',
         help=(
-            'Clone the jigsaw-python repository into the jigsaw-python dir '
-            'for you.  Otherwise, you must already have cloned it.'
+            'Clone the jigsaw-python repository into the directory specified '
+            'with --subdir for you.  If --clone is not specified, you must '
+            'already have cloned it.'
+        ),
+    )
+    parser.add_argument(
+        '--subdir',
+        dest='subdir',
+        default='jigsaw-python',
+        help=(
+            'A subdirectory of the current work directory where the '
+            'jigsaw-python repository is located or will be cloned. Default '
+            'is "jigsaw-python".'
+        ),
+    )
+    parser.add_argument(
+        '--hash',
+        dest='hash',
+        help=(
+            'A git hash to checkout after cloning the repository. '
+            'Ignored if --clone is not provided. If --clone is provided and '
+            '--hash is not, the latest version will be used.'
         ),
     )
     args = parser.parse_args()
 
-    build_jigsaw(clone=args.clone)
+    build_jigsaw(clone=args.clone, subdir=args.subdir, hash=args.hash)
