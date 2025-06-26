@@ -229,7 +229,7 @@
 
 <div class="viewcode-block" id="build_jigsaw">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw.html#mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">build_jigsaw</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">build_jigsaw</span><span class="p">(</span><span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">clone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">subdir</span><span class="o">=</span><span class="s1">&#39;jigsaw-python&#39;</span><span class="p">,</span> <span class="nb">hash</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Build the JIGSAW and JIGSAW-Python tools using conda-forge compilers</span>
 
@@ -241,6 +241,15 @@
 <span class="sd">    clone : bool, optional</span>
 <span class="sd">        If True, clone the jigsaw-python repository from github</span>
 <span class="sd">        and build it. If False, just build the existing repository.</span>
+
+<span class="sd">    subdir : str, optional</span>
+<span class="sd">        The subdirectory where the jigsaw-python repository is located or will</span>
+<span class="sd">        be cloned. Default is &#39;jigsaw-python&#39;.</span>
+
+<span class="sd">    hash : str, optional</span>
+<span class="sd">        A git hash to checkout after cloning the repository.</span>
+<span class="sd">        Ignored if `clone` is False.</span>
+<span class="sd">        If None and `clone` is True, the latest version will be used.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">conda_env_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s1">&#39;CONDA_PREFIX&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">conda_env_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -272,7 +281,11 @@
 
     <span class="c1"># remove conda jigsaw and jigsaw-python</span>
     <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-    <span class="n">commands</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">conda remove -y --force-remove jigsaw jigsawpy&#39;</span>
+    <span class="n">commands</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;pip uninstall -y jigsawpy; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;conda remove -y --force-remove jigsaw jigsawpy&#39;</span>
+    <span class="p">)</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">check_call</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">executable</span><span class="o">=</span><span class="s1">&#39;/bin/bash&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">CalledProcessError</span><span class="p">:</span>
@@ -280,11 +293,13 @@
         <span class="k">pass</span>
 
     <span class="k">if</span> <span class="n">clone</span><span class="p">:</span>
-        <span class="n">commands</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">&#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;rm -rf jigsaw-python &amp;&amp; &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;git clone https://github.com/dengwirda/jigsaw-python.git&#39;</span>
-        <span class="p">)</span>
+        <span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://github.com/dengwirda/jigsaw-python.git&#39;</span>
+        <span class="n">commands</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">rm -rf </span><span class="si">{</span><span class="n">subdir</span><span class="si">}</span><span class="s1"> &amp;&amp; git clone </span><span class="si">{</span><span class="n">url</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">subdir</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="k">if</span> <span class="nb">hash</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">commands</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39; &amp;&amp; cd </span><span class="si">{</span><span class="n">subdir</span><span class="si">}</span><span class="s1"> &amp;&amp; &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;git -c advice.detachedHead=false checkout </span><span class="si">{</span><span class="nb">hash</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
         <span class="n">check_call</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">executable</span><span class="o">=</span><span class="s1">&#39;/bin/bash&#39;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="c1"># add build tools to deployment env, not polaris env</span>
@@ -311,7 +326,7 @@
     <span class="c1"># Build JIGSAW</span>
     <span class="n">commands</span> <span class="o">=</span> <span class="p">(</span>
         <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">&#39;</span>
-        <span class="sa">f</span><span class="s1">&#39;cd jigsaw-python/external/jigsaw &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cd </span><span class="si">{</span><span class="n">subdir</span><span class="si">}</span><span class="s1">/external/jigsaw &amp;&amp; &#39;</span>
         <span class="sa">f</span><span class="s1">&#39;rm -rf tmp &amp;&amp; &#39;</span>
         <span class="sa">f</span><span class="s1">&#39;mkdir tmp &amp;&amp; &#39;</span>
         <span class="sa">f</span><span class="s1">&#39;cd tmp &amp;&amp; &#39;</span>
@@ -324,7 +339,7 @@
     <span class="c1"># Set up JIGSAW-Python</span>
     <span class="n">commands</span> <span class="o">=</span> <span class="p">(</span>
         <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">&#39;</span>
-        <span class="sa">f</span><span class="s1">&#39;cd jigsaw-python &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cd </span><span class="si">{</span><span class="n">subdir</span><span class="si">}</span><span class="s1"> &amp;&amp; &#39;</span>
         <span class="sa">f</span><span class="s1">&#39;rm -rf jigsawpy/_bin jigsawpy/_lib &amp;&amp; &#39;</span>
         <span class="sa">f</span><span class="s1">&#39;cp -r external/jigsaw/bin/ jigsawpy/_bin &amp;&amp; &#39;</span>
         <span class="sa">f</span><span class="s1">&#39;cp -r external/jigsaw/lib/ jigsawpy/_lib&#39;</span>
@@ -334,7 +349,7 @@
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Installing JIGSAW-Python</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="n">commands</span> <span class="o">=</span> <span class="p">(</span>
         <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">activate_env</span><span class="si">}</span><span class="s1">&#39;</span>
-        <span class="sa">f</span><span class="s1">&#39;cd jigsaw-python &amp;&amp; &#39;</span>
+        <span class="sa">f</span><span class="s1">&#39;cd </span><span class="si">{</span><span class="n">subdir</span><span class="si">}</span><span class="s1"> &amp;&amp; &#39;</span>
         <span class="sa">f</span><span class="s1">&#39;python -m pip install --no-deps --no-build-isolation -e . &amp;&amp; &#39;</span>
         <span class="sa">f</span><span class="s1">&#39;cp jigsawpy/_bin/* $</span><span class="se">{{</span><span class="s1">CONDA_PREFIX</span><span class="se">}}</span><span class="s1">/bin&#39;</span>
     <span class="p">)</span>
@@ -342,7 +357,8 @@
 
     <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
     <span class="n">total</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">t1</span> <span class="o">-</span> <span class="n">t0</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span>
-    <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;JIGSAW install took </span><span class="si">{</span><span class="n">total</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1"> s.&#39;</span>
+    <span class="n">minutes</span><span class="p">,</span> <span class="n">seconds</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+    <span class="n">message</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;JIGSAW install took </span><span class="si">{</span><span class="n">minutes</span><span class="si">}</span><span class="s1"> min </span><span class="si">{</span><span class="n">seconds</span><span class="si">}</span><span class="s1"> s.&#39;</span>
     <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
@@ -363,13 +379,33 @@
         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;clone&#39;</span><span class="p">,</span>
         <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;Clone the jigsaw-python repository into the jigsaw-python dir &#39;</span>
-            <span class="s1">&#39;for you.  Otherwise, you must already have cloned it.&#39;</span>
+            <span class="s1">&#39;Clone the jigsaw-python repository into the directory specified &#39;</span>
+            <span class="s1">&#39;with --subdir for you.  If --clone is not specified, you must &#39;</span>
+            <span class="s1">&#39;already have cloned it.&#39;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--subdir&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;subdir&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;jigsaw-python&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;A subdirectory of the current work directory where the &#39;</span>
+            <span class="s1">&#39;jigsaw-python repository is located or will be cloned. Default &#39;</span>
+            <span class="s1">&#39;is &quot;jigsaw-python&quot;.&#39;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--hash&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;hash&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;A git hash to checkout after cloning the repository. &#39;</span>
+            <span class="s1">&#39;Ignored if --clone is not provided. If --clone is provided and &#39;</span>
+            <span class="s1">&#39;--hash is not, the latest version will be used.&#39;</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
-    <span class="n">build_jigsaw</span><span class="p">(</span><span class="n">clone</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">clone</span><span class="p">)</span>
+    <span class="n">build_jigsaw</span><span class="p">(</span><span class="n">clone</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">clone</span><span class="p">,</span> <span class="n">subdir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">subdir</span><span class="p">,</span> <span class="nb">hash</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">hash</span><span class="p">)</span>
 </pre></div>
 
            </div>

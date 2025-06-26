@@ -166,7 +166,7 @@
 <h1>mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw<a class="headerlink" href="#mpas-tools-mesh-creation-jigsaw-driver-build-jigsaw" title="Link to this heading"></a></h1>
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw">
-<span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.creation.jigsaw_driver.</span></span><span class="sig-name descname"><span class="pre">build_jigsaw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/jigsaw_driver.html#build_jigsaw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.creation.jigsaw_driver.</span></span><span class="sig-name descname"><span class="pre">build_jigsaw</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clone</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'jigsaw-python'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hash</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/creation/jigsaw_driver.html#build_jigsaw"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.creation.jigsaw_driver.build_jigsaw" title="Link to this definition"></a></dt>
 <dd><p>Build the JIGSAW and JIGSAW-Python tools using conda-forge compilers</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -174,6 +174,11 @@
 <li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
 <li><p><strong>clone</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – If True, clone the jigsaw-python repository from github
 and build it. If False, just build the existing repository.</p></li>
+<li><p><strong>subdir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The subdirectory where the jigsaw-python repository is located or will
+be cloned. Default is ‘jigsaw-python’.</p></li>
+<li><p><strong>hash</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – A git hash to checkout after cloning the repository.
+Ignored if <cite>clone</cite> is False.
+If None and <cite>clone</cite> is True, the latest version will be used.</p></li>
 </ul>
 </dd>
 </dl>
