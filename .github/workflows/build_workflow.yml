@@ -1,13 +1,25 @@
-name: CI/CD Build Workflow
+name: Conda Package CI/CD Build Workflow
 
 on:
   push:
     branches:
       - master
+    paths:
+      - 'conda_package/**'
+      - '.github/workflows/**'
+      - 'mesh_tools/seaice_grid_tools/**'
+      - 'mesh_tools/mesh_conversion_tools/**'
+      - 'mesh_tools/mesh_conversion_tools_netcdf_c/**'
 
   pull_request:
     branches:
       - master
+    paths:
+      - 'conda_package/**'
+      - '.github/workflows/**'
+      - 'mesh_tools/seaice_grid_tools/**'
+      - 'mesh_tools/mesh_conversion_tools/**'
+      - 'mesh_tools/mesh_conversion_tools_netcdf_c/**'
 
   workflow_dispatch:
 
@@ -21,33 +33,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
-        with:
-          cancel_others: ${{ env.CANCEL_OTHERS }}
-          paths_ignore: ${{ env.PATHS_IGNORE }}
-
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        name: Checkout Code Repository
+      - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        name: Set up Python 3.13
+      - name: Set up Python 3.13
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        id: file_changes
+      - id: file_changes
         uses: trilom/file-changes-action@1.2.4
         with:
           output: ' '
 
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        # Run all pre-commit hooks on all the files.
-        # Getting only staged files can be tricky in case a new PR is opened
-        # since the action is run on a branch in detached head state
-        name: Install and Run Pre-commit
+      - name: Install and Run Pre-commit
         uses: pre-commit/action@v3.0.1
         with:
           extra_args: --files ${{ steps.file_changes.outputs.files}}
@@ -64,56 +63,38 @@ jobs:
         python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
       fail-fast: false
     steps:
-      - id: skip_check
-        uses: fkirc/skip-duplicate-actions@master
-        with:
-          cancel_others: ${{ env.CANCEL_OTHERS }}
-          paths_ignore: ${{ env.PATHS_IGNORE }}
+      - uses: actions/checkout@v4
 
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        uses: actions/checkout@v4
-
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        name: Cache Conda
-        uses: actions/cache@v4
-        env:
-          # Increase this value to reset cache if dev-spec and pyproject.toml have not changed in the workflow
-          CACHE_NUMBER: 0
-        with:
-          path: ~/conda_pkgs_dir_py${{ matrix.python-version }}
-          key:
-            ${{ runner.os }}-${{ matrix.python-version }}-conda-${{ env.CACHE_NUMBER }}-${{
-            hashFiles('conda_package/dev-spec.txt,conda_package/pyproject.toml') }}
-
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        name: Create Build Environment
+      - name: Create Build Environment
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-name: mpas_tools_dev
           init-shell: bash
           condarc: |
             channel_priority: strict
-            channels: 
+            channels:
                 - conda-forge
           create-args: >-
             python=${{ matrix.python-version }}
 
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        name: Finalize Build Environment
+      - name: Finalize Build Environment
         run: |
           conda install conda conda-build
           conda build -m "conda_package/ci/linux_64_python${{ matrix.python-version }}.____cpython.yaml" "conda_package/recipe"
 
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        name: Install mpas_tools
+      - name: Install mpas_tools
         run: |
           conda install -y -c ${CONDA_PREFIX}/conda-bld/ \
             mpas_tools python=${{ matrix.python-version }} \
             sphinx mock sphinx_rtd_theme
 
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        name: Build Sphinx Docs
+      - name: Build Sphinx Docs
         run: |
           cd conda_package/docs
           DOCS_VERSION=test make versioned-html
-
+          condarc: |
+            channel_priority: strict
+            channels:
+                - conda-forge
+          create-args: >-
+            python=${{ matrix.python-version }}

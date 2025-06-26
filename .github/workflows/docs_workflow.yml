@@ -1,4 +1,4 @@
-name: CI/CD Release Workflow
+name: Documentation Publishing Workflow
 
 on:
   push:
@@ -24,18 +24,7 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Cache Conda
-        uses: actions/cache@v4
-        env:
-          # Increase this value to reset cache if dev-spec and pyproject.toml have not changed in the workflow
-          CACHE_NUMBER: 0
-        with:
-          path: ~/conda_pkgs_dir
-          key: ${{ runner.os }}-conda-${{ env.CACHE_NUMBER }}-${{
-            hashFiles('conda_package/dev-spec.txt,conda_package/pyproject.toml') }}
-
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        name: Set up Conda Environment
+      - name: Set up Conda Environment
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-name: mpas_tools_dev
@@ -47,8 +36,7 @@ jobs:
           create-args: >-
             python=${{ env.PYTHON_VERSION }}
 
-      - if: ${{ steps.skip_check.outputs.should_skip != 'true' }}
-        name: Install mpas_tools
+      - name: Install mpas_tools
         run: |
           git config --global url."https://github.com/".insteadOf "git@github.com:"
           conda install -y --file conda_package/dev-spec.txt \
