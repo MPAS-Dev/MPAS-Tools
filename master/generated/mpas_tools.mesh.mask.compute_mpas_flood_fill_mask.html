@@ -173,7 +173,7 @@ whose centers are closest to the seed points.</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.6.2)"><em>xarray.Dataset</em></a>) – An MPAS mesh on which the masks should be created</p></li>
-<li><p><strong>fcSeed</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features v1.6.1)"><em>geometric_features.FeatureCollection</em></a>) – A feature collection containing points at which to start the flood fill</p></li>
+<li><p><strong>fcSeed</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features vmain)"><em>geometric_features.FeatureCollection</em></a>) – A feature collection containing points at which to start the flood fill</p></li>
 <li><p><strong>daGrow</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.6.2)"><em>xarray.DataArray</em></a><em>, </em><em>optional</em>) – A data array of size <code class="docutils literal notranslate"><span class="pre">nCells</span></code> with a mask that is 1 anywhere the
 flood fill is allowed to grow.  The default is that the mask is all
 ones.</p></li>
