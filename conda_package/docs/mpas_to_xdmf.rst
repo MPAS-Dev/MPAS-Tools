@@ -4,6 +4,10 @@
 MPAS to XDMF Converter
 ======================
 
+.. seealso::
+   For the Python API, see
+   :py:class:`mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf`.
+
 The MPAS to XDMF Converter is a tool designed to convert MPAS output files into
 XDMF + HDF5 format for visualization in tools like ParaView. This converter
 simplifies the process of working with MPAS data by providing a format that is
@@ -20,6 +24,14 @@ Usage
 =====
 The converter can be used via its command-line interface ``mpas_to_xdmf`` or as
 a Python library.
+
+.. note::
+   Special variable keys:
+     - ``allOnCells``: all variables with dimension ``nCells``
+     - ``allOnEdges``: all variables with dimension ``nEdges``
+     - ``allOnVertices``: all variables with dimension ``nVertices``
+   Extra dimensions (e.g., ``nVertLevels``) can be sliced using the ``-d``
+   CLI option or the ``extra_dims`` argument in Python.
 
 Command-Line Arguments
 ----------------------
@@ -164,6 +176,26 @@ ParaView for visualization. Follow these steps:
 
 By following these steps, you can ensure that your MPAS data is correctly
 interpreted and visualized in ParaView.
+
+Troubleshooting
+===============
+Here are some common issues and solutions:
+
+- **Problem**: The converted files do not open in ParaView.
+  **Solution**: Ensure you are opening the ``.xdmf`` file and not the ``.h5``
+  file. Also, check that you have selected the correct reader (preferably
+  **Xdmf3 Reader T**).
+
+- **Problem**: Time series data does not appear in ParaView.
+  **Solution**: Make sure you have used the correct variable for time
+  (``xtime`` by default) and that your time series files are correctly
+  specified.  Also, check that you have selected the correct reader (
+  **Xdmf3 Reader T**, not **Xdmf3 Reader S**).
+
+- **Problem**: Slicing does not seem to work.
+  **Solution**: Verify the syntax of your dimension slicing in the ``-d``
+  option or ``extra_dims`` argument. Ensure the dimensions you are trying to
+  slice exist in your data.
 
 References
 ==========
