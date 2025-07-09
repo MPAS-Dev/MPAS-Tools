@@ -210,83 +210,104 @@ Here is the full usage of ``MpasMaskCreator.x``:
 Mask Creation with Python Multiprocessing
 =========================================
 
-The Mask Creator is a serial code, and the algorithms it uses to find points in
-a region or cells, edges and vertices along a transect are not particularly
-efficient or sophisticated.
+The ``mpas_tools.mesh.mask`` module provides a set of Python functions for
+creating region and transect masks on MPAS meshes and longitude/latitude grids.
+These functions are designed to be more efficient and flexible than the legacy
+serial C++ Mask Creator, especially when used with Python's multiprocessing.
 
-To provide better efficiency and to enable more sophisticated algorithms (now
-and in the future), a set of related python functions has been developed to
-provide much (but not all) of the functionality of the C++ Mask Creator
-described above.
+Key Functions
+-------------
 
-Computing MPAS Region Masks
----------------------------
++-----------------------------------------------+-------------------------------------------------------------+
+| Function                                      | Purpose                                                     |
++===============================================+=============================================================+
+| compute_mpas_region_masks                     | Create region masks (polygons) on MPAS meshes               |
++-----------------------------------------------+-------------------------------------------------------------+
+| compute_mpas_transect_masks                   | Create transect masks (lines) on MPAS meshes                |
++-----------------------------------------------+-------------------------------------------------------------+
+| compute_mpas_flood_fill_mask                  | Create a mask by flood-filling from seed points             |
++-----------------------------------------------+-------------------------------------------------------------+
+| compute_lon_lat_region_masks                  | Create region masks on a 2D lon/lat grid                    |
++-----------------------------------------------+-------------------------------------------------------------+
+| compute_projection_grid_region_masks          | Create region masks on a projected (e.g., polar) grid       |
++-----------------------------------------------+-------------------------------------------------------------+
 
-The function :py:func:`mpas_tools.mesh.mask.compute_mpas_region_masks()`
-or the ``compute_mpas_region_masks`` command-line tool can
-be used to create region masks on cells, edges and/or vertices given an MPAS
-mesh :py:class:`xarray.Dataset` ``dsMesh`` and a
-:py:class:`geometric_features.FeatureCollection` ``fcMask`` containing regions.
-The resulting masks, in the variable ``regionCellMasks``, are 1 where the center
-of the polygon corresponding to the cell, edge or vertex (see the
-`MPAS Mesh Specification <https://mpas-dev.github.io/files/documents/MPAS-MeshSpec.pdf>`_)
-are inside the given region and 0 where they are outside.  This function is
-far more useful if the user provides a :py:class:`multiprocessing.Pool` in the
-``pool`` argument.  ``pool`` should be created at the beginning of the calling
-code (when memory usage is small), possibly with
-:py:func:`mpas_tools.parallel.create_pool()`, and terminated
-(:py:meth:`multiprocessing.Pool.terminate`) before the code has finished.
-The same pool can be used in multiple calls to this and the other Python-based
-masking functions.  If ``pool = None`` (the default), the masks are computed in
-serial, which will likely be frustratingly slow.
+All of these functions accept a ``pool`` argument (a ``multiprocessing.Pool``)
+to parallelize the computation, which is highly recommended for large meshes or
+grids. If ``pool=None``, the computation will be performed serially, which may
+be slow for large datasets.
 
-The ``chunkSize`` argument can be used to control how much work (how many cells,
-edges or vertices) each process computes on at one time.  A very small
-``chunkSize`` will incur a high overhead, while a very large ``chunkSize`` will
-lead to poor load balancing and infrequent progress updates (if
-``showProgress = True``).  The default ``chunkSize`` of 1000 seems to perform
-well across a wide variety of mesh sizes and processor counts.
+General Usage
+-------------
 
-It is a good idea to provide a ``logger`` (see :ref:`logging`) to get some
-output as the mask creation is progressing.
+The typical workflow is:
 
-For efficiency, large shapes (e.g. the global coastline) are divided into
-smaller "tiles".  This subdivision is controlled with ``subdivisionThreshold``,
-which should be set to a minimum size in degrees (latitude or longitude).  If
-a shape is larger than this, it will be divided into tiles.  The underlying
-algorithm first check bounding boxes of the resulting shapes against points
-before performing the more time-consuming step of determining if the point is
-inside the shape.  The default value of 30 degrees performs much better than
-no subdivision for large shapes (again, such as the global coastline), but
-alternative values have not yet been explored.
+1. Open your MPAS mesh or grid as an ``xarray.Dataset``.
+2. Read a ``geometric_features.FeatureCollection`` (e.g., from a GeoJSON file).
+3. Optionally, create a multiprocessing pool using
+   :py:func:`mpas_tools.parallel.create_pool`.
+4. Call the appropriate mask creation function, passing the mesh/grid, feature
+   collection, and pool.
+5. Write the resulting masks to a NetCDF file using
+   :py:func:`mpas_tools.io.write_netcdf`.
 
-The resulting variables are:
+Example: Creating Region Masks on an MPAS Mesh
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-  - ``regionCellMasks(nCells, nRegions)`` - a cell mask (1 for inside and 0 for
-    outside the region) for each region
-  - ``regionEdgeMasks(nEdges, nRegions)`` - an edge mask for each region
-  - ``regionVertexMasks(nVertices, nRegions)`` - a vertex mask for each region
-  - ``regionNames(nRegions, string64)`` - the names of the regions
+.. code-block:: python
 
-NetCDF fill values are used for invalid mask values, so ``nCellsInRegion``,
-etc. are not produced.
+    import xarray as xr
+    from geometric_features import read_feature_collection
+    from mpas_tools.mesh.mask import compute_mpas_region_masks
+    from mpas_tools.parallel import create_pool
+    from mpas_tools.io import write_netcdf
 
-The command-line tool takes the following arguments:
+    dsMesh = xr.open_dataset('mesh.nc', decode_cf=False, decode_times=False)
+    fcMask = read_feature_collection('regions.geojson')
+    pool = create_pool(process_count=8)
+    dsMasks = compute_mpas_region_masks(
+        dsMesh, fcMask, maskTypes=('cell', 'vertex'), pool=pool
+    )
+    write_netcdf(dsMasks, 'region_masks.nc')
 
-.. code-block::
+Arguments and Options
+---------------------
 
-    $ compute_mpas_region_masks --help
-    usage: compute_mpas_region_masks [-h] -m MESH_FILE_NAME -g GEOJSON_FILE_NAME
-                                     -o MASK_FILE_NAME
-                                     [-t MASK_TYPES [MASK_TYPES ...]]
-                                     [-c CHUNK_SIZE] [--show_progress]
-                                     [-s SUBDIVISION]
-                                     [--process_count PROCESS_COUNT]
-                                     [--multiprocessing_method MULTIPROCESSING_METHOD]
+All mask creation functions share several common arguments:
 
-    optional arguments:
-      -h, --help            show this help message and exit
-      -m MESH_FILE_NAME, --mesh_file_name MESH_FILE_NAME
+- ``logger``: Optional logger for progress output.
+- ``pool``: Optional multiprocessing pool for parallel computation.
+- ``chunkSize``: Number of points to process per chunk (default: 1000).
+- ``showProgress``: Whether to display a progress bar.
+- ``subdivisionThreshold`` or ``subdivisionResolution``: Controls subdivision
+  of large polygons or transects for efficiency.
+
+Refer to the Python docstrings or the command-line ``--help`` output for
+details on each function's arguments.
+
+Performance Note
+----------------
+
+For large meshes or grids, using a multiprocessing pool (via the ``pool``
+argument) is strongly recommended for reasonable performance. The pool should
+be created early in your script, before large objects are loaded into memory,
+and terminated when no longer needed.
+
+Extensibility and Limitations
+-----------------------------
+
+- The masking functions are extensible and can be adapted for new types of
+  features or grids.
+- The algorithms use the ``shapely`` library for geometric operations, which
+  is designed for 2D Cartesian geometry. Care is taken to handle longitude
+  periodicity, but there may be limitations near the poles or for very large
+  polygons.
+- For advanced use cases (e.g., custom mask types or additional properties),
+  see the source code and docstrings for guidance.
+
+See also the API documentation for :py:mod:`mpas_tools.mesh.mask` for further details.
+
+See also the API documentation for :py:mod:`mpas_tools.mesh.mask` for further details.
                             An MPAS mesh file
       -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
                             An Geojson file containing mask regions

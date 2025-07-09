@@ -1,10 +1,31 @@
+"""
+mpas_tools.mesh.mask
+====================
+
+Efficient creation of region and transect masks on MPAS meshes and lon/lat
+grids, with support for multiprocessing.
+
+This module provides functions to create region masks (from polygons), transect
+masks (from lines), and flood-fill masks on MPAS meshes or longitude/latitude
+grids. For large datasets, it is highly recommended to use the ``pool``
+argument to parallelize the computation.
+
+Main functions:
+- compute_mpas_region_masks
+- compute_mpas_transect_masks
+- compute_mpas_flood_fill_mask
+- compute_lon_lat_region_masks
+- compute_projection_grid_region_masks
+
+See function docstrings for details.
+"""
+
 import argparse
 from functools import partial
 
 import numpy
 import progressbar
 import shapely.geometry
-import shapely.ops
 import xarray as xr
 from geometric_features import read_feature_collection
 from igraph import Graph
@@ -34,47 +55,38 @@ def compute_mpas_region_masks(
     subdivisionThreshold=30.0,
 ):
     """
-    Use shapely and processes to create a set of masks from a feature
-    collection made up of regions (polygons)
+    Create region masks (polygons) on an MPAS mesh.
 
     Parameters
     ----------
     dsMesh : xarray.Dataset
-        An MPAS mesh on which the masks should be created
+        MPAS mesh dataset.
 
     fcMask : geometric_features.FeatureCollection
-        A feature collection containing features to use to create the mask
+        Feature collection containing polygon regions.
 
     maskTypes : tuple of {'cell', 'edge', 'vertex'}, optional
-        Which type(s) of masks to make.  Masks are created based on whether
-        the latitude and longitude associated with each of these locations
-        (e.g. ``dsMesh.latCell`` and ``dsMesh.lonCell`` for ``'cell'``) are
-        inside or outside of the regions in ``fcMask``.
+        Which types of masks to create.
 
     logger : logging.Logger, optional
-        A logger for the output if not stdout
+        Logger for progress output.
 
     pool : multiprocessing.Pool, optional
-        A pool for performing multiprocessing
+        Pool for parallel computation. Strongly recommended for large meshes.
 
     chunkSize : int, optional
-        The number of cells, vertices or edges that are processed in one
-        operation.  Experimentation has shown that 1000 is a reasonable
-        compromise between dividing the work into sufficient subtasks to
-        distribute the load and having sufficient work for each thread.
+        Number of points to process per chunk.
 
     showProgress : bool, optional
-        Whether to show a progress bar
+        Show a progress bar.
 
     subdivisionThreshold : float, optional
-        A threshold in degrees (lon or lat) above which the mask region will
-        be subdivided into smaller polygons for faster intersection checking
+        Subdivide large polygons for efficiency (degrees).
 
     Returns
     -------
-    dsMask : xarray.Dataset
-        The masks
-
+    dsMasks : xarray.Dataset
+        Dataset containing region masks and region names.
     """
 
     suffixes = {'cell': 'Cell', 'edge': 'Edge', 'vertex': 'Vertex'}
@@ -272,55 +284,45 @@ def compute_mpas_transect_masks(
     addEdgeSign=False,
 ):
     """
-    Use shapely and processes to create a set of masks from a feature
-    collection made up of transects (line strings)
+    Create transect masks (lines) on an MPAS mesh.
 
     Parameters
     ----------
     dsMesh : xarray.Dataset
-        An MPAS mesh on which the masks should be created
+        MPAS mesh dataset.
 
     fcMask : geometric_features.FeatureCollection
-        A feature collection containing features to use to create the mask
+        Feature collection containing transects (LineString or
+        MultiLineString).
 
     earthRadius : float
-        The radius of the earth in meters
+        Earth radius in meters.
 
     maskTypes : tuple of {'cell', 'edge', 'vertex'}, optional
-        Which type(s) of masks to make.  Masks are created based on whether
-        the latitude and longitude associated with each of these locations
-        (e.g. ``dsMesh.latCell`` and ``dsMesh.lonCell`` for ``'cell'``) are
-        inside or outside of the transects in ``fcMask``.
+        Which types of masks to create.
 
     logger : logging.Logger, optional
-        A logger for the output if not stdout
+        Logger for progress output.
 
     pool : multiprocessing.Pool, optional
-        A pool for performing multiprocessing
+        Pool for parallel computation.
 
     chunkSize : int, optional
-        The number of cells, vertices or edges that are processed in one
-        operation.  Experimentation has shown that 1000 is a reasonable
-        compromise between dividing the work into sufficient subtasks to
-        distribute the load and having sufficient work for each thread.
+        Number of points to process per chunk.
 
     showProgress : bool, optional
-        Whether to show a progress bar
+        Show a progress bar.
 
     subdivisionResolution : float, optional
-        The maximum resolution (in meters) of segments in a transect.  If a
-        transect is too coarse, it will be subdivided.  Pass ``None`` for no
-        subdivision.
+        Subdivide coarse transects for efficiency (meters).
 
     addEdgeSign : bool, optional
-        Whether to add the ``edgeSign`` variable, which requires significant
-        extra computation
+        Whether to add edge sign variable (extra computation).
 
     Returns
     -------
-    dsMask : xarray.Dataset
-        The masks
-
+    dsMasks : xarray.Dataset
+        Dataset containing transect masks and transect names.
     """
 
     suffixes = {'cell': 'Cell', 'edge': 'Edge', 'vertex': 'Vertex'}
@@ -529,35 +531,29 @@ def compute_mpas_flood_fill_mask(
     dsMesh, fcSeed, daGrow=None, logger=None, workers=-1
 ):
     """
-    Flood fill from the given set of seed points to create a contiguous mask.
-    The flood fill operates using cellsOnCell, starting from the cells
-    whose centers are closest to the seed points.
+    Create a mask by flood-filling from seed points on an MPAS mesh.
 
     Parameters
     ----------
     dsMesh : xarray.Dataset
-        An MPAS mesh on which the masks should be created
+        MPAS mesh dataset.
 
     fcSeed : geometric_features.FeatureCollection
-        A feature collection containing points at which to start the flood fill
+        Feature collection containing seed points.
 
     daGrow : xarray.DataArray, optional
-        A data array of size ``nCells`` with a mask that is 1 anywhere the
-        flood fill is allowed to grow.  The default is that the mask is all
-        ones.
+        Mask where flood fill is allowed to grow (default: all ones).
 
     logger : logging.Logger, optional
-        A logger for the output if not stdout
+        Logger for progress output.
 
     workers : int, optional
-        The number of threads used for finding nearest neighbors.  The default
-        is all available threads (``workers=-1``)
+        Number of threads for nearest neighbor search.
 
     Returns
     -------
-    dsMask : xarray.Dataset
-        The masks
-
+    dsMasks : xarray.Dataset
+        Dataset containing the flood-fill mask.
     """
 
     dsMasks = xr.Dataset()
@@ -665,44 +661,38 @@ def compute_lon_lat_region_masks(
     subdivisionThreshold=30.0,
 ):
     """
-    Use shapely and processes to create a set of masks from a feature
-    collection made up of regions (polygons) on a tensor lon/lat grid
+    Create region masks on a 2D longitude/latitude grid.
 
     Parameters
     ----------
     lon : numpy.ndarray
-        A 1D array of longitudes in degrees between -180 and 180
+        1D array of longitudes (degrees, -180 to 180).
 
     lat : numpy.ndarray
-        A 1D array of latitudes in degrees between -90 and 90
+        1D array of latitudes (degrees, -90 to 90).
 
     fcMask : geometric_features.FeatureCollection
-        A feature collection containing features to use to create the mask
+        Feature collection containing polygon regions.
 
     logger : logging.Logger, optional
-        A logger for the output if not stdout
+        Logger for progress output.
 
     pool : multiprocessing.Pool, optional
-        A pool for performing multiprocessing
+        Pool for parallel computation.
 
     chunkSize : int, optional
-        The number of cells, vertices or edges that are processed in one
-        operation.  Experimentation has shown that 1000 is a reasonable
-        compromise between dividing the work into sufficient subtasks to
-        distribute the load and having sufficient work for each thread.
+        Number of points to process per chunk.
 
     showProgress : bool, optional
-        Whether to show a progress bar
+        Show a progress bar.
 
     subdivisionThreshold : float, optional
-        A threshold in degrees (lon or lat) above which the mask region will
-        be subdivided into smaller polygons for faster intersection checking
+        Subdivide large polygons for efficiency (degrees).
 
     Returns
     -------
-    dsMask : xarray.Dataset
-        The masks
-
+    dsMasks : xarray.Dataset
+        Dataset containing region masks and region names.
     """
 
     dsMasks = xr.Dataset()
@@ -896,51 +886,41 @@ def compute_projection_grid_region_masks(
     ydim='y',
 ):
     """
-    Use shapely and processes to create a set of masks from a feature
-    collection made up of regions (polygons) on a projection grid such as
-    a polar-stereographic grid.
+    Create region masks on a projected (e.g., polar) grid.
 
     Parameters
     ----------
     lon : numpy.ndarray
-        A 2D array of longitudes in degrees between -180 and 180
+        2D array of longitudes (degrees, -180 to 180).
 
     lat : numpy.ndarray
-        A 2D array of latitudes in degrees between -90 and 90
+        2D array of latitudes (degrees, -90 to 90).
 
     fcMask : geometric_features.FeatureCollection
-        A feature collection containing features to use to create the mask
+        Feature collection containing polygon regions.
 
     logger : logging.Logger, optional
-        A logger for the output if not stdout
+        Logger for progress output.
 
     pool : multiprocessing.Pool, optional
-        A pool for performing multiprocessing
+        Pool for parallel computation.
 
     chunkSize : int, optional
-        The number of cells, vertices or edges that are processed in one
-        operation.  Experimentation has shown that 1000 is a reasonable
-        compromise between dividing the work into sufficient subtasks to
-        distribute the load and having sufficient work for each thread.
+        Number of points to process per chunk.
 
     showProgress : bool, optional
-        Whether to show a progress bar
+        Show a progress bar.
 
     subdivisionThreshold : float, optional
-        A threshold in degrees (lon or lat) above which the mask region will
-        be subdivided into smaller polygons for faster intersection checking
+        Subdivide large polygons for efficiency (degrees).
 
-    xdim : str, optional
-        The name of the x dimension
-
-    ydim : str, optional
-        The name of the y dimension
+    xdim, ydim : str, optional
+        Names of the x and y dimensions.
 
     Returns
     -------
     dsMask : xarray.Dataset
-        The masks
-
+        Dataset containing region masks and region names.
     """
 
     dsMasks = xr.Dataset()
