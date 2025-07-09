@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="mpas_tools.planar_hex.make_planar_hex_mesh" href="generated/mpas_tools.planar_hex.make_planar_hex_mesh.html" />
-    <link rel="prev" title="Building the Documentation" href="building_docs.html" />
+    <link rel="prev" title="Releasing a New Version" href="releasing.html" />
     <link href="_static/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
@@ -90,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">API reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#mpas-mesh-tools">MPAS mesh tools</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#mesh-creation">Mesh creation</a><ul>
@@ -385,13 +387,13 @@ the documentation.</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.convert.html#mpas_tools.mesh.conversion.convert" title="mpas_tools.mesh.conversion.convert"><code class="xref py py-obj docutils literal notranslate"><span class="pre">convert</span></code></a>(dsIn[, graphInfoFileName, logger, dir])</p></td>
-<td><p>Use <code class="docutils literal notranslate"><span class="pre">MpasMeshConverter.x</span></code> to convert an input mesh to a valid MPAS mesh that is fully compliant with the MPAS mesh specification.</p></td>
+<td><p>Convert an input mesh to a valid MPAS mesh using <code class="docutils literal notranslate"><span class="pre">MpasMeshConverter.x</span></code>.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.cull.html#mpas_tools.mesh.conversion.cull" title="mpas_tools.mesh.conversion.cull"><code class="xref py py-obj docutils literal notranslate"><span class="pre">cull</span></code></a>(dsIn[, dsMask, dsInverse, dsPreserve, ...])</p></td>
-<td><p>Use <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code> to cull cells from a mesh based on the <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field in the input file or DataSet and/or the provided masks.</p></td>
+<td><p>Cull cells from a mesh using <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.conversion.mask.html#mpas_tools.mesh.conversion.mask" title="mpas_tools.mesh.conversion.mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mask</span></code></a>(dsMesh[, fcMask, logger, dir, cores])</p></td>
-<td><p>Use <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code> to create a set of region masks either from mask feature collections</p></td>
+<td><p>Create region masks on an MPAS mesh using <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code>.</p></td>
 </tr>
 </tbody>
 </table>
@@ -414,16 +416,16 @@ the documentation.</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_region_masks.html#mpas_tools.mesh.mask.compute_mpas_region_masks" title="mpas_tools.mesh.mask.compute_mpas_region_masks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code></a>(dsMesh, fcMask[, ...])</p></td>
-<td><p>Use shapely and processes to create a set of masks from a feature collection made up of regions (polygons)</p></td>
+<td><p>Create region masks (polygons) on an MPAS mesh.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_transect_masks.html#mpas_tools.mesh.mask.compute_mpas_transect_masks" title="mpas_tools.mesh.mask.compute_mpas_transect_masks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_mpas_transect_masks</span></code></a>(dsMesh, fcMask, ...)</p></td>
-<td><p>Use shapely and processes to create a set of masks from a feature collection made up of transects (line strings)</p></td>
+<td><p>Create transect masks (lines) on an MPAS mesh.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_mpas_flood_fill_mask.html#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask" title="mpas_tools.mesh.mask.compute_mpas_flood_fill_mask"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_mpas_flood_fill_mask</span></code></a>(dsMesh, fcSeed)</p></td>
-<td><p>Flood fill from the given set of seed points to create a contiguous mask.</p></td>
+<td><p>Create a mask by flood-filling from seed points on an MPAS mesh.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.mask.compute_lon_lat_region_masks.html#mpas_tools.mesh.mask.compute_lon_lat_region_masks" title="mpas_tools.mesh.mask.compute_lon_lat_region_masks"><code class="xref py py-obj docutils literal notranslate"><span class="pre">compute_lon_lat_region_masks</span></code></a>(lon, lat, fcMask)</p></td>
-<td><p>Use shapely and processes to create a set of masks from a feature collection made up of regions (polygons) on a tensor lon/lat grid</p></td>
+<td><p>Create region masks on a 2D longitude/latitude grid.</p></td>
 </tr>
 </tbody>
 </table>
@@ -548,7 +550,7 @@ the documentation.</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.mesh.interpolation.interp_bilin.html#mpas_tools.mesh.interpolation.interp_bilin" title="mpas_tools.mesh.interpolation.interp_bilin"><code class="xref py py-obj docutils literal notranslate"><span class="pre">interp_bilin</span></code></a>(x, y, field, xCell, yCell)</p></td>
-<td><p>Perform bilinear interpolation of <code class="docutils literal notranslate"><span class="pre">field</span></code> on a tensor grid to cell centers on an MPAS mesh.</p></td>
+<td><p>Perform bilinear interpolation of <code class="docutils literal notranslate"><span class="pre">field</span></code> on a regular (tensor) grid to cell centers on an MPAS mesh.</p></td>
 </tr>
 </tbody>
 </table>
@@ -913,7 +915,7 @@ the documentation.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="building_docs.html" class="btn btn-neutral float-left" title="Building the Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="releasing.html" class="btn btn-neutral float-left" title="Releasing a New Version" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="generated/mpas_tools.planar_hex.make_planar_hex_mesh.html" class="btn btn-neutral float-right" title="mpas_tools.planar_hex.make_planar_hex_mesh" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

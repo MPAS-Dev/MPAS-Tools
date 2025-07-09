@@ -43,6 +43,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
@@ -87,6 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Authors</span></p>
@@ -120,13 +122,34 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.mesh.mask</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">mpas_tools.mesh.mask</span>
+<span class="sd">====================</span>
+
+<span class="sd">Efficient creation of region and transect masks on MPAS meshes and lon/lat</span>
+<span class="sd">grids, with support for multiprocessing.</span>
+
+<span class="sd">This module provides functions to create region masks (from polygons), transect</span>
+<span class="sd">masks (from lines), and flood-fill masks on MPAS meshes or longitude/latitude</span>
+<span class="sd">grids. For large datasets, it is highly recommended to use the ``pool``</span>
+<span class="sd">argument to parallelize the computation.</span>
+
+<span class="sd">Main functions:</span>
+<span class="sd">- compute_mpas_region_masks</span>
+<span class="sd">- compute_mpas_transect_masks</span>
+<span class="sd">- compute_mpas_flood_fill_mask</span>
+<span class="sd">- compute_lon_lat_region_masks</span>
+<span class="sd">- compute_projection_grid_region_masks</span>
+
+<span class="sd">See function docstrings for details.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">progressbar</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shapely.geometry</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">shapely.ops</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_feature_collection</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">igraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">Graph</span>
@@ -158,47 +181,38 @@
     <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
-<span class="sd">    collection made up of regions (polygons)</span>
+<span class="sd">    Create region masks (polygons) on an MPAS mesh.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    dsMesh : xarray.Dataset</span>
-<span class="sd">        An MPAS mesh on which the masks should be created</span>
+<span class="sd">        MPAS mesh dataset.</span>
 
 <span class="sd">    fcMask : geometric_features.FeatureCollection</span>
-<span class="sd">        A feature collection containing features to use to create the mask</span>
+<span class="sd">        Feature collection containing polygon regions.</span>
 
 <span class="sd">    maskTypes : tuple of {&#39;cell&#39;, &#39;edge&#39;, &#39;vertex&#39;}, optional</span>
-<span class="sd">        Which type(s) of masks to make.  Masks are created based on whether</span>
-<span class="sd">        the latitude and longitude associated with each of these locations</span>
-<span class="sd">        (e.g. ``dsMesh.latCell`` and ``dsMesh.lonCell`` for ``&#39;cell&#39;``) are</span>
-<span class="sd">        inside or outside of the regions in ``fcMask``.</span>
+<span class="sd">        Which types of masks to create.</span>
 
 <span class="sd">    logger : logging.Logger, optional</span>
-<span class="sd">        A logger for the output if not stdout</span>
+<span class="sd">        Logger for progress output.</span>
 
 <span class="sd">    pool : multiprocessing.Pool, optional</span>
-<span class="sd">        A pool for performing multiprocessing</span>
+<span class="sd">        Pool for parallel computation. Strongly recommended for large meshes.</span>
 
 <span class="sd">    chunkSize : int, optional</span>
-<span class="sd">        The number of cells, vertices or edges that are processed in one</span>
-<span class="sd">        operation.  Experimentation has shown that 1000 is a reasonable</span>
-<span class="sd">        compromise between dividing the work into sufficient subtasks to</span>
-<span class="sd">        distribute the load and having sufficient work for each thread.</span>
+<span class="sd">        Number of points to process per chunk.</span>
 
 <span class="sd">    showProgress : bool, optional</span>
-<span class="sd">        Whether to show a progress bar</span>
+<span class="sd">        Show a progress bar.</span>
 
 <span class="sd">    subdivisionThreshold : float, optional</span>
-<span class="sd">        A threshold in degrees (lon or lat) above which the mask region will</span>
-<span class="sd">        be subdivided into smaller polygons for faster intersection checking</span>
+<span class="sd">        Subdivide large polygons for efficiency (degrees).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    dsMask : xarray.Dataset</span>
-<span class="sd">        The masks</span>
-
+<span class="sd">    dsMasks : xarray.Dataset</span>
+<span class="sd">        Dataset containing region masks and region names.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">suffixes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;cell&#39;</span><span class="p">:</span> <span class="s1">&#39;Cell&#39;</span><span class="p">,</span> <span class="s1">&#39;edge&#39;</span><span class="p">:</span> <span class="s1">&#39;Edge&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">:</span> <span class="s1">&#39;Vertex&#39;</span><span class="p">}</span>
@@ -399,55 +413,45 @@
     <span class="n">addEdgeSign</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
-<span class="sd">    collection made up of transects (line strings)</span>
+<span class="sd">    Create transect masks (lines) on an MPAS mesh.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    dsMesh : xarray.Dataset</span>
-<span class="sd">        An MPAS mesh on which the masks should be created</span>
+<span class="sd">        MPAS mesh dataset.</span>
 
 <span class="sd">    fcMask : geometric_features.FeatureCollection</span>
-<span class="sd">        A feature collection containing features to use to create the mask</span>
+<span class="sd">        Feature collection containing transects (LineString or</span>
+<span class="sd">        MultiLineString).</span>
 
 <span class="sd">    earthRadius : float</span>
-<span class="sd">        The radius of the earth in meters</span>
+<span class="sd">        Earth radius in meters.</span>
 
 <span class="sd">    maskTypes : tuple of {&#39;cell&#39;, &#39;edge&#39;, &#39;vertex&#39;}, optional</span>
-<span class="sd">        Which type(s) of masks to make.  Masks are created based on whether</span>
-<span class="sd">        the latitude and longitude associated with each of these locations</span>
-<span class="sd">        (e.g. ``dsMesh.latCell`` and ``dsMesh.lonCell`` for ``&#39;cell&#39;``) are</span>
-<span class="sd">        inside or outside of the transects in ``fcMask``.</span>
+<span class="sd">        Which types of masks to create.</span>
 
 <span class="sd">    logger : logging.Logger, optional</span>
-<span class="sd">        A logger for the output if not stdout</span>
+<span class="sd">        Logger for progress output.</span>
 
 <span class="sd">    pool : multiprocessing.Pool, optional</span>
-<span class="sd">        A pool for performing multiprocessing</span>
+<span class="sd">        Pool for parallel computation.</span>
 
 <span class="sd">    chunkSize : int, optional</span>
-<span class="sd">        The number of cells, vertices or edges that are processed in one</span>
-<span class="sd">        operation.  Experimentation has shown that 1000 is a reasonable</span>
-<span class="sd">        compromise between dividing the work into sufficient subtasks to</span>
-<span class="sd">        distribute the load and having sufficient work for each thread.</span>
+<span class="sd">        Number of points to process per chunk.</span>
 
 <span class="sd">    showProgress : bool, optional</span>
-<span class="sd">        Whether to show a progress bar</span>
+<span class="sd">        Show a progress bar.</span>
 
 <span class="sd">    subdivisionResolution : float, optional</span>
-<span class="sd">        The maximum resolution (in meters) of segments in a transect.  If a</span>
-<span class="sd">        transect is too coarse, it will be subdivided.  Pass ``None`` for no</span>
-<span class="sd">        subdivision.</span>
+<span class="sd">        Subdivide coarse transects for efficiency (meters).</span>
 
 <span class="sd">    addEdgeSign : bool, optional</span>
-<span class="sd">        Whether to add the ``edgeSign`` variable, which requires significant</span>
-<span class="sd">        extra computation</span>
+<span class="sd">        Whether to add edge sign variable (extra computation).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    dsMask : xarray.Dataset</span>
-<span class="sd">        The masks</span>
-
+<span class="sd">    dsMasks : xarray.Dataset</span>
+<span class="sd">        Dataset containing transect masks and transect names.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">suffixes</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;cell&#39;</span><span class="p">:</span> <span class="s1">&#39;Cell&#39;</span><span class="p">,</span> <span class="s1">&#39;edge&#39;</span><span class="p">:</span> <span class="s1">&#39;Edge&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">:</span> <span class="s1">&#39;Vertex&#39;</span><span class="p">}</span>
@@ -659,35 +663,29 @@
     <span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcSeed</span><span class="p">,</span> <span class="n">daGrow</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workers</span><span class="o">=-</span><span class="mi">1</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Flood fill from the given set of seed points to create a contiguous mask.</span>
-<span class="sd">    The flood fill operates using cellsOnCell, starting from the cells</span>
-<span class="sd">    whose centers are closest to the seed points.</span>
+<span class="sd">    Create a mask by flood-filling from seed points on an MPAS mesh.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    dsMesh : xarray.Dataset</span>
-<span class="sd">        An MPAS mesh on which the masks should be created</span>
+<span class="sd">        MPAS mesh dataset.</span>
 
 <span class="sd">    fcSeed : geometric_features.FeatureCollection</span>
-<span class="sd">        A feature collection containing points at which to start the flood fill</span>
+<span class="sd">        Feature collection containing seed points.</span>
 
 <span class="sd">    daGrow : xarray.DataArray, optional</span>
-<span class="sd">        A data array of size ``nCells`` with a mask that is 1 anywhere the</span>
-<span class="sd">        flood fill is allowed to grow.  The default is that the mask is all</span>
-<span class="sd">        ones.</span>
+<span class="sd">        Mask where flood fill is allowed to grow (default: all ones).</span>
 
 <span class="sd">    logger : logging.Logger, optional</span>
-<span class="sd">        A logger for the output if not stdout</span>
+<span class="sd">        Logger for progress output.</span>
 
 <span class="sd">    workers : int, optional</span>
-<span class="sd">        The number of threads used for finding nearest neighbors.  The default</span>
-<span class="sd">        is all available threads (``workers=-1``)</span>
+<span class="sd">        Number of threads for nearest neighbor search.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    dsMask : xarray.Dataset</span>
-<span class="sd">        The masks</span>
-
+<span class="sd">    dsMasks : xarray.Dataset</span>
+<span class="sd">        Dataset containing the flood-fill mask.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">dsMasks</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
@@ -798,44 +796,38 @@
     <span class="n">subdivisionThreshold</span><span class="o">=</span><span class="mf">30.0</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
-<span class="sd">    collection made up of regions (polygons) on a tensor lon/lat grid</span>
+<span class="sd">    Create region masks on a 2D longitude/latitude grid.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    lon : numpy.ndarray</span>
-<span class="sd">        A 1D array of longitudes in degrees between -180 and 180</span>
+<span class="sd">        1D array of longitudes (degrees, -180 to 180).</span>
 
 <span class="sd">    lat : numpy.ndarray</span>
-<span class="sd">        A 1D array of latitudes in degrees between -90 and 90</span>
+<span class="sd">        1D array of latitudes (degrees, -90 to 90).</span>
 
 <span class="sd">    fcMask : geometric_features.FeatureCollection</span>
-<span class="sd">        A feature collection containing features to use to create the mask</span>
+<span class="sd">        Feature collection containing polygon regions.</span>
 
 <span class="sd">    logger : logging.Logger, optional</span>
-<span class="sd">        A logger for the output if not stdout</span>
+<span class="sd">        Logger for progress output.</span>
 
 <span class="sd">    pool : multiprocessing.Pool, optional</span>
-<span class="sd">        A pool for performing multiprocessing</span>
+<span class="sd">        Pool for parallel computation.</span>
 
 <span class="sd">    chunkSize : int, optional</span>
-<span class="sd">        The number of cells, vertices or edges that are processed in one</span>
-<span class="sd">        operation.  Experimentation has shown that 1000 is a reasonable</span>
-<span class="sd">        compromise between dividing the work into sufficient subtasks to</span>
-<span class="sd">        distribute the load and having sufficient work for each thread.</span>
+<span class="sd">        Number of points to process per chunk.</span>
 
 <span class="sd">    showProgress : bool, optional</span>
-<span class="sd">        Whether to show a progress bar</span>
+<span class="sd">        Show a progress bar.</span>
 
 <span class="sd">    subdivisionThreshold : float, optional</span>
-<span class="sd">        A threshold in degrees (lon or lat) above which the mask region will</span>
-<span class="sd">        be subdivided into smaller polygons for faster intersection checking</span>
+<span class="sd">        Subdivide large polygons for efficiency (degrees).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
-<span class="sd">    dsMask : xarray.Dataset</span>
-<span class="sd">        The masks</span>
-
+<span class="sd">    dsMasks : xarray.Dataset</span>
+<span class="sd">        Dataset containing region masks and region names.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">dsMasks</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
@@ -1030,51 +1022,41 @@
     <span class="n">ydim</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span>
 <span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Use shapely and processes to create a set of masks from a feature</span>
-<span class="sd">    collection made up of regions (polygons) on a projection grid such as</span>
-<span class="sd">    a polar-stereographic grid.</span>
+<span class="sd">    Create region masks on a projected (e.g., polar) grid.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    lon : numpy.ndarray</span>
-<span class="sd">        A 2D array of longitudes in degrees between -180 and 180</span>
+<span class="sd">        2D array of longitudes (degrees, -180 to 180).</span>
 
 <span class="sd">    lat : numpy.ndarray</span>
-<span class="sd">        A 2D array of latitudes in degrees between -90 and 90</span>
+<span class="sd">        2D array of latitudes (degrees, -90 to 90).</span>
 
 <span class="sd">    fcMask : geometric_features.FeatureCollection</span>
-<span class="sd">        A feature collection containing features to use to create the mask</span>
+<span class="sd">        Feature collection containing polygon regions.</span>
 
 <span class="sd">    logger : logging.Logger, optional</span>
-<span class="sd">        A logger for the output if not stdout</span>
+<span class="sd">        Logger for progress output.</span>
 
 <span class="sd">    pool : multiprocessing.Pool, optional</span>
-<span class="sd">        A pool for performing multiprocessing</span>
+<span class="sd">        Pool for parallel computation.</span>
 
 <span class="sd">    chunkSize : int, optional</span>
-<span class="sd">        The number of cells, vertices or edges that are processed in one</span>
-<span class="sd">        operation.  Experimentation has shown that 1000 is a reasonable</span>
-<span class="sd">        compromise between dividing the work into sufficient subtasks to</span>
-<span class="sd">        distribute the load and having sufficient work for each thread.</span>
+<span class="sd">        Number of points to process per chunk.</span>
 
 <span class="sd">    showProgress : bool, optional</span>
-<span class="sd">        Whether to show a progress bar</span>
+<span class="sd">        Show a progress bar.</span>
 
 <span class="sd">    subdivisionThreshold : float, optional</span>
-<span class="sd">        A threshold in degrees (lon or lat) above which the mask region will</span>
-<span class="sd">        be subdivided into smaller polygons for faster intersection checking</span>
+<span class="sd">        Subdivide large polygons for efficiency (degrees).</span>
 
-<span class="sd">    xdim : str, optional</span>
-<span class="sd">        The name of the x dimension</span>
-
-<span class="sd">    ydim : str, optional</span>
-<span class="sd">        The name of the y dimension</span>
+<span class="sd">    xdim, ydim : str, optional</span>
+<span class="sd">        Names of the x and y dimensions.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    dsMask : xarray.Dataset</span>
-<span class="sd">        The masks</span>
-
+<span class="sd">        Dataset containing region masks and region names.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">dsMasks</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>

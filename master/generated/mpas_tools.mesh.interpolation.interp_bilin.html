@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
@@ -90,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-creation">Mesh creation</a></li>
@@ -150,26 +152,46 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.mesh.interpolation.interp_bilin">
 <span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.interpolation.</span></span><span class="sig-name descname"><span class="pre">interp_bilin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">field</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">xCell</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">yCell</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/interpolation.html#interp_bilin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.interpolation.interp_bilin" title="Link to this definition"></a></dt>
-<dd><p>Perform bilinear interpolation of <code class="docutils literal notranslate"><span class="pre">field</span></code> on a tensor grid to cell centers
-on an MPAS mesh. <code class="docutils literal notranslate"><span class="pre">xCell</span></code> and <code class="docutils literal notranslate"><span class="pre">yCell</span></code> must be bounded by <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code>,
-respectively.</p>
-<p>If x and y coordinates are longitude and latitude, respectively, it is
-recommended that they be passed in degrees to avoid round-off problems at
-the north and south poles and at the date line.</p>
+<dd><p>Perform bilinear interpolation of <code class="docutils literal notranslate"><span class="pre">field</span></code> on a regular (tensor) grid to
+cell centers on an MPAS mesh.</p>
+<p>This function is designed to be much faster and more memory-efficient than
+using <cite>scipy.interpolate</cite> routines for large MPAS meshes.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>ndarray</em>) – x coordinate of the input field (length n)</p></li>
-<li><p><strong>y</strong> (<em>ndarray</em>) – y coordinate fo the input field (length m)</p></li>
-<li><p><strong>field</strong> (<em>ndarray</em>) – a field of size m x n</p></li>
-<li><p><strong>xCell</strong> (<em>ndarray</em>) – x coordinate of MPAS cell centers</p></li>
-<li><p><strong>yCell</strong> (<em>ndarray</em>) – y coordinate of MPAS cell centers</p></li>
+<li><p><strong>x</strong> (<em>ndarray</em>) – 1D array of x coordinates of the input grid (length n).
+For geographic data, this is typically longitude in degrees.</p></li>
+<li><p><strong>y</strong> (<em>ndarray</em>) – 1D array of y coordinates of the input grid (length m).
+For geographic data, this is typically latitude in degrees.</p></li>
+<li><p><strong>field</strong> (<em>ndarray</em>) – 2D array of field values of shape (m, n), defined on the (y, x) grid.</p></li>
+<li><p><strong>xCell</strong> (<em>ndarray</em>) – 1D array of x coordinates of MPAS cell centers (same units as x).</p></li>
+<li><p><strong>yCell</strong> (<em>ndarray</em>) – 1D array of y coordinates of MPAS cell centers (same units as y).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>mpasField</strong> (<em>ndarray</em>) – <code class="docutils literal notranslate"><span class="pre">field</span></code> interpoyed to MPAS cell centers</p>
+<dd class="field-even"><p><strong>mpasField</strong> (<em>ndarray</em>) – 1D array of interpolated field values at MPAS cell centers.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>All xCell and yCell values must be within the bounds of x and y.</p></li>
+<li><p>No extrapolation is performed.</p></li>
+<li><p>For longitude/latitude grids, it is recommended to use degrees to avoid
+round-off issues at the poles or dateline.</p></li>
+<li><p>This function is intended for use cases where the input grid is regular
+(tensor product), not scattered points.</p></li>
+</ul>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.mesh.interpolation</span><span class="w"> </span><span class="kn">import</span> <span class="n">interp_bilin</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">180</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">361</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mi">90</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">181</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">field</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">181</span><span class="p">,</span> <span class="mi">361</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">45.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">yCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">45.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">values</span> <span class="o">=</span> <span class="n">interp_bilin</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

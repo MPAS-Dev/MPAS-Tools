@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Mesh Creation" href="mesh_creation.html" />
+    <link rel="next" title="Quick Start" href="quick_start.html" />
     <link href="_static/style.css" rel="stylesheet" type="text/css">
 
 </head>
@@ -45,6 +45,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
@@ -89,6 +90,7 @@
 <li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Authors</span></p>
@@ -128,15 +130,22 @@
 <p>MPAS-Tools includes a python package, compiled Fortran, C and C++ tools, and
 scripts for supporting initialization, visualization and analysis of Model for
 Prediction Across Scales (MPAS) components.  These tools are used by the
-<a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Model/tree/master/testing_and_setup/compass">COMPASS</a>
-(Configuring of MPAS Setups) framework within
-<a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Model">MPAS-Model</a> used to create
-ocean and land-ice test cases,
-the <a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Analysis">MPAS-Analysis</a> package for
-analyzing simulations, and in other MPAS-related workflows.</p>
+<a class="reference external" href="https://github.com/E3SM-Porject/polaris">Polaris</a> and
+<a class="reference external" href="https://github.com/MPAS-Dev/compass">Compass</a> packages used to create ocean,
+sea-ice, and land-ice test cases; the
+<a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Analysis">MPAS-Analysis</a> package for
+analyzing simulations; and in other MPAS-related workflows.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#installing-conda-miniforge">Installing Conda (Miniforge)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#installing-mpas-tools-from-conda-forge">Installing mpas_tools from conda-forge</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#verifying-the-installation">Verifying the Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#basic-usage">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#further-reading">Further Reading</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="mesh_creation.html#uniform-planar-meshes">Uniform, Planar Meshes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mesh_creation.html#building-a-jigsaw-mesh">Building a JIGSAW Mesh</a></li>
@@ -158,6 +167,7 @@ analyzing simulations, and in other MPAS-related workflows.</p>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config.html">Config files</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="config.html#example-usage">Example usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="config.html#comments-in-config-files">Comments in config files</a></li>
 </ul>
 </li>
@@ -199,6 +209,7 @@ analyzing simulations, and in other MPAS-related workflows.</p>
 <li class="toctree-l2"><a class="reference internal" href="mpas_to_xdmf.html#input-and-output">Input and Output</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mpas_to_xdmf.html#features">Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mpas_to_xdmf.html#opening-files-in-paraview">Opening Files in ParaView</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mpas_to_xdmf.html#troubleshooting">Troubleshooting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="mpas_to_xdmf.html#references">References</a></li>
 </ul>
 </li>
@@ -316,6 +327,12 @@ analyzing simulations, and in other MPAS-related workflows.</p>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasing.html">Releasing a New Version</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="releasing.html#version-bump-and-dependency-updates">Version Bump and Dependency Updates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasing.html#tagging-and-publishing-a-release">Tagging and Publishing a Release</a></li>
+<li class="toctree-l2"><a class="reference internal" href="releasing.html#updating-the-conda-forge-feedstock">Updating the conda-forge Feedstock</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api.html#mpas-mesh-tools">MPAS mesh tools</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api.html#landice-tools">Landice Tools</a></li>
@@ -348,7 +365,7 @@ analyzing simulations, and in other MPAS-related workflows.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="mesh_creation.html" class="btn btn-neutral float-right" title="Mesh Creation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="quick_start.html" class="btn btn-neutral float-right" title="Quick Start" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

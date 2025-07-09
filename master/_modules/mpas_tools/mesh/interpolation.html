@@ -43,6 +43,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
@@ -87,6 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Authors</span></p>
@@ -120,42 +122,81 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.mesh.interpolation</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Efficient interpolation from regular (tensor) grids to MPAS mesh cell centers.</span>
+
+<span class="sd">This module provides fast, memory-efficient routines for bilinear interpolation</span>
+<span class="sd">from a regular grid (e.g., longitude/latitude) to the unstructured cell centers</span>
+<span class="sd">of an MPAS mesh. It is intended as a replacement for `scipy` interpolation</span>
+<span class="sd">routines, which are slow and memory-intensive for large meshes.</span>
+
+<span class="sd">Main function:</span>
+<span class="sd">- interp_bilin: Bilinear interpolation from a tensor grid to MPAS mesh cell</span>
+<span class="sd">  centers.</span>
+
+<span class="sd">Note:</span>
+<span class="sd">    - Input coordinates (x, y) and cell center coordinates (xCell, yCell)</span>
+<span class="sd">      should be in the same units (typically degrees for lon/lat).</span>
+<span class="sd">    - No extrapolation is performed: all xCell/yCell must be within the bounds</span>
+<span class="sd">      of x/y.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 
 <div class="viewcode-block" id="interp_bilin">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.interpolation.interp_bilin.html#mpas_tools.mesh.interpolation.interp_bilin">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">interp_bilin</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Perform bilinear interpolation of ``field`` on a tensor grid to cell centers</span>
-<span class="sd">    on an MPAS mesh. ``xCell`` and ``yCell`` must be bounded by ``x`` and ``y``,</span>
-<span class="sd">    respectively.</span>
+<span class="sd">    Perform bilinear interpolation of ``field`` on a regular (tensor) grid to</span>
+<span class="sd">    cell centers on an MPAS mesh.</span>
 
-<span class="sd">    If x and y coordinates are longitude and latitude, respectively, it is</span>
-<span class="sd">    recommended that they be passed in degrees to avoid round-off problems at</span>
-<span class="sd">    the north and south poles and at the date line.</span>
+<span class="sd">    This function is designed to be much faster and more memory-efficient than</span>
+<span class="sd">    using `scipy.interpolate` routines for large MPAS meshes.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    x : ndarray</span>
-<span class="sd">        x coordinate of the input field (length n)</span>
+<span class="sd">        1D array of x coordinates of the input grid (length n).</span>
+<span class="sd">        For geographic data, this is typically longitude in degrees.</span>
 
 <span class="sd">    y : ndarray</span>
-<span class="sd">        y coordinate fo the input field (length m)</span>
+<span class="sd">        1D array of y coordinates of the input grid (length m).</span>
+<span class="sd">        For geographic data, this is typically latitude in degrees.</span>
 
 <span class="sd">    field : ndarray</span>
-<span class="sd">        a field of size m x n</span>
+<span class="sd">        2D array of field values of shape (m, n), defined on the (y, x) grid.</span>
 
 <span class="sd">    xCell : ndarray</span>
-<span class="sd">        x coordinate of MPAS cell centers</span>
+<span class="sd">        1D array of x coordinates of MPAS cell centers (same units as x).</span>
 
 <span class="sd">    yCell : ndarray</span>
-<span class="sd">        y coordinate of MPAS cell centers</span>
+<span class="sd">        1D array of y coordinates of MPAS cell centers (same units as y).</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    mpasField : ndarray</span>
-<span class="sd">        ``field`` interpoyed to MPAS cell centers</span>
+<span class="sd">        1D array of interpolated field values at MPAS cell centers.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    - All xCell and yCell values must be within the bounds of x and y.</span>
+<span class="sd">    - No extrapolation is performed.</span>
+<span class="sd">    - For longitude/latitude grids, it is recommended to use degrees to avoid</span>
+<span class="sd">      round-off issues at the poles or dateline.</span>
+<span class="sd">    - This function is intended for use cases where the input grid is regular</span>
+<span class="sd">      (tensor product), not scattered points.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from mpas_tools.mesh.interpolation import interp_bilin</span>
+<span class="sd">    &gt;&gt;&gt; x = np.linspace(-180, 180, 361)</span>
+<span class="sd">    &gt;&gt;&gt; y = np.linspace(-90, 90, 181)</span>
+<span class="sd">    &gt;&gt;&gt; field = np.random.rand(181, 361)</span>
+<span class="sd">    &gt;&gt;&gt; xCell = np.array([0.0, 45.0])</span>
+<span class="sd">    &gt;&gt;&gt; yCell = np.array([0.0, 45.0])</span>
+<span class="sd">    &gt;&gt;&gt; values = interp_bilin(x, y, field, xCell, yCell)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">xCell</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -179,17 +220,18 @@
     <span class="c1"># accordingly</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">xIndices</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">xIndices</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
-    <span class="n">xFrac</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.</span>
+    <span class="n">xFrac</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span>
 
     <span class="n">mask</span> <span class="o">=</span> <span class="n">yIndices</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">yIndices</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
-    <span class="n">yFrac</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.</span>
+    <span class="n">yFrac</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span>
 
-    <span class="n">mpasField</span> <span class="o">=</span> \
-        <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">xFrac</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">yFrac</span><span class="p">)</span> <span class="o">*</span> <span class="n">field</span><span class="p">[</span><span class="n">yIndices</span><span class="p">,</span> <span class="n">xIndices</span><span class="p">]</span> <span class="o">+</span> \
-        <span class="n">xFrac</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">yFrac</span><span class="p">)</span> <span class="o">*</span> <span class="n">field</span><span class="p">[</span><span class="n">yIndices</span><span class="p">,</span> <span class="n">xIndices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> \
-        <span class="p">(</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">xFrac</span><span class="p">)</span> <span class="o">*</span> <span class="n">yFrac</span> <span class="o">*</span> <span class="n">field</span><span class="p">[</span><span class="n">yIndices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">xIndices</span><span class="p">]</span> <span class="o">+</span> \
-        <span class="n">xFrac</span> <span class="o">*</span> <span class="n">yFrac</span> <span class="o">*</span> <span class="n">field</span><span class="p">[</span><span class="n">yIndices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">xIndices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">mpasField</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">xFrac</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">yFrac</span><span class="p">)</span> <span class="o">*</span> <span class="n">field</span><span class="p">[</span><span class="n">yIndices</span><span class="p">,</span> <span class="n">xIndices</span><span class="p">]</span>
+        <span class="o">+</span> <span class="n">xFrac</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">yFrac</span><span class="p">)</span> <span class="o">*</span> <span class="n">field</span><span class="p">[</span><span class="n">yIndices</span><span class="p">,</span> <span class="n">xIndices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">xFrac</span><span class="p">)</span> <span class="o">*</span> <span class="n">yFrac</span> <span class="o">*</span> <span class="n">field</span><span class="p">[</span><span class="n">yIndices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">xIndices</span><span class="p">]</span>
+        <span class="o">+</span> <span class="n">xFrac</span> <span class="o">*</span> <span class="n">yFrac</span> <span class="o">*</span> <span class="n">field</span><span class="p">[</span><span class="n">yIndices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">xIndices</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">mpasField</span></div>
 

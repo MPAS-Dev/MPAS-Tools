@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
@@ -90,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-creation">Mesh creation</a></li>
@@ -166,34 +168,32 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.mesh.conversion.cull">
 <span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.conversion.</span></span><span class="sig-name descname"><span class="pre">cull</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsIn</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsMask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsInverse</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dsPreserve</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graphInfoFileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/conversion.html#cull"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.conversion.cull" title="Link to this definition"></a></dt>
-<dd><p>Use <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code> to cull cells from a mesh based on the
-<code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field in the input file or DataSet and/or the provided masks.
-<code class="docutils literal notranslate"><span class="pre">cullCell</span></code>, dsMask and dsInverse are merged together so that the final
-mask is the union of these 3.  The preserve mask is then used to determine
-where cells should <em>not</em> be culled.</p>
+<dd><p>Cull cells from a mesh using <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code>.</p>
+<p>The function removes cells based on the <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field in the input
+dataset and/or provided mask datasets. Masks are merged as follows:
+- <code class="docutils literal notranslate"><span class="pre">cullCell</span></code>, <code class="docutils literal notranslate"><span class="pre">dsMask</span></code>, and <code class="docutils literal notranslate"><span class="pre">dsInverse</span></code> are combined (union).
+- <code class="docutils literal notranslate"><span class="pre">dsPreserve</span></code> indicates cells that must not be culled.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsIn</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a>) – A data set to cull, possibly with a <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field set to one where
-cells should be removed</p></li>
-<li><p><strong>dsMask</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 1 where cells
-should be culled</p></li>
-<li><p><strong>dsInverse</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 0 where cells
-should be culled</p></li>
-<li><p><strong>dsPreserve</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – A data set (or data sets) with region masks that are 1 where cells
-should <em>not</em> be culled</p></li>
-<li><p><strong>graphInfoFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – A file path (relative or absolute) where the graph file (typically
-<code class="docutils literal notranslate"><span class="pre">culled_graph.info</span></code> should be written out.  By default,
-<code class="docutils literal notranslate"><span class="pre">culled_graph.info</span></code> is not saved.</p></li>
-<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
-<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – A directory in which a temporary directory will be added with files
-produced during cell culling and then deleted upon completion.</p></li>
+<li><p><strong>dsIn</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a>) – Input mesh dataset, optionally with a <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field.</p></li>
+<li><p><strong>dsMask</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – Dataset(s) with region masks (1 where cells should be culled).</p></li>
+<li><p><strong>dsInverse</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – Dataset(s) with region masks (0 where cells should be culled).</p></li>
+<li><p><strong>dsPreserve</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.13)"><em>list</em></a><em>, </em><em>optional</em>) – Dataset(s) with region masks (1 where cells should NOT be culled).</p></li>
+<li><p><strong>graphInfoFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Path to save the generated <code class="docutils literal notranslate"><span class="pre">culled_graph.info</span></code> file.</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – Logger for capturing output from the culler.</p></li>
+<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Directory in which to create a temporary working directory.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>dsOut</strong> (<em>xarray.Dataset</em>) – The culled mesh</p>
+<dd class="field-even"><p><strong>dsOut</strong> (<em>xarray.Dataset</em>) – The culled mesh dataset.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Requires <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code> to be available in the system path.</p></li>
+<li><p>Temporary files are created and deleted automatically.</p></li>
+</ul>
 </dd></dl>
 
 </section>

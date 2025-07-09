@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
@@ -90,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-creation">Mesh creation</a></li>
@@ -166,24 +168,19 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.mesh.mask.compute_mpas_flood_fill_mask">
 <span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.mask.</span></span><span class="sig-name descname"><span class="pre">compute_mpas_flood_fill_mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsMesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcSeed</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">daGrow</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">-1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/mask.html#compute_mpas_flood_fill_mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.mask.compute_mpas_flood_fill_mask" title="Link to this definition"></a></dt>
-<dd><p>Flood fill from the given set of seed points to create a contiguous mask.
-The flood fill operates using cellsOnCell, starting from the cells
-whose centers are closest to the seed points.</p>
+<dd><p>Create a mask by flood-filling from seed points on an MPAS mesh.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a>) – An MPAS mesh on which the masks should be created</p></li>
-<li><p><strong>fcSeed</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features vmain)"><em>geometric_features.FeatureCollection</em></a>) – A feature collection containing points at which to start the flood fill</p></li>
-<li><p><strong>daGrow</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.7.1)"><em>xarray.DataArray</em></a><em>, </em><em>optional</em>) – A data array of size <code class="docutils literal notranslate"><span class="pre">nCells</span></code> with a mask that is 1 anywhere the
-flood fill is allowed to grow.  The default is that the mask is all
-ones.</p></li>
-<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
-<li><p><strong>workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – The number of threads used for finding nearest neighbors.  The default
-is all available threads (<code class="docutils literal notranslate"><span class="pre">workers=-1</span></code>)</p></li>
+<li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a>) – MPAS mesh dataset.</p></li>
+<li><p><strong>fcSeed</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features vmain)"><em>geometric_features.FeatureCollection</em></a>) – Feature collection containing seed points.</p></li>
+<li><p><strong>daGrow</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.7.1)"><em>xarray.DataArray</em></a><em>, </em><em>optional</em>) – Mask where flood fill is allowed to grow (default: all ones).</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – Logger for progress output.</p></li>
+<li><p><strong>workers</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Number of threads for nearest neighbor search.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>dsMask</strong> (<em>xarray.Dataset</em>) – The masks</p>
+<dd class="field-even"><p><strong>dsMasks</strong> (<em>xarray.Dataset</em>) – Dataset containing the flood-fill mask.</p>
 </dd>
 </dl>
 </dd></dl>

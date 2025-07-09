@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
@@ -90,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-creation">Mesh creation</a></li>
@@ -166,23 +168,26 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.mesh.conversion.mask">
 <span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.conversion.</span></span><span class="sig-name descname"><span class="pre">mask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dsMesh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcMask</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cores</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/conversion.html#mask"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.conversion.mask" title="Link to this definition"></a></dt>
-<dd><p>Use <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code> to create a set of region masks either
-from mask feature collections</p>
+<dd><p>Create region masks on an MPAS mesh using <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a><em>, </em><em>optional</em>) – An MPAS mesh on which the masks should be created</p></li>
-<li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features vmain)"><em>geometric_features.FeatureCollection</em></a><em>, </em><em>optional</em>) – A feature collection containing features to use to create the mask</p></li>
-<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
-<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – A directory in which a temporary directory will be added with files
-produced during mask creation and then deleted upon completion.</p></li>
-<li><p><strong>cores</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – The number of cores to use for python multiprocessing</p></li>
+<li><p><strong>dsMesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.1)"><em>xarray.Dataset</em></a>) – MPAS mesh dataset.</p></li>
+<li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features vmain)"><em>geometric_features.FeatureCollection</em></a><em>, </em><em>optional</em>) – Feature collection with regions to mask.</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – Logger for capturing output.</p></li>
+<li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – Directory in which to create a temporary working directory.</p></li>
+<li><p><strong>cores</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Number of processes for Python multiprocessing.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>dsMask</strong> (<em>xarray.Dataset</em>) – The masks</p>
+<dd class="field-even"><p><strong>dsMask</strong> (<em>xarray.Dataset</em>) – Dataset containing the computed masks.</p>
 </dd>
 </dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Requires <code class="docutils literal notranslate"><span class="pre">compute_mpas_region_masks</span></code> command-line tool.</p></li>
+<li><p>Temporary files are created and deleted automatically.</p></li>
+</ul>
 </dd></dl>
 
 </section>

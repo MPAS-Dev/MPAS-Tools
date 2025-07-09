@@ -43,6 +43,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../interpolation.html">Interpolation</a></li>
@@ -87,6 +88,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api.html">API reference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Authors</span></p>
@@ -120,14 +122,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.config</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">configparser</span><span class="w"> </span><span class="kn">import</span> <span class="n">RawConfigParser</span><span class="p">,</span> <span class="n">ConfigParser</span><span class="p">,</span> <span class="n">ExtendedInterpolation</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">ast</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">ast</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">configparser</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConfigParser</span><span class="p">,</span> <span class="n">ExtendedInterpolation</span><span class="p">,</span> <span class="n">RawConfigParser</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">io</span><span class="w"> </span><span class="kn">import</span> <span class="n">StringIO</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
 
 <div class="viewcode-block" id="MpasConfigParser">
@@ -139,6 +142,13 @@
 <span class="sd">    of the source of different config options and allows the &quot;user&quot; config</span>
 <span class="sd">    options to always take precedence over other config options (even if they</span>
 <span class="sd">    are added later).</span>
+
+<span class="sd">    Example</span>
+<span class="sd">    -------</span>
+<span class="sd">    &gt;&gt;&gt; config = MpasConfigParser()</span>
+<span class="sd">    &gt;&gt;&gt; config.add_from_file(&#39;default.cfg&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; config.add_user_config(&#39;user.cfg&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; value = config.get(&#39;section&#39;, &#39;option&#39;)</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -152,9 +162,17 @@
 <span class="sd">        The source of each section or option</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">_np_allowed</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">linspace</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">,</span> <span class="n">xrange</span><span class="o">=</span><span class="nb">range</span><span class="p">,</span>
-                       <span class="nb">range</span><span class="o">=</span><span class="nb">range</span><span class="p">,</span> <span class="n">array</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span> <span class="n">arange</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">,</span>
-                       <span class="n">pi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">Pi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="nb">int</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">__builtins__</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">_np_allowed</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">linspace</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">,</span>
+        <span class="n">xrange</span><span class="o">=</span><span class="nb">range</span><span class="p">,</span>
+        <span class="nb">range</span><span class="o">=</span><span class="nb">range</span><span class="p">,</span>
+        <span class="n">array</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">,</span>
+        <span class="n">arange</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">,</span>
+        <span class="n">pi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+        <span class="n">Pi</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span>
+        <span class="nb">int</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+        <span class="n">__builtins__</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
 
 <div class="viewcode-block" id="MpasConfigParser.__init__">
 <a class="viewcode-back" href="../../generated/mpas_tools.config.MpasConfigParser.html#mpas_tools.config.MpasConfigParser.__init__">[docs]</a>
@@ -375,15 +393,17 @@
 <span class="sd">            If ``True``, the expression is evaluated including functionality</span>
 <span class="sd">            from the numpy package (which can be referenced either as ``numpy``</span>
 <span class="sd">            or ``np``).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
 
         <span class="n">expression_string</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">use_numpyfunc</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="s1">&#39;__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">expression_string</span><span class="p">,</span> \
-                <span class="sa">f</span><span class="s1">&#39;&quot;__&quot; is not allowed in </span><span class="si">{</span><span class="n">expression_string</span><span class="si">}</span><span class="s1"> &#39;</span> \
+            <span class="k">assert</span> <span class="s1">&#39;__&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">expression_string</span><span class="p">,</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;&quot;__&quot; is not allowed in </span><span class="si">{</span><span class="n">expression_string</span><span class="si">}</span><span class="s1"> &#39;</span>
                 <span class="sa">f</span><span class="s1">&#39;for use_numpyfunc=True&#39;</span>
-            <span class="n">sanitized_str</span> <span class="o">=</span> <span class="n">expression_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;np.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> \
-                <span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;numpy.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">sanitized_str</span> <span class="o">=</span> <span class="n">expression_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;np.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                <span class="s1">&#39;numpy.&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span>
+            <span class="p">)</span>
             <span class="n">result</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">sanitized_str</span><span class="p">,</span> <span class="n">MpasConfigParser</span><span class="o">.</span><span class="n">_np_allowed</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">expression_string</span><span class="p">)</span>
@@ -573,8 +593,9 @@
             <span class="n">config_copy</span><span class="o">.</span><span class="n">_configs</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">MpasConfigParser</span><span class="o">.</span><span class="n">_deepcopy</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">filename</span><span class="p">,</span> <span class="n">config</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_config</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="n">config_copy</span><span class="o">.</span><span class="n">_user_config</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> \
-                <span class="n">MpasConfigParser</span><span class="o">.</span><span class="n">_deepcopy</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+            <span class="n">config_copy</span><span class="o">.</span><span class="n">_user_config</span><span class="p">[</span><span class="n">filename</span><span class="p">]</span> <span class="o">=</span> <span class="n">MpasConfigParser</span><span class="o">.</span><span class="n">_deepcopy</span><span class="p">(</span>
+                <span class="n">config</span>
+            <span class="p">)</span>
 
         <span class="n">config_copy</span><span class="o">.</span><span class="n">_comments</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">config_copy</span></div>
@@ -675,15 +696,17 @@
             <span class="k">for</span> <span class="n">source</span><span class="p">,</span> <span class="n">config</span> <span class="ow">in</span> <span class="n">configs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">for</span> <span class="n">section</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">sections</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">section</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">[</span><span class="n">source</span><span class="p">]:</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span><span class="p">[</span><span class="n">section</span><span class="p">]</span> <span class="o">=</span> \
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">[</span><span class="n">source</span><span class="p">][</span><span class="n">section</span><span class="p">]</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span><span class="p">[</span><span class="n">section</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">[</span>
+                            <span class="n">source</span>
+                        <span class="p">][</span><span class="n">section</span><span class="p">]</span>
                     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">has_section</span><span class="p">(</span><span class="n">section</span><span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">add_section</span><span class="p">(</span><span class="n">section</span><span class="p">)</span>
                     <span class="k">for</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">config</span><span class="o">.</span><span class="n">items</span><span class="p">(</span><span class="n">section</span><span class="p">):</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">sources</span><span class="p">[(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span> <span class="o">=</span> <span class="n">source</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">combined</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span><span class="p">[(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span> <span class="o">=</span> \
+                        <span class="bp">self</span><span class="o">.</span><span class="n">combined_comments</span><span class="p">[(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_comments</span><span class="p">[</span><span class="n">source</span><span class="p">][(</span><span class="n">section</span><span class="p">,</span> <span class="n">option</span><span class="p">)]</span>
+                        <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="nf">_add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">user</span><span class="p">):</span>
         <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
@@ -705,7 +728,23 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_parse_comments</span><span class="p">(</span><span class="n">fp</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">comments_before</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Parse the comments in a config file into a dictionary &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parse the comments in a config file into a dictionary.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        fp : file-like</span>
+<span class="sd">            Open file pointer to the config file.</span>
+<span class="sd">        filename : str</span>
+<span class="sd">            Name of the config file (for error messages).</span>
+<span class="sd">        comments_before : bool, optional</span>
+<span class="sd">            If True, associate comments before a section/option with that item.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        comments : dict</span>
+<span class="sd">            Mapping of (section, option) or section to comment strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">comments</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
         <span class="n">current_comment</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="n">section_name</span> <span class="o">=</span> <span class="kc">None</span>
@@ -724,8 +763,11 @@
             <span class="n">cur_indent_level</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">lstrip</span><span class="p">())</span>
             <span class="n">is_continuation</span> <span class="o">=</span> <span class="n">cur_indent_level</span> <span class="o">&gt;</span> <span class="n">indent_level</span>
             <span class="c1"># a section header or option header?</span>
-            <span class="k">if</span> <span class="n">section_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">option_name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> \
-                    <span class="ow">not</span> <span class="n">is_continuation</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">section_name</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">or</span> <span class="n">option_name</span> <span class="ow">is</span> <span class="kc">None</span>
+                <span class="ow">or</span> <span class="ow">not</span> <span class="n">is_continuation</span>
+            <span class="p">):</span>
                 <span class="n">indent_level</span> <span class="o">=</span> <span class="n">cur_indent_level</span>
                 <span class="c1"># is it a section header?</span>
                 <span class="n">is_section</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">)</span>
@@ -734,8 +776,9 @@
                         <span class="k">if</span> <span class="n">option_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                             <span class="n">comments</span><span class="p">[</span><span class="n">section_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_comment</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="n">comments</span><span class="p">[(</span><span class="n">section_name</span><span class="p">,</span> <span class="n">option_name</span><span class="p">)]</span> <span class="o">=</span> \
+                            <span class="n">comments</span><span class="p">[(</span><span class="n">section_name</span><span class="p">,</span> <span class="n">option_name</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span>
                                 <span class="n">current_comment</span>
+                            <span class="p">)</span>
                     <span class="n">section_name</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
                     <span class="n">option_name</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -746,15 +789,18 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">delimiter_index</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">delimiter_index</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Expected to find &quot;=&quot; on line &#39;</span>
-                                         <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">line_number</span><span class="si">}</span><span class="s1"> of </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s1">&#39;Expected to find &quot;=&quot; on line &#39;</span>
+                            <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">line_number</span><span class="si">}</span><span class="s1"> of </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s1">&#39;</span>
+                        <span class="p">)</span>
 
                     <span class="k">if</span> <span class="ow">not</span> <span class="n">comments_before</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">option_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                             <span class="n">comments</span><span class="p">[</span><span class="n">section_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_comment</span>
                         <span class="k">else</span><span class="p">:</span>
-                            <span class="n">comments</span><span class="p">[(</span><span class="n">section_name</span><span class="p">,</span> <span class="n">option_name</span><span class="p">)]</span> <span class="o">=</span> \
+                            <span class="n">comments</span><span class="p">[(</span><span class="n">section_name</span><span class="p">,</span> <span class="n">option_name</span><span class="p">)]</span> <span class="o">=</span> <span class="p">(</span>
                                 <span class="n">current_comment</span>
+                            <span class="p">)</span>
 
                     <span class="n">option_name</span> <span class="o">=</span> <span class="n">value</span><span class="p">[:</span><span class="n">delimiter_index</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
@@ -766,7 +812,19 @@
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">_deepcopy</span><span class="p">(</span><span class="n">config</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot; Make a deep copy of the ConfigParser object &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Make a deep copy of the ConfigParser object.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        config : configparser.ConfigParser</span>
+<span class="sd">            The config parser to copy.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        new_config : configparser.ConfigParser</span>
+<span class="sd">            A deep copy of the config parser.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">config_string</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
         <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">config_string</span><span class="p">)</span>
         <span class="c1"># We must reset the buffer to make it ready for reading.</span>

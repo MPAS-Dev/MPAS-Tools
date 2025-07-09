@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
@@ -90,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="../api.html#mesh-creation">Mesh creation</a></li>
@@ -166,27 +168,22 @@
 <dl class="py function">
 <dt class="sig sig-object py" id="mpas_tools.mesh.mask.compute_lon_lat_region_masks">
 <span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.mask.</span></span><span class="sig-name descname"><span class="pre">compute_lon_lat_region_masks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lon</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lat</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fcMask</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">chunkSize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1000</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">showProgress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subdivisionThreshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">30.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/mask.html#compute_lon_lat_region_masks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.mask.compute_lon_lat_region_masks" title="Link to this definition"></a></dt>
-<dd><p>Use shapely and processes to create a set of masks from a feature
-collection made up of regions (polygons) on a tensor lon/lat grid</p>
+<dd><p>Create region masks on a 2D longitude/latitude grid.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lon</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>numpy.ndarray</em></a>) – A 1D array of longitudes in degrees between -180 and 180</p></li>
-<li><p><strong>lat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>numpy.ndarray</em></a>) – A 1D array of latitudes in degrees between -90 and 90</p></li>
-<li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features vmain)"><em>geometric_features.FeatureCollection</em></a>) – A feature collection containing features to use to create the mask</p></li>
-<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – A logger for the output if not stdout</p></li>
-<li><p><strong>pool</strong> (<em>multiprocessing.Pool</em><em>, </em><em>optional</em>) – A pool for performing multiprocessing</p></li>
-<li><p><strong>chunkSize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – The number of cells, vertices or edges that are processed in one
-operation.  Experimentation has shown that 1000 is a reasonable
-compromise between dividing the work into sufficient subtasks to
-distribute the load and having sufficient work for each thread.</p></li>
-<li><p><strong>showProgress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to show a progress bar</p></li>
-<li><p><strong>subdivisionThreshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – A threshold in degrees (lon or lat) above which the mask region will
-be subdivided into smaller polygons for faster intersection checking</p></li>
+<li><p><strong>lon</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>numpy.ndarray</em></a>) – 1D array of longitudes (degrees, -180 to 180).</p></li>
+<li><p><strong>lat</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.3)"><em>numpy.ndarray</em></a>) – 1D array of latitudes (degrees, -90 to 90).</p></li>
+<li><p><strong>fcMask</strong> (<a class="reference external" href="http://mpas-dev.github.io/geometric_features/main/generated/geometric_features.FeatureCollection.html#geometric_features.FeatureCollection" title="(in geometric_features vmain)"><em>geometric_features.FeatureCollection</em></a>) – Feature collection containing polygon regions.</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.13)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – Logger for progress output.</p></li>
+<li><p><strong>pool</strong> (<em>multiprocessing.Pool</em><em>, </em><em>optional</em>) – Pool for parallel computation.</p></li>
+<li><p><strong>chunkSize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – Number of points to process per chunk.</p></li>
+<li><p><strong>showProgress</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Show a progress bar.</p></li>
+<li><p><strong>subdivisionThreshold</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – Subdivide large polygons for efficiency (degrees).</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p><strong>dsMask</strong> (<em>xarray.Dataset</em>) – The masks</p>
+<dd class="field-even"><p><strong>dsMasks</strong> (<em>xarray.Dataset</em>) – Dataset containing region masks and region names.</p>
 </dd>
 </dl>
 </dd></dl>

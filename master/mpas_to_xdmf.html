@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
@@ -77,6 +78,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#opening-files-in-paraview">Opening Files in ParaView</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
 </ul>
 </li>
@@ -110,6 +112,7 @@
 <li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Authors</span></p>
@@ -144,6 +147,11 @@
              
   <section id="mpas-to-xdmf-converter">
 <span id="mpas-to-xdmf"></span><h1>MPAS to XDMF Converter<a class="headerlink" href="#mpas-to-xdmf-converter" title="Link to this heading"></a></h1>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For the Python API, see
+<code class="xref py py-class docutils literal notranslate"><span class="pre">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf</span></code>.</p>
+</div>
 <p>The MPAS to XDMF Converter is a tool designed to convert MPAS output files into
 XDMF + HDF5 format for visualization in tools like ParaView. This converter
 simplifies the process of working with MPAS data by providing a format that is
@@ -159,6 +167,19 @@ time series data, and selecting specific variables for conversion.</p>
 <h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
 <p>The converter can be used via its command-line interface <code class="docutils literal notranslate"><span class="pre">mpas_to_xdmf</span></code> or as
 a Python library.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>Special variable keys:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">allOnCells</span></code>: all variables with dimension <code class="docutils literal notranslate"><span class="pre">nCells</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allOnEdges</span></code>: all variables with dimension <code class="docutils literal notranslate"><span class="pre">nEdges</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allOnVertices</span></code>: all variables with dimension <code class="docutils literal notranslate"><span class="pre">nVertices</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<p>Extra dimensions (e.g., <code class="docutils literal notranslate"><span class="pre">nVertLevels</span></code>) can be sliced using the <code class="docutils literal notranslate"><span class="pre">-d</span></code>
+CLI option or the <code class="docutils literal notranslate"><span class="pre">extra_dims</span></code> argument in Python.</p>
+</div>
 <section id="command-line-arguments">
 <h3>Command-Line Arguments<a class="headerlink" href="#command-line-arguments" title="Link to this heading"></a></h3>
 <p>The following arguments are supported:</p>
@@ -299,6 +320,25 @@ visualize and analyze the data.</p></li>
 </ol>
 <p>By following these steps, you can ensure that your MPAS data is correctly
 interpreted and visualized in ParaView.</p>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<p>Here are some common issues and solutions:</p>
+<ul class="simple">
+<li><p><strong>Problem</strong>: The converted files do not open in ParaView.
+<strong>Solution</strong>: Ensure you are opening the <code class="docutils literal notranslate"><span class="pre">.xdmf</span></code> file and not the <code class="docutils literal notranslate"><span class="pre">.h5</span></code>
+file. Also, check that you have selected the correct reader (preferably
+<strong>Xdmf3 Reader T</strong>).</p></li>
+<li><p><strong>Problem</strong>: Time series data does not appear in ParaView.
+<strong>Solution</strong>: Make sure you have used the correct variable for time
+(<code class="docutils literal notranslate"><span class="pre">xtime</span></code> by default) and that your time series files are correctly
+specified.  Also, check that you have selected the correct reader (
+<strong>Xdmf3 Reader T</strong>, not <strong>Xdmf3 Reader S</strong>).</p></li>
+<li><p><strong>Problem</strong>: Slicing does not seem to work.
+<strong>Solution</strong>: Verify the syntax of your dimension slicing in the <code class="docutils literal notranslate"><span class="pre">-d</span></code>
+option or <code class="docutils literal notranslate"><span class="pre">extra_dims</span></code> argument. Ensure the dimensions you are trying to
+slice exist in your data.</p></li>
+</ul>
 </section>
 <section id="references">
 <h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>

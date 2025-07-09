@@ -46,6 +46,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
 <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Interpolation</a></li>
@@ -90,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasing.html">Releasing a New Version</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Authors</span></p>
@@ -128,10 +130,13 @@
 However, the interpolation routines in <code class="docutils literal notranslate"><span class="pre">scipy</span></code> are not well suited to
 interpolation from regular grids to MPAS meshes—they are slow and very memory
 intensive, particularly for large meshes.</p>
-<p>For bilinear interpolation from a tensor lon/lat grid to an MPAS mesh, it will
-be faster to use the function
-<a class="reference internal" href="generated/mpas_tools.mesh.interpolation.interp_bilin.html#mpas_tools.mesh.interpolation.interp_bilin" title="mpas_tools.mesh.interpolation.interp_bilin"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.interpolation.interp_bilin()</span></code></a>
-Here is an example where we define cell width for an EC mesh (see
+<p>For bilinear interpolation from a tensor (regular) lon/lat grid to an MPAS
+mesh, it is much faster and more memory-efficient to use the function
+<a class="reference internal" href="generated/mpas_tools.mesh.interpolation.interp_bilin.html#mpas_tools.mesh.interpolation.interp_bilin" title="mpas_tools.mesh.interpolation.interp_bilin"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.interpolation.interp_bilin()</span></code></a>.
+This function is specifically designed for interpolating from a regular grid
+(e.g., longitude/latitude) to the unstructured cell centers of an MPAS mesh,
+and should be preferred over generic <cite>scipy</cite> routines for this use case.</p>
+<p>Here is an example where we define cell width for an EC mesh (see
 <a class="reference internal" href="mesh_creation.html#ec-mesh"><span class="std std-ref">Defining an Eddy-closure Mesh</span></a>), read in longitude and latitude from an MPAS mesh, and
 interpolate the cell widths to cell centers on the MPAS mesh.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -160,6 +165,15 @@ interpolate the cell widths to cell centers on the MPAS mesh.</p>
 
 <span class="n">cellWidthOnMpas</span> <span class="o">=</span> <span class="n">interp_bilin</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">cellWidth</span><span class="p">,</span> <span class="n">lonCell</span><span class="p">,</span> <span class="n">latCell</span><span class="p">)</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<ul class="simple">
+<li><p>All cell center coordinates must be within the bounds of the input grid.</p></li>
+<li><p>No extrapolation is performed.</p></li>
+<li><p>For geographic data, use degrees for longitude/latitude to avoid
+round-off issues.</p></li>
+</ul>
 </div>
 </section>
 
