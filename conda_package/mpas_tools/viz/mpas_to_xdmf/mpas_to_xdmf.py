@@ -1,3 +1,35 @@
+"""
+MPAS to XDMF Converter
+======================
+
+This module provides the :py:class:`MpasToXdmf` class and a command-line
+interface for converting MPAS NetCDF files to XDMF + HDF5 format, suitable
+for visualization in ParaView and other tools.
+
+Features
+--------
+- Supports cell-, edge-, and vertex-centered variables.
+- Allows slicing along extra dimensions (e.g., nVertLevels).
+- Combines mesh and time series files.
+- Selects variables by name or by special keys (e.g., 'allOnCells').
+
+Example Usage
+-------------
+Python:
+    >>> from mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf import MpasToXdmf
+    >>> converter = MpasToXdmf()
+    >>> converter.load(mesh_filename="mesh.nc", time_series_filenames="output.*.nc",
+    ...                variables=["temperature", "salinity"], xtime_var="xtime")
+    >>> converter.convert_to_xdmf(out_dir="output_dir", extra_dims={"nVertLevels": [0, 1, 2]})
+
+Command line:
+    $ mpas_to_xdmf -m mesh.nc -t output.*.nc -v temperature salinity -o output_dir -d nVertLevels=0:3
+
+See Also
+--------
+- Documentation: https://mpas-dev.github.io/MPAS-Tools/latest/mpas_to_xdmf.html
+"""  # noqa: E501
+
 from mpas_tools.viz.mpas_to_xdmf.io import (
     _convert_to_xdmf,
     _load_dataset,
@@ -16,9 +48,16 @@ class MpasToXdmf:
     Attributes
     ----------
     ds : xarray.Dataset
-        An xarray Dataset to be converted.
+        The dataset containing variables to convert.
     ds_mesh : xarray.Dataset
-        An xarray Dataset representing the mesh.
+        The mesh dataset (may be the same as ds if no time series is provided).
+
+    Notes
+    -----
+    - Use the `load()` method to read mesh and time series files.
+    - Use `convert_to_xdmf()` to write XDMF and HDF5 files.
+    - Special variable keys: 'allOnCells', 'allOnEdges', 'allOnVertices'.
+    - Extra dimensions can be sliced using the `extra_dims` argument.
     """
 
     def __init__(self, ds=None, ds_mesh=None, xtime_var=None):
@@ -29,15 +68,13 @@ class MpasToXdmf:
         Parameters
         ----------
         ds : xarray.Dataset, optional
-            An xarray Dataset, all variables from which will be converted. If
-            ds_mesh is not provided, ds must also contain the mesh variables
-            if it is provided.
+            An xarray Dataset containing variables to convert. If ds_mesh is
+            not provided, ds must also contain mesh variables.
         ds_mesh : xarray.Dataset, optional
-            An xarray Dataset representing the mesh. These variables will not
-            be converted (unless they are also in ds).
+            An xarray Dataset representing the mesh. If not provided, ds is
+            used as the mesh.
         xtime_var : str, optional
-            Name of the variable containing time information, only used if
-            ``ds`` is not ``None``.
+            Name of the variable containing time information (e.g., 'xtime').
         """
         if ds is not None and ds_mesh is None:
             ds_mesh = ds
@@ -61,13 +98,18 @@ class MpasToXdmf:
         Parameters
         ----------
         mesh_filename : str
-            Path to the MPAS mesh file.
+            Path to the MPAS mesh file (NetCDF).
         time_series_filenames : list of str or str, optional
-            List of filenames or a wildcard string for time series files.
+            List of NetCDF filenames or a wildcard string for time series
+            files. If None, only the mesh file is used.
         variables : list of str, optional
-            List of variables to convert.
+            List of variables to convert. Special keys:
+                - 'allOnCells': all variables with dimension 'nCells'
+                - 'allOnEdges': all variables with dimension 'nEdges'
+                - 'allOnVertices': all variables with dimension 'nVertices'
+            If None, all variables are included.
         xtime_var : str, optional
-            Name of the variable containing time information.
+            Name of the variable containing time information (e.g., 'xtime').
         """
         self.ds_mesh, self.ds = _load_dataset(
             mesh_filename=mesh_filename,
@@ -78,7 +120,7 @@ class MpasToXdmf:
 
     def convert_to_xdmf(self, out_dir, extra_dims=None, quiet=False):
         """
-        Convert an xarray Dataset to XDMF + HDF5 format.
+        Convert the loaded xarray Dataset to XDMF + HDF5 format.
 
         Parameters
         ----------
@@ -86,16 +128,19 @@ class MpasToXdmf:
             Directory where XDMF and HDF5 files will be saved.
         extra_dims : dict, optional
             Dictionary mapping extra dimensions to their selected indices.
-            The keys are the names of the extra dimensions (e.g.,
-            'nVertLevels'), and the values are lists of indices to keep for
-            each dimension. For example:
-                {
-                    'nVertLevels': [0, 1, 2],
-                    'nParticles': [0, 2, 4, 6]
-                }
-            This allows slicing of fields along these dimensions.
+            Example: {'nVertLevels': [0, 1, 2]}
+            If None, all indices are included.
         quiet : bool, optional
             If True, suppress progress output.
+
+        Output
+        ------
+        - XDMF files (.xdmf) and HDF5 files (.h5) in the specified directory.
+
+        Raises
+        ------
+        ValueError
+            If required files or variables are missing.
         """
         # Process extra dimensions
         self.ds = _process_extra_dims(self.ds, extra_dims)
@@ -111,7 +156,13 @@ class MpasToXdmf:
 def main():
     """
     Command-line interface for the MpasToXdmf.
-    """
+
+    Usage
+    -----
+    $ mpas_to_xdmf -m mesh.nc -t output.*.nc -v temperature salinity -o output_dir -d nVertLevels=0:3
+
+    See `mpas_to_xdmf --help` for all options.
+    """  # noqa: E501
     import argparse
 
     parser = argparse.ArgumentParser(

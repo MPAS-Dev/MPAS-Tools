@@ -28,10 +28,47 @@ default behavior.  In some cases, you would like the code to add the config
 options if the config file exists and do nothing if it does not
 (``exception=False``).
 
-Ihe ``MpasConfigParser`` class also includes methods for adding a user
+The ``MpasConfigParser`` class also includes methods for adding a user
 config file, :py:meth:`mpas_tools.config.MpasConfigParser.add_user_config()`,
 and other config files by file name,
 :py:meth:`mpas_tools.config.MpasConfigParser.add_from_file()`.
+
+.. note::
+    The ``MpasConfigParser`` class also provides methods for combining config
+    files, listing contributing files, and merging config parsers:
+
+    +----------------------+---------------------------------------------------+
+    | Method               | Purpose                                           |
+    +======================+===================================================+
+    | add_from_file        | Add a config file by filename                     |
+    +----------------------+---------------------------------------------------+
+    | add_user_config      | Add a user config file (highest precedence)       |
+    +----------------------+---------------------------------------------------+
+    | add_from_package     | Add a config file from a Python package           |
+    +----------------------+---------------------------------------------------+
+    | get, getint, ...     | Retrieve config values                            |
+    +----------------------+---------------------------------------------------+
+    | getlist, getexpression | Retrieve values as lists or Python expressions  |
+    +----------------------+---------------------------------------------------+
+    | set                  | Set a config value, with optional comment         |
+    +----------------------+---------------------------------------------------+
+    | copy                 | Deep copy the config parser                       |
+    +----------------------+---------------------------------------------------+
+    | append, prepend      | Merge another config parser (priority control)    |
+    +----------------------+---------------------------------------------------+
+    | list_files           | List all contributing config files                |
+    +----------------------+---------------------------------------------------+
+
+Example usage
+-------------
+
+.. code-block:: python
+
+    from mpas_tools.config import MpasConfigParser
+    config = MpasConfigParser()
+    config.add_from_file('defaults.cfg')
+    config.add_user_config('user.cfg')
+    value = config.get('section', 'option')
 
 The :py:meth:`mpas_tools.config.MpasConfigParser.copy()` method can be used to
 make a deep copy of the config parser.  This is useful in cases where config
@@ -90,4 +127,3 @@ The comments can be any number of lines.
 
     Inline comments (after a config option on the same line) are not allowed
     and will be parsed as part of the config option itself.
-

@@ -1,11 +1,12 @@
-from configparser import RawConfigParser, ConfigParser, ExtendedInterpolation
-import os
-import inspect
-import sys
-import numpy as np
 import ast
-from io import StringIO
+import inspect
+import os
+import sys
+from configparser import ConfigParser, ExtendedInterpolation, RawConfigParser
 from importlib.resources import files as imp_res_files
+from io import StringIO
+
+import numpy as np
 
 
 class MpasConfigParser:
@@ -15,6 +16,13 @@ class MpasConfigParser:
     of the source of different config options and allows the "user" config
     options to always take precedence over other config options (even if they
     are added later).
+
+    Example
+    -------
+    >>> config = MpasConfigParser()
+    >>> config.add_from_file('default.cfg')
+    >>> config.add_user_config('user.cfg')
+    >>> value = config.get('section', 'option')
 
     Attributes
     ----------
@@ -28,9 +36,17 @@ class MpasConfigParser:
         The source of each section or option
     """
 
-    _np_allowed = dict(linspace=np.linspace, xrange=range,
-                       range=range, array=np.array, arange=np.arange,
-                       pi=np.pi, Pi=np.pi, int=int, __builtins__=None)
+    _np_allowed = dict(
+        linspace=np.linspace,
+        xrange=range,
+        range=range,
+        array=np.array,
+        arange=np.arange,
+        pi=np.pi,
+        Pi=np.pi,
+        int=int,
+        __builtins__=None,
+    )
 
     def __init__(self):
         """
@@ -222,15 +238,17 @@ class MpasConfigParser:
             If ``True``, the expression is evaluated including functionality
             from the numpy package (which can be referenced either as ``numpy``
             or ``np``).
-        """
+        """  # noqa: E501
 
         expression_string = self.get(section, option)
         if use_numpyfunc:
-            assert '__' not in expression_string, \
-                f'"__" is not allowed in {expression_string} ' \
+            assert '__' not in expression_string, (
+                f'"__" is not allowed in {expression_string} '
                 f'for use_numpyfunc=True'
-            sanitized_str = expression_string.replace('np.', '') \
-                .replace('numpy.', '')
+            )
+            sanitized_str = expression_string.replace('np.', '').replace(
+                'numpy.', ''
+            )
             result = eval(sanitized_str, MpasConfigParser._np_allowed)
         else:
             result = ast.literal_eval(expression_string)
@@ -405,8 +423,9 @@ class MpasConfigParser:
             config_copy._configs[filename] = MpasConfigParser._deepcopy(config)
 
         for filename, config in self._user_config.items():
-            config_copy._user_config[filename] = \
-                MpasConfigParser._deepcopy(config)
+            config_copy._user_config[filename] = MpasConfigParser._deepcopy(
+                config
+            )
 
         config_copy._comments = dict(self._comments)
         return config_copy
@@ -497,15 +516,17 @@ class MpasConfigParser:
             for source, config in configs.items():
                 for section in config.sections():
                     if section in self._comments[source]:
-                        self.combined_comments[section] = \
-                            self._comments[source][section]
+                        self.combined_comments[section] = self._comments[
+                            source
+                        ][section]
                     if not self.combined.has_section(section):
                         self.combined.add_section(section)
                     for option, value in config.items(section):
                         self.sources[(section, option)] = source
                         self.combined.set(section, option, value)
-                        self.combined_comments[(section, option)] = \
+                        self.combined_comments[(section, option)] = (
                             self._comments[source][(section, option)]
+                        )
 
     def _add(self, filename, user):
         filename = os.path.abspath(filename)
@@ -527,7 +548,23 @@ class MpasConfigParser:
 
     @staticmethod
     def _parse_comments(fp, filename, comments_before=True):
-        """ Parse the comments in a config file into a dictionary """
+        """
+        Parse the comments in a config file into a dictionary.
+
+        Parameters
+        ----------
+        fp : file-like
+            Open file pointer to the config file.
+        filename : str
+            Name of the config file (for error messages).
+        comments_before : bool, optional
+            If True, associate comments before a section/option with that item.
+
+        Returns
+        -------
+        comments : dict
+            Mapping of (section, option) or section to comment strings.
+        """
         comments = dict()
         current_comment = ''
         section_name = None
@@ -546,8 +583,11 @@ class MpasConfigParser:
             cur_indent_level = len(line) - len(line.lstrip())
             is_continuation = cur_indent_level > indent_level
             # a section header or option header?
-            if section_name is None or option_name is None or \
-                    not is_continuation:
+            if (
+                section_name is None
+                or option_name is None
+                or not is_continuation
+            ):
                 indent_level = cur_indent_level
                 # is it a section header?
                 is_section = value.startswith('[') and value.endswith(']')
@@ -556,8 +596,9 @@ class MpasConfigParser:
                         if option_name is None:
                             comments[section_name] = current_comment
                         else:
-                            comments[(section_name, option_name)] = \
+                            comments[(section_name, option_name)] = (
                                 current_comment
+                            )
                     section_name = value[1:-1].strip()
                     option_name = None
 
@@ -568,15 +609,18 @@ class MpasConfigParser:
                 else:
                     delimiter_index = value.find('=')
                     if delimiter_index == -1:
-                        raise ValueError(f'Expected to find "=" on line '
-                                         f'{line_number} of {filename}')
+                        raise ValueError(
+                            f'Expected to find "=" on line '
+                            f'{line_number} of {filename}'
+                        )
 
                     if not comments_before:
                         if option_name is None:
                             comments[section_name] = current_comment
                         else:
-                            comments[(section_name, option_name)] = \
+                            comments[(section_name, option_name)] = (
                                 current_comment
+                            )
 
                     option_name = value[:delimiter_index].strip().lower()
 
@@ -588,7 +632,19 @@ class MpasConfigParser:
 
     @staticmethod
     def _deepcopy(config):
-        """ Make a deep copy of the ConfigParser object """
+        """
+        Make a deep copy of the ConfigParser object.
+
+        Parameters
+        ----------
+        config : configparser.ConfigParser
+            The config parser to copy.
+
+        Returns
+        -------
+        new_config : configparser.ConfigParser
+            A deep copy of the config parser.
+        """
         config_string = StringIO()
         config.write(config_string)
         # We must reset the buffer to make it ready for reading.

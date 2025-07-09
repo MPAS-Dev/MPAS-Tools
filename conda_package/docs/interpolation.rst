@@ -9,12 +9,16 @@ Interpolation
 
 Previously, various tools in this package used ``scipy`` for interpolation.
 However, the interpolation routines in ``scipy`` are not well suited to
-interpolation from regular grids to MPAS meshes---they are slow and very memory
+interpolation from regular grids to MPAS meshes—they are slow and very memory
 intensive, particularly for large meshes.
 
-For bilinear interpolation from a tensor lon/lat grid to an MPAS mesh, it will
-be faster to use the function
-:py:func:`mpas_tools.mesh.interpolation.interp_bilin()`
+For bilinear interpolation from a tensor (regular) lon/lat grid to an MPAS
+mesh, it is much faster and more memory-efficient to use the function
+:py:func:`mpas_tools.mesh.interpolation.interp_bilin()`.
+This function is specifically designed for interpolating from a regular grid
+(e.g., longitude/latitude) to the unstructured cell centers of an MPAS mesh,
+and should be preferred over generic `scipy` routines for this use case.
+
 Here is an example where we define cell width for an EC mesh (see
 :ref:`ec_mesh`), read in longitude and latitude from an MPAS mesh, and
 interpolate the cell widths to cell centers on the MPAS mesh.
@@ -46,3 +50,9 @@ interpolate the cell widths to cell centers on the MPAS mesh.
     latCell = np.rad2deg(latCell)
 
     cellWidthOnMpas = interp_bilin(lon, lat, cellWidth, lonCell, latCell)
+
+.. note::
+    - All cell center coordinates must be within the bounds of the input grid.
+    - No extrapolation is performed.
+    - For geographic data, use degrees for longitude/latitude to avoid
+      round-off issues.
