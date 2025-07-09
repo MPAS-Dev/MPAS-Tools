@@ -8,16 +8,17 @@ MPAS-Tools
 MPAS-Tools includes a python package, compiled Fortran, C and C++ tools, and
 scripts for supporting initialization, visualization and analysis of Model for
 Prediction Across Scales (MPAS) components.  These tools are used by the
-`COMPASS <https://github.com/MPAS-Dev/MPAS-Model/tree/master/testing_and_setup/compass>`_
-(Configuring of MPAS Setups) framework within
-`MPAS-Model <https://github.com/MPAS-Dev/MPAS-Model>`_ used to create
-ocean and land-ice test cases,
-the `MPAS-Analysis <https://github.com/MPAS-Dev/MPAS-Analysis>`_ package for
-analyzing simulations, and in other MPAS-related workflows.
+`Polaris <https://github.com/E3SM-Porject/polaris>`_ and
+`Compass <https://github.com/MPAS-Dev/compass>`_ packages used to create ocean,
+sea-ice, and land-ice test cases; the
+`MPAS-Analysis <https://github.com/MPAS-Dev/MPAS-Analysis>`_ package for
+analyzing simulations; and in other MPAS-related workflows.
 
 .. toctree::
    :caption: User's Guide
    :maxdepth: 2
+
+   quick_start
 
    mesh_creation
    mesh_conversion

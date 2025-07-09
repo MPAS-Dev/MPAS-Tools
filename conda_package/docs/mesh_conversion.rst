@@ -141,7 +141,7 @@ The same example in a python script can be accomplished with:
 
   dsBaseMesh = xarray.open_dataset('base_mesh.nc')
   dsLandMask = mask(dsBaseMesh, fcMask=fcLandCoverage)
-  dsCulledMesh = conversion.cull(dsBaseMesh, dsMask=dsLandMask)
+  dsCulledMesh = cull(dsBaseMesh, dsMask=dsLandMask)
   write_netcdf(dsCulledMesh, 'culled_mesh.nc')
 
 Here is the full usage of ``MpasCellCuller.x``:
