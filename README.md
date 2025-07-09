@@ -7,9 +7,11 @@ should live in it's own directory.
 
 ## Documentation
 
-The latest documentation for the conda package `mpas-tools` can be found here:
+The latest documentation for the conda package `mpas_tools` can be found here:
 
 [http://mpas-dev.github.io/MPAS-Tools/master/](http://mpas-dev.github.io/MPAS-Tools/master/)
 
 Many tools are not in the conda package, and documentation (sometimes fairly
 limited) is available at the beginning of each script.
+
+**Note**: as of Sep 2025, [@xylar](https://github.com/xylar/) who has been the main maintainer of the conda package will no longer be working on the project. As a result updates to the `mpas_tools` conda package may be limited after that date.
