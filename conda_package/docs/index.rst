@@ -79,6 +79,7 @@ analyzing simulations; and in other MPAS-related workflows.
    making_changes
    testing_changes
    building_docs
+   releasing
 
    api
 
