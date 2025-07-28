@@ -18,6 +18,7 @@ Version Bump and Dependency Updates
      - ``conda_package/recipe/meta.yaml``
 
    - Make sure the version follows [semantic versioning](https://semver.org/).
+     For release candidates, use versions like ``1.3.0rc1`` (no ``v`` prefix).
 
 2. **Check and Update Dependencies**
 
@@ -40,46 +41,116 @@ Version Bump and Dependency Updates
 
 3. **Make a PR and merge it**
 
-Tagging and Publishing a Release
-================================
+Tagging and Publishing a Release Candidate
+==========================================
 
-3. **Tag the Release on GitHub**
+4. **Tagging a Release Candidate**
 
-   - Go to https://github.com/MPAS-Dev/MPAS-Tools/releases and click on
-     "Draft a new release".
-   - Enter the appropriate tag for the release, following semantic versioning
-     (e.g., ``1.2.3``; **do not** include a ``v`` in front).
-   - Enter a release title (typically the release version **with** a ``v`` in
-     front, e.g., ``v1.2.3``).
-   - Write a description and/or use the "Generate release notes" button to
-     auto-generate release notes.
-   - If the release is ready, click "Publish release". Otherwise, save it as a
-     draft.
+   - For release candidates, **do not create a GitHub release page**. Just
+     create a tag from the command line:
 
-Updating the conda-forge Feedstock
-==================================
+     - Make sure your changes are merged into ``master`` (or your update
+       branch) and your local repo is up to date.
 
-4. **Update the conda-forge Feedstock**
+     - Tag the release candidate (e.g., ``1.3.0rc1``):
 
-   - After the release is published, update and merge a PR for the new release
-     at the conda-forge feedstock:
+       ::
+
+           git checkout master
+           git fetch --all -p
+           git reset --hard origin/master
+           git tag 1.3.0rc1
+           git push origin 1.3.0rc1
+
+       (Replace ``1.3.0rc1`` with your actual version, and ``master`` with
+       your branch if needed.)
+
+     **Note:** This will only create a tag. No release page will be created
+     on GitHub.
+
+5. **Updating the conda-forge Feedstock for a Release Candidate**
+
+   - The conda-forge feedstock does **not** update automatically for release
+     candidates.
+   - You must always create a PR manually, and it must target the ``dev``
+     branch of the feedstock.
+
+   Steps:
+
+   - Download the release tarball:
+
+     ::
+
+         wget https://github.com/MPAS-Dev/MPAS-Tools/archive/refs/tags/<version>.tar.gz
+
+   - Compute the SHA256 checksum:
+
+     ::
+
+         shasum -a 256 <version>.tar.gz
+
+   - In the ``meta.yaml`` of the feedstock recipe:
+     - Set ``{% set version = "<version>" %}``
+     - Set the new ``sha256`` value
+     - Update dependencies if needed
+
+   - Commit, push to a new branch, and open a PR **against the ``dev`` branch**
+     of the feedstock:
      https://github.com/conda-forge/mpas_tools-feedstock
 
-   - The conda-forge bot should automatically create a pull request for the
-     new version within a few hours to a day after the release.
+   - Follow any instructions in the PR template and merge once approved
 
-   - Compare the dependencies in the new release to those in the previous
-     release and update the recipe as needed. To do this:
-     - Find the most recent release at
-       https://github.com/MPAS-Dev/MPAS-Tools/releases
-     - Use the "Compare" feature to select the previous release.
-     - Under "changed files", locate ``conda_package/recipe/meta.yaml`` to see
-       any dependency changes.
+Publishing a Stable Release
+===========================
 
-   - Review and update the feedstock PR as needed, then merge it.
+6. **Publishing a Stable Release**
 
-   - If you are not already a maintainer of the feedstock, you can request to
-     be added by creating a new issue at
-     https://github.com/conda-forge/mpas_tools-feedstock/issues, choosing
-     "Bot command", and putting
-     ``@conda-forge-admin, please add user @username`` as the subject.
+   - For stable releases, create a GitHub release page as follows:
+
+     - Go to https://github.com/MPAS-Dev/MPAS-Tools/releases
+
+     - Click "Draft a new release"
+
+     - Enter a tag (e.g., ``1.3.0``; **do not** include a ``v`` in front)
+
+     - Set the release title to the version prefixed with ``v`` (e.g.,
+       ``v1.3.0``)
+
+     - Generate or manually write release notes
+
+     - Click "Publish release"
+
+7. **Updating the conda-forge Feedstock for a Stable Release**
+
+   - Wait for the ``regro-cf-autotick-bot`` to open a PR at:
+     https://github.com/conda-forge/mpas_tools-feedstock
+
+   - This may take several hours to a day.
+
+   - Review the PR:
+     - Confirm the version bump and dependency changes
+     - Merge once CI checks pass
+
+   **Note:** If you are impatient, you can accelerate this process by creating
+   a bot issue at: https://github.com/conda-forge/mpas_tools-feedstock/issues
+   with the subject ``@conda-forge-admin, please update version``.  This
+   will open a new PR with the version within a few minutes.
+
+   - If the bot PR does not appear or is too slow, you may update manually (see
+     the manual steps for release candidates above, but target the ``main``
+     branch of the feedstock).
+
+Post Release Actions
+====================
+
+8. **Verify and Announce**
+
+   - Install the package in a clean environment to test:
+
+     ::
+
+         conda create -n test-mpas-tools -c conda-forge mpas_tools=<version>
+
+   - Optionally announce the release on relevant communication channels
+
+   - Update any documentation or release notes as needed

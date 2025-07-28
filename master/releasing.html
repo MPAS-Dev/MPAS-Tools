@@ -93,8 +93,9 @@
 <li class="toctree-l1"><a class="reference internal" href="building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Releasing a New Version</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#version-bump-and-dependency-updates">Version Bump and Dependency Updates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#tagging-and-publishing-a-release">Tagging and Publishing a Release</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#updating-the-conda-forge-feedstock">Updating the conda-forge Feedstock</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tagging-and-publishing-a-release-candidate">Tagging and Publishing a Release Candidate</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#publishing-a-stable-release">Publishing a Stable Release</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#post-release-actions">Post Release Actions</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
@@ -142,7 +143,8 @@ version of <code class="docutils literal notranslate"><span class="pre">mpas_too
 two files:
 - <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/__init__.py</span></code>
 - <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code></p></li>
-<li><p>Make sure the version follows [semantic versioning](<a class="reference external" href="https://semver.org/">https://semver.org/</a>).</p></li>
+<li><p>Make sure the version follows [semantic versioning](<a class="reference external" href="https://semver.org/">https://semver.org/</a>).
+For release candidates, use versions like <code class="docutils literal notranslate"><span class="pre">1.3.0rc1</span></code> (no <code class="docutils literal notranslate"><span class="pre">v</span></code> prefix).</p></li>
 </ul>
 </li>
 <li><p><strong>Check and Update Dependencies</strong></p>
@@ -171,53 +173,115 @@ file should include all dependencies needed for development and testing.</p></li
 <li><p><strong>Make a PR and merge it</strong></p></li>
 </ol>
 </section>
-<section id="tagging-and-publishing-a-release">
-<h2>Tagging and Publishing a Release<a class="headerlink" href="#tagging-and-publishing-a-release" title="Link to this heading"></a></h2>
-<ol class="arabic simple" start="3">
-<li><p><strong>Tag the Release on GitHub</strong></p>
+<section id="tagging-and-publishing-a-release-candidate">
+<h2>Tagging and Publishing a Release Candidate<a class="headerlink" href="#tagging-and-publishing-a-release-candidate" title="Link to this heading"></a></h2>
+<ol class="arabic" start="4">
+<li><p><strong>Tagging a Release Candidate</strong></p>
+<ul>
+<li><p>For release candidates, <strong>do not create a GitHub release page</strong>. Just
+create a tag from the command line:</p>
+<ul>
+<li><p>Make sure your changes are merged into <code class="docutils literal notranslate"><span class="pre">master</span></code> (or your update
+branch) and your local repo is up to date.</p></li>
+<li><p>Tag the release candidate (e.g., <code class="docutils literal notranslate"><span class="pre">1.3.0rc1</span></code>):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">checkout</span> <span class="n">master</span>
+<span class="n">git</span> <span class="n">fetch</span> <span class="o">--</span><span class="nb">all</span> <span class="o">-</span><span class="n">p</span>
+<span class="n">git</span> <span class="n">reset</span> <span class="o">--</span><span class="n">hard</span> <span class="n">origin</span><span class="o">/</span><span class="n">master</span>
+<span class="n">git</span> <span class="n">tag</span> <span class="mf">1.3.0</span><span class="n">rc1</span>
+<span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="mf">1.3.0</span><span class="n">rc1</span>
+</pre></div>
+</div>
+<p>(Replace <code class="docutils literal notranslate"><span class="pre">1.3.0rc1</span></code> with your actual version, and <code class="docutils literal notranslate"><span class="pre">master</span></code> with
+your branch if needed.)</p>
+</li>
+</ul>
+<p><strong>Note:</strong> This will only create a tag. No release page will be created
+on GitHub.</p>
+</li>
+</ul>
+</li>
+<li><p><strong>Updating the conda-forge Feedstock for a Release Candidate</strong></p>
 <ul class="simple">
-<li><p>Go to <a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Tools/releases">https://github.com/MPAS-Dev/MPAS-Tools/releases</a> and click on
-“Draft a new release”.</p></li>
-<li><p>Enter the appropriate tag for the release, following semantic versioning
-(e.g., <code class="docutils literal notranslate"><span class="pre">1.2.3</span></code>; <strong>do not</strong> include a <code class="docutils literal notranslate"><span class="pre">v</span></code> in front).</p></li>
-<li><p>Enter a release title (typically the release version <strong>with</strong> a <code class="docutils literal notranslate"><span class="pre">v</span></code> in
-front, e.g., <code class="docutils literal notranslate"><span class="pre">v1.2.3</span></code>).</p></li>
-<li><p>Write a description and/or use the “Generate release notes” button to
-auto-generate release notes.</p></li>
-<li><p>If the release is ready, click “Publish release”. Otherwise, save it as a
-draft.</p></li>
+<li><p>The conda-forge feedstock does <strong>not</strong> update automatically for release
+candidates.</p></li>
+<li><p>You must always create a PR manually, and it must target the <code class="docutils literal notranslate"><span class="pre">dev</span></code>
+branch of the feedstock.</p></li>
+</ul>
+<p>Steps:</p>
+<ul>
+<li><p>Download the release tarball:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">wget</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">MPAS</span><span class="o">-</span><span class="n">Dev</span><span class="o">/</span><span class="n">MPAS</span><span class="o">-</span><span class="n">Tools</span><span class="o">/</span><span class="n">archive</span><span class="o">/</span><span class="n">refs</span><span class="o">/</span><span class="n">tags</span><span class="o">/&lt;</span><span class="n">version</span><span class="o">&gt;.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+</li>
+<li><p>Compute the SHA256 checksum:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">shasum</span> <span class="o">-</span><span class="n">a</span> <span class="mi">256</span> <span class="o">&lt;</span><span class="n">version</span><span class="o">&gt;.</span><span class="n">tar</span><span class="o">.</span><span class="n">gz</span>
+</pre></div>
+</div>
+</li>
+<li><p>In the <code class="docutils literal notranslate"><span class="pre">meta.yaml</span></code> of the feedstock recipe:
+- Set <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">set</span> <span class="pre">version</span> <span class="pre">=</span> <span class="pre">&quot;&lt;version&gt;&quot;</span> <span class="pre">%}</span></code>
+- Set the new <code class="docutils literal notranslate"><span class="pre">sha256</span></code> value
+- Update dependencies if needed</p></li>
+<li><p>Commit, push to a new branch, and open a PR <strong>against the ``dev`` branch</strong>
+of the feedstock:
+<a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock">https://github.com/conda-forge/mpas_tools-feedstock</a></p></li>
+<li><p>Follow any instructions in the PR template and merge once approved</p></li>
 </ul>
 </li>
 </ol>
 </section>
-<section id="updating-the-conda-forge-feedstock">
-<h2>Updating the conda-forge Feedstock<a class="headerlink" href="#updating-the-conda-forge-feedstock" title="Link to this heading"></a></h2>
-<ol class="arabic" start="4">
-<li><p><strong>Update the conda-forge Feedstock</strong></p>
-<ul>
-<li><p>After the release is published, update and merge a PR for the new release
-at the conda-forge feedstock:
-<a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock">https://github.com/conda-forge/mpas_tools-feedstock</a></p></li>
-<li><p>The conda-forge bot should automatically create a pull request for the
-new version within a few hours to a day after the release.</p></li>
-<li><p>Compare the dependencies in the new release to those in the previous
-release and update the recipe as needed. To do this:
-- Find the most recent release at</p>
-<blockquote>
-<div><p><a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Tools/releases">https://github.com/MPAS-Dev/MPAS-Tools/releases</a></p>
-</div></blockquote>
+<section id="publishing-a-stable-release">
+<h2>Publishing a Stable Release<a class="headerlink" href="#publishing-a-stable-release" title="Link to this heading"></a></h2>
+<ol class="arabic" start="6">
+<li><p><strong>Publishing a Stable Release</strong></p>
 <ul class="simple">
-<li><p>Use the “Compare” feature to select the previous release.</p></li>
-<li><p>Under “changed files”, locate <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code> to see
-any dependency changes.</p></li>
+<li><p>For stable releases, create a GitHub release page as follows:</p>
+<ul>
+<li><p>Go to <a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Tools/releases">https://github.com/MPAS-Dev/MPAS-Tools/releases</a></p></li>
+<li><p>Click “Draft a new release”</p></li>
+<li><p>Enter a tag (e.g., <code class="docutils literal notranslate"><span class="pre">1.3.0</span></code>; <strong>do not</strong> include a <code class="docutils literal notranslate"><span class="pre">v</span></code> in front)</p></li>
+<li><p>Set the release title to the version prefixed with <code class="docutils literal notranslate"><span class="pre">v</span></code> (e.g.,
+<code class="docutils literal notranslate"><span class="pre">v1.3.0</span></code>)</p></li>
+<li><p>Generate or manually write release notes</p></li>
+<li><p>Click “Publish release”</p></li>
 </ul>
 </li>
-<li><p>Review and update the feedstock PR as needed, then merge it.</p></li>
-<li><p>If you are not already a maintainer of the feedstock, you can request to
-be added by creating a new issue at
-<a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock/issues">https://github.com/conda-forge/mpas_tools-feedstock/issues</a>, choosing
-“Bot command”, and putting
-<code class="docutils literal notranslate"><span class="pre">&#64;conda-forge-admin,</span> <span class="pre">please</span> <span class="pre">add</span> <span class="pre">user</span> <span class="pre">&#64;username</span></code> as the subject.</p></li>
+</ul>
+</li>
+<li><p><strong>Updating the conda-forge Feedstock for a Stable Release</strong></p>
+<ul class="simple">
+<li><p>Wait for the <code class="docutils literal notranslate"><span class="pre">regro-cf-autotick-bot</span></code> to open a PR at:
+<a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock">https://github.com/conda-forge/mpas_tools-feedstock</a></p></li>
+<li><p>This may take several hours to a day.</p></li>
+<li><p>Review the PR:
+- Confirm the version bump and dependency changes
+- Merge once CI checks pass</p></li>
+</ul>
+<p><strong>Note:</strong> If you are impatient, you can accelerate this process by creating
+a bot issue at: <a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock/issues">https://github.com/conda-forge/mpas_tools-feedstock/issues</a>
+with the subject <code class="docutils literal notranslate"><span class="pre">&#64;conda-forge-admin,</span> <span class="pre">please</span> <span class="pre">update</span> <span class="pre">version</span></code>.  This
+will open a new PR with the version within a few minutes.</p>
+<ul class="simple">
+<li><p>If the bot PR does not appear or is too slow, you may update manually (see
+the manual steps for release candidates above, but target the <code class="docutils literal notranslate"><span class="pre">main</span></code>
+branch of the feedstock).</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="post-release-actions">
+<h2>Post Release Actions<a class="headerlink" href="#post-release-actions" title="Link to this heading"></a></h2>
+<ol class="arabic" start="8">
+<li><p><strong>Verify and Announce</strong></p>
+<ul>
+<li><p>Install the package in a clean environment to test:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">-</span><span class="n">n</span> <span class="n">test</span><span class="o">-</span><span class="n">mpas</span><span class="o">-</span><span class="n">tools</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">mpas_tools</span><span class="o">=&lt;</span><span class="n">version</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p>Optionally announce the release on relevant communication channels</p></li>
+<li><p>Update any documentation or release notes as needed</p></li>
 </ul>
 </li>
 </ol>
