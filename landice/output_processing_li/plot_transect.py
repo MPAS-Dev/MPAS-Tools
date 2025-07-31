@@ -283,7 +283,7 @@ if options.interp_temp:
 
 if options.interp_thermal_forcing:
     tf_cbar = plt.colorbar(thermal_forcing_plot)
-    tf_cbar.set_label('Thermal Forcing (C)')
+    tf_cbar.set_label(r'Thermal Forcing ($^{\circ}$C)')
 
 if (len(times) > 1):
     time_cbar = plt.colorbar(cm.ScalarMappable(cmap='plasma'), ax=thickAx)
