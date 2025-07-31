@@ -59,10 +59,9 @@ else:
 # ---
 # Volume & area plots
 figVol = plt.figure(1, figsize=(9, 12), facecolor='w')
-#xtickSpacing = 20.0
 
-nrow=4
-ncol=2
+nrow = 4
+ncol = 2
 ind = 1
 
 axVol = figVol.add_subplot(nrow, ncol, ind)
@@ -116,10 +115,9 @@ axLeg.axis('off')
 # ---
 # Flux plots
 figFlux = plt.figure(2, figsize=(9, 12), facecolor='w')
-#xtickSpacing = 20.0
 
-nrow=5
-ncol=2
+nrow = 5
+ncol = 2
 ind = 1
 
 axTotSMBFlux = figFlux.add_subplot(nrow, ncol, ind, sharex=axX)
@@ -127,7 +125,6 @@ plt.xlabel('Year')
 plt.ylabel(f'total SMB flux ({fluxUnit})')
 plt.grid()
 ind += 1
-#axX = axTotSMBFlux
 
 axTotBMBFlux = figFlux.add_subplot(nrow, ncol, ind, sharex=axX)
 plt.xlabel('Year')
@@ -197,7 +194,6 @@ def addSeaLevAx(axName):
 def custom_legend():
     handles, labels = axVol.get_legend_handles_labels()
     leg = axLeg.legend(handles, labels, loc='center', prop={'size': 7})
-    #leg(prop={'size': 7})
     # add line breaks
     max_width = 65
     leg_texts = leg.get_texts()
@@ -206,8 +202,6 @@ def custom_legend():
         if len(text) > max_width:
             wrapped_text = '\n'.join(textwrap.wrap(text, width=max_width, break_on_hyphens=False, subsequent_indent='  '))
             leg_texts[ind].set(text=wrapped_text)
-        #leg_texts[ind].set(text=textwrap.wrap(leg_texts[ind].get_text(), width=max_width))
-        #leg_texts[ind].set(wrap=True)
 
 def plotStat(fname):
     print("Reading and plotting file: {}".format(fname))
