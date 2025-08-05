@@ -73,6 +73,10 @@ jobs:
         if: ${{ env.UP_TO_DATE == 'false' }}
         run: |
           cd update-pre-commit-deps
+          # Close any existing PR and replace with most up-to-date changes
+          gh pr close update-pre-commit-deps \
+          --comment "This PR was closed to create a new, updated PR." || \
+          echo "No existing PR to close and replace."
           gh pr create \
           --title "Update pre-commit and its dependencies" \
           --body "This PR was auto-generated to update pre-commit and its dependencies." \
