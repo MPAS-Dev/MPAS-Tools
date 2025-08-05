@@ -9,10 +9,13 @@ on:
     # 4. Entry: Month of the year when the process will be started [1-12]
     # 5. Entry: Weekday when the process will be started [0-6] [0 is Sunday]
     - cron: '0 8 * * 3'
+  # Allow manual triggering of the workflow
+  workflow_dispatch:
 
 env:
   UP_TO_DATE: false
-  PYTHON_VERSION: "3.10"
+  PYTHON_VERSION: "3.13"
+  REVIEWERS: "altheaden,xylar,andrewdnolan"
 
 jobs:
   auto-update:
@@ -20,16 +23,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - name: Set up Conda Environment
+        uses: mamba-org/setup-micromamba@v2
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          environment-name: pre_commit_dev
+          init-shell: bash
+          condarc: |
+            channel_priority: strict
+            channels:
+                - conda-forge
+          create-args: >-
+            python=${{ env.PYTHON_VERSION }}
 
-      - name: Install pre-commit
-        run: pip install pre-commit
+      - name: Install pre-commit and gh
+        run: |
+          eval "$(micromamba shell hook --shell bash)"
+          micromamba activate pre_commit_dev
+          # permissions issue with gh 2.76.0
+          conda install -y pre-commit "gh !=2.76.0"
+          gh --version
 
       - name: Apply and commit updates
         run: |
+          eval "$(micromamba shell hook --shell bash)"
+          micromamba activate pre_commit_dev
           git clone https://github.com/MPAS-Dev/MPAS-Tools.git update-pre-commit-deps
           cd update-pre-commit-deps
           # Configure git using GitHub Actions credentials.
@@ -60,7 +77,7 @@ jobs:
           --title "Update pre-commit and its dependencies" \
           --body "This PR was auto-generated to update pre-commit and its dependencies." \
           --head update-pre-commit-deps \
-          --reviewer altheaden,xylar \
+          --reviewer ${{ env.REVIEWERS }} \
           --label ci
         env:
           GH_TOKEN: ${{ github.token }}
