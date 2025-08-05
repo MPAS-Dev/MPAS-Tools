@@ -26,6 +26,7 @@ on:
 env:
   CANCEL_OTHERS: false
   PATHS_IGNORE: '["**/README.md", "**/docs/**"]'
+  PYTHON_VERSION: "3.13"
 
 jobs:
   pre-commit-hooks:
@@ -36,10 +37,10 @@ jobs:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.13
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - id: file_changes
         uses: trilom/file-changes-action@1.2.4
