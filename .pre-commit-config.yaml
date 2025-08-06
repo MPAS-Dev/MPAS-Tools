@@ -11,14 +11,14 @@ repos:
 
   # Can run individually with `flynt [file]` or `flynt [source]`
   - repo: https://github.com/ikamensh/flynt
-    rev: '1.0.1'
+    rev: '1.0.6'
     hooks:
       - id: flynt
         args: ["--fail-on-change", "--verbose"]
         require_serial: true
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.3
+    rev: v0.12.7
     hooks:
       # Sort the imports
       - id: ruff-check
