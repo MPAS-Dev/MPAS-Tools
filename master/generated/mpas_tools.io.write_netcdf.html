@@ -165,7 +165,7 @@ compatibility.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>ds</strong> (<em>xarray.Dataset</em>) – The dataset to save</p></li>
+<li><p><strong>ds</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.7.2)"><em>xarray.Dataset</em></a>) – The dataset to save</p></li>
 <li><p><strong>fileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The path for the NetCDF file to write</p></li>
 <li><p><strong>fillValues</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><em>dict</em></a><em>, </em><em>optional</em>) – A dictionary of fill values for different NetCDF types.  Default is
 <code class="docutils literal notranslate"><span class="pre">mpas_tools.io.default_fills</span></code>, which can be modified but which
@@ -174,7 +174,7 @@ defaults to <code class="docutils literal notranslate"><span class="pre">netCDF4
 <code class="docutils literal notranslate"><span class="pre">mpas_tools.io.default_format</span></code>, which can be modified but which
 defaults to <code class="docutils literal notranslate"><span class="pre">'NETCDF3_64BIT'</span></code></p></li>
 <li><p><strong>engine</strong> (<em>{'netcdf4'</em><em>, </em><em>'scipy'</em><em>, </em><em>'h5netcdf'}</em><em>, </em><em>optional</em>) – The library to use for NetCDF output.  The default is the same as
-in <code class="xref py py-meth docutils literal notranslate"><span class="pre">xarray.Dataset.to_netcdf()</span></code> and depends on <code class="docutils literal notranslate"><span class="pre">format</span></code>.
+in <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.to_netcdf.html#xarray.Dataset.to_netcdf" title="(in xarray v2025.7.2)"><code class="xref py py-meth docutils literal notranslate"><span class="pre">xarray.Dataset.to_netcdf()</span></code></a> and depends on <code class="docutils literal notranslate"><span class="pre">format</span></code>.
 You can override the default by setting
 <code class="docutils literal notranslate"><span class="pre">mpas_tools.io.default_engine</span></code></p></li>
 <li><p><strong>char_dim_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The name of the dimension used for character strings. Default is

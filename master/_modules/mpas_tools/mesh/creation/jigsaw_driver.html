@@ -127,6 +127,7 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">platform</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">importlib.resources</span><span class="w"> </span><span class="kn">import</span> <span class="n">files</span> <span class="k">as</span> <span class="n">imp_res_files</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
 
@@ -306,18 +307,22 @@
 
     <span class="c1"># add build tools to deployment env, not polaris env</span>
     <span class="n">jigsaw_build_deps</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s1">&#39;cxx-compiler cmake make libnetcdf setuptools numpy scipy&#39;</span>
+        <span class="s1">&#39;cxx-compiler cmake make libnetcdf openmp setuptools numpy scipy&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">conda_toolchain</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">imp_res_files</span><span class="p">(</span><span class="s1">&#39;mpas_tools.mesh.creation&#39;</span><span class="p">)</span> <span class="o">/</span> <span class="s1">&#39;conda-toolchain.cmake&#39;</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Linux&#39;</span><span class="p">:</span>
         <span class="n">jigsaw_build_deps</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">jigsaw_build_deps</span><span class="si">}</span><span class="s1"> sysroot_linux-64=2.17&#39;</span>
-        <span class="n">netcdf_lib</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conda_env_path</span><span class="si">}</span><span class="s1">/lib/libnetcdf.so&#39;</span>
     <span class="k">elif</span> <span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Darwin&#39;</span><span class="p">:</span>
         <span class="n">jigsaw_build_deps</span> <span class="o">=</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">jigsaw_build_deps</span><span class="si">}</span><span class="s1"> macosx_deployment_target_osx-64=10.13&#39;</span>
         <span class="p">)</span>
-        <span class="n">netcdf_lib</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">conda_env_path</span><span class="si">}</span><span class="s1">/lib/libnetcdf.dylib&#39;</span>
 
-    <span class="n">cmake_args</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;-DCMAKE_BUILD_TYPE=Release -DNETCDF_LIBRARY=</span><span class="si">{</span><span class="n">netcdf_lib</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">cmake_args</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=</span><span class="si">{</span><span class="n">conda_toolchain</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Install dependencies</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
     <span class="c1"># Install dependencies</span>
