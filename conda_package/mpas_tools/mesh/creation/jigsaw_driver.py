@@ -3,6 +3,7 @@ import os
 import platform
 import subprocess
 import time
+from importlib.resources import files as imp_res_files
 
 import numpy
 
@@ -177,18 +178,22 @@ def build_jigsaw(logger=None, clone=False, subdir='jigsaw-python', hash=None):
 
     # add build tools to deployment env, not polaris env
     jigsaw_build_deps = (
-        'cxx-compiler cmake make libnetcdf setuptools numpy scipy'
+        'cxx-compiler cmake make libnetcdf openmp setuptools numpy scipy'
+    )
+
+    conda_toolchain = (
+        imp_res_files('mpas_tools.mesh.creation') / 'conda-toolchain.cmake'
     )
     if platform.system() == 'Linux':
         jigsaw_build_deps = f'{jigsaw_build_deps} sysroot_linux-64=2.17'
-        netcdf_lib = f'{conda_env_path}/lib/libnetcdf.so'
     elif platform.system() == 'Darwin':
         jigsaw_build_deps = (
             f'{jigsaw_build_deps} macosx_deployment_target_osx-64=10.13'
         )
-        netcdf_lib = f'{conda_env_path}/lib/libnetcdf.dylib'
 
-    cmake_args = f'-DCMAKE_BUILD_TYPE=Release -DNETCDF_LIBRARY={netcdf_lib}'
+    cmake_args = (
+        f'-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE={conda_toolchain}'
+    )
 
     print('Install dependencies\n')
     # Install dependencies
