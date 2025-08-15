@@ -1,9 +1,11 @@
 import argparse
 import os
 import platform
+import shutil
 import subprocess
 import time
 from importlib.resources import files as imp_res_files
+from pathlib import Path
 
 import numpy
 
@@ -142,15 +144,9 @@ def build_jigsaw(logger=None, clone=False, subdir='jigsaw-python', hash=None):
     conda_base = os.path.dirname(os.path.dirname(conda_exe))
 
     conda_sh_path = os.path.join(conda_base, 'etc', 'profile.d', 'conda.sh')
-    conda_env_name = os.getenv('CONDA_DEFAULT_ENV')
-    if conda_env_name is None:
-        raise EnvironmentError(
-            'The CONDA_DEFAULT_ENV environment variable is not defined. '
-            'Please ensure a conda environment is activated.'
-        )
 
     activate_env = (
-        f'source {conda_sh_path} && conda activate {conda_env_name} && '
+        f'source {conda_sh_path} && conda activate {conda_env_path} && '
     )
 
     # remove conda jigsaw and jigsaw-python
@@ -177,37 +173,52 @@ def build_jigsaw(logger=None, clone=False, subdir='jigsaw-python', hash=None):
         check_call(commands, logger=logger, executable='/bin/bash', shell=True)
 
     # add build tools to deployment env, not polaris env
-    jigsaw_build_deps = (
-        'cxx-compiler cmake make libnetcdf openmp setuptools numpy scipy'
-    )
+    jigsaw_build_deps = 'cmake make libnetcdf setuptools numpy scipy'
 
-    conda_toolchain = (
-        imp_res_files('mpas_tools.mesh.creation') / 'conda-toolchain.cmake'
-    )
     if platform.system() == 'Linux':
-        jigsaw_build_deps = f'{jigsaw_build_deps} sysroot_linux-64=2.17'
+        jigsaw_build_deps = (
+            f'{jigsaw_build_deps} sysroot_linux-64=2.17 gxx=14 openmp'
+        )
     elif platform.system() == 'Darwin':
         jigsaw_build_deps = (
-            f'{jigsaw_build_deps} macosx_deployment_target_osx-64=10.13'
+            f'{jigsaw_build_deps} '
+            f'macosx_deployment_target_osx-64=10.13 '
+            f'clangxx=19 '
+            f'llvm-openmp=19'
         )
-
-    cmake_args = (
-        f'-DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE={conda_toolchain}'
-    )
 
     print('Install dependencies\n')
     # Install dependencies
     commands = f'{activate_env}conda install -y {jigsaw_build_deps}'
     check_call(commands, logger=logger, executable='/bin/bash', shell=True)
 
+    res = imp_res_files('mpas_tools.mesh.creation') / 'conda-toolchain.cmake'
+    if not os.path.exists(str(res)):
+        raise FileNotFoundError(
+            f'The conda toolchain file does not exist: {res}'
+        )
+
+    build_dir = Path(os.path.abspath(subdir)) / 'external' / 'jigsaw' / 'tmp'
+    if os.path.exists(build_dir):
+        shutil.rmtree(build_dir)
+    build_dir.mkdir(parents=True)
+    toolchain_path = build_dir / 'conda-toolchain.cmake'
+
+    with res.open('rb') as src, open(toolchain_path, 'wb') as dst:
+        shutil.copyfileobj(src, dst)
+
+    conda_toolchain = str(toolchain_path)
+
+    cmake_args = (
+        f'-DCMAKE_BUILD_TYPE=Release '
+        f'-DCMAKE_TOOLCHAIN_FILE="{conda_toolchain}"'
+    )
+
     print('Building JIGSAW\n')
     # Build JIGSAW
     commands = (
         f'{activate_env}'
-        f'cd {subdir}/external/jigsaw && '
-        f'rm -rf tmp && '
-        f'mkdir tmp && '
-        f'cd tmp && '
+        f'cd {subdir}/external/jigsaw/tmp && '
         f'cmake .. {cmake_args} && '
         f'cmake --build . --config Release --target install --parallel 4'
     )
