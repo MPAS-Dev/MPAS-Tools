@@ -19,7 +19,7 @@ fortran_compiler:
 fortran_compiler_version:
 - '13'
 hdf5:
-- 1.14.4
+- 1.14.6
 libnetcdf:
 - 4.9.2
 llvm_openmp:

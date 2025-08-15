@@ -60,11 +60,13 @@ master_doc = 'index'
 # General information about the project.
 project = 'mpas_tools'
 year = date.today().year
-copyright = f'This software is open source software available under the BSD-3' \
-            f'license. Copyright (c) {year} Triad National Security, LLC. ' \
-            f'All rights reserved. Copyright (c) {year} Lawrence Livermore ' \
-            f'National Security, LLC. All rights reserved. Copyright (c) ' \
-            f'{year} UT-Battelle, LLC. All rights reserved.'
+copyright = (
+    f'This software is open source software available under the BSD-3'
+    f'license. Copyright (c) {year} Triad National Security, LLC. '
+    f'All rights reserved. Copyright (c) {year} Lawrence Livermore '
+    f'National Security, LLC. All rights reserved. Copyright (c) '
+    f'{year} UT-Battelle, LLC. All rights reserved.'
+)
 author = 'MPAS-Tools development team'
 
 # The version info for the project you're documenting, acts as replacement for

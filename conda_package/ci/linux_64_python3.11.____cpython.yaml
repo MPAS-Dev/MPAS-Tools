@@ -13,13 +13,13 @@ cxx_compiler:
 cxx_compiler_version:
 - '13'
 docker_image:
-- quay.io/condaforge/linux-anvil-cos7-x86_64
+- quay.io/condaforge/linux-anvil-x86_64:alma9
 fortran_compiler:
 - gfortran
 fortran_compiler_version:
 - '13'
 hdf5:
-- 1.14.4
+- 1.14.6
 libnetcdf:
 - 4.9.2
 netcdf_fortran:
