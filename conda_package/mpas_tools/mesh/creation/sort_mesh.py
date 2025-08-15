@@ -6,6 +6,8 @@ import xarray
 from scipy.sparse import csr_matrix
 from scipy.sparse.csgraph import reverse_cuthill_mckee
 
+from mpas_tools.io import write_netcdf
+
 
 def sort_mesh(mesh):
     """
@@ -125,6 +127,15 @@ def main():
         help='Path+name to sorted output file.',
     )
 
+    parser.add_argument(
+        '--format',
+        dest='format',
+        type=str,
+        required=False,
+        default='NETCDF4',
+        help='Output format for the sorted mesh file.',
+    )
+
     args = parser.parse_args()
 
     mesh = xarray.open_dataset(args.mesh_file)
@@ -147,7 +158,7 @@ def main():
                 fptr.write(f'{item} ')
             fptr.write('\n')
 
-    mesh.to_netcdf(args.sort_file, format='NETCDF4')
+    write_netcdf(mesh, args.sort_file, format=args.format)
 
 
 def _sort_fwd(data, fwd):
