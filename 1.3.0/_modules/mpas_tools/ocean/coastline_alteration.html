@@ -1,0 +1,664 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.ocean.coastline_alteration &mdash; mpas_tools 1.3.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1f29e9d3"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../io.html">I/O Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vector.html">Vector Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Visualization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mpas_to_xdmf.html">MPAS to XDMF Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../paraview_extractor.html">ParaView VTK Extractor</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/streamfunction.html">Computing streamfunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../releasing.html">Releasing a New Version</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.coastline_alteration</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.ocean.coastline_alteration</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
+
+
+<div class="viewcode-block" id="add_critical_land_blockages">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastline_alteration.add_critical_land_blockages.html#mpas_tools.ocean.coastline_alteration.add_critical_land_blockages">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_critical_land_blockages</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsBlockages</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add the masks associated with one or more transects to the land mask</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dsMask : xarray.Dataset</span>
+<span class="sd">        The mask to which critical blockages should be added</span>
+
+<span class="sd">    dsBlockages : xarray.Dataset</span>
+<span class="sd">        The transect masks defining critical land regions that should block</span>
+<span class="sd">        ocean flow (e.g. the Antarctic Peninsula)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dsMask : xarray.Dataset</span>
+<span class="sd">        The mask with critical blockages included</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dsMask</span> <span class="o">=</span> <span class="n">dsMask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">nTransects</span> <span class="o">=</span> <span class="n">dsBlockages</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nTransects&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">transectIndex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nTransects</span><span class="p">):</span>
+        <span class="n">dsMask</span><span class="o">.</span><span class="n">regionCellMasks</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
+            <span class="n">dsBlockages</span><span class="o">.</span><span class="n">transectCellMasks</span><span class="p">[:,</span> <span class="n">transectIndex</span><span class="p">],</span>
+            <span class="n">dsMask</span><span class="o">.</span><span class="n">regionCellMasks</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">dsMask</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main_add_critical_land_blockages</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Entry point for add_critical_land_blockages command-line tool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Add transects that identify critical regions where narrow strips of land block</span>
+<span class="s2">ocean flow.  These are, essentially, the opposite of critical passages, which</span>
+<span class="s2">must remain open for ocean flow.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> \
+        <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-f&quot;</span><span class="p">,</span> <span class="s2">&quot;--input_mask_file&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;input_mask_filename&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Mask file that includes cell and edge masks.&quot;</span><span class="p">,</span>
+                        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;INPUTMASKFILE&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--output_mask_file&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;output_mask_filename&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Mask file that includes cell and edge masks.&quot;</span><span class="p">,</span>
+                        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;OUTPUTMASKFILE&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-b&quot;</span><span class="p">,</span> <span class="s2">&quot;--blockage_file&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;blockage_file&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Masks for each transect identifying critical &quot;</span>
+                             <span class="s2">&quot;land blockage.&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;BLOCKFILE&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">dsMask</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input_mask_filename</span><span class="p">)</span>
+
+    <span class="n">dsBlockages</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">blockage_file</span><span class="p">)</span>
+
+    <span class="n">dsMask</span> <span class="o">=</span> <span class="n">add_critical_land_blockages</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsBlockages</span><span class="p">)</span>
+    <span class="n">dsMask</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output_mask_filename</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="widen_transect_edge_masks">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html#mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">widen_transect_edge_masks</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">latitude_threshold</span><span class="o">=</span><span class="mf">43.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Alter critical passages at polar latitudes to be at least two cells wide,</span>
+<span class="sd">    to avoid sea ice blockage</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dsMask : xarray.Dataset</span>
+<span class="sd">        The mask to which critical blockages should be added</span>
+
+<span class="sd">    dsMesh : xarray.Dataset</span>
+<span class="sd">        The transect masks defining critical land regions that should block</span>
+<span class="sd">        ocean flow (e.g. the Antarctic Peninsula)</span>
+
+<span class="sd">    latitude_threshold : float</span>
+<span class="sd">        Minimum latitude, degrees, for transect widening</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dsMask : xarray.Dataset</span>
+<span class="sd">        The mask with critical blockages included</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">latitude_threshold_radians</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">latitude_threshold</span><span class="p">)</span>
+
+    <span class="n">dsMask</span> <span class="o">=</span> <span class="n">dsMask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">maxEdges</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;maxEdges&#39;</span><span class="p">]</span>
+
+    <span class="n">latMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dsMesh</span><span class="o">.</span><span class="n">latEdge</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">latitude_threshold_radians</span>
+
+    <span class="n">edgeMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">latMask</span><span class="p">,</span> <span class="n">dsMask</span><span class="o">.</span><span class="n">transectEdgeMasks</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">iEdge</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxEdges</span><span class="p">):</span>
+        <span class="n">eoc</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">edgesOnCell</span><span class="p">[:,</span> <span class="n">iEdge</span><span class="p">]</span><span class="o">-</span><span class="mi">1</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">eoc</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span>
+                                 <span class="n">edgeMask</span><span class="p">[</span><span class="n">eoc</span><span class="p">])</span>
+        <span class="c1"># cells with a neighboring transect edge should be masked to 1</span>
+        <span class="n">dsMask</span><span class="p">[</span><span class="s1">&#39;transectCellMasks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsMask</span><span class="o">.</span><span class="n">transectCellMasks</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">mask</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dsMask</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main_widen_transect_edge_masks</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Entry point for widen_transect_edge_masks command-line tool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Alter transects to be at least two cells wide.  This is used for critical</span>
+<span class="s2">passages, to avoid sea ice blockage.  Specifically, mark cells on both sides</span>
+<span class="s2">of each transect edge mask as a water cell.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> \
+        <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-f&quot;</span><span class="p">,</span> <span class="s2">&quot;--mask_file&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;mask_filename&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Mask file with cell and edge transect masks.&quot;</span><span class="p">,</span>
+                        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;MASKFILE&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--mesh_file&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;mesh_filename&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;MPAS Mesh filename.&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;MESHFILE&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--out_file&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;out_filename&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output mask file,different from input filename.&quot;</span><span class="p">,</span>
+                        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;MASKFILE&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-l&quot;</span><span class="p">,</span> <span class="s2">&quot;--latitude_threshold&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;latitude_threshold&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Minimum latitude, degrees, for transect &quot;</span>
+                             <span class="s2">&quot;widening.&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">43.0</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">dsMask</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">mask_filename</span><span class="p">)</span>
+
+    <span class="n">dsMesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">mesh_filename</span><span class="p">)</span>
+
+    <span class="n">dsMask</span> <span class="o">=</span> <span class="n">widen_transect_edge_masks</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">latitude_threshold</span><span class="p">)</span>
+    <span class="n">dsMask</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">out_filename</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="add_land_locked_cells_to_mask">
+<a class="viewcode-back" href="../../../generated/mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask.html#mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">add_land_locked_cells_to_mask</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">latitude_threshold</span><span class="o">=</span><span class="mf">43.0</span><span class="p">,</span>
+                                  <span class="n">nSweeps</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find ocean cells that are land-locked, and alter the cell mask so that they</span>
+<span class="sd">    are counted as land cells.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dsMask : xarray.Dataset</span>
+<span class="sd">        A land-mask data set</span>
+
+<span class="sd">    dsMesh : xarray.Dataset</span>
+<span class="sd">        MPAS Mesh data set</span>
+
+<span class="sd">    latitude_threshold : float, optional</span>
+<span class="sd">        Minimum latitude, in degrees, for transect widening</span>
+
+<span class="sd">    nSweeps : int, optional</span>
+<span class="sd">        Maximum number of sweeps to search for land-locked cells</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dsMask : xarray.Dataset</span>
+<span class="sd">        A copy of the land-mask data set with land-locked cells added to the</span>
+<span class="sd">        mask for the first region</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dsMask</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">dsMask</span><span class="p">)</span>
+    <span class="n">dsMesh</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">landMask</span> <span class="o">=</span> <span class="n">dsMask</span><span class="o">.</span><span class="n">regionCellMasks</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nRegions&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="n">dsMask</span><span class="p">[</span><span class="s1">&#39;landMaskDiagnostic&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">landMask</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running add_land_locked_cells_to_mask.py.  Total number of cells: &quot;</span>
+          <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">dsMesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]))</span>
+
+    <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">cellsOnCell</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">nEdgesOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">nEdgesOnCell</span>
+
+    <span class="n">nextCellsOnCell</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">prevCellsOnCell</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">iEdgeOnCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nextCellsOnCell</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+        <span class="n">iP1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">iEdgeOnCell</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nEdgesOnCell</span><span class="p">)</span>
+        <span class="n">nextCellsOnCell</span><span class="p">[:,</span> <span class="n">iEdgeOnCell</span><span class="p">]</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="p">[:,</span> <span class="n">iP1</span><span class="p">]</span>
+        <span class="n">iM1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">iEdgeOnCell</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">nEdgesOnCell</span><span class="p">)</span>
+        <span class="n">prevCellsOnCell</span><span class="p">[:,</span> <span class="n">iEdgeOnCell</span><span class="p">]</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="p">[:,</span> <span class="n">iM1</span><span class="p">]</span>
+
+    <span class="n">dsMesh</span><span class="p">[</span><span class="s1">&#39;cellsOnCell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cellsOnCell</span>
+    <span class="n">dsMesh</span><span class="p">[</span><span class="s1">&#39;nextCellsOnCell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nextCellsOnCell</span>
+    <span class="n">dsMesh</span><span class="p">[</span><span class="s1">&#39;prevCellsOnCell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">prevCellsOnCell</span>
+    <span class="n">dsMesh</span><span class="p">[</span><span class="s1">&#39;latCell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dsMesh</span><span class="o">.</span><span class="n">latCell</span><span class="p">)</span>
+    <span class="n">dsMesh</span><span class="p">[</span><span class="s1">&#39;lonCell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">dsMesh</span><span class="o">.</span><span class="n">lonCell</span><span class="p">)</span>
+
+    <span class="n">landMask</span><span class="p">,</span> <span class="n">removable</span> <span class="o">=</span> <span class="n">_remove_cells_with_isolated_edges1</span><span class="p">(</span>
+        <span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">landMask</span><span class="p">,</span> <span class="n">latitude_threshold</span><span class="p">)</span>
+    <span class="n">landMask</span> <span class="o">=</span> <span class="n">_remove_cells_with_isolated_edges2</span><span class="p">(</span>
+        <span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">landMask</span><span class="p">,</span> <span class="n">removable</span><span class="p">,</span> <span class="n">nSweeps</span><span class="p">)</span>
+    <span class="n">oceanMask</span> <span class="o">=</span> <span class="n">_flood_fill</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">landMask</span><span class="p">,</span> <span class="n">removable</span><span class="p">)</span>
+    <span class="n">landMask</span> <span class="o">=</span> <span class="n">_revert_cells_with_connected_edges</span><span class="p">(</span>
+        <span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">oceanMask</span><span class="p">,</span> <span class="n">landMask</span><span class="p">,</span> <span class="n">removable</span><span class="p">,</span> <span class="n">nSweeps</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">dsMask</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">main_add_land_locked_cells_to_mask</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Entry point for add_land_locked_cells_to_mask command-line tool</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">Find ocean cells that are land-locked, and alter the cell</span>
+<span class="s2">mask so that they are counted as land cells.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+    <span class="n">parser</span> <span class="o">=</span> \
+        <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+                                <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-f&quot;</span><span class="p">,</span> <span class="s2">&quot;--input_mask_file&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;input_mask_filename&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Mask file that includes cell and edge masks.&quot;</span><span class="p">,</span>
+                        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;INPUTMASKFILE&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--output_mask_file&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;output_mask_filename&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Mask file that includes cell and edge masks.&quot;</span><span class="p">,</span>
+                        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;OUTPUTMASKFILE&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--mesh_file&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;mesh_filename&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;MPAS Mesh filename.&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;MESHFILE&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-l&quot;</span><span class="p">,</span> <span class="s2">&quot;--latitude_threshold&quot;</span><span class="p">,</span>
+                        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;latitude_threshold&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Minimum latitude, in degrees, for transect &quot;</span>
+                             <span class="s2">&quot;widening.&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">43.0</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-n&quot;</span><span class="p">,</span> <span class="s2">&quot;--number_sweeps&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;nSweeps&quot;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximum number of sweeps to search for &quot;</span>
+                             <span class="s2">&quot;land-locked cells.&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">dsMask</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">input_mask_filename</span><span class="p">)</span>
+
+    <span class="n">dsMesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">mesh_filename</span><span class="p">)</span>
+
+    <span class="n">dsMask</span> <span class="o">=</span> <span class="n">add_land_locked_cells_to_mask</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span>
+                                           <span class="n">args</span><span class="o">.</span><span class="n">latitude_threshold</span><span class="p">,</span>
+                                           <span class="n">args</span><span class="o">.</span><span class="n">nSweeps</span><span class="p">)</span>
+    <span class="n">dsMask</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">output_mask_filename</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_remove_cells_with_isolated_edges1</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">landMask</span><span class="p">,</span>
+                                       <span class="n">latitude_threshold</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Step 1: Searching for land-locked cells.  Remove cells that only &quot;</span>
+          <span class="s2">&quot;have isolated active edges.&quot;</span><span class="p">)</span>
+
+    <span class="n">landMaskNew</span> <span class="o">=</span> <span class="n">landMask</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">active</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">landMask</span><span class="p">)</span>
+    <span class="n">removable</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">dsMesh</span><span class="o">.</span><span class="n">latCell</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">latitude_threshold</span><span class="p">,</span> <span class="n">active</span><span class="p">)</span>
+
+    <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">cellsOnCell</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">removable</span><span class="p">,</span> <span class="n">cellsOnCell</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">activeEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">active</span><span class="p">[</span><span class="n">cellsOnCell</span><span class="p">])</span>
+
+    <span class="n">nextCellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">nextCellsOnCell</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">removable</span><span class="p">,</span> <span class="n">nextCellsOnCell</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">activeNextEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">active</span><span class="p">[</span><span class="n">nextCellsOnCell</span><span class="p">])</span>
+
+    <span class="c1"># which vertices have adjacent active edges on this cell?</span>
+    <span class="n">activeAdjacentEdges</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">activeEdge</span><span class="p">,</span> <span class="n">activeNextEdge</span><span class="p">)</span>
+
+    <span class="c1"># which removable cells have no pairs of adjacent active cells?</span>
+    <span class="n">noActiveAdjacentEdges</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">removable</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">activeAdjacentEdges</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)))</span>
+
+    <span class="n">landMaskNew</span><span class="p">[</span><span class="n">noActiveAdjacentEdges</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">landLockedCounter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">noActiveAdjacentEdges</span><span class="p">)</span>
+
+    <span class="n">dsMask</span><span class="o">.</span><span class="n">regionCellMasks</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">dsMask</span><span class="o">.</span><span class="n">regionCellMasks</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
+                                                 <span class="mi">1</span><span class="o">*</span><span class="n">noActiveAdjacentEdges</span><span class="p">)</span>
+
+    <span class="n">dsMask</span><span class="o">.</span><span class="n">landMaskDiagnostic</span><span class="p">[</span><span class="n">noActiveAdjacentEdges</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Number of landLocked cells: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">landLockedCounter</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">landMaskNew</span><span class="p">,</span> <span class="n">removable</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_remove_cells_with_isolated_edges2</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">landMask</span><span class="p">,</span> <span class="n">removable</span><span class="p">,</span>
+                                       <span class="n">nSweeps</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Step 2: Searching for land-locked cells. Remove cells that have &quot;</span>
+          <span class="s2">&quot;any isolated active edges.&quot;</span><span class="p">)</span>
+
+    <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">cellsOnCell</span>
+    <span class="n">nextCellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">nextCellsOnCell</span>
+    <span class="n">prevCellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">prevCellsOnCell</span>
+
+    <span class="k">for</span> <span class="n">iSweep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nSweeps</span><span class="p">):</span>
+        <span class="n">landLockedCounter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">landMaskNew</span> <span class="o">=</span> <span class="n">landMask</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">deep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">active</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">landMask</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">removable</span><span class="p">,</span> <span class="n">active</span><span class="p">)</span>
+
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">cellsOnCell</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">activeEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">active</span><span class="p">[</span><span class="n">cellsOnCell</span><span class="p">])</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">nextCellsOnCell</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">activeNextEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">active</span><span class="p">[</span><span class="n">nextCellsOnCell</span><span class="p">])</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">prevCellsOnCell</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">activePrevEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">active</span><span class="p">[</span><span class="n">prevCellsOnCell</span><span class="p">])</span>
+
+        <span class="c1"># an edge is land-locked if it is active but neither neighbor is active</span>
+        <span class="n">landLockedEdges</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+            <span class="n">activeEdge</span><span class="p">,</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span>
+                <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">activePrevEdge</span><span class="p">,</span> <span class="n">activeNextEdge</span><span class="p">)))</span>
+
+        <span class="n">landLockedCells</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">landLockedEdges</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">landLockedCounter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">landLockedCells</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">landLockedCounter</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">landMaskNew</span><span class="p">[</span><span class="n">landLockedCells</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">dsMask</span><span class="o">.</span><span class="n">regionCellMasks</span><span class="p">[</span><span class="n">landLockedCells</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">dsMask</span><span class="o">.</span><span class="n">landMaskDiagnostic</span><span class="p">[</span><span class="n">landLockedCells</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="n">landMask</span> <span class="o">=</span> <span class="n">landMaskNew</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Sweep: </span><span class="si">{}</span><span class="s2"> Number of landLocked cells removed: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">iSweep</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">landLockedCounter</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">landLockedCounter</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">landMask</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_flood_fill</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">landMask</span><span class="p">,</span> <span class="n">removable</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Step 3: Perform flood fill, starting from open ocean.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># init flood fill to 0 for water, -1 for land, 1 for known open ocean</span>
+    <span class="n">floodFill</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">removable</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">landMask</span><span class="p">)),</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">latCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">latCell</span>
+    <span class="n">lonCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">lonCell</span>
+
+    <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">cellsOnCell</span>
+
+    <span class="c1"># North Pole</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">latCell</span> <span class="o">&gt;</span> <span class="mf">84.0</span>
+    <span class="n">openOceanMask</span> <span class="o">=</span> <span class="n">mask</span>
+
+    <span class="c1"># Arctic</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">160.0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mf">230.0</span><span class="p">),</span>
+        <span class="n">latCell</span> <span class="o">&gt;</span> <span class="mf">73.0</span><span class="p">)</span>
+    <span class="n">openOceanMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">openOceanMask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+
+    <span class="c1"># North Atlantic</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">315.0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mf">340.0</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">latCell</span> <span class="o">&gt;</span> <span class="mf">15.0</span><span class="p">,</span> <span class="n">latCell</span> <span class="o">&lt;</span> <span class="mf">45.0</span><span class="p">))</span>
+    <span class="n">openOceanMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">openOceanMask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">290.0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mf">300.0</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">latCell</span> <span class="o">&gt;</span> <span class="mf">72.0</span><span class="p">,</span> <span class="n">latCell</span> <span class="o">&lt;</span> <span class="mf">75.0</span><span class="p">))</span>
+    <span class="n">openOceanMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">openOceanMask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mf">10.0</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">latCell</span> <span class="o">&gt;</span> <span class="mf">70.0</span><span class="p">,</span> <span class="n">latCell</span> <span class="o">&lt;</span> <span class="mf">75.0</span><span class="p">))</span>
+    <span class="n">openOceanMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">openOceanMask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+
+    <span class="c1"># North Pacific</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">150.0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mf">225.0</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">latCell</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">latCell</span> <span class="o">&lt;</span> <span class="mf">45.0</span><span class="p">))</span>
+    <span class="n">openOceanMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">openOceanMask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+
+    <span class="c1"># South Atlantic</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mf">5.0</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">latCell</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">60.0</span><span class="p">,</span> <span class="n">latCell</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">))</span>
+    <span class="n">openOceanMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">openOceanMask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+
+    <span class="c1"># South Pacific</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">180.0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mf">280.0</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">latCell</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">60.0</span><span class="p">,</span> <span class="n">latCell</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">10.0</span><span class="p">))</span>
+    <span class="n">openOceanMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">openOceanMask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+
+    <span class="c1"># Southern Ocean</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">lonCell</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">lonCell</span> <span class="o">&lt;</span> <span class="mf">165.0</span><span class="p">),</span>
+        <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">latCell</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mf">60.0</span><span class="p">,</span> <span class="n">latCell</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">45.0</span><span class="p">))</span>
+    <span class="n">openOceanMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">openOceanMask</span><span class="p">,</span> <span class="n">mask</span><span class="p">)</span>
+
+    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">floodFill</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">openOceanMask</span><span class="p">)</span>
+    <span class="n">floodFill</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">nFloodableCells</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">floodFill</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Initial number of flood cells: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">nFloodableCells</span><span class="p">))</span>
+
+    <span class="n">dsMask</span><span class="o">.</span><span class="n">landMaskDiagnostic</span><span class="p">[</span><span class="n">floodFill</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+
+    <span class="c1"># sweep over neighbors of known open ocean points</span>
+    <span class="k">for</span> <span class="n">iSweep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dsMesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]):</span>
+
+        <span class="n">newFloodCellsThisSweep</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">floodFill</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">cellIndices</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">values</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">iCellOnCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">cellsOnCell</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">neighbors</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="p">[</span><span class="n">cellIndices</span><span class="p">,</span> <span class="n">iCellOnCell</span><span class="p">]</span>
+            <span class="n">filledNeighbors</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">neighbors</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span>
+                                                <span class="n">floodFill</span><span class="p">[</span><span class="n">neighbors</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">fillIndices</span> <span class="o">=</span> <span class="n">cellIndices</span><span class="p">[</span><span class="n">filledNeighbors</span><span class="o">.</span><span class="n">values</span><span class="p">]</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fillIndices</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">floodFill</span><span class="p">[</span><span class="n">fillIndices</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">newFloodCellsThisSweep</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fillIndices</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Sweep </span><span class="si">{}</span><span class="s2"> new flood cells this sweep: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">iSweep</span><span class="p">,</span> <span class="n">newFloodCellsThisSweep</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">newFloodCellsThisSweep</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">break</span>
+
+    <span class="n">oceanMask</span> <span class="o">=</span> <span class="p">(</span><span class="n">floodFill</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;oceanMask:&#39;</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">oceanMask</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">oceanMask</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_revert_cells_with_connected_edges</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">oceanMask</span><span class="p">,</span> <span class="n">landMask</span><span class="p">,</span>
+                                       <span class="n">removable</span><span class="p">,</span> <span class="n">nSweeps</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Step 4: Searching for land-locked cells, step 3: revert cells with &quot;</span>
+          <span class="s2">&quot;connected active edges&quot;</span><span class="p">)</span>
+
+    <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">cellsOnCell</span>
+    <span class="n">nextCellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">nextCellsOnCell</span>
+    <span class="n">prevCellsOnCell</span> <span class="o">=</span> <span class="n">dsMesh</span><span class="o">.</span><span class="n">prevCellsOnCell</span>
+
+    <span class="k">for</span> <span class="n">iSweep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nSweeps</span><span class="p">):</span>
+        <span class="n">landMaskNew</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">landMask</span><span class="p">)</span>
+
+        <span class="c1"># only remove a cell that was added in Step 2,</span>
+        <span class="c1"># _remove_cells_with_isolated_edges2</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">removable</span><span class="p">,</span> <span class="n">dsMask</span><span class="o">.</span><span class="n">landMaskDiagnostic</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="n">notLand</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">landMask</span><span class="p">)</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">cellsOnCell</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">oceanEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">oceanMask</span><span class="p">[</span><span class="n">cellsOnCell</span><span class="p">])</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">nextCellsOnCell</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">activeNextEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">notLand</span><span class="p">[</span><span class="n">nextCellsOnCell</span><span class="p">])</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">prevCellsOnCell</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">activePrevEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">valid</span><span class="p">,</span> <span class="n">notLand</span><span class="p">[</span><span class="n">prevCellsOnCell</span><span class="p">])</span>
+
+        <span class="n">reactivate</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+                <span class="n">oceanEdge</span><span class="p">,</span>
+                <span class="n">numpy</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">activePrevEdge</span><span class="p">,</span> <span class="n">activeNextEdge</span><span class="p">)),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">landLockedCounter</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">reactivate</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">landLockedCounter</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">landMaskNew</span><span class="p">[</span><span class="n">reactivate</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">dsMask</span><span class="o">.</span><span class="n">regionCellMasks</span><span class="p">[</span><span class="n">reactivate</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">oceanMask</span><span class="p">[</span><span class="n">reactivate</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">dsMask</span><span class="o">.</span><span class="n">landMaskDiagnostic</span><span class="p">[</span><span class="n">reactivate</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+
+        <span class="n">landMask</span> <span class="o">=</span> <span class="n">landMaskNew</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Sweep: </span><span class="si">{}</span><span class="s2"> Number of land-locked cells returned: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">iSweep</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">landLockedCounter</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">landLockedCounter</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">landMask</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <!-- Meta tags for JS to use -->
+  <meta name="doc-version" content="1.3.0">
+  <meta name="doc-site-root" content="../../../">
+
+  <!-- Create version switcher container -->
+  <script>
+    const sidebar = document.querySelector('.wy-side-nav-search');
+    if (sidebar) {
+      const versionDiv = document.createElement('div');
+      versionDiv.id = 'version-switcher';
+      versionDiv.style.marginTop = '1em';
+      sidebar.appendChild(versionDiv);
+    }
+  </script>
+
+  <!-- Load version-switcher.js using the correct relative path -->
+  <script src="../../../../shared/version-switcher.js"></script>
+
+
+</body>
+</html>
