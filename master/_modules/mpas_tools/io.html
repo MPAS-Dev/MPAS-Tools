@@ -261,6 +261,8 @@
         <span class="c1"># make sure the Time dimension is unlimited because MPAS has trouble</span>
         <span class="c1"># reading Time otherwise</span>
         <span class="n">ds</span><span class="o">.</span><span class="n">encoding</span><span class="p">[</span><span class="s1">&#39;unlimited_dims&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Time&#39;</span><span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">encoding</span><span class="p">[</span><span class="s1">&#39;unlimited_dims&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># for performance, we have to handle this as a special case</span>
     <span class="n">convert</span> <span class="o">=</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;NETCDF3_64BIT_DATA&#39;</span>
