@@ -135,6 +135,8 @@ def write_netcdf(
         # make sure the Time dimension is unlimited because MPAS has trouble
         # reading Time otherwise
         ds.encoding['unlimited_dims'] = {'Time'}
+    else:
+        ds.encoding['unlimited_dims'] = None
 
     # for performance, we have to handle this as a special case
     convert = format == 'NETCDF3_64BIT_DATA'
