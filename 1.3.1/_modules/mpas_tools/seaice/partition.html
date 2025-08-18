@@ -1,0 +1,729 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.seaice.partition &mdash; mpas_tools 1.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=bb516dca"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+    <link href="../../../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../io.html">I/O Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../vector.html">Vector Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Visualization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mpas_to_xdmf.html">MPAS to XDMF Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../paraview_extractor.html">ParaView VTK Extractor</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/streamfunction.html">Computing streamfunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../releasing.html">Releasing a New Version</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../authors.html#contributors">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.seaice.partition</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.seaice.partition</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">netCDF4</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dataset</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">math</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">errno</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">subprocess</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">glob</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.regrid</span><span class="w"> </span><span class="kn">import</span> <span class="n">regrid_to_other_mesh</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.mask</span><span class="w"> </span><span class="kn">import</span> <span class="n">extend_seaice_mask</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.regions</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_regions_file</span>
+
+
+<div class="viewcode-block" id="gen_seaice_mesh_partition">
+<a class="viewcode-back" href="../../../generated/mpas_tools.seaice.partition.gen_seaice_mesh_partition.html#mpas_tools.seaice.partition.gen_seaice_mesh_partition">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">gen_seaice_mesh_partition</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">regionFilename</span><span class="p">,</span> <span class="n">nProcsArray</span><span class="p">,</span>
+                              <span class="n">mpasCullerLocation</span><span class="p">,</span> <span class="n">outputPrefix</span><span class="p">,</span> <span class="n">plotting</span><span class="p">,</span>
+                              <span class="n">metis</span><span class="p">,</span> <span class="n">cullEquatorialRegion</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate graph partition(s) for the given MPAS-Seaice mesh and the given</span>
+<span class="sd">    number(s) of processors and a file defining regions that each processor</span>
+<span class="sd">    should own part of (typically a polar region and an equatorial region)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    meshFilename : str</span>
+<span class="sd">        The name of a file containing the MPAS-Seaice mesh</span>
+
+<span class="sd">    regionFilename : str</span>
+<span class="sd">        The name of a file containing a ``region`` field defining different</span>
+<span class="sd">        regions that each processor should own part of</span>
+
+<span class="sd">    nProcsArray : list or int</span>
+<span class="sd">        The number(s) of processors to create graph partitions for</span>
+
+<span class="sd">    mpasCullerLocation : str or None</span>
+<span class="sd">        The directory for the ``MpasCellCuller.x`` tool or ``None`` to look in</span>
+<span class="sd">        the user&#39;s path</span>
+
+<span class="sd">    outputPrefix : str</span>
+<span class="sd">        The prefix to prepend to each graph partition file</span>
+
+<span class="sd">    plotting : bool</span>
+<span class="sd">        Whether to create a NetCDF file ``partition_diag.nc`` to use for</span>
+<span class="sd">        plotting the partitions</span>
+
+<span class="sd">    metis : str</span>
+<span class="sd">        The exectable to use for partitioning in each region</span>
+
+<span class="sd">    cullEquatorialRegion : bool</span>
+<span class="sd">        Whether to remove the equatorial region from the paritions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># arguments</span>
+    <span class="n">meshToolsDir</span> <span class="o">=</span> <span class="n">mpasCullerLocation</span>
+    <span class="k">if</span> <span class="n">meshToolsDir</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">culler</span> <span class="o">=</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;MpasCellCuller.x&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">culler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">meshToolsDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">culler</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># no directory was provided and none</span>
+            <span class="n">this_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">))</span>
+            <span class="n">meshToolsDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">this_dir</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;..&quot;</span><span class="p">,</span> <span class="s2">&quot;mesh_tools&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;mesh_conversion_tools&quot;</span><span class="p">))</span>
+            <span class="n">culler</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">meshToolsDir</span><span class="p">,</span> <span class="s2">&quot;MpasCellCuller.x&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">culler</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                <span class="s2">&quot;MpasCellCuller.x does not exist at the requested location.&quot;</span><span class="p">)</span>
+
+    <span class="n">plotFilename</span> <span class="o">=</span> <span class="s2">&quot;partition_diag.nc&quot;</span>
+
+    <span class="c1"># get regions</span>
+    <span class="n">regionFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">regionFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">nRegions</span> <span class="o">=</span> <span class="n">regionFile</span><span class="o">.</span><span class="n">nRegions</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">regionFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;region&quot;</span><span class="p">][:]</span>
+    <span class="n">regionFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># diagnostics</span>
+    <span class="k">if</span> <span class="n">plotting</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">plotFilename</span><span class="p">)</span>
+
+    <span class="c1"># load mesh file</span>
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mesh</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+    <span class="n">mesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">cellidsInRegion</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">iRegion</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nRegions</span><span class="p">):</span>
+
+        <span class="c1"># tmp file basename</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%2.2i</span><span class="s2">_tmp&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">iRegion</span><span class="p">)</span>
+
+        <span class="c1"># create precull file</span>
+        <span class="n">tmpFilenamesPrecull</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">+</span> <span class="s2">&quot;_precull.nc&quot;</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">copyfile</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">tmpFilenamesPrecull</span><span class="p">)</span>
+
+        <span class="c1"># make cullCell variable</span>
+        <span class="n">cullCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nCells</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">iCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">region</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">==</span> <span class="n">iRegion</span><span class="p">:</span>
+                <span class="n">cullCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># cull the mesh</span>
+        <span class="n">tmpFilenamesPostcull</span> <span class="o">=</span> <span class="n">tmp</span> <span class="o">+</span> <span class="s2">&quot;_postcull.nc&quot;</span>
+        <span class="n">_cull_mesh</span><span class="p">(</span><span class="n">meshToolsDir</span><span class="p">,</span> <span class="n">tmpFilenamesPrecull</span><span class="p">,</span> <span class="n">tmpFilenamesPostcull</span><span class="p">,</span>
+                   <span class="n">cullCell</span><span class="p">)</span>
+
+        <span class="c1"># get the cell IDs for this partition</span>
+        <span class="n">cellid</span> <span class="o">=</span> <span class="n">_get_cell_ids</span><span class="p">(</span><span class="n">tmpFilenamesPostcull</span><span class="p">,</span> <span class="n">meshFilename</span><span class="p">)</span>
+        <span class="n">cellidsInRegion</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cellid</span><span class="p">)</span>
+
+        <span class="c1"># preserve the initial graph file</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;culled_graph.info&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;culled_graph_</span><span class="si">{</span><span class="n">iRegion</span><span class="si">}</span><span class="s2">_tmp.info&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">nProcsArray</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
+        <span class="c1"># presumably, it&#39;s a single integer</span>
+        <span class="n">nProcsArray</span> <span class="o">=</span> <span class="p">[</span><span class="n">nProcsArray</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">nProcs</span> <span class="ow">in</span> <span class="n">nProcsArray</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">cullEquatorialRegion</span><span class="p">:</span>
+            <span class="n">nBlocks</span> <span class="o">=</span> <span class="n">nRegions</span> <span class="o">*</span> <span class="n">nProcs</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nBlocks</span> <span class="o">=</span> <span class="n">nProcs</span>
+
+        <span class="n">combinedGraph</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nCells</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">iRegion</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nRegions</span><span class="p">):</span>
+
+            <span class="c1"># partition the culled grid</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">graphFilename</span> <span class="o">=</span> <span class="s2">&quot;culled_graph_</span><span class="si">%i</span><span class="s2">_tmp.info&quot;</span> <span class="o">%</span> <span class="n">iRegion</span>
+                <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="n">metis</span><span class="p">,</span> <span class="n">graphFilename</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">nProcs</span><span class="p">)])</span>
+            <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">errno</span> <span class="o">==</span> <span class="n">errno</span><span class="o">.</span><span class="n">ENOENT</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                        <span class="s2">&quot;metis program </span><span class="si">%s</span><span class="s2"> not found&quot;</span> <span class="o">%</span> <span class="n">metis</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;metis error&quot;</span><span class="p">)</span>
+                    <span class="k">raise</span>
+
+            <span class="n">cellid</span> <span class="o">=</span> <span class="n">cellidsInRegion</span><span class="p">[</span><span class="n">iRegion</span><span class="p">]</span>
+
+            <span class="c1"># load this partition</span>
+            <span class="n">graph</span> <span class="o">=</span> <span class="n">_load_partition</span><span class="p">(</span>
+                <span class="s2">&quot;culled_graph_</span><span class="si">%i</span><span class="s2">_tmp.info.part.</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">iRegion</span><span class="p">,</span> <span class="n">nProcs</span><span class="p">))</span>
+
+            <span class="c1"># add this partition to the combined partition</span>
+            <span class="k">for</span> <span class="n">iCellPartition</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">graph</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">cullEquatorialRegion</span><span class="p">:</span>
+                    <span class="n">combinedGraph</span><span class="p">[</span><span class="n">cellid</span><span class="p">[</span><span class="n">iCellPartition</span><span class="p">]]</span> <span class="o">=</span> \
+                        <span class="n">graph</span><span class="p">[</span><span class="n">iCellPartition</span><span class="p">]</span> <span class="o">+</span> <span class="n">nProcs</span> <span class="o">*</span> <span class="n">iRegion</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">combinedGraph</span><span class="p">[</span><span class="n">cellid</span><span class="p">[</span><span class="n">iCellPartition</span><span class="p">]]</span> <span class="o">=</span> \
+                        <span class="n">graph</span><span class="p">[</span><span class="n">iCellPartition</span><span class="p">]</span>
+
+        <span class="c1"># output the cell partition file</span>
+        <span class="n">cellPartitionFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.part.</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">outputPrefix</span><span class="p">,</span> <span class="n">nBlocks</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">iCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">):</span>
+            <span class="n">cellPartitionFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%i</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">combinedGraph</span><span class="p">[</span><span class="n">iCell</span><span class="p">]))</span>
+        <span class="n">cellPartitionFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># output block partition file</span>
+        <span class="k">if</span> <span class="n">cullEquatorialRegion</span><span class="p">:</span>
+            <span class="n">blockPartitionFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span>
+                <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.part.</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span>
+                <span class="p">(</span><span class="n">outputPrefix</span><span class="p">,</span> <span class="n">nProcs</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">iRegion</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nRegions</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">iProc</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nProcs</span><span class="p">):</span>
+                    <span class="n">blockPartitionFile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%i</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">iProc</span><span class="p">)</span>
+            <span class="n">blockPartitionFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="c1"># diagnostics</span>
+        <span class="k">if</span> <span class="n">plotting</span><span class="p">:</span>
+            <span class="n">plottingFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">plotFilename</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+            <span class="n">partitionVariable</span> <span class="o">=</span> <span class="n">plottingFile</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
+                <span class="s2">&quot;partition_</span><span class="si">%i</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nProcs</span><span class="p">,</span> <span class="s2">&quot;i4&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;nCells&quot;</span><span class="p">,))</span>
+            <span class="n">partitionVariable</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">combinedGraph</span>
+            <span class="n">plottingFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="s2">&quot;rm *tmp*&quot;</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="prepare_partitions">
+<a class="viewcode-back" href="../../../generated/mpas_tools.seaice.partition.prepare_partitions.html#mpas_tools.seaice.partition.prepare_partitions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">prepare_partitions</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An entry point for performing preparatory work for making seaice partitions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># parsing input</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Perform preparatory work for making seaice partitions.&quot;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="s2">&quot;--inputmesh&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;meshFilenameSrc&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;MPAS mesh file for source regridding mesh.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;--presence&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;filenameData&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input ice presence file for source mesh.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="s2">&quot;--outputmesh&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;meshFilenameDst&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;MPAS mesh file for destination regridding mesh.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--outputDir&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outputDir&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Output directory for temporary files and &quot;</span>
+                             <span class="s2">&quot;partition files.&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-w&quot;</span><span class="p">,</span> <span class="s2">&quot;--weightsFilename&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;weightsFilename&quot;</span><span class="p">,</span>
+                        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;A mapping file between the input and output &quot;</span>
+                             <span class="s2">&quot;MPAS meshes.  One will be generated if it is &quot;</span>
+                             <span class="s2">&quot;not supplied.&quot;</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># Check if output directory exists</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">outputDir</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;ERROR: Output directory does not exist.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 1) Regrid the ice presence from the input data mesh to the grid of choice</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Regrid to desired mesh...&quot;</span><span class="p">)</span>
+    <span class="n">filenameOut</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outputDir</span> <span class="o">+</span> <span class="s2">&quot;/icePresent_regrid.nc&quot;</span>
+
+    <span class="n">regrid_to_other_mesh</span><span class="p">(</span>
+        <span class="n">meshFilenameSrc</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">meshFilenameSrc</span><span class="p">,</span>
+        <span class="n">filenameData</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">filenameData</span><span class="p">,</span>
+        <span class="n">meshFilenameDst</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">meshFilenameDst</span><span class="p">,</span>
+        <span class="n">filenameOut</span><span class="o">=</span><span class="n">filenameOut</span><span class="p">,</span>
+        <span class="n">generateWeights</span><span class="o">=</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">weightsFilename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="n">weightsFilename</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">weightsFilename</span><span class="p">)</span>
+
+    <span class="c1"># 2) create icePresence variable</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;fix_regrid_output...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># check executable exists</span>
+    <span class="k">if</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s2">&quot;fix_regrid_output.exe&quot;</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># it&#39;s in the system path</span>
+        <span class="n">executable</span> <span class="o">=</span> <span class="s2">&quot;fix_regrid_output.exe&quot;</span>
+    <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s2">&quot;./fix_regrid_output.exe&quot;</span><span class="p">):</span>
+        <span class="c1"># found in local path</span>
+        <span class="n">executable</span> <span class="o">=</span> <span class="s2">&quot;./fix_regrid_output.exe&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">&quot;fix_regrid_output.exe could not be found.&quot;</span><span class="p">)</span>
+
+    <span class="n">inputFile</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outputDir</span> <span class="o">+</span> <span class="s2">&quot;/icePresent_regrid.nc&quot;</span>
+    <span class="n">outputFile</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outputDir</span> <span class="o">+</span> <span class="s2">&quot;/icePresent_regrid_modify.nc&quot;</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="n">executable</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">meshFilenameDst</span><span class="p">,</span> <span class="n">outputFile</span><span class="p">])</span>
+
+    <span class="c1"># 3) create variable icePresenceExtended</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;extend_seaice_mask...&quot;</span><span class="p">)</span>
+    <span class="n">filenamePresence</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outputDir</span> <span class="o">+</span> <span class="s2">&quot;/icePresent_regrid_modify.nc&quot;</span>
+    <span class="n">extend_seaice_mask</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">meshFilenameDst</span><span class="p">,</span> <span class="n">filenamePresence</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># 4) Make the regions file from the icePresenceExtended variable</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;make_regions_file...&quot;</span><span class="p">)</span>
+    <span class="n">filenameIcePresent</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outputDir</span> <span class="o">+</span> <span class="s2">&quot;/icePresent_regrid_modify.nc&quot;</span>
+    <span class="n">filenameOut</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outputDir</span> <span class="o">+</span> <span class="s2">&quot;/regions.nc&quot;</span>
+    <span class="n">make_regions_file</span><span class="p">(</span><span class="n">filenameIcePresent</span><span class="o">=</span><span class="n">filenameIcePresent</span><span class="p">,</span>
+                      <span class="n">filenameMesh</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">meshFilenameDst</span><span class="p">,</span>
+                      <span class="n">regionType</span><span class="o">=</span><span class="s2">&quot;two_region_eq&quot;</span><span class="p">,</span>
+                      <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;icePresenceExtended&quot;</span><span class="p">,</span>
+                      <span class="n">limit</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">filenameOut</span><span class="o">=</span><span class="n">filenameOut</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="create_partitions">
+<a class="viewcode-back" href="../../../generated/mpas_tools.seaice.partition.create_partitions.html#mpas_tools.seaice.partition.create_partitions">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_partitions</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An entry point for creating sea-ice partitions</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># parsing input</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Create sea-ice partitions.&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--outputmesh&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;meshFilename&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;MPAS mesh file for destination regridding mesh.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="s1">&#39;--outputDir&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outputDir&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output directory for temporary files and partition files.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;--cullerDir&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;mpasCullerLocation&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Location of MPAS MpasCellCuller.x executable.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="s1">&#39;--prefix&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outputPrefix&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;prefix for output partition filenames.&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;graph.info&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-x&#39;</span><span class="p">,</span> <span class="s1">&#39;--plotting&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;plotting&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;create diagnostic plotting file of partitions&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-g&#39;</span><span class="p">,</span> <span class="s1">&#39;--metis&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;metis&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;name of metis utility&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;gpmetis&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="s1">&#39;--nProcs&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;nProcsArray&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list of the number of processors to create partition for.&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-f&#39;</span><span class="p">,</span> <span class="s1">&#39;--nProcsFile&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;nProcsFile&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;number of processors to create partition for.&#39;</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="c1"># number of processors</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">nProcsArray</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">nProcsFile</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Must specify nProcs or nProcsFile&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">nProcsArray</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">nProcsFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t specify both nProcs or nProcsFile&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">nProcsFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">nProcsFile</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fileNProcs</span><span class="p">:</span>
+            <span class="n">nProcsLines</span> <span class="o">=</span> <span class="n">fileNProcs</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+            <span class="n">nProcsArray</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">nProcsLines</span>
+                           <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">nProcsArray</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nProcsArray</span>
+
+    <span class="c1"># create partitions</span>
+    <span class="n">regionFilename</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outputDir</span> <span class="o">+</span> <span class="s2">&quot;/regions.nc&quot;</span>
+    <span class="n">outputPrefix</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">outputDir</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">args</span><span class="o">.</span><span class="n">outputPrefix</span>
+
+    <span class="n">gen_seaice_mesh_partition</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">regionFilename</span><span class="p">,</span> <span class="n">nProcsArray</span><span class="p">,</span>
+                              <span class="n">args</span><span class="o">.</span><span class="n">mpasCullerLocation</span><span class="p">,</span> <span class="n">outputPrefix</span><span class="p">,</span>
+                              <span class="n">args</span><span class="o">.</span><span class="n">plotting</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">metis</span><span class="p">,</span>
+                              <span class="n">cullEquatorialRegion</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">simple_partitions</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    An entry point for creating sea-ice partitions on LCRC (Anvil and</span>
+<span class="sd">    Chrysalis)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">data_dir</span> <span class="o">=</span> <span class="s1">&#39;/lcrc/group/e3sm/public_html/mpas_standalonedata/&#39;</span> \
+               <span class="s1">&#39;mpas-seaice/partition&#39;</span>
+
+    <span class="c1"># parsing input</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="s1">&#39;Create sea-ice partitions on LCRC.&#39;</span><span class="p">)</span>
+
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--mesh&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;meshFilename&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;MPAS-Seaice mesh file.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-p&#39;</span><span class="p">,</span> <span class="s1">&#39;--prefix&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outputPrefix&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;prefix for output partition filenames.&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-n&#39;</span><span class="p">,</span> <span class="s1">&#39;--nprocs&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;nProcsArray&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;list of the number of processors to create partition for.&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-d&#39;</span><span class="p">,</span> <span class="s1">&#39;--datadir&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;dataDir&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">data_dir</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Directory with seaice_QU60km_polar.nc and &#39;</span>
+             <span class="s1">&#39;icePresent_QU60km_polar.nc.&#39;</span><span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">meshFilenameDst</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">meshFilename</span><span class="p">)</span>
+
+    <span class="n">tmpdir</span> <span class="o">=</span> <span class="s1">&#39;tmp_seaice_part_dir&#39;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+
+    <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+
+    <span class="c1"># make a local link to the mesh file</span>
+    <span class="n">basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">meshFilenameDst</span><span class="p">)</span>
+    <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ln&#39;</span><span class="p">,</span> <span class="s1">&#39;-s&#39;</span><span class="p">,</span> <span class="n">meshFilenameDst</span><span class="p">,</span> <span class="n">basename</span><span class="p">]</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">meshFilenameDst</span> <span class="o">=</span> <span class="n">basename</span>
+
+    <span class="c1"># 1) Regrid the ice presence from the input data mesh to the grid of choice</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Regrid to desired mesh...&quot;</span><span class="p">)</span>
+    <span class="n">filenameOut</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid.nc&quot;</span>
+
+    <span class="n">meshFilenameSrc</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">dataDir</span><span class="p">,</span> <span class="s1">&#39;seaice_QU60km_polar.nc&#39;</span><span class="p">)</span>
+    <span class="n">filenameData</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">dataDir</span><span class="p">,</span> <span class="s1">&#39;icePresent_QU60km_polar.nc&#39;</span><span class="p">)</span>
+
+    <span class="n">regrid_to_other_mesh</span><span class="p">(</span>
+        <span class="n">meshFilenameSrc</span><span class="o">=</span><span class="n">meshFilenameSrc</span><span class="p">,</span>
+        <span class="n">filenameData</span><span class="o">=</span><span class="n">filenameData</span><span class="p">,</span>
+        <span class="n">meshFilenameDst</span><span class="o">=</span><span class="n">meshFilenameDst</span><span class="p">,</span>
+        <span class="n">filenameOut</span><span class="o">=</span><span class="n">filenameOut</span><span class="p">,</span>
+        <span class="n">generateWeights</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">weightsFilename</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="c1"># 2) create icePresence variable</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;fix_regrid_output...&quot;</span><span class="p">)</span>
+
+    <span class="n">inputFile</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid.nc&quot;</span>
+    <span class="n">outputFile</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid_modify.nc&quot;</span>
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">call</span><span class="p">([</span><span class="s2">&quot;fix_regrid_output.exe&quot;</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">,</span> <span class="n">meshFilenameDst</span><span class="p">,</span>
+                     <span class="n">outputFile</span><span class="p">])</span>
+
+    <span class="c1"># 3) create variable icePresenceExtended</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;extend_seaice_mask...&quot;</span><span class="p">)</span>
+    <span class="n">filenamePresence</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid_modify.nc&quot;</span>
+    <span class="n">extend_seaice_mask</span><span class="p">(</span><span class="n">meshFilenameDst</span><span class="p">,</span> <span class="n">filenamePresence</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># 4) Make the regions file from the icePresenceExtended variable</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;make_regions_file...&quot;</span><span class="p">)</span>
+    <span class="n">filenameIcePresent</span> <span class="o">=</span> <span class="s2">&quot;icePresent_regrid_modify.nc&quot;</span>
+    <span class="n">filenameOut</span> <span class="o">=</span> <span class="s2">&quot;regions.nc&quot;</span>
+    <span class="n">make_regions_file</span><span class="p">(</span><span class="n">filenameIcePresent</span><span class="o">=</span><span class="n">filenameIcePresent</span><span class="p">,</span>
+                      <span class="n">filenameMesh</span><span class="o">=</span><span class="n">meshFilenameDst</span><span class="p">,</span>
+                      <span class="n">regionType</span><span class="o">=</span><span class="s2">&quot;two_region_eq&quot;</span><span class="p">,</span>
+                      <span class="n">varname</span><span class="o">=</span><span class="s2">&quot;icePresenceExtended&quot;</span><span class="p">,</span>
+                      <span class="n">limit</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                      <span class="n">filenameOut</span><span class="o">=</span><span class="n">filenameOut</span><span class="p">)</span>
+
+    <span class="n">nProcsArray</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">nProcsArray</span>
+
+    <span class="c1"># create partitions</span>
+    <span class="n">regionFilename</span> <span class="o">=</span> <span class="s2">&quot;regions.nc&quot;</span>
+    <span class="n">outputPrefix</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cwd</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">outputPrefix</span><span class="p">)</span>
+
+    <span class="n">gen_seaice_mesh_partition</span><span class="p">(</span><span class="n">meshFilename</span><span class="o">=</span><span class="n">meshFilenameDst</span><span class="p">,</span>
+                              <span class="n">regionFilename</span><span class="o">=</span><span class="n">regionFilename</span><span class="p">,</span>
+                              <span class="n">nProcsArray</span><span class="o">=</span><span class="n">nProcsArray</span><span class="p">,</span>
+                              <span class="n">mpasCullerLocation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">outputPrefix</span><span class="o">=</span><span class="n">outputPrefix</span><span class="p">,</span>
+                              <span class="n">plotting</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                              <span class="n">metis</span><span class="o">=</span><span class="s2">&quot;gpmetis&quot;</span><span class="p">,</span>
+                              <span class="n">cullEquatorialRegion</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">outputPrefix</span><span class="si">}</span><span class="s1">*&#39;</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;chmod&#39;</span><span class="p">,</span> <span class="s1">&#39;ug+rw&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">]</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;chmod&#39;</span><span class="p">,</span> <span class="s1">&#39;o+r&#39;</span><span class="p">,</span> <span class="n">file</span><span class="p">]</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">cwd</span><span class="p">)</span>
+    <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">tmpdir</span><span class="p">)</span>
+
+
+<span class="c1"># ---------------------------------------------------------------------</span>
+<span class="c1"># Private functions</span>
+<span class="c1"># ---------------------------------------------------------------------</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_degree_to_radian</span><span class="p">(</span><span class="n">degree</span><span class="p">):</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">degree</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">/</span> <span class="mf">180.0</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_cell_cull_array</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">cullCell</span><span class="p">):</span>
+
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+
+    <span class="n">cullCellVariable</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s2">&quot;cullCell&quot;</span><span class="p">,</span> <span class="s2">&quot;i4&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;nCells&quot;</span><span class="p">,))</span>
+
+    <span class="n">cullCellVariable</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">cullCell</span>
+
+    <span class="n">mesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_cull_mesh</span><span class="p">(</span><span class="n">meshToolsDir</span><span class="p">,</span> <span class="n">filenameIn</span><span class="p">,</span> <span class="n">filenameOut</span><span class="p">,</span> <span class="n">cullCell</span><span class="p">):</span>
+
+    <span class="n">_add_cell_cull_array</span><span class="p">(</span><span class="n">filenameIn</span><span class="p">,</span> <span class="n">cullCell</span><span class="p">)</span>
+    <span class="n">executable</span> <span class="o">=</span> <span class="s2">&quot;MpasCellCuller.x&quot;</span>
+    <span class="k">if</span> <span class="n">meshToolsDir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">executable</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">meshToolsDir</span><span class="p">,</span> <span class="n">executable</span><span class="p">)</span>
+
+    <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">executable</span><span class="p">,</span> <span class="n">filenameIn</span><span class="p">,</span> <span class="n">filenameOut</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">],</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_load_partition</span><span class="p">(</span><span class="n">graphFilename</span><span class="p">):</span>
+
+    <span class="n">graphFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">graphFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">graphFile</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">graphFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">partition</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="n">partition</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">partition</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_cell_ids</span><span class="p">(</span><span class="n">culledFilename</span><span class="p">,</span> <span class="n">originalFilename</span><span class="p">):</span>
+
+    <span class="n">culledFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">culledFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">nCellsCulled</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">culledFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+
+    <span class="n">originalFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">originalFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">nCellsOriginal</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">originalFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+
+    <span class="n">cellid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nCellsCulled</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="n">cellMapFile</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;cellMapForward.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">cellMapLines</span> <span class="o">=</span> <span class="n">cellMapFile</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">cellMapFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="n">iCellOriginal</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">cellMapLine</span> <span class="ow">in</span> <span class="n">cellMapLines</span><span class="p">:</span>
+
+        <span class="k">if</span> <span class="n">iCellOriginal</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">iCellOriginal</span><span class="p">,</span> <span class="s2">&quot; of &quot;</span><span class="p">,</span> <span class="n">nCellsOriginal</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cellMap</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cellMapLine</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="c1"># There are blank lines to skip</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">cellMap</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+
+            <span class="n">cellid</span><span class="p">[</span><span class="n">cellMap</span><span class="p">]</span> <span class="o">=</span> <span class="n">iCellOriginal</span>
+
+        <span class="n">iCellOriginal</span> <span class="o">=</span> <span class="n">iCellOriginal</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">cellid</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_cell_ids_orig</span><span class="p">(</span><span class="n">culledFilename</span><span class="p">,</span> <span class="n">originalFilename</span><span class="p">):</span>
+
+    <span class="n">culledFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">culledFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">latCellCulled</span> <span class="o">=</span> <span class="n">culledFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;latCell&quot;</span><span class="p">][:]</span>
+    <span class="n">lonCellCulled</span> <span class="o">=</span> <span class="n">culledFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;lonCell&quot;</span><span class="p">][:]</span>
+    <span class="n">nCellsCulled</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">culledFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+
+    <span class="n">originalFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">originalFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">latCellOriginal</span> <span class="o">=</span> <span class="n">originalFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;latCell&quot;</span><span class="p">][:]</span>
+    <span class="n">lonCellOriginal</span> <span class="o">=</span> <span class="n">originalFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;lonCell&quot;</span><span class="p">][:]</span>
+    <span class="n">nCellsOriginal</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">originalFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+
+    <span class="n">cellid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nCellsCulled</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">iCellCulled</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCellsCulled</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">iCellCulled</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;iCellCulled: &quot;</span><span class="p">,</span> <span class="n">iCellCulled</span><span class="p">,</span> <span class="s2">&quot;of &quot;</span><span class="p">,</span> <span class="n">nCellsCulled</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">iCellOriginal</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCellsOriginal</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="n">latCellCulled</span><span class="p">[</span><span class="n">iCellCulled</span><span class="p">]</span> <span class="o">==</span> <span class="n">latCellOriginal</span><span class="p">[</span><span class="n">iCellOriginal</span><span class="p">]</span> <span class="ow">and</span>
+                    <span class="n">lonCellCulled</span><span class="p">[</span><span class="n">iCellCulled</span><span class="p">]</span> <span class="o">==</span> <span class="n">lonCellOriginal</span><span class="p">[</span><span class="n">iCellOriginal</span><span class="p">]):</span>
+
+                <span class="n">cellid</span><span class="p">[</span><span class="n">iCellCulled</span><span class="p">]</span> <span class="o">=</span> <span class="n">iCellOriginal</span>
+                <span class="k">break</span>
+
+    <span class="k">return</span> <span class="n">cellid</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <!-- Meta tags for JS to use -->
+  <meta name="doc-version" content="1.3.1">
+  <meta name="doc-site-root" content="../../../">
+
+  <!-- Create version switcher container -->
+  <script>
+    const sidebar = document.querySelector('.wy-side-nav-search');
+    if (sidebar) {
+      const versionDiv = document.createElement('div');
+      versionDiv.id = 'version-switcher';
+      versionDiv.style.marginTop = '1em';
+      sidebar.appendChild(versionDiv);
+    }
+  </script>
+
+  <!-- Load version-switcher.js using the correct relative path -->
+  <script src="../../../../shared/version-switcher.js"></script>
+
+
+</body>
+</html>

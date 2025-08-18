@@ -1,0 +1,689 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.ocean.streamfunction.barotropic &mdash; mpas_tools 1.3.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../_static/documentation_options.js?v=bb516dca"></script>
+      <script src="../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" />
+    <link href="../../../../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../io.html">I/O Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../vector.html">Vector Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Visualization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../mpas_to_xdmf.html">MPAS to XDMF Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../paraview_extractor.html">ParaView VTK Extractor</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/streamfunction.html">Computing streamfunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../releasing.html">Releasing a New Version</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../authors.html#contributors">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.streamfunction.barotropic</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.ocean.streamfunction.barotropic</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">networkx</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">nx</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.sparse.linalg</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.streamfunction.velocity</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">compute_vertically_integrated_velocity</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.streamfunction.vorticity</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">compute_vertically_integrated_vorticity</span><span class="p">,</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="compute_barotropic_streamfunction">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.ocean.compute_barotropic_streamfunction.html#mpas_tools.ocean.compute_barotropic_streamfunction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_barotropic_streamfunction</span><span class="p">(</span>
+    <span class="n">ds_mesh</span><span class="p">,</span>
+    <span class="n">ds</span><span class="p">,</span>
+    <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">min_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">max_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;timeMonthly_avg_&#39;</span><span class="p">,</span>
+    <span class="n">time_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">include_bolus</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">include_submesoscale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">quiet</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">horiz_chunk</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+    <span class="n">tmp_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute barotropic streamfunction</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ds_mesh : xarray.Dataset</span>
+<span class="sd">        A dataset containing MPAS mesh variables</span>
+
+<span class="sd">    ds : xarray.Dataset</span>
+<span class="sd">        A dataset containing MPAS output variables ``normalVelocity`` and</span>
+<span class="sd">        ``layerThickness`` (possibly with a ``prefix``)</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger for the output if not stdout</span>
+
+<span class="sd">    min_depth : float, optional</span>
+<span class="sd">        The minimum depth (positive up) to compute BSF over</span>
+
+<span class="sd">    max_depth : float, optional</span>
+<span class="sd">        The maximum depth (positive up) to compute BSF over</span>
+
+<span class="sd">    prefix : str, optional</span>
+<span class="sd">        The prefix on the ``normalVelocity`` and ``layerThickness`` variables</span>
+
+<span class="sd">    time_index : int, optional</span>
+<span class="sd">        The time at which to index ``ds`` (if it has ``Time`` as a dimension)</span>
+
+<span class="sd">    include_bolus : bool, optional</span>
+<span class="sd">        Whether to include the GM bolus velocity in the computation</span>
+
+<span class="sd">    include_submesoscale : bool, optional</span>
+<span class="sd">        Whether to include the submesoscale velocity in the computation</span>
+
+<span class="sd">    quiet : bool, optional</span>
+<span class="sd">        If True, suppress all logging output</span>
+<span class="sd">        If False, log all output to the logger</span>
+
+<span class="sd">    horiz_chunk : int, optional</span>
+<span class="sd">        The number of edges to chunk the dataset by when computing</span>
+<span class="sd">        the vertically integrated velocity. This is useful for</span>
+<span class="sd">        large datasets to avoid memory issues. Set this to ``None`` to disable</span>
+<span class="sd">        chunking.</span>
+
+<span class="sd">    tmp_dir : str, optional</span>
+<span class="sd">        A temporary directory to use for intermediate files. This is useful</span>
+<span class="sd">        for large datasets to avoid memory issues. If None, no temporary</span>
+<span class="sd">        directory is used.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bsf_vertex : xarray.DataArray</span>
+<span class="sd">        The barotropic streamfunction in Sv on vertices</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">quiet</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">StreamHandler</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">))</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">time_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;time_index must be provided if &quot;Time&quot; is a dimension of ds&#39;</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="n">time_index</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Computing barotropic streamfunction.&#39;</span><span class="p">)</span>
+
+    <span class="n">bsf_vertex</span> <span class="o">=</span> <span class="n">_compute_barotropic_streamfunction_vertex</span><span class="p">(</span>
+        <span class="n">ds_mesh</span><span class="p">,</span>
+        <span class="n">ds</span><span class="p">,</span>
+        <span class="n">prefix</span><span class="p">,</span>
+        <span class="n">include_bolus</span><span class="p">,</span>
+        <span class="n">include_submesoscale</span><span class="p">,</span>
+        <span class="n">min_depth</span><span class="p">,</span>
+        <span class="n">max_depth</span><span class="p">,</span>
+        <span class="n">logger</span><span class="p">,</span>
+        <span class="n">horiz_chunk</span><span class="p">,</span>
+        <span class="n">tmp_dir</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Done.&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">bsf_vertex</span></div>
+
+
+
+<div class="viewcode-block" id="shift_barotropic_streamfunction">
+<a class="viewcode-back" href="../../../../generated/mpas_tools.ocean.shift_barotropic_streamfunction.html#mpas_tools.ocean.shift_barotropic_streamfunction">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">shift_barotropic_streamfunction</span><span class="p">(</span>
+    <span class="n">bsf_vertex</span><span class="p">,</span> <span class="n">lat_range</span><span class="p">,</span> <span class="n">cells_on_vertex</span><span class="p">,</span> <span class="n">lat_vertex</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Shift the barotropic streamfunction to be zero on average at the boundary</span>
+<span class="sd">    over the given latitude range</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    bsf_vertex : xarray.DataArray</span>
+<span class="sd">        The barotropic streamfunction in Sv on vertices</span>
+
+<span class="sd">    lat_range : list of float</span>
+<span class="sd">        The latitude range in degrees over which to set the mean boundary value</span>
+<span class="sd">        of the BSF to zero</span>
+
+<span class="sd">    cells_on_vertex : xarray.DataArray</span>
+<span class="sd">        The zero-based cell indices on each vertex</span>
+
+<span class="sd">    lat_vertex : xarray.DataArray</span>
+<span class="sd">        The latitude of each vertex in radians</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger for the output</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    bsf_shifted : xarray.DataArray</span>
+<span class="sd">        The shifted barotropic streamfunction in Sv on vertices</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">is_boundary_cov</span> <span class="o">=</span> <span class="n">cells_on_vertex</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">boundary_vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">is_boundary_cov</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;vertexDegree&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+            <span class="n">lat_vertex</span> <span class="o">&gt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat_range</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+            <span class="n">lat_vertex</span> <span class="o">&lt;=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">lat_range</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="c1"># convert from boolean mask to indices</span>
+    <span class="n">boundary_vertices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">boundary_vertices</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+
+    <span class="n">mean_boundary_bsf</span> <span class="o">=</span> <span class="n">bsf_vertex</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nVertices</span><span class="o">=</span><span class="n">boundary_vertices</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;    Mean BSF on boundary vertices in range </span><span class="si">{</span><span class="n">lat_range</span><span class="si">}</span><span class="s1"> &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;is </span><span class="si">{</span><span class="n">mean_boundary_bsf</span><span class="o">.</span><span class="n">values</span><span class="si">:</span><span class="s1">.4f</span><span class="si">}</span><span class="s1"> Sv&#39;</span>
+        <span class="p">)</span>
+
+    <span class="n">bsf_shifted</span> <span class="o">=</span> <span class="n">bsf_vertex</span> <span class="o">-</span> <span class="n">mean_boundary_bsf</span>
+
+    <span class="k">return</span> <span class="n">bsf_shifted</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_build_minimal_boundary_constraints</span><span class="p">(</span>
+    <span class="n">boundary_vertex0</span><span class="p">,</span> <span class="n">boundary_vertex1</span><span class="p">,</span> <span class="n">logger</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Construct a minimal set of boundary constraints that tie each connected</span>
+<span class="sd">    loop together without introducing redundancy.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    boundary_vertex0 : xarray.DataArray</span>
+<span class="sd">        The first vertex in each unique pair of boundary vertices.</span>
+
+<span class="sd">    boundary_vertex1 : xarray.DataArray</span>
+<span class="sd">        The second vertex in each unique pair of boundary vertices.</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        Logger for logging messages.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    minimal_constraints : list of tuple</span>
+<span class="sd">        A minimal set of edges (vertex pairs) that constrain the boundary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Create a graph from the boundary edges</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">boundary_vertex0</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">boundary_vertex1</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
+
+    <span class="n">minimal_constraints</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Loop over connected components (disjoint loops)</span>
+    <span class="n">connected_components</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">nx</span><span class="o">.</span><span class="n">connected_components</span><span class="p">(</span><span class="n">graph</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;    Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">connected_components</span><span class="p">)</span><span class="si">}</span><span class="s1"> independent boundary &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;loops.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="n">connected_components</span><span class="p">:</span>
+        <span class="n">subgraph</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">subgraph</span><span class="p">(</span><span class="n">component</span><span class="p">)</span>
+
+        <span class="c1"># Find a spanning tree for the component</span>
+        <span class="n">spanning_tree</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">minimum_spanning_tree</span><span class="p">(</span><span class="n">subgraph</span><span class="p">)</span>
+
+        <span class="c1"># Add the edges of the spanning tree to the constraints</span>
+        <span class="n">minimal_constraints</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">spanning_tree</span><span class="o">.</span><span class="n">edges</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">minimal_constraints</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_identify_boundary_vertices</span><span class="p">(</span><span class="n">ds_mesh</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">all_vertices</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Identify boundary vertices and edges in the mesh, and remove redundant</span>
+<span class="sd">    vertices that lead to overdetermined constraints.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Identifying boundary vertices.&#39;</span><span class="p">)</span>
+    <span class="c1"># Identify boundary vertices</span>
+    <span class="n">nedges</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span>
+    <span class="n">cells_on_vertex</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">cellsOnVertex</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">cells_on_edge</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">cellsOnEdge</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">vertices_on_edge</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">verticesOnEdge</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="n">boundary_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">cells_on_vertex</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;vertexDegree&#39;</span><span class="p">)</span>
+
+    <span class="n">boundary_vertices</span> <span class="o">=</span> <span class="n">all_vertices</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">boundary_mask</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
+        <span class="nb">int</span>
+    <span class="p">)</span>
+
+    <span class="n">boundary_edge_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">cells_on_edge</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;TWO&#39;</span><span class="p">)</span>
+    <span class="n">all_edges</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nedges</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nEdges&#39;</span><span class="p">,))</span>
+    <span class="n">boundary_edges</span> <span class="o">=</span> <span class="n">all_edges</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">boundary_edge_mask</span><span class="p">,</span> <span class="n">drop</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="n">boundary_vertex0</span> <span class="o">=</span> <span class="n">vertices_on_edge</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nEdges</span><span class="o">=</span><span class="n">boundary_edges</span><span class="p">,</span> <span class="n">TWO</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">boundary_vertex1</span> <span class="o">=</span> <span class="n">vertices_on_edge</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nEdges</span><span class="o">=</span><span class="n">boundary_edges</span><span class="p">,</span> <span class="n">TWO</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Detect boundary loops and remove redundant pairs.&#39;</span><span class="p">)</span>
+    <span class="c1"># find each independent loop of boundary vertices and determine a set of</span>
+    <span class="c1"># pairs that does not close the loop (i.e. a spanning tree), avoiding</span>
+    <span class="c1"># overdetermined constraints</span>
+    <span class="n">minimal_constraints</span> <span class="o">=</span> <span class="n">_build_minimal_boundary_constraints</span><span class="p">(</span>
+        <span class="n">boundary_vertex0</span><span class="p">,</span> <span class="n">boundary_vertex1</span><span class="p">,</span> <span class="n">logger</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Unpack minimal_constraints into boundary_vertex0 and boundary_vertex1</span>
+    <span class="n">boundary_vertex0</span><span class="p">,</span> <span class="n">boundary_vertex1</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">minimal_constraints</span><span class="p">)</span>
+    <span class="n">boundary_vertex0</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">boundary_vertex0</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,)</span>
+    <span class="p">)</span>
+    <span class="n">boundary_vertex1</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">boundary_vertex1</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,)</span>
+    <span class="p">)</span>
+
+    <span class="n">nboundary</span> <span class="o">=</span> <span class="n">boundary_vertex0</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertices&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">nboundary_removed</span> <span class="o">=</span> <span class="n">boundary_vertices</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertices&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">nboundary</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s1">&#39;  Removed </span><span class="si">{</span><span class="n">nboundary_removed</span><span class="si">}</span><span class="s1"> redundant boundary vertices.&#39;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">boundary_vertex0</span><span class="p">,</span> <span class="n">boundary_vertex1</span><span class="p">,</span> <span class="n">nboundary</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_assemble_matrix</span><span class="p">(</span>
+    <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">edge_sign_on_vertex</span><span class="p">,</span> <span class="n">vert_integ_vorticity</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Assemble the sparse matrix for the Poisson equation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">var_list</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;edgesOnVertex&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;verticesOnEdge&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;areaTriangle&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;dcEdge&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;dvEdge&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cellsOnVertex&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;cellsOnEdge&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
+    <span class="n">ds_mesh</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="p">[</span><span class="n">var_list</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">()</span>
+    <span class="n">edge_sign_on_vertex</span> <span class="o">=</span> <span class="n">edge_sign_on_vertex</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">()</span>
+    <span class="n">vert_integ_vorticity</span> <span class="o">=</span> <span class="n">vert_integ_vorticity</span><span class="o">.</span><span class="n">as_numpy</span><span class="p">()</span>
+
+    <span class="n">nvertices</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertices&#39;</span><span class="p">]</span>
+    <span class="n">vertex_degree</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;vertexDegree&#39;</span><span class="p">]</span>
+    <span class="n">edges_on_vertex</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">edgesOnVertex</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">vertices_on_edge</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">verticesOnEdge</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">area_vertex</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">areaTriangle</span>
+    <span class="n">dc_edge</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">dcEdge</span>
+    <span class="n">dv_edge</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">dvEdge</span>
+
+    <span class="n">all_vertices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nvertices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,)</span>
+    <span class="p">)</span>
+
+    <span class="n">boundary_vertex0</span><span class="p">,</span> <span class="n">boundary_vertex1</span><span class="p">,</span> <span class="n">nboundary</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">_identify_boundary_vertices</span><span class="p">(</span><span class="n">ds_mesh</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">all_vertices</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Assembling sparse matrix for the Poisson equation.&#39;</span><span class="p">)</span>
+    <span class="c1"># Assemble the sparse matrix for solving the Poisson equation:</span>
+    <span class="c1">#   * the Poisson equation at each vertex involves vertex degree + 1 terms</span>
+    <span class="c1">#   * the boundary conditions involve 2 vertices and are duplicated in</span>
+    <span class="c1">#     the form of a Lagrange multiplier</span>
+    <span class="c1">#   * the unique solution is ensured by adding a constraint on the</span>
+    <span class="c1">#     streamfunction at the first vertex, again as a Lagrange multiplier</span>
+    <span class="n">ndata</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">nvertices</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">nboundary</span> <span class="o">+</span> <span class="mi">2</span>
+    <span class="n">nmatrix</span> <span class="o">=</span> <span class="n">nvertices</span> <span class="o">+</span> <span class="n">nboundary</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="n">ndata</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ndata</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="c1"># Fill the Poisson equation for the BSF at each vertex will be equal to the</span>
+    <span class="c1"># vertically integrated vorticity</span>
+    <span class="n">idata</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">all_vertices</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">all_vertices</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">rows</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_vertices</span><span class="o">.</span><span class="n">values</span>
+    <span class="k">for</span> <span class="n">iedge</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">vertex_degree</span><span class="p">):</span>
+        <span class="n">eov</span> <span class="o">=</span> <span class="n">edges_on_vertex</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">vertexDegree</span><span class="o">=</span><span class="n">iedge</span><span class="p">)</span>
+        <span class="n">dc</span> <span class="o">=</span> <span class="n">dc_edge</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nEdges</span><span class="o">=</span><span class="n">eov</span><span class="p">)</span>
+        <span class="n">dv</span> <span class="o">=</span> <span class="n">dv_edge</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nEdges</span><span class="o">=</span><span class="n">eov</span><span class="p">)</span>
+
+        <span class="n">v0</span> <span class="o">=</span> <span class="n">vertices_on_edge</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nEdges</span><span class="o">=</span><span class="n">eov</span><span class="p">,</span> <span class="n">TWO</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">v1</span> <span class="o">=</span> <span class="n">vertices_on_edge</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nEdges</span><span class="o">=</span><span class="n">eov</span><span class="p">,</span> <span class="n">TWO</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">edge_sign</span> <span class="o">=</span> <span class="n">edge_sign_on_vertex</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">vertexDegree</span><span class="o">=</span><span class="n">iedge</span><span class="p">)</span>
+
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">v0</span> <span class="o">==</span> <span class="n">all_vertices</span>
+        <span class="n">this_vert_sign</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="n">other_vert_index</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">v1</span><span class="p">,</span> <span class="n">v0</span><span class="p">)</span>
+        <span class="n">other_vert_index</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">other_vert_index</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">other_vert_index</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">idata_other</span> <span class="o">=</span> <span class="n">idata</span> <span class="o">+</span> <span class="n">iedge</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idata_other</span><span class="p">]</span> <span class="o">=</span> <span class="n">rows</span>
+        <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idata_other</span><span class="p">]</span> <span class="o">=</span> <span class="n">other_vert_index</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="n">this_data</span> <span class="o">=</span> <span class="n">this_vert_sign</span> <span class="o">*</span> <span class="n">edge_sign</span> <span class="o">*</span> <span class="n">dc</span> <span class="o">/</span> <span class="p">(</span><span class="n">dv</span> <span class="o">*</span> <span class="n">area_vertex</span><span class="p">)</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">idata</span><span class="p">]</span> <span class="o">+=</span> <span class="n">this_data</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">idata_other</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">this_data</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="c1"># Add boundary conditions to the matrix</span>
+    <span class="c1">#  The difference in the BSF between adjacent boundary vertices is</span>
+    <span class="c1">#  zero</span>
+    <span class="n">idata</span> <span class="o">=</span> <span class="p">(</span><span class="n">vertex_degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">nvertices</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nboundary</span><span class="p">)</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">nvertices</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nboundary</span><span class="p">)</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">rows</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">boundary_vertex0</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+
+    <span class="n">idata</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">rows</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">boundary_vertex1</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="c1"># Now the transpose</span>
+    <span class="n">idata</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="n">vertex_degree</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">nvertices</span>
+        <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">nboundary</span>
+        <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nboundary</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">nvertices</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nboundary</span><span class="p">)</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">boundary_vertex0</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">col</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+
+    <span class="n">idata</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">boundary_vertex1</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">col</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="c1"># Add gauge constraints to ensure a unique solution</span>
+    <span class="c1"># The BSF at vertex 0 will be zero</span>
+    <span class="n">idata</span> <span class="o">=</span> <span class="n">ndata</span> <span class="o">-</span> <span class="mi">2</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">nmatrix</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="c1"># And the transpose</span>
+    <span class="n">idata</span> <span class="o">=</span> <span class="n">ndata</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">indices</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="n">nmatrix</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">data</span><span class="p">[</span><span class="n">idata</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+    <span class="c1"># Assemble the right-hand side of the equation:</span>
+    <span class="c1">#  * the vertically integrated vorticity at each vertex</span>
+    <span class="c1">#  * the boundary conditions are zero</span>
+    <span class="c1">#  * the gauge constraints are zero</span>
+    <span class="n">rhs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nmatrix</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">rhs</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nvertices</span><span class="p">]</span> <span class="o">=</span> <span class="n">vert_integ_vorticity</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="k">return</span> <span class="n">indices</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">nmatrix</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_barotropic_streamfunction_vertex</span><span class="p">(</span>
+    <span class="n">ds_mesh</span><span class="p">,</span>
+    <span class="n">ds</span><span class="p">,</span>
+    <span class="n">prefix</span><span class="p">,</span>
+    <span class="n">include_bolus</span><span class="p">,</span>
+    <span class="n">include_submesoscale</span><span class="p">,</span>
+    <span class="n">min_depth</span><span class="p">,</span>
+    <span class="n">max_depth</span><span class="p">,</span>
+    <span class="n">logger</span><span class="p">,</span>
+    <span class="n">horiz_chunk</span><span class="p">,</span>
+    <span class="n">tmp_dir</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compute the barotropic streamfunction on vertices.</span>
+
+<span class="sd">    This function solves a Poisson equation to compute the barotropic</span>
+<span class="sd">    streamfunction, which integrates vertically integrated velocity</span>
+<span class="sd">    divergence to obtain the streamfunction.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Computing vertically integrated velocity.&#39;</span><span class="p">)</span>
+    <span class="c1"># Compute the vertically integrated velocity on edges</span>
+    <span class="n">vert_integ_velocity</span> <span class="o">=</span> <span class="n">compute_vertically_integrated_velocity</span><span class="p">(</span>
+        <span class="n">ds_mesh</span><span class="o">=</span><span class="n">ds_mesh</span><span class="p">,</span>
+        <span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">,</span>
+        <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
+        <span class="n">min_depth</span><span class="o">=</span><span class="n">min_depth</span><span class="p">,</span>
+        <span class="n">max_depth</span><span class="o">=</span><span class="n">max_depth</span><span class="p">,</span>
+        <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">,</span>
+        <span class="n">include_bolus</span><span class="o">=</span><span class="n">include_bolus</span><span class="p">,</span>
+        <span class="n">include_submesoscale</span><span class="o">=</span><span class="n">include_submesoscale</span><span class="p">,</span>
+        <span class="n">nedges_chunk</span><span class="o">=</span><span class="n">horiz_chunk</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">tmp_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;  Writing out and reading in vertically integrated velocity.&#39;</span>
+            <span class="p">)</span>
+        <span class="c1"># write out and read back the vertically integrated velocity</span>
+        <span class="n">ds_out</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+        <span class="n">ds_out</span><span class="p">[</span><span class="s1">&#39;vertIntegNormalVelocity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vert_integ_velocity</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">,</span> <span class="s1">&#39;bsf_vert_integ_normal_vel.nc&#39;</span><span class="p">)</span>
+        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds_out</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+        <span class="n">ds_in</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">vert_integ_velocity</span> <span class="o">=</span> <span class="n">ds_in</span><span class="p">[</span><span class="s1">&#39;vertIntegNormalVelocity&#39;</span><span class="p">]</span>
+
+    <span class="n">vert_integ_vorticity</span><span class="p">,</span> <span class="n">edge_sign_on_vertex</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">compute_vertically_integrated_vorticity</span><span class="p">(</span>
+            <span class="n">ds_mesh</span><span class="o">=</span><span class="n">ds_mesh</span><span class="p">,</span>
+            <span class="n">vert_integ_velocity</span><span class="o">=</span><span class="n">vert_integ_velocity</span><span class="p">,</span>
+            <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">tmp_dir</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s1">&#39;  Writing out and reading in vertically integrated vorticity.&#39;</span>
+            <span class="p">)</span>
+        <span class="c1"># write out and read back the vertically integrated velocity</span>
+        <span class="n">ds_out</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
+        <span class="n">ds_out</span><span class="p">[</span><span class="s1">&#39;vertIntegVorticity&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">vert_integ_vorticity</span>
+        <span class="n">ds_out</span><span class="p">[</span><span class="s1">&#39;edgeSignOnVertex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">edge_sign_on_vertex</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">,</span> <span class="s1">&#39;bsf_vert_integ_vorticity.nc&#39;</span><span class="p">)</span>
+        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds_out</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+        <span class="n">ds_in</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">vert_integ_vorticity</span> <span class="o">=</span> <span class="n">ds_in</span><span class="p">[</span><span class="s1">&#39;vertIntegVorticity&#39;</span><span class="p">]</span>
+        <span class="n">edge_sign_on_vertex</span> <span class="o">=</span> <span class="n">ds_in</span><span class="p">[</span><span class="s1">&#39;edgeSignOnVertex&#39;</span><span class="p">]</span>
+
+    <span class="n">indices</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">nmatrix</span> <span class="o">=</span> <span class="n">_assemble_matrix</span><span class="p">(</span>
+        <span class="n">ds_mesh</span><span class="p">,</span>
+        <span class="n">logger</span><span class="p">,</span>
+        <span class="n">edge_sign_on_vertex</span><span class="p">,</span>
+        <span class="n">vert_integ_vorticity</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Solving the sparse linear system.&#39;</span><span class="p">)</span>
+    <span class="c1"># Solve the sparse linear system</span>
+    <span class="n">matrix</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">csr_matrix</span><span class="p">((</span><span class="n">data</span><span class="p">,</span> <span class="n">indices</span><span class="p">),</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nmatrix</span><span class="p">,</span> <span class="n">nmatrix</span><span class="p">))</span>
+    <span class="n">solution</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">sparse</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">spsolve</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  Finalizing the barotropic streamfunction.&#39;</span><span class="p">)</span>
+    <span class="c1"># Convert the solution to the barotropic streamfunction</span>
+    <span class="n">nvertices</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertices&#39;</span><span class="p">]</span>
+    <span class="n">bsf_vertex</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
+        <span class="o">-</span><span class="mf">1e-6</span> <span class="o">*</span> <span class="n">solution</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nvertices</span><span class="p">],</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">bsf_vertex</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <!-- Meta tags for JS to use -->
+  <meta name="doc-version" content="1.3.1">
+  <meta name="doc-site-root" content="../../../../">
+
+  <!-- Create version switcher container -->
+  <script>
+    const sidebar = document.querySelector('.wy-side-nav-search');
+    if (sidebar) {
+      const versionDiv = document.createElement('div');
+      versionDiv.id = 'version-switcher';
+      versionDiv.style.marginTop = '1em';
+      sidebar.appendChild(versionDiv);
+    }
+  </script>
+
+  <!-- Load version-switcher.js using the correct relative path -->
+  <script src="../../../../../shared/version-switcher.js"></script>
+
+
+</body>
+</html>
