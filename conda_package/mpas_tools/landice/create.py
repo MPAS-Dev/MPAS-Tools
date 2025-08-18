@@ -166,7 +166,14 @@ def create_from_generic_mpas_grid():  # noqa C901
     #       unlimited dimension.  Special handling is needed with the netCDF
     #       module.
     print('---- Copying dimensions from input file to output file ----')
-    for dim in filein.dimensions.keys():
+
+    create_dims = list(filein.dimensions.keys())
+
+    # We will add variables with Time as a dimension so we need it
+    if 'Time' not in create_dims:
+        create_dims.append('Time')
+
+    for dim in create_dims:
         if dim == 'nTracers':
             pass  # Do nothing - we don't want this dimension
         elif dim == 'nVertInterfaces':
