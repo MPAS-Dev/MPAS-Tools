@@ -77,7 +77,7 @@ def compute_vertically_integrated_velocity(
     if 'minLevelCell' in ds_mesh:
         min_level_cell = ds_mesh.minLevelCell - 1
     else:
-        min_level_cell = np.zeros_like(max_level_cell)
+        min_level_cell = xr.zeros_like(max_level_cell)
 
     vert_index = xr.DataArray.from_dict(
         {'dims': ('nVertLevels',), 'data': np.arange(n_vert_levels)}
