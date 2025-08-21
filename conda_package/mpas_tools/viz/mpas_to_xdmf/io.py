@@ -1,3 +1,4 @@
+import glob
 import importlib.resources
 import os
 
@@ -47,14 +48,30 @@ def _load_dataset(mesh_filename, time_series_filenames, variables, xtime_var):
     if time_series_filenames is None:
         ds = ds_mesh
     else:
-        ds = xr.open_mfdataset(
-            time_series_filenames,
-            combine='nested',
-            concat_dim='Time',
-            data_vars='minimal',
-            coords='minimal',
-            compat='override',
-        )
+        if isinstance(time_series_filenames, str):
+            # Deterministic ordering for reproducibility
+            file_list = sorted(glob.glob(time_series_filenames))
+        else:
+            file_list = time_series_filenames
+
+        if len(file_list) == 0:
+            raise ValueError(
+                f'No time series files found matching '
+                f"'{time_series_filenames}'"
+            )
+
+        if len(file_list) == 1:
+            # If only one file, open it directly
+            ds = xr.open_dataset(file_list[0])
+        else:
+            ds = xr.open_mfdataset(
+                file_list,
+                combine='nested',
+                concat_dim='Time',
+                data_vars='minimal',
+                coords='minimal',
+                compat='override',
+            )
 
     ds_mesh = _get_ds_mesh(ds_mesh)
     if variables is not None:
@@ -180,18 +197,18 @@ def _write_xdmf(ds_geom, ds_data, out_dir, suffix, quiet=False):
                 ds_data.data_vars, total=total_steps, desc=f'Writing {suffix}'
             )
         for var_name in ds_data.data_vars:
-            if not quiet:
+            if iterator is not None:
                 iterator.set_description(f'Processing {var_name}')
             if 'Time' in ds_data[var_name].dims:
                 for t_idx in range(ds_data.sizes['Time']):
                     dataset_name = f'{var_name}_t{t_idx}'
                     da = ds_data[var_name].isel(Time=t_idx)
                     h5_file.create_dataset(dataset_name, data=da.values)
-                    if not quiet:
+                    if iterator is not None:
                         iterator.update(1)
             else:
                 h5_file.create_dataset(var_name, data=ds_data[var_name].values)
-                if not quiet:
+                if iterator is not None:
                     iterator.update(1)
 
     # Preprocess variable metadata for the template
