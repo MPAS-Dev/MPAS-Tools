@@ -369,6 +369,16 @@ Visualization
 
    extract_vtk
 
+.. currentmodule:: mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf
+
+.. autosummary::
+   :toctree: generated/
+
+   MpasToXdmf
+   MpasToXdmf.load()
+   MpasToXdmf.convert_to_xdmf()
+   main
+
 .. currentmodule:: mpas_tools.viz.mesh_to_triangles
 
 .. autosummary::
