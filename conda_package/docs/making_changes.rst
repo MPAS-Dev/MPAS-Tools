@@ -137,7 +137,7 @@ under the ``# Base`` comment:
     # $ conda create --name <env> --file <this file>
 
     # Base
-    python>=3.9
+    python>=3.10
     cartopy
     ...
 
