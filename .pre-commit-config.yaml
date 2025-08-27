@@ -18,7 +18,7 @@ repos:
         require_serial: true
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.9
+    rev: v0.12.10
     hooks:
       # Sort the imports
       - id: ruff-check
