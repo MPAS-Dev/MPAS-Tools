@@ -37,7 +37,7 @@ def _xtime_to_seconds(xtime: xr.DataArray) -> xr.DataArray:
     ----------
     xtime : xr.DataArray
         An array of strings representing time in the format
-        'YYYY-MM-DD_HH:MM:SS.sss'.
+        'YYYY-MM-DD_HH:MM:SS' or 'YYYY-MM-DD_HH:MM:SS.sss'.
 
     Returns
     -------
@@ -45,10 +45,13 @@ def _xtime_to_seconds(xtime: xr.DataArray) -> xr.DataArray:
         An array of seconds since the first entry in `xtime`.
     """
     # Convert xtime strings to datetime objects using datetime.strptime
-    timestamps = [
-        datetime.strptime(time_str, '%Y-%m-%d_%H:%M:%S.%f')
-        for time_str in xtime.values.astype(str)
-    ]
+    timestamps = []
+    for time_str in xtime.values.astype(str):
+        try:
+            timestamp = datetime.strptime(time_str, '%Y-%m-%d_%H:%M:%S.%f')
+        except ValueError:
+            timestamp = datetime.strptime(time_str, '%Y-%m-%d_%H:%M:%S')
+        timestamps.append(timestamp)
     # Calculate seconds since the first timestamp
     seconds_since_start = [
         (ts - timestamps[0]).total_seconds() for ts in timestamps
