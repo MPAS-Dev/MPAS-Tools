@@ -848,13 +848,9 @@ def build_field_time_series(  # noqa: C901
                         )
                     var = time_series_file.variables[xtimeName]
                     if len(var.shape) == 2:
+                        # this is a character array that we need to decode
                         xtime = var[local_time_indices[time_index], :]
-                        xtime = (
-                            xtime.tostring()
-                            .decode('utf-8')
-                            .strip()
-                            .strip('\x00')
-                        )
+                        xtime = decode_nc_char_row(xtime)
                         date = datetime(
                             int(xtime[0:4]),
                             int(xtime[5:7]),
@@ -1017,6 +1013,31 @@ def open_netcdf(file_name):
     return nc_file
 
 
+def decode_nc_char_row(row):
+    """
+    Decode a 1D NetCDF char array (bytes) row to a clean Python str.
+
+    Handles masked arrays, ensures contiguity, strips trailing nulls and
+    whitespace, and ignores undecodable bytes.
+
+    Parameters
+    ----------
+    row : numpy.ndarray
+        1D array of dtype 'S1' (or similar) representing a character row.
+
+    Returns
+    -------
+    str
+        Decoded string with padding removed.
+    """
+    # Drop mask if present and ensure contiguous bytes
+    data = numpy.ascontiguousarray(numpy.ma.getdata(row))
+    string = (
+        data.tobytes().decode('utf-8', errors='ignore').rstrip('\x00').strip()
+    )
+    return string
+
+
 def is_valid_mesh_var(mesh_file, variable_name):  # {{{
     if mesh_file is None:
         return False
@@ -1099,7 +1120,7 @@ def setup_time_indices(fn_pattern, xtimeName, use_progress_bar):  # {{{
                 if len(xtime.shape) == 2:
                     xtime = xtime[:, :]
                     for index in range(xtime.shape[0]):
-                        local_times.append(xtime[index, :].tostring())
+                        local_times.append(decode_nc_char_row(xtime[index, :]))
                 else:
                     local_times = xtime[:]
 
