@@ -71,6 +71,8 @@ def _load_dataset(mesh_filename, time_series_filenames, variables, xtime_var):
                 data_vars='minimal',
                 coords='minimal',
                 compat='override',
+                decode_times=False,
+                decode_timedelta=False,
             )
 
     ds_mesh = _get_ds_mesh(ds_mesh)
@@ -91,6 +93,8 @@ def _load_dataset(mesh_filename, time_series_filenames, variables, xtime_var):
                 )
             else:
                 selected_vars.add(var)
+        if xtime_var is not None:
+            selected_vars.add(xtime_var)
         ds = ds[list(selected_vars)]
 
     _set_time(ds=ds, xtime_var=xtime_var)
