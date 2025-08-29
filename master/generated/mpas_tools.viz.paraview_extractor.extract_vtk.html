@@ -158,7 +158,8 @@
 <dd><p>Extract fields from a time series of NetCDF files as VTK files for plotting
 in ParaView.</p>
 <p>To extract fields across multiple files, passing in a regular expression
-for the filename pattern, for example <code class="docutils literal notranslate"><span class="pre">filename_pattern=&quot;hist.comp.*.nc&quot;</span></code>.</p>
+for the filename pattern, for example
+<code class="docutils literal notranslate"><span class="pre">filename_pattern=&quot;hist.comp.*.nc&quot;</span></code>.</p>
 <p>By default, time-independent fields on cells are written to a file</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>vtk_files/staticFieldsOnCells.vtp
 </pre></div>
@@ -198,8 +199,8 @@ with index given by <code class="docutils literal notranslate"><span class="pre"
 <p>The extractor includes optional support for extracting geometry appropriate
 for displaying variables at the depth of a topographic feature (typically
 the top or bottom of the domain) for MPAS components with a spatially
-variable top or bottom index (e.g. <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> in MPAS-Ocean).  This is
-accomplished with arguments such as:</p>
+variable top or bottom index (e.g. <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> in MPAS-Ocean).  This
+is accomplished with arguments such as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topo_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">,</span> <span class="n">topo_cell_index</span><span class="o">=</span><span class="s1">&#39;maxLevelCell&#39;</span>
 </pre></div>
 </div>
@@ -216,10 +217,10 @@ to plot topography by using a calculator filter like the following:</p>
                                  + 10.0*boundaryMask))
 </pre></div>
 </div>
-<p>If this is entered into a Calculator Filter in ParaView with the “coordinate
-result” box checked, the result will to display the MPAS-Ocean topography,
-exaggerated by a factor of 100, with a value equivalent to 10 m along
-boundary points of edge polygons (a “water-tight” surface).</p>
+<p>If this is entered into a Calculator Filter in ParaView with the
+“coordinate result” box checked, the result will to display the MPAS-Ocean
+topography, exaggerated by a factor of 100, with a value equivalent to
+10 m along boundary points of edge polygons (a “water-tight” surface).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
