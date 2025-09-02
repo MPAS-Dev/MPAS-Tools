@@ -1,0 +1,290 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.ocean.viz.transect.plot_transect &mdash; mpas_tools 1.3.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8ca9e7a0"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="mpas_tools.ocean.viz.add_inset" href="mpas_tools.ocean.viz.add_inset.html" />
+    <link rel="prev" title="mpas_tools.ocean.viz.transect.plot_feature_transects" href="mpas_tools.ocean.viz.transect.plot_feature_transects.html" />
+    <link href="../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../io.html">I/O Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../vector.html">Vector Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Visualization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mpas_to_xdmf.html">MPAS to XDMF Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../paraview_extractor.html">ParaView VTK Extractor</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/streamfunction.html">Computing streamfunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../releasing.html">Releasing a New Version</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../api.html">API reference</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../api.html#mpas-mesh-tools">MPAS mesh tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#landice-tools">Landice Tools</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../api.html#ocean-tools">Ocean Tools</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.html">mpas_tools.ocean.coastline_alteration</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.add_critical_land_blockages.html">mpas_tools.ocean.coastline_alteration.add_critical_land_blockages</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks.html">mpas_tools.ocean.coastline_alteration.widen_transect_edge_masks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask.html">mpas_tools.ocean.coastline_alteration.add_land_locked_cells_to_mask</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.html">mpas_tools.ocean.moc</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.make_moc_basins_and_transects.html">mpas_tools.ocean.moc.make_moc_basins_and_transects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html">mpas_tools.ocean.moc.add_moc_southern_boundary_transects</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.build_mesh.html">mpas_tools.ocean.build_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.build_mesh.build_spherical_mesh.html">mpas_tools.ocean.build_mesh.build_spherical_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.build_mesh.build_planar_mesh.html">mpas_tools.ocean.build_mesh.build_planar_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.html">mpas_tools.ocean.coastal_tools</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.coastal_refined_mesh.html">mpas_tools.ocean.coastal_tools.coastal_refined_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.create_background_mesh.html">mpas_tools.ocean.coastal_tools.create_background_mesh</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.extract_coastlines.html">mpas_tools.ocean.coastal_tools.extract_coastlines</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.distance_to_coast.html">mpas_tools.ocean.coastal_tools.distance_to_coast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.compute_cell_width.html">mpas_tools.ocean.coastal_tools.compute_cell_width</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.save_matfile.html">mpas_tools.ocean.coastal_tools.save_matfile</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.CPP_projection.html">mpas_tools.ocean.coastal_tools.CPP_projection</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.smooth_coastline.html">mpas_tools.ocean.coastal_tools.smooth_coastline</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_data_inside_box.html">mpas_tools.ocean.coastal_tools.get_data_inside_box</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_indices_inside_quad.html">mpas_tools.ocean.coastal_tools.get_indices_inside_quad</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates.html">mpas_tools.ocean.coastal_tools.get_convex_hull_coordinates</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_coarse_coast.html">mpas_tools.ocean.coastal_tools.plot_coarse_coast</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.coastal_tools.plot_region_box.html">mpas_tools.ocean.coastal_tools.plot_region_box</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.add_depth.html">mpas_tools.ocean.depth.add_depth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.add_zmid.html">mpas_tools.ocean.depth.add_zmid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.write_time_varying_zmid.html">mpas_tools.ocean.depth.write_time_varying_zmid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_depth.html">mpas_tools.ocean.depth.compute_depth</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.depth.compute_zmid.html">mpas_tools.ocean.depth.compute_zmid</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.compute_barotropic_streamfunction.html">mpas_tools.ocean.compute_barotropic_streamfunction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.shift_barotropic_streamfunction.html">mpas_tools.ocean.shift_barotropic_streamfunction</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_bathymetry.inject_bathymetry.html">mpas_tools.ocean.inject_bathymetry.inject_bathymetry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file.html">mpas_tools.ocean.inject_meshDensity.inject_meshDensity_from_file</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_spherical_meshDensity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity.html">mpas_tools.ocean.inject_meshDensity.inject_planar_meshDensity</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain.html">mpas_tools.ocean.inject_preserve_floodplain.inject_preserve_floodplain</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.viz.transect.compute_transect.html">mpas_tools.ocean.viz.transect.compute_transect</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.viz.transect.find_transect_levels_and_weights.html">mpas_tools.ocean.viz.transect.find_transect_levels_and_weights</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.viz.transect.interp_mpas_to_transect_cells.html">mpas_tools.ocean.viz.transect.interp_mpas_to_transect_cells</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.viz.transect.interp_mpas_to_transect_nodes.html">mpas_tools.ocean.viz.transect.interp_mpas_to_transect_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.viz.transect.interp_transect_grid_to_transect_nodes.html">mpas_tools.ocean.viz.transect.interp_transect_grid_to_transect_nodes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.viz.transect.plot_feature_transects.html">mpas_tools.ocean.viz.transect.plot_feature_transects</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">mpas_tools.ocean.viz.transect.plot_transect</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#mpas_tools.ocean.viz.transect.plot_transect"><code class="docutils literal notranslate"><span class="pre">plot_transect()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.ocean.viz.add_inset.html">mpas_tools.ocean.viz.add_inset</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#sea-ice-tools">Sea-ice Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#logging">Logging</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#transects">Transects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#vector">Vector</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../api.html#visualization">Visualization</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../authors.html#contributors">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../api.html">API reference</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.viz.transect.plot_transect</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/generated/mpas_tools.ocean.viz.transect.plot_transect.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mpas-tools-ocean-viz-transect-plot-transect">
+<h1>mpas_tools.ocean.viz.transect.plot_transect<a class="headerlink" href="#mpas-tools-ocean-viz-transect-plot-transect" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="mpas_tools.ocean.viz.transect.plot_transect">
+<span class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.viz.transect.</span></span><span class="sig-name descname"><span class="pre">plot_transect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds_transect</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mpas_field</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">out_filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmin</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vmax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">colorbar_label</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cmap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">figsize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">(12,</span> <span class="pre">6)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dpi</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">200</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'flat'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outline_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'black'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ssh_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seafloor_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interface_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cell_boundary_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">linewidth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_start_and_end</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'red'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_color</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'green'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/viz/transect/plot.html#plot_transect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.viz.transect.plot_transect" title="Link to this definition"></a></dt>
+<dd><p>plot a transect showing the field on the MPAS-Ocean mesh and save to a file</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ds_transect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.8.1)"><em>xarray.Dataset</em></a>) – A transect dataset from
+<code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.viz.transect.vert.compute_transect()</span></code></p></li>
+<li><p><strong>mpas_field</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.8.1)"><em>xarray.DataArray</em></a>) – The MPAS-Ocean 3D field to plot</p></li>
+<li><p><strong>out_filename</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The png file to write out to</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em>) – Axes to plot to if making a multi-panel figure</p></li>
+<li><p><strong>title</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a>) – The title of the plot</p></li>
+<li><p><strong>vmin</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – The minimum values for the colorbar</p></li>
+<li><p><strong>vmax</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – The maximum values for the colorbar</p></li>
+<li><p><strong>colorbar_label</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The colorbar label, or <code class="docutils literal notranslate"><span class="pre">None</span></code> if no colorbar is to be included.
+Use an empty string to display a colorbar without a label.</p></li>
+<li><p><strong>cmap</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The name of a colormap to use</p></li>
+<li><p><strong>figsize</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.13)"><em>tuple</em></a><em>, </em><em>optional</em>) – The size of the figure in inches</p></li>
+<li><p><strong>dpi</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.13)"><em>int</em></a><em>, </em><em>optional</em>) – The dots per inch of the image</p></li>
+<li><p><strong>method</strong> (<em>{'flat'</em><em>, </em><em>'bilinear'}</em><em>, </em><em>optional</em>) – The type of interpolation to use in plots.  <code class="docutils literal notranslate"><span class="pre">flat</span></code> means constant
+values over each MPAS cell.  <code class="docutils literal notranslate"><span class="pre">bilinear</span></code> means smooth interpolation
+between horizontally between cell centers and vertical between the
+middle of layers.</p></li>
+<li><p><strong>outline_color</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – The color to use to outline the transect or <code class="docutils literal notranslate"><span class="pre">None</span></code> for no outline</p></li>
+<li><p><strong>ssh_color</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – The color to use to plot the SSH (sea surface height) or <code class="docutils literal notranslate"><span class="pre">None</span></code> if
+not plotting the SSH (except perhaps as part of the outline)</p></li>
+<li><p><strong>seafloor_color</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – The color to use to plot the seafloor depth or <code class="docutils literal notranslate"><span class="pre">None</span></code> if not plotting
+the seafloor depth (except perhaps as part of the outline)</p></li>
+<li><p><strong>interface_color</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – The color to use to plot interfaces between layers or <code class="docutils literal notranslate"><span class="pre">None</span></code> if
+not plotting the layer interfaces</p></li>
+<li><p><strong>cell_boundary_color</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em> or </em><em>None</em><em>, </em><em>optional</em>) – The color to use to plot vertical boundaries between cells or <code class="docutils literal notranslate"><span class="pre">None</span></code>
+if not plotting cell boundaries.  Typically, <code class="docutils literal notranslate"><span class="pre">cell_boundary_color</span></code>
+will be used along with <code class="docutils literal notranslate"><span class="pre">interface_color</span></code> to outline cells both
+horizontally and vertically.</p></li>
+<li><p><strong>linewidth</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><em>float</em></a><em>, </em><em>optional</em>) – The width of outlines, interfaces and cell boundaries</p></li>
+<li><p><strong>color_start_and_end</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><em>bool</em></a><em>, </em><em>optional</em>) – Whether to color the left and right axes of the transect, which is
+useful if the transect is also being plotted in an inset or on top of
+a horizontal field</p></li>
+<li><p><strong>start_color</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The color of left axis marking the start of the transect if
+<code class="docutils literal notranslate"><span class="pre">plot_start_end</span> <span class="pre">==</span> <span class="pre">True</span></code></p></li>
+<li><p><strong>end_color</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><em>str</em></a><em>, </em><em>optional</em>) – The color of right axis marking the end of the transect if
+<code class="docutils literal notranslate"><span class="pre">plot_start_end</span> <span class="pre">==</span> <span class="pre">True</span></code></p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mpas_tools.ocean.viz.transect.plot_feature_transects.html" class="btn btn-neutral float-left" title="mpas_tools.ocean.viz.transect.plot_feature_transects" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mpas_tools.ocean.viz.add_inset.html" class="btn btn-neutral float-right" title="mpas_tools.ocean.viz.add_inset" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <!-- Meta tags for JS to use -->
+  <meta name="doc-version" content="1.3.2">
+  <meta name="doc-site-root" content="../">
+
+  <!-- Create version switcher container -->
+  <script>
+    const sidebar = document.querySelector('.wy-side-nav-search');
+    if (sidebar) {
+      const versionDiv = document.createElement('div');
+      versionDiv.id = 'version-switcher';
+      versionDiv.style.marginTop = '1em';
+      sidebar.appendChild(versionDiv);
+    }
+  </script>
+
+  <!-- Load version-switcher.js using the correct relative path -->
+  <script src="../../shared/version-switcher.js"></script>
+
+
+</body>
+</html>
