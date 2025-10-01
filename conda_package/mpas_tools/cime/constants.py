@@ -1,6 +1,5 @@
 import numpy as np
 
-
 constants = \
     {'SHR_CONST_PI': 3.14159265358979323846,
      'SHR_CONST_CDAY': 86400.0,
