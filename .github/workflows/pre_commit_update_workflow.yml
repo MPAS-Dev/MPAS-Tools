@@ -15,7 +15,7 @@ on:
 env:
   UP_TO_DATE: false
   PYTHON_VERSION: "3.13"
-  REVIEWERS: "altheaden,xylar,andrewdnolan"
+  REVIEWERS: "xylar,andrewdnolan"
 
 jobs:
   auto-update:
