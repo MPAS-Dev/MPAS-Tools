@@ -39,6 +39,7 @@ class eccoToMaliInterp:
 
     def merge_MITgcm_files_to_unstruct_grid(self):
         ncfiles = glob.glob(os.path.join(self.options.eccoDir, "*.nc"))
+        tIter = 0
         saltBool = 0
         thetaBool = 0
         siaBool = 0
@@ -61,22 +62,38 @@ class eccoToMaliInterp:
                         if saltBool == 0 and thetaBool == 0:
                             z = ds_ecco['dep'].values
                             
-                        sal = ds_ecco['SALT'][:].values
+                        if tIter == 0:
+                            sal = ds_ecco['SALT'][:].values
+                            nt,nz,nx,ny = np.shape(sal)
+                            sal = sal.reshape(nz, nt, nx * ny)
+                        else:
+                            sl = ds_ecco['SALT'][:].values
+                            nt,nz,nx,ny = np.shape(sl)
+                            sl = sl.reshape(nz, nt, nx * ny)
+                            sal = np.concatenate((sal,sl), axis=2)
                         
                         # ECCO 'land' variable is equivalent to MALI's orig3dOceanMask, despite the counterintuitive name.
                         # Only need to call this once per tile, but needs to be using a theta/salinity file because it includes depth 
                         # No need to call this if only interpolating SIarea
-                        if o3dmBool == 0:
+                        if tIter == 0 and o3dmBool == 0:
                             orig3dOceanMask = ds_ecco['land'].values
+                            nz,nx,ny = np.shape(orig3dOceanMask)
+                            orig3dOceanMask = orig3dOceanMask.reshape(nz, nx * ny)
                             od3mBool = 1
+                        elif tIter > 0 and o3dmBool == 0:
+                            o3dm = ds_ecco['land'].values
+                            nz,nx,ny = np.shape(o3dm)
+                            o3dm = o3dm.reshape(nz, nx * ny)
+                            orig3dOceanMask = np.concatenate((orig3dOceanMask, o3dm), axis=1)
+                            o3dmBool = 1
                         
                         # set MALI invalid value
-                        boolZ,boolX,boolY = np.where(orig3dOceanMask == 0)
-                        for iZ,iX,iY in zip(boolZ,boolX,boolY):
-                            sal[:,iZ,iX,iY] = 1e36
+                        boolZ,boolXY = np.where(orig3dOceanMask == 0)
+                        for iZ,iXY in zip(boolZ,boolXY):
+                            sal[iZ,:,iXY] = 1e36
                         
                         saltBool = 1       
-
+                    
                     # Repeat for potential temperature if needed
                     elif 'THETA' in file and 'THETA' in self.options.eccoVars:       
                         validFile = self.options.eccoDir + '/THETA.' + paddedTile + '.nc'
@@ -85,30 +102,53 @@ class eccoToMaliInterp:
                         if saltBool == 0 and thetaBool == 0:
                             z = ds_ecco['dep'].values
                             
-                        theta = ds_ecco['THETA'][:].values
+                        if tIter == 0:
+                            theta = ds_ecco['THETA'][:].values
+                            nt,nz,nx,ny = np.shape(theta)
+                            theta = theta.reshape(nz, nt, nx * ny)
+                        else:
+                            th = ds_ecco['THETA'][:].values
+                            nt,nz,nx,ny = np.shape(th)
+                            th = th.reshape(nz, nt, nx * ny)
+                            theta = np.concatenate((theta,th), axis=2)
 
                         # ECCO 'land' variable is equivalent to MALI's orig3dOceanMask, despite the counterintuitive name.
                         # Only need to call this once per tile, but needs to be using a theta/salinity file because it includes depth 
                         # No need to call this if only interpolating SIarea
-                        if o3dmBool == 0:
+                        if tIter == 0 and o3dmBool == 0:
                             orig3dOceanMask = ds_ecco['land'].values
+                            nz,nx,ny = np.shape(orig3dOceanMask)
+                            orig3dOceanMask = orig3dOceanMask.reshape(nz, nx * ny)
                             od3mBool = 1
                         
+                        elif tIter > 0 and o3dmBool == 0:
+                            o3dm = ds_ecco['land'].values
+                            nz,nx,ny = np.shape(o3dm)
+                            o3dm = o3dm.reshape(nz, nx * ny)
+                            orig3dOceanMask = np.concatenate((orig3dOceanMask, o3dm), axis=1)
+                            o3dmBool = 1
+
                         # set MALI invalid value
-                        boolZ,boolX,boolY = np.where(orig3dOceanMask == 0)
-                        for iZ,iX,iY in zip(boolZ,boolX,boolY):
-                            theta[:,iZ,iX,iY] = 1e36
+                        boolZ,boolXY = np.where(orig3dOceanMask == 0)
+                        for iZ,iXY in zip(boolZ,boolXY):
+                            theta[iZ,:,iXY] = 1e36
                         
                         thetaBool = 1
                         
                     # Repeat for sea ice fraction if needed
                     elif 'SIarea' in file and 'SIarea' in self.options.eccoVars:
+                        siaBool = 1
                         validFile = self.options.eccoDir + '/SIarea.' + paddedTile + '.nc'
                         ds_ecco = xr.open_dataset(validFile)
-                        
-                        sia = ds_ecco['SIarea'][:].values
-                    
-                        siaBool = 1
+                        if tIter == 0:
+                            sia = ds_ecco['SIarea'][:].values
+                            nt,nx,ny = np.shape(sia)
+                            sia = sia.reshape(nt, nx * ny)
+                        else:
+                            si = ds_ecco['SIarea'][:].values
+                            nt,nx,ny = np.shape(si)
+                            si = si.reshape(nt, nx * ny)
+                            sia = np.concatenate((sia,si), axis=1)
                     else :
                         raise ValueError(f"eccoDir: {self.options.eccoDir}, paddedTile: {paddedTile}")
 
@@ -125,162 +165,184 @@ class eccoToMaliInterp:
             # Doesn't matter which file these come from, just that there is only one set per tile, so just use most
             # recent valid file in each tile
         
-            lon = ds_ecco['lon'][:].values.flatten()
-            lat = ds_ecco['lat'][:].values.flatten()
+            if tIter == 0:
+                if thetaBool == 1 :
+                    validFile = self.options.eccoDir + '/THETA.' + paddedTile + '.nc'
+                elif saltBool == 1 :
+                    validFile = self.options.eccoDir + '/SALT.' + paddedTile + '.nc'
+                elif siaBool == 1:
+                    validFile = self.options.eccoDir + '/SIarea.' + paddedTile + '.nc'
+                else :
+                    raise ValueError("No variable bool found")
 
-            # combine into new netcdf. Need to load depth and time from original ecco files. Assuming time/depth is consistent
-            # across all files, just load info from most recent
+                ds_ecco = xr.open_dataset(validFile)
+                lon = ds_ecco['lon'][:].values.flatten()
+                lat = ds_ecco['lat'][:].values.flatten()
+            else:
+                ds_ecco = xr.open_dataset(validFile)
+                ln = ds_ecco['lon'][:].values.flatten()
+                lon = np.concatenate((lon, ln))
+                lt = ds_ecco['lat'][:].values.flatten()
+                lat = np.concatenate((lat,lt))
+
+            tIter = tIter + 1
+
+        # combine into new netcdf. Need to load depth and time from original ecco files. Assuming time/depth is consistent
+        # across all files, just load info from most recent
+        
+        # Establish dataset, and fill in standard dimensions. other dimensions are added on an as-needed basis
+        ds_unstruct = xr.Dataset()
+        ds_unstruct.expand_dims(["nCells", "Time"])
+        
+        # Translate ECCO time to MALI xtime format as save to dataset
+        time = ds_ecco['tim'].values
+        xtime = [pd.to_datetime(dt).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
+        
+        DA_xtime = xr.DataArray(np.array(xtime).astype('S64'), dims=("Time"))
+        DA_xtime.encoding.update({"char_dim_name":"StrLen"})
+        DA_xtime.attrs['long_name'] = "model time, with format 'YYYY-MM-DD_HH:MM:SS'"
+        DA_xtime.attrs['standard_name'] = 'time'
+        ds_unstruct['xtime'] = DA_xtime
+        
+        # save unstructured variables with MALI/MPAS-O names 
+        if 'z' in locals():
+            ds_unstruct.expand_dims("nISMIP6OceanLayers")
+            ds_unstruct.expand_dims("TWO")
+            z = z[z <= self.options.maxDepth]
+        
+            # create bnds array
+            zBnds = np.zeros((len(z), 2))
+            zBnds[0, 0] = 0.0
+            for i in range(1, len(z)):
+                zBnds[i, 0] = 0.5 * (z[i - 1] + z[i])
+            for i in range(0, len(z) - 1):
+                zBnds[i, 1] = 0.5 * (z[i] + z[i + 1])
+            zBnds[-1, 1] = z[-1] + (z[-1] - zBnds[-1, 0])
             
-            # Establish dataset, and fill in standard dimensions. other dimensions are added on an as-needed basis
-            ds_tile = xr.Dataset()
-            ds_tile.expand_dims(["nCells", "Time"])
-            
-            # Translate ECCO time to MALI xtime format as save to dataset
-            time = ds_ecco['tim'].values
-            xtime = [pd.to_datetime(dt).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
-            
-            DA_xtime = xr.DataArray(np.array(xtime).astype('S64'), dims=("Time"))
-            DA_xtime.encoding.update({"char_dim_name":"StrLen"})
-            DA_xtime.attrs['long_name'] = "model time, with format 'YYYY-MM-DD_HH:MM:SS'"
-            DA_xtime.attrs['standard_name'] = 'time'
-            ds_tile['xtime'] = DA_xtime
-            
-            # save unstructured variables with MALI/MPAS-O names 
-            if 'z' in locals():
-                ds_tile.expand_dims("nISMIP6OceanLayers")
-                ds_tile.expand_dims("TWO")
-                z = z[z <= self.options.maxDepth]
-            
-                # create bnds array
-                zBnds = np.zeros((len(z), 2))
-                zBnds[0, 0] = 0.0
-                for i in range(1, len(z)):
-                    zBnds[i, 0] = 0.5 * (z[i - 1] + z[i])
-                for i in range(0, len(z) - 1):
-                    zBnds[i, 1] = 0.5 * (z[i] + z[i + 1])
-                zBnds[-1, 1] = z[-1] + (z[-1] - zBnds[-1, 0])
+            DA_z = xr.DataArray(-z.astype('float64'), dims=("nISMIP6OceanLayers")) #MALI wants negative depth coordinates
+            DA_z.attrs['long_name'] = 'depth'
+            DA_z.attrs['units'] = 'm'
+            ds_unstruct['ismip6shelfMelt_zOcean'] = DA_z
+
+            DA_zBnds = xr.DataArray(-zBnds.astype('float64'), dims=("nISMIP6OceanLayers", "TWO")) #MALI wants negative depth coordinates
+            DA_zBnds.attrs['long_name'] = 'Bounds for ismip6 ocean layers'
+            DA_zBnds.attrs['units'] = 'm'
+            ds_unstruct['ismip6shelfMelt_zBndsOcean'] = DA_zBnds
+        
+        if 'theta' in locals():
+            print(f"z shape: {z.shape}")
+            print(f"theta shape: {theta.shape}")
+            theta = theta[0:len(z),:,:]
+            print(f"new theta shape: {theta.shape}")
+            DA_theta = xr.DataArray(theta.astype('float64'), dims=("nISMIP6OceanLayers", "Time", "nCells"))
+            DA_theta.attrs['long_name'] = 'Potential_Temperature'
+            DA_theta.attrs['units'] = 'degC'
+            ds_unstruct['oceanTemperature'] = DA_theta
                 
-                DA_z = xr.DataArray(-z.astype('float64'), dims=("nISMIP6OceanLayers")) #MALI wants negative depth coordinates
-                DA_z.attrs['long_name'] = 'depth'
-                DA_z.attrs['units'] = 'm'
-                ds_tile['ismip6shelfMelt_zOcean'] = DA_z
+        if 'sal' in locals():
+            sal = sal[0:len(z),:,:]
+            DA_salt = xr.DataArray(sal.astype('float64'), dims=("nISMIP6OceanLayers", "Time", "nCells"))
+            DA_salt.attrs['long_name'] = 'Salinity'
+            DA_salt.attrs['units'] = 'psu'
+            ds_unstruct['oceanSalinity'] = DA_salt
+                
+        if 'sia' in locals():
+            DA_sia = xr.DataArray(sia.astype('float64'), dims=("Time", "nCells"))
+            DA_sia.attrs['long_name'] = 'Sea ice fractional ice-covered area [0 to 1]'
+            DA_sia.attrs['units'] = 'm2/m2'
+            ds_unstruct['iceAreaCell'] = DA_sia
 
-                DA_zBnds = xr.DataArray(-zBnds.astype('float64'), dims=("nISMIP6OceanLayers", "TWO")) #MALI wants negative depth coordinates
-                DA_zBnds.attrs['long_name'] = 'Bounds for ismip6 ocean layers'
-                DA_zBnds.attrs['units'] = 'm'
-                ds_tile['ismip6shelfMelt_zBndsOcean'] = DA_zBnds
-            
-            if 'theta' in locals():
-                print(f"z shape: {z.shape}")
-                print(f"theta shape: {theta.shape}")
-                theta = theta[:,0:len(z),:,:]
-                print(f"new theta shape: {theta.shape}")
-                DA_theta = xr.DataArray(theta.astype('float64'), dims=("Time","nISMIP6OceanLayers", "X", "Y"))
-                DA_theta.attrs['long_name'] = 'Potential_Temperature'
-                DA_theta.attrs['units'] = 'degC'
-                ds_tile['oceanTemperature'] = DA_theta
-                    
-            if 'sal' in locals():
-                sal = sal[:,0:len(z),:,:]
-                DA_salt = xr.DataArray(sal.astype('float64'), dims=("Time","nISMIP6OceanLayers", "X", "Y"))
-                DA_salt.attrs['long_name'] = 'Salinity'
-                DA_salt.attrs['units'] = 'psu'
-                ds_tile['oceanSalinity'] = DA_salt
-                    
-            if 'sia' in locals():
-                DA_sia = xr.DataArray(sia.astype('float64'), dims=("Time", "X", "Y"))
-                DA_sia.attrs['long_name'] = 'Sea ice fractional ice-covered area [0 to 1]'
-                DA_sia.attrs['units'] = 'm2/m2'
-                ds_tile['iceAreaCell'] = DA_sia
+        if 'orig3dOceanMask' in locals():
+            orig3dOceanMask = orig3dOceanMask[0:len(z),:]
+            DA_o3dm = xr.DataArray(orig3dOceanMask.astype('int32'), dims=("nISMIP6OceanLayers", "nCells"))
+            DA_o3dm.attrs['long_name'] = ("3D mask of original valid ocean data.  Because it is 3d," 
+                                         " it can include the ocean domain inside ice-shelf cavities."
+                                         " orig3dOceanMask is altered online to include ice-dammed inland seas")
+            ds_unstruct['orig3dOceanMask'] = DA_o3dm 
 
-            if 'orig3dOceanMask' in locals():
-                orig3dOceanMask = orig3dOceanMask[0:len(z),:]
-                DA_o3dm = xr.DataArray(orig3dOceanMask.astype('int32'), dims=("nISMIP6OceanLayers", "X", "Y"))
-                DA_o3dm.attrs['long_name'] = ("3D mask of original valid ocean data.  Because it is 3d," 
-                                             " it can include the ocean domain inside ice-shelf cavities."
-                                             " orig3dOceanMask is altered online to include ice-dammed inland seas")
-                ds_tile['orig3dOceanMask'] = DA_o3dm 
+        DA_lon = xr.DataArray(lon.astype('float64'), dims=("nCells"))
+        DA_lon.attrs['long_name'] = 'longitude'
+        DA_lon.attrs['standard_name'] = 'longitude'
+        DA_lon.attrs['units'] = 'degree_east'
+        ds_unstruct['lon'] = DA_lon # Keep original lon/lat names of coordinates for projection transformer
 
-            DA_lon = xr.DataArray(lon.astype('float64'), dims=("X"))
-            DA_lon.attrs['long_name'] = 'longitude'
-            DA_lon.attrs['standard_name'] = 'longitude'
-            DA_lon.attrs['units'] = 'degree_east'
-            ds_tile['lon'] = DA_lon # Keep original lon/lat names of coordinates for projection transformer
+        DA_lat = xr.DataArray(lat.astype('float64'), dims=("nCells"))
+        DA_lat.attrs['long_name'] = 'latitude'
+        DA_lat.attrs['standard_name'] = 'latitude'
+        DA_lat.attrs['units'] = 'degree_north'
+        ds_unstruct['lat'] = DA_lat
+        
+        self.ecco_unstruct = "ecco_combined_unstructured.nc"
+        ds_unstruct.to_netcdf(self.ecco_unstruct)
+        ds_unstruct.close()
 
-            DA_lat = xr.DataArray(lat.astype('float64'), dims=("Y"))
-            DA_lat.attrs['long_name'] = 'latitude'
-            DA_lat.attrs['standard_name'] = 'latitude'
-            DA_lat.attrs['units'] = 'degree_north'
-            ds_tile['lat'] = DA_lat
-            
-            #convert ecco mesh to polar stereographic
-            #use gis-gimp projection, defined in mpas_tools.landice.projections
-            proj_string = (
-            "+proj=stere +lat_ts=70.0 +lat_0=90 +lon_0=315.0 "
-            "+k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84"
-            )
-            transformer = Transformer.from_crs("EPSG:4326", proj_string, always_xy=True)
-            x,y = transformer.transform(lon,lat)
-            
-            DA_x['x'] = xr.DataArray(x.astype('float64'), dims=("X"))
-            ds_tile['x'] = DA_x
-            
-            DA_y['y'] = xr.DataArray(y.astype('float64'), dims=("Y"))
-            ds_tile['y'] = DA_y
+    def remap_ecco_to_mali(self):
 
-            ecco_tile = f"ecco_combined_tile{tile}.nc"
-            ds_tile.to_netcdf(ecco_tile)
-            ds_tile.close()
+        print("Creating Scrip Files")
+        ecco_scripfile = "tmp_ecco_scrip.nc"
+        mali_scripfile = "tmp_mali_scrip.nc"
+        ecco_unstruct = self.ecco_unstruct
+        file, ext = os.path.splitext(ecco_unstruct)
+        ecco_unstruct_xy = file + '.tmp' + ext
 
-            print("Creating Scrip Files")
-            filename = os.path.basename(ecco_tile)
-            base, ext = os.path.splitext(filename)
-            ecco_scripfile = base + '.scrip' + ext
-            
-            filename = os.path.basename(self.options.maliMesh)
-            base, ext = os.path.splitext(filename)
-            mali_scripfile = base + '.scrip' + ext
-            
-            args = ['create_scrip_file_from_planar_rectangular_grid',
-                '-i', ecco_tile,
-                '-s', ecco_scripfile,
-                '-p', 'gis-gimp',
-                '-r', '2']
-            check_call(args)
-            
-            scrip_from_mpas(self.options.maliMesh, mali_scripfile)
+        #convert ecco mesh to polar stereographic
+        EM = xr.open_dataset(ecco_unstruct)
+        lon = EM['lon'].values
+        lat = EM['lat'].values
+        #use gis-gimp projection, defined in mpas_tools.landice.projections
+        proj_string = (
+        "+proj=stere +lat_ts=70.0 +lat_0=90 +lon_0=315.0 "
+        "+k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84"
+        )
+        transformer = Transformer.from_crs("EPSG:4326", proj_string, always_xy=True)
+        x,y = transformer.transform(lon,lat)
+        
+        EM['x'] = xr.DataArray(x,dims=("nCells"))
+        EM['y'] = xr.DataArray(y,dims=("nCells"))
+        EM.to_netcdf(ecco_unstruct_xy)
+        EM.close()
 
-            #create mapping file
-            print("Creating Mapping File")
-            args = ['srun',
-                    '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
-                    '--source', ecco_scripfile,
-                    '--destination', mali_scripfile,
-                    '--weight', self.mapping_file_name,
-                    '--method', self.options.method,
-                    '--netcdf4',
-                    "--dst_regional", "--src_regional", '--ignore_unmapped']
-            check_call(args)
+        args = ['create_scrip_file_from_planar_rectangular_grid',
+            '-i', ecco_unstruct_xy,
+            '-s', ecco_scripfile,
+            '-p', 'gis-gimp',
+            '-r', '1']
+        check_call(args)
+        
+        scrip_from_mpas(self.options.maliMesh, mali_scripfile)
+
+        #create mapping file
+        print("Creating Mapping File")
+        args = ['srun',
+                '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
+                '--source', ecco_scripfile,
+                '--destination', mali_scripfile,
+                '--weight', self.mapping_file_name,
+                '--method', self.options.method,
+                '--netcdf4',
+                "--dst_regional", "--src_regional", '--ignore_unmapped']
+        check_call(args)
     
-            #remap
-            print("Start remapping ... ")
+        #remap
+        print("Start remapping ... ")
 
-            subprocess.run(["ncatted", "-a", "_FillValue,,d,,", ecco_tile])
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", ecco_unstruct])
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nISMIP6OceanLayers,nCells", ecco_unstruct, ecco_unstruct])
 
-            print("ncremap ...")
-            st = time.time()
-            # remap the input data
-            args = ["ncremap",
-                    "-i", ecco_tile,
-                    "-o", self.options.outputFile,
-                    "-m", self.mapping_file_name]
-            check_call(args)
+        print("ncremap ...")
+        st = time.time()
+        # remap the input data
+        args_remap = ["ncremap",
+                "-i", ecco_unstruct_xy,
+                "-o", self.options.outputFile,
+                "-m", self.mapping_file_name]
+        check_call(args_remap)
 
-            subprocess.run(["ncpdq", "-O", "-a", "Time,nCells,nISMIP6OceanLayers", self.options.outputFile, self.options.outputFile])
-            nd = time.time()
-            tm = nd - st
-            print(f"ncremap completed: {tm} seconds")
-            print("Remapping completed")
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nCells,nISMIP6OceanLayers", self.options.outputFile, self.options.outputFile])
+        nd = time.time()
+        tm = nd - st
+        print(f"ncremap completed: {tm} seconds")
+        print("Remapping completed")
 
         # Transfer MALI mesh variables if needed
         if self.options.includeMeshVars:
@@ -330,6 +392,8 @@ def main():
         run = eccoToMaliInterp()
         
         run.merge_MITgcm_files_to_unstruct_grid()
+
+        run.remap_ecco_to_mali()
 
 if __name__ == "__main__":
     main()
