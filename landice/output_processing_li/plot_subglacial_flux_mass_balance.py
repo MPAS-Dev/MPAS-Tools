@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-Script to plot subglacial hydrology time-series from a landice globalStats files.
+Script to plot subglacial hydrology time-series from a landice globalStats file.
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -19,14 +19,16 @@ args = parser.parse_args()
 
 dataset = nc.Dataset(args.filename)
 
+
+# plot mass balance time-series
 totalSubglacialWaterVolume = dataset.variables['totalSubglacialWaterVolume'][:]
 melt = dataset.variables['totalBasalMeltInput'][:]
-fluxMarine = dataset.variables['totalGLMeltFlux'][:]
-fluxLand = dataset.variables['totalTerrestrialMeltFlux'][:]
+distFluxMarine = dataset.variables['totalDistWaterFluxMarineMargin'][:]
+chnlFluxMarine = dataset.variables['totalChnlWaterFluxMarineMargin'][:]
+distFluxLand = dataset.variables['totalDistWaterFluxTerrestrialMargin'][:]
+chnlFluxLand = dataset.variables['totalChnlWaterFluxTerrestrialMargin'][:]
 
 
-chnlFluxMarine = dataset.variables['totalChannelGLMeltFlux'][:]
-chnlFluxLand = dataset.variables['totalChannelTerrestrialMeltFlux'][:]
 chnlMelt = dataset.variables['totalChannelMelt'][:]
 
 deltat = dataset.variables['deltat'][:]
@@ -38,10 +40,7 @@ rhow = 1000.0
 for i in range(len(totalSubglacialWaterVolume) - 1):
     subglacialWaterMassRate[i] = ((totalSubglacialWaterVolume[i+1] - totalSubglacialWaterVolume[i]) * rhow / deltat[i])
 
-
-
-#print(subglacialWaterMassRate)
-
+fig, ax = plt.subplots(1, 1, layout='tight', figsize=(8,6))
 # input
 plt.plot(yr, melt, 'r:', label='basal melt')
 plt.plot(yr, chnlMelt, 'r--', label='channel melt')
@@ -49,17 +48,50 @@ total_melt = melt + chnlMelt
 plt.plot(yr, total_melt, 'r-', label='total melt')
 
 # output
-plt.plot(yr, fluxMarine+fluxLand, 'b:', label='sheet outflux')
-plt.plot(yr, chnlFluxMarine+chnlFluxLand, 'b--', label='chnl outflux')
-total_outflux = fluxMarine+fluxLand + chnlFluxMarine+chnlFluxLand
-plt.plot(yr, total_outflux, 'b-', label='total outflux')
+plt.plot(yr, distFluxMarine, 'b--', label='marine sheet outflux')
+plt.plot(yr, distFluxLand, 'b:', label='land sheet outflux')
+plt.plot(yr, chnlFluxMarine, 'c--', label='marine chnl outflux')
+plt.plot(yr, chnlFluxLand, 'c:', label='land chnl outflux')
+total_outflux = distFluxMarine + distFluxLand + chnlFluxMarine + chnlFluxLand
+plt.plot(yr, total_outflux, 'b-', lw=2, label='total outflux')
 
 plt.plot(yr, subglacialWaterMassRate, 'g-', label='dV/dt')
 
 plt.plot(yr, total_melt - total_outflux, 'k', label='I-O')
 
-plt.legend()
+plt.legend(loc='best')
 plt.xlabel('Year')
 plt.ylabel('Mass flux (kg/s)')
+
+# Plot other time-series of interest
+flotFrac = dataset.variables['avgFlotationFraction'][:]
+lakeArea = dataset.variables['totalSubglacialLakeArea'][:]
+lakeVol = dataset.variables['totalSubglacialLakeVolume'][:]
+
+fig, axes = plt.subplots(2, 2, sharex=True, layout='tight',
+                         figsize=(10, 7))
+axes = axes.flatten()
+
+ax = 0
+axes[ax].plot(yr, flotFrac)
+axes[ax].set_ylabel('Flotation fraction')
+
+ax += 1
+axes[ax].plot(yr, totalSubglacialWaterVolume)
+axes[ax].set_ylabel('Water volume (m$^3$)')
+
+ax += 1
+axes[ax].plot(yr, lakeArea)
+axes[ax].set_ylabel('Lake area (m$^2$)')
+
+ax += 1
+axes[ax].plot(yr, lakeVol)
+axes[ax].set_ylabel('Lake volume (m$^3$)')
+
+for ax in axes:
+    ax.grid(True)
+    ax.set_xlabel("Year")
+
+
 plt.show()
 
