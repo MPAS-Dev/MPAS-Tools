@@ -10,36 +10,55 @@ import numpy as np
 from matplotlib import pyplot as plt
 import argparse
 
-rhoi = 910.0
-rhosw = 1028.
+rhow = 1000.0
+secyr = 3600.0 * 24.0 * 365.0
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("-f", dest="filename", help="input filename", default="globalStats.nc", metavar="FILENAME")
+parser.add_argument("-u", dest="units", help="units for mass: kg, Gt", default="Gt", metavar="FILENAME")
 args = parser.parse_args()
+
+# Scaling assuming variables are in kg
+if args.units == "kg":
+   massUnit = "kg"
+   fluxUnit = "kg yr$^{-1}$"
+   unitScaling = 1.0
+elif args.units == "Gt":
+   massUnit = "Gt"
+   fluxUnit = "Gt yr$^{-1}$"
+   unitScaling = 1.0e-12
+else:
+   sys.exit("Unknown mass unit")
+
+print("Using mass units of: ", massUnit)
+
 
 dataset = nc.Dataset(args.filename)
 
+# Read variables
+# convert everything to kg and years before unit conversion
+totalSubglacialWaterMass = \
+    dataset.variables['totalSubglacialWaterVolume'][:] * rhow * unitScaling
+melt = dataset.variables['totalBasalMeltInput'][:] * unitScaling * secyr
+distFluxMarine = dataset.variables['totalDistWaterFluxMarineMargin'][:] * unitScaling * secyr
+chnlFluxMarine = dataset.variables['totalChnlWaterFluxMarineMargin'][:] * unitScaling * secyr
+distFluxLand = dataset.variables['totalDistWaterFluxTerrestrialMargin'][:] * unitScaling * secyr
+chnlFluxLand = dataset.variables['totalChnlWaterFluxTerrestrialMargin'][:] * unitScaling * secyr
+chnlMelt = dataset.variables['totalChannelMelt'][:] * unitScaling * secyr
+flotFrac = dataset.variables['avgFlotationFraction'][:]
+lakeArea = dataset.variables['totalSubglacialLakeArea'][:] / 1000.0**2  # km^2
+lakeMass = dataset.variables['totalSubglacialLakeVolume'][:] * rhow * unitScaling
 
-# plot mass balance time-series
-totalSubglacialWaterVolume = dataset.variables['totalSubglacialWaterVolume'][:]
-melt = dataset.variables['totalBasalMeltInput'][:]
-distFluxMarine = dataset.variables['totalDistWaterFluxMarineMargin'][:]
-chnlFluxMarine = dataset.variables['totalChnlWaterFluxMarineMargin'][:]
-distFluxLand = dataset.variables['totalDistWaterFluxTerrestrialMargin'][:]
-chnlFluxLand = dataset.variables['totalChnlWaterFluxTerrestrialMargin'][:]
-
-
-chnlMelt = dataset.variables['totalChannelMelt'][:]
-
-deltat = dataset.variables['deltat'][:]
+deltat = dataset.variables['deltat'][:] / secyr  # in years
 yr = dataset.variables['daysSinceStart'][:] / 365.0
 
 subglacialWaterMassRate = np.zeros((len(melt),))
-rhow = 1000.0
 
-for i in range(len(totalSubglacialWaterVolume) - 1):
-    subglacialWaterMassRate[i] = ((totalSubglacialWaterVolume[i+1] - totalSubglacialWaterVolume[i]) * rhow / deltat[i])
+for i in range(len(totalSubglacialWaterMass) - 1):
+    subglacialWaterMassRate[i] = ((totalSubglacialWaterMass[i+1] -
+                                   totalSubglacialWaterMass[i]) / deltat[i])
 
+# plot mass balance time-series
 fig, ax = plt.subplots(1, 1, layout='tight', figsize=(8,6))
 # input
 plt.plot(yr, melt, 'r:', label='basal melt')
@@ -61,13 +80,9 @@ plt.plot(yr, total_melt - total_outflux, 'k', label='I-O')
 
 plt.legend(loc='best')
 plt.xlabel('Year')
-plt.ylabel('Mass flux (kg/s)')
+plt.ylabel(f'Mass flux ({fluxUnit})')
 
 # Plot other time-series of interest
-flotFrac = dataset.variables['avgFlotationFraction'][:]
-lakeArea = dataset.variables['totalSubglacialLakeArea'][:]
-lakeVol = dataset.variables['totalSubglacialLakeVolume'][:]
-
 fig, axes = plt.subplots(2, 2, sharex=True, layout='tight',
                          figsize=(10, 7))
 axes = axes.flatten()
@@ -77,16 +92,16 @@ axes[ax].plot(yr, flotFrac)
 axes[ax].set_ylabel('Flotation fraction')
 
 ax += 1
-axes[ax].plot(yr, totalSubglacialWaterVolume)
-axes[ax].set_ylabel('Water volume (m$^3$)')
+axes[ax].plot(yr, totalSubglacialWaterMass)
+axes[ax].set_ylabel(f'Water mass ({massUnit})')
 
 ax += 1
 axes[ax].plot(yr, lakeArea)
-axes[ax].set_ylabel('Lake area (m$^2$)')
+axes[ax].set_ylabel('Lake area (km$^2$)')
 
 ax += 1
-axes[ax].plot(yr, lakeVol)
-axes[ax].set_ylabel('Lake volume (m$^3$)')
+axes[ax].plot(yr, lakeMass)
+axes[ax].set_ylabel(f'Lake mass ({massUnit})')
 
 for ax in axes:
     ax.grid(True)
