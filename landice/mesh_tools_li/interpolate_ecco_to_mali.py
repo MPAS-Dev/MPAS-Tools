@@ -48,12 +48,122 @@ class eccoToMaliInterp:
         for tile in self.options.tileNums:
             print(f"Processing Tile {tile}")
             o3dmBool = 0
+            gridBool = 0
             for file in ncfiles:
                 print(f"Processing File {file}")
                 paddedTile = str(tile).zfill(4)
                 print(f"Padded Tile: {paddedTile}")
                 if paddedTile in file:
                     print("Padded tile is in file")
+                    
+                    if gridBool == 0:
+                        # start processing with grid files
+                        gridFile = self.options.eccoDir + '/GRID.' + paddedTile + '.nc'
+                        grd = xr.open_dataset(gridFile)
+
+                        # identify cell centers and corners
+                        # lat/lon centers
+                        XC = grd['XC'][:].values
+                        YC = grd['YC'][:].values
+                        
+                        # lat/lon corners
+                        XG = grd['XG'][:].values
+                        YG = grd['YG'][:].values
+                        DXG = grd['DXG'][:].values
+
+                        Xse_corner = np.zeros((XC.shape))
+                        Xsw_corner = np.zeros((XC.shape))
+                        Xnw_corner = np.zeros((XC.shape))
+                        Xne_corner = np.zeros((XC.shape))
+
+                        Yse_corner = np.zeros((YC.shape))
+                        Ysw_corner = np.zeros((YC.shape))
+                        Ynw_corner = np.zeros((YC.shape))
+                        Yne_corner = np.zeros((YC.shape))
+
+                        nx,ny = XC.shape
+                        for i in np.arange(0,nx-1):
+                            for ii in np.arange(0,ny-1):
+                                Xse_corner[i,ii] = XG[i,ii]
+                                Xsw_corner[i,ii]= XG[i+1,ii]
+                                Xnw_corner[i,ii]= XG[i+1,ii+1]
+                                Xne_corner[i,ii] = XG[i,ii+1]
+
+                                Yse_corner[i,ii]= YG[i,ii]
+                                Ysw_corner[i,ii]= YG[i+1,ii]
+                                Ynw_corner[i,ii]= YG[i+1,ii+1]
+                                Yne_corner[i,ii]= YG[i,ii+1]
+                                    
+                                # Approximate corners on leftmost x edge
+                                Xse_corner[nx,ii] = XG[nx,ii]
+                                Xsw_corner[nx,ii] = DXG[nx,ii] + XG[nx,ii]
+                                Xnw_corner[nx,ii] = DXG[nx,ii+1] + XG[nx,ii+1]
+                                Xne_corner[nx,ii] = XG[nx,ii+1]
+
+                                Yse_corner[nx,ii] = YG[nx,ii]
+                                Ysw_corner[nx,ii] = YG[nx,ii]
+                                Ynw_corner[nx,ii] = YG[nx,ii+1]
+                                Yne_corner[nx,ii] = YG[nx,ii+1]
+                            
+                            # Approximate corners on uppermost y edge
+                            Xse_corner[i,ny] = XG[i,ny]
+                            Xsw_corner[i,ny] = XG[i+1,ny]
+                            Xnw_corner[i,ny] = XG[i+1,ny]
+                            Xne_corner[i,ny] = XG[i,ny]
+
+                            Yse_corner[i,ny] = YG[i,ny]
+                            Ysw_corner[i,ny] = YG[i+1,ny]
+                            Ynw_corner[i,ny] = YG[i+1,ny] + DYG[i,ny]
+                            Yne_corner[i,ny] = YG[i,ny] + DYG[i-1,ny]
+                                         
+                        #Approximate corners of uppermost/leftmost cell
+                        Xse_corner[nx,ny] = XG[nx,ny]
+                        Xsw_corner[nx,ny] = XG[nx,ny] + DXG[nx,ny]
+                        Xnw_corner[nx,ny] = XG[nx,ny] + DXG[nx,ny] 
+                        Xne_corner[nx,ny] = XG[nx,ny]
+
+                        Yse_corner[nx,ny] = YG[nx,ny] 
+                        Ysw_corner[nx,ny] = YG[nx,ny]
+                        Ynw_corner[nx,ny] = YG[nx,ny] + DYG[nx,ny]
+                        Yne_corner[nx,ny] = YG[nx,ny] + DYG[nx-1,ny]
+
+                        # concatenate and combine tiles
+                        if tIter == 0:
+                            lon = XC.flatten()
+                            lat = YC.flatten()
+                            lon_corner1 = Xse_corner.flatten()
+                            lon_corner2 = Xsw_corner.flatten()
+                            lon_corner3 = Xnw_corner.flatten()
+                            lon_corner4 = Xne_corner.flatten()
+                            lat_corner1 = Yse_corner.flatten()
+                            lat_corner2 = Ysw_corner.flatten()
+                            lat_corner3 = Ynw_corner.flatten()
+                            lat_corner4 = Yne_corner.flatten()
+                        else:
+                            ln = XC.flatten()
+                            lon = np.concatenate((lon, ln))
+                            lt = YC.flatten()
+                            lat = np.concatenate((lat,lt))
+                            lnc1 = Xse_corner.flatten()
+                            lon_corner1 = np.concatenate((lon_corner1,lnc1))
+                            lnc2 = Xsw_corner.flatten()
+                            lon_corner2 = np.concatenate((lon_corner2,lnc2))
+                            lnc3 = Xnw_corner.flatten()
+                            lon_corner3 = np.concatenate((lon_corner3,lnc3))
+                            lnc4 = Xne_corner.flatten()
+                            lon_corner4 = np.concatenate((lon_corner4,lnc4))
+                            
+                            ltc1 = Yse_corner.flatten()
+                            lat_corner1 = np.concatenate((lat_corner1,ltc1))
+                            ltc2 = Ysw_corner.flatten()
+                            lat_corner2 = np.concatenate((lat_corner2,ltc2))
+                            ltc3 = Ynw_corner.flatten()
+                            lat_corner3 = np.concatenate((lat_corner3,ltc3))
+                            ltc4 = Yne_corner.flatten()
+                            lat_corner4 = np.concatenate((lat_corner4,ltc4))
+                        
+                        gridBool = 1
+                    
                     if 'SALT' in file and 'SALT' in self.options.eccoVars:
                         validFile = self.options.eccoDir + '/SALT.' + paddedTile + '.nc'
                         ds_ecco = xr.open_dataset(validFile)
@@ -64,10 +174,12 @@ class eccoToMaliInterp:
                             
                         if tIter == 0:
                             sal = ds_ecco['SALT'][:].values
+                            # omit last row/column to be consistent with lat/lon 
                             nt,nz,nx,ny = np.shape(sal)
                             sal = sal.reshape(nz, nt, nx * ny)
                         else:
                             sl = ds_ecco['SALT'][:].values
+                            # omit last row/column to be consistent with lat/lon 
                             nt,nz,nx,ny = np.shape(sl)
                             sl = sl.reshape(nz, nt, nx * ny)
                             sal = np.concatenate((sal,sl), axis=2)
@@ -77,11 +189,13 @@ class eccoToMaliInterp:
                         # No need to call this if only interpolating SIarea
                         if tIter == 0 and o3dmBool == 0:
                             orig3dOceanMask = ds_ecco['land'].values
+                            # omit last row/column to be consistent with lat/lon 
                             nz,nx,ny = np.shape(orig3dOceanMask)
                             orig3dOceanMask = orig3dOceanMask.reshape(nz, nx * ny)
                             od3mBool = 1
                         elif tIter > 0 and o3dmBool == 0:
                             o3dm = ds_ecco['land'].values
+                            # omit last row/column to be consistent with lat/lon 
                             nz,nx,ny = np.shape(o3dm)
                             o3dm = o3dm.reshape(nz, nx * ny)
                             orig3dOceanMask = np.concatenate((orig3dOceanMask, o3dm), axis=1)
@@ -117,17 +231,18 @@ class eccoToMaliInterp:
                         # No need to call this if only interpolating SIarea
                         if tIter == 0 and o3dmBool == 0:
                             orig3dOceanMask = ds_ecco['land'].values
+                            # omit last row/column to be consistent with lat/lon 
                             nz,nx,ny = np.shape(orig3dOceanMask)
                             orig3dOceanMask = orig3dOceanMask.reshape(nz, nx * ny)
                             od3mBool = 1
-                        
                         elif tIter > 0 and o3dmBool == 0:
                             o3dm = ds_ecco['land'].values
+                            # omit last row/column to be consistent with lat/lon 
                             nz,nx,ny = np.shape(o3dm)
                             o3dm = o3dm.reshape(nz, nx * ny)
                             orig3dOceanMask = np.concatenate((orig3dOceanMask, o3dm), axis=1)
                             o3dmBool = 1
-
+                        
                         # set MALI invalid value
                         boolZ,boolXY = np.where(orig3dOceanMask == 0)
                         for iZ,iXY in zip(boolZ,boolXY):
@@ -149,8 +264,6 @@ class eccoToMaliInterp:
                             nt,nx,ny = np.shape(si)
                             si = si.reshape(nt, nx * ny)
                             sia = np.concatenate((sia,si), axis=1)
-                    else :
-                        raise ValueError(f"eccoDir: {self.options.eccoDir}, paddedTile: {paddedTile}")
 
             if ('SALT' in self.options.eccoVars and saltBool == 0):
                 raise ValueError(f"SALT netcdf file for tile {tile} not found in {self.options.eccoDir}")
@@ -160,30 +273,6 @@ class eccoToMaliInterp:
                 
             if ('SIarea' in self.options.eccoVars and siaBool == 0):
                 raise ValueError(f"SIarea netcdf file for tile {tile} not found in {self.options.eccoDir}")
-                
-                            
-            # Doesn't matter which file these come from, just that there is only one set per tile, so just use most
-            # recent valid file in each tile
-        
-            if tIter == 0:
-                if thetaBool == 1 :
-                    validFile = self.options.eccoDir + '/THETA.' + paddedTile + '.nc'
-                elif saltBool == 1 :
-                    validFile = self.options.eccoDir + '/SALT.' + paddedTile + '.nc'
-                elif siaBool == 1:
-                    validFile = self.options.eccoDir + '/SIarea.' + paddedTile + '.nc'
-                else :
-                    raise ValueError("No variable bool found")
-
-                ds_ecco = xr.open_dataset(validFile)
-                lon = ds_ecco['lon'][:].values.flatten()
-                lat = ds_ecco['lat'][:].values.flatten()
-            else:
-                ds_ecco = xr.open_dataset(validFile)
-                ln = ds_ecco['lon'][:].values.flatten()
-                lon = np.concatenate((lon, ln))
-                lt = ds_ecco['lat'][:].values.flatten()
-                lat = np.concatenate((lat,lt))
 
             tIter = tIter + 1
 
@@ -195,9 +284,11 @@ class eccoToMaliInterp:
         ds_unstruct.expand_dims(["nCells", "Time"])
         
         # Translate ECCO time to MALI xtime format as save to dataset
+        dates = []
         time = ds_ecco['tim'].values
         xtime = [pd.to_datetime(dt).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
-        
+        dates.append(xtime)
+        print(f"xtime: {np.array(xtime).astype('S64').shape}")
         DA_xtime = xr.DataArray(np.array(xtime).astype('S64'), dims=("Time"))
         DA_xtime.encoding.update({"char_dim_name":"StrLen"})
         DA_xtime.attrs['long_name'] = "model time, with format 'YYYY-MM-DD_HH:MM:SS'"
@@ -272,50 +363,71 @@ class eccoToMaliInterp:
         DA_lat.attrs['units'] = 'degree_north'
         ds_unstruct['lat'] = DA_lat
         
+        DA_lat = xr.DataArray(lat.astype('float64'), dims=("nCells"))
+        DA_lat.attrs['long_name'] = 'latitude'
+        DA_lat.attrs['standard_name'] = 'latitude'
+        DA_lat.attrs['units'] = 'degree_north'
+        ds_unstruct['lat'] = DA_lat
+        
         self.ecco_unstruct = "ecco_combined_unstructured.nc"
         ds_unstruct.to_netcdf(self.ecco_unstruct)
         ds_unstruct.close()
+        print("ECCO restructuring complete")
+        
+        print("Creating ECCO scrip file")
+        # Create scrip file for combined unstructured grid
+        grid_corner_lon = np.zeros((len(lon_corner1),4))
+        grid_corner_lat = np.zeros((len(lat_corner1),4))
+        grid_center_lon = np.zeros((len(lon),))
+        grid_center_lat = np.zeros((len(lat),))
+        grid_corner_lon[:,0] = lon_corner1
+        grid_corner_lon[:,1] = lon_corner2
+        grid_corner_lon[:,2] = lon_corner3
+        grid_corner_lon[:,3] = lon_corner4
+        grid_corner_lat[:,0] = lat_corner1
+        grid_corner_lat[:,1] = lat_corner2
+        grid_corner_lat[:,2] = lat_corner3
+        grid_corner_lat[:,3] = lat_corner4
+        grid_center_lon = lon
+        grid_center_lat = lat
+        grid_imask = np.ones((len(lon),)) # assume using all points
+        grid_dims = np.array(lon.shape)
+
+        scrip = xr.Dataset()
+        scrip['grid_corner_lon'] = xr.DataArray(grid_corner_lon.astype('float64'),
+                                                dims=('grid_size','grid_corners'),
+                                                attrs={'units':'degrees'})
+        scrip['grid_corner_lat'] = xr.DataArray(grid_corner_lat.astype('float64'),
+                                                dims=('grid_size','grid_corners'),
+                                                attrs={'units':'degrees'})
+        scrip['grid_center_lon'] = xr.DataArray(grid_center_lon.astype('float64'),
+                                                dims=('grid_size'),
+                                                attrs={'units':'degrees'})
+        scrip['grid_center_lat'] = xr.DataArray(grid_center_lat.astype('float64'),
+                                                dims=('grid_size'),
+                                                attrs={'units':'degrees'})
+        scrip['grid_imask'] = xr.DataArray(grid_imask.astype('int32'),
+                                                dims=('grid_size'),
+                                                attrs={'units':'unitless'})
+        scrip['grid_dims'] = xr.DataArray(grid_dims,
+                                                dims=('grid_rank'),
+                                                attrs={'units':'unitless'})
+        self.ecco_scripfile = 'ecco_combined_unstructured.scrip.nc'
+        scrip.to_netcdf(self.ecco_scripfile)
+        scrip.close()
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.ecco_scripfile])
+        print("ECCO scrip file complete")
 
     def remap_ecco_to_mali(self):
-
-        print("Creating Scrip Files")
-        ecco_scripfile = "tmp_ecco_scrip.nc"
-        mali_scripfile = "tmp_mali_scrip.nc"
-        ecco_unstruct = self.ecco_unstruct
-        file, ext = os.path.splitext(ecco_unstruct)
-        ecco_unstruct_xy = file + '.tmp' + ext
-
-        #convert ecco mesh to polar stereographic
-        EM = xr.open_dataset(ecco_unstruct)
-        lon = EM['lon'].values
-        lat = EM['lat'].values
-        #use gis-gimp projection, defined in mpas_tools.landice.projections
-        proj_string = (
-        "+proj=stere +lat_ts=70.0 +lat_0=90 +lon_0=315.0 "
-        "+k_0=1.0 +x_0=0.0 +y_0=0.0 +ellps=WGS84"
-        )
-        transformer = Transformer.from_crs("EPSG:4326", proj_string, always_xy=True)
-        x,y = transformer.transform(lon,lat)
-        
-        EM['x'] = xr.DataArray(x,dims=("nCells"))
-        EM['y'] = xr.DataArray(y,dims=("nCells"))
-        EM.to_netcdf(ecco_unstruct_xy)
-        EM.close()
-
-        args = ['create_scrip_file_from_planar_rectangular_grid',
-            '-i', ecco_unstruct_xy,
-            '-s', ecco_scripfile,
-            '-p', 'gis-gimp',
-            '-r', '1']
-        check_call(args)
-        
+        print("Creating MALI scrip file")
+        mali_scripfile = "mali.scrip.nc"
         scrip_from_mpas(self.options.maliMesh, mali_scripfile)
 
         #create mapping file
         print("Creating Mapping File")
         args = ['srun',
                 '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
-                '--source', ecco_scripfile,
+                '--source', self.ecco_scripfile,
                 '--destination', mali_scripfile,
                 '--weight', self.mapping_file_name,
                 '--method', self.options.method,
@@ -326,14 +438,14 @@ class eccoToMaliInterp:
         #remap
         print("Start remapping ... ")
 
-        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", ecco_unstruct])
-        subprocess.run(["ncpdq", "-O", "-a", "Time,nISMIP6OceanLayers,nCells", ecco_unstruct, ecco_unstruct])
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.ecco_unstruct])
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nISMIP6OceanLayers,nCells", self.ecco_unstruct, self.ecco_unstruct])
 
         print("ncremap ...")
         st = time.time()
         # remap the input data
         args_remap = ["ncremap",
-                "-i", ecco_unstruct_xy,
+                "-i", self.ecco_unstruct,
                 "-o", self.options.outputFile,
                 "-m", self.mapping_file_name]
         check_call(args_remap)
@@ -347,7 +459,7 @@ class eccoToMaliInterp:
         # Transfer MALI mesh variables if needed
         if self.options.includeMeshVars:
             ds_mali = xr.open_dataset(self.options.maliMesh, decode_times=False, decode_cf=False)
-            ds_out = xr.open_dataset(self.options.outputFile, decode_times=False, decode_cf=False)
+            ds_out = xr.open_dataset(self.options.outputFile, decode_times=False, decode_cf=False, mode='r+')
             ds_out['angleEdge'] = ds_mali['angleEdge']
             ds_out['areaCell'] = ds_mali['areaCell']
             ds_out['areaTriangle'] = ds_mali['areaTriangle']
@@ -384,9 +496,11 @@ class eccoToMaliInterp:
             ds_out['zCell'] = ds_mali['zCell']
             ds_out['zEdge'] = ds_mali['zEdge']
             ds_out['zVertex'] = ds_mali['zVertex']
-            ds_out.to_netcdf(self.options.outputFile, mode='w')
+            outFileWithMeshVars = self.options.outputFile[0:-3] + '.withMeshVars.nc' 
+            ds_out.to_netcdf(outFileWithMeshVars)
             ds_out.close()
             ds_mali.close()
+            subprocess.run(["ncatted", "-a", "_FillValue,,d,,", outFileWithMeshVars])
         
 def main():
         run = eccoToMaliInterp()
