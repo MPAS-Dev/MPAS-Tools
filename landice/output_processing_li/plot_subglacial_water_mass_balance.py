@@ -48,6 +48,7 @@ chnlMelt = dataset.variables['totalChannelMelt'][:] * unitScaling * secyr
 flotFrac = dataset.variables['avgFlotationFraction'][:]
 lakeArea = dataset.variables['totalSubglacialLakeArea'][:] / 1000.0**2  # km^2
 lakeMass = dataset.variables['totalSubglacialLakeVolume'][:] * rhow * unitScaling
+grdArea = dataset.variables['groundedIceArea'][:] / 1000.0**2  # km^2
 
 deltat = dataset.variables['deltat'][:] / secyr  # in years
 yr = dataset.variables['daysSinceStart'][:] / 365.0
@@ -74,7 +75,7 @@ plt.plot(yr, chnlFluxLand, 'c:', label='land chnl outflux')
 total_outflux = distFluxMarine + distFluxLand + chnlFluxMarine + chnlFluxLand
 plt.plot(yr, total_outflux, 'b-', lw=2, label='total outflux')
 
-plt.plot(yr, subglacialWaterMassRate, 'g-', label='dV/dt')
+plt.plot(yr[1:-1], subglacialWaterMassRate[1:-1], 'g-', label='dV/dt')
 
 plt.plot(yr, total_melt - total_outflux, 'k', label='I-O')
 
@@ -98,6 +99,11 @@ axes[ax].set_ylabel(f'Water mass ({massUnit})')
 ax += 1
 axes[ax].plot(yr, lakeArea)
 axes[ax].set_ylabel('Lake area (km$^2$)')
+# second axis for % area
+ax2 = axes[ax].twinx()
+ax2.plot(yr, lakeArea / grdArea, ':', color="blue")
+ax2.set_ylabel("Lake area percentage", color="blue")
+ax2.tick_params(axis="y", colors="blue")
 
 ax += 1
 axes[ax].plot(yr, lakeMass)
