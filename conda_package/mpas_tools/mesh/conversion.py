@@ -249,8 +249,6 @@ def _masks_to_int(dsIn):
     dsOut = xr.Dataset(dsIn, attrs=dsIn.attrs)
     for var in var_list:
         if var in dsIn:
-            print(var)
             dsOut[var] = dsIn[var].astype(np.int32)
-            print(dsOut[var].dtype)
 
     return dsOut
