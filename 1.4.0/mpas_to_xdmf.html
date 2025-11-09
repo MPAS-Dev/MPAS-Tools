@@ -1,0 +1,404 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MPAS to XDMF Converter &mdash; mpas_tools 1.4.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=9172181d"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="ParaView VTK Extractor" href="paraview_extractor.html" />
+    <link rel="prev" title="Visualization" href="visualization.html" />
+    <link href="_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="io.html">I/O Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="vector.html">Vector Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Visualization</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="visualization.html">Visualization</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">MPAS to XDMF Converter</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#usage">Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#command-line-arguments">Command-Line Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#command-line-examples">Command-Line Examples</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#python-examples">Python Examples</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#input-and-output">Input and Output</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#input-files">Input Files</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#output-files">Output Files</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#opening-files-in-paraview">Opening Files in ParaView</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="paraview_extractor.html">ParaView VTK Extractor</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/streamfunction.html">Computing streamfunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="releasing.html">Releasing a New Version</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="authors.html#contributors">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">MPAS to XDMF Converter</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mpas_to_xdmf.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mpas-to-xdmf-converter">
+<span id="mpas-to-xdmf"></span><h1>MPAS to XDMF Converter<a class="headerlink" href="#mpas-to-xdmf-converter" title="Link to this heading"></a></h1>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>For the Python API, see
+<a class="reference internal" href="generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.html#mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf" title="mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf</span></code></a>.</p>
+</div>
+<p>The MPAS to XDMF Converter is a tool designed to convert MPAS output files into
+XDMF + HDF5 format for visualization in tools like ParaView. This converter
+simplifies the process of working with MPAS data by providing a format that is
+more compatible with common visualization software.</p>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The MPAS to XDMF Converter allows users to transform MPAS NetCDF files into
+XDMF + HDF5 format, which is widely supported by visualization tools like
+ParaView. The tool supports slicing along extra dimensions, combining mesh and
+time series data, and selecting specific variables for conversion.</p>
+</section>
+<section id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h2>
+<p>The converter can be used via its command-line interface <code class="docutils literal notranslate"><span class="pre">mpas_to_xdmf</span></code> or as
+a Python library.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<dl class="simple">
+<dt>Special variable keys:</dt><dd><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">allOnCells</span></code>: all variables with dimension <code class="docutils literal notranslate"><span class="pre">nCells</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allOnEdges</span></code>: all variables with dimension <code class="docutils literal notranslate"><span class="pre">nEdges</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">allOnVertices</span></code>: all variables with dimension <code class="docutils literal notranslate"><span class="pre">nVertices</span></code></p></li>
+</ul>
+</dd>
+</dl>
+<p>Extra dimensions (e.g., <code class="docutils literal notranslate"><span class="pre">nVertLevels</span></code>) can be sliced using the <code class="docutils literal notranslate"><span class="pre">-d</span></code>
+CLI option or the <code class="docutils literal notranslate"><span class="pre">extra_dims</span></code> argument in Python.</p>
+</div>
+<section id="command-line-arguments">
+<h3>Command-Line Arguments<a class="headerlink" href="#command-line-arguments" title="Link to this heading"></a></h3>
+<p>The following arguments are supported:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-m,</span> <span class="pre">--mesh</span></code>: Path to the MPAS mesh file (required).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-t,</span> <span class="pre">--time-series</span></code>: Wildcard or list of time series files (optional).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-v,</span> <span class="pre">--variables</span></code>: List of variables to convert. Special keys include:
+- <code class="docutils literal notranslate"><span class="pre">allOnCells</span></code>: Variables with dimension <code class="docutils literal notranslate"><span class="pre">nCells</span></code>.
+- <code class="docutils literal notranslate"><span class="pre">allOnEdges</span></code>: Variables with dimension <code class="docutils literal notranslate"><span class="pre">nEdges</span></code>.
+- <code class="docutils literal notranslate"><span class="pre">allOnVertices</span></code>: Variables with dimension <code class="docutils literal notranslate"><span class="pre">nVertices</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-o,</span> <span class="pre">--output-dir</span></code>: Directory to save XDMF files (required).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-x,</span> <span class="pre">--xtime</span></code>: Name of the variable containing time information (optional).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-d,</span> <span class="pre">--dim-list</span></code>: List of dimensions and indices to slice (e.g.,
+<code class="docutils literal notranslate"><span class="pre">nVertLevels=0:10:2</span></code>).</p></li>
+</ul>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
+<section id="command-line-examples">
+<h4>Command-Line Examples<a class="headerlink" href="#command-line-examples" title="Link to this heading"></a></h4>
+<p>Convert a mesh file and time series files, selecting specific variables:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpas_to_xdmf<span class="w"> </span>-m<span class="w"> </span>mesh.nc<span class="w"> </span>-t<span class="w"> </span>time_series.*.nc<span class="w"> </span>-v<span class="w"> </span>temperature,salinity<span class="w"> </span>-o<span class="w"> </span>output_dir
+</pre></div>
+</div>
+<p>Convert all variables on cells, slicing along <code class="docutils literal notranslate"><span class="pre">nVertLevels</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>mpas_to_xdmf<span class="w"> </span>-m<span class="w"> </span>mesh.nc<span class="w"> </span>-t<span class="w"> </span>time_series.*.nc<span class="w"> </span>-v<span class="w"> </span>allOnCells<span class="w"> </span>-o<span class="w"> </span>output_dir<span class="w"> </span>-d<span class="w"> </span><span class="nv">nVertLevels</span><span class="o">=</span><span class="m">0</span>:5
+</pre></div>
+</div>
+</section>
+<section id="python-examples">
+<h4>Python Examples<a class="headerlink" href="#python-examples" title="Link to this heading"></a></h4>
+<p>Use the package programmatically to load data and convert it to XDMF:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf</span><span class="w"> </span><span class="kn">import</span> <span class="n">MpasToXdmf</span>
+
+<span class="c1"># Initialize the converter</span>
+<span class="n">converter</span> <span class="o">=</span> <span class="n">MpasToXdmf</span><span class="p">()</span>
+
+<span class="c1"># Load the mesh and time series files</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="n">mesh_filename</span><span class="o">=</span><span class="s2">&quot;mesh.nc&quot;</span><span class="p">,</span>
+    <span class="n">time_series_filenames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time_series.0001.nc&quot;</span><span class="p">,</span> <span class="s2">&quot;time_series.0002.nc&quot;</span><span class="p">],</span>
+    <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">,</span> <span class="s2">&quot;salinity&quot;</span><span class="p">],</span>
+    <span class="n">xtime_var</span><span class="o">=</span><span class="s2">&quot;xtime&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Convert to XDMF format</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">convert_to_xdmf</span><span class="p">(</span><span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;output_dir&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Slice along extra dimensions and convert:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf</span><span class="w"> </span><span class="kn">import</span> <span class="n">MpasToXdmf</span>
+
+<span class="c1"># Initialize the converter</span>
+<span class="n">converter</span> <span class="o">=</span> <span class="n">MpasToXdmf</span><span class="p">()</span>
+
+<span class="c1"># Load the mesh and time series files</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="n">mesh_filename</span><span class="o">=</span><span class="s2">&quot;mesh.nc&quot;</span><span class="p">,</span>
+    <span class="n">time_series_filenames</span><span class="o">=</span><span class="s2">&quot;time_series.*.nc&quot;</span><span class="p">,</span>
+    <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;allOnCells&quot;</span><span class="p">],</span>
+    <span class="n">xtime_var</span><span class="o">=</span><span class="s2">&quot;xtime&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># Define extra dimensions to slice</span>
+<span class="n">extra_dims</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;nVertLevels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]}</span>
+
+<span class="c1"># Convert to XDMF format with slicing</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">convert_to_xdmf</span><span class="p">(</span><span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;output_dir&quot;</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+<section id="input-and-output">
+<h2>Input and Output<a class="headerlink" href="#input-and-output" title="Link to this heading"></a></h2>
+<p>The tool supports the following input and output formats:</p>
+<section id="input-files">
+<h3>Input Files<a class="headerlink" href="#input-files" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>Mesh File</strong>: A NetCDF file containing the MPAS mesh (e.g., <code class="docutils literal notranslate"><span class="pre">mesh.nc</span></code>).
+This file is also used for the variables to extract if alternate data files
+(e.g. a time series) are not provided.</p></li>
+<li><p><strong>Time Series Files</strong>: Optional NetCDF file(s) containing the data to be
+extracted, often a time series (e.g., <code class="docutils literal notranslate"><span class="pre">time_series.*.nc</span></code>).</p></li>
+</ul>
+</section>
+<section id="output-files">
+<h3>Output Files<a class="headerlink" href="#output-files" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><strong>XDMF Files</strong>: Metadata files describing the structure of the data.</p></li>
+<li><p><strong>HDF5 Files</strong>: Binary files containing the actual data.</p></li>
+</ul>
+<p>The output files are saved in the specified directory, with separate files
+for cell-centered, edge-centered, and vertex-centered data.</p>
+</section>
+</section>
+<section id="features">
+<h2>Features<a class="headerlink" href="#features" title="Link to this heading"></a></h2>
+<p>The MPAS to XDMF Converter includes several basic features:</p>
+<ul class="simple">
+<li><p><strong>Slicing Extra Dimensions</strong>: Users can slice along extra dimensions (e.g.,
+<code class="docutils literal notranslate"><span class="pre">nVertLevels</span></code>) by specifying indices or ranges.</p></li>
+<li><p><strong>Combining Mesh and Time Series Data</strong>: The tool will merge mesh and time
+series files into a single dataset for conversion.</p></li>
+<li><p><strong>Selective Variable Conversion</strong>: Users can choose specific variables or
+groups of variables (e.g., <code class="docutils literal notranslate"><span class="pre">allOnCells</span></code>) for conversion.</p></li>
+</ul>
+</section>
+<section id="opening-files-in-paraview">
+<h2>Opening Files in ParaView<a class="headerlink" href="#opening-files-in-paraview" title="Link to this heading"></a></h2>
+<p>Once the conversion is complete, you can open the generated XDMF files in
+ParaView for visualization. Follow these steps:</p>
+<ol class="arabic">
+<li><p><strong>Open the XDMF File</strong>: In ParaView, open the <code class="docutils literal notranslate"><span class="pre">.xdmf</span></code> file, not the
+<code class="docutils literal notranslate"><span class="pre">.h5</span></code> file. The <code class="docutils literal notranslate"><span class="pre">.xdmf</span></code> file contains the metadata that links to the
+data stored in the <code class="docutils literal notranslate"><span class="pre">.h5</span></code> file.</p></li>
+<li><p><strong>Choose the Correct Reader</strong>: When opening the <code class="docutils literal notranslate"><span class="pre">.xdmf</span></code> file, ParaView
+will prompt you to select one of three readers:</p>
+<ul class="simple">
+<li><p><strong>Xdmf3 Reader S</strong>: This reader is optimized for static datasets without
+time information. It is not suitable for time-varying MPAS data.</p></li>
+<li><p><strong>Xdmf3 Reader T</strong>: This reader is designed for time-varying datasets and
+is the preferred choice for MPAS data converted with this tool.</p></li>
+<li><p><strong>XDMF Reader</strong>: This is an older reader that may not fully support modern
+XDMF features and should generally be avoided.</p></li>
+</ul>
+<p><strong>Recommendation</strong>: Always select the <strong>Xdmf3 Reader T</strong> when prompted.
+This ensures that time-varying data is handled correctly, allowing you to
+explore the temporal evolution of your dataset in ParaView.</p>
+</li>
+<li><p><strong>Select Fields to Import</strong>: After choosing the reader, ParaView will
+display a list of fields available for import. Uncheck any fields you do
+not wish to view, then click the <strong>Apply</strong> button to load the selected
+fields.</p></li>
+<li><p><strong>Visualize the Data</strong>: After selecting the correct reader and fields, the
+dataset will load into ParaView. You can then use ParaView’s tools to
+visualize and analyze the data.</p></li>
+</ol>
+<p>By following these steps, you can ensure that your MPAS data is correctly
+interpreted and visualized in ParaView.</p>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<p>Here are some common issues and solutions:</p>
+<ul class="simple">
+<li><p><strong>Problem</strong>: The converted files do not open in ParaView.
+<strong>Solution</strong>: Ensure you are opening the <code class="docutils literal notranslate"><span class="pre">.xdmf</span></code> file and not the <code class="docutils literal notranslate"><span class="pre">.h5</span></code>
+file. Also, check that you have selected the correct reader (preferably
+<strong>Xdmf3 Reader T</strong>).</p></li>
+<li><p><strong>Problem</strong>: Time series data does not appear in ParaView.
+<strong>Solution</strong>: Make sure you have used the correct variable for time
+(<code class="docutils literal notranslate"><span class="pre">xtime</span></code> by default) and that your time series files are correctly
+specified.  Also, check that you have selected the correct reader (
+<strong>Xdmf3 Reader T</strong>, not <strong>Xdmf3 Reader S</strong>).</p></li>
+<li><p><strong>Problem</strong>: Slicing does not seem to work.
+<strong>Solution</strong>: Verify the syntax of your dimension slicing in the <code class="docutils literal notranslate"><span class="pre">-d</span></code>
+option or <code class="docutils literal notranslate"><span class="pre">extra_dims</span></code> argument. Ensure the dimensions you are trying to
+slice exist in your data.</p></li>
+</ul>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.paraview.org/documentation/">ParaView Documentation</a></p></li>
+<li><p><a class="reference external" href="https://xdmf.org/index.php/Main_Page">XDMF Format Specification</a></p></li>
+<li><p><a class="reference external" href="https://docs.xarray.dev/">xarray Documentation</a></p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="visualization.html" class="btn btn-neutral float-left" title="Visualization" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="paraview_extractor.html" class="btn btn-neutral float-right" title="ParaView VTK Extractor" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <!-- Meta tags for JS to use -->
+  <meta name="doc-version" content="1.4.0">
+  <meta name="doc-site-root" content="./">
+
+  <!-- Create version switcher container -->
+  <script>
+    const sidebar = document.querySelector('.wy-side-nav-search');
+    if (sidebar) {
+      const versionDiv = document.createElement('div');
+      versionDiv.id = 'version-switcher';
+      versionDiv.style.marginTop = '1em';
+      sidebar.appendChild(versionDiv);
+    }
+  </script>
+
+  <!-- Load version-switcher.js using the correct relative path -->
+  <script src="../shared/version-switcher.js"></script>
+
+
+</body>
+</html>

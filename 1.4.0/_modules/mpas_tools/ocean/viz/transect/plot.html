@@ -1,0 +1,827 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mpas_tools.ocean.viz.transect.plot &mdash; mpas_tools 1.4.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../../../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../../../_static/documentation_options.js?v=9172181d"></script>
+      <script src="../../../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../../search.html" />
+    <link href="../../../../../_static/style.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../../index.html" class="icon icon-home">
+            mpas_tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">User's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../quick_start.html">Quick Start</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../mesh_creation.html">Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../mesh_conversion.html">Mesh Conversion</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../interpolation.html">Interpolation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../cime.html">CIME Constants</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../config.html">Config files</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../io.html">I/O Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../logging.html">Logging</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../transects.html">Transects</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../vector.html">Vector Operations</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Visualization</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../visualization.html">Visualization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../mpas_to_xdmf.html">MPAS to XDMF Converter</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../paraview_extractor.html">ParaView VTK Extractor</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Landice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../landice/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Ocean Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ocean/mesh_creation.html">Ocean Mesh Creation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ocean/coastal_tools.html">Coastal Tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ocean/coastline_alteration.html">Coastline Alteration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ocean/moc.html">Meridional Overturning Circulation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ocean/depth.html">Adding a Depth Coordinate</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ocean/streamfunction.html">Computing streamfunctions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../ocean/visualization.html">Visualization</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Sea-ice Tools</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../seaice/mask.html">Mask</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../seaice/mesh.html">Mesh</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../seaice/partition.html">Graph partitioning</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../seaice/regions.html">Region masks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../seaice/regrid.html">Regrid</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Developer's Guide</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../making_changes.html">Making Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../testing_changes.html">Testing Changes to mpas_tools</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../building_docs.html">Building the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../building_docs.html#previewing-the-documentation">Previewing the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../releasing.html">Releasing a New Version</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../api.html">API reference</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Authors</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../authors.html">Main Authors</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../../authors.html#contributors">Contributors</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../../index.html">mpas_tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">mpas_tools.ocean.viz.transect.plot</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for mpas_tools.ocean.viz.transect.plot</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">cmocean</span>  <span class="c1"># noqa: F401</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features</span><span class="w"> </span><span class="kn">import</span> <span class="n">FeatureCollection</span><span class="p">,</span> <span class="n">read_feature_collection</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.viz.inset</span><span class="w"> </span><span class="kn">import</span> <span class="n">add_inset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.ocean.viz.transect.vert</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">compute_transect</span><span class="p">,</span>
+    <span class="n">interp_mpas_to_transect_cells</span><span class="p">,</span>
+    <span class="n">interp_mpas_to_transect_nodes</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.colormaps</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_sci_viz_colormaps</span>
+
+
+<div class="viewcode-block" id="plot_transect">
+<a class="viewcode-back" href="../../../../../generated/mpas_tools.ocean.viz.transect.plot_transect.html#mpas_tools.ocean.viz.transect.plot_transect">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_transect</span><span class="p">(</span>
+    <span class="n">ds_transect</span><span class="p">,</span>
+    <span class="n">mpas_field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">out_filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">title</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">colorbar_label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">),</span>
+    <span class="n">dpi</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span>
+    <span class="n">outline_color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span>
+    <span class="n">ssh_color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">seafloor_color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">interface_color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cell_boundary_color</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">color_start_and_end</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">start_color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span>
+    <span class="n">end_color</span><span class="o">=</span><span class="s1">&#39;green&#39;</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    plot a transect showing the field on the MPAS-Ocean mesh and save to a file</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    ds_transect : xarray.Dataset</span>
+<span class="sd">        A transect dataset from</span>
+<span class="sd">        :py:func:`mpas_tools.ocean.viz.transect.vert.compute_transect()`</span>
+
+<span class="sd">    mpas_field : xarray.DataArray</span>
+<span class="sd">        The MPAS-Ocean 3D field to plot</span>
+
+<span class="sd">    out_filename : str, optional</span>
+<span class="sd">        The png file to write out to</span>
+
+<span class="sd">    ax : matplotlib.axes.Axes</span>
+<span class="sd">        Axes to plot to if making a multi-panel figure</span>
+
+<span class="sd">    title : str</span>
+<span class="sd">        The title of the plot</span>
+
+<span class="sd">    vmin : float, optional</span>
+<span class="sd">        The minimum values for the colorbar</span>
+
+<span class="sd">    vmax : float, optional</span>
+<span class="sd">        The maximum values for the colorbar</span>
+
+<span class="sd">    colorbar_label : str, optional</span>
+<span class="sd">        The colorbar label, or ``None`` if no colorbar is to be included.</span>
+<span class="sd">        Use an empty string to display a colorbar without a label.</span>
+
+<span class="sd">    cmap : str, optional</span>
+<span class="sd">        The name of a colormap to use</span>
+
+<span class="sd">    figsize : tuple, optional</span>
+<span class="sd">        The size of the figure in inches</span>
+
+<span class="sd">    dpi : int, optional</span>
+<span class="sd">        The dots per inch of the image</span>
+
+<span class="sd">    method : {&#39;flat&#39;, &#39;bilinear&#39;}, optional</span>
+<span class="sd">        The type of interpolation to use in plots.  ``flat`` means constant</span>
+<span class="sd">        values over each MPAS cell.  ``bilinear`` means smooth interpolation</span>
+<span class="sd">        between horizontally between cell centers and vertical between the</span>
+<span class="sd">        middle of layers.</span>
+
+<span class="sd">    outline_color : str or None, optional</span>
+<span class="sd">        The color to use to outline the transect or ``None`` for no outline</span>
+
+<span class="sd">    ssh_color : str or None, optional</span>
+<span class="sd">        The color to use to plot the SSH (sea surface height) or ``None`` if</span>
+<span class="sd">        not plotting the SSH (except perhaps as part of the outline)</span>
+
+<span class="sd">    seafloor_color : str or None, optional</span>
+<span class="sd">        The color to use to plot the seafloor depth or ``None`` if not plotting</span>
+<span class="sd">        the seafloor depth (except perhaps as part of the outline)</span>
+
+<span class="sd">    interface_color : str or None, optional</span>
+<span class="sd">        The color to use to plot interfaces between layers or ``None`` if</span>
+<span class="sd">        not plotting the layer interfaces</span>
+
+<span class="sd">    cell_boundary_color : str or None, optional</span>
+<span class="sd">        The color to use to plot vertical boundaries between cells or ``None``</span>
+<span class="sd">        if not plotting cell boundaries.  Typically, ``cell_boundary_color``</span>
+<span class="sd">        will be used along with ``interface_color`` to outline cells both</span>
+<span class="sd">        horizontally and vertically.</span>
+
+<span class="sd">    linewidth : float, optional</span>
+<span class="sd">        The width of outlines, interfaces and cell boundaries</span>
+
+<span class="sd">    color_start_and_end : bool, optional</span>
+<span class="sd">        Whether to color the left and right axes of the transect, which is</span>
+<span class="sd">        useful if the transect is also being plotted in an inset or on top of</span>
+<span class="sd">        a horizontal field</span>
+
+<span class="sd">    start_color : str, optional</span>
+<span class="sd">        The color of left axis marking the start of the transect if</span>
+<span class="sd">        ``plot_start_end == True``</span>
+
+<span class="sd">    end_color : str, optional</span>
+<span class="sd">        The color of right axis marking the end of the transect if</span>
+<span class="sd">        ``plot_start_end == True``</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">out_filename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;One of ax or out_filename must be supplied&#39;</span><span class="p">)</span>
+
+    <span class="n">create_fig</span> <span class="o">=</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">create_fig</span><span class="p">:</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="n">figsize</span><span class="p">)</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">)</span>
+
+    <span class="n">z</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">zTransectNode</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">dNode</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">mpas_field</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;flat&#39;</span><span class="p">:</span>
+            <span class="n">transect_field</span> <span class="o">=</span> <span class="n">interp_mpas_to_transect_cells</span><span class="p">(</span>
+                <span class="n">ds_transect</span><span class="p">,</span> <span class="n">mpas_field</span>
+            <span class="p">)</span>
+            <span class="n">shading</span> <span class="o">=</span> <span class="s1">&#39;flat&#39;</span>
+        <span class="k">elif</span> <span class="n">method</span> <span class="o">==</span> <span class="s1">&#39;bilinear&#39;</span><span class="p">:</span>
+            <span class="n">transect_field</span> <span class="o">=</span> <span class="n">interp_mpas_to_transect_nodes</span><span class="p">(</span>
+                <span class="n">ds_transect</span><span class="p">,</span> <span class="n">mpas_field</span>
+            <span class="p">)</span>
+            <span class="n">shading</span> <span class="o">=</span> <span class="s1">&#39;gouraud&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unsupported method: </span><span class="si">{</span><span class="n">method</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+
+        <span class="n">pc</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">pcolormesh</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">z</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">transect_field</span><span class="o">.</span><span class="n">values</span><span class="p">,</span>
+            <span class="n">shading</span><span class="o">=</span><span class="n">shading</span><span class="p">,</span>
+            <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+            <span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span>
+            <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span>
+            <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">autoscale</span><span class="p">(</span><span class="n">tight</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">colorbar_label</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span>
+                <span class="n">pc</span><span class="p">,</span> <span class="n">extend</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">shrink</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">colorbar_label</span>
+            <span class="p">)</span>
+
+    <span class="n">_plot_interfaces</span><span class="p">(</span>
+        <span class="n">ds_transect</span><span class="p">,</span>
+        <span class="n">ax</span><span class="p">,</span>
+        <span class="n">interface_color</span><span class="p">,</span>
+        <span class="n">cell_boundary_color</span><span class="p">,</span>
+        <span class="n">ssh_color</span><span class="p">,</span>
+        <span class="n">seafloor_color</span><span class="p">,</span>
+        <span class="n">color_start_and_end</span><span class="p">,</span>
+        <span class="n">start_color</span><span class="p">,</span>
+        <span class="n">end_color</span><span class="p">,</span>
+        <span class="n">linewidth</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">_plot_outline</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">validCells</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">outline_color</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;transect distance (km)&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;z (m)&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">create_fig</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">title</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">out_filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="n">dpi</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">,</span> <span class="n">pad_inches</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="plot_feature_transects">
+<a class="viewcode-back" href="../../../../../generated/mpas_tools.ocean.viz.transect.plot_feature_transects.html#mpas_tools.ocean.viz.transect.plot_feature_transects">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_feature_transects</span><span class="p">(</span>
+    <span class="n">fc</span><span class="p">,</span>
+    <span class="n">ds</span><span class="p">,</span>
+    <span class="n">ds_mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">flip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">write_netcdf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">method</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span>
+    <span class="n">add_z</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot images of the given variables on the given transects.  One image</span>
+<span class="sd">    named ``&lt;transect_name&gt;_&lt;variable_name&gt;.png`` will be produced in the</span>
+<span class="sd">    current directory for each transect and variable</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    fc : geometric_features.FeatureCollection</span>
+<span class="sd">        The transects to plot</span>
+
+<span class="sd">    ds : xarray.Dataset</span>
+<span class="sd">        The MPAS-Ocean dataset to plot</span>
+
+<span class="sd">    ds_mesh : xarray.Dataset, optional</span>
+<span class="sd">        The MPAS-Ocean mesh to use for plotting, the same as ``ds`` by default</span>
+
+<span class="sd">    variable_list : list of str, optional</span>
+<span class="sd">        The variables to plot</span>
+
+<span class="sd">    cmap : str, optional</span>
+<span class="sd">        The name of a colormap to use</span>
+
+<span class="sd">    flip : book, optional</span>
+<span class="sd">        Whether to flip the x axes of all transect plot</span>
+
+<span class="sd">    write_netcdf : bool, optional</span>
+<span class="sd">        Whether to write a NetCDF file for the transect in addition to the</span>
+<span class="sd">        image</span>
+
+<span class="sd">    method : {&#39;flat&#39;, &#39;bilinear&#39;}, optional</span>
+<span class="sd">        The type of interpolation to use in plots.  ``flat`` means constant</span>
+<span class="sd">        values over each MPAS cell.  ``bilinear`` means smooth interpolation</span>
+<span class="sd">        between horizontally between cell centers and vertical between the</span>
+<span class="sd">        middle of layers.</span>
+
+<span class="sd">    add_z : bool, optional</span>
+<span class="sd">        Whether to add zMid and zInterface to the mesh dataset</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">ds_mesh</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">add_z</span><span class="p">:</span>
+        <span class="n">_add_z</span><span class="p">(</span><span class="n">ds_mesh</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Building transect geometry...&#39;</span><span class="p">)</span>
+    <span class="n">transects</span> <span class="o">=</span> <span class="n">_compute_feature_transects</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">flip</span><span class="p">)</span>
+
+    <span class="n">fc_transects</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">transect</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+        <span class="n">transect_name</span> <span class="o">=</span> <span class="n">transect</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="n">fc_transects</span><span class="p">[</span><span class="n">transect_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">FeatureCollection</span><span class="p">(</span><span class="n">features</span><span class="o">=</span><span class="p">[</span><span class="n">transect</span><span class="p">])</span>
+
+    <span class="n">register_sci_viz_colormaps</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">variable_list</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">variable_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">data_vars</span><span class="p">:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;nCells&#39;</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="p">(</span>
+                <span class="s1">&#39;nVertLevels&#39;</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span> <span class="ow">or</span> <span class="s1">&#39;nVertLevelsP1&#39;</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span>
+            <span class="p">):</span>
+                <span class="n">variable_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var_name</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Plotting...&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">variable_list</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">ds</span><span class="p">:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">var_name</span> <span class="ow">in</span> <span class="n">ds_mesh</span><span class="p">:</span>
+            <span class="n">var</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="p">[</span><span class="n">var_name</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s1"> not found in either the main or the &#39;</span>
+                <span class="sa">f</span><span class="s1">&#39;mesh dataset (if any)&#39;</span>
+            <span class="p">)</span>
+        <span class="k">assert</span> <span class="s1">&#39;nCells&#39;</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="p">(</span>
+            <span class="s1">&#39;nVertLevels&#39;</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span> <span class="ow">or</span> <span class="s1">&#39;nVertLevelsP1&#39;</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span>
+        <span class="p">)</span>
+        <span class="k">for</span> <span class="n">transect_name</span><span class="p">,</span> <span class="n">ds_transect</span> <span class="ow">in</span> <span class="n">transects</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">transect_name</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">_plot_feature_transect</span><span class="p">(</span>
+                <span class="n">ds_transect</span><span class="p">,</span>
+                <span class="n">var</span><span class="p">,</span>
+                <span class="n">var_name</span><span class="p">,</span>
+                <span class="n">transect_name</span><span class="p">,</span>
+                <span class="n">cmap</span><span class="p">,</span>
+                <span class="n">fc_transects</span><span class="p">[</span><span class="n">transect_name</span><span class="p">],</span>
+                <span class="n">write_netcdf</span><span class="p">,</span>
+                <span class="n">method</span><span class="p">,</span>
+            <span class="p">)</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_feature_transects_main</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
+        <span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span> <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-g&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--geojson&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;geojson_filename&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A geojson file with transects to plot&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-m&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--mesh&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;mesh_filename&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An MPAS-Ocean mesh file.  If not specified, the &#39;</span>
+        <span class="s1">&#39;MPAS-Ocean data file must contain the mesh.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-f&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--file&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An MPAS-Ocean data file&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-v&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--variable_list&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;variable_list&#39;</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;List of variables to plot.  All variables on &#39;</span>
+        <span class="s1">&#39;cells in the data file is the default.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-c&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--colormap&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;colormap&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A colormap to use for the plots, default &#39;</span>
+        <span class="s1">&#39;depends on the field name.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--flip&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;flip&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Flip the x axis for all transects&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--write_netcdf&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;write_netcdf&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Whether to write a NetCDF file for the transect &#39;</span>
+        <span class="s1">&#39;in addition to the image&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--method&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;method&#39;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The type of interpolation to use in plots. &#39;</span>
+        <span class="s1">&#39;Options are &quot;flat&quot; and &quot;bilinear&quot;&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--add_z&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;add_z&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Whether to add zMid and zInterface to the mesh&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="n">fc</span> <span class="o">=</span> <span class="n">read_feature_collection</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">geojson_filename</span><span class="p">)</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mesh_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ds_mesh</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">mesh_filename</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ds_mesh</span> <span class="o">=</span> <span class="n">ds</span>
+
+    <span class="n">variable_list</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">variable_list</span>
+
+    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">ds_mesh</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">plot_feature_transects</span><span class="p">(</span>
+        <span class="n">fc</span><span class="o">=</span><span class="n">fc</span><span class="p">,</span>
+        <span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">,</span>
+        <span class="n">ds_mesh</span><span class="o">=</span><span class="n">ds_mesh</span><span class="p">,</span>
+        <span class="n">variable_list</span><span class="o">=</span><span class="n">variable_list</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">colormap</span><span class="p">,</span>
+        <span class="n">flip</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">flip</span><span class="p">,</span>
+        <span class="n">write_netcdf</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">write_netcdf</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">method</span><span class="p">,</span>
+        <span class="n">add_z</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">add_z</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_plot_interfaces</span><span class="p">(</span>
+    <span class="n">ds_transect</span><span class="p">,</span>
+    <span class="n">ax</span><span class="p">,</span>
+    <span class="n">interface_color</span><span class="p">,</span>
+    <span class="n">cell_boundary_color</span><span class="p">,</span>
+    <span class="n">ssh_color</span><span class="p">,</span>
+    <span class="n">seafloor_color</span><span class="p">,</span>
+    <span class="n">color_start_and_end</span><span class="p">,</span>
+    <span class="n">start_color</span><span class="p">,</span>
+    <span class="n">end_color</span><span class="p">,</span>
+    <span class="n">linewidth</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">cell_boundary_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x_bnd</span> <span class="o">=</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">dCellBoundary</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">z_bnd</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">zCellBoundary</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">x_bnd</span><span class="p">,</span>
+            <span class="n">z_bnd</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">cell_boundary_color</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span>
+            <span class="n">zorder</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">interface_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">x_int</span> <span class="o">=</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">dInterfaceSegment</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">z_int</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">zInterfaceSegment</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">x_int</span><span class="p">,</span> <span class="n">z_int</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">interface_color</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">ssh_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">validNodes</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nVertNodes&#39;</span><span class="p">)</span>
+        <span class="n">x_ssh</span> <span class="o">=</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">dNode</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">z_ssh</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">ssh</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_ssh</span><span class="p">,</span> <span class="n">z_ssh</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">ssh_color</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">seafloor_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">validNodes</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nVertNodes&#39;</span><span class="p">)</span>
+        <span class="n">x_floor</span> <span class="o">=</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">dNode</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">z_floor</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">zSeafloor</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">x_floor</span><span class="p">,</span>
+            <span class="n">z_floor</span><span class="p">,</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">seafloor_color</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span>
+            <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">color_start_and_end</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">start_color</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">linewidth</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="n">end_color</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">spines</span><span class="p">[</span><span class="s1">&#39;right&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">4</span> <span class="o">*</span> <span class="n">linewidth</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_plot_outline</span><span class="p">(</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">valid_cells</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">outline_color</span><span class="p">,</span> <span class="n">linewidth</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-6</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">outline_color</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># add a buffer of invalid values around the edge of the domain</span>
+        <span class="c1"># and make copies of each node.  The validity of each copy of the node</span>
+        <span class="c1"># corresponds to the validity of the adjacent cell</span>
+        <span class="n">valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+            <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">valid_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">valid_cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">2</span><span class="p">),</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">z_buf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">x_buf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="n">valid_cells</span> <span class="o">=</span> <span class="n">valid_cells</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+        <span class="c1"># each interior node get the value from its cell</span>
+        <span class="n">valid</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_cells</span>
+        <span class="n">valid</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_cells</span>
+        <span class="n">valid</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_cells</span>
+        <span class="n">valid</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_cells</span>
+
+        <span class="n">z_buf</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">z_buf</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">z_buf</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">z_buf</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="n">x_buf</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">x_buf</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">x_buf</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">x_buf</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">values</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">contour</span><span class="p">(</span>
+            <span class="n">x_buf</span><span class="p">,</span>
+            <span class="n">z_buf</span><span class="p">,</span>
+            <span class="n">valid</span><span class="p">,</span>
+            <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">epsilon</span><span class="p">],</span>
+            <span class="n">colors</span><span class="o">=</span><span class="n">outline_color</span><span class="p">,</span>
+            <span class="n">linewidths</span><span class="o">=</span><span class="n">linewidth</span><span class="p">,</span>
+            <span class="n">zorder</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_feature_transects</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">flip</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    build a sequence of triangles showing the transect intersecting mpas cells</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">transects</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+    <span class="n">layer_thickness</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">layerThickness</span>
+    <span class="n">bottom_depth</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">bottomDepth</span>
+    <span class="n">max_level_cell</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">maxLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="s1">&#39;minLevelCell&#39;</span> <span class="ow">in</span> <span class="n">ds_mesh</span><span class="p">:</span>
+        <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">minLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">max_level_cell</span><span class="p">)</span>
+
+    <span class="n">spherical</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;on_a_sphere&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;YES&#39;</span>
+
+    <span class="k">for</span> <span class="n">transect</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+        <span class="n">transect_name</span> <span class="o">=</span> <span class="n">transect</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  </span><span class="si">{</span><span class="n">transect_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">assert</span> <span class="n">transect</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;LineString&#39;</span>
+
+        <span class="n">coordinates</span> <span class="o">=</span> <span class="n">transect</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;coordinates&#39;</span><span class="p">]</span>
+        <span class="n">transect_lon</span><span class="p">,</span> <span class="n">transect_lat</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="n">transect_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transect_lon</span><span class="p">)</span>
+        <span class="n">transect_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transect_lat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">flip</span><span class="p">:</span>
+            <span class="n">transect_lon</span> <span class="o">=</span> <span class="n">transect_lon</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">transect_lat</span> <span class="o">=</span> <span class="n">transect_lat</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">transect_lon</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">transect_lon</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nPoints&#39;</span><span class="p">,))</span>
+        <span class="n">transect_lat</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">transect_lat</span><span class="p">,</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nPoints&#39;</span><span class="p">,))</span>
+
+        <span class="n">ds_mpas_transect</span> <span class="o">=</span> <span class="n">compute_transect</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">transect_lon</span><span class="p">,</span>
+            <span class="n">y</span><span class="o">=</span><span class="n">transect_lat</span><span class="p">,</span>
+            <span class="n">ds_horiz_mesh</span><span class="o">=</span><span class="n">ds_mesh</span><span class="p">,</span>
+            <span class="n">layer_thickness</span><span class="o">=</span><span class="n">layer_thickness</span><span class="p">,</span>
+            <span class="n">bottom_depth</span><span class="o">=</span><span class="n">bottom_depth</span><span class="p">,</span>
+            <span class="n">min_level_cell</span><span class="o">=</span><span class="n">min_level_cell</span><span class="p">,</span>
+            <span class="n">max_level_cell</span><span class="o">=</span><span class="n">max_level_cell</span><span class="p">,</span>
+            <span class="n">spherical</span><span class="o">=</span><span class="n">spherical</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">ds_mpas_transect</span><span class="o">.</span><span class="n">compute</span><span class="p">()</span>
+        <span class="n">transects</span><span class="p">[</span><span class="n">transect_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ds_mpas_transect</span>
+
+    <span class="k">return</span> <span class="n">transects</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_plot_feature_transect</span><span class="p">(</span>
+    <span class="n">ds_transect</span><span class="p">,</span>
+    <span class="n">mpas_field</span><span class="p">,</span>
+    <span class="n">var_name</span><span class="p">,</span>
+    <span class="n">transect_name</span><span class="p">,</span>
+    <span class="n">cmap</span><span class="p">,</span>
+    <span class="n">fc</span><span class="p">,</span>
+    <span class="n">write_netcdf</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    plot a transect showing the field on the MPAS-Ocean mesh and save to a file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">transect_prefix</span> <span class="o">=</span> <span class="n">transect_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
+    <span class="n">units</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="s1">&#39;units&#39;</span> <span class="ow">in</span> <span class="n">mpas_field</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="n">mpas_field</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span>
+
+    <span class="n">colormaps</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">temperature</span><span class="o">=</span><span class="s1">&#39;cmo.thermal&#39;</span><span class="p">,</span>
+        <span class="n">salinity</span><span class="o">=</span><span class="s1">&#39;cmo.haline&#39;</span><span class="p">,</span>
+        <span class="n">density</span><span class="o">=</span><span class="s1">&#39;cmo.dense&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">contains</span><span class="p">,</span> <span class="n">map_name</span> <span class="ow">in</span> <span class="n">colormaps</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">contains</span> <span class="ow">in</span> <span class="n">var_name</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">cmap</span> <span class="o">=</span> <span class="n">map_name</span>
+
+    <span class="k">if</span> <span class="n">units</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">colorbar_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">units</span><span class="si">}</span><span class="s1">)&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">colorbar_label</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s1">&#39;</span>
+
+    <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+    <span class="n">plot_transect</span><span class="p">(</span>
+        <span class="n">ds_transect</span><span class="o">=</span><span class="n">ds_transect</span><span class="p">,</span>
+        <span class="n">mpas_field</span><span class="o">=</span><span class="n">mpas_field</span><span class="p">,</span>
+        <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
+        <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s1"> through </span><span class="si">{</span><span class="n">transect_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">colorbar_label</span><span class="o">=</span><span class="n">colorbar_label</span><span class="p">,</span>
+        <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
+        <span class="n">color_start_and_end</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">pad</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">h_pad</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">rect</span><span class="o">=</span><span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+
+    <span class="n">add_inset</span><span class="p">(</span><span class="n">fig</span><span class="p">,</span> <span class="n">fc</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">transect_prefix</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s1">.png&#39;</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">write_netcdf</span><span class="p">:</span>
+        <span class="n">ds_transect</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">transect_prefix</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s1">.nc&#39;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_z</span><span class="p">(</span><span class="n">ds_mesh</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add zMid and zInterface to ``ds_mesh``, useful for debugging</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">layer_thickness</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">layerThickness</span>
+    <span class="n">bottom_depth</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">bottomDepth</span>
+    <span class="n">max_level_cell</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">maxLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="s1">&#39;minLevelCell&#39;</span> <span class="ow">in</span> <span class="n">ds_mesh</span><span class="p">:</span>
+        <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">minLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">max_level_cell</span><span class="p">)</span>
+
+    <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">]</span>
+
+    <span class="n">vert_index</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;dims&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">,),</span> <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">)}</span>
+    <span class="p">)</span>
+
+    <span class="n">cell_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">vert_index</span> <span class="o">&gt;=</span> <span class="n">min_level_cell</span><span class="p">,</span> <span class="n">vert_index</span> <span class="o">&lt;=</span> <span class="n">max_level_cell</span>
+    <span class="p">)</span>
+    <span class="n">layer_thickness</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cell_mask</span><span class="p">)</span>
+
+    <span class="n">thickness_sum</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">)</span>
+    <span class="n">thickness_cum_sum</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">)</span>
+    <span class="n">z_surface</span> <span class="o">=</span> <span class="o">-</span><span class="n">bottom_depth</span> <span class="o">+</span> <span class="n">thickness_sum</span>
+
+    <span class="n">z_layer_bot</span> <span class="o">=</span> <span class="n">z_surface</span> <span class="o">-</span> <span class="n">thickness_cum_sum</span>
+
+    <span class="n">z_interface_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">z_surface</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">z_index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">):</span>
+        <span class="n">z_interface_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z_layer_bot</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nVertLevels</span><span class="o">=</span><span class="n">z_index</span><span class="p">))</span>
+
+    <span class="n">z_interface</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">z_interface_list</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nVertLevelsP1&#39;</span><span class="p">)</span>
+
+    <span class="n">vert_index</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;dims&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;nVertLevelsP1&#39;</span><span class="p">,),</span> <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)}</span>
+    <span class="p">)</span>
+    <span class="n">interface_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">vert_index</span> <span class="o">&gt;=</span> <span class="n">min_level_cell</span><span class="p">,</span> <span class="n">vert_index</span> <span class="o">&lt;=</span> <span class="n">max_level_cell</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="p">)</span>
+
+    <span class="n">z_interface</span> <span class="o">=</span> <span class="n">z_interface</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">interface_mask</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
+        <span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLevelsP1&#39;</span>
+    <span class="p">)</span>
+
+    <span class="n">z_mid</span> <span class="o">=</span> <span class="n">z_layer_bot</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">layer_thickness</span>
+
+    <span class="n">z_mid</span> <span class="o">=</span> <span class="n">z_mid</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">cell_mask</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLevels&#39;</span><span class="p">)</span>
+
+    <span class="n">ds_mesh</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;zMid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_mid</span>
+    <span class="n">ds_mesh</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;zInterface&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_interface</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+   
+
+  <!-- Meta tags for JS to use -->
+  <meta name="doc-version" content="1.4.0">
+  <meta name="doc-site-root" content="../../../../../">
+
+  <!-- Create version switcher container -->
+  <script>
+    const sidebar = document.querySelector('.wy-side-nav-search');
+    if (sidebar) {
+      const versionDiv = document.createElement('div');
+      versionDiv.id = 'version-switcher';
+      versionDiv.style.marginTop = '1em';
+      sidebar.appendChild(versionDiv);
+    }
+  </script>
+
+  <!-- Load version-switcher.js using the correct relative path -->
+  <script src="../../../../../../shared/version-switcher.js"></script>
+
+
+</body>
+</html>
