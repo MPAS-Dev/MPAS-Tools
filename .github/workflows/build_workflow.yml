@@ -26,7 +26,7 @@ on:
 env:
   CANCEL_OTHERS: false
   PATHS_IGNORE: '["**/README.md", "**/docs/**"]'
-  PYTHON_VERSION: "3.13"
+  PYTHON_VERSION: "3.14"
 
 jobs:
   pre-commit-hooks:
@@ -61,7 +61,7 @@ jobs:
         shell: bash -l {0}
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
       fail-fast: false
     steps:
       - uses: actions/checkout@v5

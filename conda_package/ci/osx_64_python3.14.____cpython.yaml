@@ -1,0 +1,41 @@
+MACOSX_DEPLOYMENT_TARGET:
+- '10.13'
+MACOSX_SDK_VERSION:
+- '10.13'
+c_stdlib:
+- macosx_deployment_target
+c_stdlib_version:
+- '10.13'
+channel_sources:
+- conda-forge
+channel_targets:
+- conda-forge main
+cxx_compiler:
+- clangxx
+cxx_compiler_version:
+- '19'
+fortran_compiler:
+- gfortran
+fortran_compiler_version:
+- '14'
+hdf5:
+- 1.14.6
+libnetcdf:
+- 4.9.2
+llvm_openmp:
+- '19'
+macos_machine:
+- x86_64-apple-darwin13.4.0
+netcdf_fortran:
+- '4.6'
+pin_run_as_build:
+  python:
+    min_pin: x.x
+    max_pin: x.x
+python:
+- 3.14.* *_cp314
+target_platform:
+- osx-64
+zip_keys:
+- - cxx_compiler_version
+  - fortran_compiler_version
