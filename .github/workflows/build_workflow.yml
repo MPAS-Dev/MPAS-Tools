@@ -84,12 +84,12 @@ jobs:
           conda install conda conda-build
           conda build -m "conda_package/ci/linux_64_python${{ matrix.python-version }}.____cpython.yaml" "conda_package/recipe"
           # Add local build channel first for subsequent micromamba usage
-          micromamba config append channels "$CONDA_PREFIX/conda-bld"
-          micromamba config append channels conda-forge
 
       - name: Create Test Environment
         run: |
           micromamba create -y -n mpas_tools_test \
+            -c ${CONDA_PREFIX}/conda-bld \
+            -c conda-forge \
             python=${{ matrix.python-version }} \
             mpas_tools \
             sphinx \
