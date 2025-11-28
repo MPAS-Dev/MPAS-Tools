@@ -27,6 +27,7 @@ env:
   CANCEL_OTHERS: false
   PATHS_IGNORE: '["**/README.md", "**/docs/**"]'
   PYTHON_VERSION: "3.14"
+  BUILD_PYTHON_VERSION: "3.13"
 
 jobs:
   pre-commit-hooks:
@@ -69,33 +70,34 @@ jobs:
       - name: Create Build Environment
         uses: mamba-org/setup-micromamba@v2
         with:
-          environment-name: mpas_tools_dev
+          environment-name: mpas_tools_build
           init-shell: bash
           condarc: |
             channel_priority: strict
             channels:
                 - conda-forge
           create-args: >-
-            python=${{ matrix.python-version }}
+            python=${{ env.BUILD_PYTHON_VERSION }}
 
-      - name: Finalize Build Environment
+      - name: Build mpas_tools package
         run: |
           conda install conda conda-build
           conda build -m "conda_package/ci/linux_64_python${{ matrix.python-version }}.____cpython.yaml" "conda_package/recipe"
+          # Add local build channel first for subsequent micromamba usage
+          micromamba config append channels "$CONDA_PREFIX/conda-bld"
+          micromamba config append channels conda-forge
 
-      - name: Install mpas_tools
+      - name: Create Test Environment
         run: |
-          conda install -y -c ${CONDA_PREFIX}/conda-bld/ \
-            mpas_tools python=${{ matrix.python-version }} \
-            sphinx mock sphinx_rtd_theme
+          micromamba create -y -n mpas_tools_test \
+            python=${{ env.BUILD_PYTHON_VERSION }} \
+            mpas_tools \
+            sphinx \
+            mock \
+            sphinx_rtd_theme
 
       - name: Build Sphinx Docs
         run: |
+          micromamba activate mpas_tools_test
           cd conda_package/docs
           DOCS_VERSION=test make versioned-html
-          condarc: |
-            channel_priority: strict
-            channels:
-                - conda-forge
-          create-args: >-
-            python=${{ matrix.python-version }}
