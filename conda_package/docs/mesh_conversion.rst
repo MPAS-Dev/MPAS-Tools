@@ -266,12 +266,26 @@ Extensibility and Limitations
 - For advanced use cases (e.g., custom mask types or additional properties),
   see the source code and docstrings for guidance.
 
-See also the API documentation for :py:mod:`mpas_tools.mesh.mask` for further details.
+See also the API documentation for :py:mod:`mpas_tools.mesh.mask` for further
+details.
 
-See also the API documentation for :py:mod:`mpas_tools.mesh.mask` for further details.
+.. code-block::
+
+    $ compute_mpas_region_masks --help
+    usage: compute_mpas_region_masks [-h] -m MESH_FILE_NAME -g GEOJSON_FILE_NAME
+                                     -o MASK_FILE_NAME
+                                     [-t MASK_TYPES [MASK_TYPES ...]]
+                                     [-c CHUNK_SIZE] [--show_progress]
+                                     [-s SUBDIVISION]
+                                     [--process_count PROCESS_COUNT]
+                                     [--multiprocessing_method MULTIPROCESSING_METHOD]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -m MESH_FILE_NAME, --mesh_file_name MESH_FILE_NAME
                             An MPAS mesh file
       -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
-                            An Geojson file containing mask regions
+                            A GeoJSON file containing mask regions
       -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
                             An output MPAS region masks file
       -t MASK_TYPES [MASK_TYPES ...], --mask_types MASK_TYPES [MASK_TYPES ...]
@@ -367,7 +381,7 @@ The command-line tool takes the following arguments:
       -m MESH_FILE_NAME, --mesh_file_name MESH_FILE_NAME
                             An MPAS mesh file
       -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
-                            An Geojson file containing transects
+                            A GeoJSON file containing transects
       -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
                             An output MPAS transect masks file
       -t MASK_TYPES [MASK_TYPES ...], --mask_types MASK_TYPES [MASK_TYPES ...]
@@ -423,7 +437,7 @@ The command-line tool takes the following arguments:
       -m MESH_FILE_NAME, --mesh_file_name MESH_FILE_NAME
                             An MPAS mesh file
       -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
-                            An Geojson file containing points at which to start
+                            A GeoJSON file containing points at which to start
                             the flood fill
       -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
                             An output MPAS region masks file
@@ -461,7 +475,7 @@ The command-line tool takes the following arguments:
       --lon LON             The name of the longitude coordinate
       --lat LAT             The name of the latitude coordinate
       -g GEOJSON_FILE_NAME, --geojson_file_name GEOJSON_FILE_NAME
-                            An Geojson file containing mask regions
+                            A GeoJSON file containing mask regions
       -o MASK_FILE_NAME, --mask_file_name MASK_FILE_NAME
                             An output MPAS region masks file
       -c CHUNK_SIZE, --chunk_size CHUNK_SIZE

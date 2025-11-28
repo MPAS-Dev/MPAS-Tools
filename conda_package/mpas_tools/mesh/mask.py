@@ -111,7 +111,9 @@ def compute_mpas_region_masks(
             logger.info(f'  Computing {maskType} masks:')
 
         # create shapely geometry for lon and lat
-        points = [shapely.geometry.Point(x, y) for x, y in zip(lon, lat)]
+        points = [
+            shapely.geometry.Point(x, y) for x, y in zip(lon, lat, strict=True)
+        ]
         regionNames, masks, properties = _compute_region_masks(
             fcMask,
             points,
@@ -171,7 +173,7 @@ def entry_point_compute_mpas_region_masks():
         dest='geojson_file_name',
         type=str,
         required=True,
-        help='An Geojson file containing mask regions',
+        help='A GeoJSON file containing mask regions',
     )
     parser.add_argument(
         '-o',
@@ -418,7 +420,7 @@ def entry_point_compute_mpas_transect_masks():
         dest='geojson_file_name',
         type=str,
         required=True,
-        help='An Geojson file containing transects',
+        help='A GeoJSON file containing transects',
     )
     parser.add_argument(
         '-o',
@@ -612,7 +614,7 @@ def entry_point_compute_mpas_flood_fill_mask():
         dest='geojson_file_name',
         type=str,
         required=True,
-        help='An Geojson file containing points at which to '
+        help='A GeoJSON file containing points at which to '
         'start the flood fill',
     )
     parser.add_argument(
@@ -708,7 +710,9 @@ def compute_lon_lat_region_masks(
     Lat = Lat.ravel()
 
     # create shapely geometry for lon and lat
-    points = [shapely.geometry.Point(x, y) for x, y in zip(Lon, Lat)]
+    points = [
+        shapely.geometry.Point(x, y) for x, y in zip(Lon, Lat, strict=True)
+    ]
     regionNames, masks, properties = _compute_region_masks(
         fcMask,
         points,
@@ -783,7 +787,7 @@ def entry_point_compute_lon_lat_region_masks():
         dest='geojson_file_name',
         type=str,
         required=True,
-        help='An Geojson file containing mask regions',
+        help='A GeoJSON file containing mask regions',
     )
     parser.add_argument(
         '-o',
@@ -932,7 +936,8 @@ def compute_projection_grid_region_masks(
 
     # create shapely geometry for lon and lat
     points = [
-        shapely.geometry.Point(x, y) for x, y in zip(lon.ravel(), lat.ravel())
+        shapely.geometry.Point(x, y)
+        for x, y in zip(lon.ravel(), lat.ravel(), strict=True)
     ]
     regionNames, masks, properties = _compute_region_masks(
         fcMask,
@@ -1005,7 +1010,7 @@ def entry_point_compute_projection_grid_region_masks():
         dest='geojson_file_name',
         type=str,
         required=True,
-        help='An Geojson file containing mask regions',
+        help='A GeoJSON file containing mask regions',
     )
     parser.add_argument(
         '-o',
@@ -1349,7 +1354,7 @@ def _compute_transect_masks(
             if subdivisionResolution is None:
                 new_coords.append(coords)
             else:
-                lon, lat = zip(*coords)
+                lon, lat = zip(*coords, strict=True)
                 x, y, z = lon_lat_to_cartesian(
                     lon, lat, earthRadius, degrees=True
                 )
@@ -1359,7 +1364,9 @@ def _compute_transect_masks(
                 lon, lat = cartesian_to_lon_lat(
                     x, y, z, earthRadius, degrees=True
                 )
-                new_coords.append([list(a) for a in zip(lon, lat)])
+                new_coords.append(
+                    [list(a) for a in zip(lon, lat, strict=True)]
+                )
 
         if geom_type == 'LineString':
             shape = shapely.geometry.LineString(new_coords[0])
@@ -1471,7 +1478,7 @@ def _get_polygons(dsMesh, maskType):
 
     polygons = []
     for index in range(lon.shape[0]):
-        coords = zip(lon[index, :], lat[index, :])
+        coords = zip(lon[index, :], lat[index, :], strict=True)
         polygons.append(shapely.geometry.Polygon(coords))
 
     return polygons, nPolygons, duplicatePolygons
@@ -1608,14 +1615,17 @@ def _compute_edge_sign(dsMesh, edgeMask, shape):
         local_voe[local_mask] = local_v
 
     graph = Graph(
-        n=len(unique_vertices), edges=zip(local_voe[:, 0], local_voe[:, 1])
+        n=len(unique_vertices),
+        edges=zip(local_voe[:, 0], local_voe[:, 1], strict=True),
     )
     graph.vs['distance'] = distance
     graph.vs['lon'] = unique_lon
     graph.vs['lat'] = unique_lat
     graph.vs['vertices'] = numpy.arange(len(unique_vertices))
     graph.es['edges'] = edge_indices
-    graph.es['vertices'] = [(v0, v1) for v0, v1 in zip(voe[:, 0], voe[:, 1])]
+    graph.es['vertices'] = [
+        (v0, v1) for v0, v1 in zip(voe[:, 0], voe[:, 1], strict=True)
+    ]
 
     edgeSign = numpy.zeros(edgeMask.shape, dtype=numpy.int32)
 

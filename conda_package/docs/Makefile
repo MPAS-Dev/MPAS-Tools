@@ -2,16 +2,25 @@
 #
 
 # You can set these variables from the command line.
-SPHINXOPTS    =
+SPHINXOPTS    ?=
 SPHINXBUILD   = sphinx-build
 SPHINXPROJ    = mpas_tools
 SOURCEDIR     = .
 BUILDDIR      = _build
 
+# Select behavior via an environment/CLI variable
+#   make versioned-html             # normal
+#   make versioned-html WERROR=1    # treat warnings as errors
+ifeq ($(WERROR),1)
+  SPHINXWARNOPTS = -W --keep-going
+else
+  SPHINXWARNOPTS =
+endif
+
 # Build into a versioned subdirectory
 versioned-html:
-	@echo "Building version: $(DOCS_VERSION)"
-	$(SPHINXBUILD) -b html "$(SOURCEDIR)" "$(BUILDDIR)/html/$(DOCS_VERSION)"
+	@echo "Building version: $(DOCS_VERSION) (WERROR=$(WERROR))"
+	$(SPHINXBUILD) $(SPHINXWARNOPTS) -b html "$(SOURCEDIR)" "$(BUILDDIR)/html/$(DOCS_VERSION)"
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html/$(DOCS_VERSION)."
 	@echo "Setting up shared version switcher for local preview..."
 	mkdir -p _build/html/shared

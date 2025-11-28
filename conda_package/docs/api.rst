@@ -1,3 +1,5 @@
+.. _api_reference:
+
 #############
 API reference
 #############
@@ -375,8 +377,8 @@ Visualization
    :toctree: generated/
 
    MpasToXdmf
-   MpasToXdmf.load()
-   MpasToXdmf.convert_to_xdmf()
+   MpasToXdmf.load
+   MpasToXdmf.convert_to_xdmf
    main
 
 .. currentmodule:: mpas_tools.viz.mesh_to_triangles
