@@ -12,7 +12,7 @@ BUILDDIR      = _build
 #   make versioned-html             # normal
 #   make versioned-html WERROR=1    # treat warnings as errors
 ifeq ($(WERROR),1)
-  SPHINXWARNOPTS = -nW --keep-going
+  SPHINXWARNOPTS = -W --keep-going
 else
   SPHINXWARNOPTS =
 endif

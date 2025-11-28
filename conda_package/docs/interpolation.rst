@@ -1,7 +1,7 @@
-.. _mesh_interpolation:
-
 .. |---| unicode:: U+2014  .. em dash, trimming surrounding whitespace
    :trim:
+
+.. _mesh_interpolation:
 
 *************
 Interpolation

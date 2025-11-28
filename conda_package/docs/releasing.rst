@@ -17,13 +17,15 @@ Version Bump and Dependency Updates
      - ``conda_package/mpas_tools/__init__.py``
      - ``conda_package/recipe/meta.yaml``
 
-   - Make sure the version follows [semantic versioning](https://semver.org/).
+   - Make sure the version follows semantic versioning (see
+     https://semver.org/).
      For release candidates, use versions like ``1.3.0rc1`` (no ``v`` prefix).
 
 2. **Check and Update Dependencies**
 
    - Ensure that dependencies and their constraints are up-to-date and
      consistent in:
+
      - ``conda_package/recipe/meta.yaml`` (dependencies for the conda-forge
        release)
      - ``conda_package/pyproject.toml`` (dependencies for PyPI; used as a

@@ -16,6 +16,7 @@ Features
 Example Usage
 -------------
 Python:
+
     >>> from mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf import MpasToXdmf
     >>> converter = MpasToXdmf()
     >>> converter.load(mesh_filename="mesh.nc", time_series_filenames="output.*.nc",
@@ -23,6 +24,7 @@ Python:
     >>> converter.convert_to_xdmf(out_dir="output_dir", extra_dims={"nVertLevels": [0, 1, 2]})
 
 Command line:
+
     $ mpas_to_xdmf -m mesh.nc -t output.*.nc -v temperature salinity -o output_dir -d nVertLevels=0:3
 
 See Also
@@ -92,8 +94,7 @@ class MpasToXdmf:
         xtime_var=None,
     ):
         """
-        Load the MPAS mesh file and optionally combine it with time series
-        files into a single xarray Dataset.
+        Load the MPAS mesh file and optional time series.
 
         Parameters
         ----------
@@ -104,12 +105,16 @@ class MpasToXdmf:
             files. If None, only the mesh file is used.
         variables : list of str, optional
             List of variables to convert. Special keys:
-                - 'allOnCells': all variables with dimension 'nCells'
-                - 'allOnEdges': all variables with dimension 'nEdges'
-                - 'allOnVertices': all variables with dimension 'nVertices'
+
+            * ``"allOnCells"``: all variables with dimension ``"nCells"``.
+            * ``"allOnEdges"``: all variables with dimension ``"nEdges"``.
+            * ``"allOnVertices"``: all variables with dimension
+              ``"nVertices"``.
+
             If None, all variables are included.
         xtime_var : str, optional
-            Name of the variable containing time information (e.g., 'xtime').
+            Name of the variable containing time information (e.g.,
+            ``"xtime"``).
         """
         self.ds_mesh, self.ds = _load_dataset(
             mesh_filename=mesh_filename,
@@ -128,8 +133,8 @@ class MpasToXdmf:
             Directory where XDMF and HDF5 files will be saved.
         extra_dims : dict, optional
             Dictionary mapping extra dimensions to their selected indices.
-            Example: {'nVertLevels': [0, 1, 2]}
-            If None, all indices are included.
+            Example - ``{'nVertLevels': [0, 1, 2]}``. If None, all indices are
+            included.
         quiet : bool, optional
             If True, suppress progress output.
 

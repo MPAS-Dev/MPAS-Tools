@@ -26,12 +26,15 @@ The converter can be used via its command-line interface ``mpas_to_xdmf`` or as
 a Python library.
 
 .. note::
-   Special variable keys:
-     - ``allOnCells``: all variables with dimension ``nCells``
-     - ``allOnEdges``: all variables with dimension ``nEdges``
-     - ``allOnVertices``: all variables with dimension ``nVertices``
-   Extra dimensions (e.g., ``nVertLevels``) can be sliced using the ``-d``
-   CLI option or the ``extra_dims`` argument in Python.
+
+  Special variable keys:
+
+  - ``allOnCells``: all variables with dimension ``nCells``
+  - ``allOnEdges``: all variables with dimension ``nEdges``
+  - ``allOnVertices``: all variables with dimension ``nVertices``
+
+  Extra dimensions (e.g., ``nVertLevels``) can be sliced using the ``-d``
+  CLI option or the ``extra_dims`` argument in Python.
 
 Command-Line Arguments
 ----------------------
