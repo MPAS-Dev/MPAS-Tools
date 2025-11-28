@@ -90,7 +90,7 @@ jobs:
       - name: Create Test Environment
         run: |
           micromamba create -y -n mpas_tools_test \
-            python=${{ env.BUILD_PYTHON_VERSION }} \
+            python=${{ matrix.python-version }} \
             mpas_tools \
             sphinx \
             mock \
