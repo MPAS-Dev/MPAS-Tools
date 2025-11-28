@@ -136,26 +136,25 @@
 version of <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code>, and to update the conda-forge feedstock.</p>
 <section id="version-bump-and-dependency-updates">
 <h2>Version Bump and Dependency Updates<a class="headerlink" href="#version-bump-and-dependency-updates" title="Link to this heading"></a></h2>
-<ol class="arabic">
+<ol class="arabic simple">
 <li><p><strong>Update the Version Number</strong></p>
 <ul class="simple">
 <li><p>Open a pull request (PR) to update the version number in the following
 two files:
 - <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/__init__.py</span></code>
 - <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code></p></li>
-<li><p>Make sure the version follows [semantic versioning](<a class="reference external" href="https://semver.org/">https://semver.org/</a>).
+<li><p>Make sure the version follows semantic versioning (see
+<a class="reference external" href="https://semver.org/">https://semver.org/</a>).
 For release candidates, use versions like <code class="docutils literal notranslate"><span class="pre">1.3.0rc1</span></code> (no <code class="docutils literal notranslate"><span class="pre">v</span></code> prefix).</p></li>
 </ul>
 </li>
 <li><p><strong>Check and Update Dependencies</strong></p>
-<ul>
-<li><p>Ensure that dependencies and their constraints are up-to-date and
-consistent in:
-- <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code> (dependencies for the conda-forge</p>
-<blockquote>
-<div><p>release)</p>
-</div></blockquote>
 <ul class="simple">
+<li><p>Ensure that dependencies and their constraints are up-to-date and
+consistent in:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code> (dependencies for the conda-forge
+release)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">conda_package/pyproject.toml</span></code> (dependencies for PyPI; used as a
 sanity check)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">conda_package/dev-spec.txt</span></code> (development dependencies; should be a

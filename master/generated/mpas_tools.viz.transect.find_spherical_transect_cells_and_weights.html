@@ -103,6 +103,8 @@
 <li class="toctree-l2 current"><a class="reference internal" href="../api.html#visualization">Visualization</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.paraview_extractor.extract_vtk.html">mpas_tools.viz.paraview_extractor.extract_vtk</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.html">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.load.html">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.convert_to_xdmf.html">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.convert_to_xdmf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.main.html">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.main</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html">mpas_tools.viz.mesh_to_triangles.mesh_to_triangles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="mpas_tools.viz.transect.find_planar_transect_cells_and_weights.html">mpas_tools.viz.transect.find_planar_transect_cells_and_weights</a></li>
@@ -160,11 +162,11 @@ that make up MPAS cells.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>lon_transect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.10.2)"><em>xarray.DataArray</em></a>) – The longitude of segments making up the transect</p></li>
-<li><p><strong>lat_transect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.10.2)"><em>xarray.DataArray</em></a>) – The latitude of segments making up the transect</p></li>
-<li><p><strong>ds_tris</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.10.2)"><em>xarray.Dataset</em></a>) – A dataset that defines triangles, the results of calling
+<li><p><strong>lon_transect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.11.1)"><em>xarray.DataArray</em></a>) – The longitude of segments making up the transect</p></li>
+<li><p><strong>lat_transect</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2025.11.1)"><em>xarray.DataArray</em></a>) – The latitude of segments making up the transect</p></li>
+<li><p><strong>ds_tris</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.11.1)"><em>xarray.Dataset</em></a>) – A dataset that defines triangles, the results of calling
 <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.transect.horiz.mesh_to_triangles()</span></code></p></li>
-<li><p><strong>ds_mesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.10.2)"><em>xarray.Dataset</em></a>) – A data set with the full MPAS mesh.</p></li>
+<li><p><strong>ds_mesh</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.11.1)"><em>xarray.Dataset</em></a>) – A data set with the full MPAS mesh.</p></li>
 <li><p><strong>tree</strong> (<em>scipy.spatial.KDTree</em>) – A tree of edge centers from triangles making up an MPAS mesh, the
 return value from
 <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.viz.transect.horiz.make_triangle_tree()</span></code></p></li>

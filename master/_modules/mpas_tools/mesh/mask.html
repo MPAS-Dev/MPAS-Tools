@@ -237,7 +237,9 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Computing </span><span class="si">{</span><span class="n">maskType</span><span class="si">}</span><span class="s1"> masks:&#39;</span><span class="p">)</span>
 
         <span class="c1"># create shapely geometry for lon and lat</span>
-        <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">)]</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">]</span>
         <span class="n">regionNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="n">_compute_region_masks</span><span class="p">(</span>
             <span class="n">fcMask</span><span class="p">,</span>
             <span class="n">points</span><span class="p">,</span>
@@ -298,7 +300,7 @@
         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;geojson_file_name&#39;</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An Geojson file containing mask regions&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A GeoJSON file containing mask regions&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
@@ -548,7 +550,7 @@
         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;geojson_file_name&#39;</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An Geojson file containing transects&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A GeoJSON file containing transects&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
@@ -745,7 +747,7 @@
         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;geojson_file_name&#39;</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An Geojson file containing points at which to &#39;</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A GeoJSON file containing points at which to &#39;</span>
         <span class="s1">&#39;start the flood fill&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
@@ -843,7 +845,9 @@
     <span class="n">Lat</span> <span class="o">=</span> <span class="n">Lat</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
     <span class="c1"># create shapely geometry for lon and lat</span>
-    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Lon</span><span class="p">,</span> <span class="n">Lat</span><span class="p">)]</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Lon</span><span class="p">,</span> <span class="n">Lat</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">]</span>
     <span class="n">regionNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="n">_compute_region_masks</span><span class="p">(</span>
         <span class="n">fcMask</span><span class="p">,</span>
         <span class="n">points</span><span class="p">,</span>
@@ -919,7 +923,7 @@
         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;geojson_file_name&#39;</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An Geojson file containing mask regions&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A GeoJSON file containing mask regions&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
@@ -1068,7 +1072,8 @@
 
     <span class="c1"># create shapely geometry for lon and lat</span>
     <span class="n">points</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">lat</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+        <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">lat</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="n">regionNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="n">_compute_region_masks</span><span class="p">(</span>
         <span class="n">fcMask</span><span class="p">,</span>
@@ -1141,7 +1146,7 @@
         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;geojson_file_name&#39;</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An Geojson file containing mask regions&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A GeoJSON file containing mask regions&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
@@ -1485,7 +1490,7 @@
             <span class="k">if</span> <span class="n">subdivisionResolution</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">new_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coords</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">coords</span><span class="p">)</span>
+                <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">coords</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">lon_lat_to_cartesian</span><span class="p">(</span>
                     <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span>
                 <span class="p">)</span>
@@ -1495,7 +1500,9 @@
                 <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">cartesian_to_lon_lat</span><span class="p">(</span>
                     <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">earthRadius</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">True</span>
                 <span class="p">)</span>
-                <span class="n">new_coords</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">)])</span>
+                <span class="n">new_coords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)]</span>
+                <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">geom_type</span> <span class="o">==</span> <span class="s1">&#39;LineString&#39;</span><span class="p">:</span>
             <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">LineString</span><span class="p">(</span><span class="n">new_coords</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -1607,7 +1614,7 @@
 
     <span class="n">polygons</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:],</span> <span class="n">lat</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:])</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:],</span> <span class="n">lat</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">polygons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">polygons</span><span class="p">,</span> <span class="n">nPolygons</span><span class="p">,</span> <span class="n">duplicatePolygons</span>
@@ -1744,14 +1751,17 @@
         <span class="n">local_voe</span><span class="p">[</span><span class="n">local_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">local_v</span>
 
     <span class="n">graph</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">(</span>
-        <span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_vertices</span><span class="p">),</span> <span class="n">edges</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="n">local_voe</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">local_voe</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">n</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_vertices</span><span class="p">),</span>
+        <span class="n">edges</span><span class="o">=</span><span class="nb">zip</span><span class="p">(</span><span class="n">local_voe</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">local_voe</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="n">graph</span><span class="o">.</span><span class="n">vs</span><span class="p">[</span><span class="s1">&#39;distance&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">distance</span>
     <span class="n">graph</span><span class="o">.</span><span class="n">vs</span><span class="p">[</span><span class="s1">&#39;lon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unique_lon</span>
     <span class="n">graph</span><span class="o">.</span><span class="n">vs</span><span class="p">[</span><span class="s1">&#39;lat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">unique_lat</span>
     <span class="n">graph</span><span class="o">.</span><span class="n">vs</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">unique_vertices</span><span class="p">))</span>
     <span class="n">graph</span><span class="o">.</span><span class="n">es</span><span class="p">[</span><span class="s1">&#39;edges&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">edge_indices</span>
-    <span class="n">graph</span><span class="o">.</span><span class="n">es</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[(</span><span class="n">v0</span><span class="p">,</span> <span class="n">v1</span><span class="p">)</span> <span class="k">for</span> <span class="n">v0</span><span class="p">,</span> <span class="n">v1</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">voe</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">voe</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])]</span>
+    <span class="n">graph</span><span class="o">.</span><span class="n">es</span><span class="p">[</span><span class="s1">&#39;vertices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">(</span><span class="n">v0</span><span class="p">,</span> <span class="n">v1</span><span class="p">)</span> <span class="k">for</span> <span class="n">v0</span><span class="p">,</span> <span class="n">v1</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">voe</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">voe</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">]</span>
 
     <span class="n">edgeSign</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">edgeMask</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 

@@ -269,6 +269,8 @@
 <li class="toctree-l2"><a class="reference internal" href="#visualization">Visualization</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.paraview_extractor.extract_vtk.html">mpas_tools.viz.paraview_extractor.extract_vtk</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.html">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.load.html">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.load</a></li>
+<li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.convert_to_xdmf.html">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.convert_to_xdmf</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.main.html">mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.main</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.mesh_to_triangles.mesh_to_triangles.html">mpas_tools.viz.mesh_to_triangles.mesh_to_triangles</a></li>
 <li class="toctree-l3"><a class="reference internal" href="generated/mpas_tools.viz.transect.find_planar_transect_cells_and_weights.html">mpas_tools.viz.transect.find_planar_transect_cells_and_weights</a></li>
@@ -313,7 +315,7 @@
            <div itemprop="articleBody">
              
   <section id="api-reference">
-<h1>API reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<span id="id1"></span><h1>API reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
 <p>This page provides an auto-generated summary of the MPAS mesh-tools API. For
 more details and examples, refer to the relevant chapters in the main part of
 the documentation.</p>
@@ -881,6 +883,12 @@ the documentation.</p>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.html#mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf" title="mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MpasToXdmf</span></code></a>([ds, ds_mesh, xtime_var])</p></td>
 <td><p>A class for converting MPAS NetCDF files to XDMF + HDF5 format for visualization in ParaView.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.load.html#mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.load" title="mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.load"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MpasToXdmf.load</span></code></a>(mesh_filename[, ...])</p></td>
+<td><p>Load the MPAS mesh file and optional time series.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.convert_to_xdmf.html#mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.convert_to_xdmf" title="mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.convert_to_xdmf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">MpasToXdmf.convert_to_xdmf</span></code></a>(out_dir[, ...])</p></td>
+<td><p>Convert the loaded xarray Dataset to XDMF + HDF5 format.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.main.html#mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.main" title="mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.main"><code class="xref py py-obj docutils literal notranslate"><span class="pre">main</span></code></a>()</p></td>
 <td><p>Command-line interface for the MpasToXdmf.</p></td>
