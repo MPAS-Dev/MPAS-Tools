@@ -243,7 +243,8 @@ class eccoToMaliInterp:
 
         if 'orig3dOceanMask' in locals():
             orig3dOceanMask = orig3dOceanMask[0:len(z),:]
-            DA_o3dm = xr.DataArray(orig3dOceanMask.astype('int32'), dims=("nISMIP6OceanLayers", "nCells"))
+            orig3dOceanMask = np.tile(orig3dOceanMask[np.newaxis, :, :], (nt, 1, 1))
+            DA_o3dm = xr.DataArray(orig3dOceanMask.astype('int32'), dims=("Time", "nISMIP6OceanLayers", "nCells"))
             DA_o3dm.attrs['long_name'] = ("3D mask of original valid ocean data.  Because it is 3d," 
                                          " it can include the ocean domain inside ice-shelf cavities."
                                          " orig3dOceanMask is altered online to include ice-dammed inland seas")
