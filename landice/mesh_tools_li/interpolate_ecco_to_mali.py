@@ -186,16 +186,13 @@ class eccoToMaliInterp:
         ds_unstruct.expand_dims(["nCells", "Time"])
         
         # Translate ECCO time to MALI xtime format as save to dataset
-        dates = []
         time = ds_ecco['tim'].values
-        xtime = [pd.to_datetime(dt).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
-        dates.append(xtime)
-        DA_xtime = xr.DataArray(np.array(xtime,dtype=object), dims=("Time"))
-        DA_xtime.encoding.update({"char_dim_name":"StrLen"})
-        DA_xtime.attrs['long_name'] = "model time, with format 'YYYY-MM-DD_HH:MM:SS'"
-        DA_xtime.attrs['standard_name'] = 'time'
+        xtime_str = [pd.to_datetime(dt).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
+        xtime = np.array(xtime_str, dtype = np.dtype(('S',64)))
+        DA_xtime = xr.DataArray(xtime, dims=["Time"])
+        DA_xtime.encoding.update({"char_dim_name": "StrLen"})
         ds_unstruct['xtime'] = DA_xtime
-        
+
         # save unstructured variables with MALI/MPAS-O names 
         if 'z' in locals():
             ds_unstruct.expand_dims("nISMIP6OceanLayers")
@@ -335,6 +332,8 @@ class eccoToMaliInterp:
             ds_out['zCell'] = ds_mali['zCell']
             ds_out['zEdge'] = ds_mali['zEdge']
             ds_out['zVertex'] = ds_mali['zVertex']
+            # <<NOTE>>: Creating a new netcdf file like this changes the format of xtime. Need to add
+            # encoding update to maintain original formatting
             outFileWithMeshVars = self.options.outputFile[0:-3] + '.withMeshVars.nc' 
             ds_out.to_netcdf(outFileWithMeshVars)
             ds_out.close()
