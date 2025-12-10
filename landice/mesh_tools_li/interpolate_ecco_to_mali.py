@@ -251,7 +251,7 @@ class eccoToMaliInterp:
             ds_unstruct['orig3dOceanMask'] = DA_o3dm 
 
         self.ecco_unstruct = "ecco_combined_unstructured.nc"
-        ds_unstruct.to_netcdf(self.ecco_unstruct)
+        ds_unstruct.to_netcdf(self.ecco_unstruct, unlimited_dims=['Time'])
         ds_unstruct.close()
         print("ECCO restructuring complete")
         
@@ -336,7 +336,7 @@ class eccoToMaliInterp:
             # <<NOTE>>: Creating a new netcdf file like this changes the format of xtime. Need to add
             # encoding update to maintain original formatting
             outFileWithMeshVars = self.options.outputFile[0:-3] + '.withMeshVars.nc' 
-            ds_out.to_netcdf(outFileWithMeshVars)
+            ds_out.to_netcdf(outFileWithMeshVars, unlimited_dims=['Time'])
             ds_out.close()
             ds_mali.close()
             subprocess.run(["ncatted", "-a", "_FillValue,,d,,", outFileWithMeshVars])
