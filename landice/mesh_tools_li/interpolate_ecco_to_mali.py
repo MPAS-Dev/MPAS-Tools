@@ -244,7 +244,7 @@ class eccoToMaliInterp:
         if 'orig3dOceanMask' in locals():
             orig3dOceanMask = orig3dOceanMask[0:len(z),:]
             orig3dOceanMask = np.tile(orig3dOceanMask[np.newaxis, :, :], (nt, 1, 1))
-            DA_o3dm = xr.DataArray(orig3dOceanMask.astype('int32'), dims=("Time", "nISMIP6OceanLayers", "nCells"))
+            DA_o3dm = xr.DataArray(orig3dOceanMask.astype('float64'), dims=("Time", "nISMIP6OceanLayers", "nCells"))
             DA_o3dm.attrs['long_name'] = ("3D mask of original valid ocean data.  Because it is 3d," 
                                          " it can include the ocean domain inside ice-shelf cavities."
                                          " orig3dOceanMask is altered online to include ice-dammed inland seas")
@@ -292,6 +292,22 @@ class eccoToMaliInterp:
         tm = nd - st
         print(f"ncremap completed: {tm} seconds")
         print("Remapping completed")
+
+        # During conservative remapping, some valid ocean cells are averaged with invalid ocean cells. Use
+        # float version of orig3dOceanMask to identify these cells and remove. Resave orig3dOceanMask as int32
+        # so MALI recognizes it
+        ds_out = xr.open_dataset(self.options.outputFile, decode_times=False, decode_cf=False, mode='r+')
+        o3dm = ds_out['orig3dOceanMask']
+        temp = ds_out['oceanTemperature']
+        sal = ds_out['oceanSalinity']
+
+        mask = o3dm < 1.0
+        ds_out['orig3dOceanMask'] = o3dm.where(~mask, 0).astype('int32')
+        ds_out['oceanTemperature'] = temp.where(~mask, 1e36).astype('float64')
+        ds_out['oceanSalinity'] = sal.where(~mask, 1e36).astype('float64')
+
+        ds_out.to_netcdf('test_remapped_file.nc', 'w')
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", 'test_remapped_file.nc'])
 
         # Transfer MALI mesh variables if needed
         if self.options.includeMeshVars:
