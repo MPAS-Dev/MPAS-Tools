@@ -302,10 +302,10 @@ class eccoToMaliInterp:
         temp = ds_out['oceanTemperature']
         sal = ds_out['oceanSalinity']
 
-        mask = o3dm < 1.0
-        ds_out['orig3dOceanMask'] = o3dm.where(~mask, 0).astype('int32')
-        ds_out['oceanTemperature'] = temp.where(~mask, 1e36).astype('float64')
-        ds_out['oceanSalinity'] = sal.where(~mask, 1e36).astype('float64')
+        mask = o3dm > 0.9999 #Account for rounding error. Good cells are not exactly 1
+        ds_out['orig3dOceanMask'] = o3dm.where(mask, 0).astype('int32')
+        ds_out['oceanTemperature'] = temp.where(mask, 1e36).astype('float64')
+        ds_out['oceanSalinity'] = sal.where(mask, 1e36).astype('float64')
 
         # Save final output file if not adding mesh variables
         if self.options.includeMeshVars:
