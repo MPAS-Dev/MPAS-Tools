@@ -250,7 +250,7 @@ class eccoToMaliInterp:
                                          " orig3dOceanMask is altered online to include ice-dammed inland seas")
             ds_unstruct['orig3dOceanMask'] = DA_o3dm 
 
-        self.ecco_unstruct = "ecco_combined_unstructured.nc"
+        self.ecco_unstruct = "ecco_combined_unstructured.tmp.nc"
         ds_unstruct.to_netcdf(self.ecco_unstruct, unlimited_dims=['Time'])
         ds_unstruct.close()
         print("ECCO restructuring complete")
@@ -281,13 +281,14 @@ class eccoToMaliInterp:
         print("ncremap ...")
         st = time.time()
         # remap the input data
+        remappedOutFile = self.options.outputFile[0:-3] + '.tmp.remapped.nc'
         args_remap = ["ncremap",
                 "-i", self.ecco_unstruct,
-                "-o", self.options.outputFile,
+                "-o", remappedOutFile,
                 "-m", self.mapping_file_name]
         check_call(args_remap)
 
-        subprocess.run(["ncpdq", "-O", "-a", "Time,nCells,nISMIP6OceanLayers", self.options.outputFile, self.options.outputFile])
+        subprocess.run(["ncpdq", "-O", "-a", "Time,nCells,nISMIP6OceanLayers", remappedOutFile, remappedOutFile])
         nd = time.time()
         tm = nd - st
         print(f"ncremap completed: {tm} seconds")
@@ -296,7 +297,7 @@ class eccoToMaliInterp:
         # During conservative remapping, some valid ocean cells are averaged with invalid ocean cells. Use
         # float version of orig3dOceanMask to identify these cells and remove. Resave orig3dOceanMask as int32
         # so MALI recognizes it
-        ds_out = xr.open_dataset(self.options.outputFile, decode_times=False, decode_cf=False, mode='r+')
+        ds_out = xr.open_dataset(remappedOutFile, decode_times=False, decode_cf=False, mode='r+')
         o3dm = ds_out['orig3dOceanMask']
         temp = ds_out['oceanTemperature']
         sal = ds_out['oceanSalinity']
@@ -306,8 +307,16 @@ class eccoToMaliInterp:
         ds_out['oceanTemperature'] = temp.where(~mask, 1e36).astype('float64')
         ds_out['oceanSalinity'] = sal.where(~mask, 1e36).astype('float64')
 
-        ds_out.to_netcdf('test_remapped_file.nc', 'w')
-        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", 'test_remapped_file.nc'])
+        # Save final output file if not adding mesh variables
+        if self.options.includeMeshVars:
+            altRemappedOutFile = self.options.outputFile[0:-3] + '.tmp.altRemapped.nc'
+        else :
+            altRemappedOutFile = self.options.outputFile
+
+        # <<NOTE>>: Creating a new netcdf file like this changes the format of xtime. Need to add
+        # encoding update to maintain original formatting
+        ds_out.to_netcdf(altRemappedOutFile, 'w')
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", altRemappedOutFile])
 
         # Transfer MALI mesh variables if needed
         if self.options.includeMeshVars:
@@ -351,12 +360,16 @@ class eccoToMaliInterp:
             ds_out['zVertex'] = ds_mali['zVertex']
             # <<NOTE>>: Creating a new netcdf file like this changes the format of xtime. Need to add
             # encoding update to maintain original formatting
-            outFileWithMeshVars = self.options.outputFile[0:-3] + '.withMeshVars.nc' 
-            ds_out.to_netcdf(outFileWithMeshVars, unlimited_dims=['Time'])
+            ds_out.to_netcdf(self.options.outputFile, unlimited_dims=['Time'])
             ds_out.close()
             ds_mali.close()
-            subprocess.run(["ncatted", "-a", "_FillValue,,d,,", outFileWithMeshVars])
-       
+            subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.options.outputFile])
+        
+        # Remove temporary output files
+        for filename in os.listdir("."):
+            if "tmp" in filename and os.path.isfile(filename):
+                os.remove(filename)
+
     def create_ECCO_scrip_file(self):
         
         print("Creating ECCO scrip file")
