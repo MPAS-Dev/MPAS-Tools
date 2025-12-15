@@ -15,6 +15,11 @@ import time
 import cftime
 import glob
 
+"""
+<< TO DO >>: 
+1) Fix xtime after in final output files
+2) Mask out Jakobshaven/Ilulissat for icebergFjordMask 
+"""
 class eccoToMaliInterp:
     
     def __init__(self):
@@ -30,6 +35,9 @@ class eccoToMaliInterp:
         parser.add_argument("--method", dest="method", type=str, help="Remapping method, either 'bilinear' or 'neareststod'", default='conserve')
         parser.add_argument("--outFile", dest="outputFile", help="Desired name of output file", metavar="FILENAME", default="ecco_to_mali_remapped.nc")
         parser.add_argument("--meshVars", dest="includeMeshVars", help="whether to include mesh variables in resulting MALI forcing file", action='store_true')
+        parser.add_argument("--iceAreaThresh", dest="iceAreaThresh", type=float, help="Threshold sea ice fraction used to define icebergFjordMask.", default=0.5)
+        parser.add_argument("--extrapIters", dest="extrapIters", type=str, help="Number of sea ice extrapolation iterations when regridding", default='50')
+        parser.add_argument("--keepTmpFiles", dest="keepTmpFiles", help="Whether to keep temporary netcdf files created throughout script. Useful for debugging", action="store_true")
         args = parser.parse_args()
         self.options = args
 
@@ -239,15 +247,17 @@ class eccoToMaliInterp:
             DA_sia = xr.DataArray(sia.astype('float64'), dims=("Time", "nCells"))
             DA_sia.attrs['long_name'] = 'Sea ice fractional ice-covered area [0 to 1]'
             DA_sia.attrs['units'] = 'm2/m2'
-            ds_unstruct['iceAreaCell'] = DA_sia
+            # create separate netcdf file for SIA so it can be extrapolated during remapping
+            ds_sia = xr.Dataset()
+            ds_sia['iceAreaCell'] = DA_sia
+            self.siaFile = 'sia.tmp.nc'
+            ds_sia.to_netcdf(self.siaFile)
+            ds_sia.close()
 
         if 'orig3dOceanMask' in locals():
             orig3dOceanMask = orig3dOceanMask[0:len(z),:]
             orig3dOceanMask = np.tile(orig3dOceanMask[np.newaxis, :, :], (nt, 1, 1))
             DA_o3dm = xr.DataArray(orig3dOceanMask.astype('float64'), dims=("Time", "nISMIP6OceanLayers", "nCells"))
-            DA_o3dm.attrs['long_name'] = ("3D mask of original valid ocean data.  Because it is 3d," 
-                                         " it can include the ocean domain inside ice-shelf cavities."
-                                         " orig3dOceanMask is altered online to include ice-dammed inland seas")
             ds_unstruct['orig3dOceanMask'] = DA_o3dm 
 
         self.ecco_unstruct = "ecco_combined_unstructured.tmp.nc"
@@ -261,7 +271,7 @@ class eccoToMaliInterp:
         scrip_from_mpas(self.options.maliMesh, mali_scripfile)
 
         #create mapping file
-        print("Creating Mapping File")
+        print("Creating Primary Mapping File")
         args = ['srun',
                 '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
                 '--source', self.ecco_scripfile,
@@ -292,7 +302,64 @@ class eccoToMaliInterp:
         nd = time.time()
         tm = nd - st
         print(f"ncremap completed: {tm} seconds")
-        print("Remapping completed")
+        print("Primary Remapping completed")
+
+        # repeat remapping for sia, including extrapolation of sia to fill domain
+        ds_siaScrip = xr.open_dataset(self.ecco_scripfile)
+        ds_unstruct = xr.open_dataset(self.ecco_unstruct)
+        o3dm = ds_unstruct['orig3dOceanMask'][1,1,:].values
+        valid = (o3dm > 0.9999).astype('int32') # Account for rounding error
+        ds_siaScrip['grid_imask'] = xr.DataArray(valid.astype('int32'),
+                                                        dims=('grid_size'),
+                                                        attrs={'units':'unitless'})
+        sia_scripfile = 'ecco_sia.scrip.nc'
+        ds_siaScrip.to_netcdf(sia_scripfile)
+        ds_siaScrip.close()
+
+        print("Creating SIA mapping File")
+        sia_mapping_file = 'ecco_to_mali_mapping_bilinear_sia.nc'
+        args = ['srun',
+                '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
+                '--source', sia_scripfile,
+                '--destination', mali_scripfile,
+                '--weight', sia_mapping_file,
+                '--method', 'bilinear',
+                '--extrap_method', 'creep',
+                '--extrap_num_levels', self.options.extrapIters,
+                '--netcdf4',
+                "--dst_regional", "--src_regional", '--ignore_unmapped']
+        check_call(args)
+    
+        #remap
+        print("Start SIA remapping ... ")
+
+        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.siaFile])
+
+        print("ncremap of SIA...")
+        st = time.time()
+        # remap the input data
+        siaRemappedOutFile = self.options.outputFile[0:-3] + '.tmp.sia.remapped.nc'
+        args_remap = ["ncremap",
+                "-i", self.siaFile,
+                "-o", siaRemappedOutFile,
+                "-m", sia_mapping_file]
+        check_call(args_remap)
+
+        nd = time.time()
+        tm = nd - st
+        print(f"ncremap completed: {tm} seconds")
+        print("SIA Remapping completed")
+        
+        print("Applying final edits to remapped file ...")
+        # define icebergFjordMask from SIA
+        ds_sia = xr.open_dataset(siaRemappedOutFile)
+        iac = ds_sia['iceAreaCell'].values
+        icebergFjordMask = np.zeros(iac.shape)
+        # Find cells where sea ice fraction exceeds threshold
+        mask = iac > self.options.iceAreaThresh 
+        icebergFjordMask[mask] = 1
+        ifm = xr.DataArray(icebergFjordMask.astype('int32'), dims=("Time", "nCells"))
+        sia = xr.DataArray(iac.astype('float32'), dims=("Time", "nCells"))
 
         # During conservative remapping, some valid ocean cells are averaged with invalid ocean cells. Use
         # float version of orig3dOceanMask to identify these cells and remove. Resave orig3dOceanMask as int32
@@ -303,25 +370,23 @@ class eccoToMaliInterp:
         sal = ds_out['oceanSalinity']
 
         mask = o3dm > 0.9999 #Account for rounding error. Good cells are not exactly 1
-        ds_out['orig3dOceanMask'] = o3dm.where(mask, 0).astype('int32')
+        ds_out['orig3dOceanMask'] = xr.DataArray(mask.astype('int32'), dims=("Time", "nCells", "nISMIP6OceanLayers"))
         ds_out['oceanTemperature'] = temp.where(mask, 1e36).astype('float64')
         ds_out['oceanSalinity'] = sal.where(mask, 1e36).astype('float64')
+        # Add sia and icebergBergMask into main file
+        ds_out['iceAreaCell'] = sia
+        ds_out['icebergFjordMask'] = ifm
 
         # Save final output file if not adding mesh variables
-        if self.options.includeMeshVars:
-            altRemappedOutFile = self.options.outputFile[0:-3] + '.tmp.altRemapped.nc'
-        else :
-            altRemappedOutFile = self.options.outputFile
+        if not self.options.includeMeshVars:
+            # <<NOTE>>: Creating a new netcdf file like this changes the format of xtime. Need to add
+            # encoding update to maintain original formatting
+            ds_out.to_netcdf(self.options.outputFile, unlimited_dims=['Time'])
+            subprocess.run(["ncatted", "-a", "_FillValue,,d,,", altRemappedOutFile])
 
-        # <<NOTE>>: Creating a new netcdf file like this changes the format of xtime. Need to add
-        # encoding update to maintain original formatting
-        ds_out.to_netcdf(altRemappedOutFile, 'w')
-        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", altRemappedOutFile])
-
-        # Transfer MALI mesh variables if needed
-        if self.options.includeMeshVars:
+        else:
+            # Transfer MALI mesh variables if needed
             ds_mali = xr.open_dataset(self.options.maliMesh, decode_times=False, decode_cf=False)
-            ds_out = xr.open_dataset(self.options.outputFile, decode_times=False, decode_cf=False, mode='r+')
             ds_out['angleEdge'] = ds_mali['angleEdge']
             ds_out['areaCell'] = ds_mali['areaCell']
             ds_out['areaTriangle'] = ds_mali['areaTriangle']
@@ -366,9 +431,10 @@ class eccoToMaliInterp:
             subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.options.outputFile])
         
         # Remove temporary output files
-        for filename in os.listdir("."):
-            if "tmp" in filename and os.path.isfile(filename):
-                os.remove(filename)
+        if not self.options.keepTmpFiles :
+            for filename in os.listdir("."):
+                if "tmp" in filename and os.path.isfile(filename):
+                    os.remove(filename)
 
     def create_ECCO_scrip_file(self):
         
