@@ -14,11 +14,14 @@ from argparse import ArgumentParser
 import time
 import cftime
 import glob
+import json
+from shapely.geometry import shape
+from shapely.prepared import prep
+from shapely.geometry import Point
 
 """
 << TO DO >>: 
 1) Fix xtime after in final output files
-2) Mask out Jakobshaven/Ilulissat for icebergFjordMask 
 """
 class eccoToMaliInterp:
     
@@ -30,6 +33,7 @@ class eccoToMaliInterp:
         parser.add_argument("--eccoDir", dest="eccoDir", required=True, help="Directory where ECCO files are stored. Should be only netcdf files in that directory", metavar="FILENAME")
         parser.add_argument("--maliMesh", dest="maliMesh", required=True, help="MALI mesh to be interpolated onto", metavar="FILENAME")
         parser.add_argument("--eccoVars", type=str, nargs='+', dest="eccoVars", required=True, help="ECCO variables to interpolate, current options are any combination of 'THETA', 'SALT', 'SIarea'")
+        parser.add_argument("--geojson", dest="geojson", help="Optional geojson used to permanently define icebergFjordMask within a region")
         parser.add_argument("--maxDepth", type=int, dest="maxDepth", default=1500, help="Maximum depth in meters to include in the interpolation")
         parser.add_argument("--ntasks", dest="ntasks", type=str, help="Number of processors to use with ESMF_RegridWeightGen", default='128')
         parser.add_argument("--method", dest="method", type=str, help="Remapping method, either 'bilinear' or 'neareststod'", default='conserve')
@@ -352,19 +356,33 @@ class eccoToMaliInterp:
         
         print("Applying final edits to remapped file ...")
         # define icebergFjordMask from SIA
+        ds_out = xr.open_dataset(remappedOutFile, decode_times=False, decode_cf=False, mode='r+')
         ds_sia = xr.open_dataset(siaRemappedOutFile)
         iac = ds_sia['iceAreaCell'].values
         icebergFjordMask = np.zeros(iac.shape)
         # Find cells where sea ice fraction exceeds threshold
-        mask = iac > self.options.iceAreaThresh 
-        icebergFjordMask[mask] = 1
+        seaice_mask = iac > self.options.iceAreaThresh 
+        icebergFjordMask[seaice_mask] = 1
+
+        # Use geojson to add any additional cells to icebergFjordMask
+        if hasattr(self.options, "geojson"):
+            with open(self.options.geojson) as f:
+                geo = json.load(f)
+                polygon = prep(shape(geo["features"][0]["geometry"]))
+            
+            lonCell = ds_out['lon'][:].values.ravel() - 360 # Convert to geojson longitude convention
+            latCell = ds_out['lat'][:].values.ravel()
+            
+            points = [Point(xy) for xy in zip(lonCell, latCell)]
+            geo_mask = np.array([polygon.covers(p) for p in points]).astype('bool')
+            icebergFjordMask[:,geo_mask] = 1
+
         ifm = xr.DataArray(icebergFjordMask.astype('int32'), dims=("Time", "nCells"))
         sia = xr.DataArray(iac.astype('float32'), dims=("Time", "nCells"))
 
         # During conservative remapping, some valid ocean cells are averaged with invalid ocean cells. Use
         # float version of orig3dOceanMask to identify these cells and remove. Resave orig3dOceanMask as int32
         # so MALI recognizes it
-        ds_out = xr.open_dataset(remappedOutFile, decode_times=False, decode_cf=False, mode='r+')
         o3dm = ds_out['orig3dOceanMask']
         temp = ds_out['oceanTemperature']
         sal = ds_out['oceanSalinity']
