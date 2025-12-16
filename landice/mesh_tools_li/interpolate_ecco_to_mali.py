@@ -19,10 +19,6 @@ from shapely.geometry import shape
 from shapely.prepared import prep
 from shapely.geometry import Point
 
-"""
-<< TO DO >>: 
-1) Fix xtime after in final output files
-"""
 class eccoToMaliInterp:
     
     def __init__(self):
@@ -197,14 +193,10 @@ class eccoToMaliInterp:
         ds_unstruct = xr.Dataset()
         ds_unstruct.expand_dims(["nCells", "Time"])
         
-        # Translate ECCO time to MALI xtime format as save to dataset
+        # Save ECCO time variable as datetime string. Will be converted into xtime format when saving final output file
         time = ds_ecco['tim'].values
-        xtime_str = [pd.to_datetime(dt).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
-        xtime = np.array(xtime_str, dtype = np.dtype(('S',64)))
-        DA_xtime = xr.DataArray(xtime, dims=["Time"])
-        DA_xtime.encoding.update({"char_dim_name": "StrLen"})
-        ds_unstruct['xtime'] = DA_xtime
-
+        self.xtime_str = [pd.to_datetime(dt).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
+        
         # save unstructured variables with MALI/MPAS-O names 
         if 'z' in locals():
             ds_unstruct.expand_dims("nISMIP6OceanLayers")
@@ -394,6 +386,12 @@ class eccoToMaliInterp:
         # Add sia and icebergBergMask into main file
         ds_out['iceAreaCell'] = sia
         ds_out['icebergFjordMask'] = ifm
+        
+        # save xtime correctly
+        xtime = np.array(self.xtime_str, dtype = np.dtype(('S',64)))
+        DA_xtime = xr.DataArray(xtime, dims=["Time"])
+        DA_xtime.encoding.update({"char_dim_name": "StrLen"})
+        ds_out['xtime'] = DA_xtime
 
         # Save final output file if not adding mesh variables
         if not self.options.includeMeshVars:
