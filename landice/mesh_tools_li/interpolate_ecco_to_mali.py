@@ -194,9 +194,11 @@ class eccoToMaliInterp:
         ds_unstruct.expand_dims(["nCells", "Time"])
         
         # Save ECCO time variable as datetime string. Will be converted into xtime format when saving final output file
+        # Subtract one month from each time step. Ecco to output every month as an average of the previous month. We
+        # want to force MALI with ECCO data from the same month (avoid 1 month lag)
         time = ds_ecco['tim'].values
-        self.xtime_str = [pd.to_datetime(dt).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
-        
+        self.xtime_str = [(pd.to_datetime(dt) - pd.to_datetime(dt)).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
+    
         # save unstructured variables with MALI/MPAS-O names 
         if 'z' in locals():
             ds_unstruct.expand_dims("nISMIP6OceanLayers")
