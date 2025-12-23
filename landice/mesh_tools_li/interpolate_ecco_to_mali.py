@@ -381,7 +381,9 @@ class eccoToMaliInterp:
         temp = ds_out['oceanTemperature']
         sal = ds_out['oceanSalinity']
 
-        mask = o3dm > 0.9999 #Account for rounding error. Good cells are not exactly 1
+        # Account for rounding error. Good cells are not exactly 1 and temp/sal invalid values may be averaged out.
+        # It is otherwise possible to get some invalid temp/sal values align with good orig3dOceanMask values after remapping
+        mask = (o3dm > 0.9999) & (temp < 100) & (salt < 100)
         ds_out['orig3dOceanMask'] = xr.DataArray(mask.astype('int32'), dims=("Time", "nCells", "nISMIP6OceanLayers"))
         ds_out['oceanTemperature'] = temp.where(mask, 1e36).astype('float64')
         ds_out['oceanSalinity'] = sal.where(mask, 1e36).astype('float64')
