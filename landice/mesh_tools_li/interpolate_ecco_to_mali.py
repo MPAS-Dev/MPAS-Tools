@@ -452,6 +452,11 @@ class eccoToMaliInterp:
                 if "tmp" in filename and os.path.isfile(filename):
                     os.remove(filename)
 
+        # Convert to netcdf3 64-bit offset. Much faster to do this with ncks than create the netcdf3 originally
+        # with xarray.to_netcdf. 
+        nc64offset = self.options.outFile[0:-3] + '.64bitOffset.nc'
+        subprocess.run(["ncks", "-6", self.options.outputFile, nc64offset])
+
     def create_ECCO_scrip_file(self):
         
         print("Creating ECCO scrip file")
