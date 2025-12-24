@@ -8,7 +8,7 @@ on:
     # 3. Entry: Day of the month when the process will be started [1-28/29/30/31]
     # 4. Entry: Month of the year when the process will be started [1-12]
     # 5. Entry: Weekday when the process will be started [0-6] [0 is Sunday]
-    - cron: '0 8 * * 3'
+    - cron: '0 8 1 * *'
   # Allow manual triggering of the workflow
   workflow_dispatch:
 
