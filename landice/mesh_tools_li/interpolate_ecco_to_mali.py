@@ -32,7 +32,7 @@ class eccoToMaliInterp:
         parser.add_argument("--geojson", dest="geojson", help="Optional geojson used to permanently define icebergFjordMask within a region")
         parser.add_argument("--maxDepth", type=int, dest="maxDepth", default=1500, help="Maximum depth in meters to include in the interpolation")
         parser.add_argument("--ntasks", dest="ntasks", type=str, help="Number of processors to use with ESMF_RegridWeightGen", default='128')
-        parser.add_argument("--method", dest="method", type=str, help="Remapping method, either 'bilinear' or 'neareststod'", default='conserve')
+        parser.add_argument("--method", dest="method", type=str, help="Remapping method, either 'bilinear' or 'neareststod'", default='bilinear')
         parser.add_argument("--outFile", dest="outputFile", help="Desired name of output file", metavar="FILENAME", default="ecco_to_mali_remapped.nc")
         parser.add_argument("--meshVars", dest="includeMeshVars", help="whether to include mesh variables in resulting MALI forcing file", action='store_true')
         parser.add_argument("--iceAreaThresh", dest="iceAreaThresh", type=float, help="Threshold sea ice fraction used to define icebergFjordMask.", default=0.5)
