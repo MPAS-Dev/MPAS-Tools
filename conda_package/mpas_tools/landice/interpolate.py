@@ -462,7 +462,7 @@ def interpolate_to_mpasli_grid():  # noqa: C901
             elif filetype == 'mpas':
                 print(
                     f'  Input layer {z}, layer {InputFieldName} min/max: '
-                    f'{InputField[z, :, :].min()} {InputField[z, :, :].max()}'
+                    f'{InputField[:, z].min()} {InputField[:, z].max()}'
                 )
                 # Call the appropriate routine for actually doing the
                 # interpolation
