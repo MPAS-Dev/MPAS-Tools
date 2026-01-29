@@ -8,7 +8,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>mpas_tools.mesh.conversion.cull &mdash; mpas_tools master documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -176,10 +176,10 @@ dataset and/or provided mask datasets. Masks are merged as follows:
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>dsIn</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.12.0)"><em>xarray.Dataset</em></a>) – Input mesh dataset, optionally with a <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field.</p></li>
-<li><p><strong>dsMask</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.12.0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>, </em><em>optional</em>) – Dataset(s) with region masks (1 where cells should be culled).</p></li>
-<li><p><strong>dsInverse</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.12.0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>, </em><em>optional</em>) – Dataset(s) with region masks (0 where cells should be culled).</p></li>
-<li><p><strong>dsPreserve</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2025.12.0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>, </em><em>optional</em>) – Dataset(s) with region masks (1 where cells should NOT be culled).</p></li>
+<li><p><strong>dsIn</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2026.1.0)"><em>xarray.Dataset</em></a>) – Input mesh dataset, optionally with a <code class="docutils literal notranslate"><span class="pre">cullCell</span></code> field.</p></li>
+<li><p><strong>dsMask</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2026.1.0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>, </em><em>optional</em>) – Dataset(s) with region masks (1 where cells should be culled).</p></li>
+<li><p><strong>dsInverse</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2026.1.0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>, </em><em>optional</em>) – Dataset(s) with region masks (0 where cells should be culled).</p></li>
+<li><p><strong>dsPreserve</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2026.1.0)"><em>xarray.Dataset</em></a><em> or </em><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.14)"><em>list</em></a><em>, </em><em>optional</em>) – Dataset(s) with region masks (1 where cells should NOT be culled).</p></li>
 <li><p><strong>graphInfoFileName</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Path to save the generated <code class="docutils literal notranslate"><span class="pre">culled_graph.info</span></code> file.</p></li>
 <li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.14)"><em>logging.Logger</em></a><em>, </em><em>optional</em>) – Logger for capturing output from the culler.</p></li>
 <li><p><strong>dir</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a><em>, </em><em>optional</em>) – Directory in which to create a temporary working directory.</p></li>
@@ -209,7 +209,7 @@ dataset and/or provided mask datasets. Masks are merged as follows:
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2025 Triad National Security, LLC. All rights reserved. Copyright (c) 2025 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2025 UT-Battelle, LLC. All rights reserved..</p>
+    <p>&#169; Copyright This software is open source software available under the BSD-3license. Copyright (c) 2026 Triad National Security, LLC. All rights reserved. Copyright (c) 2026 Lawrence Livermore National Security, LLC. All rights reserved. Copyright (c) 2026 UT-Battelle, LLC. All rights reserved..</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
