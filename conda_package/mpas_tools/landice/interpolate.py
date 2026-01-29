@@ -1,16 +1,17 @@
-import sys
-import numpy as np
-import netCDF4
 import argparse
 import math
-from collections import OrderedDict
-import scipy.spatial
-import scipy.sparse
+import sys
 import time
+from collections import OrderedDict
 from datetime import datetime
 
+import netCDF4
+import numpy as np
+import scipy.sparse
+import scipy.spatial
 
-def interpolate_to_mpasli_grid():
+
+def interpolate_to_mpasli_grid():  # noqa: C901
     """
     Interpolate fields from an input file to a pre-existing MPAS-LI grid.
 
@@ -56,7 +57,8 @@ def interpolate_to_mpasli_grid():
             # matrix format. This needs some reshaping to get the matching
             # dimensions
             source_csr = scipy.sparse.csr_matrix(
-                sourceField.flatten()[:, np.newaxis])
+                sourceField.flatten()[:, np.newaxis]
+            )
             # Use SciPy CSR dot product - much faster than iterating over
             # elements of the full matrix
             destinationField = weights_csr.dot(source_csr).toarray().squeeze()
@@ -64,7 +66,7 @@ def interpolate_to_mpasli_grid():
             # fraction. It should be safe to do this for other methods
             ind = np.where(dst_frac > 0.0)[0]
             destinationField[ind] /= dst_frac[ind]
-        except:
+        except:  # noqa: E722
             print('error in ESMF_interp')
         return destinationField
 
@@ -90,22 +92,35 @@ def interpolate_to_mpasli_grid():
         dy = y[1] - y[0]
         for i in range(len(xCell)):
             # Calculate the CISM grid cell indices (these are the lower index)
-            xgrid = int(math.floor((xCell[i]-x[0]) / dx))
+            xgrid = int(math.floor((xCell[i] - x[0]) / dx))
             if xgrid >= len(x) - 1:
                 xgrid = len(x) - 2
             elif xgrid < 0:
                 xgrid = 0
-            ygrid = int(math.floor((yCell[i]-y[0]) / dy))
+            ygrid = int(math.floor((yCell[i] - y[0]) / dy))
             if ygrid >= len(y) - 1:
                 ygrid = len(y) - 2
             elif ygrid < 0:
                 ygrid = 0
             # print(xgrid, ygrid, i)
             ValueCell[i] = (
-                Value[ygrid, xgrid] * (x[xgrid+1] - xCell[i]) * (y[ygrid+1] - yCell[i]) / (dx * dy) +
-                Value[ygrid+1, xgrid] * (x[xgrid+1] - xCell[i]) * (yCell[i] - y[ygrid]) / (dx * dy) +
-                Value[ygrid, xgrid+1] * (xCell[i] - x[xgrid]) * (y[ygrid+1] - yCell[i]) / (dx * dy) +
-                Value[ygrid+1, xgrid+1] * (xCell[i] - x[xgrid]) * (yCell[i] - y[ygrid]) / (dx * dy))
+                Value[ygrid, xgrid]
+                * (x[xgrid + 1] - xCell[i])
+                * (y[ygrid + 1] - yCell[i])
+                / (dx * dy)  # noqa: E501
+                + Value[ygrid + 1, xgrid]
+                * (x[xgrid + 1] - xCell[i])
+                * (yCell[i] - y[ygrid])
+                / (dx * dy)  # noqa: E501
+                + Value[ygrid, xgrid + 1]
+                * (xCell[i] - x[xgrid])
+                * (y[ygrid + 1] - yCell[i])
+                / (dx * dy)  # noqa: E501
+                + Value[ygrid + 1, xgrid + 1]
+                * (xCell[i] - x[xgrid])
+                * (yCell[i] - y[ygrid])
+                / (dx * dy)
+            )  # noqa: E501
         return ValueCell
 
     # ----------------------------
@@ -117,36 +132,39 @@ def interpolate_to_mpasli_grid():
         """
 
         # print("scipy version=", scipy.version.full_version)
-        if xy.shape[0] > 2**24-1:
-            print("WARNING: The source file contains more than 2^24-1 "
-                  "(16,777,215) points due to a limitation in older versions "
-                  "of Qhull (see: https://mail.scipy.org/pipermail/scipy-user/2015-June/036598.html).  "
-                  "Delaunay creation may fail if Qhull being linked by "
-                  "scipy.spatial is older than v2015.0.1 2015/8/31.")
+        if xy.shape[0] > 2**24 - 1:
+            print(
+                'WARNING: The source file contains more than 2^24-1 '
+                '(16,777,215) points due to a limitation in older versions '
+                'of Qhull (see: https://mail.scipy.org/pipermail/scipy-user/2015-June/036598.html).  '  # noqa: E501
+                'Delaunay creation may fail if Qhull being linked by '
+                'scipy.spatial is older than v2015.0.1 2015/8/31.'
+            )
 
         tri = scipy.spatial.Delaunay(xy)
-        print("    Delaunay triangulation complete.")
+        print('    Delaunay triangulation complete.')
         simplex = tri.find_simplex(uv)
-        print("    find_simplex complete.")
+        print('    find_simplex complete.')
         vertices = np.take(tri.simplices, simplex, axis=0)
-        print("    identified vertices.")
+        print('    identified vertices.')
         temp = np.take(tri.transform, simplex, axis=0)
-        print("    np.take complete.")
+        print('    np.take complete.')
         delta = uv - temp[:, d]
         bary = np.einsum('njk,nk->nj', temp[:, :d, :], delta)
-        print("    calculating bary complete.")
+        print('    calculating bary complete.')
         wts = np.hstack((bary, 1 - bary.sum(axis=1, keepdims=True)))
 
         # Now figure out if there is any extrapolation.
         # Find indices to points of output file that are outside of convex
         # hull of input points
         outsideInd = np.nonzero(tri.find_simplex(uv) < 0)
-        outsideCoords = uv[outsideInd]
         # print(outsideInd)
         nExtrap = len(outsideInd[0])
         if nExtrap > 0:
-            print(f"    Found {nExtrap} points requiring extrapolation. "
-                  f"Using nearest neighbor extrapolation for those.")
+            print(
+                f'    Found {nExtrap} points requiring extrapolation. '
+                f'Using nearest neighbor extrapolation for those.'
+            )
 
         # Now find nearest neighbor for each outside point
         # Use KDTree of input points
@@ -221,13 +239,16 @@ def interpolate_to_mpasli_grid():
 
     # ----------------------------
 
-    def _interpolate_field(MPASfieldName):
-
-        if fieldInfo[MPASfieldName]['gridType'] == 'x0' and \
-                args.interpType == 'e':
-            raise ValueError("This CISM field is on the staggered grid, and "
-                             "currently this script does not support a second "
-                             "ESMF weight file for the staggered grid.")
+    def _interpolate_field(MPASfieldName):  # noqa: C901
+        if (
+            fieldInfo[MPASfieldName]['gridType'] == 'x0'
+            and args.interpType == 'e'
+        ):
+            raise ValueError(
+                'This CISM field is on the staggered grid, and '
+                'currently this script does not support a second '
+                'ESMF weight file for the staggered grid.'
+            )
 
         InputFieldName = fieldInfo[MPASfieldName]['InputName']
         if filetype == 'cism':
@@ -236,9 +257,10 @@ def interpolate_to_mpasli_grid():
             else:
                 if timelev > 0:
                     raise ValueError(
-                       "--timestart and/or --timeend were specified but the "
-                       "required time dimension of 'time' was not found in "
-                       "the source file.")
+                        '--timestart and/or --timeend were specified but the '
+                        "required time dimension of 'time' was not found in "
+                        'the source file.'
+                    )
                 InputField = inputFile.variables[InputFieldName][:, :]
         elif filetype == 'mpas':
             if 'Time' in inputFile.variables[InputFieldName].dimensions:
@@ -246,9 +268,10 @@ def interpolate_to_mpasli_grid():
             else:
                 if timelev > 0:
                     raise ValueError(
-                       "--timestart and/or --timeend were specified but the "
-                       "required time dimension of 'Time' was not found in "
-                       "the source file.")
+                        '--timestart and/or --timeend were specified but the '
+                        "required time dimension of 'Time' was not found in "
+                        'the source file.'
+                    )
                 InputField = inputFile.variables[InputFieldName][:]
         elif filetype == 'other':
             if 'time' in inputFile.variables[InputFieldName].dimensions:
@@ -256,28 +279,39 @@ def interpolate_to_mpasli_grid():
             else:
                 if timelev > 0:
                     raise ValueError(
-                       "--timestart and/or --timeend were specified but the "
-                       "required time dimension of 'time' was not found in "
-                       "the source file.")
+                        '--timestart and/or --timeend were specified but the '
+                        "required time dimension of 'time' was not found in "
+                        'the source file.'
+                    )
                 InputField = inputFile.variables[InputFieldName][:, :]
 
-        print(f'  Input field  {InputFieldName} min/max: {InputField.min()} '
-              f'{InputField.max()}')
+        print(
+            f'  Input field  {InputFieldName} min/max: {InputField.min()} '
+            f'{InputField.max()}'
+        )
 
         # Call the appropriate routine for actually doing the interpolation
         if args.interpType == 'b':
-            print(f"  ...Interpolating to {MPASfieldName} using built-in "
-                  f"bilinear method...")
+            print(
+                f'  ...Interpolating to {MPASfieldName} using built-in '
+                f'bilinear method...'
+            )
             MPASfield = _bilinear_interp(
-               InputField, fieldInfo[MPASfieldName]['gridType'])
+                InputField, fieldInfo[MPASfieldName]['gridType']
+            )
         elif args.interpType == 'd':
-            print(f"  ...Interpolating to {MPASfieldName} using barycentric  "
-                  f"method...")
+            print(
+                f'  ...Interpolating to {MPASfieldName} using barycentric  '
+                f'method...'
+            )
             MPASfield = _delaunay_interpolate(
-               InputField, fieldInfo[MPASfieldName]['gridType'])
+                InputField, fieldInfo[MPASfieldName]['gridType']
+            )
         elif args.interpType == 'n':
-            print(f"  ...Interpolating to {MPASfieldName} using nearest "
-                  f"neighbor method...")
+            print(
+                f'  ...Interpolating to {MPASfieldName} using nearest '
+                f'neighbor method...'
+            )
             if fieldInfo[MPASfieldName]['gridType'] == 'x0':
                 # 2d cism fields need to be flattened. (Note the indices were
                 # flattened during init, so this just matches that operation
@@ -297,47 +331,60 @@ def interpolate_to_mpasli_grid():
                 # operation won't do anything because they are already flat.
                 MPASfield = InputField.flatten()[nn_idx_cell]
         elif args.interpType == 'e':
-            print(f"  ...Interpolating to {MPASfieldName} using ESMF-weights  "
-                  f"method...")
+            print(
+                f'  ...Interpolating to {MPASfieldName} using ESMF-weights  '
+                f'method...'
+            )
             MPASfield = _esmf_interp(InputField)
         else:
             raise ValueError('Unknown interpolation method specified')
 
-        print(f'  interpolated MPAS {MPASfieldName} min/max: '
-              f'{MPASfield.min()} {MPASfield.max()}')
+        print(
+            f'  interpolated MPAS {MPASfieldName} min/max: '
+            f'{MPASfield.min()} {MPASfield.max()}'
+        )
 
         if fieldInfo[MPASfieldName]['scalefactor'] != 1.0:
             MPASfield *= fieldInfo[MPASfieldName]['scalefactor']
-            print(f'  scaled MPAS {MPASfieldName} min/max: '
-                  f'{MPASfield.min()} {MPASfield.max()}')
+            print(
+                f'  scaled MPAS {MPASfieldName} min/max: '
+                f'{MPASfield.min()} {MPASfield.max()}'
+            )
         if fieldInfo[MPASfieldName]['offset'] != 0.0:
             MPASfield += fieldInfo[MPASfieldName]['offset']
-            print(f'  offset MPAS {MPASfieldName} min/max: '
-                  f'{MPASfield.min()} {MPASfield.max()}')
+            print(
+                f'  offset MPAS {MPASfieldName} min/max: '
+                f'{MPASfield.min()} {MPASfield.max()}'
+            )
 
         return MPASfield
 
     # ----------------------------
 
-    def _interpolate_field_with_layers(MPASfieldName):
-
-        if fieldInfo[MPASfieldName]['gridType'] == 'x0' and \
-                args.interpType == 'e':
-            raise ValueError("This CISM field is on the staggered grid, and "
-                             "currently this script does not support a second "
-                             "ESMF weight file for the staggered grid.")
+    def _interpolate_field_with_layers(MPASfieldName):  # noqa: C901
+        if (
+            fieldInfo[MPASfieldName]['gridType'] == 'x0'
+            and args.interpType == 'e'
+        ):
+            raise ValueError(
+                'This CISM field is on the staggered grid, and '
+                'currently this script does not support a second '
+                'ESMF weight file for the staggered grid.'
+            )
 
         InputFieldName = fieldInfo[MPASfieldName]['InputName']
         if filetype == 'cism':
             if 'time' in inputFile.variables[InputFieldName].dimensions:
-                InputField = \
-                    inputFile.variables[InputFieldName][timelev, :, :, :]
+                InputField = inputFile.variables[InputFieldName][
+                    timelev, :, :, :
+                ]
             else:
                 if timelev > 0:
                     raise ValueError(
-                        "--timestart and/or --timeend were specified but the "
+                        '--timestart and/or --timeend were specified but the '
                         "required time dimension of 'time' was not found in "
-                        "the source file.")
+                        'the source file.'
+                    )
                 InputField = inputFile.variables[InputFieldName][:, :, :]
             # vertical index is the first (since we've eliminated time already)
             inputVerticalDimSize = InputField.shape[0]
@@ -350,42 +397,56 @@ def interpolate_to_mpasli_grid():
             else:
                 if timelev > 0:
                     raise ValueError(
-                        "--timestart and/or --timeend were ""specified but "
+                        '--timestart and/or --timeend were '
+                        'specified but '
                         "the required time dimension of 'Time' was not found "
-                        "in the source file.")
+                        'in the source file.'
+                    )
                 InputField = inputFile.variables[InputFieldName][:, :]
             # vertical index is the second (since we've eliminated time
             # already)
             inputVerticalDimSize = InputField.shape[1]
-            layerThicknessFractions = \
-                inputFile.variables['layerThicknessFractions'][:]
+            layerThicknessFractions = inputFile.variables[
+                'layerThicknessFractions'
+            ][:]
             # build MPAS sigma levels at center of each layer
             input_layers = np.zeros((inputVerticalDimSize,))
             if inputVerticalDimSize == len(layerThicknessFractions):
-                print("  Using layer centers for the vertical coordinate of "
-                      "this field.")
+                print(
+                    '  Using layer centers for the vertical coordinate of '
+                    'this field.'
+                )
                 input_layers[0] = layerThicknessFractions[0] * 0.5
                 for k in range(1, inputVerticalDimSize):
                     input_layers[k] = (
-                        input_layers[k-1] +
-                        0.5 * layerThicknessFractions[k-1] +
-                        0.5 * layerThicknessFractions[k])
-                layerFieldName = \
+                        input_layers[k - 1]
+                        + 0.5 * layerThicknessFractions[k - 1]
+                        + 0.5 * layerThicknessFractions[k]
+                    )
+                layerFieldName = (
                     '(sigma levels calculated from layerThicknessFractions)'
-            elif inputVerticalDimSize == len(layerThicknessFractions)+1:
-                print("  Using layer interfaces for the vertical coordinate "
-                      "of this field.")
+                )
+            elif inputVerticalDimSize == len(layerThicknessFractions) + 1:
+                print(
+                    '  Using layer interfaces for the vertical coordinate '
+                    'of this field.'
+                )
                 input_layers[0] = 0.0
                 for k in range(1, inputVerticalDimSize):
                     input_layers[k] = (
-                        input_layers[k-1] + layerThicknessFractions[k-1])
+                        input_layers[k - 1] + layerThicknessFractions[k - 1]
+                    )
             else:
-                raise ValueError("\nUnknown vertical dimension for this "
-                                 "variable source file.")
+                raise ValueError(
+                    '\nUnknown vertical dimension for this '
+                    'variable source file.'
+                )
         else:
-            raise ValueError("Fields with vertical layers can only be "
-                             "interpolated using the barycentric or bilinear "
-                             "methods.")
+            raise ValueError(
+                'Fields with vertical layers can only be '
+                'interpolated using the barycentric or bilinear '
+                'methods.'
+            )
 
         # create array for interpolated source field at all layers
         # make it the size of the CISM vertical layers, but the MPAS horizontal
@@ -396,97 +457,125 @@ def interpolate_to_mpasli_grid():
             if filetype == 'cism':
                 print(
                     f'  Input layer {z}, layer {InputFieldName} min/max: '
-                    f'{InputField[z, :, :].min()} {InputField[z, :, :].max()}')
+                    f'{InputField[z, :, :].min()} {InputField[z, :, :].max()}'
+                )
             elif filetype == 'mpas':
                 print(
                     f'  Input layer {z}, layer {InputFieldName} min/max: '
-                    f'{InputField[z, :, :].min()} {InputField[z, :, :].max()}')
+                    f'{InputField[z, :, :].min()} {InputField[z, :, :].max()}'
+                )
                 # Call the appropriate routine for actually doing the
                 # interpolation
                 if args.interpType == 'b':
-                    print(f"  ...Layer {z}, Interpolating this layer to MPAS "
-                          f"grid using built-in bilinear method...")
+                    print(
+                        f'  ...Layer {z}, Interpolating this layer to MPAS '
+                        f'grid using built-in bilinear method...'
+                    )
                     mpas_grid_input_layers[z, :] = _bilinear_interp(
                         InputField[z, :, :],
-                        fieldInfo[MPASfieldName]['gridType'])
+                        fieldInfo[MPASfieldName]['gridType'],
+                    )
                 elif args.interpType == 'd':
-                    print(f"  ...Layer {z}, Interpolating this layer to MPAS "
-                          f"grid using built-in barycentric method...")
+                    print(
+                        f'  ...Layer {z}, Interpolating this layer to MPAS '
+                        f'grid using built-in barycentric method...'
+                    )
                     if filetype == 'cism':
                         mpas_grid_input_layers[z, :] = _delaunay_interpolate(
                             InputField[z, :, :],
-                            fieldInfo[MPASfieldName]['gridType'])
+                            fieldInfo[MPASfieldName]['gridType'],
+                        )
                     elif filetype == 'mpas':
                         mpas_grid_input_layers[z, :] = _delaunay_interpolate(
                             InputField[:, z],
-                            fieldInfo[MPASfieldName]['gridType'])
+                            fieldInfo[MPASfieldName]['gridType'],
+                        )
                 elif args.interpType == 'n':
-                    print(f"  ...Layer {z}, Interpolating this layer to MPAS "
-                          f"grid using nearest neighbor method...")
+                    print(
+                        f'  ...Layer {z}, Interpolating this layer to MPAS '
+                        f'grid using nearest neighbor method...'
+                    )
                     if fieldInfo[MPASfieldName]['gridType'] == 'x0':
                         # 2d cism fields need to be flattened. (Note the
                         # indices were flattened during init, so this just
                         # matches that operation for the field data itself.)
                         # 1d mpas fields do not, but the operation won't do
                         # anything because they are already flat.
-                        mpas_grid_input_layers[z, :] = \
-                            InputField[z, :, :].flatten()[nn_idx_x0]
+                        mpas_grid_input_layers[z, :] = InputField[
+                            z, :, :
+                        ].flatten()[nn_idx_x0]
                     elif fieldInfo[MPASfieldName]['gridType'] == 'x1':
                         # 2d cism fields need to be flattened. (Note the
                         # indices were flattened during init, so this just
                         # matches that operation for the field data itself.)
                         # 1d mpas fields do not, but the operation won't do
                         # anything because they are already flat.
-                        mpas_grid_input_layers[z, :] = \
-                            InputField[z, :, :].flatten()[nn_idx_x1]
+                        mpas_grid_input_layers[z, :] = InputField[
+                            z, :, :
+                        ].flatten()[nn_idx_x1]
                     elif fieldInfo[MPASfieldName]['gridType'] == 'cell':
                         # 2d cism fields need to be flattened. (Note the
                         # indices were flattened during init, so this just
                         # matches that operation for the field data itself.)
                         # 1d mpas fields do not, but the operation won't do
                         # anything because they are already flat.
-                        mpas_grid_input_layers[z, :] = \
-                            InputField[:, z].flatten()[nn_idx_cell]
+                        mpas_grid_input_layers[z, :] = InputField[
+                            :, z
+                        ].flatten()[nn_idx_cell]
                 elif args.interpType == 'e':
-                    print(f"  ...Layer {z}, Interpolating this layer to MPAS "
-                          f"grid using ESMF-weights method...")
+                    print(
+                        f'  ...Layer {z}, Interpolating this layer to MPAS '
+                        f'grid using ESMF-weights method...'
+                    )
                     if filetype == 'cism':
-                        mpas_grid_input_layers[z, :] = \
-                            _esmf_interp(InputField[z, :, :])
+                        mpas_grid_input_layers[z, :] = _esmf_interp(
+                            InputField[z, :, :]
+                        )
                     elif filetype == 'mpas':
-                        mpas_grid_input_layers[z, :] = \
-                            _esmf_interp(InputField[:, z])
+                        mpas_grid_input_layers[z, :] = _esmf_interp(
+                            InputField[:, z]
+                        )
             else:
                 raise ValueError('Unknown interpolation method specified')
-            print(f'  interpolated MPAS {MPASfieldName}, layer {z} min/max: '
-                  f'{mpas_grid_input_layers[z, :].min()} '
-                  f'{mpas_grid_input_layers[z, :].max()}')
+            print(
+                f'  interpolated MPAS {MPASfieldName}, layer {z} min/max: '
+                f'{mpas_grid_input_layers[z, :].min()} '
+                f'{mpas_grid_input_layers[z, :].max()}'
+            )
 
         if fieldInfo[MPASfieldName]['scalefactor'] != 1.0:
             mpas_grid_input_layers *= fieldInfo[MPASfieldName]['scalefactor']
-            print(f'  scaled MPAS {MPASfieldName} on CISM vertical layers, '
-                  f'min/max: {mpas_grid_input_layers.min()} '
-                  f'{mpas_grid_input_layers.max()}')
+            print(
+                f'  scaled MPAS {MPASfieldName} on CISM vertical layers, '
+                f'min/max: {mpas_grid_input_layers.min()} '
+                f'{mpas_grid_input_layers.max()}'
+            )
         if fieldInfo[MPASfieldName]['offset'] != 0.0:
             mpas_grid_input_layers += fieldInfo[MPASfieldName]['offset']
-            print(f'  offset MPAS {MPASfieldName} on CISM vertical layers, '
-                  f'min/max: {mpas_grid_input_layers.min()} '
-                  f'{mpas_grid_input_layers.max()}')
+            print(
+                f'  offset MPAS {MPASfieldName} on CISM vertical layers, '
+                f'min/max: {mpas_grid_input_layers.min()} '
+                f'{mpas_grid_input_layers.max()}'
+            )
 
         # ------------
         # Now interpolate vertically
-        print(f"  Input layer field "
-              f"{inputFile.variables[InputFieldName].dimensions[1]} has "
-              f"layers: {input_layers}")
+        print(
+            f'  Input layer field '
+            f'{inputFile.variables[InputFieldName].dimensions[1]} has '
+            f'layers: {input_layers}'
+        )
         if 'nVertLevels' in MPASfile.variables[MPASfieldName].dimensions:
-            print(f"  MPAS layer centers are: {mpasLayerCenters}")
+            print(f'  MPAS layer centers are: {mpasLayerCenters}')
             destVertCoord = mpasLayerCenters
         elif 'nVertInterfaces' in MPASfile.variables[MPASfieldName].dimensions:
-            print(f"  MPAS layer interfaces are: {mpasLayerInterfaces}")
+            print(f'  MPAS layer interfaces are: {mpasLayerInterfaces}')
             destVertCoord = mpasLayerInterfaces
         else:
-            raise ValueError("Unknown vertical dimension for this variable "
-                             "destination file.")
+            raise ValueError(
+                'Unknown vertical dimension for this variable '
+                'destination file.'
+            )
 
         if input_layers.min() > destVertCoord.min():
             # This fix ensures that interpolation is done when
@@ -497,27 +586,35 @@ def interpolate_to_mpasli_grid():
                 input_layers[0] = input_layers[0] - 1.0e-6
                 print(f'New input_layers.min = {input_layers.min():.16f}')
             else:
-                print("WARNING: input_layers.min() > destVertCoord.min()   "
-                      "Values at the first level of input_layers will be used "
-                      "for all MPAS layers in this region!")
+                print(
+                    'WARNING: input_layers.min() > destVertCoord.min()   '
+                    'Values at the first level of input_layers will be used '
+                    'for all MPAS layers in this region!'
+                )
         if input_layers.max() < destVertCoord.max():
             # This fix ensures that interpolation is done when
             # input_layers.max is very slightly smaller than destVertCoord.max
             if input_layers.max() + 1.0e-6 > destVertCoord.min():
                 print(f'input_layers.max = {input_layers.max():.16f}')
                 print(f'destVertCoord.max = {destVertCoord.max():.16f}')
-                input_layers[inputVerticalDimSize-1] = \
-                    input_layers[inputVerticalDimSize-1] + 1.0e-6
+                input_layers[inputVerticalDimSize - 1] = (
+                    input_layers[inputVerticalDimSize - 1] + 1.0e-6
+                )
                 print(f'New input_layers.max = {input_layers.max():.16f}')
                 print(f'input_layers = {input_layers}')
             else:
-                print("WARNING: input_layers.max() < destVertCoord.max()   "
-                      "Values at the last level of input_layers will be used "
-                      "for all MPAS layers in this region!")
-        MPASfield = _vertical_interp_mpas_grid(mpas_grid_input_layers,
-                                               destVertCoord, input_layers)
-        print(f'  MPAS {MPASfieldName} on MPAS vertical layers, min/max of '
-              f'all layers: {MPASfield.min()}, {MPASfield.max()}')
+                print(
+                    'WARNING: input_layers.max() < destVertCoord.max()   '
+                    'Values at the last level of input_layers will be used '
+                    'for all MPAS layers in this region!'
+                )
+        MPASfield = _vertical_interp_mpas_grid(
+            mpas_grid_input_layers, destVertCoord, input_layers
+        )
+        print(
+            f'  MPAS {MPASfieldName} on MPAS vertical layers, min/max of '
+            f'all layers: {MPASfield.min()}, {MPASfield.max()}'
+        )
 
         del mpas_grid_input_layers
 
@@ -525,73 +622,113 @@ def interpolate_to_mpasli_grid():
 
     # ----------------------------
 
-    def _vertical_interp_mpas_grid(mpas_grid_input_layers, destVertCoord,
-                                   input_layers):
+    def _vertical_interp_mpas_grid(
+        mpas_grid_input_layers, destVertCoord, input_layers
+    ):
         destinationField = np.zeros((nCells, len(destVertCoord)))
         for i in range(nCells):
-            destinationField[i, :] = np.interp(destVertCoord, input_layers,
-                                               mpas_grid_input_layers[:, i])
+            destinationField[i, :] = np.interp(
+                destVertCoord, input_layers, mpas_grid_input_layers[:, i]
+            )
         return destinationField
 
     # ----------------------------
     # ----------------------------
 
-    print("== Gathering information.  (Invoke with --help for more details. "
-          "All arguments are optional)\n")
+    print(
+        '== Gathering information.  (Invoke with --help for more details. '
+        'All arguments are optional)\n'
+    )
     parser = argparse.ArgumentParser(
-       formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.description = __doc__
     parser.add_argument(
-       "-s", "--source", dest="inputFile",
-       help="name of source (input) file.  Can be either CISM format or "
-            "MPASLI format.",
-       default="cism.nc", metavar="FILENAME")
+        '-s',
+        '--source',
+        dest='inputFile',
+        help='name of source (input) file.  Can be either CISM format or '
+        'MPASLI format.',
+        default='cism.nc',
+        metavar='FILENAME',
+    )
     parser.add_argument(
-       "-d", "--destination", dest="mpasFile",
-       help="name of destination file on which to interpolate fields.  This "
-            "needs to be MPASLI format with desired fields already existing.",
-       default="landice_grid.nc", metavar="FILENAME")
+        '-d',
+        '--destination',
+        dest='mpasFile',
+        help='name of destination file on which to interpolate fields.  This '
+        'needs to be MPASLI format with desired fields already existing.',
+        default='landice_grid.nc',
+        metavar='FILENAME',
+    )
     parser.add_argument(
-       "-m", "--method", dest="interpType",
-       help="interpolation method to use. b=bilinear, d=barycentric, e=ESMF, "
-            "n=nearest neighbor",
-       default="b", metavar="METHOD")
+        '-m',
+        '--method',
+        dest='interpType',
+        help='interpolation method to use. b=bilinear, d=barycentric, e=ESMF, '
+        'n=nearest neighbor',
+        default='b',
+        metavar='METHOD',
+    )
     parser.add_argument(
-       "-w", "--weight", dest="weightFile",
-       help="ESMF weight file to input.  Only used by ESMF interpolation "
-            "method",
-       metavar="FILENAME")
+        '-w',
+        '--weight',
+        dest='weightFile',
+        help='ESMF weight file to input.  Only used by ESMF interpolation '
+        'method',
+        metavar='FILENAME',
+    )
     parser.add_argument(
-       "-t", "--thickness-only", dest="thicknessOnly", action="store_true",
-       default=False,
-       help="Only interpolate thickness and ignore all other variables "
-            "(useful for setting up a cullMask)")
+        '-t',
+        '--thickness-only',
+        dest='thicknessOnly',
+        action='store_true',
+        default=False,
+        help='Only interpolate thickness and ignore all other variables '
+        '(useful for setting up a cullMask)',
+    )
     parser.add_argument(
-       "--timestart", dest="timestart", type=int, default=0,
-       help="time level in input file to start from (0-based)")
+        '--timestart',
+        dest='timestart',
+        type=int,
+        default=0,
+        help='time level in input file to start from (0-based)',
+    )
     parser.add_argument(
-       "--timeend", dest="timeend", type=int, default=0,
-       help="time level in input file to end with (0-based, inclusive)")
+        '--timeend',
+        dest='timeend',
+        type=int,
+        default=0,
+        help='time level in input file to end with (0-based, inclusive)',
+    )
     parser.add_argument(
-       "-v", "--variables", dest="vars", nargs='*', type=str, default="all",
-       help="Variables in the destination mesh for which interpolation should "
-            "be attempted.  Interpolation will only actually occur if the "
-            "requested field 1) is in the dictionary of supported fields at "
-            "the end of this script and 2) exists in both the source and "
-            "destination files.  'all' can be used to attempt to interpolate "
-            "all fields present in the destination mesh.  Provide a "
-            "space-delimited list.")
+        '-v',
+        '--variables',
+        dest='vars',
+        nargs='*',
+        type=str,
+        default='all',
+        help='Variables in the destination mesh for which interpolation '
+        'should be attempted.  Interpolation will only actually occur if the '
+        'requested field 1) is in the dictionary of supported fields at '
+        'the end of this script and 2) exists in both the source and '
+        "destination files.  'all' can be used to attempt to interpolate "
+        'all fields present in the destination mesh.  Provide a '
+        'space-delimited list.',
+    )
     args = parser.parse_args()
 
-    print(f"  Source file:  {args.inputFile}")
-    print(f"  Destination MPASLI file to be modified:  {args.mpasFile}")
+    print(f'  Source file:  {args.inputFile}')
+    print(f'  Destination MPASLI file to be modified:  {args.mpasFile}')
 
-    print(f"  Interpolation method to be used:  {args.interpType}")
-    print("    (b=bilinear, d=barycentric, e=esmf)")
+    print(f'  Interpolation method to be used:  {args.interpType}')
+    print('    (b=bilinear, d=barycentric, e=esmf)')
 
     if args.weightFile and args.interpType == 'e':
-        print(f"  Interpolation will be performed using ESMF-weights method, "
-              f"where possible, using weights file:  {args.weightFile}")
+        print(
+            f'  Interpolation will be performed using ESMF-weights method, '
+            f'where possible, using weights file:  {args.weightFile}'
+        )
         # ----------------------------
         # Get weights from file
         wfile = netCDF4.Dataset(args.weightFile, 'r')
@@ -605,13 +742,14 @@ def interpolate_to_mpasli_grid():
         # ----------------------------
 
         # convert to SciPy Compressed Sparse Row (CSR) matrix format
-        weights_csr = scipy.sparse.coo_array((S, (row - 1, col - 1)),
-                                             shape=(n_b, n_a)).tocsr()
+        weights_csr = scipy.sparse.coo_array(
+            (S, (row - 1, col - 1)), shape=(n_b, n_a)
+        ).tocsr()
 
     # make a space in stdout before further output
     print('')
 
-    print("==================")
+    print('==================')
     print('Gathering coordinate information from input and output files.')
 
     # Open the output file, get needed dimensions & variables
@@ -620,48 +758,64 @@ def interpolate_to_mpasli_grid():
         MPASfile.set_auto_mask(False)
         try:
             nVertLevels = len(MPASfile.dimensions['nVertLevels'])
-        except:
-            print('Output file is missing the dimension nVertLevels.  Might '
-                  'not be a problem.')
+        except:  # noqa: E722
+            print(
+                'Output file is missing the dimension nVertLevels.  Might '
+                'not be a problem.'
+            )
         try:
             nVertInterfaces = len(MPASfile.dimensions['nVertInterfaces'])
-        except:
-            print('Output file is missing the dimension nVertInterfaces.  '
-                  'Might not be a problem.')
+        except:  # noqa: E722
+            print(
+                'Output file is missing the dimension nVertInterfaces.  '
+                'Might not be a problem.'
+            )
 
         try:
             # 1d vertical fields - layer centers
-            layerThicknessFractions = \
-                MPASfile.variables['layerThicknessFractions'][:]
+            layerThicknessFractions = MPASfile.variables[
+                'layerThicknessFractions'
+            ][:]
             # build up sigma levels
             mpasLayerCenters = np.zeros((nVertLevels,))
             mpasLayerCenters[0] = 0.5 * layerThicknessFractions[0]
             for k in range(nVertLevels)[1:]:  # skip the first level
                 mpasLayerCenters[k] = (
-                    mpasLayerCenters[k-1] +
-                    0.5 * layerThicknessFractions[k-1] +
-                    0.5 * layerThicknessFractions[k])
-            print(f"  Using MPAS layer centers at sigma levels: "
-                  f"{mpasLayerCenters}")
-        except:
-            print('Trouble calculating mpas layer centers. Might not be a '
-                  'problem.')
+                    mpasLayerCenters[k - 1]
+                    + 0.5 * layerThicknessFractions[k - 1]
+                    + 0.5 * layerThicknessFractions[k]
+                )
+            print(
+                f'  Using MPAS layer centers at sigma levels: '
+                f'{mpasLayerCenters}'
+            )
+        except:  # noqa: E722
+            print(
+                'Trouble calculating mpas layer centers. Might not be a '
+                'problem.'
+            )
 
         try:
             # 1d vertical field - layer interfaces
-            layerThicknessFractions = \
-                MPASfile.variables['layerThicknessFractions'][:]
+            layerThicknessFractions = MPASfile.variables[
+                'layerThicknessFractions'
+            ][:]
             # build up sigma levels
             mpasLayerInterfaces = np.zeros((nVertInterfaces,))
             mpasLayerInterfaces[0] = 0.0
             for k in range(1, nVertInterfaces):  # skip the first level
                 mpasLayerInterfaces[k] = (
-                    mpasLayerInterfaces[k-1] + layerThicknessFractions[k-1])
-            print(f"  Using MPAS layer interfaces at sigma levels: "
-                  f"{mpasLayerInterfaces}")
-        except:
-            print('Trouble calculating mpas layer interfaces. Might not be a '
-                  'problem.')
+                    mpasLayerInterfaces[k - 1] + layerThicknessFractions[k - 1]
+                )
+            print(
+                f'  Using MPAS layer interfaces at sigma levels: '
+                f'{mpasLayerInterfaces}'
+            )
+        except:  # noqa: E722
+            print(
+                'Trouble calculating mpas layer interfaces. Might not be a '
+                'problem.'
+            )
 
         # '2d' spatial fields on cell centers
         xCell = MPASfile.variables['xCell'][:]
@@ -670,10 +824,12 @@ def interpolate_to_mpasli_grid():
         # print('yCell min/max:', yCell.min(), yCell.max()
         nCells = len(MPASfile.dimensions['nCells'])
 
-    except:
-        raise ValueError('The output grid file specified is either missing '
-                         'or lacking needed dimensions/variables.')
-    print("==================\n")
+    except Exception as e:  # noqa: E722
+        raise ValueError(
+            'The output grid file specified is either missing '
+            'or lacking needed dimensions/variables.'
+        ) from e
+    print('==================\n')
 
     # Open the input file, get needed dimensions
     inputFile = netCDF4.Dataset(args.inputFile, 'r')
@@ -682,49 +838,57 @@ def interpolate_to_mpasli_grid():
     # Figure out if this is CISM or MPAS
     if 'x1' in inputFile.variables:
         filetype = 'cism'
-        print("Source file appears to be in CISM format.")
+        print('Source file appears to be in CISM format.')
     elif 'xCell' in inputFile.variables:
         filetype = 'mpas'
-        print("Source file appears to be in MPAS format.")
+        print('Source file appears to be in MPAS format.')
     else:
         filetype = 'other'
-        print("Source file appears to be in a non-standard format.")
+        print('Source file appears to be in a non-standard format.')
         if not args.interpType == 'e':
-            raise ValueError("Source file does not appear to be a CISM file "
-                             "or an MPAS file.  The ESMF interpolation method "
-                             "is the only supported method for files with a "
-                             "non-standard format.")
+            raise ValueError(
+                'Source file does not appear to be a CISM file '
+                'or an MPAS file.  The ESMF interpolation method '
+                'is the only supported method for files with a '
+                'non-standard format.'
+            )
 
     if filetype == 'cism':
         # Get the CISM vertical dimensions if they exist
         try:
-            level = len(inputFile.dimensions['level'])
-        except:
-            print('  Input file is missing the dimension level.  Might not be '
-                  'a problem.')
+            level = len(inputFile.dimensions['level'])  # noqa: F841
+        except:  # noqa: E722
+            print(
+                '  Input file is missing the dimension level.  Might not be '
+                'a problem.'
+            )
 
         try:
-            stagwbndlevel = len(inputFile.dimensions['stagwbndlevel'])
-        except:
-            print('  Input file is missing the dimension stagwbndlevel.  '
-                  'Might not be a problem.')
+            stagwbndlevel = len(inputFile.dimensions['stagwbndlevel'])  # noqa: F841
+        except:  # noqa: E722
+            print(
+                '  Input file is missing the dimension stagwbndlevel.  '
+                'Might not be a problem.'
+            )
 
         # Get CISM location variables if they exist
         try:
             x1 = inputFile.variables['x1'][:]
-            dx1 = x1[1] - x1[0]
+            dx1 = x1[1] - x1[0]  # noqa: F841
             # print('x1 min/max/dx:', x1.min(), x1.max(), dx1
             y1 = inputFile.variables['y1'][:]
-            dy1 = y1[1] - y1[0]
+            dy1 = y1[1] - y1[0]  # noqa: F841
             # print('y1 min/max/dx:', y1.min(), y1.max(), dy1
 
             # This was for some shifted CISM grid but should not be used in
             # general.
             # #x1 = x1 - (x1.max()-x1.min())/2.0
             # #y1 = y1 - (y1.max()-y1.min())/2.0
-        except:
-            print('  Input file is missing x1 and/or y1.  Might not be a '
-                  'problem.')
+        except:  # noqa: E722
+            print(
+                '  Input file is missing x1 and/or y1.  Might not be a '
+                'problem.'
+            )
 
         try:
             x0 = inputFile.variables['x0'][:]
@@ -735,22 +899,23 @@ def interpolate_to_mpasli_grid():
             # #x0 = x0 - (x0.max()-x0.min())/2.0
             # #y0 = y0 - (y0.max()-y0.min())/2.0
 
-        except:
-            print('  Input file is missing x0 and/or y0.  Might not be a '
-                  'problem.')
+        except:  # noqa: E722
+            print(
+                '  Input file is missing x0 and/or y0.  Might not be a '
+                'problem.'
+            )
 
         # Check the overlap of the grids
         print('==================')
         print('CISM Input File extents:')
-        print('  x1 min, max:    {} {}'.format(x1.min(), x1.max()))
-        print('  y1 min, max:    {} {}'.format(y1.min(), y1.max()))
+        print(f'  x1 min, max:    {x1.min()} {x1.max()}')
+        print(f'  y1 min, max:    {y1.min()} {y1.max()}')
         print('MPAS File extents:')
-        print('  xCell min, max: {} {}'.format(xCell.min(), xCell.max()))
-        print('  yCell min, max: {} {}'.format(yCell.min(), yCell.max()))
+        print(f'  xCell min, max: {xCell.min()} {xCell.max()}')
+        print(f'  yCell min, max: {yCell.min()} {yCell.max()}')
         print('==================')
 
     elif filetype == 'mpas':
-
         # try:
         #     nVertInterfaces = len(inputFile.dimensions['nVertInterfaces'])
         # except:
@@ -761,8 +926,8 @@ def interpolate_to_mpasli_grid():
         try:
             inputxCell = inputFile.variables['xCell'][:]
             inputyCell = inputFile.variables['yCell'][:]
-        except:
-            raise ValueError("Input file is missing xCell and/or yCell")
+        except Exception as e:  # noqa: E722
+            raise ValueError('Input file is missing xCell and/or yCell') from e
 
         # Check the overlap of the grids
         print('==================')
@@ -775,8 +940,10 @@ def interpolate_to_mpasli_grid():
         print('==================')
 
     if filetype == 'mpas' and args.interpType == 'b':
-        raise ValueError("Bilinear interpolation not supported for input "
-                         "files of MPAS format.")
+        raise ValueError(
+            'Bilinear interpolation not supported for input '
+            'files of MPAS format.'
+        )
 
     # ----------------------------
     # Setup Delaunay/barycentric interpolation weights if needed
@@ -785,14 +952,15 @@ def interpolate_to_mpasli_grid():
 
         if filetype == 'cism':
             [Yi, Xi] = np.meshgrid(x1[:], y1[:])
-            cismXY1 = np.zeros([Xi.shape[0]*Xi.shape[1],2])
+            cismXY1 = np.zeros([Xi.shape[0] * Xi.shape[1], 2])
             cismXY1[:, 0] = Yi.flatten()
             cismXY1[:, 1] = Xi.flatten()
 
             print('\nBuilding interpolation weights: CISM x1/y1 -> MPAS')
             start = time.perf_counter()
-            vtx1, wts1, outsideIndx1, treex1 = \
-                _delaunay_interp_weights(cismXY1, mpasXY)
+            vtx1, wts1, outsideIndx1, treex1 = _delaunay_interp_weights(
+                cismXY1, mpasXY
+            )
             if len(outsideIndx1) > 0:
                 outsideIndx1 = outsideIndx1[0]  # get the list itself
             end = time.perf_counter()
@@ -801,14 +969,15 @@ def interpolate_to_mpasli_grid():
             if 'x0' in inputFile.variables and not args.thicknessOnly:
                 # Need to setup separate weights for this grid
                 [Yi, Xi] = np.meshgrid(x0[:], y0[:])
-                cismXY0 = np.zeros([Xi.shape[0]*Xi.shape[1], 2])
+                cismXY0 = np.zeros([Xi.shape[0] * Xi.shape[1], 2])
                 cismXY0[:, 0] = Yi.flatten()
                 cismXY0[:, 1] = Xi.flatten()
 
                 print('Building interpolation weights: CISM x0/y0 -> MPAS')
                 start = time.perf_counter()
-                vtx0, wts0, outsideIndx0, treex0 = \
-                    _delaunay_interp_weights(cismXY0, mpasXY)
+                vtx0, wts0, outsideIndx0, treex0 = _delaunay_interp_weights(
+                    cismXY0, mpasXY
+                )
                 if len(outsideIndx0) > 0:
                     outsideIndx0 = outsideIndx0[0]  # get the list itself
                 end = time.perf_counter()
@@ -818,8 +987,9 @@ def interpolate_to_mpasli_grid():
             inputmpasXY = np.vstack((inputxCell[:], inputyCell[:])).transpose()
             print('Building interpolation weights: MPAS in -> MPAS out')
             start = time.perf_counter()
-            vtCell, wtsCell, outsideIndcell, treecell = \
+            vtCell, wtsCell, outsideIndcell, treecell = (
                 _delaunay_interp_weights(inputmpasXY, mpasXY)
+            )
             end = time.perf_counter()
             print(f'done in {end - start}')
 
@@ -830,7 +1000,7 @@ def interpolate_to_mpasli_grid():
 
         if filetype == 'cism':
             [Yi, Xi] = np.meshgrid(x1[:], y1[:])
-            cismXY1 = np.zeros([Xi.shape[0]*Xi.shape[1], 2])
+            cismXY1 = np.zeros([Xi.shape[0] * Xi.shape[1], 2])
             cismXY1[:, 0] = Yi.flatten()
             cismXY1[:, 1] = Xi.flatten()
 
@@ -838,12 +1008,12 @@ def interpolate_to_mpasli_grid():
             start = time.perf_counter()
             nn_idx_x1 = _nn_interp_weights(cismXY1, mpasXY)
             end = time.perf_counter()
-            print('done in {}'.format(end-start))
+            print(f'done in {end - start}')
 
             if 'x0' in inputFile.variables and not args.thicknessOnly:
                 # Need to setup separate weights for this grid
                 [Yi, Xi] = np.meshgrid(x0[:], y0[:])
-                cismXY0 = np.zeros([Xi.shape[0]*Xi.shape[1], 2])
+                cismXY0 = np.zeros([Xi.shape[0] * Xi.shape[1], 2])
                 cismXY0[:, 0] = Yi.flatten()
                 cismXY0[:, 1] = Xi.flatten()
 
@@ -851,7 +1021,7 @@ def interpolate_to_mpasli_grid():
                 start = time.perf_counter()
                 nn_idx_x0 = _nn_interp_weights(cismXY0, mpasXY)
                 end = time.perf_counter()
-                print('done in {}'.format(end-start))
+                print(f'done in {end - start}')
 
         elif filetype == 'mpas':
             inputmpasXY = np.vstack((inputxCell[:], inputyCell[:])).transpose()
@@ -859,7 +1029,7 @@ def interpolate_to_mpasli_grid():
             start = time.perf_counter()
             nn_idx_cell = _nn_interp_weights(inputmpasXY, mpasXY)
             end = time.perf_counter()
-            print('done in {}'.format(end-start))
+            print(f'done in {end - start}')
 
     # ----------------------------
     # Map Input-Output field names - add new fields here as needed
@@ -867,47 +1037,52 @@ def interpolate_to_mpasli_grid():
     fieldInfo = OrderedDict()
     # -----------------
     if filetype == 'cism':
-
         fieldInfo['thickness'] = {
             'InputName': 'thk',
             'scalefactor': 1.0,
             'offset': 0.0,
             'gridType': 'x1',
-            'vertDim': False}
+            'vertDim': False,
+        }
         fieldInfo['iceMask'] = {
             'InputName': 'iceMask',
             'scalefactor': 1.0,
             'offset': 0.0,
             'gridType': 'x1',
-            'vertDim': False}
+            'vertDim': False,
+        }
         if not args.thicknessOnly:
             fieldInfo['bedTopography'] = {
                 'InputName': 'topg',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             # Assuming mm/yr w.e. units for smb
             fieldInfo['sfcMassBal'] = {
                 'InputName': 'smb',
-                'scalefactor': 1.0/(3600.0*24.0*365.0),
+                'scalefactor': 1.0 / (3600.0 * 24.0 * 365.0),
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             # Assuming mm/yr w.e. units for smb
             fieldInfo['sfcMassBalUncertainty'] = {
                 'InputName': 'smb_std',
-                'scalefactor': 1.0/(3600.0*24.0*365.0),
+                'scalefactor': 1.0 / (3600.0 * 24.0 * 365.0),
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             # Assuming default CISM density
             fieldInfo['floatingBasalMassBal'] = {
                 'InputName': 'subm',
-                'scalefactor': 910.0/(3600.0*24.0*365.0),
+                'scalefactor': 910.0 / (3600.0 * 24.0 * 365.0),
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             # # pick one or the other:
             # fieldInfo['temperature'] = {
             #     'InputName': 'temp',
@@ -920,26 +1095,30 @@ def interpolate_to_mpasli_grid():
                 'scalefactor': 1.0,
                 'offset': 273.15,
                 'gridType': 'x1',
-                'vertDim': True}
+                'vertDim': True,
+            }
             fieldInfo['basalHeatFlux'] = {
                 'InputName': 'bheatflx',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['surfaceAirTemperature'] = {
                 'InputName': 'artm',
                 'scalefactor': 1.0,
                 'offset': 273.15,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             # needs different mapping file...
             fieldInfo['beta'] = {
                 'InputName': 'beta',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'x0',
-                'vertDim': False}
+                'vertDim': False,
+            }
             # # needs different mapping file...
             # fieldInfo['observedSpeed'] = {
             #     'InputName': 'balvel',
@@ -951,205 +1130,236 @@ def interpolate_to_mpasli_grid():
             # thickness change
             fieldInfo['observedSurfaceVelocityX'] = {
                 'InputName': 'vx',
-                'scalefactor': 1.0/(365.0*24.0*3600.0),
+                'scalefactor': 1.0 / (365.0 * 24.0 * 3600.0),
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['observedSurfaceVelocityY'] = {
                 'InputName': 'vy',
-                'scalefactor': 1.0/(365.0*24.0*3600.0),
+                'scalefactor': 1.0 / (365.0 * 24.0 * 3600.0),
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['observedSurfaceVelocityUncertainty'] = {
                 'InputName': 'vErr',
-                'scalefactor': 1.0/(365.0*24.0*3600.0),
+                'scalefactor': 1.0 / (365.0 * 24.0 * 3600.0),
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['observedThicknessTendency'] = {
                 'InputName': 'dHdt',
-                'scalefactor': 1.0/(365.0*24.0*3600.0),
+                'scalefactor': 1.0 / (365.0 * 24.0 * 3600.0),
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['observedThicknessTendencyUncertainty'] = {
                 'InputName': 'dHdtErr',
-                'scalefactor': 1.0/(365.0*24.0*3600.0),
+                'scalefactor': 1.0 / (365.0 * 24.0 * 3600.0),
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['thicknessUncertainty'] = {
                 'InputName': 'topgerr',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
 
             fieldInfo['ismip6shelfMelt_basin'] = {
                 'InputName': 'ismip6shelfMelt_basin',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['ismip6shelfMelt_deltaT'] = {
                 'InputName': 'ismip6shelfMelt_deltaT',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'x1',
-                'vertDim': False}
+                'vertDim': False,
+            }
 
     # -----------------
     elif filetype == 'mpas':
-
         fieldInfo['thickness'] = {
             'InputName': 'thickness',
             'scalefactor': 1.0,
             'offset': 0.0,
             'gridType': 'cell',
-            'vertDim': False}
+            'vertDim': False,
+        }
         if not args.thicknessOnly:
             fieldInfo['bedTopography'] = {
                 'InputName': 'bedTopography',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['sfcMassBal'] = {
                 'InputName': 'sfcMassBal',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['floatingBasalMassBal'] = {
                 'InputName': 'floatingBasalMassBal',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['temperature'] = {
                 'InputName': 'temperature',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': True}
+                'vertDim': True,
+            }
             fieldInfo['basalHeatFlux'] = {
                 'InputName': 'basalHeatFlux',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['surfaceAirTemperature'] = {
                 'InputName': 'surfaceAirTemperature',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['beta'] = {
                 'InputName': 'beta',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['muFriction'] = {
                 'InputName': 'muFriction',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['eigencalvingParameter'] = {
                 'InputName': 'eigencalvingParameter',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             # obs fields
             fieldInfo['observedSurfaceVelocityX'] = {
                 'InputName': 'observedSurfaceVelocityX',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['observedSurfaceVelocityY'] = {
                 'InputName': 'observedSurfaceVelocityY',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['observedSurfaceVelocityUncertainty'] = {
                 'InputName': 'observedSurfaceVelocityUncertainty',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['observedThicknessTendency'] = {
                 'InputName': 'observedThicknessTendency',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['observedThicknessTendencyUncertainty'] = {
                 'InputName': 'observedThicknessTendencyUncertainty',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['thicknessUncertainty'] = {
                 'InputName': 'thicknessUncertainty',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['basalFrictionFlux'] = {
                 'InputName': 'basalFrictionFlux',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['uReconstructX'] = {
                 'InputName': 'uReconstructX',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': True}
+                'vertDim': True,
+            }
             fieldInfo['uReconstructY'] = {
                 'InputName': 'uReconstructY',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': True}
+                'vertDim': True,
+            }
 
             fieldInfo['ismip6shelfMelt_basin'] = {
                 'InputName': 'ismip6shelfMelt_basin',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['ismip6shelfMelt_deltaT'] = {
                 'InputName': 'ismip6shelfMelt_deltaT',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
 
             fieldInfo['stiffnessFactor'] = {
                 'InputName': 'stiffnessFactor',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['effectivePressure'] = {
                 'InputName': 'effectivePressure',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
             fieldInfo['iceMask'] = {
                 'InputName': 'iceMask',
                 'scalefactor': 1.0,
                 'offset': 0.0,
                 'gridType': 'cell',
-                'vertDim': False}
+                'vertDim': False,
+            }
 
         # Used by Trevor
         #     fieldInfo['sfcMassBalUncertainty'] = {
@@ -1207,10 +1417,11 @@ def interpolate_to_mpasli_grid():
             'scalefactor': 1.0,
             'offset': 0.0,
             'gridType': 'cell',
-            'vertDim': False}
+            'vertDim': False,
+        }
 
     else:
-        raise ValueError("Unknown file type.")
+        raise ValueError('Unknown file type.')
 
     # ----------------------------
 
@@ -1222,28 +1433,32 @@ def interpolate_to_mpasli_grid():
         if 'all' not in args.vars and MPASfieldName not in args.vars:
             continue
 
-        print('\n## {} ##'.format(MPASfieldName))
+        print(f'\n## {MPASfieldName} ##')
 
         if MPASfieldName not in MPASfile.variables:
-            print(f"  Warning: Field '{MPASfieldName}' is not in the "
-                  f"destination file.  Skipping.")
+            print(
+                f"  Warning: Field '{MPASfieldName}' is not in the "
+                f'destination file.  Skipping.'
+            )
             # skip the rest of this iteration of the for loop over variables
             continue
 
         if fieldInfo[MPASfieldName]['InputName'] not in inputFile.variables:
-            print(f"  Warning: Field '{fieldInfo[MPASfieldName]['InputName']}'"
-                  f" is not in the source file.  Skipping.")
+            print(
+                f"  Warning: Field '{fieldInfo[MPASfieldName]['InputName']}'"
+                f' is not in the source file.  Skipping.'
+            )
             # skip the rest of this iteration of the for loop over variables
             continue
 
-        for timelev in range(args.timestart, args.timeend+1):
+        for timelev in range(args.timestart, args.timeend + 1):
             # Note: the interpolate functions called below access timelev as a
             #       global variable
             #
             # assuming the time level of the output file should match that of
             # the input file
             timelevout = timelev
-            print(f"    ---- Interpolating time level {timelev} ----")
+            print(f'    ---- Interpolating time level {timelev} ----')
             start = time.perf_counter()
             if fieldInfo[MPASfieldName]['vertDim']:
                 MPASfield = _interpolate_field_with_layers(MPASfieldName)
@@ -1255,16 +1470,19 @@ def interpolate_to_mpasli_grid():
             # Don't allow negative thickness.
             if MPASfieldName == 'thickness' and MPASfield.min() < 0.0:
                 MPASfield[MPASfield < 0.0] = 0.0
-                print(f'  removed negative thickness, new min/max: '
-                      f'{MPASfield.min()} {MPASfield.max()}')
+                print(
+                    f'  removed negative thickness, new min/max: '
+                    f'{MPASfield.min()} {MPASfield.max()}'
+                )
 
             # basalHeatFlux must be non-negative
             if MPASfieldName == 'basalHeatFlux':
-                assert np.nanmin(MPASfield) >= 0.0, \
-                    'basalHeatFlux contains negative values! This is likely ' \
-                    'due to the conventions used in the input file, rather ' \
-                    'than bad data. Ensure non-negative values before ' \
+                assert np.nanmin(MPASfield) >= 0.0, (
+                    'basalHeatFlux contains negative values! This is likely '
+                    'due to the conventions used in the input file, rather '
+                    'than bad data. Ensure non-negative values before '
                     'interpolating.'
+                )
 
             # Now insert the MPAS field into the file.
             if 'Time' in MPASfile.variables[MPASfieldName].dimensions:
@@ -1278,22 +1496,30 @@ def interpolate_to_mpasli_grid():
         interpolated_vars.append(MPASfieldName)
 
     if args.timeend > args.timestart:
-        print("\n\nMultiple time levels have been copied, but xtime has not.  "
-              "Be sure to manually copy or assign xtime values in the "
-              "destination file if needed.")
+        print(
+            '\n\nMultiple time levels have been copied, but xtime has not.  '
+            'Be sure to manually copy or assign xtime values in the '
+            'destination file if needed.'
+        )
 
-    print("\nFields successfully interpolated: " + ",".join(interpolated_vars))
+    print('\nFields successfully interpolated: ' + ','.join(interpolated_vars))
 
     # Update history attribute of netCDF file
-    thiscommand = datetime.now().strftime("%a %b %d %H:%M:%S %Y") + ": " + \
-        " ".join(sys.argv[:])  # .join("Variables interpolated: {}".format(interpolated_vars))
-    thiscommand = thiscommand+";  Variables successfully interpolated: " + \
-        ",".join(interpolated_vars)
+    thiscommand = (
+        datetime.now().strftime('%a %b %d %H:%M:%S %Y')
+        + ': '
+        + ' '.join(sys.argv[:])
+    )  # .join("Variables interpolated: {}".format(interpolated_vars))  #noqa: E501
+    thiscommand = (
+        thiscommand
+        + ';  Variables successfully interpolated: '
+        + ','.join(interpolated_vars)
+    )
     if hasattr(MPASfile, 'history'):
-        newhist = '\n'.join([thiscommand, getattr(MPASfile, 'history')])
+        newhist = '\n'.join([thiscommand, MPASfile.history])
     else:
         newhist = thiscommand
-    setattr(MPASfile, 'history', newhist)
+    MPASfile.history = newhist
 
     inputFile.close()
     MPASfile.close()
