@@ -106,3 +106,9 @@ ENV/
 
 # pycharm
 .idea
+
+# pixi
+conda_package/pixi.lock
+
+# test builds
+output
