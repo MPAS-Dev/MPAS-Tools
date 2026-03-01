@@ -15,7 +15,7 @@ Version Bump and Dependency Updates
    - Open a pull request (PR) to update the version number in the following
      two files:
      - ``conda_package/mpas_tools/__init__.py``
-     - ``conda_package/recipe/meta.yaml``
+     - ``conda_package/recipe/recipe.yaml``
 
    - Make sure the version follows semantic versioning (see
      https://semver.org/).
@@ -26,18 +26,21 @@ Version Bump and Dependency Updates
    - Ensure that dependencies and their constraints are up-to-date and
      consistent in:
 
-     - ``conda_package/recipe/meta.yaml`` (dependencies for the conda-forge
+     - ``conda_package/recipe/recipe.yaml`` (dependencies for the conda-forge
        release)
      - ``conda_package/pyproject.toml`` (dependencies for PyPI; used as a
        sanity check)
      - ``conda_package/dev-spec.txt`` (development dependencies; should be a
        superset of those for the conda-forge release)
+     - ``conda_package/pixi.toml`` (pixi development dependencies; should
+       match ``dev-spec.txt``)
 
-   - The dependencies in ``meta.yaml`` are the ones that will be used for the
+   - The dependencies in ``recipe.yaml`` are the ones that will be used for the
      released package on conda-forge. The dependencies in ``pyproject.toml``
      are for PyPI and should be kept in sync as much as possible but are only
      there as a sanity check when we run ```pip check``. The ``dev-spec.txt``
-     file should include all dependencies needed for development and testing.
+     file should include all dependencies needed for development and testing,
+     and ``pixi.toml`` should remain equivalent for pixi users.
 
    - Review and update dependency versions and constraints as needed.
 
@@ -91,7 +94,7 @@ Tagging and Publishing a Release Candidate
 
          shasum -a 256 <version>.tar.gz
 
-   - In the ``meta.yaml`` of the feedstock recipe:
+  - In the ``recipe.yaml`` of the feedstock recipe:
      - Set ``{% set version = "<version>" %}``
      - Set the new ``sha256`` value
      - Update dependencies if needed
