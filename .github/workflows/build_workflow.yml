@@ -81,14 +81,17 @@ jobs:
 
       - name: Build mpas_tools package
         run: |
-          conda install conda conda-build
-          conda build -m "conda_package/ci/linux_64_python${{ matrix.python-version }}.____cpython.yaml" "conda_package/recipe"
+          micromamba install -y -n mpas_tools_build -c conda-forge rattler-build
+          rattler-build build \
+            -m "conda_package/ci/linux_64_python${{ matrix.python-version }}.____cpython.yaml" \
+            --output-dir "${GITHUB_WORKSPACE}/output" \
+            -r "conda_package/recipe"
           # Add local build channel first for subsequent micromamba usage
 
       - name: Create Test Environment
         run: |
           micromamba create -y -n mpas_tools_test \
-            -c ${CONDA_PREFIX}/conda-bld \
+            -c ${GITHUB_WORKSPACE}/output \
             -c conda-forge \
             python=${{ matrix.python-version }} \
             mpas_tools \
