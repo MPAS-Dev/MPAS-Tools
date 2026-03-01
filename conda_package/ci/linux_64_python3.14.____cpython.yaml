@@ -19,7 +19,7 @@ fortran_compiler_version:
 hdf5:
 - 1.14.6
 libnetcdf:
-- 4.9.3
+- 4.10.0
 netcdf_fortran:
 - '4.6'
 pin_run_as_build:
