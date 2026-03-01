@@ -1,0 +1,43 @@
+[workspace]
+name = "mpas-tools-dev"
+channels = ["conda-forge"]
+platforms = ["linux-64", "osx-64"]
+
+[dependencies]
+python = ">=3.10"
+cartopy = "*"
+cmocean = "*"
+dask = "*"
+geometric_features = ">=1.0.1,<2.0.0"
+h5py = "*"
+hdf5 = "*"
+inpoly = "*"
+libnetcdf = "*"
+matplotlib-base = ">=3.9.0"
+nco = "*"
+netcdf4 = "*"
+networkx = "*"
+numpy = ">=2.0,<3.0"
+progressbar2 = "*"
+pyamg = "*"
+pyevtk = "*"
+pyproj = "*"
+python-igraph = "*"
+scikit-image = "!=0.20.0"
+scipy = "*"
+shapely = ">=2.0,<3.0"
+tqdm = "*"
+xarray = "*"
+flynt = "*"
+pip = "*"
+pre-commit = "*"
+pytest = "*"
+ruff = "*"
+setuptools = "*"
+rattler-build = "*"
+sphinx = "*"
+mock = "*"
+sphinx_rtd_theme = "*"
+
+[tasks]
+install-editable = "python -m pip install --no-deps --no-build-isolation -e ."

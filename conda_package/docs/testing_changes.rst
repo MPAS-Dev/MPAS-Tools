@@ -29,16 +29,29 @@ command:
 
 This writes package artifacts to ``output/`` in the repository root.
 
-To install the locally built package into an existing conda environment,
-install the generated artifact file directly (replace the filename pattern with
-the one produced on your platform):
+To install the locally built package into the pixi environment, add the local
+build output as a channel and then add ``mpas_tools`` from that channel:
 
 .. code-block:: bash
 
-    conda install -n mpas_tools_dev -y ../output/linux-64/mpas_tools-*.conda
+    cd conda_package
+    pixi workspace channel add "file://$PWD/../output"
+    pixi add --platform linux-64 "mpas_tools [channel='file://$PWD/../output']"
 
-If you use ``mamba`` or ``micromamba``, the same install command works with
-those tools as well.
+.. warning::
+
+    The commands above modify ``pixi.toml`` (and possibly ``pixi.lock``).
+    These are local development changes only and should **not** be committed.
+    Before opening a PR, reset those files to the repository state.
+
+On macOS, use ``--platform osx-64`` instead.  If your workspace includes both
+``linux-64`` and ``osx-64`` in ``pixi.toml``, pixi may try to solve both
+platforms during dependency updates.  In that case, build local artifacts for
+both platforms (with corresponding CI recipe files) or add the local package
+for only the platform you built.
+
+If you want to return to using only published channels afterward, you can
+remove the local channel from ``pixi.toml``.
 
 Quick-and-Dirty Alternative: Pixi Editable Install
 **************************************************
