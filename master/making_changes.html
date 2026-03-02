@@ -178,7 +178,7 @@ for some tips on checking code style in VS Code.</p>
 <h2>Entry Points<a class="headerlink" href="#entry-points" title="Link to this heading"></a></h2>
 <p>The best way to add new “scripts” to the package is to add a function without
 any arguments somewhere in the package, and then to add it as an “entry point”
-both in <code class="docutils literal notranslate"><span class="pre">conda_package/pyproject.toml</span></code> and <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code>.</p>
+both in <code class="docutils literal notranslate"><span class="pre">conda_package/pyproject.toml</span></code> and <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/recipe.yaml</span></code>.</p>
 <p>As an example, the entry point <code class="docutils literal notranslate"><span class="pre">planar_hex</span></code> is defined in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">scripts</span><span class="p">]</span>
 <span class="o">...</span>
@@ -186,7 +186,7 @@ both in <code class="docutils literal notranslate"><span class="pre">conda_packa
 <span class="o">...</span>
 </pre></div>
 </div>
-<p>and in <code class="docutils literal notranslate"><span class="pre">meta.yaml</span></code> as:</p>
+<p>and in <code class="docutils literal notranslate"><span class="pre">recipe.yaml</span></code> as:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">build</span><span class="p">:</span>
   <span class="n">number</span><span class="p">:</span> <span class="mi">0</span>
   <span class="n">entry_points</span><span class="p">:</span>
@@ -217,10 +217,10 @@ command-line arguments, just as a “normal” python script would do</p>
 <section id="dependencies">
 <h2>Dependencies<a class="headerlink" href="#dependencies" title="Link to this heading"></a></h2>
 <p>If you changes introduce new dependencies, these need to be added to both
-the recipe for the conda package in <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code> and
+the recipe for the conda package in <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/recipe.yaml</span></code> and
 to the text file describing the development environment,
-<code class="docutils literal notranslate"><span class="pre">conda_package/dev-spec.txt</span></code>.</p>
-<p>In <code class="docutils literal notranslate"><span class="pre">meta.yaml</span></code>, add these changes in alphabetical order to the <code class="docutils literal notranslate"><span class="pre">run</span></code>
+<code class="docutils literal notranslate"><span class="pre">conda_package/dev-spec.txt</span></code> and to <code class="docutils literal notranslate"><span class="pre">conda_package/pixi.toml</span></code>.</p>
+<p>In <code class="docutils literal notranslate"><span class="pre">recipe.yaml</span></code>, add these changes in alphabetical order to the <code class="docutils literal notranslate"><span class="pre">run</span></code>
 section of <code class="docutils literal notranslate"><span class="pre">requirements</span></code>:</p>
 <div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">requirements</span><span class="p">:</span>
 <span class="nn">...</span>
@@ -232,8 +232,9 @@ section of <code class="docutils literal notranslate"><span class="pre">requirem
 </div>
 <p>These requirements <em>must</em> be on the <code class="docutils literal notranslate"><span class="pre">conda-forge</span></code> anaconda channel.  If you
 need help with this, please contact the developers.</p>
-<p>Add the new dependencies in alphabetical order to <code class="docutils literal notranslate"><span class="pre">dev-speck.txt</span></code>
-under the <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">Base</span></code> comment:</p>
+<p>Add the new dependencies in alphabetical order to <code class="docutils literal notranslate"><span class="pre">dev-spec.txt</span></code>
+under the <code class="docutils literal notranslate"><span class="pre">#</span> <span class="pre">Base</span></code> comment and keep <code class="docutils literal notranslate"><span class="pre">conda_package/pixi.toml</span></code> in sync
+with the same constraints:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>...
 # This file may be used to create an environment using:
 # $ conda create --name &lt;env&gt; --file &lt;this file&gt;
@@ -255,7 +256,7 @@ updated in 3 places.  First, in <code class="docutils literal notranslate"><span
 </div>
 <p>Increment <code class="docutils literal notranslate"><span class="pre">__version_info__</span></code> (major, minor or micro version, depending on
 what makes sense).</p>
-<p>Second, the version in the conda recipe (<code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code>)
+<p>Second, the version in the conda recipe (<code class="docutils literal notranslate"><span class="pre">conda_package/recipe/recipe.yaml</span></code>)
 needs to match:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span> <span class="nb">set</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;mpas_tools&quot;</span> <span class="o">%</span><span class="p">}</span>
 <span class="p">{</span><span class="o">%</span> <span class="nb">set</span> <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.6.0&quot;</span> <span class="o">%</span><span class="p">}</span>

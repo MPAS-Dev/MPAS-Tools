@@ -60,7 +60,7 @@ Entry Points
 
 The best way to add new "scripts" to the package is to add a function without
 any arguments somewhere in the package, and then to add it as an "entry point"
-both in ``conda_package/pyproject.toml`` and ``conda_package/recipe/meta.yaml``.
+both in ``conda_package/pyproject.toml`` and ``conda_package/recipe/recipe.yaml``.
 
 As an example, the entry point ``planar_hex`` is defined in ``pyproject.toml`` as:
 
@@ -71,7 +71,7 @@ As an example, the entry point ``planar_hex`` is defined in ``pyproject.toml`` a
   planar_hex = "mpas_tools.planar_hex:main"
   ...
 
-and in ``meta.yaml`` as:
+and in ``recipe.yaml`` as:
 
 .. code-block::
 
@@ -108,11 +108,11 @@ Dependencies
 ============
 
 If you changes introduce new dependencies, these need to be added to both
-the recipe for the conda package in ``conda_package/recipe/meta.yaml`` and
+the recipe for the conda package in ``conda_package/recipe/recipe.yaml`` and
 to the text file describing the development environment,
-``conda_package/dev-spec.txt``.
+``conda_package/dev-spec.txt`` and to ``conda_package/pixi.toml``.
 
-In ``meta.yaml``, add these changes in alphabetical order to the ``run``
+In ``recipe.yaml``, add these changes in alphabetical order to the ``run``
 section of ``requirements``:
 
 .. code-block:: yaml
@@ -127,8 +127,9 @@ section of ``requirements``:
 These requirements *must* be on the ``conda-forge`` anaconda channel.  If you
 need help with this, please contact the developers.
 
-Add the new dependencies in alphabetical order to ``dev-speck.txt``
-under the ``# Base`` comment:
+Add the new dependencies in alphabetical order to ``dev-spec.txt``
+under the ``# Base`` comment and keep ``conda_package/pixi.toml`` in sync
+with the same constraints:
 
 .. code-block:: none
 
@@ -155,7 +156,7 @@ updated in 3 places.  First, in ``conda_package/mpas_tools/__init__.py``:
 Increment ``__version_info__`` (major, minor or micro version, depending on
 what makes sense).
 
-Second, the version in the conda recipe (``conda_package/recipe/meta.yaml``)
+Second, the version in the conda recipe (``conda_package/recipe/recipe.yaml``)
 needs to match:
 
 .. code-block::

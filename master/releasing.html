@@ -142,7 +142,7 @@ version of <code class="docutils literal notranslate"><span class="pre">mpas_too
 <li><p>Open a pull request (PR) to update the version number in the following
 two files:
 - <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/__init__.py</span></code>
-- <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code></p></li>
+- <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/recipe.yaml</span></code></p></li>
 <li><p>Make sure the version follows semantic versioning (see
 <a class="reference external" href="https://semver.org/">https://semver.org/</a>).
 For release candidates, use versions like <code class="docutils literal notranslate"><span class="pre">1.3.0rc1</span></code> (no <code class="docutils literal notranslate"><span class="pre">v</span></code> prefix).</p></li>
@@ -153,19 +153,22 @@ For release candidates, use versions like <code class="docutils literal notransl
 <li><p>Ensure that dependencies and their constraints are up-to-date and
 consistent in:</p>
 <ul>
-<li><p><code class="docutils literal notranslate"><span class="pre">conda_package/recipe/meta.yaml</span></code> (dependencies for the conda-forge
+<li><p><code class="docutils literal notranslate"><span class="pre">conda_package/recipe/recipe.yaml</span></code> (dependencies for the conda-forge
 release)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">conda_package/pyproject.toml</span></code> (dependencies for PyPI; used as a
 sanity check)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">conda_package/dev-spec.txt</span></code> (development dependencies; should be a
 superset of those for the conda-forge release)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">conda_package/pixi.toml</span></code> (pixi development dependencies; should
+match <code class="docutils literal notranslate"><span class="pre">dev-spec.txt</span></code>)</p></li>
 </ul>
 </li>
-<li><p>The dependencies in <code class="docutils literal notranslate"><span class="pre">meta.yaml</span></code> are the ones that will be used for the
+<li><p>The dependencies in <code class="docutils literal notranslate"><span class="pre">recipe.yaml</span></code> are the ones that will be used for the
 released package on conda-forge. The dependencies in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>
 are for PyPI and should be kept in sync as much as possible but are only
 there as a sanity check when we run <code class="docutils literal notranslate"><span class="pre">`pip</span> <span class="pre">check</span></code>. The <code class="docutils literal notranslate"><span class="pre">dev-spec.txt</span></code>
-file should include all dependencies needed for development and testing.</p></li>
+file should include all dependencies needed for development and testing,
+and <code class="docutils literal notranslate"><span class="pre">pixi.toml</span></code> should remain equivalent for pixi users.</p></li>
 <li><p>Review and update dependency versions and constraints as needed.</p></li>
 </ul>
 </li>
@@ -218,17 +221,30 @@ branch of the feedstock.</p></li>
 </pre></div>
 </div>
 </li>
-<li><p>In the <code class="docutils literal notranslate"><span class="pre">meta.yaml</span></code> of the feedstock recipe:
-- Set <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">set</span> <span class="pre">version</span> <span class="pre">=</span> <span class="pre">&quot;&lt;version&gt;&quot;</span> <span class="pre">%}</span></code>
-- Set the new <code class="docutils literal notranslate"><span class="pre">sha256</span></code> value
-- Update dependencies if needed</p></li>
+</ul>
+</li>
+</ol>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="simple">
+<dt>In the <code class="docutils literal notranslate"><span class="pre">recipe.yaml</span></code> of the feedstock recipe:</dt><dd><ul>
+<li><p>Set <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">set</span> <span class="pre">version</span> <span class="pre">=</span> <span class="pre">&quot;&lt;version&gt;&quot;</span> <span class="pre">%}</span></code></p></li>
+<li><p>Set the new <code class="docutils literal notranslate"><span class="pre">sha256</span></code> value</p></li>
+<li><p>Update dependencies if needed</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<blockquote>
+<div><ul class="simple">
 <li><p>Commit, push to a new branch, and open a PR <strong>against the ``dev`` branch</strong>
 of the feedstock:
 <a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock">https://github.com/conda-forge/mpas_tools-feedstock</a></p></li>
 <li><p>Follow any instructions in the PR template and merge once approved</p></li>
 </ul>
-</li>
-</ol>
+</div></blockquote>
+</div></blockquote>
 </section>
 <section id="publishing-a-stable-release">
 <h2>Publishing a Stable Release<a class="headerlink" href="#publishing-a-stable-release" title="Link to this heading"></a></h2>
