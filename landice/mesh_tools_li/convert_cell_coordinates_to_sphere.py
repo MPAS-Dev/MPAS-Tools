@@ -15,6 +15,7 @@ import shutil
 from pathlib import Path
 from netCDF4 import Dataset
 import numpy as np
+import sys
 
 parser = argparse.ArgumentParser(
     prog='convert_cell_coordinates_to_sphere.py',
@@ -28,7 +29,7 @@ parser.add_argument("-r", dest="radius", type=float, default=6371220.,
                     help="sphere radius to use (m)")
 parser.add_argument("-w", dest="warp_surface", action='store_true',
                     help="warp surface by upperSurface variable. " \
-                         "Uses scale factor from -s" \
+                         "Uses scale factor from -s. " \
                          "If upperSurface is not in file, will attempt " \
                          "to calculate it from thickness and bedTopography. " \
                          "Uses geometry from first time level only; it is not " \
@@ -51,7 +52,8 @@ shutil.copyfile(infile, outfile)
 
 def compute_xyz(latCell_deg, lonCell_deg, radius):
     '''
-    Copied from lonlat2xyz in mesh/creation/util.py
+    Copied from mpas_tools.mesh.creation.util.lonlat2xyz in
+    conda_package/mpas_tools/mesh/creation/util.py
     '''
     lat_rad = np.radians(latCell_deg)
     lon_rad = np.radians(lonCell_deg)
@@ -96,3 +98,13 @@ with Dataset(outfile, "r+") as ds:
     # Update global attributes
     ds.setncattr("on_a_sphere", "YES")
     ds.setncattr("sphere_radius", args.radius)
+
+    # Record this modification in the global history attribute
+    prev_history = getattr(ds, "history", "")
+    cmd = Path(__file__).name + " " + " ".join(sys.argv[1:])
+    cmd = cmd.strip()
+    if prev_history:
+        new_history = prev_history + "\n" + cmd
+    else:
+        new_history = cmd
+    ds.setncattr("history", new_history)

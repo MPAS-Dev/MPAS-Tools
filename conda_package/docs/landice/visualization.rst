@@ -132,7 +132,7 @@ The input file is never modified. By default, output is written to
 
 .. code-block:: bash
 
-    convert_cell_coordinates_to_sphere.py -i output_state_2015.nc
+    python landice/mesh_tools_li/convert_cell_coordinates_to_sphere.py -i output_state_2015.nc
 
 You can also choose an explicit output file and optionally warp the surface
 to create 3d ice-sheet surface topography on the sphere
@@ -141,7 +141,7 @@ using ``upperSurface`` (or ``thickness`` + ``bedTopography`` if
 
 .. code-block:: bash
 
-    convert_cell_coordinates_to_sphere.py \
+    python landice/mesh_tools_li/convert_cell_coordinates_to_sphere.py \
         -i output_state_2015.nc \
         -o output_state_2015_sphere.nc \
         -w -s 100
