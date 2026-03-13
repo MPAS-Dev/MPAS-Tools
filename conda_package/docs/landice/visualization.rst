@@ -136,7 +136,7 @@ The input file is never modified. By default, output is written to
 
 You can also choose an explicit output file and optionally warp the surface
 to create 3d ice-sheet surface topography on the sphere
-using ``upperSurface`` (or ``thickness`` + ``bedTopography`` if 
+using ``upperSurface`` (or ``thickness`` + ``bedTopography`` if
 ``upperSurface`` is not available).
 
 .. code-block:: bash
