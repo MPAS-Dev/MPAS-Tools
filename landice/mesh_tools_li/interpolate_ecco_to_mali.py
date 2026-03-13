@@ -36,7 +36,7 @@ class eccoToMaliInterp:
         parser.add_argument("--outFile", dest="outputFile", help="Desired name of output file", metavar="FILENAME", default="ecco_to_mali_remapped.nc")
         parser.add_argument("--meshVars", dest="includeMeshVars", help="whether to include mesh variables in resulting MALI forcing file", action='store_true')
         parser.add_argument("--iceAreaThresh", dest="iceAreaThresh", type=float, help="Threshold sea ice fraction used to define icebergFjordMask.", default=0.5)
-        parser.add_argument("--extrapIters", dest="extrapIters", type=str, help="Number of sea ice extrapolation iterations when regridding", default='50')
+        parser.add_argument("--extrapIters", dest="extrapIters", type=str, help="Number of sea ice extrapolation iterations when regridding", default='175')
         parser.add_argument("--keepTmpFiles", dest="keepTmpFiles", help="Whether to keep temporary netcdf files created throughout script. Useful for debugging", action="store_true")
         args = parser.parse_args()
         self.options = args
@@ -197,7 +197,7 @@ class eccoToMaliInterp:
         # Subtract one month from each time step. Ecco to output every month as an average of the previous month. We
         # want to force MALI with ECCO data from the same month (avoid 1 month lag)
         time = ds_ecco['tim'].values
-        self.xtime_str = [(pd.to_datetime(dt) - pd.to_datetime(dt)).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
+        self.xtime_str = [(pd.to_datetime(dt) - pd.DateOffset(months=1)).strftime("%Y-%m-%d_%H:%M:%S").ljust(64) for dt in time]
     
         # save unstructured variables with MALI/MPAS-O names 
         if 'z' in locals():
@@ -383,7 +383,7 @@ class eccoToMaliInterp:
 
         # Account for rounding error. Good cells are not exactly 1 and temp/sal invalid values may be averaged out.
         # It is otherwise possible to get some invalid temp/sal values align with good orig3dOceanMask values after remapping
-        mask = (o3dm > 0.9999) & (temp < 100) & (salt < 100)
+        mask = (o3dm > 0.9999) & (temp < 100) & (sal < 100)
         ds_out['orig3dOceanMask'] = xr.DataArray(mask.astype('int32'), dims=("Time", "nCells", "nISMIP6OceanLayers"))
         ds_out['oceanTemperature'] = temp.where(mask, 1e36).astype('float64')
         ds_out['oceanSalinity'] = sal.where(mask, 1e36).astype('float64')
@@ -458,7 +458,7 @@ class eccoToMaliInterp:
 
         # Convert to netcdf3 64-bit offset. Much faster to do this with ncks than create the netcdf3 originally
         # with xarray.to_netcdf. 
-        nc64offset = self.options.outFile[0:-3] + '.64bitOffset.nc'
+        nc64offset = self.options.outputFile[0:-3] + '.64bitOffset.nc'
         subprocess.run(["ncks", "-6", self.options.outputFile, nc64offset])
 
     def create_ECCO_scrip_file(self):
