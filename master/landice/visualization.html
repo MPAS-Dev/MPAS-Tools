@@ -69,6 +69,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#plotting-landice-transects">Plotting Landice Transects</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#plotting-landice-maps">Plotting Landice Maps</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#plotting-landice-grounding-lines">Plotting Landice Grounding Lines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#converting-planar-coordinates-for-spherical-paraview-rendering">Converting Planar Coordinates for Spherical ParaView Rendering</a></li>
 </ul>
 </li>
 </ul>
@@ -222,6 +223,27 @@ used to add grounding lines to maps as countours.</p>
                      <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
                      <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 <span class="n">plot_map</span><span class="p">(</span><span class="n">data_path</span> <span class="o">+</span> <span class="n">files</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s2">&quot;bedTopography&quot;</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="converting-planar-coordinates-for-spherical-paraview-rendering">
+<h2>Converting Planar Coordinates for Spherical ParaView Rendering<a class="headerlink" href="#converting-planar-coordinates-for-spherical-paraview-rendering" title="Link to this heading"></a></h2>
+<p>The script <code class="docutils literal notranslate"><span class="pre">landice/mesh_tools_li/convert_cell_coordinates_to_sphere.py</span></code>
+can be used to create a copy of a MALI file with <code class="docutils literal notranslate"><span class="pre">xCell</span></code>, <code class="docutils literal notranslate"><span class="pre">yCell</span></code> and
+<code class="docutils literal notranslate"><span class="pre">zCell</span></code> replaced by spherical coordinates for visualization in ParaView.</p>
+<p>The input file is never modified. By default, output is written to
+<code class="docutils literal notranslate"><span class="pre">&lt;infile</span> <span class="pre">stem&gt;_sphere&lt;suffix&gt;</span></code>.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>landice/mesh_tools_li/convert_cell_coordinates_to_sphere.py<span class="w"> </span>-i<span class="w"> </span>output_state_2015.nc
+</pre></div>
+</div>
+<p>You can also choose an explicit output file and optionally warp the surface
+to create 3d ice-sheet surface topography on the sphere
+using <code class="docutils literal notranslate"><span class="pre">upperSurface</span></code> (or <code class="docutils literal notranslate"><span class="pre">thickness</span></code> + <code class="docutils literal notranslate"><span class="pre">bedTopography</span></code> if
+<code class="docutils literal notranslate"><span class="pre">upperSurface</span></code> is not available).</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>landice/mesh_tools_li/convert_cell_coordinates_to_sphere.py<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-i<span class="w"> </span>output_state_2015.nc<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-o<span class="w"> </span>output_state_2015_sphere.nc<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>-w<span class="w"> </span>-s<span class="w"> </span><span class="m">100</span>
 </pre></div>
 </div>
 </section>

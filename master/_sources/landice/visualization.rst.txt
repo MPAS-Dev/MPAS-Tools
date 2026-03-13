@@ -119,3 +119,29 @@ used to add grounding lines to maps as countours.
                          ax=ax,
                          cmap="plasma", times=[0])
     plot_map(data_path + files[0], "bedTopography", ax=ax, time=0)
+
+Converting Planar Coordinates for Spherical ParaView Rendering
+==============================================================
+
+The script ``landice/mesh_tools_li/convert_cell_coordinates_to_sphere.py``
+can be used to create a copy of a MALI file with ``xCell``, ``yCell`` and
+``zCell`` replaced by spherical coordinates for visualization in ParaView.
+
+The input file is never modified. By default, output is written to
+``<infile stem>_sphere<suffix>``.
+
+.. code-block:: bash
+
+    python landice/mesh_tools_li/convert_cell_coordinates_to_sphere.py -i output_state_2015.nc
+
+You can also choose an explicit output file and optionally warp the surface
+to create 3d ice-sheet surface topography on the sphere
+using ``upperSurface`` (or ``thickness`` + ``bedTopography`` if
+``upperSurface`` is not available).
+
+.. code-block:: bash
+
+    python landice/mesh_tools_li/convert_cell_coordinates_to_sphere.py \
+        -i output_state_2015.nc \
+        -o output_state_2015_sphere.nc \
+        -w -s 100
