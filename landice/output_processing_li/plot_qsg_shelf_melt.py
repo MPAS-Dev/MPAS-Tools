@@ -1,18 +1,36 @@
 #!/usr/bin/env python
+"""
+Plot quasi-steady-state shelf melt rates from MPAS-Ocean output.
+
+This script reads an MPAS-Ocean mesh file and a corresponding MPAS-Ocean
+output file, isolates the Antarctic region, projects data to a polar
+stereographic grid, and produces shelf melt plots for a specified region.
+
+Required arguments:
+  -m, --oceanMesh   Path to the MPAS-Ocean mesh file.
+  -o, --oceanOutput Path to the MPAS-Ocean output file.
+
+Optional arguments:
+  -r, --region      Name of the region to plot (default: AIS).
+"""
 
 import numpy as np
 import xarray as xr
-from  matplotlib import pyplot as plt
+from matplotlib import pyplot as plt
 from optparse import OptionParser
-from pyproj import Transformer, transform, CRS
-from scipy.interpolate import griddata
-import cmocean
+from pyproj import Transformer, CRS
 
-parser = OptionParser()
+parser = OptionParser(description=__doc__)
 parser.add_option("-m", "--oceanMesh", dest="oceanMesh", help="Filename with Mpas-Ocean mesh", metavar="FILENAME")
 parser.add_option("-o", "--oceanOutput", dest="oceanOutput", help="Filename with Mpas-Ocean output", metavar="FILENAME")
 parser.add_option("-r", "--region", dest="region", help="Name of region to plot. Options are 'Ross', 'Peninsula', 'Amundsen', 'Filchner-Ronne', 'Amery', 'AIS'", default="AIS")
+parser.add_option("-s", "--save", dest="saveFile", help="Filename for saved figure", metavar="FILENAME", default="test.png")
 options, args = parser.parse_args()
+
+if options.oceanMesh is None:
+    parser.error("Option -m/--oceanMesh is required. Please provide the path to the MPAS-Ocean mesh file.")
+if options.oceanOutput is None:
+    parser.error("Option -o/--oceanOutput is required. Please provide the path to the MPAS-Ocean output file.")
 
 #<TO DO>: Add Qsg throughout
 
@@ -102,5 +120,5 @@ Mgrd = Mgrd*3.1536e7/1000 #convert to m/yr
 # Create plots
 plt.pcolormesh(Xgrd,Ygrd,Mgrd,shading='gouraud',vmin=0,vmax=0.5)
 plt.colorbar()
+plt.savefig(options.saveFile)
 plt.show()
-plt.savefig('test.png')
