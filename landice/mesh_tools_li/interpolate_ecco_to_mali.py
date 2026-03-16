@@ -6,7 +6,6 @@ import xarray as xr
 import subprocess
 import numpy as np
 import pandas as pd
-from scipy import stats as st
 from mpas_tools.logging import check_call
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from mpas_tools.ocean.depth import compute_zmid
@@ -28,7 +27,7 @@ class eccoToMaliInterp:
                 description='Interpolates ECCO reanalysis data onto a MALI mesh')
         parser.add_argument("--eccoDir", dest="eccoDir", required=True, help="Directory where ECCO files are stored. Should be only netcdf files in that directory", metavar="FILENAME")
         parser.add_argument("--maliMesh", dest="maliMesh", required=True, help="MALI mesh to be interpolated onto", metavar="FILENAME")
-        parser.add_argument("--eccoVars", type=str, nargs='+', dest="eccoVars", required=True, help="ECCO variables to interpolate, current options are any combination of 'THETA', 'SALT', 'SIarea'")
+        parser.add_argument("--sia", dest="sia", help="Option to remap sea ice area in addition to temp/salt. Needed for icebergFjordMask", action='store_true')
         parser.add_argument("--geojson", dest="geojson", help="Optional geojson used to permanently define icebergFjordMask within a region")
         parser.add_argument("--maxDepth", type=int, dest="maxDepth", default=1500, help="Maximum depth in meters to include in the interpolation")
         parser.add_argument("--ntasks", dest="ntasks", type=str, help="Number of processors to use with ESMF_RegridWeightGen", default='128')
@@ -50,7 +49,7 @@ class eccoToMaliInterp:
         thetaBool = 0
         siaBool = 0
     
-        #loop through MITgcm tile files and create unstructured arrays for each variable in eccoVars
+        #loop through MITgcm tile files and create unstructured arrays for each remapped variable
         for tile in self.tileNums:
             print(f"Processing Tile {tile}")
             o3dmBool = 0
@@ -62,7 +61,7 @@ class eccoToMaliInterp:
                 if paddedTile in file:
                     print("Padded tile is in file")
                     
-                    if 'SALT' in file and 'SALT' in self.options.eccoVars:
+                    if 'SALT' in file:
                         validFile = self.options.eccoDir + '/SALT.' + paddedTile + '.nc'
                         ds_ecco = xr.open_dataset(validFile)
                         
@@ -111,7 +110,7 @@ class eccoToMaliInterp:
                         saltBool = 1       
                     
                     # Repeat for potential temperature if needed
-                    elif 'THETA' in file and 'THETA' in self.options.eccoVars:       
+                    elif 'THETA' in file:       
                         validFile = self.options.eccoDir + '/THETA.' + paddedTile + '.nc'
                         ds_ecco = xr.open_dataset(validFile)
                         
@@ -159,7 +158,7 @@ class eccoToMaliInterp:
                         thetaBool = 1
                         
                     # Repeat for sea ice fraction if needed
-                    elif 'SIarea' in file and 'SIarea' in self.options.eccoVars:
+                    elif 'SIarea' in file and self.options.sia:
                         siaBool = 1
                         validFile = self.options.eccoDir + '/SIarea.' + paddedTile + '.nc'
                         ds_ecco = xr.open_dataset(validFile)
@@ -177,13 +176,13 @@ class eccoToMaliInterp:
                             si = si.reshape(nt, nx * ny)
                             sia = np.concatenate((sia,si), axis=1)
 
-            if ('SALT' in self.options.eccoVars and saltBool == 0):
+            if (saltBool == 0):
                 raise ValueError(f"SALT netcdf file for tile {tile} not found in {self.options.eccoDir}")
 
-            if ('THETA' in self.options.eccoVars and thetaBool == 0):
+            if (thetaBool == 0):
                 raise ValueError(f"THETA netcdf file for tile {tile} not found in {self.options.eccoDir}")
                 
-            if ('SIarea' in self.options.eccoVars and siaBool == 0):
+            if (self.options.sia and siaBool == 0):
                 raise ValueError(f"SIarea netcdf file for tile {tile} not found in {self.options.eccoDir}")
 
         # combine into new netcdf. Need to load depth and time from original ecco files. Assuming time/depth is consistent
@@ -302,77 +301,78 @@ class eccoToMaliInterp:
         print(f"ncremap completed: {tm} seconds")
         print("Primary Remapping completed")
 
-        # repeat remapping for sia, including extrapolation of sia to fill domain
-        ds_siaScrip = xr.open_dataset(self.ecco_scripfile)
-        ds_unstruct = xr.open_dataset(self.ecco_unstruct)
-        o3dm = ds_unstruct['orig3dOceanMask'][1,1,:].values
-        valid = (o3dm > 0.9999).astype('int32') # Account for rounding error
-        ds_siaScrip['grid_imask'] = xr.DataArray(valid.astype('int32'),
-                                                        dims=('grid_size'),
-                                                        attrs={'units':'unitless'})
-        sia_scripfile = 'ecco_sia.scrip.nc'
-        ds_siaScrip.to_netcdf(sia_scripfile)
-        ds_siaScrip.close()
+        if self.options.sia:
+            # repeat remapping for sia, including extrapolation of sia to fill domain
+            ds_siaScrip = xr.open_dataset(self.ecco_scripfile)
+            ds_unstruct = xr.open_dataset(self.ecco_unstruct)
+            o3dm = ds_unstruct['orig3dOceanMask'][1,1,:].values
+            valid = (o3dm > 0.9999).astype('int32') # Account for rounding error
+            ds_siaScrip['grid_imask'] = xr.DataArray(valid.astype('int32'),
+                                                            dims=('grid_size'),
+                                                            attrs={'units':'unitless'})
+            sia_scripfile = 'ecco_sia.scrip.nc'
+            ds_siaScrip.to_netcdf(sia_scripfile)
+            ds_siaScrip.close()
 
-        print("Creating SIA mapping File")
-        sia_mapping_file = 'ecco_to_mali_mapping_bilinear_sia.nc'
-        args = ['srun',
-                '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
-                '--source', sia_scripfile,
-                '--destination', mali_scripfile,
-                '--weight', sia_mapping_file,
-                '--method', 'bilinear',
-                '--extrap_method', 'creep',
-                '--extrap_num_levels', self.options.extrapIters,
-                '--netcdf4',
-                "--dst_regional", "--src_regional", '--ignore_unmapped']
-        check_call(args)
-    
-        #remap
-        print("Start SIA remapping ... ")
-
-        subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.siaFile])
-
-        print("ncremap of SIA...")
-        st = time.time()
-        # remap the input data
-        siaRemappedOutFile = self.options.outputFile[0:-3] + '.tmp.sia.remapped.nc'
-        args_remap = ["ncremap",
-                "-i", self.siaFile,
-                "-o", siaRemappedOutFile,
-                "-m", sia_mapping_file]
-        check_call(args_remap)
-
-        nd = time.time()
-        tm = nd - st
-        print(f"ncremap completed: {tm} seconds")
-        print("SIA Remapping completed")
+            print("Creating SIA mapping File")
+            sia_mapping_file = 'ecco_to_mali_mapping_bilinear_sia.nc'
+            args = ['srun',
+                    '-n', self.options.ntasks, 'ESMF_RegridWeightGen',
+                    '--source', sia_scripfile,
+                    '--destination', mali_scripfile,
+                    '--weight', sia_mapping_file,
+                    '--method', 'bilinear',
+                    '--extrap_method', 'creep',
+                    '--extrap_num_levels', self.options.extrapIters,
+                    '--netcdf4',
+                    "--dst_regional", "--src_regional", '--ignore_unmapped']
+            check_call(args)
         
-        print("Applying final edits to remapped file ...")
-        # define icebergFjordMask from SIA
-        ds_out = xr.open_dataset(remappedOutFile, decode_times=False, decode_cf=False, mode='r+')
-        ds_sia = xr.open_dataset(siaRemappedOutFile)
-        iac = ds_sia['iceAreaCell'].values
-        icebergFjordMask = np.zeros(iac.shape)
-        # Find cells where sea ice fraction exceeds threshold
-        seaice_mask = iac > self.options.iceAreaThresh 
-        icebergFjordMask[seaice_mask] = 1
+            #remap
+            print("Start SIA remapping ... ")
 
-        # Use geojson to add any additional cells to icebergFjordMask
-        if hasattr(self.options, "geojson"):
-            with open(self.options.geojson) as f:
-                geo = json.load(f)
-                polygon = prep(shape(geo["features"][0]["geometry"]))
-            
-            lonCell = ds_out['lon'][:].values.ravel() - 360 # Convert to geojson longitude convention
-            latCell = ds_out['lat'][:].values.ravel()
-            
-            points = [Point(xy) for xy in zip(lonCell, latCell)]
-            geo_mask = np.array([polygon.covers(p) for p in points]).astype('bool')
-            icebergFjordMask[:,geo_mask] = 1
+            subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.siaFile])
 
-        ifm = xr.DataArray(icebergFjordMask.astype('int32'), dims=("Time", "nCells"))
-        sia = xr.DataArray(iac.astype('float32'), dims=("Time", "nCells"))
+            print("ncremap of SIA...")
+            st = time.time()
+            # remap the input data
+            siaRemappedOutFile = self.options.outputFile[0:-3] + '.tmp.sia.remapped.nc'
+            args_remap = ["ncremap",
+                    "-i", self.siaFile,
+                    "-o", siaRemappedOutFile,
+                    "-m", sia_mapping_file]
+            check_call(args_remap)
+
+            nd = time.time()
+            tm = nd - st
+            print(f"ncremap completed: {tm} seconds")
+            print("SIA Remapping completed")
+            
+            print("Applying final edits to remapped file ...")
+            # define icebergFjordMask from SIA
+            ds_out = xr.open_dataset(remappedOutFile, decode_times=False, decode_cf=False, mode='r+')
+            ds_sia = xr.open_dataset(siaRemappedOutFile)
+            iac = ds_sia['iceAreaCell'].values
+            icebergFjordMask = np.zeros(iac.shape)
+            # Find cells where sea ice fraction exceeds threshold
+            seaice_mask = iac > self.options.iceAreaThresh 
+            icebergFjordMask[seaice_mask] = 1
+
+            # Use geojson to add any additional cells to icebergFjordMask
+            if self.options.geojson is not None:
+                with open(self.options.geojson) as f:
+                    geo = json.load(f)
+                    polygon = prep(shape(geo["features"][0]["geometry"]))
+                
+                lonCell = ds_out['lon'][:].values.ravel() - 360 # Convert to geojson longitude convention
+                latCell = ds_out['lat'][:].values.ravel()
+                
+                points = [Point(xy) for xy in zip(lonCell, latCell)]
+                geo_mask = np.array([polygon.covers(p) for p in points]).astype('bool')
+                icebergFjordMask[:,geo_mask] = 1
+
+            ifm = xr.DataArray(icebergFjordMask.astype('int32'), dims=("Time", "nCells"))
+            sia = xr.DataArray(iac.astype('float32'), dims=("Time", "nCells"))
 
         # During conservative remapping, some valid ocean cells are averaged with invalid ocean cells. Use
         # float version of orig3dOceanMask to identify these cells and remove. Resave orig3dOceanMask as int32
@@ -387,9 +387,10 @@ class eccoToMaliInterp:
         ds_out['orig3dOceanMask'] = xr.DataArray(mask.astype('int32'), dims=("Time", "nCells", "nISMIP6OceanLayers"))
         ds_out['oceanTemperature'] = temp.where(mask, 1e36).astype('float64')
         ds_out['oceanSalinity'] = sal.where(mask, 1e36).astype('float64')
-        # Add sia and icebergBergMask into main file
-        ds_out['iceAreaCell'] = sia
-        ds_out['icebergFjordMask'] = ifm
+        if self.options.sia:
+            # Add sia and icebergBergMask into main file
+            ds_out['iceAreaCell'] = sia
+            ds_out['icebergFjordMask'] = ifm
         
         # save xtime correctly
         xtime = np.array(self.xtime_str, dtype = np.dtype(('S',64)))
