@@ -17,6 +17,7 @@ rhoi = 910.0
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser(description=__doc__)
 parser.add_option("-f", dest="fileName", help="input filename", default="globalStats.nc", metavar="FILENAME")
+parser.add_option("-s", dest="saveFile", help="save filename", default=None, metavar="FILENAME")
 options, args = parser.parse_args()
 
 print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
@@ -192,5 +193,9 @@ ax[0,1].set_title('Grounded budget')
 ax[0,2].set_title('Floating budget')
 
 fig.subplots_adjust(wspace=0.5)
+
+if options.saveFile is not None:
+    fig.savefig(options.saveFile + '.png', dpi=400, bbox_inches="tight")
+
 plt.show()
 f.close()
