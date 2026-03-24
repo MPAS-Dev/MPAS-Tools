@@ -27,6 +27,7 @@ parser.add_option("-6", dest="file6inName", help="input filename", metavar="FILE
 parser.add_option("-7", dest="file7inName", help="input filename", metavar="FILENAME")
 parser.add_option("-u", dest="units", help="units for mass/volume: m3, kg, Gt", default="Gt", metavar="FILENAME")
 parser.add_option("-c", dest="plotChange", help="plot time series as change from initial.  (not applied to GL flux or calving flux)  Without this option, the full magnitude of time series is used", action='store_true', default=False)
+parser.add_option("-s", dest="saveFile", help="file name to save png", default=None)
 options, args = parser.parse_args()
 
 print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
@@ -315,5 +316,8 @@ custom_legend()
 print("Generating plot.")
 figVol.tight_layout()
 figFlux.tight_layout()
+if options.saveFile is not None:
+    figVol.savefig(f"{options.saveFile}_vol.png", dpi=400, bbox_inches='tight')
+    figFlux.savefig(f"{options.saveFile}_flux.png", dpi=400, bbox_inches='tight')
 plt.show()
 
