@@ -350,7 +350,6 @@ class eccoToMaliInterp:
             
             print("Applying final edits to remapped file ...")
             # define icebergFjordMask from SIA
-            ds_out = xr.open_dataset(remappedOutFile, decode_times=False, decode_cf=False, mode='r+')
             ds_sia = xr.open_dataset(siaRemappedOutFile)
             iac = ds_sia['iceAreaCell'].values
             icebergFjordMask = np.zeros(iac.shape)
@@ -377,6 +376,7 @@ class eccoToMaliInterp:
         # During conservative remapping, some valid ocean cells are averaged with invalid ocean cells. Use
         # float version of orig3dOceanMask to identify these cells and remove. Resave orig3dOceanMask as int32
         # so MALI recognizes it
+        ds_out = xr.open_dataset(remappedOutFile, decode_times=False, decode_cf=False, mode='r+')
         o3dm = ds_out['orig3dOceanMask']
         temp = ds_out['oceanTemperature']
         sal = ds_out['oceanSalinity']
