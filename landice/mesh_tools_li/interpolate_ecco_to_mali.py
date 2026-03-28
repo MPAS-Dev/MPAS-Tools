@@ -1,4 +1,20 @@
 #!/usr/bin/env python
+'''
+This script interpolates ECCO ASTE R1 reanalysis data
+(https://arcticdata.io/data/10.18739/A2CV4BS5K/) onto a MALI mesh.
+
+Ocean temperature and salinity are automatically interpolated and the user has
+the option to also interpolate sea ice fraction. Interpolation script will
+generate MALI input field icebergFjordMask from sea ice area if using this
+option.
+
+ECCO grid files are unconventional for MITgcm simulations and do not contain
+adequate grid cell corner information for tile edge cells (necessary for
+creating scrip file and remapping). Therefore, this information needed to be
+hardcoded into interpolate_ecco_to_mali.py, using grid corner information from
+adjacent MITgcm tiles. Currently supported tiles are 14 and 27, which cover the
+western and northern coasts of Greenland.
+'''
 
 import os
 import shutil
@@ -24,7 +40,7 @@ class eccoToMaliInterp:
         print("Gathering Information ... ")
         parser = ArgumentParser(
                 prog='interpolate_ecco_to_mali.py',
-                description='Interpolates ECCO reanalysis data onto a MALI mesh')
+                description=__doc__)
         parser.add_argument("--eccoDir", dest="eccoDir", required=True, help="Directory where ECCO files are stored. Should be only netcdf files in that directory", metavar="FILENAME")
         parser.add_argument("--maliMesh", dest="maliMesh", required=True, help="MALI mesh to be interpolated onto", metavar="FILENAME")
         parser.add_argument("--sia", dest="sia", help="Option to remap sea ice area in addition to temp/salt. Needed for icebergFjordMask", action='store_true')
@@ -400,10 +416,8 @@ class eccoToMaliInterp:
 
         # Save final output file if not adding mesh variables
         if not self.options.includeMeshVars:
-            # <<NOTE>>: Creating a new netcdf file like this changes the format of xtime. Need to add
-            # encoding update to maintain original formatting
             ds_out.to_netcdf(self.options.outputFile, unlimited_dims=['Time'])
-            subprocess.run(["ncatted", "-a", "_FillValue,,d,,", altRemappedOutFile])
+            subprocess.run(["ncatted", "-a", "_FillValue,,d,,", self.options.outputFile])
 
         else:
             # Transfer MALI mesh variables if needed
@@ -444,8 +458,6 @@ class eccoToMaliInterp:
             ds_out['zCell'] = ds_mali['zCell']
             ds_out['zEdge'] = ds_mali['zEdge']
             ds_out['zVertex'] = ds_mali['zVertex']
-            # <<NOTE>>: Creating a new netcdf file like this changes the format of xtime. Need to add
-            # encoding update to maintain original formatting
             ds_out.to_netcdf(self.options.outputFile, unlimited_dims=['Time'])
             ds_out.close()
             ds_mali.close()
@@ -460,7 +472,7 @@ class eccoToMaliInterp:
         # Convert to netcdf3 64-bit offset. Much faster to do this with ncks than create the netcdf3 originally
         # with xarray.to_netcdf. 
         nc64offset = self.options.outputFile[0:-3] + '.64bitOffset.nc'
-        subprocess.run(["ncks", "-6", self.options.outputFile, nc64offset])
+        subprocess.run(["ncks", "-O", "-6", self.options.outputFile, nc64offset])
 
     def create_ECCO_scrip_file(self):
         
