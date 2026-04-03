@@ -23,5 +23,5 @@ Contributors
 * Phillip J. Wolfram
 * Tong Zhang
 
-For a list of all the contributions:
-https://github.com/MPAS-Dev/MPAS-Tools/graphs/contributors
+For a list of all contributions, see the
+`contributors graph <https://github.com/MPAS-Dev/MPAS-Tools/graphs/contributors>`_.
