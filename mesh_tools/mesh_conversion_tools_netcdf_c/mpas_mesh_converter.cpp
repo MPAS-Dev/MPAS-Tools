@@ -97,6 +97,10 @@ int buildAreas();
 int buildEdgesOnEdgeArrays();
 int buildAngleEdge();
 int buildMeshQualities();
+double clampForUnitInterval(const double value);
+void buildLocalEastNorth(const pnt &location, pnt &east, pnt &north);
+double sphericalAngleEdge(const pnt &edge_loc, const pnt &vertex_loc1,
+        const pnt &vertex_loc2);
 /*}}}*/
 
 /* Output functions {{{*/
@@ -2182,10 +2186,10 @@ int buildAngleEdge(){/*{{{*/
     int iEdge;
     int cell1, cell2;
     int vertex1, vertex2;
-    pnt np, x_axis, normal;
+    pnt x_axis, normal;
     pnt cell_loc1, cell_loc2;
     pnt vertex_loc1, vertex_loc2;
-    double angle, sign;
+    double angle;
 
 #ifdef _DEBUG
     cout << endl << endl << "Begin function: buildAngleEdge" << endl << endl;
@@ -2225,41 +2229,11 @@ int buildAngleEdge(){/*{{{*/
             cell_loc2.fixPeriodicity(cell_loc1, xPeriodicFix, yPeriodicFix);
 
             normal = cell_loc2 - cell_loc1;
-            angleEdge.at(iEdge) = acos( x_axis.dot(normal) / (x_axis.magnitude() * normal.magnitude()));
+            angleEdge.at(iEdge) = acos(clampForUnitInterval(
+                        x_axis.dot(normal) / (x_axis.magnitude() * normal.magnitude())));
             if (cell_loc2.y < cell_loc1.y) angleEdge.at(iEdge) = 2.0 * M_PI - angleEdge.at(iEdge);
         } else {
-
-            np = pntFromLatLon(edges.at(iEdge).getLat()+0.05, edges.at(iEdge).getLon());
-            np.normalize();
-
-#ifdef _DEBUG
-            cout << "     NP: " << np << endl;
-#endif
-
-            angle = (vertex_loc2.getLat() - vertex_loc1.getLat()) / dvEdge.at(iEdge);
-            angle = max( min(angle, 1.0), -1.0);
-            angle = acos(angle);
-
-#ifdef _DEBUG
-            cout << "  angle: " << angle << endl;
-#endif
-
-            sign = planeAngle(edges.at(iEdge), np, vertex_loc2, edges.at(iEdge));
-            if(sign != 0.0){
-                sign = sign / fabs(sign);
-            } else {
-                sign = 1.0;
-            }
-
-
-#ifdef _DEBUG
-            cout << "  sign : " << sign << endl;
-            cout << "  a*s  : " << angle * sign << endl;
-#endif
-
-            angle = angle * sign;
-            if(angle > M_PI) angle = angle - 2.0 * M_PI;
-            if(angle < -M_PI) angle = angle + 2.0 * M_PI;
+            angle = sphericalAngleEdge(edges.at(iEdge), vertex_loc1, vertex_loc2);
 
 #ifdef _DEBUG
             cout << " fangle: " << angle << endl;
@@ -2271,6 +2245,50 @@ int buildAngleEdge(){/*{{{*/
 
     return 0;
 }/*}}}*/
+
+double clampForUnitInterval(const double value){/*{{{*/
+    return max(min(value, 1.0), -1.0);
+}/*}}}*/
+
+void buildLocalEastNorth(const pnt &location, pnt &east, pnt &north){/*{{{*/
+    /*
+     * buildLocalEastNorth constructs local eastward and northward unit vectors
+     * at a point on the unit sphere.
+     */
+    const double lat = location.getLat();
+    const double lon = location.getLon();
+
+    east = pnt(-sin(lon), cos(lon), 0.0);
+    north = pnt(-sin(lat) * cos(lon), -sin(lat) * sin(lon), cos(lat));
+}/*}}}*/
+
+double sphericalAngleEdge(const pnt &edge_loc, const pnt &vertex_loc1,
+        const pnt &vertex_loc2){/*{{{*/
+    /*
+     * Compute the angle made by the positive normal direction relative to the
+     * local eastward direction using Cartesian geometry on the sphere.
+     */
+    pnt edge_unit, dvertex, normal, east, north;
+    double east_component, north_component;
+
+    edge_unit = edge_loc;
+    edge_unit.normalize();
+
+    dvertex = vertex_loc2 - vertex_loc1;
+    normal = dvertex.cross(edge_unit);
+
+    buildLocalEastNorth(edge_unit, east, north);
+
+    east_component = east.dot(normal);
+    north_component = north.dot(normal);
+
+    if(fabs(east_component) < DBL_EPSILON && fabs(north_component) < DBL_EPSILON){
+        return 0.0;
+    }
+
+    return atan2(north_component, east_component);
+}/*}}}*/
+
 int buildMeshQualities(){/*{{{*/
     /*
      * buildMeshQualities constructs fields describing the quality of the mesh, including:
@@ -3270,4 +3288,3 @@ string gen_random(const int len) {/*{{{*/
 
     return rand_str;
 }/*}}}*/
-

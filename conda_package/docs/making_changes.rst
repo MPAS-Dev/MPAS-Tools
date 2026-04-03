@@ -21,9 +21,9 @@ things like whitespace at the end of lines.
 The first time you set up the ``mpas_tools_dev`` environment, you will need to set up
 ``pre-commit``. This is done by running:
 
-```bash
-pre-commit install
-```
+.. code-block:: bash
+
+  pre-commit install
 
 You only need to do this once when you create the ``mpas_tools_dev``
 environment. If you create a new version of ``mpas_tools_dev``, then you will
@@ -43,9 +43,9 @@ PEP8 compliance, as well as sort, check and format imports,
 f-strings, and `mypy <https://mypy-lang.org/>` to check for consistent variable
 types. An example error might be:
 
-```bash
-example.py:77:1: E302 expected 2 blank lines, found 1
-```
+.. code-block:: bash
+
+  example.py:77:1: E302 expected 2 blank lines, found 1
 
 For this example, we would just add an additional blank line after line 77 and
 try the commit again to make sure we've resolved the issue.

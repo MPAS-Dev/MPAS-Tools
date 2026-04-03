@@ -26,4 +26,4 @@ To preview the documentation locally, open the ``index.html`` file in the
   cd _build/html
   python -m http.server 8000
 
-Then, open http://0.0.0.0:8000/master/ in your browser.
+Then, open `<http://0.0.0.0:8000/master/>`_ in your browser.

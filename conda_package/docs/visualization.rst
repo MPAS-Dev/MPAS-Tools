@@ -49,7 +49,7 @@ centers to triangle nodes.  ``dsTris`` includes variables ``triCellIndices``,
 the cell that each triangle is part of; ``nodeCellIndices`` and
 ``nodeCellWeights``, the indices and weights used to interpolate from MPAS cell
 centers to triangle nodes; Cartesian coordinates ``xNode``, ``yNode``, and
-``zNode``; and ``lonNode``` and ``latNode`` in radians. ``lonNode`` is
+``zNode``; and ``lonNode`` and ``latNode`` in radians. ``lonNode`` is
 guaranteed to be within 180 degrees of the cell center corresponding to
 ``triCellIndices``.  Nodes always have a counterclockwise winding.
 

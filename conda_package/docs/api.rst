@@ -76,6 +76,15 @@ Mesh conversion
    compute_mpas_flood_fill_mask
    compute_lon_lat_region_masks
 
+.. currentmodule:: mpas_tools.mesh.spherical
+
+.. autosummary::
+   :toctree: generated/
+
+   recompute_angle_edge
+   calc_edge_normal_vector
+   calc_vector_east_north
+
 .. currentmodule:: mpas_tools.merge_grids
 
 .. autosummary::

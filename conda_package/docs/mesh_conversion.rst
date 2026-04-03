@@ -83,6 +83,11 @@ The converter also generates a ``graph.info`` file for graph partitioning
 tools (e.g., Metis). In Python, this file is only written if the
 ``graphInfoFileName`` argument is provided.
 
+For spherical meshes, the :py:mod:`mpas_tools.mesh.spherical` module provides
+Python utilities for recomputing ``angleEdge`` and related local east/north
+geometry directly from the mesh coordinates. This can be useful for
+verification and diagnostics after conversion.
+
 .. _cell_culler:
 
 Cell Culler
