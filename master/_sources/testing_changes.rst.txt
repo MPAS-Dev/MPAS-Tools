@@ -25,9 +25,9 @@ command:
     cd conda_package
     pixi install
     pixi shell
-    rattler-build build -m ci/linux_64_python3.14.____cpython.yaml -r recipe/ --output-dir ../output
+    rattler-build build -m ci/linux_64_python3.14.____cpython.yaml -r recipe/ --output-dir output
 
-This writes package artifacts to ``output/`` in the repository root.
+This writes package artifacts to ``output/`` under ``conda_package``.
 
 To install the locally built package into the pixi environment, add the local
 build output as a channel and then add ``mpas_tools`` from that channel:
@@ -35,8 +35,20 @@ build output as a channel and then add ``mpas_tools`` from that channel:
 .. code-block:: bash
 
     cd conda_package
-    pixi workspace channel add "file://$PWD/../output"
-    pixi add --platform linux-64 "mpas_tools [channel='file://$PWD/../output']"
+    pixi workspace channel add "file://$PWD/output"
+    pixi add --platform linux-64 "mpas_tools [channel='file://$PWD/output']"
+
+.. important::
+
+    pixi, like other conda-family package managers, identifies a package by
+    its name, version and build string.  If you rebuild a local package without
+    changing that identity, pixi may continue using an older cached artifact
+    even if the file in ``output/`` has changed.
+
+    If you rebuild ``mpas_tools`` locally and need pixi to pick up the new
+    package contents reliably, bump the conda recipe build number in
+    ``conda_package/recipe/recipe.yaml`` before rebuilding.  For Python-only
+    development, ``pixi run install-editable`` is often more convenient.
 
 .. warning::
 
@@ -75,7 +87,8 @@ Then run tools within the pixi shell (for example ``pytest``).
 
     A useful hybrid workflow is to install the latest release conda package
     first (to get compiled tools), then install your branch in editable mode on
-    top for Python development.
+    top for Python development.  This also avoids the need to bump the conda
+    build number for every local Python-only rebuild.
 
 Legacy Method: Conda Editable Install
 *************************************

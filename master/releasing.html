@@ -143,8 +143,8 @@ version of <code class="docutils literal notranslate"><span class="pre">mpas_too
 two files:
 - <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/__init__.py</span></code>
 - <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/recipe.yaml</span></code></p></li>
-<li><p>Make sure the version follows semantic versioning (see
-<a class="reference external" href="https://semver.org/">https://semver.org/</a>).
+<li><p>Make sure the version follows
+<a class="reference external" href="https://semver.org/">semantic versioning</a>.
 For release candidates, use versions like <code class="docutils literal notranslate"><span class="pre">1.3.0rc1</span></code> (no <code class="docutils literal notranslate"><span class="pre">v</span></code> prefix).</p></li>
 </ul>
 </li>
@@ -166,7 +166,7 @@ match <code class="docutils literal notranslate"><span class="pre">dev-spec.txt<
 <li><p>The dependencies in <code class="docutils literal notranslate"><span class="pre">recipe.yaml</span></code> are the ones that will be used for the
 released package on conda-forge. The dependencies in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>
 are for PyPI and should be kept in sync as much as possible but are only
-there as a sanity check when we run <code class="docutils literal notranslate"><span class="pre">`pip</span> <span class="pre">check</span></code>. The <code class="docutils literal notranslate"><span class="pre">dev-spec.txt</span></code>
+there as a sanity check when we run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">check</span></code>. The <code class="docutils literal notranslate"><span class="pre">dev-spec.txt</span></code>
 file should include all dependencies needed for development and testing,
 and <code class="docutils literal notranslate"><span class="pre">pixi.toml</span></code> should remain equivalent for pixi users.</p></li>
 <li><p>Review and update dependency versions and constraints as needed.</p></li>
@@ -239,8 +239,7 @@ branch of the feedstock.</p></li>
 <blockquote>
 <div><ul class="simple">
 <li><p>Commit, push to a new branch, and open a PR <strong>against the ``dev`` branch</strong>
-of the feedstock:
-<a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock">https://github.com/conda-forge/mpas_tools-feedstock</a></p></li>
+of the <a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock">mpas_tools-feedstock</a>.</p></li>
 <li><p>Follow any instructions in the PR template and merge once approved</p></li>
 </ul>
 </div></blockquote>
@@ -253,7 +252,7 @@ of the feedstock:
 <ul class="simple">
 <li><p>For stable releases, create a GitHub release page as follows:</p>
 <ul>
-<li><p>Go to <a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Tools/releases">https://github.com/MPAS-Dev/MPAS-Tools/releases</a></p></li>
+<li><p>Go to <a class="reference external" href="https://github.com/MPAS-Dev/MPAS-Tools/releases">the GitHub releases page</a></p></li>
 <li><p>Click “Draft a new release”</p></li>
 <li><p>Enter a tag (e.g., <code class="docutils literal notranslate"><span class="pre">1.3.0</span></code>; <strong>do not</strong> include a <code class="docutils literal notranslate"><span class="pre">v</span></code> in front)</p></li>
 <li><p>Set the release title to the version prefixed with <code class="docutils literal notranslate"><span class="pre">v</span></code> (e.g.,
@@ -266,15 +265,16 @@ of the feedstock:
 </li>
 <li><p><strong>Updating the conda-forge Feedstock for a Stable Release</strong></p>
 <ul class="simple">
-<li><p>Wait for the <code class="docutils literal notranslate"><span class="pre">regro-cf-autotick-bot</span></code> to open a PR at:
-<a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock">https://github.com/conda-forge/mpas_tools-feedstock</a></p></li>
+<li><p>Wait for the <code class="docutils literal notranslate"><span class="pre">regro-cf-autotick-bot</span></code> to open a PR at the
+<a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock">mpas_tools-feedstock repository</a>.</p></li>
 <li><p>This may take several hours to a day.</p></li>
 <li><p>Review the PR:
 - Confirm the version bump and dependency changes
 - Merge once CI checks pass</p></li>
 </ul>
 <p><strong>Note:</strong> If you are impatient, you can accelerate this process by creating
-a bot issue at: <a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock/issues">https://github.com/conda-forge/mpas_tools-feedstock/issues</a>
+a bot issue at the
+<a class="reference external" href="https://github.com/conda-forge/mpas_tools-feedstock/issues">mpas_tools-feedstock issues page</a>
 with the subject <code class="docutils literal notranslate"><span class="pre">&#64;conda-forge-admin,</span> <span class="pre">please</span> <span class="pre">update</span> <span class="pre">version</span></code>.  This
 will open a new PR with the version within a few minutes.</p>
 <ul class="simple">

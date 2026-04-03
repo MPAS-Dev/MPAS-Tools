@@ -17,8 +17,8 @@ Version Bump and Dependency Updates
      - ``conda_package/mpas_tools/__init__.py``
      - ``conda_package/recipe/recipe.yaml``
 
-   - Make sure the version follows semantic versioning (see
-     https://semver.org/).
+   - Make sure the version follows
+     `semantic versioning <https://semver.org/>`_.
      For release candidates, use versions like ``1.3.0rc1`` (no ``v`` prefix).
 
 2. **Check and Update Dependencies**
@@ -38,7 +38,7 @@ Version Bump and Dependency Updates
    - The dependencies in ``recipe.yaml`` are the ones that will be used for the
      released package on conda-forge. The dependencies in ``pyproject.toml``
      are for PyPI and should be kept in sync as much as possible but are only
-     there as a sanity check when we run ```pip check``. The ``dev-spec.txt``
+     there as a sanity check when we run ``pip check``. The ``dev-spec.txt``
      file should include all dependencies needed for development and testing,
      and ``pixi.toml`` should remain equivalent for pixi users.
 
@@ -100,8 +100,7 @@ Tagging and Publishing a Release Candidate
      - Update dependencies if needed
 
    - Commit, push to a new branch, and open a PR **against the ``dev`` branch**
-     of the feedstock:
-     https://github.com/conda-forge/mpas_tools-feedstock
+     of the `mpas_tools-feedstock <https://github.com/conda-forge/mpas_tools-feedstock>`_.
 
    - Follow any instructions in the PR template and merge once approved
 
@@ -112,7 +111,7 @@ Publishing a Stable Release
 
    - For stable releases, create a GitHub release page as follows:
 
-     - Go to https://github.com/MPAS-Dev/MPAS-Tools/releases
+     - Go to `the GitHub releases page <https://github.com/MPAS-Dev/MPAS-Tools/releases>`_
 
      - Click "Draft a new release"
 
@@ -127,8 +126,8 @@ Publishing a Stable Release
 
 7. **Updating the conda-forge Feedstock for a Stable Release**
 
-   - Wait for the ``regro-cf-autotick-bot`` to open a PR at:
-     https://github.com/conda-forge/mpas_tools-feedstock
+   - Wait for the ``regro-cf-autotick-bot`` to open a PR at the
+     `mpas_tools-feedstock repository <https://github.com/conda-forge/mpas_tools-feedstock>`_.
 
    - This may take several hours to a day.
 
@@ -137,7 +136,8 @@ Publishing a Stable Release
      - Merge once CI checks pass
 
    **Note:** If you are impatient, you can accelerate this process by creating
-   a bot issue at: https://github.com/conda-forge/mpas_tools-feedstock/issues
+   a bot issue at the
+   `mpas_tools-feedstock issues page <https://github.com/conda-forge/mpas_tools-feedstock/issues>`_
    with the subject ``@conda-forge-admin, please update version``.  This
    will open a new PR with the version within a few minutes.
 

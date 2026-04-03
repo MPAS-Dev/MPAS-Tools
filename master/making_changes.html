@@ -146,9 +146,9 @@ your code follows the formatting guidelines of PEP8, and cleans up additional
 things like whitespace at the end of lines.</p>
 <p>The first time you set up the <code class="docutils literal notranslate"><span class="pre">mpas_tools_dev</span></code> environment, you will need to set up
 <code class="docutils literal notranslate"><span class="pre">pre-commit</span></code>. This is done by running:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
-<span class="pre">pre-commit</span> <span class="pre">install</span>
-<span class="pre">`</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pre-commit<span class="w"> </span>install
+</pre></div>
+</div>
 <p>You only need to do this once when you create the <code class="docutils literal notranslate"><span class="pre">mpas_tools_dev</span></code>
 environment. If you create a new version of <code class="docutils literal notranslate"><span class="pre">mpas_tools_dev</span></code>, then you will
 need to run it again.</p>
@@ -164,9 +164,9 @@ PEP8 compliance, as well as sort, check and format imports,
 <cite>flynt &lt;https://github.com/ikamensh/flynt&gt;</cite> to change any format strings to
 f-strings, and <cite>mypy &lt;https://mypy-lang.org/&gt;</cite> to check for consistent variable
 types. An example error might be:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`bash</span>
-<span class="pre">example.py:77:1:</span> <span class="pre">E302</span> <span class="pre">expected</span> <span class="pre">2</span> <span class="pre">blank</span> <span class="pre">lines,</span> <span class="pre">found</span> <span class="pre">1</span>
-<span class="pre">`</span></code></p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>example.py:77:1:<span class="w"> </span>E302<span class="w"> </span>expected<span class="w"> </span><span class="m">2</span><span class="w"> </span>blank<span class="w"> </span>lines,<span class="w"> </span>found<span class="w"> </span><span class="m">1</span>
+</pre></div>
+</div>
 <p>For this example, we would just add an additional blank line after line 77 and
 try the commit again to make sure we’ve resolved the issue.</p>
 <p>You may also find it useful to use an IDE with a PEP8 style checker built in,

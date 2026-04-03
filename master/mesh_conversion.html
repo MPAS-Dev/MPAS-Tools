@@ -217,6 +217,10 @@ output mesh, and a new <code class="docutils literal notranslate"><span class="p
 <p>The converter also generates a <code class="docutils literal notranslate"><span class="pre">graph.info</span></code> file for graph partitioning
 tools (e.g., Metis). In Python, this file is only written if the
 <code class="docutils literal notranslate"><span class="pre">graphInfoFileName</span></code> argument is provided.</p>
+<p>For spherical meshes, the <code class="xref py py-mod docutils literal notranslate"><span class="pre">mpas_tools.mesh.spherical</span></code> module provides
+Python utilities for recomputing <code class="docutils literal notranslate"><span class="pre">angleEdge</span></code> and related local east/north
+geometry directly from the mesh coordinates. This can be useful for
+verification and diagnostics after conversion.</p>
 </section>
 <section id="cell-culler">
 <span id="id3"></span><h2>Cell Culler<a class="headerlink" href="#cell-culler" title="Link to this heading"></a></h2>

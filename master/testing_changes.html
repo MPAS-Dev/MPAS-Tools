@@ -147,16 +147,27 @@ command:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>conda_package
 pixi<span class="w"> </span>install
 pixi<span class="w"> </span>shell
-rattler-build<span class="w"> </span>build<span class="w"> </span>-m<span class="w"> </span>ci/linux_64_python3.14.____cpython.yaml<span class="w"> </span>-r<span class="w"> </span>recipe/<span class="w"> </span>--output-dir<span class="w"> </span>../output
+rattler-build<span class="w"> </span>build<span class="w"> </span>-m<span class="w"> </span>ci/linux_64_python3.14.____cpython.yaml<span class="w"> </span>-r<span class="w"> </span>recipe/<span class="w"> </span>--output-dir<span class="w"> </span>output
 </pre></div>
 </div>
-<p>This writes package artifacts to <code class="docutils literal notranslate"><span class="pre">output/</span></code> in the repository root.</p>
+<p>This writes package artifacts to <code class="docutils literal notranslate"><span class="pre">output/</span></code> under <code class="docutils literal notranslate"><span class="pre">conda_package</span></code>.</p>
 <p>To install the locally built package into the pixi environment, add the local
 build output as a channel and then add <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> from that channel:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>conda_package
-pixi<span class="w"> </span>workspace<span class="w"> </span>channel<span class="w"> </span>add<span class="w"> </span><span class="s2">&quot;file://</span><span class="nv">$PWD</span><span class="s2">/../output&quot;</span>
-pixi<span class="w"> </span>add<span class="w"> </span>--platform<span class="w"> </span>linux-64<span class="w"> </span><span class="s2">&quot;mpas_tools [channel=&#39;file://</span><span class="nv">$PWD</span><span class="s2">/../output&#39;]&quot;</span>
+pixi<span class="w"> </span>workspace<span class="w"> </span>channel<span class="w"> </span>add<span class="w"> </span><span class="s2">&quot;file://</span><span class="nv">$PWD</span><span class="s2">/output&quot;</span>
+pixi<span class="w"> </span>add<span class="w"> </span>--platform<span class="w"> </span>linux-64<span class="w"> </span><span class="s2">&quot;mpas_tools [channel=&#39;file://</span><span class="nv">$PWD</span><span class="s2">/output&#39;]&quot;</span>
 </pre></div>
+</div>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>pixi, like other conda-family package managers, identifies a package by
+its name, version and build string.  If you rebuild a local package without
+changing that identity, pixi may continue using an older cached artifact
+even if the file in <code class="docutils literal notranslate"><span class="pre">output/</span></code> has changed.</p>
+<p>If you rebuild <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> locally and need pixi to pick up the new
+package contents reliably, bump the conda recipe build number in
+<code class="docutils literal notranslate"><span class="pre">conda_package/recipe/recipe.yaml</span></code> before rebuilding.  For Python-only
+development, <code class="docutils literal notranslate"><span class="pre">pixi</span> <span class="pre">run</span> <span class="pre">install-editable</span></code> is often more convenient.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
@@ -189,7 +200,8 @@ pixi<span class="w"> </span>run<span class="w"> </span>install-editable
 C++ and Fortran command-line tools.</p>
 <p>A useful hybrid workflow is to install the latest release conda package
 first (to get compiled tools), then install your branch in editable mode on
-top for Python development.</p>
+top for Python development.  This also avoids the need to bump the conda
+build number for every local Python-only rebuild.</p>
 </div>
 </section>
 <section id="legacy-method-conda-editable-install">
