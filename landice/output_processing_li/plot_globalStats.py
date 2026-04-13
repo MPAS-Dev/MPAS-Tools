@@ -5,7 +5,7 @@ Script to plot common time-series from one or more landice globalStats files.
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import sys
+import glob
 import numpy as np
 import numpy.ma as ma
 from netCDF4 import Dataset
@@ -25,6 +25,16 @@ parser.add_argument("-c", dest="plotChange", help="plot time series as change fr
 parser.add_argument("-s", dest="saveFile", help="file name to save png", default=None)
 options = parser.parse_args()
 
+# Expand any quoted glob patterns (e.g. "output*.nc")
+expanded = []
+for f in options.files:
+    matches = glob.glob(f)
+    if matches:
+        expanded.extend(sorted(matches))
+    else:
+        expanded.append(f)
+
+options.files = expanded
 print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
 
 
