@@ -9,7 +9,7 @@ import sys
 import numpy as np
 import numpy.ma as ma
 from netCDF4 import Dataset
-from optparse import OptionParser
+from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 import textwrap
 
@@ -17,18 +17,13 @@ rhoi = 910.0
 rhosw = 1028.
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
-parser = OptionParser(description=__doc__)
-parser.add_option("-1", dest="file1inName", help="input filename", default="globalStats.nc", metavar="FILENAME")
-parser.add_option("-2", dest="file2inName", help="input filename", metavar="FILENAME")
-parser.add_option("-3", dest="file3inName", help="input filename", metavar="FILENAME")
-parser.add_option("-4", dest="file4inName", help="input filename", metavar="FILENAME")
-parser.add_option("-5", dest="file5inName", help="input filename", metavar="FILENAME")
-parser.add_option("-6", dest="file6inName", help="input filename", metavar="FILENAME")
-parser.add_option("-7", dest="file7inName", help="input filename", metavar="FILENAME")
-parser.add_option("-u", dest="units", help="units for mass/volume: m3, kg, Gt", default="Gt", metavar="FILENAME")
-parser.add_option("-c", dest="plotChange", help="plot time series as change from initial.  (not applied to GL flux or calving flux)  Without this option, the full magnitude of time series is used", action='store_true', default=False)
-parser.add_option("-s", dest="saveFile", help="file name to save png", default=None)
-options, args = parser.parse_args()
+parser = ArgumentParser(description=__doc__)
+parser.add_argument('files', nargs='*', default=['globalStats.nc'],
+                    help='input filename(s)', metavar='FILENAME')
+parser.add_argument("-u", dest="units", help="units for mass/volume: m3, kg, Gt", default="Gt", metavar="UNITS")
+parser.add_argument("-c", dest="plotChange", help="plot time series as change from initial.  (not applied to GL flux or calving flux)  Without this option, the full magnitude of time series is used", action='store_true', default=False)
+parser.add_argument("-s", dest="saveFile", help="file name to save png", default=None)
+options = parser.parse_args()
 
 print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
 
@@ -290,26 +285,8 @@ def plotStat(fname):
     f.close()
 
 
-plotStat(options.file1inName)
-
-
-if(options.file2inName):
-   plotStat(options.file2inName)
-
-if(options.file3inName):
-   plotStat(options.file3inName)
-
-if(options.file4inName):
-   plotStat(options.file4inName)
-
-if(options.file5inName):
-   plotStat(options.file5inName)
-
-if(options.file6inName):
-   plotStat(options.file6inName)
-
-if(options.file7inName):
-   plotStat(options.file7inName)
+for fname in options.files:
+    plotStat(fname)
 
 custom_legend()
 
