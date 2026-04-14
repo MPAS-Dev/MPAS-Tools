@@ -4,7 +4,7 @@ import matplotlib
 import numpy as np
 
 from mpas_tools.io import write_netcdf
-from mpas_tools.mesh.conversion import convert, cull, mask
+from mpas_tools.mesh.conversion import _masks_to_int, convert, cull, mask
 from mpas_tools.mesh.spherical import recompute_angle_edge
 
 from .util import get_test_data_file
@@ -45,6 +45,27 @@ def test_conversion_angle_edge():
 
     assert np.all(np.isfinite(angle_diff))
     assert np.max(np.abs(angle_diff)) < 1.0e-10
+
+
+def test_masks_to_int_dataset_copy():
+    ds_in = xarray.Dataset(
+        data_vars={
+            'regionCellMasks': (
+                ('nCells', 'nRegions'),
+                np.array([[True, False], [False, True]]),
+            ),
+            'cullCell': (('nCells',), np.array([False, True])),
+            'xCell': (('nCells',), np.array([1.0, 2.0])),
+        },
+        attrs={'meshName': 'unit-test'},
+    )
+
+    ds_out = _masks_to_int(ds_in)
+
+    assert ds_out.regionCellMasks.dtype == np.int32
+    assert ds_out.cullCell.dtype == np.int32
+    assert ds_out.attrs == ds_in.attrs
+    assert np.array_equal(ds_out.xCell.values, ds_in.xCell.values)
 
 
 if __name__ == '__main__':
