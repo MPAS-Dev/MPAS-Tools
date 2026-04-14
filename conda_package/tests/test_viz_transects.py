@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import numpy as np
 import xarray as xr
 
 from mpas_tools.cime.constants import constants
@@ -11,6 +12,7 @@ from mpas_tools.viz.transect import (
     find_spherical_transect_cells_and_weights,
     make_triangle_tree,
 )
+from mpas_tools.viz.transect.horiz import _fix_periodic_tris
 
 from .util import get_test_data_file
 
@@ -128,6 +130,24 @@ def test_find_planar_transect_cells_and_weights():
         'transectWeightsOnHorizNode',
     ]:
         assert var in ds_transect.data_vars
+
+
+def test_fix_periodic_tris_dataset_copy():
+    ds_tris = xr.Dataset(
+        data_vars={
+            'xNode': (
+                ('nTriangles', 'nNodes'),
+                np.array([[0.0, 8.0, -8.0]]),
+            ),
+        }
+    )
+
+    ds_new = _fix_periodic_tris(ds_tris, 'xNode', period=10.0)
+
+    assert ds_new.sizes['nTriangles'] == 3
+    assert np.allclose(ds_new.xNode.values[0, :], [0.0, -2.0, 2.0])
+    assert np.allclose(ds_new.xNode.values[1, :], [10.0, 8.0, 12.0])
+    assert np.allclose(ds_new.xNode.values[2, :], [-10.0, -12.0, -8.0])
 
 
 def _get_triangles():

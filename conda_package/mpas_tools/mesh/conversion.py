@@ -246,7 +246,7 @@ def _masks_to_int(dsIn):
         'cullCell',
         'cellSeedMask',
     ]
-    dsOut = xr.Dataset(dsIn, attrs=dsIn.attrs)
+    dsOut = dsIn.copy()
     for var in var_list:
         if var in dsIn:
             dsOut[var] = dsIn[var].astype(np.int32)
