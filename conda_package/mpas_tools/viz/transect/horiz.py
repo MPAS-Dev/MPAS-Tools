@@ -894,7 +894,7 @@ def _sort_intersections(
     for (
         index,
         next_d,
-    ) in zip(sort_indices[1:], d_sorted[1:]):
+    ) in zip(sort_indices[1:], d_sorted[1:], strict=True):
         if next_d - d < epsilon:
             # this d value is effectively the same as the last, so we'll treat
             # it as the same
@@ -1001,7 +1001,7 @@ def _fix_periodic_tris(ds_tris, periodic_var, period):
         np.append(np.arange(0, n_triangles), pos_indices), neg_indices
     )
 
-    ds_new = xr.Dataset(ds_tris)
+    ds_new = ds_tris.copy()
     ds_new[periodic_var] = (('nTriangles', 'nNodes'), coord_node)
     ds_new = ds_new.isel(nTriangles=tri_indices)
     coord_node = ds_new[periodic_var].values
