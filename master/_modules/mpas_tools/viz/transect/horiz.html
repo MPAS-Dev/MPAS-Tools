@@ -1033,7 +1033,7 @@
     <span class="k">for</span> <span class="p">(</span>
         <span class="n">index</span><span class="p">,</span>
         <span class="n">next_d</span><span class="p">,</span>
-    <span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sort_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">d_sorted</span><span class="p">[</span><span class="mi">1</span><span class="p">:]):</span>
+    <span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">sort_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">d_sorted</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">next_d</span> <span class="o">-</span> <span class="n">d</span> <span class="o">&lt;</span> <span class="n">epsilon</span><span class="p">:</span>
             <span class="c1"># this d value is effectively the same as the last, so we&#39;ll treat</span>
             <span class="c1"># it as the same</span>
@@ -1140,7 +1140,7 @@
         <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_triangles</span><span class="p">),</span> <span class="n">pos_indices</span><span class="p">),</span> <span class="n">neg_indices</span>
     <span class="p">)</span>
 
-    <span class="n">ds_new</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">ds_tris</span><span class="p">)</span>
+    <span class="n">ds_new</span> <span class="o">=</span> <span class="n">ds_tris</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
     <span class="n">ds_new</span><span class="p">[</span><span class="n">periodic_var</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nTriangles&#39;</span><span class="p">,</span> <span class="s1">&#39;nNodes&#39;</span><span class="p">),</span> <span class="n">coord_node</span><span class="p">)</span>
     <span class="n">ds_new</span> <span class="o">=</span> <span class="n">ds_new</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nTriangles</span><span class="o">=</span><span class="n">tri_indices</span><span class="p">)</span>
     <span class="n">coord_node</span> <span class="o">=</span> <span class="n">ds_new</span><span class="p">[</span><span class="n">periodic_var</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
