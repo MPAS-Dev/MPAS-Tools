@@ -46,7 +46,7 @@ requirements:
     - cartopy
     - cmocean
     - dask
-    - geometric_features >=1.0.1,<2.0.0
+    - geometric_features >=1.6.3,<2.0.0
     - h5py
     - inpoly
     - matplotlib-base >=3.9.0
