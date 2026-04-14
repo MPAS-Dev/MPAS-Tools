@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.depth.write\_time\_varying\_zmid
+==================================================
+
+.. currentmodule:: mpas_tools.ocean.depth
+
+.. autofunction:: write_time_varying_zmid

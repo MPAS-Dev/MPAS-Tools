@@ -1,0 +1,6 @@
+﻿mpas\_tools.seaice.partition.gen\_seaice\_mesh\_partition
+=========================================================
+
+.. currentmodule:: mpas_tools.seaice.partition
+
+.. autofunction:: gen_seaice_mesh_partition

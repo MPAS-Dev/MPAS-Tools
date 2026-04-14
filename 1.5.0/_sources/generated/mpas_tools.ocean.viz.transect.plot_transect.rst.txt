@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.viz.transect.plot\_transect
+=============================================
+
+.. currentmodule:: mpas_tools.ocean.viz.transect
+
+.. autofunction:: plot_transect
