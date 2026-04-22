@@ -206,7 +206,7 @@ def add_land_locked_cells_to_mask(
         mask for the first region
     """
 
-    dsMask = xarray.Dataset(dsMask)
+    dsMask = dsMask.copy(deep=True)
     dsMesh = dsMesh.copy(deep=True)
 
     landMask = dsMask.regionCellMasks.max(dim='nRegions') > 0
