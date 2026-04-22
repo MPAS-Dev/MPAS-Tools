@@ -29,7 +29,8 @@ def add_critical_land_blockages(dsMask, dsBlockages):
     for transectIndex in range(nTransects):
         dsMask.regionCellMasks[:, 0] = numpy.maximum(
             dsBlockages.transectCellMasks[:, transectIndex],
-            dsMask.regionCellMasks[:, 0])
+            dsMask.regionCellMasks[:, 0],
+        )
 
     return dsMask
 
@@ -43,20 +44,33 @@ Add transects that identify critical regions where narrow strips of land block
 ocean flow.  These are, essentially, the opposite of critical passages, which
 must remain open for ocean flow.
 """
-    parser = \
-        argparse.ArgumentParser(description=description,
-                                formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-f", "--input_mask_file", dest="input_mask_filename",
-                        help="Mask file that includes cell and edge masks.",
-                        metavar="INPUTMASKFILE", required=True)
-    parser.add_argument("-o", "--output_mask_file",
-                        dest="output_mask_filename",
-                        help="Mask file that includes cell and edge masks.",
-                        metavar="OUTPUTMASKFILE", required=True)
-    parser.add_argument("-b", "--blockage_file", dest="blockage_file",
-                        help="Masks for each transect identifying critical "
-                             "land blockage.", metavar="BLOCKFILE",
-                        required=True)
+    parser = argparse.ArgumentParser(
+        description=description, formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        '-f',
+        '--input_mask_file',
+        dest='input_mask_filename',
+        help='Mask file that includes cell and edge masks.',
+        metavar='INPUTMASKFILE',
+        required=True,
+    )
+    parser.add_argument(
+        '-o',
+        '--output_mask_file',
+        dest='output_mask_filename',
+        help='Mask file that includes cell and edge masks.',
+        metavar='OUTPUTMASKFILE',
+        required=True,
+    )
+    parser.add_argument(
+        '-b',
+        '--blockage_file',
+        dest='blockage_file',
+        help='Masks for each transect identifying critical land blockage.',
+        metavar='BLOCKFILE',
+        required=True,
+    )
     args = parser.parse_args()
 
     dsMask = xarray.open_dataset(args.input_mask_filename)
@@ -97,15 +111,14 @@ def widen_transect_edge_masks(dsMask, dsMesh, latitude_threshold=43.0):
 
     latMask = numpy.abs(dsMesh.latEdge) > latitude_threshold_radians
 
-    edgeMask = numpy.logical_and(
-        latMask, dsMask.transectEdgeMasks == 1)
+    edgeMask = numpy.logical_and(latMask, dsMask.transectEdgeMasks == 1)
     for iEdge in range(maxEdges):
-        eoc = dsMesh.edgesOnCell[:, iEdge]-1
-        mask = numpy.logical_and(eoc >= 0,
-                                 edgeMask[eoc])
+        eoc = dsMesh.edgesOnCell[:, iEdge] - 1
+        mask = numpy.logical_and(eoc >= 0, edgeMask[eoc])
         # cells with a neighboring transect edge should be masked to 1
         dsMask['transectCellMasks'] = dsMask.transectCellMasks.where(
-            numpy.logical_not(mask), 1).astype(int)
+            numpy.logical_not(mask), 1
+        ).astype(int)
 
     return dsMask
 
@@ -119,25 +132,42 @@ Alter transects to be at least two cells wide.  This is used for critical
 passages, to avoid sea ice blockage.  Specifically, mark cells on both sides
 of each transect edge mask as a water cell.
 """
-    parser = \
-        argparse.ArgumentParser(description=description,
-                                formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-f", "--mask_file", dest="mask_filename",
-                        help="Mask file with cell and edge transect masks.",
-                        metavar="MASKFILE",
-                        required=True)
-    parser.add_argument("-m", "--mesh_file", dest="mesh_filename",
-                        help="MPAS Mesh filename.", metavar="MESHFILE",
-                        required=True)
-    parser.add_argument("-o", "--out_file", dest="out_filename",
-                        help="Output mask file,different from input filename.",
-                        metavar="MASKFILE",
-                        required=True)
-    parser.add_argument("-l", "--latitude_threshold",
-                        dest="latitude_threshold",
-                        help="Minimum latitude, degrees, for transect "
-                             "widening.",
-                        required=False, type=float, default=43.0)
+    parser = argparse.ArgumentParser(
+        description=description, formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        '-f',
+        '--mask_file',
+        dest='mask_filename',
+        help='Mask file with cell and edge transect masks.',
+        metavar='MASKFILE',
+        required=True,
+    )
+    parser.add_argument(
+        '-m',
+        '--mesh_file',
+        dest='mesh_filename',
+        help='MPAS Mesh filename.',
+        metavar='MESHFILE',
+        required=True,
+    )
+    parser.add_argument(
+        '-o',
+        '--out_file',
+        dest='out_filename',
+        help='Output mask file,different from input filename.',
+        metavar='MASKFILE',
+        required=True,
+    )
+    parser.add_argument(
+        '-l',
+        '--latitude_threshold',
+        dest='latitude_threshold',
+        help='Minimum latitude, degrees, for transect widening.',
+        required=False,
+        type=float,
+        default=43.0,
+    )
     args = parser.parse_args()
 
     dsMask = xarray.open_dataset(args.mask_filename)
@@ -148,8 +178,9 @@ of each transect edge mask as a water cell.
     dsMask.to_netcdf(args.out_filename)
 
 
-def add_land_locked_cells_to_mask(dsMask, dsMesh, latitude_threshold=43.0,
-                                  nSweeps=10):
+def add_land_locked_cells_to_mask(
+    dsMask, dsMesh, latitude_threshold=43.0, nSweeps=10
+):
     """
     Find ocean cells that are land-locked, and alter the cell mask so that they
     are counted as land cells.
@@ -182,8 +213,10 @@ def add_land_locked_cells_to_mask(dsMask, dsMesh, latitude_threshold=43.0,
 
     dsMask['landMaskDiagnostic'] = xarray.where(landMask, 1, 0)
 
-    print("Running add_land_locked_cells_to_mask.py.  Total number of cells: "
-          "{}".format(dsMesh.sizes['nCells']))
+    print(
+        'Running add_land_locked_cells_to_mask.py.  Total number of cells: '
+        '{}'.format(dsMesh.sizes['nCells'])
+    )
 
     cellsOnCell = dsMesh.cellsOnCell - 1
     nEdgesOnCell = dsMesh.nEdgesOnCell
@@ -203,12 +236,15 @@ def add_land_locked_cells_to_mask(dsMask, dsMesh, latitude_threshold=43.0,
     dsMesh['lonCell'] = numpy.rad2deg(dsMesh.lonCell)
 
     landMask, removable = _remove_cells_with_isolated_edges1(
-        dsMask, dsMesh, landMask, latitude_threshold)
+        dsMask, dsMesh, landMask, latitude_threshold
+    )
     landMask = _remove_cells_with_isolated_edges2(
-        dsMask, dsMesh, landMask, removable, nSweeps)
+        dsMask, dsMesh, landMask, removable, nSweeps
+    )
     oceanMask = _flood_fill(dsMask, dsMesh, landMask, removable)
     landMask = _revert_cells_with_connected_edges(
-        dsMask, dsMesh, oceanMask, landMask, removable, nSweeps)
+        dsMask, dsMesh, oceanMask, landMask, removable, nSweeps
+    )
 
     return dsMask
 
@@ -221,50 +257,77 @@ def main_add_land_locked_cells_to_mask():
 Find ocean cells that are land-locked, and alter the cell
 mask so that they are counted as land cells.
 """
-    parser = \
-        argparse.ArgumentParser(description=description,
-                                formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-f", "--input_mask_file", dest="input_mask_filename",
-                        help="Mask file that includes cell and edge masks.",
-                        metavar="INPUTMASKFILE", required=True)
-    parser.add_argument("-o", "--output_mask_file",
-                        dest="output_mask_filename",
-                        help="Mask file that includes cell and edge masks.",
-                        metavar="OUTPUTMASKFILE", required=True)
-    parser.add_argument("-m", "--mesh_file", dest="mesh_filename",
-                        help="MPAS Mesh filename.", metavar="MESHFILE",
-                        required=True)
-    parser.add_argument("-l", "--latitude_threshold",
-                        dest="latitude_threshold",
-                        help="Minimum latitude, in degrees, for transect "
-                             "widening.",
-                        required=False, type=float, default=43.0)
-    parser.add_argument("-n", "--number_sweeps", dest="nSweeps",
-                        help="Maximum number of sweeps to search for "
-                             "land-locked cells.",
-                        required=False, type=int, default=10)
+    parser = argparse.ArgumentParser(
+        description=description, formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        '-f',
+        '--input_mask_file',
+        dest='input_mask_filename',
+        help='Mask file that includes cell and edge masks.',
+        metavar='INPUTMASKFILE',
+        required=True,
+    )
+    parser.add_argument(
+        '-o',
+        '--output_mask_file',
+        dest='output_mask_filename',
+        help='Mask file that includes cell and edge masks.',
+        metavar='OUTPUTMASKFILE',
+        required=True,
+    )
+    parser.add_argument(
+        '-m',
+        '--mesh_file',
+        dest='mesh_filename',
+        help='MPAS Mesh filename.',
+        metavar='MESHFILE',
+        required=True,
+    )
+    parser.add_argument(
+        '-l',
+        '--latitude_threshold',
+        dest='latitude_threshold',
+        help='Minimum latitude, in degrees, for transect widening.',
+        required=False,
+        type=float,
+        default=43.0,
+    )
+    parser.add_argument(
+        '-n',
+        '--number_sweeps',
+        dest='nSweeps',
+        help='Maximum number of sweeps to search for land-locked cells.',
+        required=False,
+        type=int,
+        default=10,
+    )
     args = parser.parse_args()
 
     dsMask = xarray.open_dataset(args.input_mask_filename)
 
     dsMesh = xarray.open_dataset(args.mesh_filename)
 
-    dsMask = add_land_locked_cells_to_mask(dsMask, dsMesh,
-                                           args.latitude_threshold,
-                                           args.nSweeps)
+    dsMask = add_land_locked_cells_to_mask(
+        dsMask, dsMesh, args.latitude_threshold, args.nSweeps
+    )
     dsMask.to_netcdf(args.output_mask_filename)
 
 
-def _remove_cells_with_isolated_edges1(dsMask, dsMesh, landMask,
-                                       latitude_threshold):
-    print("Step 1: Searching for land-locked cells.  Remove cells that only "
-          "have isolated active edges.")
+def _remove_cells_with_isolated_edges1(
+    dsMask, dsMesh, landMask, latitude_threshold
+):
+    print(
+        'Step 1: Searching for land-locked cells.  Remove cells that only '
+        'have isolated active edges.'
+    )
 
     landMaskNew = landMask.copy(deep=True)
 
     active = numpy.logical_not(landMask)
     removable = numpy.logical_and(
-        numpy.abs(dsMesh.latCell) >= latitude_threshold, active)
+        numpy.abs(dsMesh.latCell) >= latitude_threshold, active
+    )
 
     cellsOnCell = dsMesh.cellsOnCell
     valid = numpy.logical_and(removable, cellsOnCell >= 0)
@@ -279,25 +342,30 @@ def _remove_cells_with_isolated_edges1(dsMask, dsMesh, landMask,
 
     # which removable cells have no pairs of adjacent active cells?
     noActiveAdjacentEdges = numpy.logical_and(
-        removable, numpy.logical_not(numpy.any(activeAdjacentEdges, axis=1)))
+        removable, numpy.logical_not(numpy.any(activeAdjacentEdges, axis=1))
+    )
 
     landMaskNew[noActiveAdjacentEdges] = 1
     landLockedCounter = numpy.count_nonzero(noActiveAdjacentEdges)
 
-    dsMask.regionCellMasks[:, 0] = numpy.maximum(dsMask.regionCellMasks[:, 0],
-                                                 1*noActiveAdjacentEdges)
+    dsMask.regionCellMasks[:, 0] = numpy.maximum(
+        dsMask.regionCellMasks[:, 0], 1 * noActiveAdjacentEdges
+    )
 
     dsMask.landMaskDiagnostic[noActiveAdjacentEdges] = 2
 
-    print("  Number of landLocked cells: {}".format(landLockedCounter))
+    print(f'  Number of landLocked cells: {landLockedCounter}')
 
     return landMaskNew, removable
 
 
-def _remove_cells_with_isolated_edges2(dsMask, dsMesh, landMask, removable,
-                                       nSweeps):
-    print("Step 2: Searching for land-locked cells. Remove cells that have "
-          "any isolated active edges.")
+def _remove_cells_with_isolated_edges2(
+    dsMask, dsMesh, landMask, removable, nSweeps
+):
+    print(
+        'Step 2: Searching for land-locked cells. Remove cells that have '
+        'any isolated active edges.'
+    )
 
     cellsOnCell = dsMesh.cellsOnCell
     nextCellsOnCell = dsMesh.nextCellsOnCell
@@ -321,7 +389,9 @@ def _remove_cells_with_isolated_edges2(dsMask, dsMesh, landMask, removable,
         landLockedEdges = numpy.logical_and(
             activeEdge,
             numpy.logical_not(
-                numpy.logical_or(activePrevEdge, activeNextEdge)))
+                numpy.logical_or(activePrevEdge, activeNextEdge)
+            ),
+        )
 
         landLockedCells = numpy.any(landLockedEdges, axis=1)
 
@@ -332,8 +402,11 @@ def _remove_cells_with_isolated_edges2(dsMask, dsMesh, landMask, removable,
             dsMask.landMaskDiagnostic[landLockedCells] = 3
 
         landMask = landMaskNew
-        print("  Sweep: {} Number of landLocked cells removed: {}".format(
-            iSweep + 1, landLockedCounter))
+        print(
+            '  Sweep: {} Number of landLocked cells removed: {}'.format(
+                iSweep + 1, landLockedCounter
+            )
+        )
         if landLockedCounter == 0:
             break
 
@@ -341,11 +414,12 @@ def _remove_cells_with_isolated_edges2(dsMask, dsMesh, landMask, removable,
 
 
 def _flood_fill(dsMask, dsMesh, landMask, removable):
-    print("Step 3: Perform flood fill, starting from open ocean.")
+    print('Step 3: Perform flood fill, starting from open ocean.')
 
     # init flood fill to 0 for water, -1 for land, 1 for known open ocean
     floodFill = xarray.where(
-        numpy.logical_and(removable, numpy.logical_not(landMask)), 0, -1)
+        numpy.logical_and(removable, numpy.logical_not(landMask)), 0, -1
+    )
 
     latCell = dsMesh.latCell
     lonCell = dsMesh.lonCell
@@ -358,88 +432,100 @@ def _flood_fill(dsMask, dsMesh, landMask, removable):
 
     # Arctic
     mask = numpy.logical_and(
-        numpy.logical_and(lonCell > 160.0, lonCell < 230.0),
-        latCell > 73.0)
+        numpy.logical_and(lonCell > 160.0, lonCell < 230.0), latCell > 73.0
+    )
     openOceanMask = numpy.logical_or(openOceanMask, mask)
 
     # North Atlantic
     mask = numpy.logical_and(
         numpy.logical_and(lonCell > 315.0, lonCell < 340.0),
-        numpy.logical_and(latCell > 15.0, latCell < 45.0))
+        numpy.logical_and(latCell > 15.0, latCell < 45.0),
+    )
     openOceanMask = numpy.logical_or(openOceanMask, mask)
     mask = numpy.logical_and(
         numpy.logical_and(lonCell > 290.0, lonCell < 300.0),
-        numpy.logical_and(latCell > 72.0, latCell < 75.0))
+        numpy.logical_and(latCell > 72.0, latCell < 75.0),
+    )
     openOceanMask = numpy.logical_or(openOceanMask, mask)
     mask = numpy.logical_and(
         numpy.logical_and(lonCell > 0.0, lonCell < 10.0),
-        numpy.logical_and(latCell > 70.0, latCell < 75.0))
+        numpy.logical_and(latCell > 70.0, latCell < 75.0),
+    )
     openOceanMask = numpy.logical_or(openOceanMask, mask)
 
     # North Pacific
     mask = numpy.logical_and(
         numpy.logical_and(lonCell > 150.0, lonCell < 225.0),
-        numpy.logical_and(latCell > 0.0, latCell < 45.0))
+        numpy.logical_and(latCell > 0.0, latCell < 45.0),
+    )
     openOceanMask = numpy.logical_or(openOceanMask, mask)
 
     # South Atlantic
     mask = numpy.logical_and(
         numpy.logical_and(lonCell > 0.0, lonCell < 5.0),
-        numpy.logical_and(latCell > -60.0, latCell < 0.0))
+        numpy.logical_and(latCell > -60.0, latCell < 0.0),
+    )
     openOceanMask = numpy.logical_or(openOceanMask, mask)
 
     # South Pacific
     mask = numpy.logical_and(
         numpy.logical_and(lonCell > 180.0, lonCell < 280.0),
-        numpy.logical_and(latCell > -60.0, latCell < -10.0))
+        numpy.logical_and(latCell > -60.0, latCell < -10.0),
+    )
     openOceanMask = numpy.logical_or(openOceanMask, mask)
 
     # Southern Ocean
     mask = numpy.logical_and(
         numpy.logical_and(lonCell > 0.0, lonCell < 165.0),
-        numpy.logical_and(latCell > -60.0, latCell < -45.0))
+        numpy.logical_and(latCell > -60.0, latCell < -45.0),
+    )
     openOceanMask = numpy.logical_or(openOceanMask, mask)
 
     mask = numpy.logical_and(floodFill == 0, openOceanMask)
     floodFill[mask] = 1
 
     nFloodableCells = numpy.count_nonzero(floodFill == 0)
-    print("  Initial number of flood cells: {}".format(nFloodableCells))
+    print(f'  Initial number of flood cells: {nFloodableCells}')
 
     dsMask.landMaskDiagnostic[floodFill == 1] = 5
 
     # sweep over neighbors of known open ocean points
     for iSweep in range(dsMesh.sizes['nCells']):
-
         newFloodCellsThisSweep = 0
         mask = floodFill == 0
         cellIndices = numpy.nonzero(mask.values)[0]
         for iCellOnCell in range(cellsOnCell.shape[1]):
             neighbors = cellsOnCell[cellIndices, iCellOnCell]
-            filledNeighbors = numpy.logical_and(neighbors >= 0,
-                                                floodFill[neighbors] == 1)
+            filledNeighbors = numpy.logical_and(
+                neighbors >= 0, floodFill[neighbors] == 1
+            )
             fillIndices = cellIndices[filledNeighbors.values]
             if len(fillIndices) > 0:
                 floodFill[fillIndices] = 1
                 newFloodCellsThisSweep += len(fillIndices)
 
-        print("  Sweep {} new flood cells this sweep: {}".format(
-            iSweep, newFloodCellsThisSweep))
+        print(
+            f'  Sweep {iSweep} new flood cells this sweep: '
+            f'{newFloodCellsThisSweep}'
+        )
 
-        if (newFloodCellsThisSweep == 0):
+        if newFloodCellsThisSweep == 0:
             break
 
-    oceanMask = (floodFill == 1)
+    oceanMask = floodFill == 1
 
     print('oceanMask:', numpy.count_nonzero(oceanMask))
 
     return oceanMask
 
 
-def _revert_cells_with_connected_edges(dsMask, dsMesh, oceanMask, landMask,
-                                       removable, nSweeps):
-    print("Step 4: Searching for land-locked cells, step 3: revert cells with "
-          "connected active edges")
+def _revert_cells_with_connected_edges(
+    dsMask, dsMesh, oceanMask, landMask, removable, nSweeps
+):
+    print(
+        'Step 4: Searching for land-locked cells, step 3: revert cells with '
+        'connected active edges'
+    )
 
     cellsOnCell = dsMesh.cellsOnCell
     nextCellsOnCell = dsMesh.nextCellsOnCell
@@ -462,8 +548,10 @@ def _revert_cells_with_connected_edges(dsMask, dsMesh, oceanMask, landMask,
 
         reactivate = numpy.any(
             numpy.logical_and(
-                oceanEdge,
-                numpy.logical_or(activePrevEdge, activeNextEdge)), axis=1)
+                oceanEdge, numpy.logical_or(activePrevEdge, activeNextEdge)
+            ),
+            axis=1,
+        )
 
         landLockedCounter = numpy.count_nonzero(reactivate)
         if landLockedCounter > 0:
@@ -473,8 +561,11 @@ def _revert_cells_with_connected_edges(dsMask, dsMesh, oceanMask, landMask,
             dsMask.landMaskDiagnostic[reactivate] = 4
 
         landMask = landMaskNew
-        print("  Sweep: {} Number of land-locked cells returned: {}".format(
-            iSweep + 1, landLockedCounter))
+        print(
+            '  Sweep: {} Number of land-locked cells returned: {}'.format(
+                iSweep + 1, landLockedCounter
+            )
+        )
         if landLockedCounter == 0:
             break
 
