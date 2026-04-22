@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.mask.compute\_mpas\_region\_masks
+==================================================
+
+.. currentmodule:: mpas_tools.mesh.mask
+
+.. autofunction:: compute_mpas_region_masks
