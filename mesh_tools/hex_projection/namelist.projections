@@ -2,7 +2,7 @@
   cell_spacing_km = 15.
   mesh_length_x_km =  5403.
   mesh_length_y_km =  3183.
-  earth_radius_km = 6378.14
+  earth_radius_km = 6371.229
 /
 &projection
   projection_type = "lambert_conformal"
