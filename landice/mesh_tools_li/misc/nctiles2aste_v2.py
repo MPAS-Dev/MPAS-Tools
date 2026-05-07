@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import argparse
+import json
 from pathlib import Path
 from typing import Any, Iterable, Sequence
 
@@ -273,12 +275,13 @@ def nctiles2aste_v2(
                     )
 
             if file_ndims == 4:
-                x_dim, y_dim, t_dim = var.dims
+                t_dim = var.dims[2]
                 for itime, time_1based in enumerate(times_list):
                     slice2d = var.isel({t_dim: time_1based - 1}).values
                     tmp[:, :, 0, itime] = np.asarray(slice2d)
             else:
-                x_dim, y_dim, z_dim, t_dim = var.dims
+                z_dim = var.dims[2]
+                t_dim = var.dims[3]
                 for itime, time_1based in enumerate(times_list):
                     for ilev, level_1based in enumerate(levels_list):
                         slice2d = var.isel(
@@ -303,3 +306,203 @@ def nctiles2aste_v2(
         field = field_tiles
 
     return field, time_step
+
+
+def _load_tiles_structure(tiles_file: str | Path, tiles_key: str = "tiles") -> Any:
+    """Load the tiles structure from .mat or .json."""
+    tiles_path = Path(tiles_file)
+    if not tiles_path.is_file():
+        raise FileNotFoundError(f"Tiles file not found: {tiles_path}")
+
+    suffix = tiles_path.suffix.lower()
+    if suffix == ".mat":
+        try:
+            from scipy.io import loadmat
+        except ImportError as exc:
+            raise ImportError(
+                "Reading MATLAB .mat tiles files requires scipy. "
+                "Install it with: pip install scipy"
+            ) from exc
+
+        data = loadmat(tiles_path, squeeze_me=True, struct_as_record=False)
+        if tiles_key not in data:
+            raise KeyError(
+                f"Key '{tiles_key}' not found in {tiles_path}. "
+                f"Available top-level keys: {sorted(k for k in data if not k.startswith('__'))}"
+            )
+        return data[tiles_key]
+
+    if suffix == ".json":
+        with tiles_path.open("r", encoding="utf-8") as handle:
+            payload = json.load(handle)
+        if tiles_key in payload:
+            return payload[tiles_key]
+        return payload
+
+    raise ValueError("Unsupported tiles file type. Use .mat or .json")
+
+
+def _field_to_data_array(
+    field: np.ndarray,
+    var_name: str,
+    time_step: np.ndarray,
+    has_vertical_dim: bool,
+) -> xr.DataArray:
+    """Convert compact field output to an xarray DataArray."""
+    arr = np.asarray(field)
+    if arr.ndim != 4:
+        raise ValueError(
+            f"Expected compact field with 4 dimensions (x, y, level, time), got {arr.ndim}."
+        )
+
+    nx, ny, nlevels, ntimes = arr.shape
+    if has_vertical_dim:
+        return xr.DataArray(
+            arr,
+            dims=("x", "y", "level", "time"),
+            coords={
+                "x": np.arange(1, nx + 1),
+                "y": np.arange(1, ny + 1),
+                "level": np.arange(1, nlevels + 1),
+                "time": np.arange(1, ntimes + 1),
+                "timstep": ("time", np.asarray(time_step)),
+            },
+            name=var_name,
+        )
+
+    arr2d = arr[:, :, 0, :]
+    return xr.DataArray(
+        arr2d,
+        dims=("x", "y", "time"),
+        coords={
+            "x": np.arange(1, nx + 1),
+            "y": np.arange(1, ny + 1),
+            "time": np.arange(1, ntimes + 1),
+            "timstep": ("time", np.asarray(time_step)),
+        },
+        name=var_name,
+    )
+
+
+def _var_has_vertical_dim(root_dir: str | Path, var_name: str) -> bool:
+    """Return True when the tile variable is (x, y, z, time)."""
+    root_path = Path(root_dir)
+    var_dir = root_path / var_name
+    files = sorted(var_dir.glob("*.nc"))
+    if not files:
+        raise FileNotFoundError(f"No NetCDF files found in: {var_dir}")
+
+    ds = xr.open_dataset(files[0])
+    try:
+        if var_name not in ds:
+            raise KeyError(f"Variable '{var_name}' not found in {files[0].name}")
+        return ds[var_name].ndim == 4
+    finally:
+        ds.close()
+
+
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Read ASTE tile NetCDF files and write one selected variable as a compact "
+            "ASTE NetCDF file."
+        )
+    )
+    parser.add_argument(
+        "--root-dir",
+        required=True,
+        help="Directory that contains per-variable folders (e.g. .../SALT, .../THETA).",
+    )
+    parser.add_argument(
+        "--tiles-file",
+        required=True,
+        help="Path to tiles metadata file (.mat or .json).",
+    )
+    parser.add_argument(
+        "--tiles-key",
+        default="tiles",
+        help="Top-level variable/key name inside --tiles-file (default: tiles).",
+    )
+    parser.add_argument("--var", required=True, help="Variable name to extract.")
+    parser.add_argument(
+        "--tile-list",
+        nargs="+",
+        type=int,
+        required=True,
+        help="1-based tile numbers to extract.",
+    )
+    parser.add_argument(
+        "--levels-list",
+        nargs="+",
+        type=int,
+        required=True,
+        help="1-based vertical level numbers to extract.",
+    )
+    parser.add_argument(
+        "--times-list",
+        nargs="+",
+        type=int,
+        required=True,
+        help="1-based time indices to extract.",
+    )
+    parser.add_argument(
+        "--output",
+        required=True,
+        help="Output NetCDF filename.",
+    )
+    parser.add_argument(
+        "--flag-aste",
+        action="store_true",
+        help="Assemble selected tiles into compact ASTE field before writing.",
+    )
+    return parser
+
+
+def main() -> None:
+    parser = _build_parser()
+    args = parser.parse_args()
+
+    tiles = _load_tiles_structure(args.tiles_file, args.tiles_key)
+
+    var_name = args.var
+    has_vertical_dim = _var_has_vertical_dim(args.root_dir, var_name)
+    levels_for_var = args.levels_list if has_vertical_dim else [1]
+
+    field, timesteps = nctiles2aste_v2(
+        var_name=var_name,
+        root_dir=args.root_dir,
+        tile_list=args.tile_list,
+        levels_list=levels_for_var,
+        times_list=args.times_list,
+        tiles=tiles,
+        flag_aste=args.flag_aste,
+    )
+
+    if not args.flag_aste:
+        raise ValueError(
+            "CLI NetCDF writing currently requires --flag-aste so each variable "
+            "is represented on a compact (x, y, level, time) grid."
+        )
+
+    ds_out = xr.Dataset()
+    ds_out[var_name] = _field_to_data_array(
+        field,
+        var_name,
+        timesteps,
+        has_vertical_dim=has_vertical_dim,
+    )
+
+    ds_out.attrs["source"] = "Generated by nctiles2aste_v2.py"
+    ds_out.attrs["tile_list"] = ",".join(str(tile) for tile in args.tile_list)
+    ds_out.attrs["levels_list"] = ",".join(str(level) for level in args.levels_list)
+    ds_out.attrs["times_list"] = ",".join(str(time) for time in args.times_list)
+    ds_out.attrs["variable"] = var_name
+
+    output_path = Path(args.output)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    ds_out.to_netcdf(output_path)
+    print(f"Wrote: {output_path}")
+
+
+if __name__ == "__main__":
+    main()
