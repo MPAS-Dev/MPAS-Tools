@@ -162,13 +162,15 @@ def nctiles2aste_v2(
     1-based indices to match MATLAB behavior.
     """
     root_dir = Path(root_dir)
-    data_dir = root_dir / var_name
+    data_dir = root_dir
     if not data_dir.is_dir():
         raise FileNotFoundError(f"Data directory not found: {data_dir}")
 
-    file_list = sorted(data_dir.glob("*.nc"))
+    file_list = sorted(data_dir.glob(f"{var_name}.*.nc"))
     if not file_list:
-        raise FileNotFoundError(f"No NetCDF files found in: {data_dir}")
+        raise FileNotFoundError(
+            f"No NetCDF files found for variable '{var_name}' in: {data_dir}"
+        )
 
     tile_list = [int(tile) for tile in tile_list]
     levels_list = [int(level) for level in levels_list]
@@ -387,10 +389,11 @@ def _field_to_data_array(
 def _var_has_vertical_dim(root_dir: str | Path, var_name: str) -> bool:
     """Return True when the tile variable is (x, y, z, time)."""
     root_path = Path(root_dir)
-    var_dir = root_path / var_name
-    files = sorted(var_dir.glob("*.nc"))
+    files = sorted(root_path.glob(f"{var_name}.*.nc"))
     if not files:
-        raise FileNotFoundError(f"No NetCDF files found in: {var_dir}")
+        raise FileNotFoundError(
+            f"No NetCDF files found for variable '{var_name}' in: {root_path}"
+        )
 
     ds = xr.open_dataset(files[0])
     try:
@@ -411,7 +414,10 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--root-dir",
         required=True,
-        help="Directory that contains per-variable folders (e.g. .../SALT, .../THETA).",
+        help=(
+            "Flat directory containing ASTE tile files such as "
+            "SALT.0005.nc, THETA.0005.nc, SIarea.0005.nc."
+        ),
     )
     parser.add_argument(
         "--tiles-file",
