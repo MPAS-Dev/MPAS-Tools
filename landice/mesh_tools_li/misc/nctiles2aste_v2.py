@@ -144,6 +144,78 @@ def tiles2field(
     return field
 
 
+def _infer_var_layout(
+    var: xr.DataArray,
+    timstep_len: int,
+    dtilex: int | None = None,
+    dtiley: int | None = None,
+) -> dict[str, Any]:
+    """Infer dimension roles for ASTE tile variables.
+
+    Supported ranks are 3D (2D field in time) and 4D (3D field in time).
+    """
+    if var.ndim not in (3, 4):
+        raise ValueError(
+            f"Unsupported variable rank for '{var.name}': {var.ndim}. "
+            "Expected 3D or 4D."
+        )
+
+    dims = list(var.dims)
+    shape = list(var.shape)
+
+    if dtilex is not None and dtiley is not None:
+        if shape[-2] == dtilex and shape[-1] == dtiley:
+            x_idx, y_idx = var.ndim - 2, var.ndim - 1
+        elif shape[0] == dtilex and shape[1] == dtiley:
+            x_idx, y_idx = 0, 1
+        else:
+            raise ValueError(
+                "nctiles2aste ERROR: could not find tile dimensions in variable "
+                f"'{var.name}' with shape {tuple(shape)} for tiles.tsize "
+                f"{dtilex}x{dtiley}."
+            )
+    else:
+        x_idx, y_idx = var.ndim - 2, var.ndim - 1
+
+    time_candidates = [idx for idx, size in enumerate(shape) if size == timstep_len]
+    spatial_idxs = {x_idx, y_idx}
+    time_idx = next((idx for idx in time_candidates if idx not in spatial_idxs), None)
+    if time_idx is None:
+        time_idx = next((idx for idx in range(var.ndim) if idx not in spatial_idxs), None)
+
+    if time_idx is None:
+        raise ValueError(
+            f"Could not infer time dimension for '{var.name}' with shape {tuple(shape)}."
+        )
+
+    if var.ndim == 4:
+        z_candidates = [
+            idx for idx in range(var.ndim) if idx not in spatial_idxs and idx != time_idx
+        ]
+        if len(z_candidates) != 1:
+            raise ValueError(
+                f"Could not infer vertical dimension for '{var.name}' with shape {tuple(shape)}."
+            )
+        z_idx = z_candidates[0]
+        z_dim = dims[z_idx]
+        nz = int(shape[z_idx])
+        has_vertical_dim = True
+    else:
+        z_dim = None
+        nz = 1
+        has_vertical_dim = False
+
+    return {
+        "has_vertical_dim": has_vertical_dim,
+        "x_dim": dims[x_idx],
+        "y_dim": dims[y_idx],
+        "time_dim": dims[time_idx],
+        "z_dim": z_dim,
+        "nz": nz,
+        "ntimes": int(shape[time_idx]),
+    }
+
+
 def nctiles2aste_v2(
     var_name: str,
     root_dir: str | Path,
@@ -189,26 +261,11 @@ def nctiles2aste_v2(
             raise KeyError(f"Variable 'timstep' not found in {file_list[0].name}")
 
         sample_var = sample_ds[var_name]
-        if sample_var.ndim == 3:
-            nz = 1
-            ntimes_max = int(sample_var.shape[2])
-            file_ndims = 4
-        elif sample_var.ndim == 4:
-            nz = int(sample_var.shape[2])
-            ntimes_max = int(sample_var.shape[3])
-            file_ndims = 5
-        else:
-            raise ValueError(
-                f"Unsupported variable rank for '{var_name}': {sample_var.ndim}. "
-                "Expected 3D (x, y, time) or 4D (x, y, z, time)."
-            )
-
-        if dtilex != int(sample_var.shape[0]) or dtiley != int(sample_var.shape[1]):
-            raise ValueError(
-                "nctiles2aste ERROR: Dimensions from tiles.tsize "
-                f"{dtilex}x{dtiley} do not match NetCDF variable dimensions "
-                f"{sample_var.shape[0]}x{sample_var.shape[1]}."
-            )
+        timstep_len = int(sample_ds["timstep"].size)
+        layout = _infer_var_layout(sample_var, timstep_len, dtilex=dtilex, dtiley=dtiley)
+        nz = int(layout["nz"])
+        ntimes_max = int(layout["ntimes"])
+        has_vertical_dim = bool(layout["has_vertical_dim"])
     finally:
         sample_ds.close()
 
@@ -276,19 +333,33 @@ def nctiles2aste_v2(
                         ds["timstep"].isel({ds["timstep"].dims[0]: time_1based - 1}).item()
                     )
 
-            if file_ndims == 4:
-                t_dim = var.dims[2]
+            if not has_vertical_dim:
+                t_dim = layout["time_dim"]
+                x_dim = layout["x_dim"]
+                y_dim = layout["y_dim"]
                 for itime, time_1based in enumerate(times_list):
-                    slice2d = var.isel({t_dim: time_1based - 1}).values
+                    slice2d = var.isel({t_dim: time_1based - 1}).transpose(x_dim, y_dim).values
+                    if slice2d.shape != (dtilex, dtiley):
+                        raise ValueError(
+                            f"Unexpected 2D slice shape {slice2d.shape} for '{var_name}', "
+                            f"expected {(dtilex, dtiley)}."
+                        )
                     tmp[:, :, 0, itime] = np.asarray(slice2d)
             else:
-                z_dim = var.dims[2]
-                t_dim = var.dims[3]
+                z_dim = layout["z_dim"]
+                t_dim = layout["time_dim"]
+                x_dim = layout["x_dim"]
+                y_dim = layout["y_dim"]
                 for itime, time_1based in enumerate(times_list):
                     for ilev, level_1based in enumerate(levels_list):
                         slice2d = var.isel(
                             {z_dim: level_1based - 1, t_dim: time_1based - 1}
-                        ).values
+                        ).transpose(x_dim, y_dim).values
+                        if slice2d.shape != (dtilex, dtiley):
+                            raise ValueError(
+                                f"Unexpected 2D slice shape {slice2d.shape} for '{var_name}', "
+                                f"expected {(dtilex, dtiley)}."
+                            )
                         tmp[:, :, ilev, itime] = np.asarray(slice2d)
 
             field_tiles.append(tmp)
@@ -399,15 +470,10 @@ def _get_var_grid_info(root_dir: str | Path, var_name: str) -> tuple[bool, int, 
     try:
         if var_name not in ds:
             raise KeyError(f"Variable '{var_name}' not found in {files[0].name}")
-        var = ds[var_name]
-        if var.ndim == 4:
-            return True, int(var.shape[2]), int(var.shape[3])
-        if var.ndim == 3:
-            return False, 1, int(var.shape[2])
-        raise ValueError(
-            f"Unsupported variable rank for '{var_name}': {var.ndim}. "
-            "Expected 3D (x, y, time) or 4D (x, y, z, time)."
-        )
+        if "timstep" not in ds:
+            raise KeyError(f"Variable 'timstep' not found in {files[0].name}")
+        layout = _infer_var_layout(ds[var_name], int(ds["timstep"].size))
+        return bool(layout["has_vertical_dim"]), int(layout["nz"]), int(layout["ntimes"])
     finally:
         ds.close()
 
