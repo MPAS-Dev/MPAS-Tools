@@ -430,27 +430,31 @@ def _field_to_data_array(
 
     nx, ny, nlevels, ntimes = arr.shape
     if has_vertical_dim:
+        # Keep internal assembly order (x, y, level, time), but write NetCDF
+        # variable dimensions as time-first to match ASTE tile input ordering.
+        arr_out = np.transpose(arr, (3, 2, 0, 1))
         return xr.DataArray(
-            arr,
-            dims=("x", "y", "level", "time"),
+            arr_out,
+            dims=("time", "level", "x", "y"),
             coords={
+                "time": np.arange(1, ntimes + 1),
+                "level": np.arange(1, nlevels + 1),
                 "x": np.arange(1, nx + 1),
                 "y": np.arange(1, ny + 1),
-                "level": np.arange(1, nlevels + 1),
-                "time": np.arange(1, ntimes + 1),
                 "timstep": ("time", np.asarray(time_step)),
             },
             name=var_name,
         )
 
     arr2d = arr[:, :, 0, :]
+    arr2d_out = np.transpose(arr2d, (2, 0, 1))
     return xr.DataArray(
-        arr2d,
-        dims=("x", "y", "time"),
+        arr2d_out,
+        dims=("time", "x", "y"),
         coords={
+            "time": np.arange(1, ntimes + 1),
             "x": np.arange(1, nx + 1),
             "y": np.arange(1, ny + 1),
-            "time": np.arange(1, ntimes + 1),
             "timstep": ("time", np.asarray(time_step)),
         },
         name=var_name,
