@@ -1,0 +1,6 @@
+﻿mpas\_tools.viz.transect.mesh\_to\_triangles
+============================================
+
+.. currentmodule:: mpas_tools.viz.transect
+
+.. autofunction:: mesh_to_triangles

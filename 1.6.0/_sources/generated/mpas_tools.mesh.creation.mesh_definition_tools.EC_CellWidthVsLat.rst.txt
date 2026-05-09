@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.creation.mesh\_definition\_tools.EC\_CellWidthVsLat
+====================================================================
+
+.. currentmodule:: mpas_tools.mesh.creation.mesh_definition_tools
+
+.. autofunction:: EC_CellWidthVsLat
