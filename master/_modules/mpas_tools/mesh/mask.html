@@ -145,14 +145,16 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">partial</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">concurrent.futures</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThreadPoolExecutor</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">progressbar</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shapely</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">shapely.geometry</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">xr</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">geometric_features</span><span class="w"> </span><span class="kn">import</span> <span class="n">read_feature_collection</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">igraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">Graph</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse</span><span class="w"> </span><span class="kn">import</span> <span class="n">csr_matrix</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.sparse.csgraph</span><span class="w"> </span><span class="kn">import</span> <span class="n">connected_components</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy.spatial</span><span class="w"> </span><span class="kn">import</span> <span class="n">KDTree</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">shapely.geometry</span><span class="w"> </span><span class="kn">import</span> <span class="n">GeometryCollection</span><span class="p">,</span> <span class="n">MultiPolygon</span><span class="p">,</span> <span class="n">Polygon</span><span class="p">,</span> <span class="n">box</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">shapely.strtree</span><span class="w"> </span><span class="kn">import</span> <span class="n">STRtree</span>
@@ -236,10 +238,8 @@
         <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  Computing </span><span class="si">{</span><span class="n">maskType</span><span class="si">}</span><span class="s1"> masks:&#39;</span><span class="p">)</span>
 
-        <span class="c1"># create shapely geometry for lon and lat</span>
-        <span class="n">points</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="p">]</span>
+        <span class="c1"># create shapely geometry for lon and lat (vectorized)</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">shapely</span><span class="o">.</span><span class="n">points</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)))</span>
         <span class="n">regionNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="n">_compute_region_masks</span><span class="p">(</span>
             <span class="n">fcMask</span><span class="p">,</span>
             <span class="n">points</span><span class="p">,</span>
@@ -844,10 +844,8 @@
     <span class="n">Lon</span> <span class="o">=</span> <span class="n">Lon</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
     <span class="n">Lat</span> <span class="o">=</span> <span class="n">Lat</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
 
-    <span class="c1"># create shapely geometry for lon and lat</span>
-    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Lon</span><span class="p">,</span> <span class="n">Lat</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">]</span>
+    <span class="c1"># create shapely geometry for lon and lat (vectorized)</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">shapely</span><span class="o">.</span><span class="n">points</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">Lon</span><span class="p">,</span> <span class="n">Lat</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)))</span>
     <span class="n">regionNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="n">_compute_region_masks</span><span class="p">(</span>
         <span class="n">fcMask</span><span class="p">,</span>
         <span class="n">points</span><span class="p">,</span>
@@ -1070,11 +1068,10 @@
 
     <span class="n">ny</span><span class="p">,</span> <span class="n">nx</span> <span class="o">=</span> <span class="n">lon</span><span class="o">.</span><span class="n">shape</span>
 
-    <span class="c1"># create shapely geometry for lon and lat</span>
-    <span class="n">points</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Point</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">lat</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">]</span>
+    <span class="c1"># create shapely geometry for lon and lat (vectorized)</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="n">shapely</span><span class="o">.</span><span class="n">points</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">lon</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">lat</span><span class="o">.</span><span class="n">ravel</span><span class="p">()],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="p">)</span>
     <span class="n">regionNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="n">_compute_region_masks</span><span class="p">(</span>
         <span class="n">fcMask</span><span class="p">,</span>
         <span class="n">points</span><span class="p">,</span>
@@ -1240,52 +1237,6 @@
     <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_compute_mask_from_shapes</span><span class="p">(</span>
-    <span class="n">shapes1</span><span class="p">,</span> <span class="n">shapes2</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">pool</span><span class="p">,</span> <span class="n">chunkSize</span><span class="p">,</span> <span class="n">showProgress</span>
-<span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    If multiprocessing, break shapes2 into chunks and use multiprocessing to</span>
-<span class="sd">    apply the given function one chunk at a time</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">nShapes2</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">shapes2</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">pool</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">shapes1</span><span class="p">,</span> <span class="n">shapes2</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">nChunks</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nShapes2</span> <span class="o">/</span> <span class="n">chunkSize</span><span class="p">))</span>
-        <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">indices</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">for</span> <span class="n">iChunk</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nChunks</span><span class="p">):</span>
-            <span class="n">start</span> <span class="o">=</span> <span class="n">iChunk</span> <span class="o">*</span> <span class="n">chunkSize</span>
-            <span class="n">end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">((</span><span class="n">iChunk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">chunkSize</span><span class="p">,</span> <span class="n">nShapes2</span><span class="p">)</span>
-            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shapes2</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">])</span>
-            <span class="n">indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end</span><span class="p">)</span>
-
-        <span class="n">partial_func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">shapes1</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">showProgress</span><span class="p">:</span>
-            <span class="n">widgets</span> <span class="o">=</span> <span class="p">[</span>
-                <span class="s1">&#39;    &#39;</span><span class="p">,</span>
-                <span class="n">progressbar</span><span class="o">.</span><span class="n">Percentage</span><span class="p">(),</span>
-                <span class="s1">&#39; &#39;</span><span class="p">,</span>
-                <span class="n">progressbar</span><span class="o">.</span><span class="n">Bar</span><span class="p">(),</span>
-                <span class="s1">&#39; &#39;</span><span class="p">,</span>
-                <span class="n">progressbar</span><span class="o">.</span><span class="n">ETA</span><span class="p">(),</span>
-            <span class="p">]</span>
-            <span class="n">bar</span> <span class="o">=</span> <span class="n">progressbar</span><span class="o">.</span><span class="n">ProgressBar</span><span class="p">(</span>
-                <span class="n">widgets</span><span class="o">=</span><span class="n">widgets</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="n">nChunks</span>
-            <span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">bar</span> <span class="o">=</span> <span class="kc">None</span>
-
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nShapes2</span><span class="p">,),</span> <span class="nb">bool</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">iChunk</span><span class="p">,</span> <span class="n">maskChunk</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">pool</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">partial_func</span><span class="p">,</span> <span class="n">chunks</span><span class="p">)):</span>
-            <span class="n">mask</span><span class="p">[</span><span class="n">indices</span><span class="p">[</span><span class="n">iChunk</span><span class="p">]</span> <span class="p">:</span> <span class="n">indices</span><span class="p">[</span><span class="n">iChunk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">maskChunk</span>
-            <span class="k">if</span> <span class="n">showProgress</span><span class="p">:</span>
-                <span class="n">bar</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">iChunk</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">showProgress</span><span class="p">:</span>
-            <span class="n">bar</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
-    <span class="k">return</span> <span class="n">mask</span>
-
-
 <span class="k">def</span><span class="w"> </span><span class="nf">_add_properties</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">dim</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add properties to the dataset from a dictionary of properties</span>
@@ -1346,38 +1297,29 @@
 
     <span class="n">regionNames</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="n">_get_region_names_and_properties</span><span class="p">(</span><span class="n">fcMask</span><span class="p">)</span>
 
-    <span class="n">masks</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># Build the spatial index once for all points</span>
+    <span class="n">tree</span> <span class="o">=</span> <span class="n">STRtree</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+    <span class="n">nPoints</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
 
-    <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fcMask</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_query</span><span class="p">(</span><span class="n">feature</span><span class="p">):</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-
         <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
-
         <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">feature</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">])</span>
-        <span class="n">shapes</span> <span class="o">=</span> <span class="n">_katana</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span>
+        <span class="n">katana_shapes</span> <span class="o">=</span> <span class="n">_katana</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="n">threshold</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nPoints</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">katana_shapes</span><span class="p">:</span>
+            <span class="n">mask</span><span class="p">[</span><span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="s1">&#39;covers&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">mask</span>
 
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">_compute_mask_from_shapes</span><span class="p">(</span>
-            <span class="n">shapes1</span><span class="o">=</span><span class="n">shapes</span><span class="p">,</span>
-            <span class="n">shapes2</span><span class="o">=</span><span class="n">points</span><span class="p">,</span>
-            <span class="n">func</span><span class="o">=</span><span class="n">_contains</span><span class="p">,</span>
-            <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span>
-            <span class="n">chunkSize</span><span class="o">=</span><span class="n">chunkSize</span><span class="p">,</span>
-            <span class="n">showProgress</span><span class="o">=</span><span class="n">showProgress</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="n">masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">pool</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">fcMask</span><span class="o">.</span><span class="n">features</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">n_workers</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pool</span><span class="p">,</span> <span class="s1">&#39;_processes&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span>
+        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">n_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="n">masks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_query</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">.</span><span class="n">features</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">_query</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fcMask</span><span class="o">.</span><span class="n">features</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">regionNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_contains</span><span class="p">(</span><span class="n">shapes</span><span class="p">,</span> <span class="n">points</span><span class="p">):</span>
-    <span class="n">tree</span> <span class="o">=</span> <span class="n">STRtree</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">shape</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">:</span>
-        <span class="n">indicesInShape</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="s1">&#39;covers&#39;</span><span class="p">)</span>
-        <span class="n">mask</span><span class="p">[</span><span class="n">indicesInShape</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">return</span> <span class="n">mask</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_katana</span><span class="p">(</span><span class="n">geometry</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maxcount</span><span class="o">=</span><span class="mi">250</span><span class="p">):</span>
@@ -1468,12 +1410,9 @@
 
     <span class="n">transectNames</span><span class="p">,</span> <span class="n">properties</span> <span class="o">=</span> <span class="n">_get_region_names_and_properties</span><span class="p">(</span><span class="n">fcMask</span><span class="p">)</span>
 
-    <span class="n">masks</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">shapes</span> <span class="o">=</span> <span class="p">[]</span>
-
     <span class="k">for</span> <span class="n">feature</span> <span class="ow">in</span> <span class="n">fcMask</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
         <span class="n">name</span> <span class="o">=</span> <span class="n">feature</span><span class="p">[</span><span class="s1">&#39;properties&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-
         <span class="k">if</span> <span class="n">logger</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;    </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
 
@@ -1509,27 +1448,25 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">shape</span> <span class="o">=</span> <span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">MultiLineString</span><span class="p">(</span><span class="n">new_coords</span><span class="p">)</span>
 
-        <span class="n">mask</span> <span class="o">=</span> <span class="n">_compute_mask_from_shapes</span><span class="p">(</span>
-            <span class="n">shapes1</span><span class="o">=</span><span class="n">shape</span><span class="p">,</span>
-            <span class="n">shapes2</span><span class="o">=</span><span class="n">polygons</span><span class="p">,</span>
-            <span class="n">func</span><span class="o">=</span><span class="n">_intersects</span><span class="p">,</span>
-            <span class="n">pool</span><span class="o">=</span><span class="n">pool</span><span class="p">,</span>
-            <span class="n">chunkSize</span><span class="o">=</span><span class="n">chunkSize</span><span class="p">,</span>
-            <span class="n">showProgress</span><span class="o">=</span><span class="n">showProgress</span><span class="p">,</span>
-        <span class="p">)</span>
-
-        <span class="n">masks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
         <span class="n">shapes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">transectNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">shapes</span>
-
-
-<span class="k">def</span><span class="w"> </span><span class="nf">_intersects</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">polygons</span><span class="p">):</span>
+    <span class="c1"># Build the spatial index once for all polygons</span>
     <span class="n">tree</span> <span class="o">=</span> <span class="n">STRtree</span><span class="p">(</span><span class="n">polygons</span><span class="p">)</span>
-    <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">polygons</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
-    <span class="n">indicesInShape</span> <span class="o">=</span> <span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="s1">&#39;intersects&#39;</span><span class="p">)</span>
-    <span class="n">mask</span><span class="p">[</span><span class="n">indicesInShape</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">return</span> <span class="n">mask</span>
+    <span class="n">nPolygons</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">polygons</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_query</span><span class="p">(</span><span class="n">shape</span><span class="p">):</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nPolygons</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">mask</span><span class="p">[</span><span class="n">tree</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">predicate</span><span class="o">=</span><span class="s1">&#39;intersects&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="n">mask</span>
+
+    <span class="k">if</span> <span class="n">pool</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">shapes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">n_workers</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">pool</span><span class="p">,</span> <span class="s1">&#39;_processes&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="mi">1</span>
+        <span class="k">with</span> <span class="n">ThreadPoolExecutor</span><span class="p">(</span><span class="n">max_workers</span><span class="o">=</span><span class="n">n_workers</span><span class="p">)</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="n">masks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">executor</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_query</span><span class="p">,</span> <span class="n">shapes</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">masks</span> <span class="o">=</span> <span class="p">[</span><span class="n">_query</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">shapes</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">transectNames</span><span class="p">,</span> <span class="n">masks</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">shapes</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_polygons</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">maskType</span><span class="p">):</span>
@@ -1612,10 +1549,8 @@
 
     <span class="n">nPolygons</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lonCenter</span><span class="p">)</span>
 
-    <span class="n">polygons</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">lon</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-        <span class="n">coords</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">lon</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:],</span> <span class="n">lat</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:],</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">polygons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">shapely</span><span class="o">.</span><span class="n">geometry</span><span class="o">.</span><span class="n">Polygon</span><span class="p">(</span><span class="n">coords</span><span class="p">))</span>
+    <span class="n">coords_3d</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">polygons</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">shapely</span><span class="o">.</span><span class="n">polygons</span><span class="p">(</span><span class="n">coords_3d</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="n">polygons</span><span class="p">,</span> <span class="n">nPolygons</span><span class="p">,</span> <span class="n">duplicatePolygons</span>
 
@@ -1680,30 +1615,41 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_flood_fill_mask</span><span class="p">(</span><span class="n">seedMask</span><span class="p">,</span> <span class="n">growMask</span><span class="p">,</span> <span class="n">cellsOnCell</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Flood fill starting with a mask of seed points</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    Flood fill starting with a mask of seed points.</span>
 
+<span class="sd">    Uses scipy connected components to identify all cells reachable from the</span>
+<span class="sd">    seed cells through regions where growMask == 1.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">maxNeighbors</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
-    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
-        <span class="n">neighbors</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="p">[</span><span class="n">seedMask</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
-        <span class="n">maskCount</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">iNeighbor</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">maxNeighbors</span><span class="p">):</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="n">neighbors</span><span class="p">[:,</span> <span class="n">iNeighbor</span><span class="p">]</span>
-            <span class="c1"># we only want to mask valid neighbors, locations that aren&#39;t</span>
-            <span class="c1"># already masked, and locations that we&#39;re allowed to flood</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="n">indices</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
-            <span class="n">localMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
-                <span class="n">seedMask</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">growMask</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
-            <span class="p">)</span>
-            <span class="n">maskCount</span> <span class="o">+=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">count_nonzero</span><span class="p">(</span><span class="n">localMask</span><span class="p">)</span>
-            <span class="n">indices</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="n">localMask</span><span class="p">]</span>
-            <span class="n">seedMask</span><span class="p">[</span><span class="n">indices</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="c1"># Build edge list for the subgraph of growMask==1 cells</span>
+    <span class="n">i_flat</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nCells</span><span class="p">),</span> <span class="n">maxNeighbors</span><span class="p">)</span>
+    <span class="n">j_flat</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">valid</span> <span class="o">=</span> <span class="p">(</span><span class="n">j_flat</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">growMask</span><span class="p">[</span><span class="n">i_flat</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">growMask</span><span class="p">[</span><span class="n">j_flat</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">adj</span> <span class="o">=</span> <span class="n">csr_matrix</span><span class="p">(</span>
+        <span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">valid</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">),</span> <span class="p">(</span><span class="n">i_flat</span><span class="p">[</span><span class="n">valid</span><span class="p">],</span> <span class="n">j_flat</span><span class="p">[</span><span class="n">valid</span><span class="p">])),</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="n">nCells</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">connected_components</span><span class="p">(</span><span class="n">adj</span><span class="p">,</span> <span class="n">directed</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">maskCount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">break</span>
+    <span class="n">seed_cells</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">seedMask</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">seedMask</span>
+    <span class="c1"># Collect component IDs that contain a seed cell inside growMask</span>
+    <span class="n">seeds_in_grow</span> <span class="o">=</span> <span class="n">seed_cells</span><span class="p">[</span><span class="n">growMask</span><span class="p">[</span><span class="n">seed_cells</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">seed_comps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">labels</span><span class="p">[</span><span class="n">seeds_in_grow</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+
+    <span class="c1"># Seeds outside growMask can still prime their growMask==1 neighbors</span>
+    <span class="k">for</span> <span class="n">seed</span> <span class="ow">in</span> <span class="n">seed_cells</span><span class="p">[</span><span class="n">growMask</span><span class="p">[</span><span class="n">seed_cells</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">nb</span> <span class="ow">in</span> <span class="n">cellsOnCell</span><span class="p">[</span><span class="n">seed</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">nb</span> <span class="o">&gt;=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">growMask</span><span class="p">[</span><span class="n">nb</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">seed_comps</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">labels</span><span class="p">[</span><span class="n">nb</span><span class="p">]))</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">seed_comps</span><span class="p">:</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">seed_comps</span><span class="p">))]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">result</span><span class="p">[</span><span class="n">seed_cells</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># original seeds always included</span>
+    <span class="k">return</span> <span class="n">result</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_compute_edge_sign</span><span class="p">(</span><span class="n">dsMesh</span><span class="p">,</span> <span class="n">edgeMask</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
