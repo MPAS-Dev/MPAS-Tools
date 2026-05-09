@@ -79,5 +79,5 @@ authors:
     family-names: Smith
 repository-code: 'https://github.com/MPAS-Dev/MPAS-Tools'
 url: 'https://mpas-dev.github.io/MPAS-Tools/master/'
-version: 1.5.1
-date-released: '2026-04-22'
+version: 1.6.0
+date-released: '2026-05-09'
