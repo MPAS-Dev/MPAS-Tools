@@ -15,6 +15,7 @@ import textwrap
 
 rhoi = 910.0
 rhosw = 1028.
+rhofw = 1000.
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = ArgumentParser(description=__doc__)
@@ -188,10 +189,16 @@ ind += 1
 
 
 def VAF2seaLevel(vol):
-    return vol / scaleVol / 3.62e14 * rhoi / rhosw * 1000.
+    """
+    This function accounts for the fact that ice, when melted,
+    takes on freshwater density.  This density correction is only
+    applied to the volume above flotation, when in reality, it should
+    be applied for all melted ice.
+    """
+    return vol / scaleVol / 3.62e14 * rhoi / rhofw * 1000.
 
 def seaLevel2VAF(vol):
-    return vol * scaleVol * 3.62e14 * rhosw / rhoi / 1000.
+    return vol * scaleVol * 3.62e14 * rhofw / rhoi / 1000.
 
 def addSeaLevAx(axName):
     seaLevAx = axName.secondary_yaxis('right', functions=(VAF2seaLevel, seaLevel2VAF))
