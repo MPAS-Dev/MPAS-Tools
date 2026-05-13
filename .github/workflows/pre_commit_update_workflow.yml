@@ -35,12 +35,12 @@ jobs:
           create-args: >-
             python=${{ env.PYTHON_VERSION }}
 
-      - name: Install pre-commit and gh
+      - name: Install pre-commit, pre-commit-update and gh
         run: |
           eval "$(micromamba shell hook --shell bash)"
           micromamba activate pre_commit_dev
           # permissions issue with gh 2.76.0
-          conda install -y pre-commit "gh !=2.76.0"
+          conda install -y pre-commit pre-commit-update "gh !=2.76.0"
           gh --version
 
       - name: Apply and commit updates
@@ -53,7 +53,8 @@ jobs:
           git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git checkout -b update-pre-commit-deps
-          pre-commit autoupdate
+          # pre-commit-update doesn't try to include non-release versions
+          pre-commit-update
           git add .
           # The second command will fail if no changes were present, so we ignore it
           git commit -m "Update pre-commit dependencies" || ( echo "UP_TO_DATE=true" >> "$GITHUB_ENV")
