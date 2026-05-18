@@ -13,7 +13,9 @@ includes the basin info and gamma0 so it can dropped directly into a streams fil
 For high res meshes, there may be efficiency gains that can be implemented, or the code may
 need to move to Fortran.
 
-Note: Currently hardcoded to use the first time level in the thermal forcing file.
+The target melt rate for each region is computed by spatially averaging the
+observational melt field over floating cells in each region and converting
+to total melt (Gt/yr).
 
 Matt Hoffman, 9/8/2022
 '''
@@ -22,7 +24,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import sys
 import numpy as np
-from netCDF4 import Dataset
+from netCDF4 import Dataset, num2date
 from optparse import OptionParser
 import matplotlib.pyplot as plt
 
@@ -47,36 +49,129 @@ dTs = np.arange(-1.0, 1.5, 0.05)  # MeanAnt - fine spacing for accurate calculat
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser(description=__doc__)
 parser.add_option("-g", dest="fileName", help="input filename that includes ice geometry information.", metavar="FILENAME")
-parser.add_option("-n", dest="fileRegionNames", help="region name filename.", metavar="FILENAME")
-parser.add_option("-o", dest="fcgFileName", help="ocean forcing filename.  uses first time level", metavar="FILENAME")
+parser.add_option("-n", "--region-file", dest="fileRegionNames", help="region definition filename with regionNames and regionCellMasks.", metavar="FILENAME")
+parser.add_option("-o", dest="fcgFileName", help="ocean forcing filename. uses first time level", metavar="FILENAME")
+parser.add_option("--obs-file", dest="obsFileName", help="observational melt filename (e.g. NSIDC-0792)", metavar="FILENAME")
+parser.add_option("--start-year", dest="startYear", type="int", help="starting year for averaging observations (inclusive)")
+parser.add_option("--end-year", dest="endYear", type="int", help="ending year for averaging observations (inclusive)")
 options, args = parser.parse_args()
 
-# Antarctic data from:
-# Rignot, E., Bamber, J., van den Broeke, M. et al. Recent Antarctic ice mass loss from radar interferometry
-# and regional climate modelling. Nature Geosci 1, 106-110 (2008). https://doi.org/10.1038/ngeo102
-# Table 1: Mass balance of Antarctica in gigatonnes (10^12 kg) per year by sector for the year 2000
-# https://www.nature.com/articles/ngeo102/tables/1
-# and
-# Rignot, E., S. Jacobs, J. Mouginot, and B. Scheuchl. 2013. Ice-Shelf Melting Around Antarctica. Science 341 (6143): 266-70. https://doi.org/10.1126/science.1235798.
-# Note: Only basin names and shelfMelt fields used in this script.
-ISMIP6basinInfo = {
-        'ISMIP6BasinAAp': {'name': 'Dronning Maud Land', 'input': [60,9], 'outflow': [60,7], 'net': [0, 11], 'shelfMelt': [57.5]},
-        'ISMIP6BasinApB': {'name': 'Enderby Land', 'input': [39,5], 'outflow': [40,2], 'net': [-1,5], 'shelfMelt': [24.6]},
-        'ISMIP6BasinBC': {'name': 'Amery-Lambert', 'input': [73, 10], 'outflow': [77,4], 'net': [-4, 11], 'shelfMelt': [35.5]},
-        'ISMIP6BasinCCp': {'name': 'Phillipi, Denman', 'input': [81, 13], 'outflow': [87,7], 'net':[-7,15], 'shelfMelt': [107.9]},
-        'ISMIP6BasinCpD': {'name': 'Totten', 'input': [198,37], 'outflow': [207,13], 'net': [-8,39], 'shelfMelt': [102.3]},
-        'ISMIP6BasinDDp': {'name': 'Mertz', 'input': [93,14], 'outflow': [94,6], 'net': [-2,16], 'shelfMelt': [22.8]},
-        'ISMIP6BasinDpE': {'name': 'Victoria Land', 'input': [20,1], 'outflow': [22,3], 'net': [-2,4], 'shelfMelt': [22.9]},
-        'ISMIP6BasinEF': {'name': 'Ross', 'input': [61+110,(10**2+7**2)**0.5], 'outflow': [49+80,(4**2+2^2)**0.5], 'net': [11+31,(11*2+7**2)**0.5], 'shelfMelt': [70.3]},
-        'ISMIP6BasinFG': {'name': 'Getz', 'input': [108,28], 'outflow': [128,18], 'net': [-19,33], 'shelfMelt': [152.9]},
-        'ISMIP6BasinGH': {'name': 'Thwaites/PIG', 'input': [177,25], 'outflow': [237,4], 'net': [-61,26], 'shelfMelt': [290.9]},
-        'ISMIP6BasinHHp': {'name': 'Bellingshausen', 'input': [51,16], 'outflow': [86,10], 'net': [-35,19], 'shelfMelt': [76.3]},
-        'ISMIP6BasinHpI': {'name': 'George VI', 'input': [71,21], 'outflow': [78,7], 'net': [-7,23], 'shelfMelt': [152.3]},
-        'ISMIP6BasinIIpp': {'name': 'Larsen A-C', 'input': [15,5], 'outflow': [20,3], 'net': [-5,6], 'shelfMelt': [32.9]},
-        'ISMIP6BasinIppJ': {'name': 'Larsen E', 'input': [8,4], 'outflow': [9,2], 'net': [-1,4], 'shelfMelt': [4.3]},
-        'ISMIP6BasinJK': {'name': 'FRIS', 'input': [93+142, (8**2+11**2)**0.5], 'outflow': [75+145,(4**2+7**2)**0.5], 'net': [18-4,(9**2+13**2)**0.5], 'shelfMelt': [155.4]},
-        'ISMIP6BasinKA': {'name': 'Brunt-Stancomb', 'input': [42+26,(8**2+7**2)**0.5], 'outflow': [45+28,(4**2+2**2)**0.5], 'net':[-3-1,(9**2+8**2)**0.5], 'shelfMelt': [10.4]}
+required_args = [
+    ("-g", options.fileName),
+    ("-n/--region-file", options.fileRegionNames),
+    ("-o", options.fcgFileName),
+    ("--obs-file", options.obsFileName),
+    ("--start-year", options.startYear),
+    ("--end-year", options.endYear)
+]
+missing = [name for name, value in required_args if value is None]
+if missing:
+    parser.error("Missing required argument(s): {}".format(", ".join(missing)))
+if options.startYear > options.endYear:
+    parser.error("--start-year must be <= --end-year")
+
+
+def _decode_region_name(region_name_row):
+    """Decode a region name row from a NetCDF char array into a clean string."""
+    if hasattr(region_name_row, 'tobytes'):
+        decoded = region_name_row.tobytes().decode('utf-8', errors='ignore')
+        return decoded.replace('\x00', '').strip()
+    return str(region_name_row).strip()
+
+
+def _validate_regular_axis(axis, axis_name):
+    """Validate that a coordinate axis is 1D, nonzero, and regularly spaced."""
+    if axis.ndim != 1 or len(axis) < 2:
+        raise ValueError("Observation {} axis must be 1D with at least 2 points".format(axis_name))
+    delta = axis[1] - axis[0]
+    if delta == 0.0:
+        raise ValueError("Observation {} axis has zero spacing".format(axis_name))
+    if not np.allclose(np.diff(axis), delta, rtol=0.0, atol=1.0e-9):
+        raise ValueError("Observation {} axis must be regularly spaced for nearest-neighbor indexing".format(axis_name))
+    return delta
+
+
+def _compute_obs_mean_melt(obs_file_name, start_year, end_year):
+    """Load NSIDC melt data and return a time-mean melt map over the requested years."""
+    obs_melt_var = 'melt'
+    obs_time_var = 'time'
+    obs_x_var = 'x'
+    obs_y_var = 'y'
+
+    with Dataset(obs_file_name, 'r') as fobs:
+        if obs_time_var not in fobs.variables:
+            raise ValueError("Time variable '{}' not found in obs file".format(obs_time_var))
+        if obs_melt_var not in fobs.variables:
+            raise ValueError("Melt variable '{}' not found in obs file".format(obs_melt_var))
+        if obs_x_var not in fobs.variables or obs_y_var not in fobs.variables:
+            raise ValueError("Observation x/y variables '{}' and/or '{}' not found".format(obs_x_var, obs_y_var))
+
+        obs_time = fobs.variables[obs_time_var]
+        time_values = obs_time[:]
+        time_units = getattr(obs_time, 'units', None)
+        time_calendar = getattr(obs_time, 'calendar', 'standard')
+        if time_units is None:
+            raise ValueError("Observation time variable '{}' is missing units".format(obs_time_var))
+
+        time_dates = num2date(time_values, units=time_units, calendar=time_calendar)
+        time_years = np.array([date.year for date in time_dates], dtype=int)
+        selected_time_inds = np.nonzero((time_years >= start_year) * (time_years <= end_year))[0]
+        if len(selected_time_inds) == 0:
+            raise ValueError(
+                "No observation time records found in requested year range {}-{}. "
+                "Available years are {}-{}.".format(start_year, end_year, time_years.min(), time_years.max()))
+
+        obs_x = np.array(fobs.variables[obs_x_var][:], dtype=np.float64)
+        obs_y = np.array(fobs.variables[obs_y_var][:], dtype=np.float64)
+        melt_var = fobs.variables[obs_melt_var]
+
+        if melt_var.ndim != 3:
+            raise ValueError("Observation melt variable '{}' must have dimensions (time, y, x)".format(obs_melt_var))
+
+        fill_value = getattr(melt_var, '_FillValue', None)
+        melt_sum = np.zeros((len(obs_y), len(obs_x)), dtype=np.float64)
+        melt_count = np.zeros((len(obs_y), len(obs_x)), dtype=np.int32)
+
+        for t_ind in selected_time_inds:
+            melt_slice = np.array(melt_var[t_ind, :, :], dtype=np.float64)
+            if fill_value is not None:
+                melt_slice[melt_slice == fill_value] = np.nan
+            valid = np.isfinite(melt_slice)
+            melt_sum[valid] += melt_slice[valid]
+            melt_count[valid] += 1
+
+        obs_melt_mean = np.full((len(obs_y), len(obs_x)), np.nan, dtype=np.float64)
+        valid_count = melt_count > 0
+        obs_melt_mean[valid_count] = melt_sum[valid_count] / melt_count[valid_count]
+
+        obs_density = getattr(melt_var, 'density', np.nan)
+        if not np.isfinite(obs_density):
+            obs_density = np.nan
+
+        return {
+            'melt_mean': obs_melt_mean,
+            'obs_x': obs_x,
+            'obs_y': obs_y,
+            'selected_count': len(selected_time_inds),
+            'available_year_min': int(time_years.min()),
+            'available_year_max': int(time_years.max()),
+            'obs_density': float(obs_density)
         }
+
+
+def _map_obs_to_model_cells(obs_melt_mean, obs_x, obs_y, x_cell, y_cell):
+    """Map the gridded obs melt field to model cell centers using nearest neighbors."""
+    dx = _validate_regular_axis(obs_x, 'x')
+    dy = _validate_regular_axis(obs_y, 'y')
+
+    ix = np.rint((x_cell - obs_x[0]) / dx).astype(int)
+    iy = np.rint((y_cell - obs_y[0]) / dy).astype(int)
+
+    in_bounds = (ix >= 0) * (ix < len(obs_x)) * (iy >= 0) * (iy < len(obs_y))
+    obs_melt_cell = np.full(x_cell.shape, np.nan, dtype=np.float64)
+    obs_melt_cell[in_bounds] = obs_melt_mean[iy[in_bounds], ix[in_bounds]]
+
+    return obs_melt_cell, in_bounds
 
 # Get region names from file
 fn = Dataset(options.fileRegionNames, 'r')
@@ -84,18 +179,10 @@ rNamesIn = fn.variables['regionNames'][:]
 regionCellMasks = fn.variables['regionCellMasks'][:]
 nRegions = len(fn.dimensions['nRegions'])
 # Process region names
-rNamesOrig = list()
+rNames = list()
 for reg in range(nRegions):
-    thisString = rNamesIn[reg, :].tobytes().decode('utf-8').strip()  # convert from char array to string
-    rNamesOrig.append(''.join(filter(str.isalnum, thisString)))  # this bit removes non-alphanumeric chars
-
-# Parse region names to more usable names, if available
-rNames = [None]*nRegions
-for reg in range(nRegions):
-    if rNamesOrig[reg] in ISMIP6basinInfo:
-        rNames[reg] = ISMIP6basinInfo[rNamesOrig[reg]]['name']
-    else:
-        rNames[reg] = rNamesOrig[reg]
+    this_name = _decode_region_name(rNamesIn[reg, :])
+    rNames.append(this_name if this_name else "Region_{}".format(reg + 1))
 
 ff = Dataset(options.fcgFileName, 'r')
 zOcean = ff.variables['ismip6shelfMelt_zOcean'][:]
@@ -118,7 +205,41 @@ areaCell = f.variables['areaCell'][:]
 xCell = f.variables['xCell'][:]
 yCell = f.variables['yCell'][:]
 
+obs_info = _compute_obs_mean_melt(
+    options.obsFileName,
+    options.startYear,
+    options.endYear)
+
+obsMeltCell, inBounds = _map_obs_to_model_cells(
+    obs_info['melt_mean'], obs_info['obs_x'], obs_info['obs_y'], xCell, yCell)
+
+if np.count_nonzero(inBounds) == 0:
+    raise ValueError("No model cells fall within the observational grid extent")
+
+obs_density = obs_info['obs_density'] if np.isfinite(obs_info['obs_density']) else rhoi
+obsTargetMelt = np.full((nRegions,), np.nan, dtype=np.float64)
+for reg in range(nRegions):
+    ind = np.nonzero(floatMask * regionCellMasks[:, reg])[0]
+    if len(ind) == 0:
+        raise ValueError("Region '{}' has no floating cells".format(rNames[reg]))
+
+    valid = np.isfinite(obsMeltCell[ind])
+    if np.count_nonzero(valid) == 0:
+        raise ValueError("Region '{}' has no valid mapped observational melt values".format(rNames[reg]))
+
+    obsMeanMeltRate = np.sum(obsMeltCell[ind][valid] * areaCell[ind][valid]) / np.sum(areaCell[ind][valid])
+    obsTargetMelt[reg] = obsMeanMeltRate * np.sum(areaCell[ind][valid]) * obs_density / 1.0e12
+
+print("Observation summary:")
+print("  file: {}".format(options.obsFileName))
+print("  selected years: {}-{}".format(options.startYear, options.endYear))
+print("  available years in file: {}-{}".format(obs_info['available_year_min'], obs_info['available_year_max']))
+print("  selected time records: {}".format(obs_info['selected_count']))
+print("  in-bounds model cells: {} / {}".format(np.count_nonzero(inBounds), nCells))
+print("  observational density used for conversion: {} kg/m^3".format(obs_density))
+
 def calcMelt(deltaT):
+    """Compute cellwise and regional melt diagnostics for a given deltaT value."""
     TFdraft = np.zeros((nCells,))
     meanTFcell = np.zeros((nCells,))
 
@@ -152,13 +273,13 @@ for i, dT in enumerate(dTs):
        plt.title(f'dT={dT}')
        plt.colorbar()
 
-# Find dT that results in Rignot et al. (2013) melt rate for each basin
+# Find dT that results in observed regional melt rate for each region
 bestdTCells = np.zeros((nCells,))
 regionCells = np.zeros((nCells,), 'i')
 bestdT = np.zeros((nRegions,))
 for reg in range(nRegions):
-    bestdT[reg] = np.interp(ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0], allMelts[:,reg], dTs)
-    print(f"{ISMIP6basinInfo[rNamesOrig[reg]]['name']}: {bestdT[reg]}")
+    bestdT[reg] = np.interp(obsTargetMelt[reg], allMelts[:,reg], dTs)
+    print(f"{rNames[reg]}: target={obsTargetMelt[reg]:.3f} Gt/yr, best dT={bestdT[reg]:.3f}")
     bestdTCells[regionCellMasks[:,reg]==1] = bestdT[reg]
     # Also write out a region mask.
     # Note that regionCellMasks has a separate 0/1 mask for each region, whereas the ISMIP6 region mask is a single integer field where each cell is marked with the region to which it belongs.
@@ -170,44 +291,44 @@ ncol=4
 fig4, axs4 = plt.subplots(nrow, ncol, figsize=(13, 11), num=4)
 fig4.suptitle(f'melt sensitivity, gamma={gamma0}')
 for reg in range(nRegions):
-   plt.sca(axs4.flatten()[reg])
-   plt.xlabel('delta T')
-   plt.ylabel('total basin melt (Gt)')
-   #plt.xticks(np.arange(22)*xtickSpacing)
-   plt.grid()
-   axs4.flatten()[reg].set_title(f'{rNames[reg]}: {bestdT[reg]:.5f}')
-   if reg == 0:
-      axX = axs4.flatten()[reg]
-   else:
-      axs4.flatten()[reg].sharex(axX)
-   meltHere = ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0]
-   plt.plot(dTs, meltHere * np.ones(dTs.shape), 'k-')
-   plt.plot(dTs, allMelts[:,reg], 'b-')
+    plt.sca(axs4.flatten()[reg])
+    plt.xlabel('delta T')
+    plt.ylabel('total basin melt (Gt)')
+    #plt.xticks(np.arange(22)*xtickSpacing)
+    plt.grid()
+    axs4.flatten()[reg].set_title(f'{rNames[reg]}: {bestdT[reg]:.5f}')
+    if reg == 0:
+        axX = axs4.flatten()[reg]
+    else:
+        axs4.flatten()[reg].sharex(axX)
+    meltHere = obsTargetMelt[reg]
+    plt.plot(dTs, meltHere * np.ones(dTs.shape), 'k-')
+    plt.plot(dTs, allMelts[:,reg], 'b-')
 fig4.tight_layout()
 
 fig5, axs5 = plt.subplots(nrow, ncol, figsize=(13, 11), num=5)
 fig5.suptitle(f'melt sensitivity, gamma={gamma0}')
 for reg in range(nRegions):
-   plt.sca(axs5.flatten()[reg])
-   plt.xlabel('mean TF')
-   plt.ylabel('total basin melt (Gt)')
-   #plt.xticks(np.arange(22)*xtickSpacing)
-   plt.grid()
-   axs5.flatten()[reg].set_title(f'{rNames[reg]}: best TF={bestdT[reg]+meanTF[reg]:.3f}')
-   if reg == 0:
-      axX = axs5.flatten()[reg]
-   else:
-      axs5.flatten()[reg].sharex(axX)
-   meltHere = ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0]
-   plt.plot(dTs+meanTF[reg], meltHere * np.ones(dTs.shape), 'k-')
-   plt.plot(dTs+meanTF[reg] - bestdT[reg], allMelts[:,reg], 'b-')
-   plt.plot(meanTF[reg]*np.ones((2,)), [0,meltHere*2.0], 'r--')
-   
-   TFs = dTs+meanTF[reg] #+ bestdTstd[reg]
-   ind = np.nonzero(floatMask * regionCellMasks[:,reg])[0]
-   plt.plot(TFs, coef * gamma0 * (TFs**2 + 2.0*bestdT[reg]*TFs + bestdT[reg]**2) * areaCell[ind].sum() * rhoi / 1.0e12, 'm:')
-   
-   #np.save(f'standard_allMelts_{gamma0}_{reg}.npy', allMelts)
+    plt.sca(axs5.flatten()[reg])
+    plt.xlabel('mean TF')
+    plt.ylabel('total basin melt (Gt)')
+    #plt.xticks(np.arange(22)*xtickSpacing)
+    plt.grid()
+    axs5.flatten()[reg].set_title(f'{rNames[reg]}: best TF={bestdT[reg]+meanTF[reg]:.3f}')
+    if reg == 0:
+        axX = axs5.flatten()[reg]
+    else:
+        axs5.flatten()[reg].sharex(axX)
+    meltHere = obsTargetMelt[reg]
+    plt.plot(dTs+meanTF[reg], meltHere * np.ones(dTs.shape), 'k-')
+    plt.plot(dTs+meanTF[reg] - bestdT[reg], allMelts[:,reg], 'b-')
+    plt.plot(meanTF[reg]*np.ones((2,)), [0,meltHere*2.0], 'r--')
+
+    TFs = dTs+meanTF[reg] #+ bestdTstd[reg]
+    ind = np.nonzero(floatMask * regionCellMasks[:,reg])[0]
+    plt.plot(TFs, coef * gamma0 * (TFs**2 + 2.0*bestdT[reg]*TFs + bestdT[reg]**2) * areaCell[ind].sum() * rhoi / 1.0e12, 'm:')
+
+    #np.save(f'standard_allMelts_{gamma0}_{reg}.npy', allMelts)
 fig5.tight_layout()
 #np.save(f'meanTF.npy', meanTF)
 
