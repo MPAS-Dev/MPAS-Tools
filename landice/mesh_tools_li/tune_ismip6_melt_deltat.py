@@ -30,6 +30,7 @@ Observations use the following dataset:
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import sys
+import os
 import numpy as np
 from netCDF4 import Dataset, num2date
 from optparse import OptionParser
@@ -92,6 +93,11 @@ if dts_step <= 0.0:
 dTs = np.arange(dts_min, dts_max, dts_step)
 if dTs.size == 0:
     parser.error("--dTs produced an empty range. Check min, max, and step.")
+
+default_output_file = options.outputFileName
+if default_output_file is None:
+    default_output_file = f'basin_and_coeff_DeltaT_quadratic_non_local_gamma{int(gamma0)}.nc'
+figure_file_stem = os.path.splitext(default_output_file)[0]
 
 
 def _decode_region_name(region_name_row):
@@ -289,7 +295,7 @@ def calcMelt(deltaT):
 print("Considering dTs", dTs)
 allMelts = np.zeros((len(dTs), nRegions))
 for i, dT in enumerate(dTs):
-    print(f"Calculating with dT={dT}")
+    print(f"Calculating with dT = {dT}")
     melt, allMelts[i,:], TFdraft, meanTF = calcMelt(dT)
     if False: # Generally don't want to produce a melt map for every dT, but this can be useful for debugging / special cases
        fig, axs = plt.subplots(1,1, figsize=(9,9), num=i)
@@ -303,12 +309,31 @@ regionCells = np.zeros((nCells,), 'i')
 bestdT = np.zeros((nRegions,))
 for reg in range(nRegions):
     bestdT[reg] = np.interp(obsTargetMelt[reg], allMelts[:,reg], dTs)
-    print(f"{rNames[reg]}: target={obsTargetMelt[reg]:.3f} Gt/yr, best dT={bestdT[reg]:.3f}")
+    print(f"{rNames[reg]}: target = {obsTargetMelt[reg]:.3f} Gt/yr, best dT = {bestdT[reg]:.3f}")
     bestdTCells[regionCellMasks[:,reg]==1] = bestdT[reg]
     # Also write out a region mask.
     # Note that regionCellMasks has a separate 0/1 mask for each region, whereas the ISMIP6 region mask is a single integer field where each cell is marked with the region to which it belongs.
     regionCells[regionCellMasks[:,reg]==1] = reg+1
 #np.save(f'standard_bestdTs_{gamma0}.npy', bestdT)
+
+# Map of melt rates using optimized region-by-region deltaT values
+meanTFcellBest = np.zeros((nCells,))
+for reg in range(nRegions):
+    ind = np.nonzero(floatMask * regionCellMasks[:,reg])[0]
+    meanTFcellBest[ind] = meanTF[reg]
+
+meltBest = np.full((nCells,), np.nan)
+floating = (floatMask == 1)
+meltBest[floating] = gamma0 * coef * (TFdraft[floating] + bestdTCells[floating]) * np.absolute(meanTFcellBest[floating] + bestdTCells[floating])
+
+fig6, ax6 = plt.subplots(1, 1, figsize=(9, 9), num=6)
+sc6 = ax6.scatter(xCell, yCell, s=1, c=meltBest, cmap='viridis')
+ax6.set_title('Melt rate map using optimized deltaT values')
+ax6.set_xlabel('x')
+ax6.set_ylabel('y')
+fig6.colorbar(sc6, ax=ax6, label='melt rate (m/yr)')
+fig6.tight_layout()
+fig6.savefig(f"{figure_file_stem}_melt_map_optimized_deltaT.png", dpi=200, bbox_inches='tight')
 
 nrow=4
 ncol=4
@@ -329,6 +354,7 @@ for reg in range(nRegions):
     plt.plot(dTs, meltHere * np.ones(dTs.shape), 'k-')
     plt.plot(dTs, allMelts[:,reg], 'b-')
 fig4.tight_layout()
+fig4.savefig(f"{figure_file_stem}_melt_sensitivity_vs_deltaT.png", dpi=200, bbox_inches='tight')
 
 fig5, axs5 = plt.subplots(nrow, ncol, figsize=(13, 11), num=5)
 fig5.suptitle(f'melt sensitivity, gamma={gamma0}')
@@ -354,13 +380,12 @@ for reg in range(nRegions):
 
     #np.save(f'standard_allMelts_{gamma0}_{reg}.npy', allMelts)
 fig5.tight_layout()
+fig5.savefig(f"{figure_file_stem}_melt_sensitivity_vs_meanTF.png", dpi=200, bbox_inches='tight')
 #np.save(f'meanTF.npy', meanTF)
 
 
 # write new file
-foutName = options.outputFileName
-if foutName is None:
-    foutName = f'basin_and_coeff_DeltaT_quadratic_non_local_gamma{int(gamma0)}.nc'
+foutName = default_output_file
 fout = Dataset(foutName, 'w')
 fout.history = "command: {}".format(" ".join(sys.argv))
 fout.createDimension('nCells', nCells)
