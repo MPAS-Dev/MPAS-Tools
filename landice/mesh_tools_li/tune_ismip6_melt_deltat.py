@@ -5,9 +5,10 @@ for Antarctica.
 
 Note that gamma0 is set in the script, as well as the range of deltaT to search over.
 
-The tuned basin-by-basin deltaT values are written to a file called
-'basin_and_coeff_gamma0_DeltaT_quadratic_non_local_gammaX.nc'. You will want to rename it to
-avoid clobbering it if the script is rerun.  In addition to saving deltaT, the file also
+The tuned basin-by-basin deltaT values are written to an output file specified by
+--output-file, or by default to
+'basin_and_coeff_DeltaT_quadratic_non_local_gamma<int(gamma0)>.nc'.
+You will want to rename it to avoid clobbering it if the script is rerun.  In addition to saving deltaT, the file also
 includes the basin info and gamma0 so it can dropped directly into a streams file to run with.
 
 For high res meshes, there may be efficiency gains that can be implemented, or the code may
@@ -35,46 +36,62 @@ from optparse import OptionParser
 import matplotlib.pyplot as plt
 
 
-# -----------------------
-# --- Set gamma0 here ---
-gamma0 = 14500.0 # MeanAnt
-#gamma0 = 159000.0 # PIGL
-# -----------------------
-# Select range of deltaT values to search through.
-# np.arange(-1.0, 1.5, 0.05) has been wide enough for MeanAnt with default gamma0 values,
-# but range will be affected by gamma0 and a wider range may be necessary if any optimal deltaTs are outside this range.
-# Confirm that the output deltaTs are more than increment away from boundary.
-# Increments of 0.05 seems than fine enough to get a smooth function for interpolating, but use larger increments
-# when testing for faster execution.
-dTs = np.arange(-1.5, 2.0, 0.25)  # MeanAnt - coarse spacing for rapid testing
-#dTs = np.arange(-1.0, 1.5, 0.05)  # MeanAnt - fine spacing for accurate calculation
-#dTs = np.arange(-1.5, 0.0, 0.05)  # PIGL
-# -----------------------
-
-
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser(description=__doc__)
-parser.add_option("-g", dest="fileName", help="input filename that includes ice geometry information.", metavar="FILENAME")
-parser.add_option("-n", "--region-file", dest="fileRegionNames", help="region definition filename with regionNames and regionCellMasks.", metavar="FILENAME")
-parser.add_option("-o", dest="fcgFileName", help="ocean forcing filename. uses first time level", metavar="FILENAME")
-parser.add_option("--obs-file", dest="obsFileName", help="observational melt filename (e.g. NSIDC-0792)", metavar="FILENAME")
-parser.add_option("--start-year", dest="startYear", type="int", help="starting year for averaging observations (inclusive)")
-parser.add_option("--end-year", dest="endYear", type="int", help="ending year for averaging observations (inclusive)")
+parser.add_option("--geometry-file", dest="fileName", help="input filename that includes ice geometry information.", metavar="FILENAME")
+parser.add_option("--region-file", dest="fileRegionNames", help="region definition filename with regionNames and regionCellMasks.", metavar="FILENAME")
+parser.add_option("--tf-file", dest="fcgFileName", help="ocean thermal forcing filename. uses first time level", metavar="FILENAME")
+parser.add_option("--obs-file", dest="obsFileName", default="NSIDC-0792_19920317-20171216_V01.0.nc",
+                  help="observational melt filename (default: %default)", metavar="FILENAME")
+parser.add_option("--start-year", dest="startYear", type="int", default=1992,
+                  help="starting year for averaging observations (inclusive) (default: %default)")
+parser.add_option("--end-year", dest="endYear", type="int", default=2017,
+                  help="ending year for averaging observations (inclusive) (default: %default)")
+parser.add_option("--gamma0", dest="gamma0", type="float", default=14500.0,
+                  help="gamma0 value for melt parameterization (default: %default)")
+parser.add_option("--output-file", dest="outputFileName", default=None,
+                  help="output NetCDF filename for tuned deltaT/gamma fields. "
+                       "Default: basin_and_coeff_DeltaT_quadratic_non_local_gamma<int(gamma0)>.nc")
+parser.add_option(
+    "--dTs", dest="dTs", default="-1.0,1.0,0.05",
+    help=(
+        "deltaT range as 'min,max,step' for np.arange(min, max, step) (default: %default). "
+        "np.arange(-1.0, 1.5, 0.05) has been wide enough for MeanAnt with default gamma0 values, "
+        "but range is affected by gamma0 and may need to be wider if optimal deltaTs are outside the range. "
+        "Confirm output deltaTs are more than one increment from boundaries. "
+        "Increment 0.05 is typically fine for smooth interpolation; "
+        "for initial testing, -1.5,2.0,0.25 works well."
+    ))
 options, args = parser.parse_args()
 
 required_args = [
-    ("-g", options.fileName),
-    ("-n/--region-file", options.fileRegionNames),
-    ("-o", options.fcgFileName),
+    ("--geometry-file", options.fileName),
+    ("--region-file", options.fileRegionNames),
+    ("--tf-file", options.fcgFileName),
     ("--obs-file", options.obsFileName),
-    ("--start-year", options.startYear),
-    ("--end-year", options.endYear)
 ]
 missing = [name for name, value in required_args if value is None]
 if missing:
     parser.error("Missing required argument(s): {}".format(", ".join(missing)))
 if options.startYear > options.endYear:
     parser.error("--start-year must be <= --end-year")
+
+gamma0 = options.gamma0
+
+try:
+    dts_min_str, dts_max_str, dts_step_str = [part.strip() for part in options.dTs.split(',')]
+    dts_min = float(dts_min_str)
+    dts_max = float(dts_max_str)
+    dts_step = float(dts_step_str)
+except ValueError:
+    parser.error("--dTs must be in format 'min,max,step' with numeric values")
+
+if dts_step <= 0.0:
+    parser.error("--dTs step must be positive")
+
+dTs = np.arange(dts_min, dts_max, dts_step)
+if dTs.size == 0:
+    parser.error("--dTs produced an empty range. Check min, max, and step.")
 
 
 def _decode_region_name(region_name_row):
@@ -341,8 +358,11 @@ fig5.tight_layout()
 
 
 # write new file
-foutName=f'basin_and_coeff_DeltaT_quadratic_non_local_gamma{int(gamma0)}.nc'
+foutName = options.outputFileName
+if foutName is None:
+    foutName = f'basin_and_coeff_DeltaT_quadratic_non_local_gamma{int(gamma0)}.nc'
 fout = Dataset(foutName, 'w')
+fout.history = "command: {}".format(" ".join(sys.argv))
 fout.createDimension('nCells', nCells)
 dTOut = fout.createVariable('ismip6shelfMelt_deltaT', 'd', ('nCells',))
 basinOut = fout.createVariable('ismip6shelfMelt_basin', 'i', ('nCells',))
