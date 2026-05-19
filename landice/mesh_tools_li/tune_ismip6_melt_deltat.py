@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 '''
-Script to calculate deltat for the ISMIP6 melt param to best match observed melt rates
+Script to calculate deltat for the Jourdain et al. melt param to best match observed melt rates
 for Antarctica.
 
 Note that gamma0 is set in the script, as well as the range of deltaT to search over.
@@ -17,7 +17,13 @@ The target melt rate for each region is computed by spatially averaging the
 observational melt field over floating cells in each region and converting
 to total melt (Gt/yr).
 
-Matt Hoffman, 9/8/2022
+Observations use the following dataset:
+    Paolo, F., Gardner, A. S., Greene, C. A. & Schlegel, N. (2024). MEaSUREs
+    ITS_LIVE Antarctic Quarterly 1920 m Ice Shelf Height Change and Basal Melt
+    Rates, 1992-2017. (NSIDC-0792, Version 1). [Data Set]. Boulder, Colorado
+    USA. NASA National Snow and Ice Data Center Distributed Active Archive
+    Center. https://doi.org/10.5067/SE3XH9RXQWAM.
+
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -40,8 +46,8 @@ gamma0 = 14500.0 # MeanAnt
 # Confirm that the output deltaTs are more than increment away from boundary.
 # Increments of 0.05 seems than fine enough to get a smooth function for interpolating, but use larger increments
 # when testing for faster execution.
-#dTs = np.arange(-1.5, 2.0, 0.25)  # MeanAnt - coarse spacing for rapid testing
-dTs = np.arange(-1.0, 1.5, 0.05)  # MeanAnt - fine spacing for accurate calculation
+dTs = np.arange(-1.5, 2.0, 0.25)  # MeanAnt - coarse spacing for rapid testing
+#dTs = np.arange(-1.0, 1.5, 0.05)  # MeanAnt - fine spacing for accurate calculation
 #dTs = np.arange(-1.5, 0.0, 0.05)  # PIGL
 # -----------------------
 
@@ -134,6 +140,7 @@ def _compute_obs_mean_melt(obs_file_name, start_year, end_year):
 
         for t_ind in selected_time_inds:
             melt_slice = np.array(melt_var[t_ind, :, :], dtype=np.float64)
+            melt_slice *= -1.0  # melting is negative in the obs file
             if fill_value is not None:
                 melt_slice[melt_slice == fill_value] = np.nan
             valid = np.isfinite(melt_slice)
