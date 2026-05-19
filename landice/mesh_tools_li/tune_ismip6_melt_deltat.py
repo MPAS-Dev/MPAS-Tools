@@ -36,6 +36,13 @@ from netCDF4 import Dataset, num2date
 from optparse import OptionParser
 import matplotlib.pyplot as plt
 
+try:
+    import xarray as xr
+    import mosaic
+except ImportError:
+    xr = None
+    mosaic = None
+
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
 parser = OptionParser(description=__doc__)
@@ -53,6 +60,8 @@ parser.add_option("--gamma0", dest="gamma0", type="float", default=14500.0,
 parser.add_option("--output-file", dest="outputFileName", default=None,
                   help="output NetCDF filename for tuned deltaT/gamma fields. "
                        "Default: basin_and_coeff_DeltaT_quadratic_non_local_gamma<int(gamma0)>.nc")
+parser.add_option("--show-plots", dest="showPlots", action="store_true", default=False,
+                  help="show interactive plots at the end of the run (default: suppressed)")
 parser.add_option(
     "--dTs", dest="dTs", default="-1.0,1.0,0.05",
     help=(
@@ -251,6 +260,8 @@ nCells = len(f.dimensions['nCells'])
 areaCell = f.variables['areaCell'][:]
 xCell = f.variables['xCell'][:]
 yCell = f.variables['yCell'][:]
+cellsOnCell = f.variables['cellsOnCell'][:]
+nEdgesOnCell = f.variables['nEdgesOnCell'][:]
 
 obs_info = _compute_obs_mean_melt(
     options.obsFileName,
@@ -334,6 +345,31 @@ for reg in range(nRegions):
     regionCells[regionCellMasks[:,reg]==1] = reg+1
 #np.save(f'standard_bestdTs_{gamma0}.npy', bestdT)
 
+# Label locations for deltaT text on panel 1 (area-weighted region centroids)
+regionLabelX = np.full((nRegions,), np.nan)
+regionLabelY = np.full((nRegions,), np.nan)
+for reg in range(nRegions):
+    ind = np.nonzero(floatMask * regionCellMasks[:, reg])[0]
+    if len(ind) == 0:
+        continue
+    weights = areaCell[ind]
+    weight_sum = np.sum(weights)
+    if weight_sum <= 0.0:
+        continue
+    regionLabelX[reg] = np.sum(xCell[ind] * weights) / weight_sum
+    regionLabelY[reg] = np.sum(yCell[ind] * weights) / weight_sum
+
+regionBoundary = np.zeros((nCells,), dtype=bool)
+for iCell in range(nCells):
+    if regionCells[iCell] <= 0:
+        continue
+    neighbors = cellsOnCell[iCell, :nEdgesOnCell[iCell]] - 1  # 1-based to 0-based
+    valid_neighbors = neighbors >= 0
+    if np.count_nonzero(valid_neighbors) == 0:
+        continue
+    neighbor_regions = regionCells[neighbors[valid_neighbors]]
+    regionBoundary[iCell] = np.any((neighbor_regions > 0) & (neighbor_regions != regionCells[iCell]))
+
 # Map of melt rates using optimized region-by-region deltaT values
 meanTFcellBest = np.zeros((nCells,))
 for reg in range(nRegions):
@@ -344,14 +380,63 @@ meltBest = np.full((nCells,), np.nan)
 floating = (floatMask == 1)
 meltBest[floating] = gamma0 * coef * (TFdraft[floating] + bestdTCells[floating]) * np.absolute(meanTFcellBest[floating] + bestdTCells[floating])
 
-fig6, ax6 = plt.subplots(1, 1, figsize=(9, 9), num=6)
-sc6 = ax6.scatter(xCell, yCell, s=1, c=meltBest, cmap='viridis')
-ax6.set_title('Melt rate map using optimized deltaT values')
-ax6.set_xlabel('x')
-ax6.set_ylabel('y')
-fig6.colorbar(sc6, ax=ax6, label='melt rate (m/yr)')
-fig6.tight_layout()
-fig6.savefig(f"{figure_file_stem}_melt_map_optimized_deltaT.png", dpi=200, bbox_inches='tight')
+obsMeltTarget = np.full((nCells,), np.nan)
+obsMeltTarget[floating] = obsMeltCell[floating]
+
+meltDiff = np.full((nCells,), np.nan)
+validDiff = floating & np.isfinite(meltBest) & np.isfinite(obsMeltTarget)
+meltDiff[validDiff] = meltBest[validDiff] - obsMeltTarget[validDiff]
+
+fig6, axes6 = plt.subplots(1, 3, figsize=(19, 6), num=6, sharex=True, sharey=True,
+                           constrained_layout=True)
+map_vmin = -6.0
+map_vmax = 6.0
+
+if xr is None or mosaic is None:
+    print("Warning: xarray/mosaic not available; skipping optimized melt map figure")
+    plt.close(fig6)
+else:
+    ds_mesh = xr.open_dataset(options.fileName, decode_times=False, decode_cf=False)
+    descriptor = mosaic.Descriptor(ds_mesh)
+
+    pc0 = mosaic.polypcolor(axes6[0], descriptor, meltBest, aa=False,
+                            cmap='RdBu_r', vmin=map_vmin, vmax=map_vmax)
+    mosaic.polypcolor(axes6[0], descriptor, np.nan * meltBest,
+                      ec=np.where(regionBoundary, 'k', 'none'),
+                      lw=np.where(regionBoundary, 0.25, 0.0))
+
+    pc1 = mosaic.polypcolor(axes6[1], descriptor, obsMeltTarget, aa=False,
+                            cmap='RdBu_r', vmin=map_vmin, vmax=map_vmax)
+    mosaic.polypcolor(axes6[1], descriptor, np.nan * meltBest,
+                      ec=np.where(regionBoundary, 'k', 'none'),
+                      lw=np.where(regionBoundary, 0.25, 0.0))
+
+    pc2 = mosaic.polypcolor(axes6[2], descriptor, meltDiff, aa=False,
+                            cmap='RdBu_r', vmin=map_vmin, vmax=map_vmax)
+    mosaic.polypcolor(axes6[2], descriptor, np.nan * meltBest,
+                      ec=np.where(regionBoundary, 'k', 'none'),
+                      lw=np.where(regionBoundary, 0.25, 0.0))
+
+    ds_mesh.close()
+
+    axes6[0].set_title('Optimized melt rate (m/yr)')
+    axes6[1].set_title(f'Observed melt-rate target (m/yr), {options.startYear}-{options.endYear}')
+    axes6[2].set_title('Difference: optimized - observed (m/yr)')
+
+    for reg in range(nRegions):
+        if np.isfinite(regionLabelX[reg]) and np.isfinite(regionLabelY[reg]):
+            axes6[0].text(regionLabelX[reg], regionLabelY[reg], f"dT={bestdT[reg]:.2f}",
+                          ha='center', va='center', fontsize=7, color='k',
+                          bbox=dict(facecolor='white', alpha=0.6, edgecolor='none', pad=0.5))
+
+    for ax in axes6:
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_aspect('equal', adjustable='box')
+
+    fig6.colorbar(pc0, ax=[axes6[0], axes6[1]], label='melt rate (m/yr)', fraction=0.04, pad=0.02)
+    fig6.colorbar(pc2, ax=axes6[2], label='difference (m/yr)', fraction=0.04, pad=0.02)
+    fig6.savefig(f"{figure_file_stem}_melt_map_optimized_deltaT.png", dpi=200, bbox_inches='tight')
 
 nrow=4
 ncol=4
@@ -415,4 +500,7 @@ basinOut[:] = regionCells
 gammaOut[:] = gamma0
 fout.close()
 
-plt.show()
+if options.showPlots:
+    plt.show()
+else:
+    plt.close('all')
