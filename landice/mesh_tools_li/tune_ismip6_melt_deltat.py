@@ -158,17 +158,34 @@ def _compute_obs_mean_melt(obs_file_name, start_year, end_year):
             raise ValueError("Observation melt variable '{}' must have dimensions (time, y, x)".format(obs_melt_var))
 
         fill_value = getattr(melt_var, '_FillValue', None)
+        missing_value = getattr(melt_var, 'missing_value', None)
         melt_sum = np.zeros((len(obs_y), len(obs_x)), dtype=np.float64)
         melt_count = np.zeros((len(obs_y), len(obs_x)), dtype=np.int32)
+        n_extreme_values = 0
 
         for t_ind in selected_time_inds:
-            melt_slice = np.array(melt_var[t_ind, :, :], dtype=np.float64)
-            melt_slice *= -1.0  # melting is negative in the obs file
+            # Preserve NetCDF masks, then convert masked entries to NaN.
+            melt_slice = np.ma.array(melt_var[t_ind, :, :], dtype=np.float64).filled(np.nan)
+
+            # Remove explicit sentinel values before any arithmetic.
             if fill_value is not None:
                 melt_slice[melt_slice == fill_value] = np.nan
+            if missing_value is not None:
+                melt_slice[melt_slice == missing_value] = np.nan
+
+            melt_slice *= -1.0  # melting is negative in the obs file
+
+            # Catch likely unmasked sentinels or bad data values.
+            extreme = np.isfinite(melt_slice) & (np.abs(melt_slice) > 1.0e3)
+            n_extreme_values += int(np.count_nonzero(extreme))
+            melt_slice[extreme] = np.nan
+
             valid = np.isfinite(melt_slice)
             melt_sum[valid] += melt_slice[valid]
             melt_count[valid] += 1
+
+        if n_extreme_values > 0:
+            print("Warning: masked {} implausible obs melt values with |melt| > 1000 m/yr".format(n_extreme_values))
 
         obs_melt_mean = np.full((len(obs_y), len(obs_x)), np.nan, dtype=np.float64)
         valid_count = melt_count > 0
@@ -257,6 +274,7 @@ for reg in range(nRegions):
     if np.count_nonzero(valid) == 0:
         raise ValueError("Region '{}' has no valid mapped observational melt values".format(rNames[reg]))
 
+    print(f'Region {rNames[reg]}: min/max melt rate in mapped obs = {obsMeltCell[ind][valid].min():.1f} / {obsMeltCell[ind][valid].max():.1f} m/yr')
     obsMeanMeltRate = np.sum(obsMeltCell[ind][valid] * areaCell[ind][valid]) / np.sum(areaCell[ind][valid])
     obsTargetMelt[reg] = obsMeanMeltRate * np.sum(areaCell[ind][valid]) * obs_density / 1.0e12
 
