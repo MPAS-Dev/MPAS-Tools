@@ -49,3 +49,14 @@ cmake \
   ..
 cmake --build .
 cmake --install .
+
+# build and install WAVE MESH tools
+cd ${SRC_DIR}/conda_package/ocean/wave_mesh_tools
+mkdir build
+cd build
+cmake \
+  -D CMAKE_INSTALL_PREFIX=${PREFIX} \
+  -D CMAKE_BUILD_TYPE=Release \
+  ..
+cmake --build .
+cmake --install .
