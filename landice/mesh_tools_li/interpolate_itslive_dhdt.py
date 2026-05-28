@@ -29,6 +29,7 @@ import numpy as np
 import pandas as pd
 import xarray
 
+from mpas_tools.io import write_netcdf
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 
 
@@ -288,35 +289,37 @@ def interpolate_itslive_dhdt(itslive_file, mali_file, start_date, end_date,
     args = ['ncrename', '-d', 'ncol,nCells', remapped_filename]
     run_command(args)
 
-    # Remove target variables from MALI file if they already exist (avoids
-    # NCO _FillValue attribute conflicts on re-runs)
-    itslive_vars = ('observedThicknessTendency,'
-                    'observedThicknessTendencyUncertainty,'
-                    'observedSurfaceElevation,'
-                    'observedSurfaceElevationUncertainty')
-    args = ['ncks', '-O', '-x', '-v', itslive_vars, mali_file, mali_file]
-    print('Removing pre-existing ITS_LIVE fields from MALI file (if any)')
-    run_command(args)
+    # Clean up unphysical values and merge remapped data into MALI file.
+    # Read remapped variables directly (avoids ncks importing extra ncremap
+    # variables like area, lat, lon, lat_vertices, lon_vertices).
+    itslive_var_list = ['observedThicknessTendency',
+                        'observedThicknessTendencyUncertainty',
+                        'observedSurfaceElevation',
+                        'observedSurfaceElevationUncertainty']
+    print('Reading remapped ITS_LIVE fields and merging into MALI file')
 
-    # Append remapped variables to the MALI mesh file
-    print(f'Appending ITS_LIVE fields to {mali_file}')
-    args = ['ncks', '-A', '-C', '-v', itslive_vars,
-            remapped_filename, mali_file]
-    run_command(args)
+    # Read remapped data (xarray decodes fill values to NaN)
+    ds_remap = xarray.open_dataset(remapped_filename)
 
-    # Clean up unphysical values in the MALI mesh file.
-    # NaNs, fill values, and missing values in observedThicknessTendency are
-    # set to 0; its uncertainty is set to 1.0 m/s where values are missing or
-    # unphysical. observedSurfaceElevation is set to bedTopography where
-    # unphysical.
-    print('Cleaning up unphysical values in MALI mesh file')
-    with xarray.open_dataset(mali_file) as ds_mali:
-        dhdt = ds_mali['observedThicknessTendency'].values.copy()
-        dhdt_err = ds_mali['observedThicknessTendencyUncertainty'].values.copy()
-        h_obs = ds_mali['observedSurfaceElevation'].values.copy()
-        h_err = ds_mali['observedSurfaceElevationUncertainty'].values.copy()
-        bed = ds_mali['bedTopography'].values
-        thickness = ds_mali['thickness'].values
+    # Open MALI file
+    ds_mali = xarray.open_dataset(mali_file)
+
+    # Assign remapped variables with proper (Time, nCells) shape
+    for vname in itslive_var_list:
+        data = ds_remap[vname].values
+        if data.ndim == 1:
+            data = data[np.newaxis, :]  # add Time dimension
+        ds_mali[vname] = (('Time', 'nCells'), data)
+
+    ds_remap.close()
+
+    # Extract arrays for cleanup
+    bed = ds_mali['bedTopography'].values
+    thickness = ds_mali['thickness'].values
+    dhdt = ds_mali['observedThicknessTendency'].values.copy()
+    dhdt_err = ds_mali['observedThicknessTendencyUncertainty'].values.copy()
+    h_obs = ds_mali['observedSurfaceElevation'].values.copy()
+    h_err = ds_mali['observedSurfaceElevationUncertainty'].values.copy()
 
     # Unphysical mask: NaN or fill-value sentinel
     dhdt_bad = np.isnan(dhdt) | (np.abs(dhdt) > 1.0e10)
@@ -334,30 +337,26 @@ def interpolate_itslive_dhdt(itslive_file, mali_file, start_date, end_date,
     dhdt_err = np.fmin(dhdt_err, 1.0)
     dhdt_err[dhdt_bad] = 1.0
     dhdt_err[no_ice] = 1.0
-
     h_obs[h_bad] = bed[h_bad]
 
-    with xarray.open_dataset(mali_file) as ds_mali:
-        ds_out = ds_mali.copy()
-        ds_out['observedThicknessTendency'].values[:] = dhdt
-        ds_out['observedThicknessTendencyUncertainty'].values[:] = dhdt_err
-        ds_out['observedSurfaceElevation'].values[:] = h_obs
-        ds_out['observedSurfaceElevationUncertainty'].values[:] = h_err
+    ds_mali['observedThicknessTendency'].values[:] = dhdt
+    ds_mali['observedThicknessTendencyUncertainty'].values[:] = dhdt_err
+    ds_mali['observedSurfaceElevation'].values[:] = h_obs
+    ds_mali['observedSurfaceElevationUncertainty'].values[:] = h_err
 
-        # Append command to netCDF history attribute
-        timestamp = datetime.datetime.now(
-            datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
-        cmd_str = ' '.join(sys.argv)
-        new_history = f'{timestamp}: {cmd_str}'
-        old_history = ds_out.attrs.get('history', '')
-        if old_history:
-            ds_out.attrs['history'] = f'{new_history}\n{old_history}'
-        else:
-            ds_out.attrs['history'] = new_history
+    # Append command to netCDF history attribute
+    timestamp = datetime.datetime.now(
+        datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+    cmd_str = ' '.join(sys.argv)
+    new_history = f'{timestamp}: {cmd_str}'
+    old_history = ds_mali.attrs.get('history', '')
+    if old_history:
+        ds_mali.attrs['history'] = f'{new_history}\n{old_history}'
+    else:
+        ds_mali.attrs['history'] = new_history
 
-        ds_out.to_netcdf(mali_file + '.tmp')
-
-    os.replace(mali_file + '.tmp', mali_file)
+    write_netcdf(ds_mali, mali_file)
+    ds_mali.close()
 
     print('Done.')
 
