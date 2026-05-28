@@ -20,6 +20,7 @@ Note that this should be run on a compute node unless the weights file already e
 """
 
 import argparse
+import datetime
 import os
 import subprocess
 import sys
@@ -342,6 +343,18 @@ def interpolate_itslive_dhdt(itslive_file, mali_file, start_date, end_date,
         ds_out['observedThicknessTendencyUncertainty'].values[:] = dhdt_err
         ds_out['observedSurfaceElevation'].values[:] = h_obs
         ds_out['observedSurfaceElevationUncertainty'].values[:] = h_err
+
+        # Append command to netCDF history attribute
+        timestamp = datetime.datetime.now(
+            datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+        cmd_str = ' '.join(sys.argv)
+        new_history = f'{timestamp}: {cmd_str}'
+        old_history = ds_out.attrs.get('history', '')
+        if old_history:
+            ds_out.attrs['history'] = f'{new_history}\n{old_history}'
+        else:
+            ds_out.attrs['history'] = new_history
+
         ds_out.to_netcdf(mali_file + '.tmp')
 
     os.replace(mali_file + '.tmp', mali_file)
