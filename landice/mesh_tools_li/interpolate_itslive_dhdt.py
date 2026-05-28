@@ -31,6 +31,46 @@ import xarray
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 
 
+def mask_source_scrip(source_scrip, masked_scrip, data_file):
+    """
+    Create a masked copy of the source SCRIP file with grid_imask set to 0
+    for cells that contain invalid data (NaN/fill) in any field.
+
+    Parameters
+    ----------
+    source_scrip : str
+        Input source SCRIP file.
+    masked_scrip : str
+        Output masked SCRIP file path.
+    data_file : str
+        Path to the gridded data file (itslive_dhdt.nc) used to determine
+        which cells have valid data.
+    """
+    # Determine data-validity mask from the source data file
+    with xarray.open_dataset(data_file) as ds_data:
+        # A cell is valid only if ALL fields have finite values
+        valid_data = np.ones(ds_data.dims['y'] * ds_data.dims['x'], dtype=bool)
+        for var in ds_data.data_vars:
+            vals = ds_data[var].values
+            if vals.ndim == 3:
+                vals = vals[0]  # remove Time dimension
+            valid_data &= np.isfinite(vals).ravel()
+
+    with xarray.open_dataset(source_scrip) as ds_src:
+        n_total = valid_data.size
+        n_active = int(valid_data.sum())
+        n_invalid = n_total - n_active
+        print(f'  Source SCRIP masking: {n_active}/{n_total} cells active '
+              f'({n_invalid} masked for invalid data)')
+
+        ds_out = ds_src.copy()
+        ds_out['grid_imask'] = xarray.DataArray(
+            valid_data.astype(np.int32),
+            dims=('grid_size',),
+            attrs={'long_name': '0/1 mask for active source cells'})
+        ds_out.to_netcdf(masked_scrip, mode='w')
+
+
 def run_command(args):
     """Run a subprocess command and raise on failure."""
     print(f"  Running: {' '.join(args)}")
@@ -215,11 +255,16 @@ def interpolate_itslive_dhdt(itslive_file, mali_file, start_date, end_date,
                     '-r', '2']
             run_command(args)
 
+        # Mask source SCRIP: exclude cells with invalid (NaN/fill) data
+        masked_source_scrip = 'itslive_dhdt.scrip_masked.nc'
+        print('Masking source SCRIP for data validity')
+        mask_source_scrip(source_scrip, masked_source_scrip, dhdt_filename)
+
         weights_filename = f'itslive_to_MPAS_{method}_weights.nc'
         print(f'Generating ITS_LIVE -> MPAS remapping weights '
               f'(method={method})')
         args = ['ESMF_RegridWeightGen',
-                '--source', source_scrip,
+                '--source', masked_source_scrip,
                 '--destination', mali_scrip,
                 '--weight', weights_filename,
                 '--method', method,
