@@ -1210,6 +1210,13 @@ def interpolate_to_mpasli_grid():  # noqa: C901
                 'gridType': 'cell',
                 'vertDim': False,
             }
+            fieldInfo['sfcMassBalUncertainty'] = {
+                'InputName': 'sfcMassBalUncertainty',
+                'scalefactor': 1.0,
+                'offset': 0.0,
+                'gridType': 'cell',
+                'vertDim': False,
+            }
             fieldInfo['floatingBasalMassBal'] = {
                 'InputName': 'floatingBasalMassBal',
                 'scalefactor': 1.0,
