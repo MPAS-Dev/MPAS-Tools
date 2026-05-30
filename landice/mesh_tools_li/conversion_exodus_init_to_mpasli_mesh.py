@@ -104,8 +104,18 @@ for glob_var_name in exo.get_global_variable_names():
 # Albany layering is in reverse order from mpas
 exo_layer_thick = np.flip(np.reshape(np.array(exo_layer_thick), [len(exo_layer_thick),]))
 mpas_layer_thick = np.ma.filled(dataset.variables['layerThicknessFractions'][:])
-if mpas_layer_thick.any() != exo_layer_thick.any():
+nLayers_exo = len(exo_layer_thick)
+nLayers_mpas = len(mpas_layer_thick)
+
+if nLayers_exo <= 1 and nLayers_mpas > 1:
+    print("WARNING: Albany exodus file has {} layer(s) but MPAS file has {} layers.".format(nLayers_exo, nLayers_mpas))
+    print("  Assuming MOLHO (mono-layer higher-order) Albany solve.")
+    print("  Single-layer Albany fields will be copied uniformly to all MPAS vertical layers.")
+    molho_mode = True
+elif np.array_equal(mpas_layer_thick, exo_layer_thick) == False:
     sys.exit("ERROR: Albany layer_thickness_ratio does not match MPAS layerThicknessFractions! Aborting")
+else:
+    molho_mode = False
 
 # Read cellID_array from ascii file
 if not options.id_file:
@@ -169,7 +179,9 @@ for var_name in var_names:
 
         # Get number of vertical layers from mpas output file.
         if len(np.shape(dataset.variables[var_name])) == 3:
-            if var_name == "temperature":
+            if molho_mode and var_name == "temperature":
+                nVert_max = 1  # Only need to extract 1 layer; will assign uniformly to all MPAS levels
+            elif var_name == "temperature":
                 nVert_max = np.shape(dataset.variables[var_name])[2] + 1 #albany temperature is on diferent vertical grid than MPAS, and has one extra layer
             else:
                 nVert_max = np.shape(dataset.variables[var_name])[2]
@@ -185,7 +197,9 @@ for var_name in var_names:
             print('Converting layer/level {} of {}'.format(nVert+1, nVert_max))
 
             #Albany has inverted layer/level ordering relative to MPAS.
-            if var_name == "surfaceTemperature":
+            if molho_mode:
+                nVert_albany = 0  # Single-layer Albany: always use the only available layer
+            elif var_name == "surfaceTemperature":
                 nVert_albany = nVert_max - 1
             elif var_name == "basalTemperature":
                 nVert_albany = 0  # This not needed, because it will be 0 for basalTemperature, but adding this case to make that assumption explicit
@@ -242,14 +256,21 @@ for var_name in var_names:
                 dataset.variables[var_name][0,cellID_array-1] = data_exo_layer
 
         if var_name == "temperature":
-            # Make generic equally-spaced layers for albany and MPAS. This works
-            # even for unequally-spaced layers because this is a linear interpolation
-            # and MPAS temperature layers are always halfway between Albany temperature
-            # layers.
-            albany_layers = np.arange(0, nVert_max)
-            MPAS_layers = np.arange(1, nVert_max) - 0.5 # MPAS and albany temperature layers are staggered
-            temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)
-            dataset.variables["temperature"][0,:,:] = temperatureInterpolant(MPAS_layers)
+            if molho_mode:
+                # In MOLHO mode, Albany has only a single temperature layer.
+                # Assign it uniformly to all MPAS vertical levels.
+                print("WARNING: MOLHO mode - assigning single Albany temperature layer uniformly to all MPAS vertical levels.")
+                for nLayer in np.arange(0, dataset.dimensions["nVertLevels"].size):
+                    dataset.variables["temperature"][0,:,nLayer] = albanyTemperature[:, 0]
+            else:
+                # Make generic equally-spaced layers for albany and MPAS. This works
+                # even for unequally-spaced layers because this is a linear interpolation
+                # and MPAS temperature layers are always halfway between Albany temperature
+                # layers.
+                albany_layers = np.arange(0, nVert_max)
+                MPAS_layers = np.arange(1, nVert_max) - 0.5 # MPAS and albany temperature layers are staggered
+                temperatureInterpolant = interp1d(albany_layers, albanyTemperature, axis=1)
+                dataset.variables["temperature"][0,:,:] = temperatureInterpolant(MPAS_layers)
 
             # Add reasonable (non-zero) temperatures outside of ice mask. Make this a linear
             # interpolation between min(273.15, surfaceAirTemperature) at the surface and 268.15K at the bed.
