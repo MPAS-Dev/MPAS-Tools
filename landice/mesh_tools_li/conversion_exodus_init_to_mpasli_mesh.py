@@ -58,18 +58,27 @@ except ModuleNotFoundError:
 
 # Map and copy Exodus data to MPAS data
 
-# Create dictionary of variables that are supported by the script
-mpas_exodus_var_dic = {"beta":"basal_friction_log",
-                       "muFriction":"mu_log", \
-                       "stiffnessFactor":"stiffening_factor", \
-                       "uReconstructX":"solution_1", \
-                       "uReconstructY":"solution_2", \
-                       "temperature":"temperature", \
-                       "basalTemperature":"temperature", \
-                       "surfaceTemperature":"temperature", \
-                       "thickness":"ice_thickness"}
-                       #"surfaceAirTemperature":"surface_air_temperature", \ #use with caution!
-# A mapping between mpas and exodus file. Add one if you need to manipulate a different variable!
+# Create dictionary mapping exodus variable names to MPAS variable names.
+# This allows us to check what fields are present in the exodus file and
+# map them to the correct MALI field name.
+exodus_to_mpas_dic = {"basal_friction_log":"beta",
+                       "mu_log":"muFriction",
+                       "stiffening_factor":"stiffnessFactor",
+                       "stiffening_factor_log":"stiffnessFactor",
+                       "solution_1":"uReconstructX",
+                       "solution_2":"uReconstructY",
+                       "temperature":"temperature",
+                       "ice_thickness":"thickness"}
+
+# Build reverse lookup: MPAS variable name -> list of possible exodus names
+mpas_to_exodus_candidates = {}
+for exo_name, mpas_name in exodus_to_mpas_dic.items():
+    if mpas_name not in mpas_to_exodus_candidates:
+        mpas_to_exodus_candidates[mpas_name] = []
+    mpas_to_exodus_candidates[mpas_name].append(exo_name)
+# surfaceTemperature and basalTemperature also use the "temperature" exodus field
+mpas_to_exodus_candidates["surfaceTemperature"] = ["temperature"]
+mpas_to_exodus_candidates["basalTemperature"] = ["temperature"]
 ice_density = 910.0
 ocean_density = 1028.0
 
@@ -110,7 +119,7 @@ nLayers_mpas = len(mpas_layer_thick)
 if nLayers_exo <= 1 and nLayers_mpas > 1:
     print("WARNING: Albany exodus file has {} layer(s) but MPAS file has {} layers.".format(nLayers_exo, nLayers_mpas))
     print("  Assuming MOLHO (mono-layer higher-order) Albany solve.")
-    print("  Single-layer Albany fields will be copied uniformly to all MPAS vertical layers.")
+    print("  3D fields will be interpolated to MPAS vertical layers using sigma^4 profile.")
     molho_mode = True
 elif np.array_equal(mpas_layer_thick, exo_layer_thick) == False:
     sys.exit("ERROR: Albany layer_thickness_ratio does not match MPAS layerThicknessFractions! Aborting")
@@ -171,16 +180,23 @@ for var_name in var_names:
         extrapolation = None
 
     print("\n---------------")
-    if not var_name in mpas_exodus_var_dic:
-        sys.exit("ERROR: variable '{}' not supported by this script.  Supported variables are: {}".format(var_name, mpas_exodus_var_dic.keys()))
-    if mpas_exodus_var_dic[var_name] in exo.get_node_variable_names() and var_name in dataset.variables.keys():
-        exo_var_name = mpas_exodus_var_dic[var_name]
+    if not var_name in mpas_to_exodus_candidates:
+        sys.exit("ERROR: variable '{}' not supported by this script.  Supported variables are: {}".format(var_name, mpas_to_exodus_candidates.keys()))
+
+    # Find the exodus variable name corresponding to this MPAS variable
+    exo_var_name = None
+    for candidate in mpas_to_exodus_candidates[var_name]:
+        if candidate in exo.get_node_variable_names():
+            exo_var_name = candidate
+            break
+
+    if exo_var_name is not None and var_name in dataset.variables.keys():
         data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))
 
         # Get number of vertical layers from mpas output file.
         if len(np.shape(dataset.variables[var_name])) == 3:
-            if molho_mode and var_name == "temperature":
-                nVert_max = 1  # Only need to extract 1 layer; will assign uniformly to all MPAS levels
+            if molho_mode:
+                nVert_max = 2  # MOLHO exo has 2 interfaces (top and bottom) for 3D fields
             elif var_name == "temperature":
                 nVert_max = np.shape(dataset.variables[var_name])[2] + 1 #albany temperature is on diferent vertical grid than MPAS, and has one extra layer
             else:
@@ -189,6 +205,7 @@ for var_name in var_names:
             nVert_max = 1
 
         albanyTemperature = np.zeros((nCells, nVert_max)) #initialize albanyTemperature array to fill in below
+        albanyVelocity = np.zeros((nCells, nVert_max)) #initialize albanyVelocity array for MOLHO sigma^4 interpolation
         dataset.variables[var_name][:] = 0 # Fill variable with zeros in order to ensure proper values in void
 
         print("Begin {} conversion".format(var_name))
@@ -197,8 +214,8 @@ for var_name in var_names:
             print('Converting layer/level {} of {}'.format(nVert+1, nVert_max))
 
             #Albany has inverted layer/level ordering relative to MPAS.
-            if molho_mode:
-                nVert_albany = 0  # Single-layer Albany: always use the only available layer
+            if molho_mode and var_name == "surfaceTemperature":
+                nVert_albany = 1  # Top interface of MOLHO exo mesh (2 interfaces: 0=bed, 1=top)
             elif var_name == "surfaceTemperature":
                 nVert_albany = nVert_max - 1
             elif var_name == "basalTemperature":
@@ -234,7 +251,10 @@ for var_name in var_names:
             elif var_name == "stiffnessFactor":
                 dataset.variables[var_name][0,cellID_array-1] = np.exp(data_exo_layer)
             elif var_name == "uReconstructX" or var_name == "uReconstructY":
-                dataset.variables[var_name][0,cellID_array-1, nVert] = data_exo_layer / (60. * 60. * 24 * 365)
+                if molho_mode:
+                    albanyVelocity[cellID_array-1, nVert] = data_exo_layer / (60. * 60. * 24 * 365)
+                else:
+                    dataset.variables[var_name][0,cellID_array-1, nVert] = data_exo_layer / (60. * 60. * 24 * 365)
             elif var_name == "thickness":
                 print("WARNING: thickness conversion is still experimental!  Carefully check results before using.")
                 # We have to be careful to not change MPAS geometry in the extended layer of cells - only touch it where the MPAS file already had nonzero thickness
@@ -257,11 +277,21 @@ for var_name in var_names:
 
         if var_name == "temperature":
             if molho_mode:
-                # In MOLHO mode, Albany has only a single temperature layer.
-                # Assign it uniformly to all MPAS vertical levels.
-                print("WARNING: MOLHO mode - assigning single Albany temperature layer uniformly to all MPAS vertical levels.")
-                for nLayer in np.arange(0, dataset.dimensions["nVertLevels"].size):
-                    dataset.variables["temperature"][0,:,nLayer] = albanyTemperature[:, 0]
+                # In MOLHO mode, Albany has 2 temperature interfaces (top and bottom).
+                # Interpolate to MPAS vertical levels using:
+                #   T(sigma) = T_bed + (1 - sigma^4) * (T_top - T_bed)
+                # where sigma is 0 at the top surface and 1 at the bed.
+                # albanyTemperature[:, 0] = T_top (extracted from Albany top interface)
+                # albanyTemperature[:, 1] = T_bed (extracted from Albany bottom interface)
+                T_top = albanyTemperature[:, 0]
+                T_bed = albanyTemperature[:, 1]
+                nVertLevels = dataset.dimensions["nVertLevels"].size
+                layerThicknessFractions = np.ma.filled(dataset.variables['layerThicknessFractions'][:])
+                print("MOLHO mode: interpolating temperature using sigma^4 profile")
+                for nLayer in np.arange(0, nVertLevels):
+                    # sigma at layer midpoint
+                    sigma = np.sum(layerThicknessFractions[0:nLayer]) + layerThicknessFractions[nLayer] / 2.0
+                    dataset.variables["temperature"][0,:,nLayer] = T_bed + (1.0 - sigma**4) * (T_top - T_bed)
             else:
                 # Make generic equally-spaced layers for albany and MPAS. This works
                 # even for unequally-spaced layers because this is a linear interpolation
@@ -283,6 +313,23 @@ for var_name in var_names:
                                 surfaceAirTemperature[tempInterpCells] + np.sum(dataset.variables["layerThicknessFractions"][0:nLayer+1]) * 268.15 
 
             print('\nTemperature interpolation complete')
+
+        # In MOLHO mode, interpolate velocity to all MPAS levels using sigma^4 profile
+        if molho_mode and var_name in ("uReconstructX", "uReconstructY"):
+            # albanyVelocity[:, 0] = u_top (extracted from Albany top interface)
+            # albanyVelocity[:, 1] = u_bed (extracted from Albany bottom interface)
+            # u(sigma) = u_bed + (1 - sigma^4) * (u_top - u_bed)
+            # where sigma is 0 at the top surface and 1 at the bed.
+            u_top = albanyVelocity[:, 0]
+            u_bed = albanyVelocity[:, 1]
+            nVertLevels = dataset.dimensions["nVertLevels"].size
+            nVertInterfaces = nVertLevels + 1
+            layerThicknessFractions = np.ma.filled(dataset.variables['layerThicknessFractions'][:])
+            print("MOLHO mode: interpolating {} using sigma^4 profile".format(var_name))
+            for iInterface in np.arange(0, nVertInterfaces):
+                # sigma at interface position (0 at top, 1 at bed)
+                sigma = np.sum(layerThicknessFractions[0:iInterface])
+                dataset.variables[var_name][0,:,iInterface] = u_bed + (1.0 - sigma**4) * (u_top - u_bed)
 
         # Extrapolate and smooth beta and stiffnessFactor fields
         if var_name in ["beta", "muFriction", "stiffnessFactor"]:
