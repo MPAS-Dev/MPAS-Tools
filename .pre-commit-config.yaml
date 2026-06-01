@@ -3,30 +3,30 @@ default_stages: [pre-commit]
 fail_fast: true
 
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
+-   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
+    -   id: trailing-whitespace
+    -   id: end-of-file-fixer
 
   # Can run individually with `flynt [file]` or `flynt [source]`
-  - repo: https://github.com/ikamensh/flynt
+-   repo: https://github.com/ikamensh/flynt
     rev: '1.0.6'
     hooks:
-      - id: flynt
+    -   id: flynt
         args: ["--fail-on-change", "--verbose"]
         require_serial: true
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.12
+-   repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.15
     hooks:
       # Sort the imports
-      - id: ruff-check
+    -   id: ruff-check
         name: ruff-sort-imports
         args: [--select, I, --fix]
       # Run the linter.
-      - id: ruff-check
+    -   id: ruff-check
         args: [--fix]
       # Run the formatter.
-      - id: ruff-format
+    -   id: ruff-format
 
