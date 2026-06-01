@@ -40,7 +40,9 @@ jobs:
           eval "$(micromamba shell hook --shell bash)"
           micromamba activate pre_commit_dev
           # permissions issue with gh 2.76.0
-          conda install -y pre-commit pre-commit-update "gh !=2.76.0"
+          micromamba install -y --override-channels -c conda-forge \
+            pre-commit "gh !=2.76.0"
+          python -m pip install pre-commit-update
           gh --version
 
       - name: Apply and commit updates
