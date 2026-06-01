@@ -39,7 +39,8 @@ jobs:
       - name: Install mpas_tools
         run: |
           git config --global url."https://github.com/".insteadOf "git@github.com:"
-          conda install -y --file conda_package/dev-spec.txt \
+          micromamba install -y --override-channels -c conda-forge \
+            --file conda_package/dev-spec.txt \
             python=${{ env.PYTHON_VERSION }}
           python -m pip install -vv --no-deps --no-build-isolation -e conda_package
 
