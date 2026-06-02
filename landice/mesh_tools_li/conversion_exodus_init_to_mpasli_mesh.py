@@ -190,6 +190,14 @@ for var_name in var_names:
             exo_var_name = candidate
             break
 
+    # In MOLHO mode, temperature is derived from enthalpy (solution_4) in the exo file
+    if molho_mode and var_name == "temperature":
+        if "solution_4" in exo.get_node_variable_names():
+            exo_var_name = "solution_4"
+            print("MOLHO mode: reading enthalpy (solution_4) from exo to derive temperature")
+        else:
+            sys.exit("ERROR: MOLHO mode requires 'solution_4' (enthalpy) in the exo file for temperature conversion.")
+
     if exo_var_name is not None and var_name in dataset.variables.keys():
         data_exo = np.array(exo.get_node_variable_values(exo_var_name,1))
 
@@ -278,20 +286,74 @@ for var_name in var_names:
         if var_name == "temperature":
             if molho_mode:
                 # In MOLHO mode, Albany has 2 temperature interfaces (top and bottom).
-                # Interpolate to MPAS vertical levels using:
-                #   T(sigma) = T_bed + (1 - sigma^4) * (T_top - T_bed)
+                # The sigma^4 profile applies to ENTHALPY, not temperature directly:
+                #   E(sigma) = E_bed + (E_top - E_bed) * (1 - sigma^4)
+                #   T_melt(sigma) = Tm - CCcoeff * ice_density * g * H * sigma
+                #   T(sigma) = min(1e6 / (ice_density * c_i) * E(sigma) + T0, T_melt(sigma))
                 # where sigma is 0 at the top surface and 1 at the bed.
                 # albanyTemperature[:, 0] = T_top (extracted from Albany top interface)
                 # albanyTemperature[:, 1] = T_bed (extracted from Albany bottom interface)
-                T_top = albanyTemperature[:, 0]
-                T_bed = albanyTemperature[:, 1]
+
+                # Physical constants (should match Albany input YAML "LandIce Physical Parameters")
+                c_i = 2009.0                      # "Heat capacity of ice" [J/(kg*K)]
+                g = 9.80616                       # "Gravity Acceleration" [m/s^2]
+                T0 = 265.0                        # "Reference Temperature" [K]
+                CCcoeff = 7.9e-08                 # "Clausius-Clapeyron Coefficient" [K/Pa]
+                Tm = 273.15                       # "Atmospheric Pressure Melting Temperature" [K]
+
+                # albanyTemperature here actually contains enthalpy values
+                # read directly from "solution_4" in the exo file
+                E_top = albanyTemperature[:, 0]
+                E_bed = albanyTemperature[:, 1]
+
+                # Get ice thickness in meters (from MPAS file)
+                H = dataset.variables['thickness'][0, :]
+
+                # Verify enthalpy-to-temperature conversion against Albany's temperature field
+                if "temperature" in exo.get_node_variable_names():
+                    data_temp_exo = np.array(exo.get_node_variable_values("temperature", 1))
+                    if ordering == 1.0:
+                        T_top_exo = data_temp_exo[1::int(stride)]  # Albany top interface
+                        T_bed_exo = data_temp_exo[0::int(stride)]  # Albany bottom interface
+                    elif ordering == 0.0:
+                        node_num_check = int(stride)
+                        T_bed_exo = data_temp_exo[0:node_num_check]
+                        T_top_exo = data_temp_exo[node_num_check:2*node_num_check]
+                    # Use Albany's thickness for pressure melting calculation (exo stores in km)
+                    if "ice_thickness" in exo.get_node_variable_names():
+                        data_thk_exo = np.array(exo.get_node_variable_values("ice_thickness", 1))
+                        if ordering == 1.0:
+                            H_albany = data_thk_exo[0::int(stride)] * 1000.0  # convert km to m; thickness same at all levels
+                        elif ordering == 0.0:
+                            H_albany = data_thk_exo[0:node_num_check] * 1000.0
+                    else:
+                        print("  WARNING: 'ice_thickness' not found in exo; using MPAS thickness for verification.")
+                        H_albany = H[cellID_array-1]
+                    # Compute T from E at top (sigma=0) and bed (sigma=1)
+                    T_from_E_top = np.minimum(1.0e6 / (ice_density * c_i) * E_top[cellID_array-1] + T0, Tm)
+                    T_melt_bed = Tm - CCcoeff * ice_density * g * H_albany * 1.0
+                    T_from_E_bed = np.minimum(1.0e6 / (ice_density * c_i) * E_bed[cellID_array-1] + T0, T_melt_bed)
+                    max_diff_top = np.max(np.abs(T_from_E_top - T_top_exo))
+                    max_diff_bed = np.max(np.abs(T_from_E_bed - T_bed_exo))
+                    print("  Verification: max |T_from_enthalpy - T_exo| at top = {:.6e} K".format(max_diff_top))
+                    print("  Verification: max |T_from_enthalpy - T_exo| at bed = {:.6e} K".format(max_diff_bed))
+                    if max_diff_top > 0.01 or max_diff_bed > 0.01:
+                        print("  WARNING: Enthalpy-derived temperature differs from Albany temperature by > 0.01 K.")
+                        print("           Check that physical constants match the Albany input YAML.")
+
                 nVertLevels = dataset.dimensions["nVertLevels"].size
                 layerThicknessFractions = np.ma.filled(dataset.variables['layerThicknessFractions'][:])
-                print("MOLHO mode: interpolating temperature using sigma^4 profile")
+                print("MOLHO mode: interpolating temperature via enthalpy sigma^4 profile")
                 for nLayer in np.arange(0, nVertLevels):
                     # sigma at layer midpoint
                     sigma = np.sum(layerThicknessFractions[0:nLayer]) + layerThicknessFractions[nLayer] / 2.0
-                    dataset.variables["temperature"][0,:,nLayer] = T_bed + (1.0 - sigma**4) * (T_top - T_bed)
+                    # Interpolate enthalpy
+                    E_sigma = E_bed[cellID_array-1] + (E_top[cellID_array-1] - E_bed[cellID_array-1]) * (1.0 - sigma**4)
+                    # Pressure melting temperature at this depth
+                    T_melt = Tm - CCcoeff * ice_density * g * H[cellID_array-1] * sigma
+                    # Convert enthalpy to temperature, capped at pressure melting point
+                    dataset.variables["temperature"][0,cellID_array-1,nLayer] = np.minimum(
+                        1.0e6 / (ice_density * c_i) * E_sigma + T0, T_melt)
             else:
                 # Make generic equally-spaced layers for albany and MPAS. This works
                 # even for unequally-spaced layers because this is a linear interpolation
