@@ -145,6 +145,7 @@ vars_not_converted = []
 
 # Loop through the variables, convert from Albany to MPAS, interpolate temperature
 # from Albany to MPAS vertical layers, extrapolate and smooth beta and stiffnessFactor
+extrapolation_pattern = None  # Cache for extrapolation pattern (cell order + neighbor info)
 for var_name in var_names:
     #set appropriate methods for smoothing and extrapolation
     if var_name == "beta":
@@ -280,56 +281,75 @@ for var_name in var_names:
 
             keepCellMask[varValue > 0.0] = 1 # Define region to keep as anywhere the optimization returned a value
 
-            keepCellMaskNew = np.copy(keepCellMask)  # make a copy to edit that will be used later
             keepCellMaskOrig = np.copy(keepCellMask)  # make a copy to edit that can be edited without changing the original
 
+            # Check if we can reuse a previously computed extrapolation pattern
+            if extrapolation_pattern is not None and np.array_equal(keepCellMask, extrapolation_pattern['mask']):
+                # Reuse cached pattern
+                print("\nStart {} extrapolation using {} method (using cached pattern)".format(var_name, extrapolation))
+                for cell_idx, neighbor_ids, idw_weights in extrapolation_pattern['steps']:
+                    var_adj = varValue[neighbor_ids]
+                    if extrapolation == 'idw':
+                        varValue[cell_idx] = np.sum(idw_weights * var_adj)
+                    elif extrapolation == 'min':
+                        varValue[cell_idx] = np.min(var_adj)
+                    else:
+                        sys.exit("ERROR: wrong extrapolation scheme! Set option x as idw or min!")
+                print("  Extrapolation complete ({} cells filled)".format(len(extrapolation_pattern['steps'])))
+            else:
+                # Compute extrapolation pattern from scratch and cache it
+                extrapolation_pattern = {'mask': np.copy(keepCellMask), 'steps': []}
+                keepCellMaskNew = np.copy(keepCellMask)
 
-            # recursive extrapolation steps:
-            # 1) find cell A with mask = 0
-            # 2) find how many surrounding cells have nonzero mask, and their indices (this will give us the cells from upstream)
-            # 3) use the values for nonzero mask upstream cells to extrapolate the value for cell A
-            # 4) change the mask for A from 0 to 1
-            # 5) Update mask
-            # 6) go to step 1)
+                # recursive extrapolation steps:
+                # 1) find cell A with mask = 0
+                # 2) find how many surrounding cells have nonzero mask, and their indices (this will give us the cells from upstream)
+                # 3) use the values for nonzero mask upstream cells to extrapolate the value for cell A
+                # 4) change the mask for A from 0 to 1
+                # 5) Update mask
+                # 6) go to step 1)
 
-            print("\nStart {} extrapolation using {} method".format(var_name, extrapolation))
-            while np.count_nonzero(keepCellMask) != nCells:
+                print("\nStart {} extrapolation using {} method".format(var_name, extrapolation))
+                while np.count_nonzero(keepCellMask) != nCells:
 
-                keepCellMask = np.copy(keepCellMaskNew)
-                searchCells = np.where(keepCellMask==0)[0]
-                varValueOld = np.copy(varValue)
+                    keepCellMask = np.copy(keepCellMaskNew)
+                    searchCells = np.where(keepCellMask==0)[0]
+                    varValueOld = np.copy(varValue)
 
-                for iCell in searchCells:
-                    neighborcellID = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
-                    neighborcellID = neighborcellID[neighborcellID>=0] # Important: ignore the phantom "neighbors" that are off the edge of the mesh (0 values in cellsOnCell)
+                    for iCell in searchCells:
+                        neighborcellID = cellsOnCell[iCell,:nEdgesOnCell[iCell]]-1
+                        neighborcellID = neighborcellID[neighborcellID>=0] # Important: ignore the phantom "neighbors" that are off the edge of the mesh (0 values in cellsOnCell)
 
-                    mask_for_idx = keepCellMask[neighborcellID] # active cell mask
-                    mask_nonzero_idx, = np.nonzero(mask_for_idx)
+                        mask_for_idx = keepCellMask[neighborcellID] # active cell mask
+                        mask_nonzero_idx, = np.nonzero(mask_for_idx)
 
-                    nonzero_id = neighborcellID[mask_nonzero_idx] # id for nonzero beta cells
-                    nonzero_num = np.count_nonzero(mask_for_idx)
+                        nonzero_id = neighborcellID[mask_nonzero_idx] # id for nonzero beta cells
+                        nonzero_num = np.count_nonzero(mask_for_idx)
 
-                    assert len(nonzero_id) == nonzero_num
+                        assert len(nonzero_id) == nonzero_num
 
-                    if nonzero_num > 0:
-                        x_i = xCell[iCell]
-                        y_i = yCell[iCell]
-                        x_adj = xCell[nonzero_id]
-                        y_adj = yCell[nonzero_id]
-                        var_adj = varValueOld[nonzero_id]
-                        if extrapolation == 'idw':
+                        if nonzero_num > 0:
+                            x_i = xCell[iCell]
+                            y_i = yCell[iCell]
+                            x_adj = xCell[nonzero_id]
+                            y_adj = yCell[nonzero_id]
+                            var_adj = varValueOld[nonzero_id]
                             ds = np.sqrt((x_i-x_adj)**2+(y_i-y_adj)**2)
                             assert np.count_nonzero(ds)==len(ds)
-                            var_interp = 1.0/sum(1.0/ds)*sum(1.0/ds*var_adj)
-                            varValue[iCell] = var_interp
-                        elif extrapolation == 'min':
-                            varValue[iCell] = np.min(var_adj)
-                        else:
-                            sys.exit("ERROR: wrong extrapolation scheme! Set option x as idw or min!")
+                            idw_weights = (1.0 / ds) / np.sum(1.0 / ds)
+                            # Cache step: cell index, neighbor IDs, and IDW weights
+                            extrapolation_pattern['steps'].append((iCell, nonzero_id.copy(), idw_weights))
+                            if extrapolation == 'idw':
+                                varValue[iCell] = np.sum(idw_weights * var_adj)
+                            elif extrapolation == 'min':
+                                varValue[iCell] = np.min(var_adj)
+                            else:
+                                sys.exit("ERROR: wrong extrapolation scheme! Set option x as idw or min!")
 
-                        keepCellMaskNew[iCell] = 1
+                            keepCellMaskNew[iCell] = 1
 
-                print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+                    print ("{0:8d} cells left for extrapolation in total {1:8d} cells".format(nCells-np.count_nonzero(keepCellMask),  nCells))
+
             dataset.variables[var_name][0,:] = varValue # Put updated array back into file.
 
             # Smoothing
