@@ -2,7 +2,7 @@
 
 """
 This script processes MALI simulation outputs (both state and flux)
-in the required format by the ISMIP6 experimental protocol.
+in the required format by the ISMIP7 experimental protocol.
 The input state files (i.e., output files from MALI) need to have been
 concatenated to have yearly data, which can be done using 'ncrcat' command
 before using this script.
@@ -14,20 +14,20 @@ import os
 import shutil
 import numpy as np
 from netCDF4 import Dataset
-from create_mapfile_mali_to_ismip6 import build_mapping_file
-from process_state_variables import generate_output_2d_state_vars, \
+from create_mapfile_mali_to_ismip7 import build_mapping_file
+from process_state_variables_ismip7 import generate_output_2d_state_vars, \
      process_state_vars, generate_output_1d_vars
-from process_flux_variables import generate_output_2d_flux_vars, \
+from process_flux_variables_ismip7 import generate_output_2d_flux_vars, \
      do_time_avg_flux_vars, clean_flux_fields_before_time_averaging
 
 
 def main():
     parser = argparse.ArgumentParser(
-                        description='process MALI outputs for the ISMIP6'
+                        description='process MALI outputs for the ISMIP7'
                                     'submission')
     parser.add_argument("-e", "--exp_name", dest="exp",
                         required=True,
-                        help="ISMIP6 experiment name (e.g., exp05")
+                        help="ISMIP7 experiment name (e.g., exp05")
     parser.add_argument("-i_state", "--input_state", dest="input_file_state",
                         required=False, help="mpas output state variables")
     parser.add_argument("-i_flux", "--input_flux", dest="input_file_flux",
@@ -45,32 +45,32 @@ def main():
                         help="mali mesh name (e.g., AIS_8to30km)")
     parser.add_argument("--mapping_file", dest="mapping_file",
                         required=False,
-                        help="mapping file name from MALI mesh to ISMIP6 grid")
-    parser.add_argument("--ismip6_grid_file", dest="ismip6_grid_file",
+                        help="mapping file name from MALI mesh to ISMIP7 grid")
+    parser.add_argument("--ismip7_grid_file", dest="ismip7_grid_file",
                         required=True,
-                        help="Input ismip6 mesh file.")
+                        help="Input ismip7 mesh file.")
     parser.add_argument("--method", dest="method_remap", default="conserve",
                         required=False,
                         help="mapping method. Default='conserve'")
-    parser.add_argument("--res", dest="res_ismip6_grid",
+    parser.add_argument("--res", dest="res_ismip7_grid",
                         required=True,
-                        help="resolution of the ismip6 grid, (e.g. 8 for 8km res)")
+                        help="resolution of the ismip7 grid, (e.g. 8 for 8km res)")
     args = parser.parse_args()
 
-    print("\n---Checking the coordinate variables of the ismip6 grid file---")
-    data_ismip6 = Dataset(args.ismip6_grid_file, "r")
-    if 'x' and 'y' in data_ismip6.variables:
-        ismip6_grid_file = args.ismip6_grid_file
+    print("\n---Checking the coordinate variables of the ismip7 grid file---")
+    data_ismip7 = Dataset(args.ismip7_grid_file, "r")
+    if 'x' and 'y' in data_ismip7.variables:
+        ismip7_grid_file = args.ismip7_grid_file
         print("'x' and 'y' coordinates exist in the file.")
     else:
         print("'x' and 'y' coordinates don't exist in the file.")
-        print("Creating them and a copy file of the ismip6 grid file...")
-        copy_ismip6_file = f"temp_{os.path.basename(args.ismip6_grid_file)}"
-        shutil.copy2(args.ismip6_grid_file, copy_ismip6_file)
-        copy_ismip6_file = Dataset(copy_ismip6_file, "r+", format="netCDF4")
-        nx = data_ismip6.dimensions["x"].size
-        ny = data_ismip6.dimensions["y"].size
-        dx = int(args.res_ismip6_grid)*1000
+        print("Creating them and a copy file of the ismip7 grid file...")
+        copy_ismip7_file = f"temp_{os.path.basename(args.ismip7_grid_file)}"
+        shutil.copy2(args.ismip7_grid_file, copy_ismip7_file)
+        copy_ismip7_file = Dataset(copy_ismip7_file, "r+", format="netCDF4")
+        nx = data_ismip7.dimensions["x"].size
+        ny = data_ismip7.dimensions["y"].size
+        dx = int(args.res_ismip7_grid)*1000
         dy = dx
         if (nx % 2) == 0:
             var_x = dx*((np.arange(-nx/2, nx/2)) + 0.5)
@@ -79,8 +79,8 @@ def main():
             var_x = dx*((np.arange(-(nx-1)/2, (nx+1)/2)))
             var_y = dy*((np.arange(-(ny-1)/2, (ny+1)/2)))
 
-        x = copy_ismip6_file.createVariable("x", "d", ("x"))
-        y = copy_ismip6_file.createVariable("y", "d", ("y"))
+        x = copy_ismip7_file.createVariable("x", "d", ("x"))
+        y = copy_ismip7_file.createVariable("y", "d", ("y"))
 
         for i in range(nx):
             x[i] = var_x[i]
@@ -92,15 +92,15 @@ def main():
         y.units = 'm'
         y.standard_name = 'y'
 
-        copy_ismip6_file.close()
-        ismip6_grid_file = f"temp_{os.path.basename(args.ismip6_grid_file)}"
-        temp_ismip6_grid_file = True
+        copy_ismip7_file.close()
+        ismip7_grid_file = f"temp_{os.path.basename(args.ismip7_grid_file)}"
+        temp_ismip7_grid_file = True
 
-    # check the lower left and upper right corners of the ismip6 grid
+    # check the lower left and upper right corners of the ismip7 grid
     print("Checking the grid corners...")
-    data_ismip6 = Dataset(ismip6_grid_file, "r")
-    x = data_ismip6.variables["x"]
-    y = data_ismip6.variables["y"]
+    data_ismip7 = Dataset(ismip7_grid_file, "r")
+    x = data_ismip7.variables["x"]
+    y = data_ismip7.variables["y"]
     if not x[0] == -3040000 or not y[0] == -3040000:
         raise ValueError(f"The lower left corner values must be at "
                          f"-3040000m and -3040000m. But the values are at "
@@ -114,7 +114,7 @@ def main():
                          f"provided for '--res' matches with the resolution of "
                          f"the MALI output files. ")
     else:
-        print(f"Grid corners are as ismip6-required: "
+        print(f"Grid corners are as ismip7-required: "
               f"lower right corner values at {x[0]}m and {y[0]}m, and "
               f"upper right corner values at {x[-1]}m and {y[-1]}m")
 
@@ -134,13 +134,13 @@ def main():
                 method_remap = args.method_remap
 
             mapping_file = f"map_{args.mali_mesh_name}_to_"\
-                           f"ismip6_{args.res_ismip6_grid}km_{method_remap}.nc"
+                           f"ismip7_{args.res_ismip7_grid}km_{method_remap}.nc"
 
             print(f"Creating new mapping file."
                   f"Mapping method used: {method_remap}")
 
             build_mapping_file(args.input_file_grid, mapping_file,
-                               args.res_ismip6_grid, ismip6_grid_file,
+                               args.res_ismip7_grid, ismip7_grid_file,
                                method_remap)
 
     print("---Processing remapping file complete---\n")
@@ -159,12 +159,12 @@ def main():
     else:
         print("\n---Processing state file---")
         # state variables processing part
-        # process (add and rename) state vars as requested by the ISMIP6 protocol
+        # process (add and rename) state vars as requested by the ISMIP7 protocol
         print("Calculating needed state file adjustments.")
         tmp_file = "tmp_state.nc"
         process_state_vars(args.input_file_state, tmp_file)
 
-        # remap data from the MALI unstructured mesh to the ISMIP6 polarstereo grid
+        # remap data from the MALI unstructured mesh to the ISMIP7 polarstereo grid
         processed_and_remapped_file_state = f'processed_and_remapped_' \
                                f'{os.path.basename(args.input_file_state)}'
 
@@ -176,10 +176,10 @@ def main():
                    "-P", "mpas"]
         check_call(command)
 
-        # write out 2D state output files in the ismip6-required format
-        print("Writing processed and remapped state fields to ISMIP6 file format.")
+        # write out 2D state output files in the ismip7-required format
+        print("Writing processed and remapped state fields to ISMIP7 file format.")
         generate_output_2d_state_vars(processed_and_remapped_file_state,
-                                      ismip6_grid_file,
+                                      ismip7_grid_file,
                                       args.exp, output_path)
 
         os.remove(tmp_file)
@@ -208,7 +208,7 @@ def main():
         tmp_file1 = "flux_time_avg.nc"
         do_time_avg_flux_vars(tmp_file_translate, tmp_file1)
 
-        # remap data from the MALI unstructured mesh to the ISMIP6 P-S grid
+        # remap data from the MALI unstructured mesh to the ISMIP7 P-S grid
         processed_file_flux = f'processed_' \
                               f'{os.path.basename(args.input_file_flux)}'
         command = ["ncremap",
@@ -218,9 +218,9 @@ def main():
                    "-P", "mpas"]
         check_call(command)
 
-        # write out the output files in the ismip6-required format
+        # write out the output files in the ismip7-required format
         generate_output_2d_flux_vars(processed_file_flux,
-                                     ismip6_grid_file,
+                                     ismip7_grid_file,
                                      args.exp, output_path)
 
         cleanUp = True
@@ -228,8 +228,8 @@ def main():
             os.remove(tmp_file_translate)
             os.remove(tmp_file1)
             os.remove(processed_file_flux)
-            if temp_ismip6_grid_file:
-                os.remove(ismip6_grid_file)
+            if temp_ismip7_grid_file:
+                os.remove(ismip7_grid_file)
         print("---Processing flux file complete---\n")
     print("---All processing complete---")
 

@@ -1,6 +1,6 @@
 """
 This script has functions that are needed to post-process and write state
-output variables from ISMIP6 simulations.
+output variables from ISMIP7 simulations.
 The input files (i.e., MALI output files) need to have been
 concatenated to have yearly data, which can be done using 'ncrcat' command
 before using this script.
@@ -58,24 +58,24 @@ def process_state_vars(inputfile_state, tmp_file):
     inputfile_state_vars.close()
 
 
-def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
+def write_netcdf_2d_state_vars(mali_var_name, ismip7_var_name, var_std_name,
                                var_units, var_varname, remapped_mali_outputfile,
-                               ismip6_grid_file, exp, output_path):
+                               ismip7_grid_file, exp, output_path):
     """
     mali_var_name: variable name on MALI side
-    ismip6_var_name: variable name required by ISMIP6
+    ismip7_var_name: variable name required by ISMIP7
     var_std_name: standard variable name
     var_units: variable units
     var_varname: variable variable name
-    remapped_mali_outputfile: mali state file remapped on the ISMIP6 grid
-    ismip6_grid_file: original ISMIP6 file
+    remapped_mali_outputfile: mali state file remapped on the ISMIP7 grid
+    ismip7_grid_file: original ISMIP7 file
     exp: experiment name
     output_path: output path to which the output files will be saved
     """
 
-    data_ismip6 = Dataset(ismip6_grid_file, 'r')
-    var_x = data_ismip6.variables['x'][:]
-    var_y = data_ismip6.variables['y'][:]
+    data_ismip7 = Dataset(ismip7_grid_file, 'r')
+    var_x = data_ismip7.variables['x'][:]
+    var_y = data_ismip7.variables['y'][:]
 
     data = Dataset(remapped_mali_outputfile, 'r')
     data.set_auto_mask(False)
@@ -89,12 +89,12 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
     timeSteps, latN, lonN = np.shape(var_mali)
 
-    dataOut = Dataset(f'{output_path}/{ismip6_var_name}_AIS_DOE_MALI_{exp}.nc',
+    dataOut = Dataset(f'{output_path}/{ismip7_var_name}_AIS_DOE_MALI_{exp}.nc',
                       'w', format='NETCDF4_CLASSIC')
     dataOut.createDimension('time', timeSteps)
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)
-    dataValues = dataOut.createVariable(ismip6_var_name, 'd',
+    dataValues = dataOut.createVariable(ismip7_var_name, 'd',
                                        ('time', 'y', 'x'), fill_value=np.NAN)
     xValues = dataOut.createVariable('x', 'd', ('x'))
     yValues = dataOut.createVariable('y', 'd', ('y'))
@@ -104,14 +104,14 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
     DATE_STR = date.today().strftime("%d-%b-%Y")
 
     for i in range(timeSteps):
-        if ismip6_var_name == 'sftgif':
+        if ismip7_var_name == 'sftgif':
             dataValues[i, :, :] = var_mali[i, :, :]
         else:
-            if ismip6_var_name == 'litempbotgr':
+            if ismip7_var_name == 'litempbotgr':
                 mask = var_sftgrf[i, :, :]
-            elif ismip6_var_name == 'litempbotfl':
+            elif ismip7_var_name == 'litempbotfl':
                 mask = var_sftflf[i, :, :]
-            elif ismip6_var_name == 'topg':
+            elif ismip7_var_name == 'topg':
                 mask = np.ones(var_mali.shape[1:])  # don't mask topg
             else:
                 mask = var_sftgif[i, :, :]
@@ -146,12 +146,12 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip6_var_name, var_std_name,
 
 
 def generate_output_2d_state_vars(file_remapped_mali_state,
-                                  ismip6_grid_file, exp, output_path):
+                                  ismip7_grid_file, exp, output_path):
     """
     file_remapped_mali_state: output files on mali mesh remapped
-    on the ismip6 grid
-    ismip6_grid_file: ismip6 original file
-    exp: ISMIP6 experiment name
+    on the ismip7 grid
+    ismip7_grid_file: ismip7 original file
+    exp: ISMIP7 experiment name
     output_path: path to which the final output files are saved
     """
 
@@ -160,25 +160,25 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
     write_netcdf_2d_state_vars('thickness','lithk', 'land_ice_thickness',
                                'm', 'Ice thickness',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- orog ------------------
     write_netcdf_2d_state_vars('upperSurface','orog', 'surface_altitude', 'm',
                                'Surface elevation',
                                file_remapped_mali_state,
-                               ismip6_grid_file,exp, output_path)
+                               ismip7_grid_file,exp, output_path)
 
     # ----------- base ------------------
     write_netcdf_2d_state_vars('lowerSurface','base', 'base_altitude', 'm',
                                'Base elevation',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- topg ------------------
     write_netcdf_2d_state_vars('bedTopography','topg', 'bedrock_altitude', 'm',
                                'Bedrock elevation',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- hfgeoubed------------------
     # Note: even though this is a flux variable, we are taking a snapshot of it
@@ -186,7 +186,7 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
     # write_netcdf_2d_state_vars('basalHeatFlux', 'hfgeoubed',
     #                            'upward_geothermal_heat_flux_in_land_ice',
     #                            'W m-2', 'Geothermal heat flux',
-    #                            file_remapped_mali_state, ismip6_grid_file,
+    #                            file_remapped_mali_state, ismip7_grid_file,
     #                            exp, output_path)
 
     # ----------- xvelsurf ------------------
@@ -194,31 +194,31 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'land_ice_surface_x_velocity',
                                'm s-1', 'Surface velocity in x',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # -----------yxvelsurf ------------------
     write_netcdf_2d_state_vars('uReconstructY_sfc', 'yvelsurf',
                                'land_ice_surface_y_velocity',
                                'm s-1', 'Surface velocity in x',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- xvelbase ------------------
     write_netcdf_2d_state_vars('uReconstructX_base', 'xvelbase',
                                'land_ice_basal_x_velocity',
                                'm s-1', 'Basal velocity in x',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- yvelbase ------------------
     write_netcdf_2d_state_vars('uReconstructY_base', 'yvelbase',
                                'land_ice_basal_y_velocity',
                                'm s-1', 'Basal velocity in y',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- zvelsurf & zvelbase ------------------
-        # ISMIP6 requires these variables, but MALI does not output them.
+        # ISMIP7 requires these variables, but MALI does not output them.
         # So, we are not processing/writing these variables out.
 
     # ----------- xvelmean ------------------
@@ -226,70 +226,70 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
                                'land_ice_vertical_mean_x_velocity',
                                'm s-1', 'Mean velocity in x',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- yvelmean ------------------
     write_netcdf_2d_state_vars('yvelmean', 'yvelmean',
                                'land_ice_vertical_mean_y_velocity',
                                'm s-1', 'Mean velocity in y',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- litemptop ------------------
     write_netcdf_2d_state_vars('surfaceTemperature', 'litemptop',
                                'temperature_at_top_of_ice_sheet_model', 'K',
                                'Surface temperature',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- litempbotgr ------------------
     write_netcdf_2d_state_vars('litempbotgr', 'litempbotgr',
                                'temperature_at_base_of_ice_sheet_model', 'K',
                                'Basal temperature beneath grounded ice sheet',
                                file_remapped_mali_state,
-                               ismip6_grid_file,exp, output_path)
+                               ismip7_grid_file,exp, output_path)
 
     # ----------- litempbotfl ------------------
     write_netcdf_2d_state_vars('litempbotfl', 'litempbotfl',
                                'temperature_at_base_of_ice_sheet_model', 'K',
                                'Basal temperature beneath floating ice shelf',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- strbasemag ------------------
     write_netcdf_2d_state_vars('strbasemag', 'strbasemag',
                                'land_ice_basal_drag ', 'Pa',
                                'Basal drag',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- sftgif ------------------
     write_netcdf_2d_state_vars('sftgif','sftgif',
                                'land_ice_area_fraction', '1',
                                'Land ice area fraction',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- sftgrf ------------------
     write_netcdf_2d_state_vars('sftgrf', 'sftgrf',
                                'grounded_ice_sheet_area_fraction', '1',
                                'Grounded ice sheet area fraction',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
     # ----------- sftflf ------------------
     write_netcdf_2d_state_vars('sftflf','sftflf',
                                'floating_ice_shelf_area_fraction', '1',
                                'Floating ice shelf area fraction',
                                file_remapped_mali_state,
-                               ismip6_grid_file, exp, output_path)
+                               ismip7_grid_file, exp, output_path)
 
 
 def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     """
     This code processes both state and flux 1D variables
     global_stats_file: MALI globalStats.nc output file
-    exp: ISMIP6 experiment number
+    exp: ISMIP7 experiment number
     output_path:
     """
 
@@ -325,7 +325,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     # For flux fields, the years is the calendar year being averaged over,
     # e.g., flux year 2000 is the average between Jan. 1, 2000, and Jan. 1, 2001.
     # Note this year convention differs from the first column in table in A2.3.2 at
-    # https://www.climate-cryosphere.org/wiki/index.php?title=ISMIP6-Projections2300-Antarctica#A2.3.3_Table_A1:_Variable_request_for_ISMIP6
+    # https://www.climate-cryosphere.org/wiki/index.php?title=ISMIP7-Projections2300-Antarctica#A2.3.3_Table_A1:_Variable_request_for_ISMIP6
     # but that year indexing convention ultimately doesn't matter because the
     # time coordinates in these files uses units of days since a reference date,
     # and it does not use a year indexing convention at all.

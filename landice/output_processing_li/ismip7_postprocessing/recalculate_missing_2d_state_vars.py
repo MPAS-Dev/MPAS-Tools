@@ -15,7 +15,7 @@ import numpy as np
 
 def main():
     parser = argparse.ArgumentParser(
-                        description='process MALI outputs for the ISMIP6'
+                        description='process MALI outputs for the ISMIP7'
                                     'submission')
     parser.add_argument("-f", "--file", dest="file_in",
                         required=True,

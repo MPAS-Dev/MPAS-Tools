@@ -5,13 +5,13 @@ import netCDF4
 import xarray as xr
 
 def build_mapping_file(mali_mesh_file,
-                       mapping_file, res_ismip6_grid,
-                       ismip6_grid_file=None,
+                       mapping_file, res_ismip7_grid,
+                       ismip7_grid_file=None,
                        method_remap=None):
     """
     Build a mapping file if it does not exist.
     Mapping file is then used to remap the MALI source file to the
-    ISMIP6 ppolarstero grid
+    ISMIP7 ppolarstero grid
 
     Parameters
     ----------
@@ -20,13 +20,13 @@ def build_mapping_file(mali_mesh_file,
         mali file
 
     mapping_file : str
-        weights for interpolation from mali_mesh_file to ismip6_grid_file
+        weights for interpolation from mali_mesh_file to ismip7_grid_file
 
-    res_ismip6_grid: str
-        resolution of the ismip6 grid in kilometers
+    res_ismip7_grid: str
+        resolution of the ismip7 grid in kilometers
 
-    ismip6_grid_file : str, optional
-        The ISMIP6 file if mapping file does not exist
+    ismip7_grid_file : str, optional
+        The ISMIP7 file if mapping file does not exist
 
     method_remap : str, optional
         Remapping method used in building a mapping file
@@ -36,30 +36,30 @@ def build_mapping_file(mali_mesh_file,
         print(f"Mapping file exists. Not building a new one.")
         return
 
-    if ismip6_grid_file is None:
-        raise ValueError("Mapping file does not exist. To build one, ISMIP6 "
+    if ismip7_grid_file is None:
+        raise ValueError("Mapping file does not exist. To build one, ISMIP7 "
                          "grid file with '-f' should be provided. "
                          "Type --help for info")
 
     if method_remap is None:
         method_remap = "conserve"
 
-    ismip6_scripfile = f"temp_ismip6_{res_ismip6_grid}km_scrip.nc"
+    ismip7_scripfile = f"temp_ismip7_{res_ismip7_grid}km_scrip.nc"
     mali_scripfile = "temp_mali_scrip.nc"
-    ismip6_projection = "ais-bedmap2"
+    ismip7_projection = "ais-bedmap2"
 
-    # create the ismip6 scripfile if mapping file does not exist
-    # this is the projection of ismip6 data for Antarctica
+    # create the ismip7 scripfile if mapping file does not exist
+    # this is the projection of ismip7 data for Antarctica
     print(f"Mapping file does not exist. Building one based on "
           f"the input/ouptut meshes")
     print(f"Creating temporary scripfiles "
-          f"for ismip6 grid and mali mesh...")
+          f"for ismip7 grid and mali mesh...")
 
-    # create a scripfile for ismip6 grid
+    # create a scripfile for ismip7 grid
     args = ["create_SCRIP_file_from_planar_rectangular_grid.py",
-            "--input", ismip6_grid_file,
-            "--scrip", ismip6_scripfile,
-            "--proj", ismip6_projection,
+            "--input", ismip7_grid_file,
+            "--scrip", ismip7_scripfile,
+            "--proj", ismip7_projection,
             "--rank", "2"]
 
     check_call(args)
@@ -82,7 +82,7 @@ def build_mapping_file(mali_mesh_file,
     if hostname.startswith('nid'):
         args = (["srun", "-n", "12", "ESMF_RegridWeightGen",
              "-s", mali_scripfile,
-             "-d", ismip6_scripfile,
+             "-d", ismip7_scripfile,
              "-w", mapping_file,
              "-m", method_remap,
              "-i", "-64bit_offset",
@@ -90,7 +90,7 @@ def build_mapping_file(mali_mesh_file,
     else:
         args = (["ESMF_RegridWeightGen",
              "-s", mali_scripfile,
-             "-d", ismip6_scripfile,
+             "-d", ismip7_scripfile,
              "-w", mapping_file,
              "-m", method_remap,
              "-i", "-64bit_offset",
@@ -100,5 +100,5 @@ def build_mapping_file(mali_mesh_file,
 
     # remove the temporary scripfiles once the mapping file is generated
     print(f"Removing the temporary mesh and scripfiles...")
-    os.remove(ismip6_scripfile)
+    os.remove(ismip7_scripfile)
     os.remove(mali_scripfile)
