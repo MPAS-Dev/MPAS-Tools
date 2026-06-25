@@ -17,9 +17,7 @@ from netCDF4 import Dataset
 from create_mapfile_mali_to_ismip7 import build_mapping_file
 from process_state_variables_ismip7 import generate_output_2d_state_vars, \
      process_state_vars, generate_output_1d_vars
-from process_flux_variables_ismip7 import generate_output_2d_flux_vars, \
-     do_time_avg_flux_vars, clean_flux_fields_before_time_averaging
-
+from process_flux_variables_ismip7 import generate_output_2d_flux_vars
 
 def main():
     parser = argparse.ArgumentParser(
@@ -201,18 +199,11 @@ def main():
     else:
         print("\n---Processing flux file---")
 
-        print("Adjusting flux fields that need modification before time averaging.")
-        tmp_file_translate = "flux_translated.nc"
-        clean_flux_fields_before_time_averaging(args.input_file_flux, args.input_file_grid, tmp_file_translate)
-        # take time (yearly) average for the flux variables
-        tmp_file1 = "flux_time_avg.nc"
-        do_time_avg_flux_vars(tmp_file_translate, tmp_file1)
-
         # remap data from the MALI unstructured mesh to the ISMIP7 P-S grid
         processed_file_flux = f'processed_' \
                               f'{os.path.basename(args.input_file_flux)}'
         command = ["ncremap",
-                   "-i", tmp_file1,
+                   "-i", args.input_file_flux,
                    "-o", processed_file_flux,
                    "-m", mapping_file,
                    "-P", "mpas"]
@@ -225,8 +216,6 @@ def main():
 
         cleanUp = True
         if cleanUp:
-            os.remove(tmp_file_translate)
-            os.remove(tmp_file1)
             os.remove(processed_file_flux)
             if temp_ismip7_grid_file:
                 os.remove(ismip7_grid_file)

@@ -462,14 +462,14 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
 
     print("Writing 2d flux variables")
     # ----------- acabf ------------------
-    write_netcdf_2d_flux_vars('sfcMassBalApplied', 'acabf',
+    write_netcdf_2d_flux_vars('avgSMBFlux', 'acabf',
                               'land_ice_surface_specific_mass_balance_flux',
                               'kg m-2 s-1', 'Surface mass balance flux',
                               file_remapped_mali_flux,
                               ismip7_grid_file, exp, output_path)
 
     # ----------- libmassbffl ------------------
-    write_netcdf_2d_flux_vars('libmassbffl', 'libmassbffl',
+    write_netcdf_2d_flux_vars('avgFloatingBMBFlux', 'libmassbffl',
                               'land_ice_basal_specific_mass_balance_flux',
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath floating ice',
@@ -477,7 +477,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               ismip7_grid_file, exp, output_path)
 
     # ----------- libmassbfgr ------------------
-    write_netcdf_2d_flux_vars('libmassbfgr', 'libmassbfgr',
+    write_netcdf_2d_flux_vars('avgGroundedBMBFlux', 'libmassbfgr',
                               'land_ice_basal_specific_mass_balance_flux',
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath grounded ice',
@@ -485,7 +485,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               ismip7_grid_file, exp, output_path)
 
     # ----------- dlithkdt ------------------
-    write_netcdf_2d_flux_vars('dHdt', 'dlithkdt',
+    write_netcdf_2d_flux_vars('avgDhdt', 'dlithkdt',
                               'tendency_of_land_ice_thickness',
                               'm s-1',
                               'Ice thickness imbalance',
@@ -493,7 +493,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               ismip7_grid_file, exp, output_path)
 
     # ----------- licalvf ------------------
-    write_netcdf_2d_flux_vars('calvingFlux', 'licalvf',
+    write_netcdf_2d_flux_vars('avgCalvingFlux', 'licalvf',
                               'land_ice_specific_mass_flux_due_to_calving',
                               'kg m-2 s-1',
                               'Calving flux',
@@ -502,16 +502,16 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
 
     # ----------- lifmassbf ------------------
     # Note: facemelting and calving flux are combined above
-    write_netcdf_2d_flux_vars('faceMeltAndCalvingFlux', 'lifmassbf',
-                              'land_ice_specific_mass_flux_due_to_calving_and_ice_front_melting',
+    write_netcdf_2d_flux_vars('avgFaceMeltFlux', 'lifmassbf',
+                              'TBD by ISMIP7',
                               'kg m-2 s-1',
-                              'Ice front melt and calving flux',
+                              'Ice front melt flux',
                               file_remapped_mali_flux,
                               ismip7_grid_file, exp, output_path)
 
     # ----------- ligroundf ------------------
-    write_netcdf_2d_flux_vars('fluxAcrossGroundingLineOnCells', 'ligroundf',
-                              'land_ice_specific_mass_flux_at_grounding_line',
+    write_netcdf_2d_flux_vars('avgGroundingLineFlux', 'ligroundf',
+                              'TBD by ISMIP7',
                               'kg m-2 s-1',
                               'Grounding line flux',
                               file_remapped_mali_flux,
