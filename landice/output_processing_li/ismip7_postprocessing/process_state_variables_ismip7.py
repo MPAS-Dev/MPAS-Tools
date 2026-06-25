@@ -359,16 +359,16 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
 
     # read in flux variables over which yearly average will be taken
     smb = data.variables['totalSfcMassBal'][:]
-    bmb = data.variables['totalBasalMassBal'][:]
+    bmbGr = data.variables['totalGroundedBasalMassBal'][:]
     # clean out some garbage values we can't account for
-    ind = np.nonzero(bmb>1.0e18)[0]
+    ind = np.nonzero(bmbGr > 1.0e18)[0]
     if len(ind) > 0:
-        print(f"WARNING: Found {len(ind)} values of totalBasalMassBal>1.0e18")
-        bmb[ind] = np.nan
-    ind = np.nonzero(bmb<-1.0e18)[0]
+        print(f"WARNING: Found {len(ind)} values of totalGroundedBasalMassBal>1.0e18")
+        bmbGr[ind] = np.nan
+    ind = np.nonzero(bmbGr < -1.0e18)[0]
     if len(ind) > 0:
-        print(f"WARNING: Found {len(ind)} values of totalBasalMassBal<-1.0e18")
-        bmb[ind] = np.nan
+        print(f"WARNING: Found {len(ind)} values of totalGroundedBasalMassBal<-1.0e18")
+        bmbGr[ind] = np.nan
     bmbFlt = data.variables['totalFloatingBasalMassBal'][:]
     # clean out some garbage values we can't account for
     ind = np.nonzero(bmbFlt>1.0e18)[0]
@@ -391,10 +391,10 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     fia_snapshot = np.zeros(nt_state) * np.nan
     days_snapshot = np.zeros(nt_state) * np.nan
     smb_avg = np.zeros(nt_flux) * np.nan
-    bmb_avg = np.zeros(nt_flux) * np.nan
+    bmbGr_avg = np.zeros(nt_flux) * np.nan
     bmbFlt_avg = np.zeros(nt_flux) * np.nan
     cfx_avg = np.zeros(nt_flux) * np.nan
-    cfmfx_avg = np.zeros(nt_flux) * np.nan
+    fmfx_avg = np.zeros(nt_flux) * np.nan
     gfx_avg = np.zeros(nt_flux) * np.nan
     days_min = np.zeros(nt_flux) * np.nan
     days_max = np.zeros(nt_flux) * np.nan
@@ -417,19 +417,19 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
         ind_avg = np.where(np.logical_and(decYears > years_flux[i],
                                           decYears <= (years_flux[i] + 1.0)))[0]
         smbi = smb[ind_avg]
-        bmbi = bmb[ind_avg]
+        bmbGri = bmbGr[ind_avg]
         bmbFlti = bmbFlt[ind_avg]
         cfxi = cfx[ind_avg]
-        cfmfxi = cfx[ind_avg] + fmfx[ind_avg]
+        fmfxi = fmfx[ind_avg]
         gfxi = gfx[ind_avg]
         dti  = dt[ind_avg]
 
         # take the average of the flux variables
         smb_avg[i] = np.nansum(smbi * dti) / np.nansum(dti)
-        bmb_avg[i] = np.nansum(bmbi * dti) / np.nansum(dti)
+        bmbGr_avg[i] = np.nansum(bmbGri * dti) / np.nansum(dti)
         bmbFlt_avg[i] = np.nansum(bmbFlti * dti) / np.nansum(dti)
         cfx_avg[i] = np.nansum(cfxi * dti) / np.nansum(dti)
-        cfmfx_avg[i] = np.nansum(cfmfxi * dti) / np.nansum(dti)
+        fmfx_avg[i] = np.nansum(fmfxi * dti) / np.nansum(dti)
         gfx_avg[i] = np.nansum(gfxi * dti) / np.nansum(dti)
         days_min[i] = (years_flux[i] - refYear) * 365.0
         days_max[i] = (years_flux[i] + 1.0 - refYear) * 365.0
@@ -546,15 +546,15 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     data_scalar.DATE = DATE_STR
     data_scalar.close()
 
-    # -------------- tendlibmassbf: this is a flux var
-    data_scalar = Dataset(f'{output_path}/tendlibmassbf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
+    # -------------- tendlibmassbfgr: this is a flux var
+    data_scalar = Dataset(f'{output_path}/tendlibmassbfgr_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', nt_flux)
-    tendlibmassbfValues = data_scalar.createVariable('tendlibmassbf', 'd', ('time'))
+    tendlibmassbfgrValues = data_scalar.createVariable('tendlibmassbfgr', 'd', ('time'))
     timeValues = data_scalar.createVariable('time', 'd', ('time'))
     data_scalar.createDimension('bnds', 2)
     timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
     for i in range(nt_flux):
-        tendlibmassbfValues[i] = bmb_avg[i] / 31536000
+        tendlibmassbfgrValues[i] = bmbGr_avg[i] / 31536000.0
         timeValues[i] = (days_min[i] + days_max[i]) / 2.0
         timebndsValues[i, 0] = days_min[i]
         timebndsValues[i, 1] = days_max[i]
@@ -562,12 +562,12 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timeValues.calendar = 'noleap'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
-    tendlibmassbfValues.standard_name = 'tendency_of_land_ice_mass_due_to_basal_mass_balance '
-    tendlibmassbfValues.units = 'kg s-1'
+    tendlibmassbfgrValues.standard_name = 'tendency_of_land_ice_mass_due_to_basal_mass_balance'
+    tendlibmassbfgrValues.units = 'kg s-1'
     data_scalar.AUTHORS= AUTHOR_STR
     data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
     data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Total BMB flux'
+    data_scalar.VARIABLE = 'Total BMB flux beneath grounded ice'
     data_scalar.DATE = DATE_STR
     data_scalar.close()
 
@@ -623,14 +623,16 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     data_scalar.close()
 
     # -------------- tendlifmassbf: this is a flux var
+    # In ISMIP6, this variable used to be 'Total calving and ice front melting flux'
+    # In ISMIP7, it represents 'Total ice front melting flux' only, without calving flux
     data_scalar = Dataset(f'{output_path}/tendlifmassbf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
     data_scalar.createDimension('time', nt_flux)
-    tendlicalvfValues = data_scalar.createVariable('tendlifmassbf', 'd', ('time'))
+    tendlifmassbfValues = data_scalar.createVariable('tendlifmassbf', 'd', ('time'))
     timeValues = data_scalar.createVariable('time', 'd', ('time'))
     data_scalar.createDimension('bnds', 2)
     timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
     for i in range(nt_flux):
-        tendlicalvfValues[i] = -cfmfx_avg[i] / 31536000
+        tendlifmassbfValues[i] = -fmfx_avg[i] / 31536000
         timeValues[i] = (days_min[i] + days_max[i]) / 2.0
         timebndsValues[i, 0] = days_min[i]
         timebndsValues[i, 1] = days_max[i]
@@ -638,12 +640,12 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     timeValues.calendar = 'noleap'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
-    tendlicalvfValues.standard_name = 'tendency_of_land_ice_mass_due_to_calving_and_ice_front_melting'
-    tendlicalvfValues.units = 'kg s-1'
+    tendlifmassbfValues.standard_name = 'tendency_of_land_ice_mass_due_to_ice_front_melting'
+    tendlifmassbfValues.units = 'kg s-1'
     data_scalar.AUTHORS= AUTHOR_STR
     data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
     data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Total calving and ice front melting flux'
+    data_scalar.VARIABLE = 'Total ice front melting flux'
     data_scalar.DATE = DATE_STR
     data_scalar.close()
 
