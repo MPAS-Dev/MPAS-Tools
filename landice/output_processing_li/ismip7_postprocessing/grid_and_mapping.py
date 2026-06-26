@@ -6,6 +6,34 @@ import xarray as xr
 
 
 VALID_EXPERIMENTS = [f"C{i:03d}" for i in range(1, 12)]
+VALID_RESOLUTIONS = [1, 2, 4, 8, 16]
+
+
+def check_res(res):
+    """
+    Validate the ISMIP7 grid resolution.
+
+    Parameters
+    ----------
+    res : str or int
+        Resolution in kilometres to validate.
+
+    Raises
+    ------
+    ValueError
+        If the resolution is not in the list of valid values.
+    """
+    try:
+        res_int = int(res)
+    except (ValueError, TypeError):
+        raise ValueError(
+            f"Resolution '{res}' is not a valid integer. "
+            f"Valid resolutions (km) are: {VALID_RESOLUTIONS}")
+    if res_int not in VALID_RESOLUTIONS:
+        raise ValueError(
+            f"Invalid resolution '{res_int}' km. "
+            f"Valid resolutions (km) are: {VALID_RESOLUTIONS}")
+    print(f"Resolution {res_int} km is valid.")
 
 
 def check_exp_name(exp):

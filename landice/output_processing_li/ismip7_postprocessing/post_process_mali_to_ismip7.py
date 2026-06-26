@@ -1,11 +1,22 @@
 #!/usr/bin/env python
 
 """
-This script processes MALI simulation outputs (both state and flux)
-in the required format by the ISMIP7 experimental protocol.
-The input state files (i.e., output files from MALI) need to have been
-concatenated to have yearly data, which can be done using 'ncrcat' command
-before using this script.
+This script processes MALI simulation outputs into the required format
+for submission to ISMIP7.
+There are 3 flavors of variables that can be processed:
+1D, 2D state, and 2D flux variables.
+Any combination can be specified.
+Processing assumes simulations were run with the output streams defined
+by the ismip7_run compass test case.
+Multifile output file sets should be specified with a glob pattern.
+Note: wildcard paths should be quoted to avoid shell expansion.
+
+An ISMIP submimssion grid resolution and grid file need to be specified.
+A mapping file will be created unless an existing one is specified.
+
+More info at:
+https://github.com/ismip/ISM_SimulationChecker/blob/main/conventions/ISMIP7_variable_request.csv
+https://www.ismip.org/research/ismip7
 """
 
 import argparse
@@ -14,7 +25,7 @@ import os
 import glob
 from datetime import datetime
 from grid_and_mapping import build_mapping_file, check_ismip7_grid_file, \
-    check_exp_name
+    check_exp_name, check_res
 from process_state_variables_ismip7 import generate_output_2d_state_vars, \
      process_state_vars
 from process_1d_variables_ismip7 import generate_output_1d_vars, \
@@ -23,22 +34,22 @@ from process_flux_variables_ismip7 import generate_output_2d_flux_vars
 
 def main():
     parser = argparse.ArgumentParser(
-                        description='process MALI outputs for the ISMIP7'
-                                    'submission')
+                        description=__doc__)
     parser.add_argument("-e", "--exp_name", dest="exp",
                         required=True,
                         help="ISMIP7 experiment name (e.g., exp05")
-    parser.add_argument("-i_state", "--input_state", dest="input_file_state",
+    parser.add_argument("-s", "--input_state", dest="input_file_state",
                         required=False, help="mpas output state variables")
-    parser.add_argument("-i_flux", "--input_flux", dest="input_file_flux",
+    parser.add_argument("-f", "--input_flux", dest="input_file_flux",
                         required=False, help="mpas output flux variables")
-    parser.add_argument("-i_mesh", "--input_mesh", dest="input_file_grid",
+    parser.add_argument("-m", "--input_mesh", dest="input_file_mesh",
                         required=False, help="MALI file with mesh information")
     parser.add_argument("-g", "--global_stats_pattern", dest="global_stats_pattern",
                         required=False,
                         help="glob pattern matching one or more globalStats.nc "
-                             "files (e.g. 'globalStats_*.nc')")
-    parser.add_argument("-p", "--output_path", dest="output_path",
+                             "files (e.g. 'globalStats_*.nc')."
+                             "Note: wildcard paths should be quoted to avoid shell expansion.")
+    parser.add_argument("-o", "--output_path", dest="output_path",
                         required=True,
                         help="path to which the final output files"
                              " will be saved")
@@ -52,7 +63,7 @@ def main():
                         help="mapping method. Default='conserve'")
     parser.add_argument("--res", dest="res_ismip7_grid",
                         required=True,
-                        help="resolution of the ismip7 grid, (e.g. 8 for 8km res)")
+                        help="resolution of the ismip7 grid, in kilometers: 16, 8, 4, 2, 1")
     parser.add_argument("--icesheet", dest="icesheet",
                         required=True,
                         choices=['AIS', 'GIS'],
@@ -60,11 +71,14 @@ def main():
     args = parser.parse_args()
 
     check_exp_name(args.exp)
-    check_ismip7_grid_file(args.ismip7_grid_file, args.res_ismip7_grid)
+    check_res(args.res_ismip7_grid)
+
 
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
     if not args.input_file_state is None or not args.input_file_flux is None:
+        # Check grid file and res if 2d variables are to be processed
+        check_ismip7_grid_file(args.ismip7_grid_file, args.res_ismip7_grid)
         # Check mapping method and either reuse an existing map or create a new one.
         # Note: the function 'building_mapping_file' requires the mpas mesh tool
         # script 'create_SCRIP_file_from_planar_rectangular_grid.py'
@@ -76,7 +90,7 @@ def main():
             print(f"Reusing existing mapping file: {args.reuse_mapping_file}")
             mapping_file = args.reuse_mapping_file
         else:
-            if args.input_file_grid is None:
+            if args.input_file_mesh is None:
                 raise ValueError("--input_mesh is required when creating a new "
                                  "mapping file.")
 
@@ -86,7 +100,7 @@ def main():
             print(f"Creating new mapping file."
                   f"Mapping method used: {method_remap}")
 
-            build_mapping_file(args.input_file_grid, mapping_file,
+            build_mapping_file(args.input_file_mesh, mapping_file,
                                args.res_ismip7_grid, args.ismip7_grid_file,
                                method_remap)
 
