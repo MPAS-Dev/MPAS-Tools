@@ -37,7 +37,7 @@ def main():
     parser.add_argument("-g", "--global_stats_pattern", dest="global_stats_pattern",
                         required=False,
                         help="glob pattern matching one or more globalStats.nc "
-onver                             "files (e.g. 'globalStats_*.nc')")
+                             "files (e.g. 'globalStats_*.nc')")
     parser.add_argument("-p", "--output_path", dest="output_path",
                         required=False,
                         help="path to which the final output files"
@@ -53,6 +53,10 @@ onver                             "files (e.g. 'globalStats_*.nc')")
     parser.add_argument("--res", dest="res_ismip7_grid",
                         required=True,
                         help="resolution of the ismip7 grid, (e.g. 8 for 8km res)")
+    parser.add_argument("--icesheet", dest="icesheet",
+                        required=True,
+                        choices=['AIS', 'GIS'],
+                        help="ice sheet domain: 'AIS' (Antarctica) or 'GIS' (Greenland)")
     args = parser.parse_args()
 
     check_exp_name(args.exp)
@@ -104,7 +108,8 @@ onver                             "files (e.g. 'globalStats_*.nc')")
         print("\n---Processing global stats file(s)---")
         global_stats_files = sorted(glob.glob(args.global_stats_pattern))
         check_global_stats_files(global_stats_files)
-        generate_output_1d_vars(global_stats_files, args.exp, output_path)
+        generate_output_1d_vars(global_stats_files, args.exp, args.icesheet,
+                                output_path)
         print("---Processing global stats file(s) complete---\n")
 
     # process 2d state variables
@@ -134,7 +139,7 @@ onver                             "files (e.g. 'globalStats_*.nc')")
         print("Writing processed and remapped state fields to ISMIP7 file format.")
         generate_output_2d_state_vars(processed_and_remapped_file_state,
                                       args.ismip7_grid_file,
-                                      args.exp, output_path)
+                                      args.exp, output_path, args.icesheet)
 
         os.remove(tmp_file)
         os.remove(processed_and_remapped_file_state)
@@ -159,7 +164,7 @@ onver                             "files (e.g. 'globalStats_*.nc')")
         # write out the output files in the ismip7-required format
         generate_output_2d_flux_vars(processed_file_flux,
                                      args.ismip7_grid_file,
-                                     args.exp, output_path)
+                                     args.exp, output_path, args.icesheet)
 
         cleanUp = True
         if cleanUp:

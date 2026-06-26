@@ -95,10 +95,10 @@ def check_global_stats_files(files):
 
 def _write_state_var(varname, data_values, time_days, standard_name, units,
                      variable_desc, output_path, simulationStartDate,
-                     author_str, date_str, exp):
+                     author_str, date_str, exp, icesheet):
     """Write a single 1D state (snapshot) variable to a NETCDF4_CLASSIC file."""
     nt = len(data_values)
-    ds_out = Dataset(f'{output_path}/{varname}_AIS_DOE_MALI_{exp}.nc',
+    ds_out = Dataset(f'{output_path}/{varname}_{icesheet}_DOE_MALI_{exp}.nc',
                      'w', format='NETCDF4_CLASSIC')
     ds_out.createDimension('time', nt)
     var_out = ds_out.createVariable(varname, 'd', ('time',))
@@ -121,10 +121,10 @@ def _write_state_var(varname, data_values, time_days, standard_name, units,
 
 def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
                     units, variable_desc, output_path, simulationStartDate,
-                    author_str, date_str, exp):
+                    author_str, date_str, exp, icesheet):
     """Write a single 1D flux (time-averaged) variable to a NETCDF4_CLASSIC file."""
     nt = len(data_values)
-    ds_out = Dataset(f'{output_path}/{varname}_AIS_DOE_MALI_{exp}.nc',
+    ds_out = Dataset(f'{output_path}/{varname}_{icesheet}_DOE_MALI_{exp}.nc',
                      'w', format='NETCDF4_CLASSIC')
     ds_out.createDimension('time', nt)
     ds_out.createDimension('bnds', 2)
@@ -149,7 +149,7 @@ def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
     ds_out.close()
 
 
-def generate_output_1d_vars(files, exp, output_path=None):
+def generate_output_1d_vars(files, exp, icesheet, output_path=None):
     """
     Process and write 1D (scalar time-series) state and flux variables.
 
@@ -159,6 +159,8 @@ def generate_output_1d_vars(files, exp, output_path=None):
         Sorted list of globalStats.nc file paths to process.
     exp : str
         ISMIP7 experiment name (e.g. 'C001').
+    icesheet : str
+        Ice sheet domain, either 'AIS' or 'GIS'.
     output_path : str, optional
         Directory for output files. Defaults to current working directory.
     """
@@ -318,6 +320,7 @@ def generate_output_1d_vars(files, exp, output_path=None):
         author_str=AUTHOR_STR,
         date_str=DATE_STR,
         exp=exp,
+        icesheet=icesheet,
     )
 
     # --- state (snapshot) variables ---

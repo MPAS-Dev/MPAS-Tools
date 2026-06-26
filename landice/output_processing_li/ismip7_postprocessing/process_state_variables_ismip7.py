@@ -89,7 +89,7 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip7_var_name, var_std_name,
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
     timeSteps, latN, lonN = np.shape(var_mali)
 
-    dataOut = Dataset(f'{output_path}/{ismip7_var_name}_AIS_DOE_MALI_{exp}.nc',
+    dataOut = Dataset(f'{output_path}/{ismip7_var_name}_{icesheet}_DOE_MALI_{exp}.nc',
                       'w', format='NETCDF4_CLASSIC')
     dataOut.createDimension('time', timeSteps)
     dataOut.createDimension('x', lonN)
@@ -146,7 +146,8 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip7_var_name, var_std_name,
 
 
 def generate_output_2d_state_vars(file_remapped_mali_state,
-                                  ismip7_grid_file, exp, output_path):
+                                  ismip7_grid_file, exp, output_path,
+                                  icesheet):
     """
     file_remapped_mali_state: output files on mali mesh remapped
     on the ismip7 grid
