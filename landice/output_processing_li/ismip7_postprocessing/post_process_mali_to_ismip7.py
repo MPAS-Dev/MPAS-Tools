@@ -92,6 +92,16 @@ def main():
     if not os.path.isdir(output_path):
         os.makedirs(output_path)
 
+    # process 1D variables
+    if args.global_stats_file is None:
+        print("--- MALI global stats file is not provided, thus it will not be processed.")
+    else:
+        print("\n---Processing global stats file---")
+        generate_output_1d_vars(args.global_stats_file, args.exp,
+                                output_path)
+        print("---Processing global stats file complete---\n")
+
+    # process 2d state variables
     if args.input_file_state is None:
         print("--- MALI state file is not provided, thus it will not be processed.")
     else:
@@ -124,16 +134,7 @@ def main():
         os.remove(processed_and_remapped_file_state)
         print("---Processing state file complete---\n")
 
-    # write out 1D output files for both state and flux variables
-    if args.global_stats_file is None:
-        print("--- MALI global stats file is not provided, thus it will not be processed.")
-    else:
-        print("\n---Processing global stats file---")
-        generate_output_1d_vars(args.global_stats_file, args.exp,
-                                output_path)
-        print("---Processing global stats file complete---\n")
-
-    # process the flux variables if flux output file is given
+    # process 2d flux variables
     if args.input_file_flux is None:
         print("--- MALI flux file is not provided, thus it will not be processed.")
     else:
