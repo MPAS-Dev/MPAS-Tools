@@ -12,10 +12,10 @@ from validate import validate_mali_files
 
 
 EXPECTED_FLUX_VARIABLES = [
-    'daysSinceStart', 'simulationStartTime',
-    'timeBndsMin', 'timeBndsMax', 'iceMask',
+    'daysSinceStart', 'simulationStartTime', 'cellMask',
     'avgSMBFlux', 'avgFloatingBMBFlux', 'avgGroundedBMBFlux',
-    'avgDhdt', 'avgCalvingFlux', 'avgGroundingLineFlux',
+    'avgDhdt', 'avgCalvingFlux', 'avgFaceMeltFlux',
+    'avgGroundingLineFlux',
 ]
 
 
@@ -30,7 +30,9 @@ def check_flux_files(files):
 
 def process_flux_vars(files, tmp_file):
     """
-    Concatenate/prepare flux files into a temporary file for remapping.
+    Prepare flux files into a temporary file for remapping.
+    This is very simple, because flux variables are already
+    time-averaged by MALI.
 
     Parameters
     ----------
@@ -50,7 +52,11 @@ def process_flux_vars(files, tmp_file):
             'daysSinceStart' in ds_flux and
             'units' in ds_flux['daysSinceStart'].attrs):
         del ds_flux['daysSinceStart'].attrs['units']
-    ds_flux.to_netcdf(tmp_file)
+
+    ds_flux_out = ds_flux[EXPECTED_FLUX_VARIABLES]
+    ds_flux_out.to_netcdf(tmp_file)
+
+    ds_flux_out.close()
     ds_flux.close()
 
 
@@ -75,12 +81,19 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
 
     data = Dataset(remapped_mali_flux_file, 'r')
     data.set_auto_mask(False)
-    iceMask = data.variables['iceMask'][:, :, :]
+    iceMask = (data.variables['cellMask'][:, :, :] & 2) / 2  # grounded: dynamic ice
     simulationStartTime = data.variables['simulationStartTime'][:].tobytes(
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
-    timeBndsMin = data.variables['timeBndsMin'][:]
-    timeBndsMax = data.variables['timeBndsMax'][:]
+    daysSinceStart = data.variables['daysSinceStart'][:]
+    refYear = int(simulationStartDate[0:4])
+    decYears = refYear + daysSinceStart / 365.0
+    years_flux = np.floor(decYears)
+
+    # Flux outputs are annual means over each calendar year.
+    # Bounds are Jan 1 of that year through Jan 1 of the following year.
+    timeBndsMin = (years_flux - refYear) * 365.0
+    timeBndsMax = (years_flux + 1.0 - refYear) * 365.0
     if mali_var_name not in data.variables:
         print(f"WARNING: {mali_var_name} not present.  Skipping.")
         data.close()
@@ -157,7 +170,6 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
     output_path: path to which the final output files are saved
     """
 
-    print("Writing 2d flux variables")
     # ----------- acabf ------------------
     write_netcdf_2d_flux_vars('avgSMBFlux', 'acabf',
                               'land_ice_surface_specific_mass_balance_flux',
@@ -241,17 +253,17 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
     process_flux_vars(flux_files, tmp_flux_file)
 
     print("Remapping flux file.")
-    processed_file_flux = 'processed_flux.nc'
+    remapped_file_flux = 'remapped_flux.nc'
     check_call(["ncremap",
                 "-i", tmp_flux_file,
-                "-o", processed_file_flux,
+                "-o", remapped_file_flux,
                 "-m", mapping_file,
                 "-P", "mpas"])
 
     print("Writing processed and remapped flux fields to ISMIP7 file format.")
-    generate_output_2d_flux_vars(processed_file_flux,
+    generate_output_2d_flux_vars(remapped_file_flux,
                                  ismip7_grid_file,
                                  output_path, metadata)
 
     os.remove(tmp_flux_file)
-    os.remove(processed_file_flux)
+    os.remove(remapped_file_flux)
