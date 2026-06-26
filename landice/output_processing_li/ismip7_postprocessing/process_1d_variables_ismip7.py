@@ -93,6 +93,62 @@ def check_global_stats_files(files):
     print(f"Validated {len(files)} globalStats file(s).")
 
 
+def _write_state_var(varname, data_values, time_days, standard_name, units,
+                     variable_desc, output_path, simulationStartDate,
+                     author_str, date_str, exp):
+    """Write a single 1D state (snapshot) variable to a NETCDF4_CLASSIC file."""
+    nt = len(data_values)
+    ds_out = Dataset(f'{output_path}/{varname}_AIS_DOE_MALI_{exp}.nc',
+                     'w', format='NETCDF4_CLASSIC')
+    ds_out.createDimension('time', nt)
+    var_out = ds_out.createVariable(varname, 'd', ('time',))
+    time_out = ds_out.createVariable('time', 'd', ('time',))
+    var_out[:] = data_values
+    time_out[:] = time_days
+    time_out.units = f'days since {simulationStartDate}'
+    time_out.calendar = 'noleap'
+    time_out.standard_name = 'time'
+    time_out.long_name = 'time'
+    var_out.standard_name = standard_name
+    var_out.units = units
+    ds_out.AUTHORS = author_str
+    ds_out.MODEL = 'MALI (MPAS-Albany Land Ice model)'
+    ds_out.GROUP = 'Los Alamos National Laboratory'
+    ds_out.VARIABLE = variable_desc
+    ds_out.DATE = date_str
+    ds_out.close()
+
+
+def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
+                    units, variable_desc, output_path, simulationStartDate,
+                    author_str, date_str, exp):
+    """Write a single 1D flux (time-averaged) variable to a NETCDF4_CLASSIC file."""
+    nt = len(data_values)
+    ds_out = Dataset(f'{output_path}/{varname}_AIS_DOE_MALI_{exp}.nc',
+                     'w', format='NETCDF4_CLASSIC')
+    ds_out.createDimension('time', nt)
+    ds_out.createDimension('bnds', 2)
+    var_out = ds_out.createVariable(varname, 'd', ('time',))
+    time_out = ds_out.createVariable('time', 'd', ('time',))
+    bnds_out = ds_out.createVariable('time_bnds', 'd', ('time', 'bnds'))
+    var_out[:] = data_values
+    time_out[:] = (days_min + days_max) / 2.0
+    bnds_out[:, 0] = days_min
+    bnds_out[:, 1] = days_max
+    time_out.units = f'days since {simulationStartDate}'
+    time_out.calendar = 'noleap'
+    time_out.standard_name = 'time'
+    time_out.long_name = 'time'
+    var_out.standard_name = standard_name
+    var_out.units = units
+    ds_out.AUTHORS = author_str
+    ds_out.MODEL = 'MALI (MPAS-Albany Land Ice model)'
+    ds_out.GROUP = 'Los Alamos National Laboratory'
+    ds_out.VARIABLE = variable_desc
+    ds_out.DATE = date_str
+    ds_out.close()
+
+
 def generate_output_1d_vars(files, exp, output_path=None):
     """
     Process and write 1D (scalar time-series) state and flux variables.
@@ -255,241 +311,46 @@ def generate_output_1d_vars(files, exp, output_path=None):
         if decYears[ind_avg][-1] == endYr:
             break
 
-    # -------------- lim ------------------
-    data_scalar = Dataset(f'{output_path}/lim_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
-    data_scalar.createDimension('time', nt_state)
-    limValues = data_scalar.createVariable('lim', 'd', ('time'))
-    timeValues = data_scalar.createVariable('time', 'd', ('time'))
-    for i in range(nt_state):
-        limValues[i] = vol_snapshot[i] * 910
-        timeValues[i] = days_snapshot[i]
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
-    timeValues.standard_name = 'time'
-    timeValues.long_name = 'time'
-    limValues.standard_name = 'land_ice_mass'
-    limValues.units = 'kg'
-    data_scalar.AUTHORS = AUTHOR_STR
-    data_scalar.MODEL = 'MALI (MPAS-Albany Land Ice model)'
-    data_scalar.GROUP= 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Total ice mass'
-    data_scalar.DATE = DATE_STR
-    data_scalar.close()
+    # shared keyword arguments for both writer helpers
+    common = dict(
+        output_path=output_path,
+        simulationStartDate=simulationStartDate,
+        author_str=AUTHOR_STR,
+        date_str=DATE_STR,
+        exp=exp,
+    )
 
-    # -------------- limnsw ------------------
-    data_scalar = Dataset(f'{output_path}/limnsw_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
-    data_scalar.createDimension('time', nt_state)
-    limnswValues = data_scalar.createVariable('limnsw', 'd', ('time'))
-    timeValues = data_scalar.createVariable('time', 'd', ('time'))
-    for i in range(nt_state):
-        limnswValues[i] = vaf_snapshot[i] * 910
-        timeValues[i] = days_snapshot[i]
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
-    timeValues.standard_name = 'time'
-    timeValues.long_name = 'time'
-    limnswValues.standard_name = 'land_ice_mass_not_displacing_sea_water'
-    limnswValues.units = 'kg'
-    data_scalar.AUTHORS = AUTHOR_STR
-    data_scalar.MODEL = 'MALI (MPAS-Albany Land Ice model)'
-    data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Mass above floatation'
-    data_scalar.DATE = DATE_STR
-    data_scalar.close()
+    # --- state (snapshot) variables ---
+    _write_state_var('lim', vol_snapshot * 910, days_snapshot,
+                     'land_ice_mass', 'kg', 'Total ice mass', **common)
+    _write_state_var('limnsw', vaf_snapshot * 910, days_snapshot,
+                     'land_ice_mass_not_displacing_sea_water', 'kg',
+                     'Mass above floatation', **common)
+    _write_state_var('iareagr', gia_snapshot, days_snapshot,
+                     'grounded_ice_sheet_area', 'm2', 'Grounded ice area', **common)
+    _write_state_var('iareafl', fia_snapshot, days_snapshot,
+                     'floating_ice_shelf_area', 'm2', 'Floating ice area', **common)
 
-    # -------------- iareagr ------------------
-    data_scalar = Dataset(f'{output_path}/iareagr_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
-    data_scalar.createDimension('time', nt_state)
-    iareagrValues = data_scalar.createVariable('iareagr', 'd', ('time'))
-    timeValues = data_scalar.createVariable('time', 'd', ('time'))
-    for i in range(nt_state):
-        iareagrValues[i] = gia_snapshot[i]
-        timeValues[i] = days_snapshot[i]
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
-    timeValues.standard_name = 'time'
-    timeValues.long_name = 'time'
-    iareagrValues.standard_name = 'grounded_ice_sheet_area'
-    iareagrValues.units = 'm2'
-    data_scalar.AUTHORS= AUTHOR_STR
-    data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
-    data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Grounded ice area'
-    data_scalar.DATE = DATE_STR
-    data_scalar.close()
-
-    # -------------- iareafl ------------------
-    data_scalar = Dataset(f'{output_path}/iareafl_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
-    data_scalar.createDimension('time', nt_state)
-    iareaflValues = data_scalar.createVariable('iareafl', 'd', ('time'))
-    timeValues = data_scalar.createVariable('time', 'd', ('time'))
-    for i in range(nt_state):
-        iareaflValues[i] = fia_snapshot[i]
-        timeValues[i] = days_snapshot[i]
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
-    timeValues.standard_name = 'time'
-    timeValues.long_name = 'time'
-    iareaflValues.standard_name = 'floating_ice_shelf_area'
-    iareaflValues.units = 'm2'
-    data_scalar.AUTHORS= AUTHOR_STR
-    data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
-    data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Floating ice area'
-    data_scalar.DATE = DATE_STR
-    data_scalar.close()
-
-    # -------------- tendacabf: this is a flux var
-    data_scalar = Dataset(f'{output_path}/tendacabf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
-    data_scalar.createDimension('time', nt_flux)
-    tendacabfValues = data_scalar.createVariable('tendacabf', 'd', ('time'))
-    timeValues = data_scalar.createVariable('time', 'd', ('time'))
-    data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
-    for i in range(nt_flux):
-        tendacabfValues[i] = smb_avg[i] / 31536000.0
-        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
-        timebndsValues[i, 0] = days_min[i]
-        timebndsValues[i, 1] = days_max[i]
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
-    timeValues.standard_name = 'time'
-    timeValues.long_name = 'time'
-    tendacabfValues.standard_name = 'tendency_of_land_ice_mass_due_to_surface_mass_balance'
-    tendacabfValues.units = 'kg s-1'
-    data_scalar.AUTHORS= AUTHOR_STR
-    data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
-    data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Total SMB flux'
-    data_scalar.DATE = DATE_STR
-    data_scalar.close()
-
-    # -------------- tendlibmassbfgr: this is a flux var
-    data_scalar = Dataset(f'{output_path}/tendlibmassbfgr_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
-    data_scalar.createDimension('time', nt_flux)
-    tendlibmassbfgrValues = data_scalar.createVariable('tendlibmassbfgr', 'd', ('time'))
-    timeValues = data_scalar.createVariable('time', 'd', ('time'))
-    data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
-    for i in range(nt_flux):
-        tendlibmassbfgrValues[i] = bmbGr_avg[i] / 31536000.0
-        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
-        timebndsValues[i, 0] = days_min[i]
-        timebndsValues[i, 1] = days_max[i]
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
-    timeValues.standard_name = 'time'
-    timeValues.long_name = 'time'
-    tendlibmassbfgrValues.standard_name = 'tendency_of_land_ice_mass_due_to_basal_mass_balance'
-    tendlibmassbfgrValues.units = 'kg s-1'
-    data_scalar.AUTHORS= AUTHOR_STR
-    data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
-    data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Total BMB flux beneath grounded ice'
-    data_scalar.DATE = DATE_STR
-    data_scalar.close()
-
-    # -------------- tendlibmassbffl: this is a flux var
-    data_scalar = Dataset(f'{output_path}/tendlibmassbffl_AIS_DOE_MALI_{exp}.nc', 'w',
-                          format='NETCDF4_CLASSIC')
-    data_scalar.createDimension('time', nt_flux)
-    tendlibmassbfflValues = data_scalar.createVariable('tendlibmassbffl', 'd', ('time'))
-    timeValues = data_scalar.createVariable('time', 'd', ('time'))
-    data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
-    for i in range(nt_flux):
-        tendlibmassbfflValues[i] = bmbFlt_avg[i] / 31536000
-        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
-        timebndsValues[i, 0] = days_min[i]
-        timebndsValues[i, 1] = days_max[i]
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
-    timeValues.standard_name = 'time'
-    timeValues.long_name = 'time'
-    tendlibmassbfflValues.standard_name = 'tendency_of_land_ice_mass_due_to_basal_mass_balance'
-    tendlibmassbfflValues.units = 'kg s-1'
-    data_scalar.AUTHORS= AUTHOR_STR
-    data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
-    data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Total BMB flux beneath floating ice'
-    data_scalar.DATE = DATE_STR
-    data_scalar.close()
-
-    # -------------- tendlicalvf: this is a flux var
-    data_scalar = Dataset(f'{output_path}/tendlicalvf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
-    data_scalar.createDimension('time', nt_flux)
-    tendlicalvfValues = data_scalar.createVariable('tendlicalvf', 'd', ('time'))
-    timeValues = data_scalar.createVariable('time', 'd', ('time'))
-    data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
-    for i in range(nt_flux):
-        tendlicalvfValues[i] = -cfx_avg[i] / 31536000
-        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
-        timebndsValues[i, 0] = days_min[i]
-        timebndsValues[i, 1] = days_max[i]
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
-    timeValues.standard_name = 'time'
-    timeValues.long_name = 'time'
-    tendlicalvfValues.standard_name = 'tendency_of_land_ice_mass_due_to_calving'
-    tendlicalvfValues.units = 'kg s-1'
-    data_scalar.AUTHORS= AUTHOR_STR
-    data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
-    data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Total calving flux'
-    data_scalar.DATE = DATE_STR
-    data_scalar.close()
-
-    # -------------- tendlifmassbf: this is a flux var
-    # In ISMIP6, this variable used to be 'Total calving and ice front melting flux'
-    # In ISMIP7, it represents 'Total ice front melting flux' only, without calving flux
-    data_scalar = Dataset(f'{output_path}/tendlifmassbf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
-    data_scalar.createDimension('time', nt_flux)
-    tendlifmassbfValues = data_scalar.createVariable('tendlifmassbf', 'd', ('time'))
-    timeValues = data_scalar.createVariable('time', 'd', ('time'))
-    data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
-    for i in range(nt_flux):
-        tendlifmassbfValues[i] = -fmfx_avg[i] / 31536000
-        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
-        timebndsValues[i, 0] = days_min[i]
-        timebndsValues[i, 1] = days_max[i]
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
-    timeValues.standard_name = 'time'
-    timeValues.long_name = 'time'
-    tendlifmassbfValues.standard_name = 'tendency_of_land_ice_mass_due_to_ice_front_melting'
-    tendlifmassbfValues.units = 'kg s-1'
-    data_scalar.AUTHORS= AUTHOR_STR
-    data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
-    data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Total ice front melting flux'
-    data_scalar.DATE = DATE_STR
-    data_scalar.close()
-
-    # -------------- tendligroundf: this is a flux var
-    data_scalar = Dataset(f'{output_path}/tendligroundf_AIS_DOE_MALI_{exp}.nc', 'w', format='NETCDF4_CLASSIC')
-    data_scalar.createDimension('time', nt_flux)
-    tendligroundfValues = data_scalar.createVariable('tendligroundf', 'd', ('time'))
-    timeValues = data_scalar.createVariable('time', 'd', ('time'))
-    data_scalar.createDimension('bnds', 2)
-    timebndsValues = data_scalar.createVariable('time_bnds', 'd', ('time', 'bnds'))
-    for i in range(nt_flux):
-        tendligroundfValues[i] = gfx_avg[i] / 31536000
-        timeValues[i] = (days_min[i] + days_max[i]) / 2.0
-        timebndsValues[i, 0] = days_min[i]
-        timebndsValues[i, 1] = days_max[i]
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
-    timeValues.standard_name = 'time'
-    timeValues.long_name = 'time'
-    tendligroundfValues.standard_name = 'tendency_of_grounded_ice_mass'
-    tendligroundfValues.units = 'kg s-1'
-    data_scalar.AUTHORS= AUTHOR_STR
-    data_scalar.MODEL= 'MALI (MPAS-Albany Land Ice model)'
-    data_scalar.GROUP = 'Los Alamos National Laboratory'
-    data_scalar.VARIABLE = 'Total grounding line flux'
-    data_scalar.DATE = DATE_STR
-    data_scalar.close()
+    # --- flux (time-averaged) variables ---
+    _write_flux_var('tendacabf', smb_avg / 31536000.0, days_min, days_max,
+                    'tendency_of_land_ice_mass_due_to_surface_mass_balance',
+                    'kg s-1', 'Total SMB flux', **common)
+    _write_flux_var('tendlibmassbfgr', bmbGr_avg / 31536000.0, days_min, days_max,
+                    'tendency_of_land_ice_mass_due_to_basal_mass_balance',
+                    'kg s-1', 'Total BMB flux beneath grounded ice', **common)
+    _write_flux_var('tendlibmassbffl', bmbFlt_avg / 31536000.0, days_min, days_max,
+                    'tendency_of_land_ice_mass_due_to_basal_mass_balance',
+                    'kg s-1', 'Total BMB flux beneath floating ice', **common)
+    # tendlicalvf: sign convention — calving removes mass, so negate
+    _write_flux_var('tendlicalvf', -cfx_avg / 31536000.0, days_min, days_max,
+                    'tendency_of_land_ice_mass_due_to_calving',
+                    'kg s-1', 'Total calving flux', **common)
+    # tendlifmassbf: in ISMIP7 this is ice-front melting only (not calving)
+    _write_flux_var('tendlifmassbf', -fmfx_avg / 31536000.0, days_min, days_max,
+                    'tendency_of_land_ice_mass_due_to_ice_front_melting',
+                    'kg s-1', 'Total ice front melting flux', **common)
+    _write_flux_var('tendligroundf', gfx_avg / 31536000.0, days_min, days_max,
+                    'tendency_of_grounded_ice_mass',
+                    'kg s-1', 'Total grounding line flux', **common)
 
     ds.close()
