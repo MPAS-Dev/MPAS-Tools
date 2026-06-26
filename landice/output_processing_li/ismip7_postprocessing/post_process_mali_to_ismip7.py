@@ -39,6 +39,7 @@ python post_process_mali_to_ismip7.py \
     -m /pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/relaxed_10yrs_4km.nc \
     -s "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
     -f "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
+    --ismip7_grid_file /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/misc/af2_AIS_04000m_v1.nc \
     --reuse_mapping_file mapping_mali_to_ismip7.conserve.20260626T130744.nc
 
 """
@@ -130,6 +131,7 @@ def main():
     parser.add_argument(
         "--ismip7_grid_file",
         dest="ismip7_grid_file",
+        required=True,
         help="Input ismip7 mesh file.",
     )
     parser.add_argument(
@@ -203,10 +205,7 @@ def main():
             args.input_state_pattern is not None or
             args.input_flux_pattern is not None):
 
-        # If the user has not provided a mapping file to reuse, check that the
-        # ismip7 grid file is provided and valid
-        if args.reuse_mapping_file is None:
-            check_ismip7_grid_file(args.ismip7_grid_file, args.res_ismip7_grid)
+        check_ismip7_grid_file(args.ismip7_grid_file, args.res_ismip7_grid)
 
         method_remap = args.method_remap
         if args.reuse_mapping_file is not None:
