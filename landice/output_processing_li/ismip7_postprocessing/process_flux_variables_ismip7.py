@@ -48,12 +48,17 @@ def process_flux_vars(files, tmp_file):
                                 data_vars='minimal',
                                 coords='minimal',
                                 compat='override')
-    if (
-            'daysSinceStart' in ds_flux and
-            'units' in ds_flux['daysSinceStart'].attrs):
+    if 'units' in ds_flux['daysSinceStart'].attrs:
         del ds_flux['daysSinceStart'].attrs['units']
 
+    # subset to only required variables to keep file small for remapping
     ds_flux_out = ds_flux[EXPECTED_FLUX_VARIABLES]
+    # remove the first time step (which is always 0)
+    time_mask = ~np.isclose(ds_flux_out['daysSinceStart'].values, 0.0)
+    if not np.any(time_mask):
+        raise ValueError("No flux time records remain after dropping daysSinceStart==0.")
+    ds_flux_out = ds_flux_out.isel(Time=time_mask)
+
     ds_flux_out.to_netcdf(tmp_file)
 
     ds_flux_out.close()
@@ -91,9 +96,9 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     years_flux = np.floor(decYears)
 
     # Flux outputs are annual means over each calendar year.
-    # Bounds are Jan 1 of that year through Jan 1 of the following year.
-    timeBndsMin = (years_flux - refYear) * 365.0
-    timeBndsMax = (years_flux + 1.0 - refYear) * 365.0
+    # Bounds are Jan 1 of the previous year through Jan 1 of the year indexed.
+    timeBndsMin = (years_flux - refYear - 1.0) * 365.0
+    timeBndsMax = (years_flux - refYear) * 365.0
     if mali_var_name not in data.variables:
         print(f"WARNING: {mali_var_name} not present.  Skipping.")
         data.close()
