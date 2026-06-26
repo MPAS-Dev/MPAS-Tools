@@ -1,13 +1,11 @@
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from subprocess import check_call
 import os
-import shutil
 import netCDF4
 import xarray as xr
-import numpy as np
 
 
-def prepare_ismip7_grid_file(ismip7_grid_file_path, res_ismip7_grid):
+def check_ismip7_grid_file(ismip7_grid_file_path, res_ismip7_grid):
     """
     Ensure the ISMIP7 grid file has 'x' and 'y' coordinate variables and that
     its corners match the ISMIP7-required extents.  If 'x'/'y' are absent a
@@ -22,45 +20,20 @@ def prepare_ismip7_grid_file(ismip7_grid_file_path, res_ismip7_grid):
 
     Returns
     -------
-    ismip7_grid_file : str
-        Path to the grid file to use (may be a temporary copy).
-    temp_file_created : bool
-        True if a temporary copy was created and should be removed after use.
+    None
     """
     print("\n---Checking the coordinate variables of the ismip7 grid file---")
     data_ismip7 = netCDF4.Dataset(ismip7_grid_file_path, "r")
-    temp_file_created = False
 
     if 'x' in data_ismip7.variables and 'y' in data_ismip7.variables:
         ismip7_grid_file = ismip7_grid_file_path
         print("'x' and 'y' coordinates exist in the file.")
     else:
-        print("'x' and 'y' coordinates don't exist in the file.")
-        print("Creating them and a copy file of the ismip7 grid file...")
-        tmp_path = f"temp_{os.path.basename(ismip7_grid_file_path)}"
-        shutil.copy2(ismip7_grid_file_path, tmp_path)
-        copy_ds = netCDF4.Dataset(tmp_path, "r+", format="netCDF4")
-        nx = data_ismip7.dimensions["x"].size
-        ny = data_ismip7.dimensions["y"].size
-        dx = int(res_ismip7_grid) * 1000
-        dy = dx
-        if (nx % 2) == 0:
-            var_x = dx * ((np.arange(-nx / 2, nx / 2)) + 0.5)
-            var_y = dy * ((np.arange(-ny / 2, ny / 2)) + 0.5)
-        else:
-            var_x = dx * (np.arange(-(nx - 1) / 2, (nx + 1) / 2))
-            var_y = dy * (np.arange(-(ny - 1) / 2, (ny + 1) / 2))
-        x = copy_ds.createVariable("x", "d", ("x",))
-        y = copy_ds.createVariable("y", "d", ("y",))
-        x[:] = var_x
-        y[:] = var_y
-        x.units = 'm'
-        x.standard_name = 'x'
-        y.units = 'm'
-        y.standard_name = 'y'
-        copy_ds.close()
-        ismip7_grid_file = tmp_path
-        temp_file_created = True
+        data_ismip7.close()
+        raise ValueError(
+            f"'x' and/or 'y' coordinate variables are missing from the "
+            f"ISMIP7 grid file '{ismip7_grid_file_path}'. Please provide a "
+            f"grid file that includes 'x' and 'y' coordinate variables.")
 
     data_ismip7.close()
 
@@ -87,8 +60,6 @@ def prepare_ismip7_grid_file(ismip7_grid_file_path, res_ismip7_grid):
               f"lower left corner values at {x[0]}m and {y[0]}m, and "
               f"upper right corner values at {x[-1]}m and {y[-1]}m")
     check_ds.close()
-
-    return ismip7_grid_file, temp_file_created
 
 def build_mapping_file(mali_mesh_file,
                        mapping_file, res_ismip7_grid,

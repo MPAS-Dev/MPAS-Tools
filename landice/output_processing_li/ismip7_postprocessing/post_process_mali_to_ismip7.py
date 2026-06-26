@@ -12,7 +12,7 @@ import argparse
 from subprocess import check_call
 import os
 from datetime import datetime
-from grid_and_mapping import build_mapping_file, prepare_ismip7_grid_file
+from grid_and_mapping import build_mapping_file, check_ismip7_grid_file
 from process_state_variables_ismip7 import generate_output_2d_state_vars, \
      process_state_vars, generate_output_1d_vars
 from process_flux_variables_ismip7 import generate_output_2d_flux_vars
@@ -49,8 +49,7 @@ def main():
                         help="resolution of the ismip7 grid, (e.g. 8 for 8km res)")
     args = parser.parse_args()
 
-    ismip7_grid_file, temp_ismip7_grid_file = prepare_ismip7_grid_file(
-        args.ismip7_grid_file, args.res_ismip7_grid)
+    check_ismip7_grid_file(args.ismip7_grid_file, args.res_ismip7_grid)
 
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
@@ -77,7 +76,7 @@ def main():
                   f"Mapping method used: {method_remap}")
 
             build_mapping_file(args.input_file_grid, mapping_file,
-                               args.res_ismip7_grid, ismip7_grid_file,
+                               args.res_ismip7_grid, args.ismip7_grid_file,
                                method_remap)
 
     print("---Processing remapping file complete---\n")
@@ -116,7 +115,7 @@ def main():
         # write out 2D state output files in the ismip7-required format
         print("Writing processed and remapped state fields to ISMIP7 file format.")
         generate_output_2d_state_vars(processed_and_remapped_file_state,
-                                      ismip7_grid_file,
+                                      args.ismip7_grid_file,
                                       args.exp, output_path)
 
         os.remove(tmp_file)
@@ -150,14 +149,12 @@ def main():
 
         # write out the output files in the ismip7-required format
         generate_output_2d_flux_vars(processed_file_flux,
-                                     ismip7_grid_file,
+                                     args.ismip7_grid_file,
                                      args.exp, output_path)
 
         cleanUp = True
         if cleanUp:
             os.remove(processed_file_flux)
-            if temp_ismip7_grid_file:
-                os.remove(ismip7_grid_file)
         print("---Processing flux file complete---\n")
     print("---All processing complete---")
 
