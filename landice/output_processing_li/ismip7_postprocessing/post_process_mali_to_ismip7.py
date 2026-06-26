@@ -26,8 +26,7 @@ import glob
 from datetime import datetime
 from grid_and_mapping import build_mapping_file, check_ismip7_grid_file, \
     check_exp_name, check_res
-from process_state_variables_ismip7 import generate_output_2d_state_vars, \
-     process_state_vars, check_state_files
+from process_state_variables_ismip7 import process_state_pipeline
 from process_1d_variables_ismip7 import generate_output_1d_vars, \
     check_global_stats_files
 from process_flux_variables_ismip7 import generate_output_2d_flux_vars
@@ -157,32 +156,9 @@ def main():
     else:
         print("\n---Processing state file(s)---")
         state_files = sorted(glob.glob(args.input_state_pattern))
-        check_state_files(state_files)
-        # process (add and rename) state vars as requested by the ISMIP7 protocol
-        print("Calculating needed state file adjustments.")
-        tmp_file = "tmp_state.nc"
-        process_state_vars(state_files, tmp_file)
-
-        # remap data from the MALI unstructured mesh to the ISMIP7 polarstereo grid
-        processed_and_remapped_file_state = 'processed_and_remapped_state.nc'
-
-        print("Remapping state file.")
-        command = ["ncremap",
-                   "-i", tmp_file,
-                   "-o", processed_and_remapped_file_state,
-                   "-m", mapping_file,
-                   "-P", "mpas"]
-        check_call(command)
-
-        # write out 2D state output files in the ismip7-required format
-        print("Writing processed and remapped state fields to ISMIP7 file format.")
-        generate_output_2d_state_vars(processed_and_remapped_file_state,
-                                      args.ismip7_grid_file,
-                                      output_path, metadata)
-
-        os.remove(tmp_file)
-        os.remove(processed_and_remapped_file_state)
-        print("---Processing state file complete---\n")
+        process_state_pipeline(state_files, mapping_file, args.ismip7_grid_file,
+                               output_path, metadata)
+        print("---Processing state file(s) complete---\n")
 
     # process 2d flux variables
     if args.input_file_flux is None:

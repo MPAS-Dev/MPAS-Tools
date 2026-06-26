@@ -8,6 +8,7 @@ import xarray as xr
 import numpy as np
 from datetime import date
 import os, sys
+from subprocess import check_call
 from validate import validate_mali_files
 
 
@@ -163,6 +164,46 @@ def write_netcdf_2d_state_vars(mali_var_name, ismip7_var_name, var_std_name,
     dataOut.VARIABLE = var_varname
     dataOut.DATE = metadata['date']
     dataOut.close()
+
+
+def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
+                            output_path, metadata):
+    """
+    Full state-variable processing pipeline: validate, adjust, remap, write.
+
+    Parameters
+    ----------
+    state_files : list of str
+        Sorted list of MALI state output file paths.
+    mapping_file : str
+        Path to the ESMF mapping/weights file.
+    ismip7_grid_file : str
+        Path to the ISMIP7 grid file.
+    output_path : str
+        Directory for output files.
+    metadata : dict
+        Submission metadata (exp, icesheet, authors, group, model, date, ...).
+    """
+    check_state_files(state_files)
+
+    print("Calculating needed state file adjustments.")
+    tmp_file = "tmp_state.nc"
+    process_state_vars(state_files, tmp_file)
+
+    processed_and_remapped_file_state = 'processed_and_remapped_state.nc'
+    print("Remapping state file.")
+    check_call(["ncremap",
+                "-i", tmp_file,
+                "-o", processed_and_remapped_file_state,
+                "-m", mapping_file,
+                "-P", "mpas"])
+
+    print("Writing processed and remapped state fields to ISMIP7 file format.")
+    generate_output_2d_state_vars(processed_and_remapped_file_state,
+                                  ismip7_grid_file, output_path, metadata)
+
+    os.remove(tmp_file)
+    os.remove(processed_and_remapped_file_state)
 
 
 def generate_output_2d_state_vars(file_remapped_mali_state,
