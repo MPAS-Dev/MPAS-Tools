@@ -11,11 +11,8 @@ before using this script.
 import argparse
 from subprocess import check_call
 import os
-import shutil
 from datetime import datetime
-import numpy as np
-from netCDF4 import Dataset
-from create_mapfile_mali_to_ismip7 import build_mapping_file
+from grid_and_mapping import build_mapping_file, prepare_ismip7_grid_file
 from process_state_variables_ismip7 import generate_output_2d_state_vars, \
      process_state_vars, generate_output_1d_vars
 from process_flux_variables_ismip7 import generate_output_2d_flux_vars
@@ -52,67 +49,8 @@ def main():
                         help="resolution of the ismip7 grid, (e.g. 8 for 8km res)")
     args = parser.parse_args()
 
-    print("\n---Checking the coordinate variables of the ismip7 grid file---")
-    data_ismip7 = Dataset(args.ismip7_grid_file, "r")
-    temp_ismip7_grid_file = False
-    if 'x' and 'y' in data_ismip7.variables:
-        ismip7_grid_file = args.ismip7_grid_file
-        print("'x' and 'y' coordinates exist in the file.")
-    else:
-        print("'x' and 'y' coordinates don't exist in the file.")
-        print("Creating them and a copy file of the ismip7 grid file...")
-        copy_ismip7_file = f"temp_{os.path.basename(args.ismip7_grid_file)}"
-        shutil.copy2(args.ismip7_grid_file, copy_ismip7_file)
-        copy_ismip7_file = Dataset(copy_ismip7_file, "r+", format="netCDF4")
-        nx = data_ismip7.dimensions["x"].size
-        ny = data_ismip7.dimensions["y"].size
-        dx = int(args.res_ismip7_grid)*1000
-        dy = dx
-        if (nx % 2) == 0:
-            var_x = dx*((np.arange(-nx/2, nx/2)) + 0.5)
-            var_y = dy*((np.arange(-ny/2, ny/2)) + 0.5)
-        else:
-            var_x = dx*((np.arange(-(nx-1)/2, (nx+1)/2)))
-            var_y = dy*((np.arange(-(ny-1)/2, (ny+1)/2)))
-
-        x = copy_ismip7_file.createVariable("x", "d", ("x"))
-        y = copy_ismip7_file.createVariable("y", "d", ("y"))
-
-        for i in range(nx):
-            x[i] = var_x[i]
-        for i in range(ny):
-            y[i] = var_y[i]
-
-        x.units = 'm'
-        x.standard_name = 'x'
-        y.units = 'm'
-        y.standard_name = 'y'
-
-        copy_ismip7_file.close()
-        ismip7_grid_file = f"temp_{os.path.basename(args.ismip7_grid_file)}"
-        temp_ismip7_grid_file = True
-
-    # check the lower left and upper right corners of the ismip7 grid
-    print("Checking the grid corners...")
-    data_ismip7 = Dataset(ismip7_grid_file, "r")
-    x = data_ismip7.variables["x"]
-    y = data_ismip7.variables["y"]
-    if not x[0] == -3040000 or not y[0] == -3040000:
-        raise ValueError(f"The lower left corner values must be at "
-                         f"-3040000m and -3040000m. But the values are at "
-                         f"{x[0]}m and {y[0]}m. Check the value you "
-                         f"provided for '--res' matches with the resolution of "
-                         f"the MALI output files. ")
-    elif not x[-1] == 3040000 or not y[-1] == 3040000:
-        raise ValueError(f"The upper right corner values must be at "
-                         f"3040000m and 3040000m. But the values are at "
-                         f"{x[-1]}m and {y[-1]}m. Check the value you "
-                         f"provided for '--res' matches with the resolution of "
-                         f"the MALI output files. ")
-    else:
-        print(f"Grid corners are as ismip7-required: "
-              f"lower right corner values at {x[0]}m and {y[0]}m, and "
-              f"upper right corner values at {x[-1]}m and {y[-1]}m")
+    ismip7_grid_file, temp_ismip7_grid_file = prepare_ismip7_grid_file(
+        args.ismip7_grid_file, args.res_ismip7_grid)
 
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
