@@ -8,34 +8,128 @@ from datetime import date
 import numpy as np
 import os
 import sys
+import glob
+import xarray as xr
 
-def generate_output_1d_vars(global_stats_file, exp, output_path=None):
+
+EXPECTED_VARIABLES = [
+    'daysSinceStart', 'deltat', 'simulationStartTime',
+    'totalIceVolume', 'volumeAboveFloatation',
+    'groundedIceArea', 'floatingIceArea',
+    'totalSfcMassBal', 'totalGroundedBasalMassBal',
+    'totalFloatingBasalMassBal', 'totalCalvingFlux',
+    'totalFaceMeltingFlux', 'groundingLineFlux',
+]
+
+
+def check_global_stats_files(files):
     """
-    This code processes both state and flux 1D variables
-    global_stats_file: MALI globalStats.nc output file
-    exp: ISMIP7 experiment number
-    output_path:
+    Validate a list of globalStats files before processing.
+
+    Checks that:
+    - The list is not empty
+    - Each file exists
+    - Each file contains the expected variables
+    - simulationStartTime is consistent across all files
+    - No time overlaps exist between consecutive files
+    - No unexpectedly large time gaps (> 366 days) exist between consecutive files
+
+    Parameters
+    ----------
+    files : list of str
+        Sorted list of globalStats file paths.
+
+    Raises
+    ------
+    ValueError
+        If any validation check fails.
+    FileNotFoundError
+        If any file does not exist.
+    """
+    if len(files) == 0:
+        raise ValueError(
+            "No globalStats files matched the provided glob pattern.")
+
+    for f in files:
+        if not os.path.exists(f):
+            raise FileNotFoundError(f"globalStats file not found: {f}")
+
+    # Check required variables in each file
+    for f in files:
+        with xr.open_dataset(f, decode_cf=False) as ds:
+            missing = [v for v in EXPECTED_VARIABLES if v not in ds]
+        if missing:
+            raise ValueError(
+                f"File '{f}' is missing expected variables: {missing}")
+
+    # Check simulationStartTime consistency across all files
+    start_times = []
+    for f in files:
+        with xr.open_dataset(f, decode_cf=False) as ds:
+            start_times.append(
+                ds['simulationStartTime'].values.tobytes()
+                .decode('utf-8').strip().strip('\x00'))
+    if len(set(start_times)) > 1:
+        raise ValueError(
+            f"Inconsistent simulationStartTime across globalStats files: "
+            f"{set(start_times)}")
+
+    # Check for time overlaps or large gaps between consecutive files
+    for i in range(len(files) - 1):
+        with xr.open_dataset(files[i], decode_cf=False) as ds_a:
+            end_a = float(ds_a['daysSinceStart'].values[-1])
+        with xr.open_dataset(files[i + 1], decode_cf=False) as ds_b:
+            start_b = float(ds_b['daysSinceStart'].values[0])
+        if start_b <= end_a:
+            raise ValueError(
+                f"Time overlap detected between files:\n"
+                f"  {files[i]} (ends at day {end_a})\n"
+                f"  {files[i + 1]} (starts at day {start_b})")
+        gap_days = start_b - end_a
+        if gap_days > 366:
+            print(f"WARNING: Gap of {gap_days:.1f} days between files:\n"
+                  f"  {files[i]}\n  {files[i + 1]}")
+
+    print(f"Validated {len(files)} globalStats file(s).")
+
+
+def generate_output_1d_vars(files, exp, output_path=None):
+    """
+    Process and write 1D (scalar time-series) state and flux variables.
+
+    Parameters
+    ----------
+    files : list of str
+        Sorted list of globalStats.nc file paths to process.
+    exp : str
+        ISMIP7 experiment name (e.g. 'C001').
+    output_path : str, optional
+        Directory for output files. Defaults to current working directory.
     """
 
-    if not os.path.exists(output_path):
+    if output_path is None or not os.path.exists(output_path):
         output_path = os.getcwd()
 
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
     DATE_STR = date.today().strftime("%d-%b-%Y")
 
-    data = Dataset(global_stats_file, 'r')
-    nt_in = len(data.dimensions['Time'])
-    xtime = data.variables['xtime'][:, :]
-    daysSinceStart = data.variables['daysSinceStart'][:]
-    dt = data.variables['deltat'][:]
-    simulationStartTime = data.variables['simulationStartTime'][:].tostring().decode('utf-8').strip().strip('\x00')
+    ds = xr.open_mfdataset(files, combine='nested', concat_dim='Time',
+                           decode_cf=False, data_vars='minimal',
+                           coords='minimal', compat='override')
+    with xr.open_dataset(files[0], decode_cf=False) as ds_first:
+        simulationStartTime = (ds_first['simulationStartTime'].values
+                               .tobytes().decode('utf-8').strip().strip('\x00'))
+    daysSinceStart = ds['daysSinceStart'].values
+    dt = ds['deltat'].values
     simulationStartDate = simulationStartTime.split("_")[0]
     if simulationStartDate[5:10] != '01-01':
+        ds.close()
         sys.exit("Error: simulationStartTime for globalStats file is not on Jan. 1.")
     refYear = int(simulationStartDate[0:4])
-    decYears = refYear + daysSinceStart/365.0
+    decYears = refYear + daysSinceStart / 365.0
     endYr = decYears[-1]
     if endYr != np.round(endYr):
+        ds.close()
         sys.exit("Error: end year not an even year in globalStats file.")
 
     # Determine processed time levels for state and flux fields
@@ -76,14 +170,14 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     print(f'For flux  processing, using start year={years_flux[0]} and end year={years_flux[-1]}.')
 
     # read in state variables
-    vol = data.variables['totalIceVolume'][:]
-    vaf = data.variables['volumeAboveFloatation'][:]
-    gia = data.variables['groundedIceArea'][:]
-    fia = data.variables['floatingIceArea'][:]
+    vol = ds['totalIceVolume'].values
+    vaf = ds['volumeAboveFloatation'].values
+    gia = ds['groundedIceArea'].values
+    fia = ds['floatingIceArea'].values
 
     # read in flux variables over which yearly average will be taken
-    smb = data.variables['totalSfcMassBal'][:]
-    bmbGr = data.variables['totalGroundedBasalMassBal'][:]
+    smb = ds['totalSfcMassBal'].values
+    bmbGr = ds['totalGroundedBasalMassBal'].values.copy()
     # clean out some garbage values we can't account for
     ind = np.nonzero(bmbGr > 1.0e18)[0]
     if len(ind) > 0:
@@ -93,7 +187,7 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     if len(ind) > 0:
         print(f"WARNING: Found {len(ind)} values of totalGroundedBasalMassBal<-1.0e18")
         bmbGr[ind] = np.nan
-    bmbFlt = data.variables['totalFloatingBasalMassBal'][:]
+    bmbFlt = ds['totalFloatingBasalMassBal'].values.copy()
     # clean out some garbage values we can't account for
     ind = np.nonzero(bmbFlt>1.0e18)[0]
     if len(ind) > 0:
@@ -103,9 +197,9 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     if len(ind) > 0:
         print(f"WARNING: Found {len(ind)} values of totalFloatingBasalMassBal<-1.0e18")
         bmbFlt[ind] = np.nan
-    cfx = data.variables['totalCalvingFlux'][:]
-    fmfx = data.variables['totalFaceMeltingFlux'][:]
-    gfx = data.variables['groundingLineFlux'][:]
+    cfx = ds['totalCalvingFlux'].values
+    fmfx = ds['totalFaceMeltingFlux'].values
+    gfx = ds['groundingLineFlux'].values
 
     # initialize 1D variables that will store data value on the
     # January 1st of each year
@@ -398,4 +492,4 @@ def generate_output_1d_vars(global_stats_file, exp, output_path=None):
     data_scalar.DATE = DATE_STR
     data_scalar.close()
 
-    data.close()
+    ds.close()

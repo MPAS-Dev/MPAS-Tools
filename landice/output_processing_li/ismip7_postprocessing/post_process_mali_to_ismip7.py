@@ -11,12 +11,14 @@ before using this script.
 import argparse
 from subprocess import check_call
 import os
+import glob
 from datetime import datetime
 from grid_and_mapping import build_mapping_file, check_ismip7_grid_file, \
     check_exp_name
 from process_state_variables_ismip7 import generate_output_2d_state_vars, \
      process_state_vars
-from process_1d_variables_ismip7 import generate_output_1d_vars
+from process_1d_variables_ismip7 import generate_output_1d_vars, \
+    check_global_stats_files
 from process_flux_variables_ismip7 import generate_output_2d_flux_vars
 
 def main():
@@ -32,8 +34,10 @@ def main():
                         required=False, help="mpas output flux variables")
     parser.add_argument("-i_mesh", "--input_mesh", dest="input_file_grid",
                         required=False, help="MALI file with mesh information")
-    parser.add_argument("-g", "--global_stats_file", dest="global_stats_file",
-                        required=False, help="globalStats.nc file")
+    parser.add_argument("-g", "--global_stats_pattern", dest="global_stats_pattern",
+                        required=False,
+                        help="glob pattern matching one or more globalStats.nc "
+onver                             "files (e.g. 'globalStats_*.nc')")
     parser.add_argument("-p", "--output_path", dest="output_path",
                         required=False,
                         help="path to which the final output files"
@@ -94,13 +98,14 @@ def main():
         os.makedirs(output_path)
 
     # process 1D variables
-    if args.global_stats_file is None:
-        print("--- MALI global stats file is not provided, thus it will not be processed.")
+    if args.global_stats_pattern is None:
+        print("--- No global stats pattern provided; skipping 1D variable processing.")
     else:
-        print("\n---Processing global stats file---")
-        generate_output_1d_vars(args.global_stats_file, args.exp,
-                                output_path)
-        print("---Processing global stats file complete---\n")
+        print("\n---Processing global stats file(s)---")
+        global_stats_files = sorted(glob.glob(args.global_stats_pattern))
+        check_global_stats_files(global_stats_files)
+        generate_output_1d_vars(global_stats_files, args.exp, output_path)
+        print("---Processing global stats file(s) complete---\n")
 
     # process 2d state variables
     if args.input_file_state is None:
