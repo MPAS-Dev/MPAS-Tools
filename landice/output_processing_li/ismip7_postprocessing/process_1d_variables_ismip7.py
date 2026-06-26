@@ -10,6 +10,7 @@ import os
 import sys
 import glob
 import xarray as xr
+from validate import validate_mali_files
 
 
 EXPECTED_VARIABLES = [
@@ -26,71 +27,9 @@ def check_global_stats_files(files):
     """
     Validate a list of globalStats files before processing.
 
-    Checks that:
-    - The list is not empty
-    - Each file exists
-    - Each file contains the expected variables
-    - simulationStartTime is consistent across all files
-    - No time overlaps exist between consecutive files
-    - No unexpectedly large time gaps (> 366 days) exist between consecutive files
-
-    Parameters
-    ----------
-    files : list of str
-        Sorted list of globalStats file paths.
-
-    Raises
-    ------
-    ValueError
-        If any validation check fails.
-    FileNotFoundError
-        If any file does not exist.
+    See validate.validate_mali_files for full details of checks performed.
     """
-    if len(files) == 0:
-        raise ValueError(
-            "No globalStats files matched the provided glob pattern.")
-
-    for f in files:
-        if not os.path.exists(f):
-            raise FileNotFoundError(f"globalStats file not found: {f}")
-
-    # Check required variables in each file
-    for f in files:
-        with xr.open_dataset(f, decode_cf=False) as ds:
-            missing = [v for v in EXPECTED_VARIABLES if v not in ds]
-        if missing:
-            raise ValueError(
-                f"File '{f}' is missing expected variables: {missing}")
-
-    # Check simulationStartTime consistency across all files
-    start_times = []
-    for f in files:
-        with xr.open_dataset(f, decode_cf=False) as ds:
-            start_times.append(
-                ds['simulationStartTime'].values.tobytes()
-                .decode('utf-8').strip().strip('\x00'))
-    if len(set(start_times)) > 1:
-        raise ValueError(
-            f"Inconsistent simulationStartTime across globalStats files: "
-            f"{set(start_times)}")
-
-    # Check for time overlaps or large gaps between consecutive files
-    for i in range(len(files) - 1):
-        with xr.open_dataset(files[i], decode_cf=False) as ds_a:
-            end_a = float(ds_a['daysSinceStart'].values[-1])
-        with xr.open_dataset(files[i + 1], decode_cf=False) as ds_b:
-            start_b = float(ds_b['daysSinceStart'].values[0])
-        if start_b <= end_a:
-            raise ValueError(
-                f"Time overlap detected between files:\n"
-                f"  {files[i]} (ends at day {end_a})\n"
-                f"  {files[i + 1]} (starts at day {start_b})")
-        gap_days = start_b - end_a
-        if gap_days > 366:
-            print(f"WARNING: Gap of {gap_days:.1f} days between files:\n"
-                  f"  {files[i]}\n  {files[i + 1]}")
-
-    print(f"Validated {len(files)} globalStats file(s).")
+    validate_mali_files(files, EXPECTED_VARIABLES, label='globalStats')
 
 
 def _write_state_var(varname, data_values, time_days, standard_name, units,

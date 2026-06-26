@@ -27,7 +27,7 @@ from datetime import datetime
 from grid_and_mapping import build_mapping_file, check_ismip7_grid_file, \
     check_exp_name, check_res
 from process_state_variables_ismip7 import generate_output_2d_state_vars, \
-     process_state_vars
+     process_state_vars, check_state_files
 from process_1d_variables_ismip7 import generate_output_1d_vars, \
     check_global_stats_files
 from process_flux_variables_ismip7 import generate_output_2d_flux_vars
@@ -43,8 +43,10 @@ def main():
     parser.add_argument("-e", "--exp_name", dest="exp",
                         required=True,
                         help="ISMIP7 experiment name (e.g., exp05")
-    parser.add_argument("-s", "--input_state", dest="input_file_state",
-                        required=False, help="mpas output state variables")
+    parser.add_argument("-s", "--input_state_pattern", dest="input_state_pattern",
+                        required=False,
+                        help="glob pattern matching one or more MALI state output files. "
+                             "Note: wildcard paths should be quoted to avoid shell expansion.")
     parser.add_argument("-f", "--input_flux", dest="input_file_flux",
                         required=False, help="mpas output flux variables")
     parser.add_argument("-m", "--input_mesh", dest="input_file_mesh",
@@ -103,7 +105,7 @@ def main():
 
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
-    if not args.input_file_state is None or not args.input_file_flux is None:
+    if not args.input_state_pattern is None or not args.input_file_flux is None:
         # Check grid file and res if 2d variables are to be processed
         check_ismip7_grid_file(args.ismip7_grid_file, args.res_ismip7_grid)
         # Check mapping method and either reuse an existing map or create a new one.
@@ -150,19 +152,19 @@ def main():
         print("---Processing global stats file(s) complete---\n")
 
     # process 2d state variables
-    if args.input_file_state is None:
-        print("--- MALI state file is not provided, thus it will not be processed.")
+    if args.input_state_pattern is None:
+        print("--- MALI state pattern is not provided, thus it will not be processed.")
     else:
-        print("\n---Processing state file---")
-        # state variables processing part
+        print("\n---Processing state file(s)---")
+        state_files = sorted(glob.glob(args.input_state_pattern))
+        check_state_files(state_files)
         # process (add and rename) state vars as requested by the ISMIP7 protocol
         print("Calculating needed state file adjustments.")
         tmp_file = "tmp_state.nc"
-        process_state_vars(args.input_file_state, tmp_file)
+        process_state_vars(state_files, tmp_file)
 
         # remap data from the MALI unstructured mesh to the ISMIP7 polarstereo grid
-        processed_and_remapped_file_state = f'processed_and_remapped_' \
-                               f'{os.path.basename(args.input_file_state)}'
+        processed_and_remapped_file_state = 'processed_and_remapped_state.nc'
 
         print("Remapping state file.")
         command = ["ncremap",

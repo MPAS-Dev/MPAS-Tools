@@ -1,28 +1,48 @@
 """
 This script has functions that are needed to post-process and write state
 output variables from ISMIP7 simulations.
-The input files (i.e., MALI output files) need to have been
-concatenated to have yearly data, which can be done using 'ncrcat' command
-before using this script.
 """
 
 from netCDF4 import Dataset
 import xarray as xr
 import numpy as np
 from datetime import date
-import shutil
 import os, sys
+from validate import validate_mali_files
 
 
-def process_state_vars(inputfile_state, tmp_file):
+EXPECTED_STATE_VARIABLES = [
+    'daysSinceStart', 'simulationStartTime',
+    'cellMask', 'basalTemperature', 'betaSolve',
+    'uReconstructX', 'uReconstructY', 'upperSurface',
+]
+
+
+def check_state_files(files):
     """
-    inputfile_state: output file copy from MALI simulations
-    tmp_file: temporary file name
-    inputfile_temperature: output temperature file from MALI simulations
+    Validate a list of MALI state output files before processing.
+
+    See validate.validate_mali_files for full details of checks performed.
+    """
+    validate_mali_files(files, EXPECTED_STATE_VARIABLES, label='state')
+
+def process_state_vars(files, tmp_file):
+    """
+    files: list of MALI state output file paths
+    tmp_file: temporary output file name
     """
 
-    inputfile_state_vars = xr.open_dataset(inputfile_state, engine="netcdf4", decode_cf=False)
-    del inputfile_state_vars.daysSinceStart.attrs['units'] # need this line to prevent xarray from reading daysSinceStart as a timedelta type and corrupting values after about 250 years
+    inputfile_state_vars = xr.open_mfdataset(files, combine='nested',
+                                             concat_dim='Time',
+                                             engine='netcdf4',
+                                             decode_cf=False,
+                                             data_vars='minimal',
+                                             coords='minimal',
+                                             compat='override')
+    # Delete the 'units' attr on daysSinceStart to prevent xarray from
+    # encoding it as a timedelta type (corrupts values after ~250 years).
+    if 'units' in inputfile_state_vars['daysSinceStart'].attrs:
+        del inputfile_state_vars['daysSinceStart'].attrs['units']
 
     # get the mesh description data
     nCells = inputfile_state_vars.dims['nCells']
