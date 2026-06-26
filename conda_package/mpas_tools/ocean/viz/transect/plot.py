@@ -511,7 +511,7 @@ def _compute_feature_transects(fc, ds_mesh, flip):
         assert transect['geometry']['type'] == 'LineString'
 
         coordinates = transect['geometry']['coordinates']
-        transect_lon, transect_lat = zip(*coordinates)
+        transect_lon, transect_lat = zip(*coordinates, strict=True)
         transect_lon = np.array(transect_lon)
         transect_lat = np.array(transect_lat)
         if flip:

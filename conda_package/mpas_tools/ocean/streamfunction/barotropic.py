@@ -202,7 +202,9 @@ def _build_minimal_boundary_constraints(
     """
     # Create a graph from the boundary edges
     graph = nx.Graph()
-    edges = list(zip(boundary_vertex0.values, boundary_vertex1.values))
+    edges = list(
+        zip(boundary_vertex0.values, boundary_vertex1.values, strict=True)
+    )
     graph.add_edges_from(edges)
 
     minimal_constraints = []
@@ -264,7 +266,7 @@ def _identify_boundary_vertices(ds_mesh, logger, all_vertices):
     )
 
     # Unpack minimal_constraints into boundary_vertex0 and boundary_vertex1
-    boundary_vertex0, boundary_vertex1 = zip(*minimal_constraints)
+    boundary_vertex0, boundary_vertex1 = zip(*minimal_constraints, strict=True)
     boundary_vertex0 = xr.DataArray(
         np.array(boundary_vertex0), dims=('nVertices',)
     )
