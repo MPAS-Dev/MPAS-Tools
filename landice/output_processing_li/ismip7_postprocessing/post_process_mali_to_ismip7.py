@@ -12,6 +12,7 @@ import argparse
 from subprocess import check_call
 import os
 import shutil
+from datetime import datetime
 import numpy as np
 from netCDF4 import Dataset
 from create_mapfile_mali_to_ismip7 import build_mapping_file
@@ -38,14 +39,10 @@ def main():
                         required=False,
                         help="path to which the final output files"
                              " will be saved")
-    parser.add_argument("--mali_mesh_name", dest="mali_mesh_name",
-                        required=True,
-                        help="mali mesh name (e.g., AIS_8to30km)")
-    parser.add_argument("--mapping_file", dest="mapping_file",
+    parser.add_argument("--reuse_mapping_file", dest="reuse_mapping_file",
                         required=False,
-                        help="mapping file name from MALI mesh to ISMIP7 grid")
+                        help="existing mapping file name to reuse")
     parser.add_argument("--ismip7_grid_file", dest="ismip7_grid_file",
-                        required=True,
                         help="Input ismip7 mesh file.")
     parser.add_argument("--method", dest="method_remap", default="conserve",
                         required=False,
@@ -57,6 +54,7 @@ def main():
 
     print("\n---Checking the coordinate variables of the ismip7 grid file---")
     data_ismip7 = Dataset(args.ismip7_grid_file, "r")
+    temp_ismip7_grid_file = False
     if 'x' and 'y' in data_ismip7.variables:
         ismip7_grid_file = args.ismip7_grid_file
         print("'x' and 'y' coordinates exist in the file.")
@@ -119,20 +117,23 @@ def main():
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
     if not args.input_file_state is None or not args.input_file_flux is None:
-        # check the mapping method and existence of the mapping file
+        # Check mapping method and either reuse an existing map or create a new one.
         # Note: the function 'building_mapping_file' requires the mpas mesh tool
         # script 'create_SCRIP_file_from_planar_rectangular_grid.py'
-        if os.path.exists(args.mapping_file):
-            print(f"Mapping file exists.")
-            mapping_file = args.mapping_file
+        method_remap = args.method_remap
+        if args.reuse_mapping_file is not None:
+            if not os.path.exists(args.reuse_mapping_file):
+                raise FileNotFoundError(f"Mapping file to reuse not found: "
+                                        f"{args.reuse_mapping_file}")
+            print(f"Reusing existing mapping file: {args.reuse_mapping_file}")
+            mapping_file = args.reuse_mapping_file
         else:
-            if args.method_remap is None:
-                method_remap = "conserve"
-            else:
-                method_remap = args.method_remap
+            if args.input_file_grid is None:
+                raise ValueError("--input_mesh is required when creating a new "
+                                 "mapping file.")
 
-            mapping_file = f"map_{args.mali_mesh_name}_to_"\
-                           f"ismip7_{args.res_ismip7_grid}km_{method_remap}.nc"
+            created_at = datetime.now().strftime("%Y%m%dT%H%M%S")
+            mapping_file = f"mapping_mali_to_ismip7.{method_remap}.{created_at}.nc"
 
             print(f"Creating new mapping file."
                   f"Mapping method used: {method_remap}")
