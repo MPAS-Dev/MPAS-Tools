@@ -100,13 +100,37 @@ def test_add_depth():
         )
 
 
+def test_add_depth_without_ref_bottom_depth():
+    # add_depth relies on refBottomDepth (a 1D z-level/z-star assumption) and
+    # should raise a clear error when it is missing, as is the case for Omega
+    dsMesh = create_3d_mesh()
+    out_filename = 'test_depth_out.nc'
+
+    dsIn = xarray.Dataset()
+    dsIn['temperature'] = xarray.ones_like(dsMesh.layerThickness)
+    dsIn['maxLevelCell'] = dsMesh.maxLevelCell
+    dsIn['bottomDepth'] = dsMesh.bottomDepth
+    write_netcdf(dsIn, 'test_depth_no_ref.nc')
+
+    try:
+        add_depth('test_depth_no_ref.nc', out_filename)
+    except ValueError as exc:
+        assert 'refBottomDepth' in str(exc)
+    else:
+        raise AssertionError('add_depth did not raise without refBottomDepth')
+
+
 def test_add_zmid():
     dsMesh = create_3d_mesh()
     mesh_filename = 'test_depth_mesh.nc'
     out_filename = 'test_depth_out.nc'
 
+    # layerThickness is a dynamic field and is always read from the input file,
+    # so it must be present there (the coordinate file only needs bottomDepth
+    # and maxLevelCell)
     dsIn = xarray.Dataset()
     dsIn['temperature'] = xarray.ones_like(dsMesh.layerThickness)
+    dsIn['layerThickness'] = dsMesh.layerThickness
     write_netcdf(dsIn, 'test_depth_in.nc')
 
     # test adding zMid once to the mesh and once to the input file, with the
@@ -187,5 +211,6 @@ if __name__ == '__main__':
     test_compute_depth()
     test_compute_zmid()
     test_add_depth()
+    test_add_depth_without_ref_bottom_depth()
     test_add_zmid()
     test_write_time_varying_zmid()
