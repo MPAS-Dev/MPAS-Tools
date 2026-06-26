@@ -76,7 +76,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     data = Dataset(remapped_mali_flux_file, 'r')
     data.set_auto_mask(False)
     iceMask = data.variables['iceMask'][:, :, :]
-    simulationStartTime = data.variables['simulationStartTime'][:].tostring(
+    simulationStartTime = data.variables['simulationStartTime'][:].tobytes(
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
     timeBndsMin = data.variables['timeBndsMin'][:]

@@ -46,8 +46,8 @@ def process_state_vars(files, tmp_file):
         del inputfile_state_vars['daysSinceStart'].attrs['units']
 
     # get the mesh description data
-    nLayer = inputfile_state_vars.dims['nVertLevels']
-    nInterface = nLayer + 1  # inputfile_state_vars.dims['nVertInterfaces']
+    nLayer = inputfile_state_vars.sizes['nVertLevels']
+    nInterface = nLayer + 1  # inputfile_state_vars.sizes['nVertInterfaces']
     cellMask = inputfile_state_vars['cellMask'][:, :]
     basalTemperature = inputfile_state_vars['basalTemperature'][:, :]
     betaSolve = inputfile_state_vars['betaSolve'][:, :]
@@ -119,7 +119,7 @@ def write_netcdf_2d_state_vars(
 
     data = Dataset(remapped_mali_outputfile, 'r')
     data.set_auto_mask(False)
-    simulationStartTime = data.variables['simulationStartTime'][:].tostring(
+    simulationStartTime = data.variables['simulationStartTime'][:].tobytes(
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
     daysSinceStart = data.variables['daysSinceStart'][:]

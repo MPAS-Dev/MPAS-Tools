@@ -202,7 +202,11 @@ def main():
     if (
             args.input_state_pattern is not None or
             args.input_flux_pattern is not None):
-        check_ismip7_grid_file(args.ismip7_grid_file, args.res_ismip7_grid)
+
+        # If the user has not provided a mapping file to reuse, check that the
+        # ismip7 grid file is provided and valid
+        if args.reuse_mapping_file is None:
+            check_ismip7_grid_file(args.ismip7_grid_file, args.res_ismip7_grid)
 
         method_remap = args.method_remap
         if args.reuse_mapping_file is not None:
