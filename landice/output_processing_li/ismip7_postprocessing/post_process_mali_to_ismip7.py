@@ -32,6 +32,10 @@ from process_1d_variables_ismip7 import generate_output_1d_vars, \
     check_global_stats_files
 from process_flux_variables_ismip7 import generate_output_2d_flux_vars
 
+DEFAULT_AUTHORS = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
+DEFAULT_GROUP = 'Los Alamos National Laboratory, Department of Energy'
+DEFAULT_MODEL = 'MALI (MPAS-Albany Land Ice model)'
+
 def main():
     parser = argparse.ArgumentParser(
                         description=__doc__)
@@ -68,10 +72,27 @@ def main():
                         required=True,
                         choices=['AIS', 'GIS'],
                         help="ice sheet domain: 'AIS' (Antarctica) or 'GIS' (Greenland)")
+    parser.add_argument("--authors", dest="authors",
+                        required=False, default=DEFAULT_AUTHORS,
+                        help=f"author string for output file metadata "
+                             f"(default: '{DEFAULT_AUTHORS}')")
+    parser.add_argument("--group", dest="group",
+                        required=False, default=DEFAULT_GROUP,
+                        help=f"group/institution string for output file metadata "
+                             f"(default: '{DEFAULT_GROUP}')")
     args = parser.parse_args()
 
     check_exp_name(args.exp)
     check_res(args.res_ismip7_grid)
+
+    metadata = {
+        'exp': args.exp,
+        'icesheet': args.icesheet,
+        'authors': args.authors,
+        'group': args.group,
+        'model': DEFAULT_MODEL,
+        'date': datetime.now().strftime("%d-%b-%Y"),
+    }
 
 
     print("\n---Processing remapping file---")
@@ -119,8 +140,7 @@ def main():
         print("\n---Processing global stats file(s)---")
         global_stats_files = sorted(glob.glob(args.global_stats_pattern))
         check_global_stats_files(global_stats_files)
-        generate_output_1d_vars(global_stats_files, args.exp, args.icesheet,
-                                output_path)
+        generate_output_1d_vars(global_stats_files, output_path, metadata)
         print("---Processing global stats file(s) complete---\n")
 
     # process 2d state variables
@@ -150,7 +170,7 @@ def main():
         print("Writing processed and remapped state fields to ISMIP7 file format.")
         generate_output_2d_state_vars(processed_and_remapped_file_state,
                                       args.ismip7_grid_file,
-                                      args.exp, output_path, args.icesheet)
+                                      output_path, metadata)
 
         os.remove(tmp_file)
         os.remove(processed_and_remapped_file_state)
@@ -175,7 +195,7 @@ def main():
         # write out the output files in the ismip7-required format
         generate_output_2d_flux_vars(processed_file_flux,
                                      args.ismip7_grid_file,
-                                     args.exp, output_path, args.icesheet)
+                                     output_path, metadata)
 
         cleanUp = True
         if cleanUp:

@@ -14,7 +14,7 @@ import warnings
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
                               var_units, var_varname, remapped_mali_flux_file,
-                              ismip7_grid_file, exp, output_path):
+                              ismip7_grid_file, output_path, metadata):
 
     """
     mali_var_name: variable name on MALI side
@@ -47,7 +47,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
     timeSteps, latN, lonN = np.shape(var_mali)
 
-    dataOut = Dataset(f'{output_path}/{ismip7_var_name}_{icesheet}_DOE_MALI_{exp}.nc',
+    dataOut = Dataset(f'{output_path}/{ismip7_var_name}_{metadata["icesheet"]}_DOE_MALI_{metadata["exp"]}.nc',
                       'w', format='NETCDF4_CLASSIC')
     dataOut.createDimension('time', timeSteps)
     dataOut.createDimension('bnds', 2)
@@ -61,7 +61,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     timeValues = dataOut.createVariable('time', 'd', ('time'))
 
     AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
-    DATE_STR = date.today().strftime("%d-%b-%Y")
+    DATE_STR = metadata['date']
 
     for i in range(timeSteps):
         mask = iceMask[i, :, :]
@@ -93,18 +93,17 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     yValues.units = 'm'
     yValues.standard_name = 'y'
     yValues.long_name = 'y'
-    dataOut.AUTHORS = AUTHOR_STR
-    dataOut.MODEL = 'MALI (MPAS-Albany Land Ice model)'
-    dataOut.GROUP = 'Los Alamos National Laboratory, Department of Energy'
+    dataOut.AUTHORS = metadata['authors']
+    dataOut.MODEL = metadata['model']
+    dataOut.GROUP = metadata['group']
     dataOut.VARIABLE = var_varname
-    dataOut.DATE = DATE_STR
+    dataOut.DATE = metadata['date']
     dataOut.close()
     data.close()
 
 
 def generate_output_2d_flux_vars(file_remapped_mali_flux,
-                                 ismip7_grid_file, exp, output_path,
-                                 icesheet):
+                                 ismip7_grid_file, output_path, metadata):
     """
     file_remapped_mali_flux: flux output file on mali mesh remapped
     onto the ismip7 grid
@@ -120,7 +119,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'land_ice_surface_specific_mass_balance_flux',
                               'kg m-2 s-1', 'Surface mass balance flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, exp, output_path)
+                              ismip7_grid_file, output_path, metadata)
 
     # ----------- libmassbffl ------------------
     write_netcdf_2d_flux_vars('avgFloatingBMBFlux', 'libmassbffl',
@@ -128,7 +127,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath floating ice',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, exp, output_path)
+                              ismip7_grid_file, output_path, metadata)
 
     # ----------- libmassbfgr ------------------
     write_netcdf_2d_flux_vars('avgGroundedBMBFlux', 'libmassbfgr',
@@ -136,7 +135,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Basal mass balance flux beneath grounded ice',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, exp, output_path)
+                              ismip7_grid_file, output_path, metadata)
 
     # ----------- dlithkdt ------------------
     write_netcdf_2d_flux_vars('avgDhdt', 'dlithkdt',
@@ -144,7 +143,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'm s-1',
                               'Ice thickness imbalance',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, exp, output_path)
+                              ismip7_grid_file, output_path, metadata)
 
     # ----------- licalvf ------------------
     write_netcdf_2d_flux_vars('avgCalvingFlux', 'licalvf',
@@ -152,7 +151,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Calving flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, exp, output_path)
+                              ismip7_grid_file, output_path, metadata)
 
     # ----------- lifmassbf ------------------
     # Note: facemelting and calving flux are combined above
@@ -161,7 +160,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Ice front melt flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, exp, output_path)
+                              ismip7_grid_file, output_path, metadata)
 
     # ----------- ligroundf ------------------
     write_netcdf_2d_flux_vars('avgGroundingLineFlux', 'ligroundf',
@@ -169,4 +168,4 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'kg m-2 s-1',
                               'Grounding line flux',
                               file_remapped_mali_flux,
-                              ismip7_grid_file, exp, output_path)
+                              ismip7_grid_file, output_path, metadata)
