@@ -164,7 +164,7 @@ def build_mapping_file(mali_mesh_file,
           f"for ismip7 grid and mali mesh...")
 
     # create a scripfile for ismip7 grid
-    args = ["create_SCRIP_file_from_planar_rectangular_grid.py",
+    args = ["create_scrip_file_from_planar_rectangular_grid",
             "--input", ismip7_grid_file,
             "--scrip", ismip7_scripfile,
             "--proj", ismip7_projection,
@@ -204,6 +204,7 @@ def build_mapping_file(mali_mesh_file,
              "-i", "-64bit_offset",
              "--dst_regional", "--src_regional"])
 
+    print(f"Running remapping command: {' '.join(args)}")
     check_call(args)
 
     # remove the temporary scripfiles once the mapping file is generated
