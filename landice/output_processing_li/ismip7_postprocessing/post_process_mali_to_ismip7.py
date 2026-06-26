@@ -15,7 +15,8 @@ from datetime import datetime
 from grid_and_mapping import build_mapping_file, check_ismip7_grid_file, \
     check_exp_name
 from process_state_variables_ismip7 import generate_output_2d_state_vars, \
-     process_state_vars, generate_output_1d_vars
+     process_state_vars
+from process_1d_variables_ismip7 import generate_output_1d_vars
 from process_flux_variables_ismip7 import generate_output_2d_flux_vars
 
 def main():
