@@ -4,11 +4,9 @@ for ISMIP7 submissions from MALI globalStats output.
 """
 
 from netCDF4 import Dataset
-from datetime import date
 import numpy as np
 import os
 import sys
-import glob
 import xarray as xr
 from validate import validate_mali_files
 
@@ -32,12 +30,28 @@ def check_global_stats_files(files):
     validate_mali_files(files, EXPECTED_VARIABLES, label='globalStats')
 
 
-def _write_state_var(varname, data_values, time_days, standard_name, units,
-                     variable_desc, output_path, simulationStartDate, metadata):
-    """Write a single 1D state (snapshot) variable to a NETCDF4_CLASSIC file."""
+def _build_output_filename(output_path, varname, metadata):
+    """Build a standard ISMIP7 output filename for a given variable."""
+    return (
+        f'{output_path}/{varname}_{metadata["icesheet"]}_'
+        f'{metadata["group_nickname"]}_MALI_{metadata["exp"]}.nc'
+    )
+
+
+def _write_state_var(
+        varname,
+        data_values,
+        time_days,
+        standard_name,
+        units,
+        variable_desc,
+        output_path,
+        simulationStartDate,
+        metadata):
+    """Write one 1D state (snapshot) variable to NETCDF4_CLASSIC."""
     nt = len(data_values)
-    ds_out = Dataset(f'{output_path}/{varname}_{metadata["icesheet"]}_{metadata["group_nickname"]}_MALI_{metadata["exp"]}.nc',
-                     'w', format='NETCDF4_CLASSIC')
+    filename = _build_output_filename(output_path, varname, metadata)
+    ds_out = Dataset(filename, 'w', format='NETCDF4_CLASSIC')
     ds_out.createDimension('time', nt)
     var_out = ds_out.createVariable(varname, 'd', ('time',))
     time_out = ds_out.createVariable('time', 'd', ('time',))
@@ -60,10 +74,10 @@ def _write_state_var(varname, data_values, time_days, standard_name, units,
 def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
                     units, variable_desc, output_path, simulationStartDate,
                     metadata):
-    """Write a single 1D flux (time-averaged) variable to a NETCDF4_CLASSIC file."""
+    """Write one 1D flux (time-averaged) variable to NETCDF4_CLASSIC."""
     nt = len(data_values)
-    ds_out = Dataset(f'{output_path}/{varname}_{metadata["icesheet"]}_{metadata["group_nickname"]}_MALI_{metadata["exp"]}.nc',
-                     'w', format='NETCDF4_CLASSIC')
+    filename = _build_output_filename(output_path, varname, metadata)
+    ds_out = Dataset(filename, 'w', format='NETCDF4_CLASSIC')
     ds_out.createDimension('time', nt)
     ds_out.createDimension('bnds', 2)
     var_out = ds_out.createVariable(varname, 'd', ('time',))
@@ -98,7 +112,8 @@ def generate_output_1d_vars(files, output_path, metadata):
     output_path : str
         Directory for output files.
     metadata : dict
-        Submission metadata with keys: exp, icesheet, authors, group, model, date.
+        Submission metadata with keys:
+        exp, icesheet, authors, group, model, date.
     """
 
     if output_path is None or not os.path.exists(output_path):
@@ -108,14 +123,19 @@ def generate_output_1d_vars(files, output_path, metadata):
                            decode_cf=False, data_vars='minimal',
                            coords='minimal', compat='override')
     with xr.open_dataset(files[0], decode_cf=False) as ds_first:
-        simulationStartTime = (ds_first['simulationStartTime'].values
-                               .tobytes().decode('utf-8').strip().strip('\x00'))
+        simulationStartTime = (
+            ds_first['simulationStartTime']
+            .values.tobytes().decode('utf-8').strip().strip('\x00')
+        )
     daysSinceStart = ds['daysSinceStart'].values
     dt = ds['deltat'].values
     simulationStartDate = simulationStartTime.split("_")[0]
     if simulationStartDate[5:10] != '01-01':
         ds.close()
-        sys.exit("Error: simulationStartTime for globalStats file is not on Jan. 1.")
+        sys.exit(
+            "Error: simulationStartTime for globalStats file "
+            "is not on Jan. 1."
+        )
     refYear = int(simulationStartDate[0:4])
     decYears = refYear + daysSinceStart / 365.0
     endYr = decYears[-1]
@@ -130,13 +150,17 @@ def generate_output_1d_vars(files, output_path, metadata):
     # Flux fields should never use the Jan. 1 time level at the start of the
     # year as part of the averaging.
     # For year conventions here, for state fields, the year is the snapshot at
-    # the start of the year, e.g., state year 2000 means the snapshot at Jan. 1, 2000.
+    # the start of the year, e.g., state year 2000 means the snapshot at
+    # Jan. 1, 2000.
     # For flux fields, the years is the calendar year being averaged over,
-    # e.g., flux year 2000 is the average between Jan. 1, 2000, and Jan. 1, 2001.
-    # Note this year convention differs from the first column in table in A2.3.2 at
+    # e.g., flux year 2000 is the average between Jan. 1, 2000,
+    # and Jan. 1, 2001.
+    # Note this year convention differs from the first column in table in
+    # A2.3.2 at
     # https://www.climate-cryosphere.org/wiki/index.php?title=ISMIP7-Projections2300-Antarctica#A2.3.3_Table_A1:_Variable_request_for_ISMIP6
     # but that year indexing convention ultimately doesn't matter because the
-    # time coordinates in these files uses units of days since a reference date,
+    # time coordinates in these files uses units of days since a
+    # reference date,
     # and it does not use a year indexing convention at all.
     if decYears[0] == np.round(decYears[0]):
         # The initial time level will only be on an even year (Jan. 1)
@@ -144,21 +168,31 @@ def generate_output_1d_vars(files, output_path, metadata):
         # even year in the state processing.  We also want the state snapshot
         # at the final (even) year in the output.
         # The flux processing should start with the first year, which covers a
-        # full 12 months.  We exclude the final year, which is just a Jan. 1 posting.
+        # full 12 months.  We exclude the final year, which is just a Jan. 1
+        # posting.
         years_state = np.arange(decYears[0], endYr + 1)
         years_flux = np.arange(decYears[0], endYr)
     else:
-        # For projection runs, the first state snapshot we want is the first Jan. 1,
+        # For projection runs, the first state snapshot we want is the
+        # first Jan. 1,
         # which we be the first even year after the initial time in the file.
-        # For flux files, the first full year we want to process is the year of the
-        # first time level in the file.  As with hist, we exclude the final year,
+        # For flux files, the first full year we want to process is the
+        # year of the
+        # first time level in the file. As with hist, we exclude the
+        # final year,
         # which is just a Jan. 1 posting.
         years_state = np.arange(np.ceil(decYears[0]), endYr + 1)
         years_flux = np.arange(np.floor(decYears[0]), endYr)
     nt_state = len(years_state)
     nt_flux = len(years_flux)
-    print(f'For state processing, using start year={years_state[0]} and end year={years_state[-1]}.')
-    print(f'For flux  processing, using start year={years_flux[0]} and end year={years_flux[-1]}.')
+    print(
+        "For state processing, using start "
+        f"year={years_state[0]} and end year={years_state[-1]}."
+    )
+    print(
+        "For flux  processing, using start "
+        f"year={years_flux[0]} and end year={years_flux[-1]}."
+    )
 
     # read in state variables
     vol = ds['totalIceVolume'].values
@@ -172,21 +206,29 @@ def generate_output_1d_vars(files, output_path, metadata):
     # clean out some garbage values we can't account for
     ind = np.nonzero(bmbGr > 1.0e18)[0]
     if len(ind) > 0:
-        print(f"WARNING: Found {len(ind)} values of totalGroundedBasalMassBal>1.0e18")
+        print(
+            f"WARNING: Found {
+                len(ind)} values of totalGroundedBasalMassBal>1.0e18")
         bmbGr[ind] = np.nan
     ind = np.nonzero(bmbGr < -1.0e18)[0]
     if len(ind) > 0:
-        print(f"WARNING: Found {len(ind)} values of totalGroundedBasalMassBal<-1.0e18")
+        print(
+            f"WARNING: Found {
+                len(ind)} values of totalGroundedBasalMassBal<-1.0e18")
         bmbGr[ind] = np.nan
     bmbFlt = ds['totalFloatingBasalMassBal'].values.copy()
     # clean out some garbage values we can't account for
-    ind = np.nonzero(bmbFlt>1.0e18)[0]
+    ind = np.nonzero(bmbFlt > 1.0e18)[0]
     if len(ind) > 0:
-        print(f"WARNING: Found {len(ind)} values of totalFloatingBasalMassBal>1.0e18")
+        print(
+            f"WARNING: Found {
+                len(ind)} values of totalFloatingBasalMassBal>1.0e18")
         bmbFlt[ind] = np.nan
-    ind = np.nonzero(bmbFlt<-1.0e18)[0]
+    ind = np.nonzero(bmbFlt < -1.0e18)[0]
     if len(ind) > 0:
-        print(f"WARNING: Found {len(ind)} values of totalFloatingBasalMassBal<-1.0e18")
+        print(
+            f"WARNING: Found {
+                len(ind)} values of totalFloatingBasalMassBal<-1.0e18")
         bmbFlt[ind] = np.nan
     cfx = ds['totalCalvingFlux'].values
     fmfx = ds['totalFaceMeltingFlux'].values
@@ -213,7 +255,9 @@ def generate_output_1d_vars(files, output_path, metadata):
         # Use isclose to avoid floating-point equality issues.
         ind_snap = np.where(np.isclose(decYears, years_state[i]))[0]
         if len(ind_snap) == 0:
-            raise ValueError(f"No state snapshot found for year {years_state[i]}.")
+            raise ValueError(
+                f"No state snapshot found for year {
+                    years_state[i]}.")
         if len(ind_snap) > 1:
             print(f"WARNING: Found {len(ind_snap)} snapshots for year "
                   f"{years_state[i]}; using the first one.")
@@ -230,8 +274,12 @@ def generate_output_1d_vars(files, output_path, metadata):
 
     # this is for the flux variables
     for i in range(nt_flux):
-        ind_avg = np.where(np.logical_and(decYears > years_flux[i],
-                                          decYears <= (years_flux[i] + 1.0)))[0]
+        ind_avg = np.where(
+            np.logical_and(
+                decYears > years_flux[i],
+                decYears <= (
+                    years_flux[i] +
+                    1.0)))[0]
         if len(ind_avg) == 0:
             raise ValueError(f"No flux averaging samples found for year "
                              f"{years_flux[i]}.")
@@ -241,7 +289,7 @@ def generate_output_1d_vars(files, output_path, metadata):
         cfxi = cfx[ind_avg]
         fmfxi = fmfx[ind_avg]
         gfxi = gfx[ind_avg]
-        dti  = dt[ind_avg]
+        dti = dt[ind_avg]
 
         # take the average of the flux variables
         smb_avg[i] = np.nansum(smbi * dti) / np.nansum(dti)
@@ -269,27 +317,52 @@ def generate_output_1d_vars(files, output_path, metadata):
     _write_state_var('limnsw', vaf_snapshot * 910, days_snapshot,
                      'land_ice_mass_not_displacing_sea_water', 'kg',
                      'Mass above floatation', **common)
-    _write_state_var('iareagr', gia_snapshot, days_snapshot,
-                     'grounded_ice_sheet_area', 'm2', 'Grounded ice area', **common)
-    _write_state_var('iareafl', fia_snapshot, days_snapshot,
-                     'floating_ice_shelf_area', 'm2', 'Floating ice area', **common)
+    _write_state_var(
+        'iareagr',
+        gia_snapshot,
+        days_snapshot,
+        'grounded_ice_sheet_area',
+        'm2',
+        'Grounded ice area',
+        **common)
+    _write_state_var(
+        'iareafl',
+        fia_snapshot,
+        days_snapshot,
+        'floating_ice_shelf_area',
+        'm2',
+        'Floating ice area',
+        **common)
 
     # --- flux (time-averaged) variables ---
     _write_flux_var('tendacabf', smb_avg / 31536000.0, days_min, days_max,
                     'tendency_of_land_ice_mass_due_to_surface_mass_balance',
                     'kg s-1', 'Total SMB flux', **common)
-    _write_flux_var('tendlibmassbfgr', bmbGr_avg / 31536000.0, days_min, days_max,
-                    'tendency_of_land_ice_mass_due_to_basal_mass_balance',
-                    'kg s-1', 'Total BMB flux beneath grounded ice', **common)
-    _write_flux_var('tendlibmassbffl', bmbFlt_avg / 31536000.0, days_min, days_max,
-                    'tendency_of_land_ice_mass_due_to_basal_mass_balance',
-                    'kg s-1', 'Total BMB flux beneath floating ice', **common)
+    _write_flux_var(
+        'tendlibmassbfgr',
+        bmbGr_avg / 31536000.0,
+        days_min,
+        days_max,
+        'tendency_of_land_ice_mass_due_to_basal_mass_balance',
+        'kg s-1',
+        'Total BMB flux beneath grounded ice',
+        **common)
+    _write_flux_var(
+        'tendlibmassbffl',
+        bmbFlt_avg / 31536000.0,
+        days_min,
+        days_max,
+        'tendency_of_land_ice_mass_due_to_basal_mass_balance',
+        'kg s-1',
+        'Total BMB flux beneath floating ice',
+        **common)
     # tendlicalvf: sign convention — calving removes mass, so negate
     _write_flux_var('tendlicalvf', -cfx_avg / 31536000.0, days_min, days_max,
                     'tendency_of_land_ice_mass_due_to_calving',
                     'kg s-1', 'Total calving flux', **common)
     # tendlifmassbf: in ISMIP7 this is ice-front melting only (not calving)
-    _write_flux_var('tendlifmassbf', -fmfx_avg / 31536000.0, days_min, days_max,
+    _write_flux_var('tendlifmassbf', -fmfx_avg / 31536000.0, days_min,
+                    days_max,
                     'tendency_of_land_ice_mass_due_to_ice_front_melting',
                     'kg s-1', 'Total ice front melting flux', **common)
     _write_flux_var('tendligroundf', gfx_avg / 31536000.0, days_min, days_max,

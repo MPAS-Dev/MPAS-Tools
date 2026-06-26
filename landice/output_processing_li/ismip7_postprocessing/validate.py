@@ -16,7 +16,8 @@ def validate_mali_files(files, required_vars, label=''):
     - Each file contains all required variables
     - simulationStartTime is consistent across all files
     - No time overlaps (daysSinceStart) exist between consecutive files
-    - No unexpectedly large time gaps (> 366 days) exist between consecutive files
+        - No unexpectedly large time gaps (> 366 days) exist between
+            consecutive files
 
     Parameters
     ----------

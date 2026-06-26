@@ -2,7 +2,6 @@ from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from subprocess import check_call
 import os
 import netCDF4
-import xarray as xr
 
 
 VALID_EXPERIMENTS = [f"C{i:03d}" for i in range(1, 12)]
@@ -56,11 +55,11 @@ def check_exp_name(exp):
             f"Valid experiments are: {', '.join(VALID_EXPERIMENTS)}")
     print(f"Experiment name '{exp}' is valid.")
 
+
 def check_ismip7_grid_file(ismip7_grid_file_path, res_ismip7_grid):
     """
     Ensure the ISMIP7 grid file has 'x' and 'y' coordinate variables and that
-    its corners match the ISMIP7-required extents.  If 'x'/'y' are absent a
-    temporary copy with those variables added is created.
+    its corners match the ISMIP7-required extents.
 
     Parameters
     ----------
@@ -112,6 +111,7 @@ def check_ismip7_grid_file(ismip7_grid_file_path, res_ismip7_grid):
               f"upper right corner values at {x[-1]}m and {y[-1]}m")
     check_ds.close()
 
+
 def build_mapping_file(mali_mesh_file,
                        mapping_file, res_ismip7_grid,
                        ismip7_grid_file=None,
@@ -141,7 +141,7 @@ def build_mapping_file(mali_mesh_file,
     """
 
     if os.path.exists(mapping_file):
-        print(f"Mapping file exists. Not building a new one.")
+        print("Mapping file exists. Not building a new one.")
         return
 
     if ismip7_grid_file is None:
@@ -158,10 +158,10 @@ def build_mapping_file(mali_mesh_file,
 
     # create the ismip7 scripfile if mapping file does not exist
     # this is the projection of ismip7 data for Antarctica
-    print(f"Mapping file does not exist. Building one based on "
-          f"the input/ouptut meshes")
-    print(f"Creating temporary scripfiles "
-          f"for ismip7 grid and mali mesh...")
+    print("Mapping file does not exist. Building one based on "
+          "the input/ouptut meshes")
+    print("Creating temporary scripfiles "
+          "for ismip7 grid and mali mesh...")
 
     # create a scripfile for ismip7 grid
     args = ["create_scrip_file_from_planar_rectangular_grid",
@@ -189,25 +189,25 @@ def build_mapping_file(mali_mesh_file,
     hostname = os.uname()[1]
     if hostname.startswith('nid'):
         args = (["srun", "-n", "12", "ESMF_RegridWeightGen",
-             "-s", mali_scripfile,
-             "-d", ismip7_scripfile,
-             "-w", mapping_file,
-             "-m", method_remap,
-             "-i", "-64bit_offset",
-             "--dst_regional", "--src_regional"])
+                 "-s", mali_scripfile,
+                 "-d", ismip7_scripfile,
+                 "-w", mapping_file,
+                 "-m", method_remap,
+                 "-i", "-64bit_offset",
+                 "--dst_regional", "--src_regional"])
     else:
         args = (["ESMF_RegridWeightGen",
-             "-s", mali_scripfile,
-             "-d", ismip7_scripfile,
-             "-w", mapping_file,
-             "-m", method_remap,
-             "-i", "-64bit_offset",
-             "--dst_regional", "--src_regional"])
+                 "-s", mali_scripfile,
+                 "-d", ismip7_scripfile,
+                 "-w", mapping_file,
+                 "-m", method_remap,
+                 "-i", "-64bit_offset",
+                 "--dst_regional", "--src_regional"])
 
     print(f"Running remapping command: {' '.join(args)}")
     check_call(args)
 
     # remove the temporary scripfiles once the mapping file is generated
-    print(f"Removing the temporary mesh and scripfiles...")
+    print("Removing the temporary mesh and scripfiles...")
     os.remove(ismip7_scripfile)
     os.remove(mali_scripfile)

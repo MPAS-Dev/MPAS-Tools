@@ -6,10 +6,8 @@ output variables from ISMIP7 simulations.
 from netCDF4 import Dataset
 import xarray as xr
 import numpy as np
-from datetime import date
 from subprocess import check_call
-import os, sys
-import warnings
+import os
 from validate import validate_mali_files
 
 
@@ -48,7 +46,9 @@ def process_flux_vars(files, tmp_file):
                                 data_vars='minimal',
                                 coords='minimal',
                                 compat='override')
-    if 'daysSinceStart' in ds_flux and 'units' in ds_flux['daysSinceStart'].attrs:
+    if (
+            'daysSinceStart' in ds_flux and
+            'units' in ds_flux['daysSinceStart'].attrs):
         del ds_flux['daysSinceStart'].attrs['units']
     ds_flux.to_netcdf(tmp_file)
     ds_flux.close()
@@ -57,7 +57,6 @@ def process_flux_vars(files, tmp_file):
 def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
                               var_units, var_varname, remapped_mali_flux_file,
                               ismip7_grid_file, output_path, metadata):
-
     """
     mali_var_name: variable name on MALI side
     ismip7_var_name: variable name required by ISMIP7
@@ -77,33 +76,36 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     data = Dataset(remapped_mali_flux_file, 'r')
     data.set_auto_mask(False)
     iceMask = data.variables['iceMask'][:, :, :]
-    simulationStartTime = data.variables['simulationStartTime'][:].tostring().decode('utf-8').strip().strip('\x00')
+    simulationStartTime = data.variables['simulationStartTime'][:].tostring(
+    ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
     timeBndsMin = data.variables['timeBndsMin'][:]
     timeBndsMax = data.variables['timeBndsMax'][:]
-    if not mali_var_name in data.variables:
+    if mali_var_name not in data.variables:
         print(f"WARNING: {mali_var_name} not present.  Skipping.")
         data.close()
         return
-    var_mali = data.variables[mali_var_name][:,:,:]
+    var_mali = data.variables[mali_var_name][:, :, :]
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
     timeSteps, latN, lonN = np.shape(var_mali)
 
-    dataOut = Dataset(f'{output_path}/{ismip7_var_name}_{metadata["icesheet"]}_{metadata["group_nickname"]}_MALI_{metadata["exp"]}.nc',
-                      'w', format='NETCDF4_CLASSIC')
+    dataOut = Dataset(
+        f'{output_path}/{ismip7_var_name}_{
+            metadata["icesheet"]}_{
+            metadata["group_nickname"]}_MALI_{
+                metadata["exp"]}.nc',
+        'w',
+        format='NETCDF4_CLASSIC')
     dataOut.createDimension('time', timeSteps)
     dataOut.createDimension('bnds', 2)
     timebndsValues = dataOut.createVariable('time_bnds', 'd', ('time', 'bnds'))
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)
     dataValues = dataOut.createVariable(ismip7_var_name, 'd',
-                                       ('time', 'y', 'x'), fill_value=np.NAN)
+                                        ('time', 'y', 'x'), fill_value=np.NAN)
     xValues = dataOut.createVariable('x', 'd', ('x'))
     yValues = dataOut.createVariable('y', 'd', ('y'))
     timeValues = dataOut.createVariable('time', 'd', ('time'))
-
-    AUTHOR_STR = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
-    DATE_STR = metadata['date']
 
     for i in range(timeSteps):
         mask = iceMask[i, :, :]
@@ -216,7 +218,8 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
 def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
                           output_path, metadata):
     """
-    Full flux-variable processing pipeline: validate, concatenate, remap, write.
+    Full flux-variable processing pipeline:
+    validate, concatenate, remap, write.
 
     Parameters
     ----------
