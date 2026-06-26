@@ -10,6 +10,48 @@ from datetime import date
 from subprocess import check_call
 import os, sys
 import warnings
+from validate import validate_mali_files
+
+
+EXPECTED_FLUX_VARIABLES = [
+    'daysSinceStart', 'simulationStartTime',
+    'timeBndsMin', 'timeBndsMax', 'iceMask',
+    'avgSMBFlux', 'avgFloatingBMBFlux', 'avgGroundedBMBFlux',
+    'avgDhdt', 'avgCalvingFlux', 'avgGroundingLineFlux',
+]
+
+
+def check_flux_files(files):
+    """
+    Validate a list of MALI flux output files before processing.
+
+    See validate.validate_mali_files for full details of checks performed.
+    """
+    validate_mali_files(files, EXPECTED_FLUX_VARIABLES, label='flux')
+
+
+def process_flux_vars(files, tmp_file):
+    """
+    Concatenate/prepare flux files into a temporary file for remapping.
+
+    Parameters
+    ----------
+    files : list of str
+        Sorted list of MALI flux output file paths.
+    tmp_file : str
+        Temporary output file name.
+    """
+    ds_flux = xr.open_mfdataset(files, combine='nested',
+                                concat_dim='Time',
+                                engine='netcdf4',
+                                decode_cf=False,
+                                data_vars='minimal',
+                                coords='minimal',
+                                compat='override')
+    if 'daysSinceStart' in ds_flux and 'units' in ds_flux['daysSinceStart'].attrs:
+        del ds_flux['daysSinceStart'].attrs['units']
+    ds_flux.to_netcdf(tmp_file)
+    ds_flux.close()
 
 
 def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
@@ -169,3 +211,44 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               'Grounding line flux',
                               file_remapped_mali_flux,
                               ismip7_grid_file, output_path, metadata)
+
+
+def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
+                          output_path, metadata):
+    """
+    Full flux-variable processing pipeline: validate, concatenate, remap, write.
+
+    Parameters
+    ----------
+    flux_files : list of str
+        Sorted list of MALI flux output file paths.
+    mapping_file : str
+        Path to the ESMF mapping/weights file.
+    ismip7_grid_file : str
+        Path to the ISMIP7 grid file.
+    output_path : str
+        Directory for output files.
+    metadata : dict
+        Submission metadata dict.
+    """
+    check_flux_files(flux_files)
+
+    print("Preparing concatenated flux file for remapping.")
+    tmp_flux_file = 'tmp_flux.nc'
+    process_flux_vars(flux_files, tmp_flux_file)
+
+    print("Remapping flux file.")
+    processed_file_flux = 'processed_flux.nc'
+    check_call(["ncremap",
+                "-i", tmp_flux_file,
+                "-o", processed_file_flux,
+                "-m", mapping_file,
+                "-P", "mpas"])
+
+    print("Writing processed and remapped flux fields to ISMIP7 file format.")
+    generate_output_2d_flux_vars(processed_file_flux,
+                                 ismip7_grid_file,
+                                 output_path, metadata)
+
+    os.remove(tmp_flux_file)
+    os.remove(processed_file_flux)

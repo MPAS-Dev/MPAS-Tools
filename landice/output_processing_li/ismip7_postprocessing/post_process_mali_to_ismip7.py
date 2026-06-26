@@ -29,7 +29,7 @@ from grid_and_mapping import build_mapping_file, check_ismip7_grid_file, \
 from process_state_variables_ismip7 import process_state_pipeline
 from process_1d_variables_ismip7 import generate_output_1d_vars, \
     check_global_stats_files
-from process_flux_variables_ismip7 import generate_output_2d_flux_vars
+from process_flux_variables_ismip7 import process_flux_pipeline
 
 DEFAULT_AUTHORS = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
 DEFAULT_GROUP = 'Los Alamos National Laboratory, Department of Energy'
@@ -46,8 +46,10 @@ def main():
                         required=False,
                         help="glob pattern matching one or more MALI state output files. "
                              "Note: wildcard paths should be quoted to avoid shell expansion.")
-    parser.add_argument("-f", "--input_flux", dest="input_file_flux",
-                        required=False, help="mpas output flux variables")
+    parser.add_argument("-f", "--input_flux_pattern", dest="input_flux_pattern",
+                        required=False,
+                        help="glob pattern matching one or more MALI flux output files. "
+                             "Note: wildcard paths should be quoted to avoid shell expansion.")
     parser.add_argument("-m", "--input_mesh", dest="input_file_mesh",
                         required=False, help="MALI file with mesh information")
     parser.add_argument("-g", "--global_stats_pattern", dest="global_stats_pattern",
@@ -104,7 +106,7 @@ def main():
 
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
-    if not args.input_state_pattern is None or not args.input_file_flux is None:
+    if not args.input_state_pattern is None or not args.input_flux_pattern is None:
         # Check grid file and res if 2d variables are to be processed
         check_ismip7_grid_file(args.ismip7_grid_file, args.res_ismip7_grid)
         # Check mapping method and either reuse an existing map or create a new one.
@@ -161,30 +163,14 @@ def main():
         print("---Processing state file(s) complete---\n")
 
     # process 2d flux variables
-    if args.input_file_flux is None:
-        print("--- MALI flux file is not provided, thus it will not be processed.")
+    if args.input_flux_pattern is None:
+        print("--- MALI flux pattern is not provided, thus it will not be processed.")
     else:
-        print("\n---Processing flux file---")
-
-        # remap data from the MALI unstructured mesh to the ISMIP7 P-S grid
-        processed_file_flux = f'processed_' \
-                              f'{os.path.basename(args.input_file_flux)}'
-        command = ["ncremap",
-                   "-i", args.input_file_flux,
-                   "-o", processed_file_flux,
-                   "-m", mapping_file,
-                   "-P", "mpas"]
-        check_call(command)
-
-        # write out the output files in the ismip7-required format
-        generate_output_2d_flux_vars(processed_file_flux,
-                                     args.ismip7_grid_file,
-                                     output_path, metadata)
-
-        cleanUp = True
-        if cleanUp:
-            os.remove(processed_file_flux)
-        print("---Processing flux file complete---\n")
+        print("\n---Processing flux file(s)---")
+        flux_files = sorted(glob.glob(args.input_flux_pattern))
+        process_flux_pipeline(flux_files, mapping_file, args.ismip7_grid_file,
+                              output_path, metadata)
+        print("---Processing flux file(s) complete---\n")
     print("---All processing complete---")
 
 if __name__ == "__main__":
