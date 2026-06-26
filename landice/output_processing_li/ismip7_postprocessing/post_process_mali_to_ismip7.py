@@ -39,7 +39,7 @@ def main():
                         help="glob pattern matching one or more globalStats.nc "
                              "files (e.g. 'globalStats_*.nc')")
     parser.add_argument("-p", "--output_path", dest="output_path",
-                        required=False,
+                        required=True,
                         help="path to which the final output files"
                              " will be saved")
     parser.add_argument("--reuse_mapping_file", dest="reuse_mapping_file",
@@ -93,10 +93,7 @@ def main():
     print("---Processing remapping file complete---\n")
 
     # define the path to which the output (processed) files will be saved
-    if args.output_path is None:
-        output_path = os.getcwd()
-    else:
-        output_path = args.output_path
+    output_path = args.output_path
     print(f"Using output path: {output_path}")
     if not os.path.isdir(output_path):
         os.makedirs(output_path)
