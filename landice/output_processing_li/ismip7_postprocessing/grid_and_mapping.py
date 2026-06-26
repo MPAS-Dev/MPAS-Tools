@@ -5,6 +5,29 @@ import netCDF4
 import xarray as xr
 
 
+VALID_EXPERIMENTS = [f"C{i:03d}" for i in range(1, 12)]
+
+
+def check_exp_name(exp):
+    """
+    Validate the ISMIP7 experiment name.
+
+    Parameters
+    ----------
+    exp : str
+        Experiment name to validate (e.g. 'C001').
+
+    Raises
+    ------
+    ValueError
+        If the experiment name is not in the list of valid experiments.
+    """
+    if exp not in VALID_EXPERIMENTS:
+        raise ValueError(
+            f"Invalid experiment name '{exp}'. "
+            f"Valid experiments are: {', '.join(VALID_EXPERIMENTS)}")
+    print(f"Experiment name '{exp}' is valid.")
+
 def check_ismip7_grid_file(ismip7_grid_file_path, res_ismip7_grid):
     """
     Ensure the ISMIP7 grid file has 'x' and 'y' coordinate variables and that
