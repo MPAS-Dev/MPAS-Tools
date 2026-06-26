@@ -277,21 +277,31 @@ def generate_output_1d_vars(files, exp, icesheet, output_path=None):
 
     # this is for the state variables
     for i in range(nt_state):
-        ind_snap = np.where(decYears==years_state[i])[0]
+        # Use isclose to avoid floating-point equality issues.
+        ind_snap = np.where(np.isclose(decYears, years_state[i]))[0]
+        if len(ind_snap) == 0:
+            raise ValueError(f"No state snapshot found for year {years_state[i]}.")
+        if len(ind_snap) > 1:
+            print(f"WARNING: Found {len(ind_snap)} snapshots for year "
+                  f"{years_state[i]}; using the first one.")
+        idx_snap = ind_snap[0]
 
-        vol_snapshot[i] = vol[ind_snap]
-        vaf_snapshot[i] = vaf[ind_snap]
-        gia_snapshot[i] = gia[ind_snap]
-        fia_snapshot[i] = fia[ind_snap]
-        days_snapshot[i] = daysSinceStart[ind_snap]
+        vol_snapshot[i] = vol[idx_snap]
+        vaf_snapshot[i] = vaf[idx_snap]
+        gia_snapshot[i] = gia[idx_snap]
+        fia_snapshot[i] = fia[idx_snap]
+        days_snapshot[i] = daysSinceStart[idx_snap]
 
-        if decYears[ind_snap] == endYr:
+        if decYears[idx_snap] == endYr:
             break
 
     # this is for the flux variables
     for i in range(nt_flux):
         ind_avg = np.where(np.logical_and(decYears > years_flux[i],
                                           decYears <= (years_flux[i] + 1.0)))[0]
+        if len(ind_avg) == 0:
+            raise ValueError(f"No flux averaging samples found for year "
+                             f"{years_flux[i]}.")
         smbi = smb[ind_avg]
         bmbGri = bmbGr[ind_avg]
         bmbFlti = bmbFlt[ind_avg]
