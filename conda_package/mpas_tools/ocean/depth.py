@@ -13,6 +13,14 @@ def compute_depth(refBottomDepth):
     """
     Computes depth and depth bounds given refBottomDepth
 
+    .. note::
+        This produces a 1D depth coordinate from ``refBottomDepth``, a single
+        reference depth profile that is independent of horizontal location.
+        This assumes a z-level/z-star vertical coordinate and is **not
+        supported for Omega or other general vertical coordinates**, which do
+        not provide ``refBottomDepth``.  Use :py:func:`add_zmid` for a 3D
+        ``zMid`` coordinate instead.
+
     Parameters
     ----------
     refBottomDepth : xarray.DataArray
@@ -103,6 +111,13 @@ def add_depth(inFileName, outFileName, coordFileName=None):
     """
     Add a 1D depth coordinate to an MPAS-Ocean file.
 
+    .. note::
+        This adds a 1D ``depth`` coordinate derived from ``refBottomDepth``,
+        which assumes a z-level/z-star vertical coordinate.  It is **not
+        supported for Omega or other general vertical coordinates**, which do
+        not provide ``refBottomDepth``.  Use :py:func:`add_zmid` for a 3D
+        ``zMid`` coordinate instead.
+
     Parameters
     ----------
     inFileName : str
@@ -125,6 +140,15 @@ def add_depth(inFileName, outFileName, coordFileName=None):
 
         dsCoord = xarray.open_dataset(coordFileName, mask_and_scale=False)
         dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
+
+        if 'refBottomDepth' not in dsCoord:
+            raise ValueError(
+                'add_depth() requires a 1D refBottomDepth variable, which '
+                'defines a z-level/z-star reference depth for each layer.  '
+                'This is not available in Omega or for general vertical '
+                'coordinates.  Use add_zmid() to add a 3D zMid coordinate '
+                'instead.'
+            )
 
         depth, depth_bnds = compute_depth(dsCoord.refBottomDepth)
         ds.coords['depth'] = ('depth', depth)
@@ -211,8 +235,9 @@ def add_zmid(inFileName, outFileName, coordFileName=None):
         An output MPAS-Ocean file with ``zMid`` added
 
     coordFileName : str, optional
-        An MPAS-Ocean file with ``bottomDepth``, ``maxLevelCell`` and
-        ``layerThickness`` but not ``zMid``
+        An MPAS-Ocean file with ``bottomDepth`` and ``maxLevelCell`` but not
+        ``zMid``.  ``layerThickness`` is a dynamic field and is always read
+        from ``inFileName``.
     """
     if coordFileName is None:
         coordFileName = inFileName
@@ -220,6 +245,14 @@ def add_zmid(inFileName, outFileName, coordFileName=None):
     ds = xarray.open_dataset(inFileName, mask_and_scale=False)
     if 'nVertLevels' in ds.dims:
         ds = ds.rename({'nVertLevels': 'depth'})
+
+        # dsIn doesn't have masking disabled because we want NaNs below the
+        # bathymetry for zMid; layerThickness is a dynamic field so it comes
+        # from the input file, not the (static) coordinate file
+        dsIn = xarray.open_dataset(inFileName)
+        dsIn = dsIn.rename({'nVertLevels': 'depth'})
+        if 'Time' in dsIn.dims:
+            dsIn = dsIn.isel(Time=0)
 
         # dsCoord doesn't have masking disabled because we want it for zMid
         dsCoord = xarray.open_dataset(coordFileName)
@@ -230,7 +263,7 @@ def add_zmid(inFileName, outFileName, coordFileName=None):
         ds.coords['zMid'] = compute_zmid(
             dsCoord.bottomDepth,
             dsCoord.maxLevelCell,
-            dsCoord.layerThickness,
+            dsIn.layerThickness,
             depth_dim='depth',
         )
         fillValue = netCDF4.default_fillvals['f8']
@@ -267,8 +300,9 @@ def main_add_zmid():
         dest='coordFileName',
         type=str,
         required=False,
-        help='An MPAS-Ocean file with bottomDepth, '
-        'maxLevelCell and layerThickness but not zMid',
+        help='An MPAS-Ocean file with bottomDepth and '
+        'maxLevelCell but not zMid (layerThickness is '
+        'always read from the input file)',
     )
     parser.add_argument(
         '-i',
