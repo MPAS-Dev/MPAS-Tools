@@ -63,7 +63,7 @@ from process_flux_variables_ismip7 import process_flux_pipeline
 from process_state_variables_ismip7 import process_state_pipeline
 
 DEFAULT_AUTHORS = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
-DEFAULT_GROUP = 'Los Alamos National Laboratory, Department of Energy'
+DEFAULT_GROUP = 'Los Alamos National Laboratory, U.S. Department of Energy'
 DEFAULT_MODEL = 'MALI (MPAS-Albany Land Ice model)'
 DEFAULT_GROUP_NICKNAME = 'DOE'
 

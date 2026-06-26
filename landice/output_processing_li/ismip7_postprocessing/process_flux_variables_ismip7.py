@@ -86,7 +86,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
         data.close()
         return
     var_mali = data.variables[mali_var_name][:, :, :]
-    var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
+    var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.nan
     timeSteps, latN, lonN = np.shape(var_mali)
 
     dataOut = Dataset(
@@ -102,7 +102,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)
     dataValues = dataOut.createVariable(ismip7_var_name, 'd',
-                                        ('time', 'y', 'x'), fill_value=np.NAN)
+                                        ('time', 'y', 'x'), fill_value=np.nan)
     xValues = dataOut.createVariable('x', 'd', ('x'))
     yValues = dataOut.createVariable('y', 'd', ('y'))
     timeValues = dataOut.createVariable('time', 'd', ('time'))
@@ -110,7 +110,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     for i in range(timeSteps):
         mask = iceMask[i, :, :]
         tmp = var_mali[i, :, :]
-        tmp[mask == 0] = np.NAN
+        tmp[mask == 0] = np.nan
         dataValues[i, :, :] = tmp
         timeValues[i] = (timeBndsMin[i] + timeBndsMax[i]) / 2.0
         timebndsValues[i, 0] = timeBndsMin[i]

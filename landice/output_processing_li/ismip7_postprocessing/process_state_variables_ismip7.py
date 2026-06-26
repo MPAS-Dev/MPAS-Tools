@@ -127,7 +127,7 @@ def write_netcdf_2d_state_vars(
     var_sftgrf = data.variables['sftgrf'][:, :, :]
     var_sftflf = data.variables['sftflf'][:, :, :]
     var_mali = data.variables[mali_var_name][:, :, :]
-    var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
+    var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.nan
     timeSteps, latN, lonN = np.shape(var_mali)
 
     dataOut = Dataset(
@@ -141,7 +141,7 @@ def write_netcdf_2d_state_vars(
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)
     dataValues = dataOut.createVariable(ismip7_var_name, 'd',
-                                        ('time', 'y', 'x'), fill_value=np.NAN)
+                                        ('time', 'y', 'x'), fill_value=np.nan)
     xValues = dataOut.createVariable('x', 'd', ('x'))
     yValues = dataOut.createVariable('y', 'd', ('y'))
     timeValues = dataOut.createVariable('time', 'd', ('time'))
@@ -159,7 +159,7 @@ def write_netcdf_2d_state_vars(
             else:
                 mask = var_sftgif[i, :, :]
             tmp = var_mali[i, :, :]
-            tmp[mask == 0] = np.NAN
+            tmp[mask == 0] = np.nan
             dataValues[i, :, :] = tmp
 
     for i in range(latN):
