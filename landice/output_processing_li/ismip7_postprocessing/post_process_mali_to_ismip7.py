@@ -17,6 +17,30 @@ A mapping file will be created unless an existing one is specified.
 More info at:
 https://github.com/ismip/ISM_SimulationChecker/blob/main/conventions/ISMIP7_variable_request.csv
 https://www.ismip.org/research/ismip7
+
+Example usage from testing on initial ISMIP7 submission data:
+python post_process_mali_to_ismip7.py \
+    -o /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/test \
+    -g "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/globalStats_*.nc" \
+    --icesheet AIS \
+    -e C001 \
+    --res 04 \
+    -m /pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/relaxed_10yrs_4km.nc \
+    -s "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
+    --ismip7_grid_file /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/misc/af2_AIS_04000m_v1.nc \
+    -f "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc"
+
+And here is an example of only processing 2d state and flux after the mapping file has been created:
+python post_process_mali_to_ismip7.py \
+    -o /pscratch/sd/h/hoffman2/ISMIP7-postprocessing-June30-deadline/AIS/test \
+    --icesheet AIS \
+    -e C001 \
+    --res 04 \
+    -m /pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/relaxed_10yrs_4km.nc \
+    -s "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
+    -f "/pscratch/sd/t/trhille/ISMIP7/AIS_runs/no_slm_20260616/landice/ismip7_run/ismip7_ais/historical_CESM2-WACCM/output/output_state_*.nc" \
+    --reuse_mapping_file mapping_mali_to_ismip7.conserve.20260626T130744.nc
+
 """
 
 import argparse
