@@ -97,7 +97,7 @@ def _write_state_var(varname, data_values, time_days, standard_name, units,
                      variable_desc, output_path, simulationStartDate, metadata):
     """Write a single 1D state (snapshot) variable to a NETCDF4_CLASSIC file."""
     nt = len(data_values)
-    ds_out = Dataset(f'{output_path}/{varname}_{metadata["icesheet"]}_DOE_MALI_{metadata["exp"]}.nc',
+    ds_out = Dataset(f'{output_path}/{varname}_{metadata["icesheet"]}_{metadata["group_nickname"]}_MALI_{metadata["exp"]}.nc',
                      'w', format='NETCDF4_CLASSIC')
     ds_out.createDimension('time', nt)
     var_out = ds_out.createVariable(varname, 'd', ('time',))
@@ -123,7 +123,7 @@ def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
                     metadata):
     """Write a single 1D flux (time-averaged) variable to a NETCDF4_CLASSIC file."""
     nt = len(data_values)
-    ds_out = Dataset(f'{output_path}/{varname}_{metadata["icesheet"]}_DOE_MALI_{metadata["exp"]}.nc',
+    ds_out = Dataset(f'{output_path}/{varname}_{metadata["icesheet"]}_{metadata["group_nickname"]}_MALI_{metadata["exp"]}.nc',
                      'w', format='NETCDF4_CLASSIC')
     ds_out.createDimension('time', nt)
     ds_out.createDimension('bnds', 2)

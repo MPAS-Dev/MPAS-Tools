@@ -35,6 +35,7 @@ from process_flux_variables_ismip7 import generate_output_2d_flux_vars
 DEFAULT_AUTHORS = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
 DEFAULT_GROUP = 'Los Alamos National Laboratory, Department of Energy'
 DEFAULT_MODEL = 'MALI (MPAS-Albany Land Ice model)'
+DEFAULT_GROUP_NICKNAME = 'DOE'
 
 def main():
     parser = argparse.ArgumentParser(
@@ -80,6 +81,10 @@ def main():
                         required=False, default=DEFAULT_GROUP,
                         help=f"group/institution string for output file metadata "
                              f"(default: '{DEFAULT_GROUP}')")
+    parser.add_argument("--group_nickname", dest="group_nickname",
+                        required=False, default=DEFAULT_GROUP_NICKNAME,
+                        help=f"short group nickname used in output filenames "
+                             f"(default: '{DEFAULT_GROUP_NICKNAME}')")
     args = parser.parse_args()
 
     check_exp_name(args.exp)
@@ -90,6 +95,7 @@ def main():
         'icesheet': args.icesheet,
         'authors': args.authors,
         'group': args.group,
+        'group_nickname': args.group_nickname,
         'model': DEFAULT_MODEL,
         'date': datetime.now().strftime("%d-%b-%Y"),
     }

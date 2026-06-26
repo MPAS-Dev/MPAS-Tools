@@ -47,7 +47,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.NAN
     timeSteps, latN, lonN = np.shape(var_mali)
 
-    dataOut = Dataset(f'{output_path}/{ismip7_var_name}_{metadata["icesheet"]}_DOE_MALI_{metadata["exp"]}.nc',
+    dataOut = Dataset(f'{output_path}/{ismip7_var_name}_{metadata["icesheet"]}_{metadata["group_nickname"]}_MALI_{metadata["exp"]}.nc',
                       'w', format='NETCDF4_CLASSIC')
     dataOut.createDimension('time', timeSteps)
     dataOut.createDimension('bnds', 2)
