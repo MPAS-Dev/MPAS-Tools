@@ -17,6 +17,18 @@ EXPECTED_STATE_VARIABLES = [
     'uReconstructX', 'uReconstructY', 'upperSurface',
 ]
 
+# Keep only variables needed downstream by generate_output_2d_state_vars
+# and write_netcdf_2d_state_vars.
+REQUIRED_STATE_OUTPUT_VARIABLES = [
+    'daysSinceStart', 'simulationStartTime',
+    'thickness', 'upperSurface', 'lowerSurface', 'bedTopography',
+    'uReconstructX_sfc', 'uReconstructY_sfc',
+    'uReconstructX_base', 'uReconstructY_base',
+    'xvelmean', 'yvelmean', 'surfaceTemperature',
+    'litempbotgr', 'litempbotfl', 'strbasemag',
+    'sftgif', 'sftgrf', 'sftflf',
+]
+
 
 def check_state_files(files):
     """
@@ -87,7 +99,19 @@ def process_state_vars(files, tmp_file):
         dynamic_mask
     )
 
-    inputfile_state_vars.to_netcdf(tmp_file)
+    missing = [
+        var for var in REQUIRED_STATE_OUTPUT_VARIABLES
+        if var not in inputfile_state_vars
+    ]
+    if missing:
+        raise ValueError(
+            "Processed state dataset is missing required output variables: "
+            f"{missing}"
+        )
+
+    output_state_vars = inputfile_state_vars[REQUIRED_STATE_OUTPUT_VARIABLES]
+    output_state_vars.to_netcdf(tmp_file)
+    output_state_vars.close()
     inputfile_state_vars.close()
 
 
