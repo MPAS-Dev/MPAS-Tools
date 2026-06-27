@@ -151,6 +151,8 @@ I/O
    :toctree: generated/
 
    write_netcdf
+   open_dataset
+   open_mfdataset
 
 Parallelism
 -----------
