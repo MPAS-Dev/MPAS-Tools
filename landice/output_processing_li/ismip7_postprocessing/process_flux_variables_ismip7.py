@@ -9,6 +9,7 @@ import numpy as np
 from subprocess import check_call
 import os
 from validate import validate_mali_files
+from output_naming import build_output_filename
 
 
 EXPECTED_FLUX_VARIABLES = [
@@ -139,13 +140,12 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.nan
     timeSteps, latN, lonN = np.shape(var_mali)
 
-    dataOut = Dataset(
-        f'{output_path}/{ismip7_var_name}_{
-            metadata["icesheet"]}_{
-            metadata["group_nickname"]}_MALI_{
-                metadata["exp"]}.nc',
-        'w',
-        format='NETCDF4_CLASSIC')
+    output_filename = build_output_filename(
+        output_path,
+        ismip7_var_name,
+        metadata,
+    )
+    dataOut = Dataset(output_filename, 'w', format='NETCDF4_CLASSIC')
     dataOut.createDimension('time', timeSteps)
     dataOut.createDimension('bnds', 2)
     timebndsValues = dataOut.createVariable('time_bnds', 'd', ('time', 'bnds'))
@@ -303,5 +303,5 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
                                  ismip7_grid_file,
                                  output_path, metadata)
 
-    os.remove(tmp_flux_file)
-    os.remove(remapped_file_flux)
+    #os.remove(tmp_flux_file)
+    #os.remove(remapped_file_flux)

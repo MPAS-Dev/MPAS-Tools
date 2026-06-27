@@ -9,6 +9,7 @@ import os
 import sys
 import xarray as xr
 from validate import validate_mali_files
+from output_naming import build_output_filename
 
 
 EXPECTED_VARIABLES = [
@@ -30,14 +31,6 @@ def check_global_stats_files(files):
     validate_mali_files(files, EXPECTED_VARIABLES, label='globalStats')
 
 
-def _build_output_filename(output_path, varname, metadata):
-    """Build a standard ISMIP7 output filename for a given variable."""
-    return (
-        f'{output_path}/{varname}_{metadata["icesheet"]}_'
-        f'{metadata["group_nickname"]}_MALI_{metadata["exp"]}.nc'
-    )
-
-
 def _write_state_var(
         varname,
         data_values,
@@ -50,7 +43,7 @@ def _write_state_var(
         metadata):
     """Write one 1D state (snapshot) variable to NETCDF4_CLASSIC."""
     nt = len(data_values)
-    filename = _build_output_filename(output_path, varname, metadata)
+    filename = build_output_filename(output_path, varname, metadata)
     ds_out = Dataset(filename, 'w', format='NETCDF4_CLASSIC')
     ds_out.createDimension('time', nt)
     var_out = ds_out.createVariable(varname, 'd', ('time',))
@@ -76,7 +69,7 @@ def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
                     metadata):
     """Write one 1D flux (time-averaged) variable to NETCDF4_CLASSIC."""
     nt = len(data_values)
-    filename = _build_output_filename(output_path, varname, metadata)
+    filename = build_output_filename(output_path, varname, metadata)
     ds_out = Dataset(filename, 'w', format='NETCDF4_CLASSIC')
     ds_out.createDimension('time', nt)
     ds_out.createDimension('bnds', 2)

@@ -9,6 +9,7 @@ import numpy as np
 import os
 from subprocess import check_call
 from validate import validate_mali_files
+from output_naming import build_output_filename
 
 
 EXPECTED_STATE_VARIABLES = [
@@ -154,13 +155,12 @@ def write_netcdf_2d_state_vars(
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.nan
     timeSteps, latN, lonN = np.shape(var_mali)
 
-    dataOut = Dataset(
-        f'{output_path}/{ismip7_var_name}_{
-            metadata["icesheet"]}_{
-            metadata["group_nickname"]}_MALI_{
-                metadata["exp"]}.nc',
-        'w',
-        format='NETCDF4_CLASSIC')
+    output_filename = build_output_filename(
+        output_path,
+        ismip7_var_name,
+        metadata,
+    )
+    dataOut = Dataset(output_filename, 'w', format='NETCDF4_CLASSIC')
     dataOut.createDimension('time', timeSteps)
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)

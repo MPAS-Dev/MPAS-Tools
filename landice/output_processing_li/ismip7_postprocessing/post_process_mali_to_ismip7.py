@@ -45,6 +45,7 @@ python post_process_mali_to_ismip7.py \
 """
 
 import argparse
+import csv
 import glob
 import os
 from datetime import datetime
@@ -66,6 +67,23 @@ DEFAULT_AUTHORS = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
 DEFAULT_GROUP = 'Los Alamos National Laboratory, U.S. Department of Energy'
 DEFAULT_MODEL = 'MALI (MPAS-Albany Land Ice model)'
 DEFAULT_GROUP_NICKNAME = 'DOE'
+DEFAULT_ISM_ID = 'MALI7'
+DEFAULT_ISM_MEMBER_ID = 'm001'
+DEFAULT_FORCING_MEMBER_ID = 'f001'
+EXPERIMENTS_CSV = os.path.join(os.path.dirname(__file__), 'experiments.csv')
+
+
+def _load_experiment_info(set_counter):
+    """Load one experiment record from experiments.csv by set counter."""
+    with open(EXPERIMENTS_CSV, newline='', encoding='utf-8') as handle:
+        reader = csv.DictReader(handle)
+        for row in reader:
+            if row.get('set_counter', '').strip() == set_counter:
+                return row
+    raise ValueError(
+        f"Experiment set counter '{set_counter}' was not found in "
+        f"'{EXPERIMENTS_CSV}'."
+    )
 
 
 def main():
@@ -151,8 +169,8 @@ def main():
         "--icesheet",
         dest="icesheet",
         required=True,
-        choices=['AIS', 'GIS'],
-        help="ice sheet domain: 'AIS' (Antarctica) or 'GIS' (Greenland)",
+        choices=['AIS', 'GrIS'],
+        help="ice sheet domain: 'AIS' (Antarctica) or 'GrIS' (Greenland)",
     )
     parser.add_argument(
         "--authors",
@@ -184,13 +202,51 @@ def main():
             f"(default: '{DEFAULT_GROUP_NICKNAME}')"
         ),
     )
+    parser.add_argument(
+        "--ism_member_id",
+        dest="ism_member_id",
+        required=False,
+        default=DEFAULT_ISM_MEMBER_ID,
+        help=(
+            "ISM configuration/member identifier for output filenames "
+            f"(default: '{DEFAULT_ISM_MEMBER_ID}')"
+        ),
+    )
+    parser.add_argument(
+        "--forcing_member_id",
+        dest="forcing_member_id",
+        required=False,
+        default=DEFAULT_FORCING_MEMBER_ID,
+        help=(
+            "Forcing configuration/member identifier for output filenames "
+            f"(default: '{DEFAULT_FORCING_MEMBER_ID}')"
+        ),
+    )
     args = parser.parse_args()
 
     check_exp_name(args.exp)
     check_res(args.res_ismip7_grid)
 
+    experiment_info = _load_experiment_info(args.exp)
+    experiment_id = experiment_info['experiment_id'].strip().lower()
+    esm_id = experiment_info['esm_id'].strip()
+    time_range = experiment_info.get('time_range', '').strip()
+    if not time_range:
+        start_year = experiment_info['start_year'].strip()
+        end_year = experiment_info['end_year'].strip()
+        time_range = f"{start_year}-{end_year}"
+
     metadata = {
         'exp': args.exp,
+        'set_counter': args.exp,
+        'domain_id': args.icesheet,
+        'source_id': args.group_nickname,
+        'ism_id': DEFAULT_ISM_ID,
+        'ism_member_id': args.ism_member_id,
+        'esm_id': esm_id,
+        'forcing_member_id': args.forcing_member_id,
+        'experiment_id': experiment_id,
+        'time_range': time_range,
         'icesheet': args.icesheet,
         'authors': args.authors,
         'group': args.group,
