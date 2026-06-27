@@ -290,7 +290,7 @@ def main():
 
     print("---Processing remapping file complete---\n")
 
-    output_path = args.output_path
+    output_path = os.path.join(args.output_path, args.exp)
     print(f"Using output path: {output_path}")
     if not os.path.isdir(output_path):
         os.makedirs(output_path)
