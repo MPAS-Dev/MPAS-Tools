@@ -18,6 +18,16 @@ EXPECTED_FLUX_VARIABLES = [
     'avgGroundingLineFlux',
 ]
 
+REQUIRED_FLUX_REMAPPING_VARIABLES = [
+    'daysSinceStart', 'simulationStartTime',
+    'avgSMBFlux', 'avgFloatingBMBFlux', 'avgGroundedBMBFlux',
+    'avgDhdt', 'avgCalvingFlux', 'avgFaceMeltFlux',
+    'avgGroundingLineFlux',
+    # masks not currently used - see note below in process_flux_vars
+    #'ice_mask', 'floating_mask', 'dynamic_mask', 'grounded_mask',
+    #'gl_mask'
+]
+
 
 def check_flux_files(files):
     """
@@ -51,8 +61,31 @@ def process_flux_vars(files, tmp_file):
     if 'units' in ds_flux['daysSinceStart'].attrs:
         del ds_flux['daysSinceStart'].attrs['units']
 
+    # variables that need to be modified prior to remapping
+    # these masks are not currently used, but would be needed if the
+    # flux vars are meant to be masked.
+    # However there is a potential issue that fluxes could have occurred
+    # in locations that fall outside of the final mask, because
+    # the fluxes are time-averaged over a year, and the mask is only
+    # valid at the end of the year.
+    #ds_flux['ice_mask'] = (ds_flux['cellMask'][:, :] & 2) / 2  # grounded: dynamic ice
+    #ds_flux['floating_mask'] = (ds_flux['cellMask'][:, :] & 4) / 4
+    #ds_flux['dynamic_mask'] = (ds_flux['cellMask'][:, :] & 2) / 2
+    #ds_flux['grounded_mask'] = (ds_flux['cellMask'][:, :] * 0 + 1) - ds_flux['floating_mask']
+    #ds_flux['gl_mask'] = (ds_flux['cellMask'][:, :] & 256) / 256
+
+    missing = [
+        var for var in REQUIRED_FLUX_REMAPPING_VARIABLES
+        if var not in ds_flux
+    ]
+    if missing:
+        raise ValueError(
+            "Processed flux dataset is missing required output variables: "
+            f"{missing}"
+        )
+
     # subset to only required variables to keep file small for remapping
-    ds_flux_out = ds_flux[EXPECTED_FLUX_VARIABLES]
+    ds_flux_out = ds_flux[REQUIRED_FLUX_REMAPPING_VARIABLES]
     # remove the first time step (which is always 0)
     time_mask = ~np.isclose(ds_flux_out['daysSinceStart'].values, 0.0)
     if not np.any(time_mask):
@@ -86,7 +119,6 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
 
     data = Dataset(remapped_mali_flux_file, 'r')
     data.set_auto_mask(False)
-    iceMask = (data.variables['cellMask'][:, :, :] & 2) / 2  # grounded: dynamic ice
     simulationStartTime = data.variables['simulationStartTime'][:].tobytes(
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
@@ -126,9 +158,10 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     timeValues = dataOut.createVariable('time', 'd', ('time'))
 
     for i in range(timeSteps):
-        mask = iceMask[i, :, :]
+        # mask not currently used - see note above in process_flux_vars
+        #mask = data.variables['ice_mask'][i, :, :]
         tmp = var_mali[i, :, :]
-        tmp[mask == 0] = np.nan
+        #tmp[mask == 0] = np.nan
         dataValues[i, :, :] = tmp
         timeValues[i] = (timeBndsMin[i] + timeBndsMax[i]) / 2.0
         timebndsValues[i, 0] = timeBndsMin[i]
