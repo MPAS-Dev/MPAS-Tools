@@ -39,6 +39,35 @@ def check_flux_files(files):
     validate_mali_files(files, EXPECTED_FLUX_VARIABLES, label='flux')
 
 
+def get_time_range_flux(files):
+    """
+    Derive a 'YYYY-YYYY' time-range string from a list of MALI flux files.
+
+    Applies the same daysSinceStart==0 exclusion used in process_flux_vars
+    before computing the range. Uses floor to match flux year labeling
+    (each record represents the full calendar year ending on that date).
+    """
+    with xr.open_dataset(files[0], decode_cf=False) as ds:
+        sim_start = (
+            ds['simulationStartTime'].values
+            .tobytes().decode('utf-8').strip().strip('\x00')
+        )
+    ref_year = int(sim_start.split('_')[0].split('-')[0])
+
+    with xr.open_mfdataset(files, combine='nested', concat_dim='Time',
+                           decode_cf=False, data_vars='minimal',
+                           coords='minimal', compat='override') as ds:
+        days = ds['daysSinceStart'].values
+
+    days = days[~np.isclose(days, 0.0)]
+    if len(days) == 0:
+        raise ValueError(
+            "No flux time records remain after dropping daysSinceStart==0."
+        )
+    dec_years = ref_year + days / 365.0
+    return f"{int(np.floor(dec_years[0]))}-{int(np.floor(dec_years[-1]))}"
+
+
 def process_flux_vars(files, tmp_file):
     """
     Prepare flux files into a temporary file for remapping.
@@ -284,6 +313,10 @@ def process_flux_pipeline(flux_files, mapping_file, ismip7_grid_file,
     metadata : dict
         Submission metadata dict.
     """
+    metadata = metadata.copy()
+    metadata['time_range'] = get_time_range_flux(flux_files)
+    print(f"Flux time range: {metadata['time_range']}")
+
     check_flux_files(flux_files)
 
     print("Preparing concatenated flux file for remapping.")

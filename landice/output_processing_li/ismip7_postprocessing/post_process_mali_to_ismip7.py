@@ -230,11 +230,6 @@ def main():
     experiment_info = _load_experiment_info(args.exp)
     experiment_id = experiment_info['experiment_id'].strip().lower()
     esm_id = experiment_info['esm_id'].strip()
-    time_range = experiment_info.get('time_range', '').strip()
-    if not time_range:
-        start_year = experiment_info['start_year'].strip()
-        end_year = experiment_info['end_year'].strip()
-        time_range = f"{start_year}-{end_year}"
 
     metadata = {
         'exp': args.exp,
@@ -246,7 +241,6 @@ def main():
         'esm_id': esm_id,
         'forcing_member_id': args.forcing_member_id,
         'experiment_id': experiment_id,
-        'time_range': time_range,
         'icesheet': args.icesheet,
         'authors': args.authors,
         'group': args.group,

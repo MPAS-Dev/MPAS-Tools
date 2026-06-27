@@ -40,6 +40,29 @@ def check_state_files(files):
     validate_mali_files(files, EXPECTED_STATE_VARIABLES, label='state')
 
 
+def get_time_range_state(files):
+    """
+    Derive a 'YYYY-YYYY' time-range string from a list of MALI state files.
+
+    Uses the first and last daysSinceStart across all files, converted to
+    integer calendar years (noleap, 365-day year).
+    """
+    with xr.open_dataset(files[0], decode_cf=False) as ds:
+        sim_start = (
+            ds['simulationStartTime'].values
+            .tobytes().decode('utf-8').strip().strip('\x00')
+        )
+    ref_year = int(sim_start.split('_')[0].split('-')[0])
+
+    with xr.open_mfdataset(files, combine='nested', concat_dim='Time',
+                           decode_cf=False, data_vars='minimal',
+                           coords='minimal', compat='override') as ds:
+        days = ds['daysSinceStart'].values
+
+    dec_years = ref_year + days / 365.0
+    return f"{int(round(dec_years[0]))}-{int(round(dec_years[-1]))}"
+
+
 def process_state_vars(files, tmp_file):
     """
     files: list of MALI state output file paths
@@ -230,6 +253,10 @@ def process_state_pipeline(state_files, mapping_file, ismip7_grid_file,
     metadata : dict
         Submission metadata (exp, icesheet, authors, group, model, date, ...).
     """
+    metadata = metadata.copy()
+    metadata['time_range'] = get_time_range_state(state_files)
+    print(f"State time range: {metadata['time_range']}")
+
     check_state_files(state_files)
 
     print("Calculating needed state file adjustments.")
