@@ -53,8 +53,8 @@ from datetime import datetime
 from grid_and_mapping import (
     build_mapping_file,
     check_exp_name,
-    check_ismip7_grid_file,
     check_res,
+    create_ismip7_grid_file,
 )
 from process_1d_variables_ismip7 import (
     check_global_stats_files,
@@ -157,12 +157,6 @@ def main():
         help="existing mapping file name to reuse",
     )
     parser.add_argument(
-        "--ismip7_grid_file",
-        dest="ismip7_grid_file",
-        required=True,
-        help="Input ismip7 mesh file.",
-    )
-    parser.add_argument(
         "--method",
         dest="method_remap",
         default="conserve",
@@ -173,7 +167,11 @@ def main():
         "--res",
         dest="res_ismip7_grid",
         required=True,
-        help="resolution of the ismip7 grid, in kilometers: 16, 8, 4, 2, 1",
+        help=(
+            "Resolution of the ISMIP7 output grid in km. "
+            "AIS valid values: 2, 4, 8, 16. "
+            "GrIS valid values: 1, 2, 4, 8, 16."
+        ),
     )
     parser.add_argument(
         "--icesheet",
@@ -213,7 +211,14 @@ def main():
     args = parser.parse_args()
 
     check_exp_name(args.exp)
-    check_res(args.res_ismip7_grid)
+    check_res(args.res_ismip7_grid, args.icesheet)
+
+    ismip7_grid_file = (
+        f"ismip7_grid_{args.icesheet}_{args.res_ismip7_grid}km.nc"
+    )
+    create_ismip7_grid_file(
+        args.icesheet, args.res_ismip7_grid, ismip7_grid_file
+    )
 
     experiment_info = _load_experiment_info(args.exp)
     experiment_id = experiment_info['experiment_id'].strip().lower()
@@ -245,8 +250,6 @@ def main():
             args.input_state_pattern is not None or
             args.input_flux_pattern is not None):
 
-        check_ismip7_grid_file(args.ismip7_grid_file, args.res_ismip7_grid)
-
         method_remap = args.method_remap
         if args.reuse_mapping_file is not None:
             if not os.path.exists(args.reuse_mapping_file):
@@ -274,7 +277,7 @@ def main():
                 args.input_file_mesh,
                 mapping_file,
                 args.res_ismip7_grid,
-                args.ismip7_grid_file,
+                ismip7_grid_file,
                 method_remap,
             )
 
@@ -304,7 +307,7 @@ def main():
         process_state_pipeline(
             state_files,
             mapping_file,
-            args.ismip7_grid_file,
+            ismip7_grid_file,
             output_path,
             metadata,
         )
@@ -319,7 +322,7 @@ def main():
         process_flux_pipeline(
             flux_files,
             mapping_file,
-            args.ismip7_grid_file,
+            ismip7_grid_file,
             output_path,
             metadata,
         )

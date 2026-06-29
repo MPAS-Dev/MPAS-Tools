@@ -1,38 +1,59 @@
 from mpas_tools.scrip.from_mpas import scrip_from_mpas
 from subprocess import check_call
 import os
+import numpy as np
 import netCDF4
 
 
 VALID_EXPERIMENTS = [f"C{i:03d}" for i in range(1, 12)]
-VALID_RESOLUTIONS = [1, 2, 4, 8, 16]
+VALID_RESOLUTIONS = {
+    'AIS': [2, 4, 8, 16],
+    'GrIS': [1, 2, 4, 8, 16],
+}
+
+# AIS: polar stereographic EPSG:3031, standard parallel 71S, central meridian 0
+# Cell centres span -3,040,000 m to 3,040,000 m in both x and y.
+AIS_X_MIN = -3040000
+AIS_X_MAX = 3040000
+AIS_Y_MIN = -3040000
+AIS_Y_MAX = 3040000
+
+# GrIS: polar stereographic EPSG:3413, standard parallel 70N, central meridian 315E
+# Cell centres span x: -720,000 to 960,000 m; y: -3,450,000 to -570,000 m.
+GRIS_X_MIN = -720000
+GRIS_X_MAX = 960000
+GRIS_Y_MIN = -3450000
+GRIS_Y_MAX = -570000
 
 
-def check_res(res):
+def check_res(res, icesheet):
     """
-    Validate the ISMIP7 grid resolution.
+    Validate the ISMIP7 grid resolution for the given ice sheet.
 
     Parameters
     ----------
     res : str or int
         Resolution in kilometres to validate.
+    icesheet : str
+        Ice sheet domain ('AIS' or 'GrIS').
 
     Raises
     ------
     ValueError
-        If the resolution is not in the list of valid values.
+        If the resolution is not valid for the specified ice sheet.
     """
+    valid = VALID_RESOLUTIONS[icesheet]
     try:
         res_int = int(res)
     except (ValueError, TypeError):
         raise ValueError(
             f"Resolution '{res}' is not a valid integer. "
-            f"Valid resolutions (km) are: {VALID_RESOLUTIONS}")
-    if res_int not in VALID_RESOLUTIONS:
+            f"Valid resolutions for {icesheet} (km) are: {valid}")
+    if res_int not in valid:
         raise ValueError(
-            f"Invalid resolution '{res_int}' km. "
-            f"Valid resolutions (km) are: {VALID_RESOLUTIONS}")
-    print(f"Resolution {res_int} km is valid.")
+            f"Invalid resolution '{res_int}' km for {icesheet}. "
+            f"Valid resolutions (km) are: {valid}")
+    print(f"Resolution {res_int} km is valid for {icesheet}.")
 
 
 def check_exp_name(exp):
@@ -54,6 +75,48 @@ def check_exp_name(exp):
             f"Invalid experiment name '{exp}'. "
             f"Valid experiments are: {', '.join(VALID_EXPERIMENTS)}")
     print(f"Experiment name '{exp}' is valid.")
+
+
+def create_ismip7_grid_file(icesheet, res_km, output_file):
+    """
+    Create a minimal ISMIP7 standard grid file containing only x and y
+    projected coordinate variables (metres).
+
+    Parameters
+    ----------
+    icesheet : str
+        Ice sheet domain: 'AIS' or 'GrIS'.
+    res_km : int
+        Grid resolution in kilometres.
+    output_file : str
+        Path for the output NetCDF file.
+    """
+    res_m = int(res_km) * 1000
+    if icesheet == 'AIS':
+        x = np.arange(AIS_X_MIN, AIS_X_MAX + res_m, res_m, dtype=float)
+        y = np.arange(AIS_Y_MIN, AIS_Y_MAX + res_m, res_m, dtype=float)
+    elif icesheet == 'GrIS':
+        x = np.arange(GRIS_X_MIN, GRIS_X_MAX + res_m, res_m, dtype=float)
+        y = np.arange(GRIS_Y_MIN, GRIS_Y_MAX + res_m, res_m, dtype=float)
+    else:
+        raise ValueError(f"Unknown icesheet '{icesheet}'.")
+
+    ds = netCDF4.Dataset(output_file, 'w')
+    ds.createDimension('x', len(x))
+    ds.createDimension('y', len(y))
+    xv = ds.createVariable('x', 'f8', ('x',))
+    yv = ds.createVariable('y', 'f8', ('y',))
+    xv[:] = x
+    yv[:] = y
+    xv.units = 'm'
+    xv.standard_name = 'projection_x_coordinate'
+    xv.long_name = 'x'
+    yv.units = 'm'
+    yv.standard_name = 'projection_y_coordinate'
+    yv.long_name = 'y'
+    ds.close()
+    print(f"Created ISMIP7 grid file: {output_file} "
+          f"({len(x)} x {len(y)} cells at {res_km} km)")
 
 
 def check_ismip7_grid_file(ismip7_grid_file_path, res_ismip7_grid):
