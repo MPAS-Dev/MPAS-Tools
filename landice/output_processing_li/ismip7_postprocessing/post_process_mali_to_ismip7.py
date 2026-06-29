@@ -63,11 +63,21 @@ from process_1d_variables_ismip7 import (
 from process_flux_variables_ismip7 import process_flux_pipeline
 from process_state_variables_ismip7 import process_state_pipeline
 
-DEFAULT_AUTHORS = 'Matthew Hoffman, Trevor Hillebrand, Holly Kyeore Han'
-DEFAULT_GROUP = 'Los Alamos National Laboratory, U.S. Department of Energy'
 DEFAULT_MODEL = 'MALI (MPAS-Albany Land Ice model)'
-DEFAULT_GROUP_NICKNAME = 'DOE'
 DEFAULT_ISM_ID = 'MALI7'
+
+GROUP_METADATA = {
+    'DOE': {
+        'authors': 'Trevor Hillebrand, Matthew Hoffman',
+        'group': 'Los Alamos National Laboratory, U.S. Department of Energy',
+        'group_nickname': 'DOE',
+    },
+    'Arete': {
+        'authors': 'Kyeore Han',
+        'group': 'Arete Glacier Initiative',
+        'group_nickname': 'ARETE',
+    },
+}
 DEFAULT_ISM_MEMBER_ID = 'm001'
 DEFAULT_FORCING_MEMBER_ID = 'f001'
 EXPERIMENTS_CSV = os.path.join(os.path.dirname(__file__), 'experiments.csv')
@@ -173,34 +183,12 @@ def main():
         help="ice sheet domain: 'AIS' (Antarctica) or 'GrIS' (Greenland)",
     )
     parser.add_argument(
-        "--authors",
-        dest="authors",
-        required=False,
-        default=DEFAULT_AUTHORS,
-        help=(
-            "author string for output file metadata "
-            f"(default: '{DEFAULT_AUTHORS}')"
-        ),
-    )
-    parser.add_argument(
         "--group",
         dest="group",
-        required=False,
-        default=DEFAULT_GROUP,
-        help=(
-            "group/institution string for output file metadata "
-            f"(default: '{DEFAULT_GROUP}')"
-        ),
-    )
-    parser.add_argument(
-        "--group_nickname",
-        dest="group_nickname",
-        required=False,
-        default=DEFAULT_GROUP_NICKNAME,
-        help=(
-            "short group nickname used in output filenames "
-            f"(default: '{DEFAULT_GROUP_NICKNAME}')"
-        ),
+        required=True,
+        choices=list(GROUP_METADATA.keys()),
+        help="Modelling group. Sets authors, institution, and nickname for "
+             f"output filenames/metadata. Choices: {list(GROUP_METADATA.keys())}",
     )
     parser.add_argument(
         "--ism_member_id",
@@ -231,20 +219,22 @@ def main():
     experiment_id = experiment_info['experiment_id'].strip().lower()
     esm_id = experiment_info['esm_id'].strip()
 
+    group_meta = GROUP_METADATA[args.group]
+
     metadata = {
         'exp': args.exp,
         'set_counter': args.exp,
         'domain_id': args.icesheet,
-        'source_id': args.group_nickname,
+        'source_id': group_meta['group_nickname'],
         'ism_id': DEFAULT_ISM_ID,
         'ism_member_id': args.ism_member_id,
         'esm_id': esm_id,
         'forcing_member_id': args.forcing_member_id,
         'experiment_id': experiment_id,
         'icesheet': args.icesheet,
-        'authors': args.authors,
-        'group': args.group,
-        'group_nickname': args.group_nickname,
+        'authors': group_meta['authors'],
+        'group': group_meta['group'],
+        'group_nickname': group_meta['group_nickname'],
         'model': DEFAULT_MODEL,
         'date': datetime.now().strftime("%d-%b-%Y"),
     }
