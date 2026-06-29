@@ -56,6 +56,7 @@ from grid_and_mapping import (
     check_res,
     create_ismip7_grid_file,
     CRS_DICT,
+    get_time_range,
 )
 from process_1d_variables_ismip7 import (
     check_global_stats_files,
@@ -300,6 +301,9 @@ def main():
         print("\n---Processing global stats file(s)---")
         global_stats_files = sorted(glob.glob(args.global_stats_pattern))
         check_global_stats_files(global_stats_files)
+        # Compute time range from globalStats files and add to metadata
+        metadata['time_range'] = get_time_range(global_stats_files)
+        print(f"Time range: {metadata['time_range']}")
         generate_output_1d_vars(global_stats_files, output_path, metadata)
         print("---Processing global stats file(s) complete---\n")
 

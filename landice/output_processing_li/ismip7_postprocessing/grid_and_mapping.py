@@ -3,6 +3,8 @@ from subprocess import check_call
 import os
 import numpy as np
 import netCDF4
+from netCDF4 import num2date
+import xarray as xr
 
 
 VALID_EXPERIMENTS = [f"C{i:03d}" for i in range(1, 12)]
@@ -79,6 +81,67 @@ def check_exp_name(exp):
             f"Invalid experiment name '{exp}'. "
             f"Valid experiments are: {', '.join(VALID_EXPERIMENTS)}")
     print(f"Experiment name '{exp}' is valid.")
+
+
+def get_time_range(globalstats_files):
+    """
+    Derive a 'YYYY-YYYY' time-range string from globalStats (1D) files.
+
+    The start and end years are computed from the actual daysSinceStart values
+    in the data (not from simulationStartTime, which may be from a historical
+    restart). Uses netCDF calendar helpers to properly account for leap years.
+
+    Parameters
+    ----------
+    globalstats_files : list of str
+        Sorted list of MALI globalStats output file paths.
+
+    Returns
+    -------
+    str
+        Year range string in format 'YYYY-YYYY' (e.g., '2000-2014').
+    """
+    # Get simulationStartTime and calendar from first file
+    with xr.open_dataset(globalstats_files[0], decode_cf=False) as ds:
+        sim_start = (
+            ds['simulationStartTime'].values
+            .tobytes().decode('utf-8').strip().strip('\x00')
+        )
+        # Read and validate calendar type from global attributes
+        calendar = ds.attrs.get('config_calendar_type')
+        if calendar not in ['noleap', 'gregorian']:
+            raise ValueError(
+                f"config_calendar_type must be 'noleap' or 'gregorian', "
+                f"got '{calendar}'"
+            )
+        if calendar != 'gregorian':
+            print(f"Warning: config_calendar_type is '{calendar}', not 'gregorian'")
+    
+    # Parse the full datetime (format: YYYY-MM-DD_HH:MM:SS)
+    sim_start_date = sim_start.split('_')[0]  # YYYY-MM-DD
+
+    # Get the first and last daysSinceStart values from all files
+    with xr.open_mfdataset(
+            globalstats_files, combine='nested', concat_dim='Time',
+            decode_cf=False, data_vars='minimal',
+            coords='minimal', compat='override') as ds:
+        days_first = ds['daysSinceStart'].values[0]
+        days_last = ds['daysSinceStart'].values[-1]
+
+    # Use netCDF calendar helpers to convert days to proper dates
+    units = f'days since {sim_start_date}'
+    
+    # Convert first and last daysSinceStart to datetime objects
+    date_first = num2date(days_first, units=units, calendar=calendar)
+    date_last = num2date(days_last, units=units, calendar=calendar)
+
+    # Extract years from the dates
+    start_year = date_first.year
+    # End year is one less than the calendar year of the final timestamp
+    # (assuming final timestamp is at midnight Jan 1 of subsequent year)
+    end_year = date_last.year - 1
+
+    return f"{start_year}-{end_year}"
 
 
 def create_ismip7_grid_file(icesheet, res_km, output_file):
