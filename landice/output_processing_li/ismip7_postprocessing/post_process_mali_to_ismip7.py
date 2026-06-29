@@ -70,14 +70,14 @@ DEFAULT_ISM_ID = 'MALI7'
 
 GROUP_METADATA = {
     'DOE': {
-        'contact_names': 'Trevor Hillebrand, Matthew Hoffman',
-        'contact_emails': 'trhille@lanl.gov, mhoffman@lanl.gov',
+        'contact_name': 'Trevor Hillebrand, Matthew Hoffman',
+        'contact_email': 'trhille@lanl.gov, mhoffman@lanl.gov',
         'group': 'Los Alamos National Laboratory, U.S. Department of Energy',
         'group_nickname': 'DOE',
     },
     'Arete': {
-        'contact_names': 'Kyeore Han, Colin Meyer',
-        'contact_emails': 'hollyhan4@gmail.com, Colin.R.Meyer@dartmouth.edu',
+        'contact_name': 'Kyeore Han, Colin Meyer',
+        'contact_email': 'hollyhan4@gmail.com, Colin.R.Meyer@dartmouth.edu',
         'group': 'Arete Glacier Initiative',
         'group_nickname': 'ARETE',
     },
@@ -240,8 +240,8 @@ def main():
         'esm_id': esm_id,
         'forcing_member_id': args.forcing_member_id,
         'experiment_id': experiment_id,
-        'contact_names': group_meta['contact_names'],
-        'contact_emails': group_meta['contact_emails'],
+        'contact_name': group_meta['contact_name'],
+        'contact_email': group_meta['contact_email'],
         'group': group_meta['group'],
         'group_nickname': group_meta['group_nickname'],
         'model': DEFAULT_MODEL,

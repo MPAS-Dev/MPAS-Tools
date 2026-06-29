@@ -3,7 +3,7 @@ This script has functions that are needed to post-process and write flux
 output variables from ISMIP7 simulations.
 """
 
-from netCDF4 import Dataset, num2date, date2num
+from netCDF4 import Dataset, num2date, date2num, default_fillvals
 import xarray as xr
 import numpy as np
 from subprocess import check_call
@@ -161,14 +161,20 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     dataOut = Dataset(output_filename, 'w', format='NETCDF4_CLASSIC')
     dataOut.createDimension('time', None)  # unlimited dimension (record)
     dataOut.createDimension('bnds', 2)
-    timebndsValues = dataOut.createVariable('time_bnds', 'd', ('time', 'bnds'))
+    timebndsValues = dataOut.createVariable(
+        'time_bnds', 'f4', ('time', 'bnds'),
+        fill_value=default_fillvals['f4'])
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)
-    dataValues = dataOut.createVariable(ismip7_var_name, 'd',
-                                        ('time', 'y', 'x'), fill_value=np.nan)
-    xValues = dataOut.createVariable('x', 'd', ('x'))
-    yValues = dataOut.createVariable('y', 'd', ('y'))
-    timeValues = dataOut.createVariable('time', 'd', ('time'))
+    dataValues = dataOut.createVariable(ismip7_var_name, 'f4',
+                                        ('time', 'y', 'x'),
+                                        fill_value=default_fillvals['f4'])
+    xValues = dataOut.createVariable('x', 'f4', ('x',),
+                                     fill_value=default_fillvals['f4'])
+    yValues = dataOut.createVariable('y', 'f4', ('y',),
+                                     fill_value=default_fillvals['f4'])
+    timeValues = dataOut.createVariable('time', 'f4', ('time',),
+                                        fill_value=default_fillvals['f4'])
 
     for i in range(timeSteps):
         # mask not currently used - see note above in process_flux_vars

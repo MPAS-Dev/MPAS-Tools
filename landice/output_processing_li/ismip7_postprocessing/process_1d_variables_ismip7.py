@@ -3,7 +3,7 @@ Functions for processing and writing 1D (scalar time-series) output variables
 for ISMIP7 submissions from MALI globalStats output.
 """
 
-from netCDF4 import Dataset, num2date, date2num
+from netCDF4 import Dataset, num2date, date2num, default_fillvals
 import numpy as np
 import os
 import sys
@@ -45,8 +45,10 @@ def _write_state_var(
     filename = build_output_filename(output_path, varname, metadata)
     ds_out = Dataset(filename, 'w', format='NETCDF4_CLASSIC')
     ds_out.createDimension('time', None)  # unlimited dimension (record)
-    var_out = ds_out.createVariable(varname, 'd', ('time',))
-    time_out = ds_out.createVariable('time', 'd', ('time',))
+    var_out = ds_out.createVariable(
+        varname, 'f4', ('time',), fill_value=default_fillvals['f4'])
+    time_out = ds_out.createVariable(
+        'time', 'f4', ('time',), fill_value=default_fillvals['f4'])
     var_out[:] = data_values
     time_out[:] = time_days
     time_out.units = 'days since 1850-01-01'
@@ -70,9 +72,13 @@ def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
     ds_out = Dataset(filename, 'w', format='NETCDF4_CLASSIC')
     ds_out.createDimension('time', None)  # unlimited dimension (record)
     ds_out.createDimension('bnds', 2)
-    var_out = ds_out.createVariable(varname, 'd', ('time',))
-    time_out = ds_out.createVariable('time', 'd', ('time',))
-    bnds_out = ds_out.createVariable('time_bnds', 'd', ('time', 'bnds'))
+    var_out = ds_out.createVariable(
+        varname, 'f4', ('time',), fill_value=default_fillvals['f4'])
+    time_out = ds_out.createVariable(
+        'time', 'f4', ('time',), fill_value=default_fillvals['f4'])
+    bnds_out = ds_out.createVariable(
+        'time_bnds', 'f4', ('time', 'bnds'),
+        fill_value=default_fillvals['f4'])
     var_out[:] = data_values
     time_out[:] = (days_min + days_max) / 2.0
     bnds_out[:, 0] = days_min

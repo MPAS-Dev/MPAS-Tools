@@ -3,7 +3,7 @@ This script has functions that are needed to post-process and write state
 output variables from ISMIP7 simulations.
 """
 
-from netCDF4 import Dataset, num2date, date2num
+from netCDF4 import Dataset, num2date, date2num, default_fillvals
 import xarray as xr
 import numpy as np
 import os
@@ -180,11 +180,15 @@ def write_netcdf_2d_state_vars(
     dataOut.createDimension('time', None)  # unlimited dimension (record)
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)
-    dataValues = dataOut.createVariable(ismip7_var_name, 'd',
-                                        ('time', 'y', 'x'), fill_value=np.nan)
-    xValues = dataOut.createVariable('x', 'd', ('x'))
-    yValues = dataOut.createVariable('y', 'd', ('y'))
-    timeValues = dataOut.createVariable('time', 'd', ('time'))
+    dataValues = dataOut.createVariable(ismip7_var_name, 'f4',
+                                        ('time', 'y', 'x'),
+                                        fill_value=default_fillvals['f4'])
+    xValues = dataOut.createVariable('x', 'f4', ('x',),
+                                     fill_value=default_fillvals['f4'])
+    yValues = dataOut.createVariable('y', 'f4', ('y',),
+                                     fill_value=default_fillvals['f4'])
+    timeValues = dataOut.createVariable('time', 'f4', ('time',),
+                                        fill_value=default_fillvals['f4'])
     timeValues[:] = daysSinceStart
     for i in range(timeSteps):
         if ismip7_var_name == 'sftgif':
