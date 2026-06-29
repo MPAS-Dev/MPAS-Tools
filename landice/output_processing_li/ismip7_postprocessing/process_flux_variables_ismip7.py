@@ -161,6 +161,10 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     # Bounds are Jan 1 of the previous year through Jan 1 of the year indexed.
     timeBndsMin = (years_flux - refYear - 1.0) * 365.0
     timeBndsMax = (years_flux - refYear) * 365.0
+    # Convert to days since 1850-01-01 reference date
+    days_since_1850 = (refYear - 1850) * 365.0
+    timeBndsMin = timeBndsMin + days_since_1850
+    timeBndsMax = timeBndsMax + days_since_1850
     if mali_var_name not in data.variables:
         print(f"WARNING: {mali_var_name} not present.  Skipping.")
         data.close()
@@ -205,12 +209,12 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     dataValues.standard_name = var_std_name
     dataValues.units = var_units
     timeValues.bounds = 'time_bnds'
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
+    timeValues.units = 'days since 1850-01-01'
+    timeValues.calendar = 'standard'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
-    timebndsValues.units = f'days since {simulationStartDate}'
-    timebndsValues.calendar = 'noleap'
+    timebndsValues.units = 'days since 1850-01-01'
+    timebndsValues.calendar = 'standard'
     xValues.units = 'm'
     xValues.standard_name = 'x'
     xValues.long_name = 'x'

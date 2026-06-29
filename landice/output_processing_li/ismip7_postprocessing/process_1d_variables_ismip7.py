@@ -62,7 +62,6 @@ def _write_state_var(
         units,
         variable_desc,
         output_path,
-        simulationStartDate,
         metadata):
     """Write one 1D state (snapshot) variable to NETCDF4_CLASSIC."""
     nt = len(data_values)
@@ -73,8 +72,8 @@ def _write_state_var(
     time_out = ds_out.createVariable('time', 'd', ('time',))
     var_out[:] = data_values
     time_out[:] = time_days
-    time_out.units = f'days since {simulationStartDate}'
-    time_out.calendar = 'noleap'
+    time_out.units = 'days since 1850-01-01'
+    time_out.calendar = 'standard'
     time_out.standard_name = 'time'
     time_out.long_name = 'time'
     var_out.standard_name = standard_name
@@ -87,8 +86,7 @@ def _write_state_var(
 
 
 def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
-                    units, variable_desc, output_path, simulationStartDate,
-                    metadata):
+                    units, variable_desc, output_path, metadata):
     """Write one 1D flux (time-averaged) variable to NETCDF4_CLASSIC."""
     nt = len(data_values)
     filename = build_output_filename(output_path, varname, metadata)
@@ -102,8 +100,8 @@ def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
     time_out[:] = (days_min + days_max) / 2.0
     bnds_out[:, 0] = days_min
     bnds_out[:, 1] = days_max
-    time_out.units = f'days since {simulationStartDate}'
-    time_out.calendar = 'noleap'
+    time_out.units = 'days since 1850-01-01'
+    time_out.calendar = 'standard'
     time_out.standard_name = 'time'
     time_out.long_name = 'time'
     var_out.standard_name = standard_name
@@ -322,10 +320,15 @@ def generate_output_1d_vars(files, output_path, metadata):
         if decYears[ind_avg][-1] == endYr:
             break
 
+    # Convert time coordinates to days since 1850-01-01 reference date
+    days_since_1850 = (refYear - 1850) * 365.0
+    days_snapshot = days_snapshot + days_since_1850
+    days_min = days_min + days_since_1850
+    days_max = days_max + days_since_1850
+
     # shared keyword arguments for both writer helpers
     common = dict(
         output_path=output_path,
-        simulationStartDate=simulationStartDate,
         metadata=metadata,
     )
 

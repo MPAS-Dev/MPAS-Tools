@@ -171,6 +171,9 @@ def write_netcdf_2d_state_vars(
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
     daysSinceStart = data.variables['daysSinceStart'][:]
+    # Convert to days since 1850-01-01 reference date
+    refYear = int(simulationStartDate[0:4])
+    daysSinceStart = (refYear - 1850) * 365.0 + daysSinceStart
     var_sftgif = data.variables['sftgif'][:, :, :]
     var_sftgrf = data.variables['sftgrf'][:, :, :]
     var_sftflf = data.variables['sftflf'][:, :, :]
@@ -217,8 +220,8 @@ def write_netcdf_2d_state_vars(
 
     dataValues.standard_name = var_std_name
     dataValues.units = var_units
-    timeValues.units = f'days since {simulationStartDate}'
-    timeValues.calendar = 'noleap'
+    timeValues.units = 'days since 1850-01-01'
+    timeValues.calendar = 'standard'
     timeValues.standard_name = 'time'
     timeValues.long_name = 'time'
     xValues.units = 'm'
