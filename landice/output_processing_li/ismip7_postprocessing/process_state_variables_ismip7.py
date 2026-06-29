@@ -184,7 +184,7 @@ def write_netcdf_2d_state_vars(
         metadata,
     )
     dataOut = Dataset(output_filename, 'w', format='NETCDF4_CLASSIC')
-    dataOut.createDimension('time', timeSteps)
+    dataOut.createDimension('time', None)  # unlimited dimension (record)
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)
     dataValues = dataOut.createVariable(ismip7_var_name, 'd',

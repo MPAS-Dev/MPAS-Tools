@@ -68,7 +68,7 @@ def _write_state_var(
     nt = len(data_values)
     filename = build_output_filename(output_path, varname, metadata)
     ds_out = Dataset(filename, 'w', format='NETCDF4_CLASSIC')
-    ds_out.createDimension('time', nt)
+    ds_out.createDimension('time', None)  # unlimited dimension (record)
     var_out = ds_out.createVariable(varname, 'd', ('time',))
     time_out = ds_out.createVariable('time', 'd', ('time',))
     var_out[:] = data_values
@@ -93,7 +93,7 @@ def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
     nt = len(data_values)
     filename = build_output_filename(output_path, varname, metadata)
     ds_out = Dataset(filename, 'w', format='NETCDF4_CLASSIC')
-    ds_out.createDimension('time', nt)
+    ds_out.createDimension('time', None)  # unlimited dimension (record)
     ds_out.createDimension('bnds', 2)
     var_out = ds_out.createVariable(varname, 'd', ('time',))
     time_out = ds_out.createVariable('time', 'd', ('time',))

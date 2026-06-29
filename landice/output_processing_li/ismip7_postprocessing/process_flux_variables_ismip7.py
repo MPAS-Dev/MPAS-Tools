@@ -175,7 +175,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
         metadata,
     )
     dataOut = Dataset(output_filename, 'w', format='NETCDF4_CLASSIC')
-    dataOut.createDimension('time', timeSteps)
+    dataOut.createDimension('time', None)  # unlimited dimension (record)
     dataOut.createDimension('bnds', 2)
     timebndsValues = dataOut.createVariable('time_bnds', 'd', ('time', 'bnds'))
     dataOut.createDimension('x', lonN)
