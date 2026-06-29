@@ -3,7 +3,7 @@ This script has functions that are needed to post-process and write state
 output variables from ISMIP7 simulations.
 """
 
-from netCDF4 import Dataset
+from netCDF4 import Dataset, num2date, date2num
 import xarray as xr
 import numpy as np
 import os
@@ -171,9 +171,16 @@ def write_netcdf_2d_state_vars(
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
     daysSinceStart = data.variables['daysSinceStart'][:]
-    # Convert to days since 1850-01-01 reference date
-    refYear = int(simulationStartDate[0:4])
-    daysSinceStart = (refYear - 1850) * 365.0 + daysSinceStart
+    # Convert from MALI noleap time axis to Gregorian days since 1850-01-01
+    daysSinceStart = date2num(
+        num2date(
+            daysSinceStart,
+            units=f'days since {simulationStartDate}',
+            calendar='noleap',
+        ),
+        units='days since 1850-01-01',
+        calendar='standard',
+    )
     var_sftgif = data.variables['sftgif'][:, :, :]
     var_sftgrf = data.variables['sftgrf'][:, :, :]
     var_sftflf = data.variables['sftflf'][:, :, :]

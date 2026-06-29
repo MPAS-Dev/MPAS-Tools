@@ -3,7 +3,7 @@ Functions for processing and writing 1D (scalar time-series) output variables
 for ISMIP7 submissions from MALI globalStats output.
 """
 
-from netCDF4 import Dataset
+from netCDF4 import Dataset, num2date, date2num
 import numpy as np
 import os
 import sys
@@ -320,11 +320,24 @@ def generate_output_1d_vars(files, output_path, metadata):
         if decYears[ind_avg][-1] == endYr:
             break
 
-    # Convert time coordinates to days since 1850-01-01 reference date
-    days_since_1850 = (refYear - 1850) * 365.0
-    days_snapshot = days_snapshot + days_since_1850
-    days_min = days_min + days_since_1850
-    days_max = days_max + days_since_1850
+    # Convert from MALI noleap time axis to Gregorian days since 1850-01-01
+    input_units = f'days since {simulationStartDate}'
+    output_units = 'days since 1850-01-01'
+    days_snapshot = date2num(
+        num2date(days_snapshot, units=input_units, calendar='noleap'),
+        units=output_units,
+        calendar='standard',
+    )
+    days_min = date2num(
+        num2date(days_min, units=input_units, calendar='noleap'),
+        units=output_units,
+        calendar='standard',
+    )
+    days_max = date2num(
+        num2date(days_max, units=input_units, calendar='noleap'),
+        units=output_units,
+        calendar='standard',
+    )
 
     # shared keyword arguments for both writer helpers
     common = dict(

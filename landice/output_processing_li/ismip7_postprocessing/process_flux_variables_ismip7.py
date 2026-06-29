@@ -3,7 +3,7 @@ This script has functions that are needed to post-process and write flux
 output variables from ISMIP7 simulations.
 """
 
-from netCDF4 import Dataset
+from netCDF4 import Dataset, num2date, date2num
 import xarray as xr
 import numpy as np
 from subprocess import check_call
@@ -161,10 +161,19 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     # Bounds are Jan 1 of the previous year through Jan 1 of the year indexed.
     timeBndsMin = (years_flux - refYear - 1.0) * 365.0
     timeBndsMax = (years_flux - refYear) * 365.0
-    # Convert to days since 1850-01-01 reference date
-    days_since_1850 = (refYear - 1850) * 365.0
-    timeBndsMin = timeBndsMin + days_since_1850
-    timeBndsMax = timeBndsMax + days_since_1850
+    # Convert from MALI noleap time axis to Gregorian days since 1850-01-01
+    input_units = f'days since {simulationStartDate}'
+    output_units = 'days since 1850-01-01'
+    timeBndsMin = date2num(
+        num2date(timeBndsMin, units=input_units, calendar='noleap'),
+        units=output_units,
+        calendar='standard',
+    )
+    timeBndsMax = date2num(
+        num2date(timeBndsMax, units=input_units, calendar='noleap'),
+        units=output_units,
+        calendar='standard',
+    )
     if mali_var_name not in data.variables:
         print(f"WARNING: {mali_var_name} not present.  Skipping.")
         data.close()
