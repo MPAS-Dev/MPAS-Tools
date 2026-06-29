@@ -267,26 +267,40 @@ def generate_output_1d_vars(files, output_path, metadata):
     days_max = np.zeros(nt_flux) * np.nan
 
     # this is for the state variables
-    for i in range(nt_state):
+    # Skip any snapshot at the simulation start time (daysSinceStart ≈ 0)
+    snapshot_idx = 0
+    for year_idx, year in enumerate(years_state):
         # Use isclose to avoid floating-point equality issues.
-        ind_snap = np.where(np.isclose(decYears, years_state[i]))[0]
+        ind_snap = np.where(np.isclose(decYears, year))[0]
         if len(ind_snap) == 0:
             raise ValueError(
-                f"No state snapshot found for year {
-                    years_state[i]}.")
+                f"No state snapshot found for year {year}.")
         if len(ind_snap) > 1:
             print(f"WARNING: Found {len(ind_snap)} snapshots for year "
-                  f"{years_state[i]}; using the first one.")
+                  f"{year}; using the first one.")
         idx_snap = ind_snap[0]
 
-        vol_snapshot[i] = vol[idx_snap]
-        vaf_snapshot[i] = vaf[idx_snap]
-        gia_snapshot[i] = gia[idx_snap]
-        fia_snapshot[i] = fia[idx_snap]
-        days_snapshot[i] = daysSinceStart[idx_snap]
+        # Skip the initial snapshot at simulation start time
+        if np.isclose(daysSinceStart[idx_snap], 0.0):
+            print(f"Skipping state snapshot at simulation start time (year {year}).")
+            continue
+
+        vol_snapshot[snapshot_idx] = vol[idx_snap]
+        vaf_snapshot[snapshot_idx] = vaf[idx_snap]
+        gia_snapshot[snapshot_idx] = gia[idx_snap]
+        fia_snapshot[snapshot_idx] = fia[idx_snap]
+        days_snapshot[snapshot_idx] = daysSinceStart[idx_snap]
+        snapshot_idx += 1
 
         if decYears[idx_snap] == endYr:
             break
+    
+    # Trim arrays to actual number of snapshots written
+    vol_snapshot = vol_snapshot[:snapshot_idx]
+    vaf_snapshot = vaf_snapshot[:snapshot_idx]
+    gia_snapshot = gia_snapshot[:snapshot_idx]
+    fia_snapshot = fia_snapshot[:snapshot_idx]
+    days_snapshot = days_snapshot[:snapshot_idx]
 
     # this is for the flux variables
     for i in range(nt_flux):

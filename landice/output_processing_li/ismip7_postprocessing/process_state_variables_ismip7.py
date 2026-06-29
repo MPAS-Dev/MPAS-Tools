@@ -170,11 +170,11 @@ def write_netcdf_2d_state_vars(
     simulationStartTime = data.variables['simulationStartTime'][:].tobytes(
     ).decode('utf-8').strip().strip('\x00')
     simulationStartDate = simulationStartTime.split("_")[0]
-    daysSinceStart = data.variables['daysSinceStart'][:]
     # Convert from MALI noleap time axis to Gregorian days since 1850-01-01
+    daysSinceStart_raw = data.variables['daysSinceStart'][:]
     daysSinceStart = date2num(
         num2date(
-            daysSinceStart,
+            daysSinceStart_raw,
             units=f'days since {simulationStartDate}',
             calendar='noleap',
         ),
@@ -187,6 +187,18 @@ def write_netcdf_2d_state_vars(
     var_mali = data.variables[mali_var_name][:, :, :]
     var_mali[np.where(abs(var_mali + 1e34) < 1e33)] = np.nan
     timeSteps, latN, lonN = np.shape(var_mali)
+    
+    # Skip the first time level if it is at the simulation start time
+    skip_first = 0
+    if timeSteps > 0 and np.isclose(daysSinceStart_raw[0], 0.0):
+        print(f"Skipping state data at simulation start time.")
+        skip_first = 1
+        daysSinceStart = daysSinceStart[skip_first:]
+        var_sftgif = var_sftgif[skip_first:, :, :]
+        var_sftgrf = var_sftgrf[skip_first:, :, :]
+        var_sftflf = var_sftflf[skip_first:, :, :]
+        var_mali = var_mali[skip_first:, :, :]
+        timeSteps = timeSteps - skip_first
 
     output_filename = build_output_filename(
         output_path,
