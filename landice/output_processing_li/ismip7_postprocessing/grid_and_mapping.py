@@ -10,6 +10,10 @@ VALID_RESOLUTIONS = {
     'AIS': [2, 4, 8, 16],
     'GrIS': [1, 2, 4, 8, 16],
 }
+CRS_DICT = {
+    'AIS': 'epsg:3031',
+    'GrIS': 'epsg:3413',
+}
 
 # AIS: polar stereographic EPSG:3031, standard parallel 71S, central meridian 0
 # Cell centres span -3,040,000 m to 3,040,000 m in both x and y.

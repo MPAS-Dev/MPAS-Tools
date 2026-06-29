@@ -79,11 +79,13 @@ def _write_state_var(
     time_out.long_name = 'time'
     var_out.standard_name = standard_name
     var_out.units = units
-    ds_out.AUTHORS = metadata['authors']
+    ds_out.CONTACT_NAMES = metadata['contact_names']
+    ds_out.CONTACT_EMAILS = metadata['contact_emails']
     ds_out.MODEL = metadata['model']
     ds_out.GROUP = metadata['group']
     ds_out.VARIABLE = variable_desc
     ds_out.DATE = metadata['date']
+    ds_out.crs = metadata['crs']
     ds_out.close()
 
 
@@ -109,11 +111,13 @@ def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
     time_out.long_name = 'time'
     var_out.standard_name = standard_name
     var_out.units = units
-    ds_out.AUTHORS = metadata['authors']
+    ds_out.CONTACT_NAMES = metadata['contact_names']
+    ds_out.CONTACT_EMAILS = metadata['contact_emails']
     ds_out.MODEL = metadata['model']
     ds_out.GROUP = metadata['group']
     ds_out.VARIABLE = variable_desc
     ds_out.DATE = metadata['date']
+    ds_out.crs = metadata['crs']
     ds_out.close()
 
 

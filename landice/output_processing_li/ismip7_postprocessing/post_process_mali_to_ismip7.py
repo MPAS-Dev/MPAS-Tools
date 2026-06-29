@@ -55,6 +55,7 @@ from grid_and_mapping import (
     check_exp_name,
     check_res,
     create_ismip7_grid_file,
+    CRS_DICT,
 )
 from process_1d_variables_ismip7 import (
     check_global_stats_files,
@@ -68,12 +69,14 @@ DEFAULT_ISM_ID = 'MALI7'
 
 GROUP_METADATA = {
     'DOE': {
-        'authors': 'Trevor Hillebrand, Matthew Hoffman',
+        'contact_names': 'Trevor Hillebrand, Matthew Hoffman',
+        'contact_emails': 'trhille@lanl.gov, mhoffman@lanl.gov',
         'group': 'Los Alamos National Laboratory, U.S. Department of Energy',
         'group_nickname': 'DOE',
     },
     'Arete': {
-        'authors': 'Kyeore Han',
+        'contact_names': 'Kyeore Han, Colin Meyer',
+        'contact_emails': 'hollyhan4@gmail.com, Colin.R.Meyer@dartmouth.edu',
         'group': 'Arete Glacier Initiative',
         'group_nickname': 'ARETE',
     },
@@ -237,11 +240,13 @@ def main():
         'forcing_member_id': args.forcing_member_id,
         'experiment_id': experiment_id,
         'icesheet': args.icesheet,
-        'authors': group_meta['authors'],
+        'contact_names': group_meta['contact_names'],
+        'contact_emails': group_meta['contact_emails'],
         'group': group_meta['group'],
         'group_nickname': group_meta['group_nickname'],
         'model': DEFAULT_MODEL,
         'date': datetime.now().strftime("%d-%b-%Y"),
+        'crs': CRS_DICT[args.icesheet],
     }
 
     print("\n---Processing remapping file---")
