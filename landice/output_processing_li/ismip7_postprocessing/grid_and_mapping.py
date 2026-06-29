@@ -177,6 +177,7 @@ def check_ismip7_grid_file(ismip7_grid_file_path, res_ismip7_grid):
 
 def build_mapping_file(mali_mesh_file,
                        mapping_file, res_ismip7_grid,
+                       icesheet=None,
                        ismip7_grid_file=None,
                        method_remap=None):
     """
@@ -195,6 +196,9 @@ def build_mapping_file(mali_mesh_file,
 
     res_ismip7_grid: str
         resolution of the ismip7 grid in kilometers
+
+    icesheet : str, optional
+        Ice sheet domain ('AIS' or 'GrIS') for determining projection
 
     ismip7_grid_file : str, optional
         The ISMIP7 file if mapping file does not exist
@@ -217,7 +221,13 @@ def build_mapping_file(mali_mesh_file,
 
     ismip7_scripfile = f"temp_ismip7_{res_ismip7_grid}km_scrip.nc"
     mali_scripfile = "temp_mali_scrip.nc"
-    ismip7_projection = "ais-bedmap2"
+    if icesheet == 'GrIS':
+        ismip7_projection = "gis-gimp"
+    elif icesheet == 'AIS':
+        ismip7_projection = "ais-bedmap2"
+    else:
+        raise ValueError(
+            f"Unknown icesheet '{icesheet}'. Must be 'AIS' or 'GrIS'.")
 
     # create the ismip7 scripfile if mapping file does not exist
     # this is the projection of ismip7 data for Antarctica
@@ -227,7 +237,14 @@ def build_mapping_file(mali_mesh_file,
           "for ismip7 grid and mali mesh...")
 
     # create a scripfile for ismip7 grid
-    args = ["create_scrip_file_from_planar_rectangular_grid",
+    script_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..", "..", "..",
+        "conda_package", "mesh_tools", "create_SCRIP_files",
+        "create_SCRIP_file_from_planar_rectangular_grid.py"
+    )
+    script_path = os.path.abspath(script_path)
+    args = ["python", script_path,
             "--input", ismip7_grid_file,
             "--scrip", ismip7_scripfile,
             "--proj", ismip7_projection,

@@ -277,8 +277,9 @@ def main():
                 args.input_file_mesh,
                 mapping_file,
                 args.res_ismip7_grid,
-                ismip7_grid_file,
-                method_remap,
+                icesheet=args.icesheet,
+                ismip7_grid_file=ismip7_grid_file,
+                method_remap=method_remap,
             )
 
     print("---Processing remapping file complete---\n")
