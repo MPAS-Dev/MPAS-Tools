@@ -230,7 +230,7 @@ def main():
     group_meta = GROUP_METADATA[args.group]
 
     metadata = {
-        'exp': args.exp,
+        'set_id': 'CORE',
         'set_counter': args.exp,
         'domain_id': args.icesheet,
         'source_id': group_meta['group_nickname'],
@@ -239,7 +239,6 @@ def main():
         'esm_id': esm_id,
         'forcing_member_id': args.forcing_member_id,
         'experiment_id': experiment_id,
-        'icesheet': args.icesheet,
         'contact_names': group_meta['contact_names'],
         'contact_emails': group_meta['contact_emails'],
         'group': group_meta['group'],

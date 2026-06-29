@@ -227,13 +227,11 @@ def write_netcdf_2d_state_vars(
     yValues.units = 'm'
     yValues.standard_name = 'y'
     yValues.long_name = 'y'
-    dataOut.CONTACT_NAMES = metadata['contact_names']
-    dataOut.CONTACT_EMAILS = metadata['contact_emails']
-    dataOut.MODEL = metadata['model']
-    dataOut.GROUP = metadata['group']
+    # Write all metadata as global attributes
+    for key, value in metadata.items():
+        if key != 'time_range':  # time_range is added by caller
+            setattr(dataOut, key, value)
     dataOut.VARIABLE = var_varname
-    dataOut.DATE = metadata['date']
-    dataOut.crs = metadata['crs']
     dataOut.close()
 
 
