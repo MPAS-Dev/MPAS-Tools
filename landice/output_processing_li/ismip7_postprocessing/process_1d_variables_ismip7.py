@@ -184,14 +184,6 @@ def generate_output_1d_vars(files, output_path, metadata):
         years_flux = np.arange(np.floor(decYears[0]), endYr)
     nt_state = len(years_state)
     nt_flux = len(years_flux)
-    print(
-        "For state processing, using start "
-        f"year={years_state[0]} and end year={years_state[-1]}."
-    )
-    print(
-        "For flux  processing, using start "
-        f"year={years_flux[0]} and end year={years_flux[-1]}."
-    )
 
     # read in state variables
     vol = ds['totalIceVolume'].values
