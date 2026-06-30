@@ -107,16 +107,35 @@ def main():
         "--exp_name",
         dest="exp",
         required=True,
-        help="ISMIP7 experiment name (e.g., exp05)",
+        help="ISMIP7 experiment name (e.g., C001)",
+    )
+    parser.add_argument(
+        "-i",
+        "--mali_output_dir",
+        dest="mali_output_dir",
+        required=True,
+        help="Path to MALI output directory containing output NetCDF files.",
+    )
+    parser.add_argument(
+        "-g",
+        "--global_stats_pattern",
+        dest="global_stats_pattern",
+        required=False,
+        default='globalStats_*.nc',
+        help=(
+            "Filename pattern within --mali_output_dir for one or more "
+            "globalStats files (default: 'globalStats_*.nc')."
+        ),
     )
     parser.add_argument(
         "-s",
         "--input_state_pattern",
         dest="input_state_pattern",
         required=False,
+        default='output_state_*.nc',
         help=(
-            "glob pattern matching one or more MALI state output files. "
-            "Note: wildcard paths should be quoted to avoid shell expansion."
+            "Filename pattern within --mali_output_dir for one or more "
+            "MALI 2d state output files (default: 'output_state_*.nc')."
         ),
     )
     parser.add_argument(
@@ -124,9 +143,21 @@ def main():
         "--input_flux_pattern",
         dest="input_flux_pattern",
         required=False,
+        default='output_flux_*.nc',
         help=(
-            "glob pattern matching one or more MALI flux output files. "
-            "Note: wildcard paths should be quoted to avoid shell expansion."
+            "Filename pattern within --mali_output_dir for one or more "
+            "MALI 2d flux output files (default: 'output_flux_*.nc')."
+        ),
+    )
+    parser.add_argument(
+        "--process_sets",
+        dest="process_sets",
+        nargs='+',
+        choices=['1d', 'state', 'flux'],
+        default=['1d', 'state', 'flux'],
+        help=(
+            "Which variable sets to process. Provide one or more of: "
+            "'1d', 'state', 'flux'. Default processes all three."
         ),
     )
     parser.add_argument(
@@ -135,17 +166,6 @@ def main():
         dest="input_file_mesh",
         required=False,
         help="MALI file with mesh information",
-    )
-    parser.add_argument(
-        "-g",
-        "--global_stats_pattern",
-        dest="global_stats_pattern",
-        required=False,
-        help=(
-            "glob pattern matching one or more globalStats.nc files "
-            "(e.g. 'globalStats_*.nc'). "
-            "Note: wildcard paths should be quoted to avoid shell expansion."
-        ),
     )
     parser.add_argument(
         "-o",
@@ -214,6 +234,23 @@ def main():
     )
     args = parser.parse_args()
 
+    process_1d = '1d' in args.process_sets
+    process_state = 'state' in args.process_sets
+    process_flux = 'flux' in args.process_sets
+
+    if not os.path.isdir(args.mali_output_dir):
+        raise FileNotFoundError(
+            f"MALI output directory not found: {args.mali_output_dir}"
+        )
+
+    global_stats_glob = os.path.join(
+        args.mali_output_dir, args.global_stats_pattern)
+    state_glob = os.path.join(args.mali_output_dir, args.input_state_pattern)
+    flux_glob = os.path.join(args.mali_output_dir, args.input_flux_pattern)
+
+    global_stats_files = sorted(glob.glob(global_stats_glob))
+    check_global_stats_files(global_stats_files)
+
     check_exp_name(args.exp)
     check_res(args.res_ismip7_grid, args.icesheet)
 
@@ -249,11 +286,13 @@ def main():
         'crs': CRS_DICT[args.icesheet],
     }
 
+    # Compute one time_range from globalStats and use for all outputs.
+    metadata['time_range'] = get_time_range(global_stats_files)
+    print(f"Time range: {metadata['time_range']}")
+
     print("\n---Processing remapping file---")
     # Only do remapping steps if we have 2d files to process
-    if (
-            args.input_state_pattern is not None or
-            args.input_flux_pattern is not None):
+    if process_state or process_flux:
 
         method_remap = args.method_remap
         if args.reuse_mapping_file is not None:
@@ -294,25 +333,16 @@ def main():
     if not os.path.isdir(output_path):
         os.makedirs(output_path)
 
-    if args.global_stats_pattern is None:
-        print("--- No global stats pattern provided; "
-              "skipping 1D variable processing.")
-    else:
+    if process_1d:
         print("\n---Processing global stats file(s)---")
-        global_stats_files = sorted(glob.glob(args.global_stats_pattern))
-        check_global_stats_files(global_stats_files)
-        # Compute time range from globalStats files and add to metadata
-        metadata['time_range'] = get_time_range(global_stats_files)
-        print(f"Time range: {metadata['time_range']}")
         generate_output_1d_vars(global_stats_files, output_path, metadata)
         print("---Processing global stats file(s) complete---\n")
-
-    if args.input_state_pattern is None:
-        print("--- MALI state pattern is not provided, "
-              "thus it will not be processed.")
     else:
+        print("--- Skipping 1D variable processing (not selected).")
+
+    if process_state:
         print("\n---Processing state file(s)---")
-        state_files = sorted(glob.glob(args.input_state_pattern))
+        state_files = sorted(glob.glob(state_glob))
         process_state_pipeline(
             state_files,
             mapping_file,
@@ -321,13 +351,12 @@ def main():
             metadata,
         )
         print("---Processing state file(s) complete---\n")
-
-    if args.input_flux_pattern is None:
-        print("--- MALI flux pattern is not provided, "
-              "thus it will not be processed.")
     else:
+        print("--- Skipping state variable processing (not selected).")
+
+    if process_flux:
         print("\n---Processing flux file(s)---")
-        flux_files = sorted(glob.glob(args.input_flux_pattern))
+        flux_files = sorted(glob.glob(flux_glob))
         process_flux_pipeline(
             flux_files,
             mapping_file,
@@ -336,6 +365,8 @@ def main():
             metadata,
         )
         print("---Processing flux file(s) complete---\n")
+    else:
+        print("--- Skipping flux variable processing (not selected).")
 
     print("---All processing complete---")
 
