@@ -195,9 +195,17 @@ def write_netcdf_2d_state_vars(
             dataValues[i, :, :] = var_mali[i, :, :]
         else:
             if ismip7_var_name == 'litempbotgr':
-                mask = var_sftgrf[i, :, :]
+                # todo: get masking division to work right for litempbotgr and litempbotfl
+                # for now, only calculate these var for full grounded or full floating cells
+                mask = (var_sftgrf[i, :, :])
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    var_mali[i, :, :] = var_mali[i, :, :] / mask
+                mask = (var_sftgrf[i, :, :] > 0.99)
             elif ismip7_var_name == 'litempbotfl':
-                mask = var_sftflf[i, :, :]
+                mask = (var_sftflf[i, :, :])
+                with np.errstate(divide='ignore', invalid='ignore'):
+                    var_mali[i, :, :] = var_mali[i, :, :] / mask
+                mask = (var_sftflf[i, :, :] > 0.99)
             elif ismip7_var_name == 'topg':
                 mask = np.ones(var_mali.shape[1:])  # don't mask topg
             else:
