@@ -60,7 +60,7 @@ def process_state_vars(files, tmp_file):
 
     # Skip the first time level if it is at the simulation start time
     days_first = inputfile_state_vars['daysSinceStart'].values[0]
-    if inputfile_state_vars.sizes['Time'] > 0 and np.isclose(days_first, 0.0):
+    if inputfile_state_vars.sizes['Time'] > 0 and np.isclose(days_first, 0.0, rtol=0.0):
         print("Skipping state data at simulation start time.")
         inputfile_state_vars = inputfile_state_vars.isel(Time=slice(1, None))
 

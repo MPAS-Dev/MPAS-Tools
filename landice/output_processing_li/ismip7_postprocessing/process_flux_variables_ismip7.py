@@ -77,6 +77,9 @@ def process_flux_vars(files, tmp_file):
 
     ds_flux['avgCalvingFlux'] = -1.0 * ds_flux['avgCalvingFlux']  # flip sign of calving flux to match ISMIP7 convention
     ds_flux['avgFaceMeltFlux'] = -1.0 * ds_flux['avgFaceMeltFlux']  # flip sign of face melt flux to match ISMIP7 convention
+    print("avgGroundingLineFlux min, max values before clipping: ",
+          np.nanmin(ds_flux['avgGroundingLineFlux'].values),
+          np.nanmax(ds_flux['avgGroundingLineFlux'].values))
     ds_flux['avgGroundingLineFlux'] = ds_flux['avgGroundingLineFlux'].clip(min=0.0)
     ds_flux['avgDhdt'] = ds_flux['avgDhdt'] / (3600.0 * 24.0 * 365.0)  # convert from m/yr to m/s
 
@@ -93,7 +96,7 @@ def process_flux_vars(files, tmp_file):
     # subset to only required variables to keep file small for remapping
     ds_flux_out = ds_flux[REQUIRED_FLUX_REMAPPING_VARIABLES]
     # remove the first time step (which is always 0)
-    time_mask = ~np.isclose(ds_flux_out['daysSinceStart'].values, 0.0)
+    time_mask = ~np.isclose(ds_flux_out['daysSinceStart'].values, 0.0, rtol=0.0)
     if not np.any(time_mask):
         raise ValueError("No flux time records remain after dropping daysSinceStart==0.")
     ds_flux_out = ds_flux_out.isel(Time=time_mask)

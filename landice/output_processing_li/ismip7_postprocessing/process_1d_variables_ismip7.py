@@ -246,17 +246,19 @@ def generate_output_1d_vars(files, output_path, metadata):
     snapshot_idx = 0
     for year_idx, year in enumerate(years_state):
         # Use isclose to avoid floating-point equality issues.
-        ind_snap = np.where(np.isclose(decYears, year))[0]
+        # isclose relative tolerance not meaningful here
+        ind_snap = np.where(np.isclose(decYears, year, rtol=0.0))[0]
         if len(ind_snap) == 0:
             raise ValueError(
                 f"No state snapshot found for year {year}.")
         if len(ind_snap) > 1:
             print(f"WARNING: Found {len(ind_snap)} snapshots for year "
-                  f"{year}; using the first one.")
+                  f"{year}; using the first one. "
+                  f"Snapshot values: {decYears[ind_snap]}")
         idx_snap = ind_snap[0]
 
         # Skip the initial snapshot at simulation start time
-        if np.isclose(daysSinceStart[idx_snap], 0.0):
+        if np.isclose(daysSinceStart[idx_snap], 0.0, rtol=0.0):
             print(f"Skipping state snapshot at simulation start time (year {year}).")
             continue
 
