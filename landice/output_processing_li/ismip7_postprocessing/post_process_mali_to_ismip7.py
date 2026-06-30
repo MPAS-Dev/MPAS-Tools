@@ -311,12 +311,17 @@ def main():
                 )
 
             created_at = datetime.now().strftime("%Y%m%dT%H%M%S")
+            mesh_name = os.path.splitext(
+                os.path.basename(args.input_file_mesh)
+            )[0].replace(' ', '-')
             mapping_file = (
-                f"mapping_mali_to_ismip7.{method_remap}.{created_at}.nc"
+                f"mapping_mali_to_ismip7.{args.icesheet}.{mesh_name}."
+                f"{method_remap}.{created_at}.nc"
             )
 
             print("Creating new mapping file. "
                   f"Mapping method used: {method_remap}")
+            print(f"Mapping file name: {mapping_file}")
             build_mapping_file(
                 args.input_file_mesh,
                 mapping_file,
