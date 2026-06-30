@@ -222,10 +222,10 @@ def write_netcdf_2d_state_vars(
             tmp[mask == 0] = np.nan
             dataValues[i, :, :] = tmp
 
-    for i in range(latN):
+    for i in range(lonN):
         xValues[i] = var_x[i]
 
-    for i in range(lonN):
+    for i in range(latN):
         yValues[i] = var_y[i]
 
     dataValues.standard_name = var_std_name
