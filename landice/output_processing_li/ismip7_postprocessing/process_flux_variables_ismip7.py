@@ -162,7 +162,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
     dataOut.createDimension('time', None)  # unlimited dimension (record)
     dataOut.createDimension('bnds', 2)
     timebndsValues = dataOut.createVariable(
-        'time_bnds', 'f4', ('time', 'bnds'),
+        'time_bounds', 'f4', ('time', 'bnds'),
         fill_value=default_fillvals['f4'])
     dataOut.createDimension('x', lonN)
     dataOut.createDimension('y', latN)
@@ -194,7 +194,7 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
 
     dataValues.standard_name = var_std_name
     dataValues.units = var_units
-    timeValues.bounds = 'time_bnds'
+    timeValues.bounds = 'time_bounds'
     timeValues.units = 'days since 1850-01-01'
     timeValues.calendar = 'standard'
     timeValues.standard_name = 'time'

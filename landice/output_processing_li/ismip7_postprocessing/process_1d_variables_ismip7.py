@@ -77,7 +77,7 @@ def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
     time_out = ds_out.createVariable(
         'time', 'f4', ('time',), fill_value=default_fillvals['f4'])
     bnds_out = ds_out.createVariable(
-        'time_bnds', 'f4', ('time', 'bnds'),
+        'time_bounds', 'f4', ('time', 'bnds'),
         fill_value=default_fillvals['f4'])
     var_out[:] = data_values
     time_out[:] = (days_min + days_max) / 2.0
@@ -85,6 +85,7 @@ def _write_flux_var(varname, data_values, days_min, days_max, standard_name,
     bnds_out[:, 1] = days_max
     time_out.units = 'days since 1850-01-01'
     time_out.calendar = 'standard'
+    time_out.bounds = 'time_bounds'
     time_out.standard_name = 'time'
     time_out.long_name = 'time'
     var_out.standard_name = standard_name
@@ -352,7 +353,7 @@ def generate_output_1d_vars(files, output_path, metadata):
         gia_snapshot,
         days_snapshot,
         'grounded_ice_sheet_area',
-        'm2',
+        'm^2',
         'Grounded ice area',
         **common)
     _write_state_var(
@@ -360,7 +361,7 @@ def generate_output_1d_vars(files, output_path, metadata):
         fia_snapshot,
         days_snapshot,
         'floating_ice_shelf_area',
-        'm2',
+        'm^2',
         'Floating ice area',
         **common)
 

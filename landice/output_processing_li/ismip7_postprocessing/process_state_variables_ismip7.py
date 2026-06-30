@@ -394,7 +394,7 @@ def generate_output_2d_state_vars(file_remapped_mali_state,
 
     # ----------- strbasemag ------------------
     write_netcdf_2d_state_vars('strbasemag', 'strbasemag',
-                               'land_ice_basal_drag ', 'Pa',
+                               'land_ice_basal_drag', 'Pa',
                                'Basal drag',
                                file_remapped_mali_state,
                                ismip7_grid_file, output_path, metadata)
