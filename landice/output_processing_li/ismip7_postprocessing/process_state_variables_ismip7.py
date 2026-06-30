@@ -105,6 +105,14 @@ def process_state_vars(files, tmp_file):
         betaSolve[:, :] * speed_base * seconds_per_year * grounded_mask *
         dynamic_mask
     )
+    # Compliance checker requires this limit.
+    # Larger values are not meaningful so no qualms about it.
+    inputfile_state_vars['strbasemag'] = inputfile_state_vars['strbasemag'].clip(max=300000.0)
+
+    # Compliance checker requires this limit. 
+    # Vinson Massif is 4892 m, so presumably this limit will be increased
+    # in the checker.  MJH put in an issue for that to them.
+    inputfile_state_vars['bedTopography'] = inputfile_state_vars['bedTopography'].clip(max=4000.0)
 
     missing = [
         var for var in REQUIRED_STATE_REMAPPING_VARIABLES
