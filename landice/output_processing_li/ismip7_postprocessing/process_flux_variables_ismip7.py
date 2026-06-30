@@ -233,6 +233,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
     """
 
     # ----------- acabf ------------------
+    print("* Writing acabf")
     write_netcdf_2d_flux_vars('avgSMBFlux', 'acabf',
                               'land_ice_surface_specific_mass_balance_flux',
                               'kg m-2 s-1', 'Surface mass balance flux',
@@ -240,6 +241,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               ismip7_grid_file, output_path, metadata)
 
     # ----------- libmassbffl ------------------
+    print("* Writing libmassbffl")
     write_netcdf_2d_flux_vars('avgFloatingBMBFlux', 'libmassbffl',
                               'land_ice_basal_specific_mass_balance_flux',
                               'kg m-2 s-1',
@@ -248,6 +250,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               ismip7_grid_file, output_path, metadata)
 
     # ----------- libmassbfgr ------------------
+    print("* Writing libmassbfgr")
     write_netcdf_2d_flux_vars('avgGroundedBMBFlux', 'libmassbfgr',
                               'land_ice_basal_specific_mass_balance_flux',
                               'kg m-2 s-1',
@@ -264,6 +267,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               ismip7_grid_file, output_path, metadata)
 
     # ----------- licalvf ------------------
+    print("* Writing licalvf")
     write_netcdf_2d_flux_vars('avgCalvingFlux', 'licalvf',
                               'land_ice_specific_mass_flux_due_to_calving',
                               'kg m-2 s-1',
@@ -272,6 +276,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               ismip7_grid_file, output_path, metadata)
 
     # ----------- lifmassbf ------------------
+    print("* Writing lifmassbf")
     # Note: facemelting and calving flux are combined above
     write_netcdf_2d_flux_vars('avgFaceMeltFlux', 'lifmassbf',
                               'TBD by ISMIP7',
@@ -281,6 +286,7 @@ def generate_output_2d_flux_vars(file_remapped_mali_flux,
                               ismip7_grid_file, output_path, metadata)
 
     # ----------- ligroundf ------------------
+    print("* Writing ligroundf")
     write_netcdf_2d_flux_vars('avgGroundingLineFlux', 'ligroundf',
                               'TBD by ISMIP7',
                               'kg m-2 s-1',
