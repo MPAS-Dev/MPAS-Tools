@@ -194,11 +194,8 @@ def write_netcdf_2d_flux_vars(mali_var_name, ismip7_var_name, var_std_name,
         timebndsValues[i, 0] = timeBndsMin[i]
         timebndsValues[i, 1] = timeBndsMax[i]
 
-    for i in range(latN):
-        xValues[i] = var_x[i]
-
-    for i in range(lonN):
-        yValues[i] = var_y[i]
+    xValues[:] = var_x
+    yValues[:] = var_y
 
     dataValues.standard_name = var_std_name
     dataValues.units = var_units
