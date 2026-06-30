@@ -78,6 +78,7 @@ def process_flux_vars(files, tmp_file):
     ds_flux['avgCalvingFlux'] = -1.0 * ds_flux['avgCalvingFlux']  # flip sign of calving flux to match ISMIP7 convention
     ds_flux['avgFaceMeltFlux'] = -1.0 * ds_flux['avgFaceMeltFlux']  # flip sign of face melt flux to match ISMIP7 convention
     ds_flux['avgGroundingLineFlux'] = ds_flux['avgGroundingLineFlux'].clip(min=0.0)
+    ds_flux['avgDhdt'] = ds_flux['avgDhdt'] / (3600.0 * 24.0 * 365.0)  # convert from m/yr to m/s
 
     missing = [
         var for var in REQUIRED_FLUX_REMAPPING_VARIABLES
