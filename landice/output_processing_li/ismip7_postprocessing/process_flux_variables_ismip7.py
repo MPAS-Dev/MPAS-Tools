@@ -75,6 +75,10 @@ def process_flux_vars(files, tmp_file):
     #ds_flux['grounded_mask'] = (ds_flux['cellMask'][:, :] * 0 + 1) - ds_flux['floating_mask']
     #ds_flux['gl_mask'] = (ds_flux['cellMask'][:, :] & 256) / 256
 
+    ds_flux['avgCalvingFlux'] = -1.0 * ds_flux['avgCalvingFlux']  # flip sign of calving flux to match ISMIP7 convention
+    ds_flux['avgFaceMeltFlux'] = -1.0 * ds_flux['avgFaceMeltFlux']  # flip sign of face melt flux to match ISMIP7 convention
+    ds_flux['avgGroundingLineFlux'] = ds_flux['avgGroundingLineFlux'].clip(min=0.0)
+
     missing = [
         var for var in REQUIRED_FLUX_REMAPPING_VARIABLES
         if var not in ds_flux
