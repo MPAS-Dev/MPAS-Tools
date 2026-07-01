@@ -6,6 +6,7 @@ from pathlib import Path
 
 import netCDF4
 import numpy
+import xarray
 
 from mpas_tools.logging import check_call
 
@@ -178,6 +179,95 @@ def write_netcdf(
             check_call(args, logger=logger)
         # delete the temporary NETCDF4 file
         os.remove(out_filename)
+
+
+def open_dataset(filename, engine=None, logger=None, **kwargs):
+    """
+    Open an ``xarray.Dataset`` from a NetCDF file, accounting for quirks
+    specific to MPAS components.  This is a thin wrapper around
+    :py:func:`xarray.open_dataset` that selects the NetCDF ``engine`` from
+    ``mpas_tools.io.default_engine`` when ``engine`` is not given.
+
+    Specifying an ``engine`` explicitly is important because
+    :py:func:`xarray.open_dataset` otherwise sniffs the file for "magic bits"
+    to auto-select a backend, and that probe can crash on
+    ``NETCDF3_64BIT_DATA`` (CDF5) files.  Setting
+    ``mpas_tools.io.default_engine`` (e.g. to ``'netcdf4'``) provides a single,
+    process-wide way to avoid that crash without modifying every call site.
+
+    Parameters
+    ----------
+    filename : str or path-like or file-like
+        The path to the NetCDF file to open, passed on to
+        :py:func:`xarray.open_dataset`
+
+    engine : {'netcdf4', 'scipy', 'h5netcdf'}, optional
+        The library to use for reading the NetCDF file.  The default is
+        ``mpas_tools.io.default_engine``, which can be modified but which
+        defaults to ``None`` (xarray auto-selects the backend)
+
+    logger : logging.Logger, optional
+        A logger to write messages to.  Reserved for future diagnostics; no
+        error recovery is performed because the CDF5 backend-sniffing failure
+        is a hard crash that cannot be caught.
+
+    **kwargs
+        Additional keyword arguments passed on to
+        :py:func:`xarray.open_dataset` (e.g. ``decode_times``, ``decode_cf``,
+        ``mask_and_scale``)
+
+    Returns
+    -------
+    ds : xarray.Dataset
+        The opened dataset
+    """
+    if engine is None:
+        engine = default_engine
+
+    return xarray.open_dataset(filename, engine=engine, **kwargs)
+
+
+def open_mfdataset(paths, engine=None, logger=None, **kwargs):
+    """
+    Open a multi-file ``xarray.Dataset`` from NetCDF files, accounting for
+    quirks specific to MPAS components.  This is a thin wrapper around
+    :py:func:`xarray.open_mfdataset` that selects the NetCDF ``engine`` from
+    ``mpas_tools.io.default_engine`` when ``engine`` is not given.
+
+    See :py:func:`mpas_tools.io.open_dataset` for why specifying an ``engine``
+    explicitly (via ``mpas_tools.io.default_engine``) is useful for
+    ``NETCDF3_64BIT_DATA`` (CDF5) files.
+
+    Parameters
+    ----------
+    paths : str or sequence of str or path-like
+        The paths to the NetCDF files to open, passed on to
+        :py:func:`xarray.open_mfdataset`
+
+    engine : {'netcdf4', 'scipy', 'h5netcdf'}, optional
+        The library to use for reading the NetCDF files.  The default is
+        ``mpas_tools.io.default_engine``, which can be modified but which
+        defaults to ``None`` (xarray auto-selects the backend)
+
+    logger : logging.Logger, optional
+        A logger to write messages to.  Reserved for future diagnostics; no
+        error recovery is performed because the CDF5 backend-sniffing failure
+        is a hard crash that cannot be caught.
+
+    **kwargs
+        Additional keyword arguments passed on to
+        :py:func:`xarray.open_mfdataset` (e.g. ``combine``, ``concat_dim``,
+        ``decode_times``)
+
+    Returns
+    -------
+    ds : xarray.Dataset
+        The opened dataset
+    """
+    if engine is None:
+        engine = default_engine
+
+    return xarray.open_mfdataset(paths, engine=engine, **kwargs)
 
 
 def update_history(ds):
