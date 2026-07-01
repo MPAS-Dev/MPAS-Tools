@@ -146,6 +146,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_barotropic_streamfunction</span><span class="p">(</span>
     <span class="n">ds_mesh</span><span class="p">,</span>
     <span class="n">ds</span><span class="p">,</span>
+    <span class="n">ds_vert_coord</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">min_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">max_depth</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -163,11 +164,17 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    ds_mesh : xarray.Dataset</span>
-<span class="sd">        A dataset containing MPAS mesh variables</span>
+<span class="sd">        A dataset containing MPAS horizontal mesh variables</span>
 
 <span class="sd">    ds : xarray.Dataset</span>
 <span class="sd">        A dataset containing MPAS output variables ``normalVelocity`` and</span>
 <span class="sd">        ``layerThickness`` (possibly with a ``prefix``)</span>
+
+<span class="sd">    ds_vert_coord : xarray.Dataset, optional</span>
+<span class="sd">        A dataset with the vertical coordinate variables ``minLevelCell``,</span>
+<span class="sd">        ``maxLevelCell`` and ``bottomDepth``.  The same as ``ds_mesh`` by</span>
+<span class="sd">        default, but in Omega these are stored separately from the horizontal</span>
+<span class="sd">        mesh.</span>
 
 <span class="sd">    logger : logging.Logger, optional</span>
 <span class="sd">        A logger for the output if not stdout</span>
@@ -232,6 +239,7 @@
     <span class="n">bsf_vertex</span> <span class="o">=</span> <span class="n">_compute_barotropic_streamfunction_vertex</span><span class="p">(</span>
         <span class="n">ds_mesh</span><span class="p">,</span>
         <span class="n">ds</span><span class="p">,</span>
+        <span class="n">ds_vert_coord</span><span class="p">,</span>
         <span class="n">prefix</span><span class="p">,</span>
         <span class="n">include_bolus</span><span class="p">,</span>
         <span class="n">include_submesoscale</span><span class="p">,</span>
@@ -332,7 +340,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Create a graph from the boundary edges</span>
     <span class="n">graph</span> <span class="o">=</span> <span class="n">nx</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
-    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">boundary_vertex0</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">boundary_vertex1</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+    <span class="n">edges</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span>
+        <span class="nb">zip</span><span class="p">(</span><span class="n">boundary_vertex0</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">boundary_vertex1</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">)</span>
     <span class="n">graph</span><span class="o">.</span><span class="n">add_edges_from</span><span class="p">(</span><span class="n">edges</span><span class="p">)</span>
 
     <span class="n">minimal_constraints</span> <span class="o">=</span> <span class="p">[]</span>
@@ -394,7 +404,7 @@
     <span class="p">)</span>
 
     <span class="c1"># Unpack minimal_constraints into boundary_vertex0 and boundary_vertex1</span>
-    <span class="n">boundary_vertex0</span><span class="p">,</span> <span class="n">boundary_vertex1</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">minimal_constraints</span><span class="p">)</span>
+    <span class="n">boundary_vertex0</span><span class="p">,</span> <span class="n">boundary_vertex1</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">minimal_constraints</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="n">boundary_vertex0</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
         <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">boundary_vertex0</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,)</span>
     <span class="p">)</span>
@@ -548,6 +558,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_compute_barotropic_streamfunction_vertex</span><span class="p">(</span>
     <span class="n">ds_mesh</span><span class="p">,</span>
     <span class="n">ds</span><span class="p">,</span>
+    <span class="n">ds_vert_coord</span><span class="p">,</span>
     <span class="n">prefix</span><span class="p">,</span>
     <span class="n">include_bolus</span><span class="p">,</span>
     <span class="n">include_submesoscale</span><span class="p">,</span>
@@ -570,6 +581,7 @@
     <span class="n">vert_integ_velocity</span> <span class="o">=</span> <span class="n">compute_vertically_integrated_velocity</span><span class="p">(</span>
         <span class="n">ds_mesh</span><span class="o">=</span><span class="n">ds_mesh</span><span class="p">,</span>
         <span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">,</span>
+        <span class="n">ds_vert_coord</span><span class="o">=</span><span class="n">ds_vert_coord</span><span class="p">,</span>
         <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span>
         <span class="n">min_depth</span><span class="o">=</span><span class="n">min_depth</span><span class="p">,</span>
         <span class="n">max_depth</span><span class="o">=</span><span class="n">max_depth</span><span class="p">,</span>

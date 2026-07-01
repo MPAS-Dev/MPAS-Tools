@@ -142,6 +142,14 @@ visualization.</p>
 directly if one has a suitable <code class="docutils literal notranslate"><span class="pre">refBottomDepth</span></code> data array indicating the
 reference depth of the bottom of each layer in a 1D coordinate that is
 independent of both time and horizontal coordinate.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>This 1D <code class="docutils literal notranslate"><span class="pre">depth</span></code> coordinate relies on <code class="docutils literal notranslate"><span class="pre">refBottomDepth</span></code> and therefore
+assumes a z-level/z-star vertical coordinate.  It is <strong>not supported for
+Omega or other general vertical coordinates</strong>, which do not provide
+<code class="docutils literal notranslate"><span class="pre">refBottomDepth</span></code>.  In those cases, use the 3D <code class="docutils literal notranslate"><span class="pre">zMid</span></code> coordinate
+(<a class="reference internal" href="../generated/mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid" title="mpas_tools.ocean.depth.add_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.ocean.depth.add_zmid()</span></code></a>) described below.</p>
+</div>
 </section>
 <section id="adding-a-3d-zmid-coordinate">
 <h2>Adding a 3D zMid coordinate<a class="headerlink" href="#adding-a-3d-zmid-coordinate" title="Link to this heading"></a></h2>

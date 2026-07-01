@@ -321,6 +321,7 @@
     <span class="n">fc</span><span class="p">,</span>
     <span class="n">ds</span><span class="p">,</span>
     <span class="n">ds_mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">ds_vert_coord</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">variable_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">cmap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">flip</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -339,10 +340,19 @@
 <span class="sd">        The transects to plot</span>
 
 <span class="sd">    ds : xarray.Dataset</span>
-<span class="sd">        The MPAS-Ocean dataset to plot</span>
+<span class="sd">        The MPAS-Ocean dataset to plot.  It must contain ``layerThickness``,</span>
+<span class="sd">        which is a time-evolving (dynamic) field and so is no longer read from</span>
+<span class="sd">        the mesh dataset.</span>
 
 <span class="sd">    ds_mesh : xarray.Dataset, optional</span>
-<span class="sd">        The MPAS-Ocean mesh to use for plotting, the same as ``ds`` by default</span>
+<span class="sd">        The MPAS-Ocean horizontal mesh to use for plotting, the same as ``ds``</span>
+<span class="sd">        by default</span>
+
+<span class="sd">    ds_vert_coord : xarray.Dataset, optional</span>
+<span class="sd">        A dataset with the vertical coordinate variables ``minLevelCell``,</span>
+<span class="sd">        ``maxLevelCell`` and ``bottomDepth``.  The same as ``ds_mesh`` by</span>
+<span class="sd">        default, but in Omega these are stored separately from the horizontal</span>
+<span class="sd">        mesh.</span>
 
 <span class="sd">    variable_list : list of str, optional</span>
 <span class="sd">        The variables to plot</span>
@@ -366,17 +376,27 @@
 <span class="sd">    add_z : bool, optional</span>
 <span class="sd">        Whether to add zMid and zInterface to the mesh dataset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ds_mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ds_mesh</span> <span class="o">=</span> <span class="n">ds</span>
+    <span class="k">if</span> <span class="n">ds_vert_coord</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ds_vert_coord</span> <span class="o">=</span> <span class="n">ds_mesh</span>
+
     <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="n">ds_mesh</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds_vert_coord</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">ds_vert_coord</span> <span class="o">=</span> <span class="n">ds_vert_coord</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="n">add_z</span><span class="p">:</span>
-        <span class="n">_add_z</span><span class="p">(</span><span class="n">ds_mesh</span><span class="p">)</span>
+        <span class="n">_add_z</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">ds_vert_coord</span><span class="p">)</span>
 
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Building transect geometry...&#39;</span><span class="p">)</span>
-    <span class="n">transects</span> <span class="o">=</span> <span class="n">_compute_feature_transects</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">flip</span><span class="p">)</span>
+    <span class="n">transects</span> <span class="o">=</span> <span class="n">_compute_feature_transects</span><span class="p">(</span>
+        <span class="n">fc</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">ds_vert_coord</span><span class="p">,</span> <span class="n">flip</span>
+    <span class="p">)</span>
 
     <span class="n">fc_transects</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">transect</span> <span class="ow">in</span> <span class="n">fc</span><span class="o">.</span><span class="n">features</span><span class="p">:</span>
@@ -442,6 +462,14 @@
         <span class="s1">&#39;MPAS-Ocean data file must contain the mesh.&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-vc&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--vert_coord&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;vert_coord_filename&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An MPAS-Ocean/Omega file with minLevelCell, maxLevelCell and &#39;</span>
+        <span class="s1">&#39;bottomDepth.  If not specified, the mesh file (or data file) must &#39;</span>
+        <span class="s1">&#39;contain these.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
         <span class="s1">&#39;-f&#39;</span><span class="p">,</span>
         <span class="s1">&#39;--file&#39;</span><span class="p">,</span>
         <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;filename&#39;</span><span class="p">,</span>
@@ -499,6 +527,11 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="n">ds_mesh</span> <span class="o">=</span> <span class="n">ds</span>
 
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">vert_coord_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ds_vert_coord</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">vert_coord_filename</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ds_vert_coord</span> <span class="o">=</span> <span class="n">ds_mesh</span>
+
     <span class="n">variable_list</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">variable_list</span>
 
     <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
@@ -507,10 +540,14 @@
     <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="n">ds_mesh</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds_vert_coord</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">ds_vert_coord</span> <span class="o">=</span> <span class="n">ds_vert_coord</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
     <span class="n">plot_feature_transects</span><span class="p">(</span>
         <span class="n">fc</span><span class="o">=</span><span class="n">fc</span><span class="p">,</span>
         <span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">,</span>
         <span class="n">ds_mesh</span><span class="o">=</span><span class="n">ds_mesh</span><span class="p">,</span>
+        <span class="n">ds_vert_coord</span><span class="o">=</span><span class="n">ds_vert_coord</span><span class="p">,</span>
         <span class="n">variable_list</span><span class="o">=</span><span class="n">variable_list</span><span class="p">,</span>
         <span class="n">cmap</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">colormap</span><span class="p">,</span>
         <span class="n">flip</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">flip</span><span class="p">,</span>
@@ -618,18 +655,18 @@
         <span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_compute_feature_transects</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">flip</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_compute_feature_transects</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">ds_vert_coord</span><span class="p">,</span> <span class="n">flip</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    build a sequence of triangles showing the transect intersecting mpas cells</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">transects</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
 
-    <span class="n">layer_thickness</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">layerThickness</span>
-    <span class="n">bottom_depth</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">bottomDepth</span>
-    <span class="n">max_level_cell</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">maxLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="k">if</span> <span class="s1">&#39;minLevelCell&#39;</span> <span class="ow">in</span> <span class="n">ds_mesh</span><span class="p">:</span>
-        <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">minLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">layer_thickness</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">layerThickness</span>
+    <span class="n">bottom_depth</span> <span class="o">=</span> <span class="n">ds_vert_coord</span><span class="o">.</span><span class="n">bottomDepth</span>
+    <span class="n">max_level_cell</span> <span class="o">=</span> <span class="n">ds_vert_coord</span><span class="o">.</span><span class="n">maxLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="s1">&#39;minLevelCell&#39;</span> <span class="ow">in</span> <span class="n">ds_vert_coord</span><span class="p">:</span>
+        <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">ds_vert_coord</span><span class="o">.</span><span class="n">minLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">max_level_cell</span><span class="p">)</span>
 
@@ -641,7 +678,7 @@
         <span class="k">assert</span> <span class="n">transect</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;LineString&#39;</span>
 
         <span class="n">coordinates</span> <span class="o">=</span> <span class="n">transect</span><span class="p">[</span><span class="s1">&#39;geometry&#39;</span><span class="p">][</span><span class="s1">&#39;coordinates&#39;</span><span class="p">]</span>
-        <span class="n">transect_lon</span><span class="p">,</span> <span class="n">transect_lat</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">coordinates</span><span class="p">)</span>
+        <span class="n">transect_lon</span><span class="p">,</span> <span class="n">transect_lat</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">transect_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transect_lon</span><span class="p">)</span>
         <span class="n">transect_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">transect_lat</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">flip</span><span class="p">:</span>
@@ -722,16 +759,16 @@
         <span class="n">ds_transect</span><span class="o">.</span><span class="n">to_netcdf</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">transect_prefix</span><span class="si">}</span><span class="s1">_</span><span class="si">{</span><span class="n">var_name</span><span class="si">}</span><span class="s1">.nc&#39;</span><span class="p">)</span>
 
 
-<span class="k">def</span><span class="w"> </span><span class="nf">_add_z</span><span class="p">(</span><span class="n">ds_mesh</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_add_z</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="p">,</span> <span class="n">ds_vert_coord</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add zMid and zInterface to ``ds_mesh``, useful for debugging</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">layer_thickness</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">layerThickness</span>
-    <span class="n">bottom_depth</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">bottomDepth</span>
-    <span class="n">max_level_cell</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">maxLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="k">if</span> <span class="s1">&#39;minLevelCell&#39;</span> <span class="ow">in</span> <span class="n">ds_mesh</span><span class="p">:</span>
-        <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">minLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">layer_thickness</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">layerThickness</span>
+    <span class="n">bottom_depth</span> <span class="o">=</span> <span class="n">ds_vert_coord</span><span class="o">.</span><span class="n">bottomDepth</span>
+    <span class="n">max_level_cell</span> <span class="o">=</span> <span class="n">ds_vert_coord</span><span class="o">.</span><span class="n">maxLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="s1">&#39;minLevelCell&#39;</span> <span class="ow">in</span> <span class="n">ds_vert_coord</span><span class="p">:</span>
+        <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">ds_vert_coord</span><span class="o">.</span><span class="n">minLevelCell</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">max_level_cell</span><span class="p">)</span>
 

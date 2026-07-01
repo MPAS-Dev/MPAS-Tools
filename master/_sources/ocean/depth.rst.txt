@@ -17,6 +17,14 @@ directly if one has a suitable ``refBottomDepth`` data array indicating the
 reference depth of the bottom of each layer in a 1D coordinate that is
 independent of both time and horizontal coordinate.
 
+.. warning::
+
+    This 1D ``depth`` coordinate relies on ``refBottomDepth`` and therefore
+    assumes a z-level/z-star vertical coordinate.  It is **not supported for
+    Omega or other general vertical coordinates**, which do not provide
+    ``refBottomDepth``.  In those cases, use the 3D ``zMid`` coordinate
+    (:py:func:`mpas_tools.ocean.depth.add_zmid()`) described below.
+
 
 Adding a 3D zMid coordinate
 ---------------------------

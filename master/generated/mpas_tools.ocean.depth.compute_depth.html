@@ -190,6 +190,15 @@
 <dt class="sig sig-object py" id="mpas_tools.ocean.depth.compute_depth">
 <span class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.depth.</span></span><span class="sig-name descname"><span class="pre">compute_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">refBottomDepth</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/depth.html#compute_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.depth.compute_depth" title="Link to this definition"></a></dt>
 <dd><p>Computes depth and depth bounds given refBottomDepth</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This produces a 1D depth coordinate from <code class="docutils literal notranslate"><span class="pre">refBottomDepth</span></code>, a single
+reference depth profile that is independent of horizontal location.
+This assumes a z-level/z-star vertical coordinate and is <strong>not
+supported for Omega or other general vertical coordinates</strong>, which do
+not provide <code class="docutils literal notranslate"><span class="pre">refBottomDepth</span></code>.  Use <a class="reference internal" href="mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid" title="mpas_tools.ocean.depth.add_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_zmid()</span></code></a> for a 3D
+<code class="docutils literal notranslate"><span class="pre">zMid</span></code> coordinate instead.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>refBottomDepth</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.DataArray.html#xarray.DataArray" title="(in xarray v2026.4.0)"><em>xarray.DataArray</em></a>) – the depth of the bottom of each vertical layer in the initial state

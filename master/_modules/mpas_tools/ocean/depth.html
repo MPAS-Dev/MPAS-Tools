@@ -122,12 +122,13 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.ocean.depth</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>
+
 <span class="kn">import</span><span class="w"> </span><span class="nn">netCDF4</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
 
@@ -137,6 +138,14 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_depth</span><span class="p">(</span><span class="n">refBottomDepth</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes depth and depth bounds given refBottomDepth</span>
+
+<span class="sd">    .. note::</span>
+<span class="sd">        This produces a 1D depth coordinate from ``refBottomDepth``, a single</span>
+<span class="sd">        reference depth profile that is independent of horizontal location.</span>
+<span class="sd">        This assumes a z-level/z-star vertical coordinate and is **not</span>
+<span class="sd">        supported for Omega or other general vertical coordinates**, which do</span>
+<span class="sd">        not provide ``refBottomDepth``.  Use :py:func:`add_zmid` for a 3D</span>
+<span class="sd">        ``zMid`` coordinate instead.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -160,7 +169,7 @@
 
     <span class="n">depth_bnds</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">refBottomDepth</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span>
 
-    <span class="n">depth_bnds</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.</span>
+    <span class="n">depth_bnds</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">depth_bnds</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">refBottomDepth</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">depth_bnds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">refBottomDepth</span>
     <span class="n">depth</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="p">(</span><span class="n">depth_bnds</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">depth_bnds</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span>
@@ -171,8 +180,9 @@
 
 <div class="viewcode-block" id="compute_zmid">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">compute_zmid</span><span class="p">(</span><span class="n">bottomDepth</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span>
-                 <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">compute_zmid</span><span class="p">(</span>
+    <span class="n">bottomDepth</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span> <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes zMid given data arrays for bottomDepth, maxLevelCell and</span>
 <span class="sd">    layerThickness</span>
@@ -203,9 +213,9 @@
 
     <span class="n">nDepth</span> <span class="o">=</span> <span class="n">layerThickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="n">depth_dim</span><span class="p">]</span>
 
-    <span class="n">vertIndex</span> <span class="o">=</span> \
-        <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="o">.</span><span class="n">from_dict</span><span class="p">({</span><span class="s1">&#39;dims&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">depth_dim</span><span class="p">,),</span>
-                                    <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nDepth</span><span class="p">)})</span>
+    <span class="n">vertIndex</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">&#39;dims&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">depth_dim</span><span class="p">,),</span> <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nDepth</span><span class="p">)}</span>
+    <span class="p">)</span>
 
     <span class="n">layerThickness</span> <span class="o">=</span> <span class="n">layerThickness</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">vertIndex</span> <span class="o">&lt;</span> <span class="n">maxLevelCell</span><span class="p">)</span>
 
@@ -233,6 +243,13 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a 1D depth coordinate to an MPAS-Ocean file.</span>
 
+<span class="sd">    .. note::</span>
+<span class="sd">        This adds a 1D ``depth`` coordinate derived from ``refBottomDepth``,</span>
+<span class="sd">        which assumes a z-level/z-star vertical coordinate.  It is **not</span>
+<span class="sd">        supported for Omega or other general vertical coordinates**, which do</span>
+<span class="sd">        not provide ``refBottomDepth``.  Use :py:func:`add_zmid` for a 3D</span>
+<span class="sd">        ``zMid`` coordinate instead.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    inFileName : str</span>
@@ -256,10 +273,20 @@
         <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">coordFileName</span><span class="p">,</span> <span class="n">mask_and_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
 
+        <span class="k">if</span> <span class="s1">&#39;refBottomDepth&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dsCoord</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s1">&#39;add_depth() requires a 1D refBottomDepth variable, which &#39;</span>
+                <span class="s1">&#39;defines a z-level/z-star reference depth for each layer.  &#39;</span>
+                <span class="s1">&#39;This is not available in Omega or for general vertical &#39;</span>
+                <span class="s1">&#39;coordinates.  Use add_zmid() to add a 3D zMid coordinate &#39;</span>
+                <span class="s1">&#39;instead.&#39;</span>
+            <span class="p">)</span>
+
         <span class="n">depth</span><span class="p">,</span> <span class="n">depth_bnds</span> <span class="o">=</span> <span class="n">compute_depth</span><span class="p">(</span><span class="n">dsCoord</span><span class="o">.</span><span class="n">refBottomDepth</span><span class="p">)</span>
         <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;depth&#39;</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;long_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;reference depth of the center of &#39;</span> \
-                                      <span class="s1">&#39;each vertical level&#39;</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;long_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">&#39;reference depth of the center of each vertical level&#39;</span>
+        <span class="p">)</span>
         <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;standard_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;depth&#39;</span>
         <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;meters&#39;</span>
         <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;axis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Z&#39;</span>
@@ -279,7 +306,7 @@
 
     <span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%c</span><span class="s1">&#39;</span><span class="p">)</span>
 
-    <span class="n">history</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span>
+    <span class="n">history</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
 
     <span class="k">if</span> <span class="s1">&#39;history&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
         <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">history</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;history&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
@@ -292,22 +319,39 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main_add_depth</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
-        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--coordFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;coordFileName&quot;</span><span class="p">,</span>
-                        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An MPAS-Ocean file with refBottomDepth&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="s2">&quot;--inFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;inFileName&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An input MPAS-Ocean file that depth should be&quot;</span>
-                             <span class="s2">&quot;added to, used for coords if another file is&quot;</span>
-                             <span class="s2">&quot;not provided via -c.&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--outFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outFileName&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An output MPAS-Ocean file with depth added&quot;</span><span class="p">)</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-c&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--coordFileName&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;coordFileName&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An MPAS-Ocean file with refBottomDepth&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-i&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--inFileName&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;inFileName&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An input MPAS-Ocean file that depth should be&#39;</span>
+        <span class="s1">&#39;added to, used for coords if another file is&#39;</span>
+        <span class="s1">&#39;not provided via -c.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--outFileName&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;outFileName&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An output MPAS-Ocean file with depth added&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
-    <span class="n">add_depth</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">outFileName</span><span class="p">,</span>
-              <span class="n">coordFileName</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">coordFileName</span><span class="p">)</span>
+    <span class="n">add_depth</span><span class="p">(</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">coordFileName</span>
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="add_zmid">
@@ -326,8 +370,9 @@
 <span class="sd">        An output MPAS-Ocean file with ``zMid`` added</span>
 
 <span class="sd">    coordFileName : str, optional</span>
-<span class="sd">        An MPAS-Ocean file with ``bottomDepth``, ``maxLevelCell`` and</span>
-<span class="sd">        ``layerThickness`` but not ``zMid``</span>
+<span class="sd">        An MPAS-Ocean file with ``bottomDepth`` and ``maxLevelCell`` but not</span>
+<span class="sd">        ``zMid``.  ``layerThickness`` is a dynamic field and is always read</span>
+<span class="sd">        from ``inFileName``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">coordFileName</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">coordFileName</span> <span class="o">=</span> <span class="n">inFileName</span>
@@ -336,16 +381,26 @@
     <span class="k">if</span> <span class="s1">&#39;nVertLevels&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
 
+        <span class="c1"># dsIn doesn&#39;t have masking disabled because we want NaNs below the</span>
+        <span class="c1"># bathymetry for zMid; layerThickness is a dynamic field so it comes</span>
+        <span class="c1"># from the input file, not the (static) coordinate file</span>
+        <span class="n">dsIn</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">inFileName</span><span class="p">)</span>
+        <span class="n">dsIn</span> <span class="o">=</span> <span class="n">dsIn</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
+        <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">dsIn</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="n">dsIn</span> <span class="o">=</span> <span class="n">dsIn</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
         <span class="c1"># dsCoord doesn&#39;t have masking disabled because we want it for zMid</span>
         <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">coordFileName</span><span class="p">)</span>
         <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
         <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
             <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;zMid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute_zmid</span><span class="p">(</span><span class="n">dsCoord</span><span class="o">.</span><span class="n">bottomDepth</span><span class="p">,</span>
-                                         <span class="n">dsCoord</span><span class="o">.</span><span class="n">maxLevelCell</span><span class="p">,</span>
-                                         <span class="n">dsCoord</span><span class="o">.</span><span class="n">layerThickness</span><span class="p">,</span>
-                                         <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;depth&#39;</span><span class="p">)</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;zMid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute_zmid</span><span class="p">(</span>
+            <span class="n">dsCoord</span><span class="o">.</span><span class="n">bottomDepth</span><span class="p">,</span>
+            <span class="n">dsCoord</span><span class="o">.</span><span class="n">maxLevelCell</span><span class="p">,</span>
+            <span class="n">dsIn</span><span class="o">.</span><span class="n">layerThickness</span><span class="p">,</span>
+            <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;depth&#39;</span><span class="p">,</span>
+        <span class="p">)</span>
         <span class="n">fillValue</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">default_fillvals</span><span class="p">[</span><span class="s1">&#39;f8&#39;</span><span class="p">]</span>
         <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;zMid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">notnull</span><span class="p">(),</span> <span class="n">other</span><span class="o">=</span><span class="n">fillValue</span><span class="p">)</span>
         <span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;meters&#39;</span>
@@ -360,7 +415,7 @@
 
     <span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%c</span><span class="s1">&#39;</span><span class="p">)</span>
 
-    <span class="n">history</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span>
+    <span class="n">history</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
 
     <span class="k">if</span> <span class="s1">&#39;history&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
         <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">history</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;history&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
@@ -373,29 +428,48 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main_add_zmid</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
-        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--coordFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;coordFileName&quot;</span><span class="p">,</span>
-                        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An MPAS-Ocean file with bottomDepth, maxLevelCell&quot;</span>
-                             <span class="s2">&quot;and layerThickness but not zMid&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="s2">&quot;--inFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;inFileName&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An input MPAS-Ocean file that zMid should be&quot;</span>
-                             <span class="s2">&quot;added to, used for coords if another file is&quot;</span>
-                             <span class="s2">&quot;not provided via -c.&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--outFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outFileName&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An output MPAS-Ocean file with zMid added&quot;</span><span class="p">)</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-c&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--coordFileName&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;coordFileName&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An MPAS-Ocean file with bottomDepth and &#39;</span>
+        <span class="s1">&#39;maxLevelCell but not zMid (layerThickness is &#39;</span>
+        <span class="s1">&#39;always read from the input file)&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-i&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--inFileName&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;inFileName&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An input MPAS-Ocean file that zMid should be&#39;</span>
+        <span class="s1">&#39;added to, used for coords if another file is&#39;</span>
+        <span class="s1">&#39;not provided via -c.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--outFileName&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;outFileName&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An output MPAS-Ocean file with zMid added&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
-    <span class="n">add_zmid</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">outFileName</span><span class="p">,</span>
-             <span class="n">coordFileName</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">coordFileName</span><span class="p">)</span>
+    <span class="n">add_zmid</span><span class="p">(</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">coordFileName</span>
+    <span class="p">)</span>
 
 
 <div class="viewcode-block" id="write_time_varying_zmid">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.write_time_varying_zmid.html#mpas_tools.ocean.depth.write_time_varying_zmid">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">write_time_varying_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                            <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">write_time_varying_zmid</span><span class="p">(</span>
+    <span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+<span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</span>
 
@@ -428,21 +502,26 @@
     <span class="n">outVarName</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">zMid&#39;</span>
     <span class="n">layerThickness</span> <span class="o">=</span> <span class="n">dsIn</span><span class="p">[</span><span class="n">inVarName</span><span class="p">]</span>
 
-    <span class="n">zMid</span> <span class="o">=</span> <span class="n">compute_zmid</span><span class="p">(</span><span class="n">dsCoord</span><span class="o">.</span><span class="n">bottomDepth</span><span class="p">,</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">maxLevelCell</span><span class="p">,</span>
-                        <span class="n">layerThickness</span><span class="p">,</span> <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;depth&#39;</span><span class="p">)</span>
+    <span class="n">zMid</span> <span class="o">=</span> <span class="n">compute_zmid</span><span class="p">(</span>
+        <span class="n">dsCoord</span><span class="o">.</span><span class="n">bottomDepth</span><span class="p">,</span>
+        <span class="n">dsCoord</span><span class="o">.</span><span class="n">maxLevelCell</span><span class="p">,</span>
+        <span class="n">layerThickness</span><span class="p">,</span>
+        <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;depth&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="n">dsOut</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
     <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span> <span class="o">=</span> <span class="n">zMid</span>
     <span class="n">fillValue</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">default_fillvals</span><span class="p">[</span><span class="s1">&#39;f8&#39;</span><span class="p">]</span>
-    <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">notnull</span><span class="p">(),</span>
-                                                <span class="n">other</span><span class="o">=</span><span class="n">fillValue</span><span class="p">)</span>
+    <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
+        <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">notnull</span><span class="p">(),</span> <span class="n">other</span><span class="o">=</span><span class="n">fillValue</span>
+    <span class="p">)</span>
     <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;meters&#39;</span>
     <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;positive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;up&#39;</span>
     <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fillValue</span>
 
     <span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%c</span><span class="s1">&#39;</span><span class="p">)</span>
 
-    <span class="n">history</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span>
+    <span class="n">history</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
     <span class="n">dsOut</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">history</span>
 
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsOut</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">)</span></div>
@@ -451,29 +530,53 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main_write_time_varying_zmid</span><span class="p">():</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
-        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;--coordFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;coordFileName&quot;</span><span class="p">,</span>
-                        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An MPAS-Ocean file with bottomDepth and &quot;</span>
-                             <span class="s2">&quot;maxLevelCell&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-i&quot;</span><span class="p">,</span> <span class="s2">&quot;--inFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;inFileName&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An input MPAS-Ocean file with some form of&quot;</span>
-                             <span class="s2">&quot;layerThickness, and also bottomDepth and&quot;</span>
-                             <span class="s2">&quot;maxLevelCell if no coordinate file is provided.&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-o&quot;</span><span class="p">,</span> <span class="s2">&quot;--outFileName&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;outFileName&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;An output MPAS-Ocean file with zMid for each&quot;</span>
-                             <span class="s2">&quot;time in the input file&quot;</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;-p&quot;</span><span class="p">,</span> <span class="s2">&quot;--prefix&quot;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;prefix&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
-                        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;A prefix on layerThickness (in) and zMid (out),&quot;</span>
-                             <span class="s2">&quot;such as &#39;timeMonthly_avg_&#39;&quot;</span><span class="p">)</span>
+        <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-c&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--coordFileName&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;coordFileName&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An MPAS-Ocean file with bottomDepth and maxLevelCell&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-i&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--inFileName&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;inFileName&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An input MPAS-Ocean file with some form of&#39;</span>
+        <span class="s1">&#39;layerThickness, and also bottomDepth and&#39;</span>
+        <span class="s1">&#39;maxLevelCell if no coordinate file is provided.&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--outFileName&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;outFileName&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An output MPAS-Ocean file with zMid for each&#39;</span>
+        <span class="s1">&#39;time in the input file&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-p&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--prefix&#39;</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;prefix&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
+        <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A prefix on layerThickness (in) and zMid (out),&#39;</span>
+        <span class="s2">&quot;such as &#39;timeMonthly_avg_&#39;&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
     <span class="n">write_time_varying_zmid</span><span class="p">(</span>
-        <span class="n">args</span><span class="o">.</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">args</span><span class="o">.</span><span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">coordFileName</span><span class="p">,</span>
-        <span class="n">prefix</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">prefix</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">inFileName</span><span class="p">,</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">outFileName</span><span class="p">,</span>
+        <span class="n">coordFileName</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">coordFileName</span><span class="p">,</span>
+        <span class="n">prefix</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">prefix</span><span class="p">,</span>
+    <span class="p">)</span>
 </pre></div>
 
            </div>

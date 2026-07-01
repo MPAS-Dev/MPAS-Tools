@@ -190,6 +190,14 @@
 <dt class="sig sig-object py" id="mpas_tools.ocean.depth.add_depth">
 <span class="sig-prename descclassname"><span class="pre">mpas_tools.ocean.depth.</span></span><span class="sig-name descname"><span class="pre">add_depth</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inFileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outFileName</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coordFileName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/ocean/depth.html#add_depth"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.ocean.depth.add_depth" title="Link to this definition"></a></dt>
 <dd><p>Add a 1D depth coordinate to an MPAS-Ocean file.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This adds a 1D <code class="docutils literal notranslate"><span class="pre">depth</span></code> coordinate derived from <code class="docutils literal notranslate"><span class="pre">refBottomDepth</span></code>,
+which assumes a z-level/z-star vertical coordinate.  It is <strong>not
+supported for Omega or other general vertical coordinates</strong>, which do
+not provide <code class="docutils literal notranslate"><span class="pre">refBottomDepth</span></code>.  Use <a class="reference internal" href="mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid" title="mpas_tools.ocean.depth.add_zmid"><code class="xref py py-func docutils literal notranslate"><span class="pre">add_zmid()</span></code></a> for a 3D
+<code class="docutils literal notranslate"><span class="pre">zMid</span></code> coordinate instead.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
