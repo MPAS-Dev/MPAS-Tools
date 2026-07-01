@@ -1,9 +1,10 @@
-import xarray
-import numpy
 import argparse
 import sys
 from datetime import datetime
+
 import netCDF4
+import numpy
+import xarray
 
 from mpas_tools.io import write_netcdf
 
@@ -11,6 +12,14 @@ from mpas_tools.io import write_netcdf
 def compute_depth(refBottomDepth):
     """
     Computes depth and depth bounds given refBottomDepth
+
+    .. note::
+        This produces a 1D depth coordinate from ``refBottomDepth``, a single
+        reference depth profile that is independent of horizontal location.
+        This assumes a z-level/z-star vertical coordinate and is **not
+        supported for Omega or other general vertical coordinates**, which do
+        not provide ``refBottomDepth``.  Use :py:func:`add_zmid` for a 3D
+        ``zMid`` coordinate instead.
 
     Parameters
     ----------
@@ -34,7 +43,7 @@ def compute_depth(refBottomDepth):
 
     depth_bnds = numpy.zeros((len(refBottomDepth), 2))
 
-    depth_bnds[0, 0] = 0.
+    depth_bnds[0, 0] = 0.0
     depth_bnds[1:, 0] = refBottomDepth[0:-1]
     depth_bnds[:, 1] = refBottomDepth
     depth = 0.5 * (depth_bnds[:, 0] + depth_bnds[:, 1])
@@ -42,8 +51,9 @@ def compute_depth(refBottomDepth):
     return depth, depth_bnds
 
 
-def compute_zmid(bottomDepth, maxLevelCell, layerThickness,
-                 depth_dim='nVertLevels'):
+def compute_zmid(
+    bottomDepth, maxLevelCell, layerThickness, depth_dim='nVertLevels'
+):
     """
     Computes zMid given data arrays for bottomDepth, maxLevelCell and
     layerThickness
@@ -74,9 +84,9 @@ def compute_zmid(bottomDepth, maxLevelCell, layerThickness,
 
     nDepth = layerThickness.sizes[depth_dim]
 
-    vertIndex = \
-        xarray.DataArray.from_dict({'dims': (depth_dim,),
-                                    'data': numpy.arange(nDepth)})
+    vertIndex = xarray.DataArray.from_dict(
+        {'dims': (depth_dim,), 'data': numpy.arange(nDepth)}
+    )
 
     layerThickness = layerThickness.where(vertIndex < maxLevelCell)
 
@@ -101,6 +111,13 @@ def add_depth(inFileName, outFileName, coordFileName=None):
     """
     Add a 1D depth coordinate to an MPAS-Ocean file.
 
+    .. note::
+        This adds a 1D ``depth`` coordinate derived from ``refBottomDepth``,
+        which assumes a z-level/z-star vertical coordinate.  It is **not
+        supported for Omega or other general vertical coordinates**, which do
+        not provide ``refBottomDepth``.  Use :py:func:`add_zmid` for a 3D
+        ``zMid`` coordinate instead.
+
     Parameters
     ----------
     inFileName : str
@@ -124,10 +141,20 @@ def add_depth(inFileName, outFileName, coordFileName=None):
         dsCoord = xarray.open_dataset(coordFileName, mask_and_scale=False)
         dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
 
+        if 'refBottomDepth' not in dsCoord:
+            raise ValueError(
+                'add_depth() requires a 1D refBottomDepth variable, which '
+                'defines a z-level/z-star reference depth for each layer.  '
+                'This is not available in Omega or for general vertical '
+                'coordinates.  Use add_zmid() to add a 3D zMid coordinate '
+                'instead.'
+            )
+
         depth, depth_bnds = compute_depth(dsCoord.refBottomDepth)
         ds.coords['depth'] = ('depth', depth)
-        ds.depth.attrs['long_name'] = 'reference depth of the center of ' \
-                                      'each vertical level'
+        ds.depth.attrs['long_name'] = (
+            'reference depth of the center of each vertical level'
+        )
         ds.depth.attrs['standard_name'] = 'depth'
         ds.depth.attrs['units'] = 'meters'
         ds.depth.attrs['axis'] = 'Z'
@@ -147,7 +174,7 @@ def add_depth(inFileName, outFileName, coordFileName=None):
 
     time = datetime.now().strftime('%c')
 
-    history = '{}: {}'.format(time, ' '.join(sys.argv))
+    history = f'{time}: {" ".join(sys.argv)}'
 
     if 'history' in ds.attrs:
         ds.attrs['history'] = f'{history}\n{ds.attrs["history"]}'
@@ -159,22 +186,39 @@ def add_depth(inFileName, outFileName, coordFileName=None):
 
 def main_add_depth():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-c", "--coordFileName", dest="coordFileName",
-                        type=str, required=False,
-                        help="An MPAS-Ocean file with refBottomDepth")
-    parser.add_argument("-i", "--inFileName", dest="inFileName", type=str,
-                        required=True,
-                        help="An input MPAS-Ocean file that depth should be"
-                             "added to, used for coords if another file is"
-                             "not provided via -c.")
-    parser.add_argument("-o", "--outFileName", dest="outFileName", type=str,
-                        required=True,
-                        help="An output MPAS-Ocean file with depth added")
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        '-c',
+        '--coordFileName',
+        dest='coordFileName',
+        type=str,
+        required=False,
+        help='An MPAS-Ocean file with refBottomDepth',
+    )
+    parser.add_argument(
+        '-i',
+        '--inFileName',
+        dest='inFileName',
+        type=str,
+        required=True,
+        help='An input MPAS-Ocean file that depth should be'
+        'added to, used for coords if another file is'
+        'not provided via -c.',
+    )
+    parser.add_argument(
+        '-o',
+        '--outFileName',
+        dest='outFileName',
+        type=str,
+        required=True,
+        help='An output MPAS-Ocean file with depth added',
+    )
     args = parser.parse_args()
 
-    add_depth(args.inFileName, args.outFileName,
-              coordFileName=args.coordFileName)
+    add_depth(
+        args.inFileName, args.outFileName, coordFileName=args.coordFileName
+    )
 
 
 def add_zmid(inFileName, outFileName, coordFileName=None):
@@ -191,8 +235,9 @@ def add_zmid(inFileName, outFileName, coordFileName=None):
         An output MPAS-Ocean file with ``zMid`` added
 
     coordFileName : str, optional
-        An MPAS-Ocean file with ``bottomDepth``, ``maxLevelCell`` and
-        ``layerThickness`` but not ``zMid``
+        An MPAS-Ocean file with ``bottomDepth`` and ``maxLevelCell`` but not
+        ``zMid``.  ``layerThickness`` is a dynamic field and is always read
+        from ``inFileName``.
     """
     if coordFileName is None:
         coordFileName = inFileName
@@ -201,16 +246,26 @@ def add_zmid(inFileName, outFileName, coordFileName=None):
     if 'nVertLevels' in ds.dims:
         ds = ds.rename({'nVertLevels': 'depth'})
 
+        # dsIn doesn't have masking disabled because we want NaNs below the
+        # bathymetry for zMid; layerThickness is a dynamic field so it comes
+        # from the input file, not the (static) coordinate file
+        dsIn = xarray.open_dataset(inFileName)
+        dsIn = dsIn.rename({'nVertLevels': 'depth'})
+        if 'Time' in dsIn.dims:
+            dsIn = dsIn.isel(Time=0)
+
         # dsCoord doesn't have masking disabled because we want it for zMid
         dsCoord = xarray.open_dataset(coordFileName)
         dsCoord = dsCoord.rename({'nVertLevels': 'depth'})
         if 'Time' in dsCoord.dims:
             dsCoord = dsCoord.isel(Time=0)
 
-        ds.coords['zMid'] = compute_zmid(dsCoord.bottomDepth,
-                                         dsCoord.maxLevelCell,
-                                         dsCoord.layerThickness,
-                                         depth_dim='depth')
+        ds.coords['zMid'] = compute_zmid(
+            dsCoord.bottomDepth,
+            dsCoord.maxLevelCell,
+            dsIn.layerThickness,
+            depth_dim='depth',
+        )
         fillValue = netCDF4.default_fillvals['f8']
         ds.coords['zMid'] = ds.zMid.where(ds.zMid.notnull(), other=fillValue)
         ds.zMid.attrs['units'] = 'meters'
@@ -225,7 +280,7 @@ def add_zmid(inFileName, outFileName, coordFileName=None):
 
     time = datetime.now().strftime('%c')
 
-    history = '{}: {}'.format(time, ' '.join(sys.argv))
+    history = f'{time}: {" ".join(sys.argv)}'
 
     if 'history' in ds.attrs:
         ds.attrs['history'] = f'{history}\n{ds.attrs["history"]}'
@@ -237,27 +292,46 @@ def add_zmid(inFileName, outFileName, coordFileName=None):
 
 def main_add_zmid():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-c", "--coordFileName", dest="coordFileName",
-                        type=str, required=False,
-                        help="An MPAS-Ocean file with bottomDepth, maxLevelCell"
-                             "and layerThickness but not zMid")
-    parser.add_argument("-i", "--inFileName", dest="inFileName", type=str,
-                        required=True,
-                        help="An input MPAS-Ocean file that zMid should be"
-                             "added to, used for coords if another file is"
-                             "not provided via -c.")
-    parser.add_argument("-o", "--outFileName", dest="outFileName", type=str,
-                        required=True,
-                        help="An output MPAS-Ocean file with zMid added")
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        '-c',
+        '--coordFileName',
+        dest='coordFileName',
+        type=str,
+        required=False,
+        help='An MPAS-Ocean file with bottomDepth and '
+        'maxLevelCell but not zMid (layerThickness is '
+        'always read from the input file)',
+    )
+    parser.add_argument(
+        '-i',
+        '--inFileName',
+        dest='inFileName',
+        type=str,
+        required=True,
+        help='An input MPAS-Ocean file that zMid should be'
+        'added to, used for coords if another file is'
+        'not provided via -c.',
+    )
+    parser.add_argument(
+        '-o',
+        '--outFileName',
+        dest='outFileName',
+        type=str,
+        required=True,
+        help='An output MPAS-Ocean file with zMid added',
+    )
     args = parser.parse_args()
 
-    add_zmid(args.inFileName, args.outFileName,
-             coordFileName=args.coordFileName)
+    add_zmid(
+        args.inFileName, args.outFileName, coordFileName=args.coordFileName
+    )
 
 
-def write_time_varying_zmid(inFileName, outFileName, coordFileName=None,
-                            prefix=''):
+def write_time_varying_zmid(
+    inFileName, outFileName, coordFileName=None, prefix=''
+):
     """
     Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.
 
@@ -290,21 +364,26 @@ def write_time_varying_zmid(inFileName, outFileName, coordFileName=None,
     outVarName = f'{prefix}zMid'
     layerThickness = dsIn[inVarName]
 
-    zMid = compute_zmid(dsCoord.bottomDepth, dsCoord.maxLevelCell,
-                        layerThickness, depth_dim='depth')
+    zMid = compute_zmid(
+        dsCoord.bottomDepth,
+        dsCoord.maxLevelCell,
+        layerThickness,
+        depth_dim='depth',
+    )
 
     dsOut = xarray.Dataset()
     dsOut[outVarName] = zMid
     fillValue = netCDF4.default_fillvals['f8']
-    dsOut[outVarName] = dsOut[outVarName].where(dsOut[outVarName].notnull(),
-                                                other=fillValue)
+    dsOut[outVarName] = dsOut[outVarName].where(
+        dsOut[outVarName].notnull(), other=fillValue
+    )
     dsOut[outVarName].attrs['units'] = 'meters'
     dsOut[outVarName].attrs['positive'] = 'up'
     dsOut[outVarName].attrs['_FillValue'] = fillValue
 
     time = datetime.now().strftime('%c')
 
-    history = '{}: {}'.format(time, ' '.join(sys.argv))
+    history = f'{time}: {" ".join(sys.argv)}'
     dsOut.attrs['history'] = history
 
     write_netcdf(dsOut, outFileName)
@@ -312,26 +391,50 @@ def write_time_varying_zmid(inFileName, outFileName, coordFileName=None,
 
 def main_write_time_varying_zmid():
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument("-c", "--coordFileName", dest="coordFileName",
-                        type=str, required=False,
-                        help="An MPAS-Ocean file with bottomDepth and "
-                             "maxLevelCell")
-    parser.add_argument("-i", "--inFileName", dest="inFileName", type=str,
-                        required=True,
-                        help="An input MPAS-Ocean file with some form of"
-                             "layerThickness, and also bottomDepth and"
-                             "maxLevelCell if no coordinate file is provided.")
-    parser.add_argument("-o", "--outFileName", dest="outFileName", type=str,
-                        required=True,
-                        help="An output MPAS-Ocean file with zMid for each"
-                             "time in the input file")
-    parser.add_argument("-p", "--prefix", dest="prefix", type=str,
-                        required=False, default="",
-                        help="A prefix on layerThickness (in) and zMid (out),"
-                             "such as 'timeMonthly_avg_'")
+        formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        '-c',
+        '--coordFileName',
+        dest='coordFileName',
+        type=str,
+        required=False,
+        help='An MPAS-Ocean file with bottomDepth and maxLevelCell',
+    )
+    parser.add_argument(
+        '-i',
+        '--inFileName',
+        dest='inFileName',
+        type=str,
+        required=True,
+        help='An input MPAS-Ocean file with some form of'
+        'layerThickness, and also bottomDepth and'
+        'maxLevelCell if no coordinate file is provided.',
+    )
+    parser.add_argument(
+        '-o',
+        '--outFileName',
+        dest='outFileName',
+        type=str,
+        required=True,
+        help='An output MPAS-Ocean file with zMid for each'
+        'time in the input file',
+    )
+    parser.add_argument(
+        '-p',
+        '--prefix',
+        dest='prefix',
+        type=str,
+        required=False,
+        default='',
+        help='A prefix on layerThickness (in) and zMid (out),'
+        "such as 'timeMonthly_avg_'",
+    )
     args = parser.parse_args()
 
     write_time_varying_zmid(
-        args.inFileName, args.outFileName, coordFileName=args.coordFileName,
-        prefix=args.prefix)
+        args.inFileName,
+        args.outFileName,
+        coordFileName=args.coordFileName,
+        prefix=args.prefix,
+    )

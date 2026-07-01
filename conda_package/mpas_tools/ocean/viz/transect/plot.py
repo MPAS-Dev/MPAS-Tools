@@ -192,6 +192,7 @@ def plot_feature_transects(
     fc,
     ds,
     ds_mesh=None,
+    ds_vert_coord=None,
     variable_list=None,
     cmap=None,
     flip=False,
@@ -210,10 +211,19 @@ def plot_feature_transects(
         The transects to plot
 
     ds : xarray.Dataset
-        The MPAS-Ocean dataset to plot
+        The MPAS-Ocean dataset to plot.  It must contain ``layerThickness``,
+        which is a time-evolving (dynamic) field and so is no longer read from
+        the mesh dataset.
 
     ds_mesh : xarray.Dataset, optional
-        The MPAS-Ocean mesh to use for plotting, the same as ``ds`` by default
+        The MPAS-Ocean horizontal mesh to use for plotting, the same as ``ds``
+        by default
+
+    ds_vert_coord : xarray.Dataset, optional
+        A dataset with the vertical coordinate variables ``minLevelCell``,
+        ``maxLevelCell`` and ``bottomDepth``.  The same as ``ds_mesh`` by
+        default, but in Omega these are stored separately from the horizontal
+        mesh.
 
     variable_list : list of str, optional
         The variables to plot
@@ -237,17 +247,27 @@ def plot_feature_transects(
     add_z : bool, optional
         Whether to add zMid and zInterface to the mesh dataset
     """
+    if ds_mesh is None:
+        ds_mesh = ds
+    if ds_vert_coord is None:
+        ds_vert_coord = ds_mesh
+
     if 'Time' in ds.dims:
         ds = ds.isel(Time=0)
 
     if 'Time' in ds_mesh.dims:
         ds_mesh = ds_mesh.isel(Time=0)
 
+    if 'Time' in ds_vert_coord.dims:
+        ds_vert_coord = ds_vert_coord.isel(Time=0)
+
     if add_z:
-        _add_z(ds_mesh)
+        _add_z(ds, ds_mesh, ds_vert_coord)
 
     print('\nBuilding transect geometry...')
-    transects = _compute_feature_transects(fc, ds_mesh, flip)
+    transects = _compute_feature_transects(
+        fc, ds, ds_mesh, ds_vert_coord, flip
+    )
 
     fc_transects = dict()
     for transect in fc.features:
@@ -312,6 +332,14 @@ def plot_feature_transects_main():
         'MPAS-Ocean data file must contain the mesh.',
     )
     parser.add_argument(
+        '-vc',
+        '--vert_coord',
+        dest='vert_coord_filename',
+        help='An MPAS-Ocean/Omega file with minLevelCell, maxLevelCell and '
+        'bottomDepth.  If not specified, the mesh file (or data file) must '
+        'contain these.',
+    )
+    parser.add_argument(
         '-f',
         '--file',
         dest='filename',
@@ -369,6 +397,11 @@ def plot_feature_transects_main():
     else:
         ds_mesh = ds
 
+    if args.vert_coord_filename is not None:
+        ds_vert_coord = xr.open_dataset(args.vert_coord_filename)
+    else:
+        ds_vert_coord = ds_mesh
+
     variable_list = args.variable_list
 
     if 'Time' in ds.dims:
@@ -377,10 +410,14 @@ def plot_feature_transects_main():
     if 'Time' in ds_mesh.dims:
         ds_mesh = ds_mesh.isel(Time=0)
 
+    if 'Time' in ds_vert_coord.dims:
+        ds_vert_coord = ds_vert_coord.isel(Time=0)
+
     plot_feature_transects(
         fc=fc,
         ds=ds,
         ds_mesh=ds_mesh,
+        ds_vert_coord=ds_vert_coord,
         variable_list=variable_list,
         cmap=args.colormap,
         flip=args.flip,
@@ -488,18 +525,18 @@ def _plot_outline(
         )
 
 
-def _compute_feature_transects(fc, ds_mesh, flip):
+def _compute_feature_transects(fc, ds, ds_mesh, ds_vert_coord, flip):
     """
     build a sequence of triangles showing the transect intersecting mpas cells
     """
 
     transects = dict()
 
-    layer_thickness = ds_mesh.layerThickness
-    bottom_depth = ds_mesh.bottomDepth
-    max_level_cell = ds_mesh.maxLevelCell - 1
-    if 'minLevelCell' in ds_mesh:
-        min_level_cell = ds_mesh.minLevelCell - 1
+    layer_thickness = ds.layerThickness
+    bottom_depth = ds_vert_coord.bottomDepth
+    max_level_cell = ds_vert_coord.maxLevelCell - 1
+    if 'minLevelCell' in ds_vert_coord:
+        min_level_cell = ds_vert_coord.minLevelCell - 1
     else:
         min_level_cell = xr.zeros_like(max_level_cell)
 
@@ -511,7 +548,7 @@ def _compute_feature_transects(fc, ds_mesh, flip):
         assert transect['geometry']['type'] == 'LineString'
 
         coordinates = transect['geometry']['coordinates']
-        transect_lon, transect_lat = zip(*coordinates)
+        transect_lon, transect_lat = zip(*coordinates, strict=True)
         transect_lon = np.array(transect_lon)
         transect_lat = np.array(transect_lat)
         if flip:
@@ -592,16 +629,16 @@ def _plot_feature_transect(
         ds_transect.to_netcdf(f'{transect_prefix}_{var_name}.nc')
 
 
-def _add_z(ds_mesh):
+def _add_z(ds, ds_mesh, ds_vert_coord):
     """
     Add zMid and zInterface to ``ds_mesh``, useful for debugging
     """
 
-    layer_thickness = ds_mesh.layerThickness
-    bottom_depth = ds_mesh.bottomDepth
-    max_level_cell = ds_mesh.maxLevelCell - 1
-    if 'minLevelCell' in ds_mesh:
-        min_level_cell = ds_mesh.minLevelCell - 1
+    layer_thickness = ds.layerThickness
+    bottom_depth = ds_vert_coord.bottomDepth
+    max_level_cell = ds_vert_coord.maxLevelCell - 1
+    if 'minLevelCell' in ds_vert_coord:
+        min_level_cell = ds_vert_coord.minLevelCell - 1
     else:
         min_level_cell = xr.zeros_like(max_level_cell)
 

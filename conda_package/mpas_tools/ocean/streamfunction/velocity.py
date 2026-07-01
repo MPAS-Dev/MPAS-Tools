@@ -7,6 +7,7 @@ from mpas_tools.ocean.depth import compute_zmid
 def compute_vertically_integrated_velocity(
     ds_mesh,
     ds,
+    ds_vert_coord=None,
     logger=None,
     min_depth=None,
     max_depth=None,
@@ -21,11 +22,17 @@ def compute_vertically_integrated_velocity(
     Parameters
     ----------
     ds_mesh : xarray.Dataset
-        A dataset containing MPAS mesh variables
+        A dataset containing MPAS horizontal mesh variables
 
     ds : xarray.Dataset
         A dataset containing MPAS output variables ``normalVelocity`` and
         ``layerThickness`` among others, possibly with a ``prefix``
+
+    ds_vert_coord : xarray.Dataset, optional
+        A dataset with the vertical coordinate variables ``minLevelCell``,
+        ``maxLevelCell`` and ``bottomDepth``.  The same as ``ds_mesh`` by
+        default, but in Omega these are stored separately from the horizontal
+        mesh.
 
     logger : logging.Logger, optional
         A logger for the output if not stdout
@@ -55,6 +62,9 @@ def compute_vertically_integrated_velocity(
     vert_integ_velocity : xarray.DataArray
         The vertically integrated velocity on the mesh edges
     """
+    if ds_vert_coord is None:
+        ds_vert_coord = ds_mesh
+
     if nedges_chunk is not None:
         ds = ds.chunk({'nEdges': nedges_chunk})
 
@@ -73,9 +83,9 @@ def compute_vertically_integrated_velocity(
     n_vert_levels = ds.sizes['nVertLevels']
 
     layer_thickness = ds[f'{prefix}layerThickness']
-    max_level_cell = ds_mesh.maxLevelCell - 1
-    if 'minLevelCell' in ds_mesh:
-        min_level_cell = ds_mesh.minLevelCell - 1
+    max_level_cell = ds_vert_coord.maxLevelCell - 1
+    if 'minLevelCell' in ds_vert_coord:
+        min_level_cell = ds_vert_coord.minLevelCell - 1
     else:
         min_level_cell = xr.zeros_like(max_level_cell)
 
@@ -85,7 +95,7 @@ def compute_vertically_integrated_velocity(
 
     if min_depth is not None or max_depth is not None:
         z_mid_edge = _compute_zmid_edge(
-            ds, ds_mesh, prefix, logger, cell0, cell1
+            ds, ds_vert_coord, prefix, logger, cell0, cell1
         )
     else:
         z_mid_edge = None
@@ -139,13 +149,13 @@ def compute_vertically_integrated_velocity(
     return vert_integ_velocity
 
 
-def _compute_zmid_edge(ds, ds_mesh, prefix, logger, cell0, cell1):
+def _compute_zmid_edge(ds, ds_vert_coord, prefix, logger, cell0, cell1):
     layer_thickness = ds[f'{prefix}layerThickness']
 
     if logger:
         logger.info('    Computing z_mid and z_mid_edge.')
     z_mid = compute_zmid(
-        ds_mesh.bottomDepth, ds_mesh.maxLevelCell, layer_thickness
+        ds_vert_coord.bottomDepth, ds_vert_coord.maxLevelCell, layer_thickness
     )
     z_mid_edge = 0.5 * (z_mid.isel(nCells=cell0) + z_mid.isel(nCells=cell1))
     return z_mid_edge

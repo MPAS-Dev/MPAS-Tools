@@ -20,6 +20,7 @@ from mpas_tools.ocean.streamfunction.vorticity import (
 def compute_barotropic_streamfunction(
     ds_mesh,
     ds,
+    ds_vert_coord=None,
     logger=None,
     min_depth=None,
     max_depth=None,
@@ -37,11 +38,17 @@ def compute_barotropic_streamfunction(
     Parameters
     ----------
     ds_mesh : xarray.Dataset
-        A dataset containing MPAS mesh variables
+        A dataset containing MPAS horizontal mesh variables
 
     ds : xarray.Dataset
         A dataset containing MPAS output variables ``normalVelocity`` and
         ``layerThickness`` (possibly with a ``prefix``)
+
+    ds_vert_coord : xarray.Dataset, optional
+        A dataset with the vertical coordinate variables ``minLevelCell``,
+        ``maxLevelCell`` and ``bottomDepth``.  The same as ``ds_mesh`` by
+        default, but in Omega these are stored separately from the horizontal
+        mesh.
 
     logger : logging.Logger, optional
         A logger for the output if not stdout
@@ -106,6 +113,7 @@ def compute_barotropic_streamfunction(
     bsf_vertex = _compute_barotropic_streamfunction_vertex(
         ds_mesh,
         ds,
+        ds_vert_coord,
         prefix,
         include_bolus,
         include_submesoscale,
@@ -202,7 +210,9 @@ def _build_minimal_boundary_constraints(
     """
     # Create a graph from the boundary edges
     graph = nx.Graph()
-    edges = list(zip(boundary_vertex0.values, boundary_vertex1.values))
+    edges = list(
+        zip(boundary_vertex0.values, boundary_vertex1.values, strict=True)
+    )
     graph.add_edges_from(edges)
 
     minimal_constraints = []
@@ -264,7 +274,7 @@ def _identify_boundary_vertices(ds_mesh, logger, all_vertices):
     )
 
     # Unpack minimal_constraints into boundary_vertex0 and boundary_vertex1
-    boundary_vertex0, boundary_vertex1 = zip(*minimal_constraints)
+    boundary_vertex0, boundary_vertex1 = zip(*minimal_constraints, strict=True)
     boundary_vertex0 = xr.DataArray(
         np.array(boundary_vertex0), dims=('nVertices',)
     )
@@ -418,6 +428,7 @@ def _assemble_matrix(
 def _compute_barotropic_streamfunction_vertex(
     ds_mesh,
     ds,
+    ds_vert_coord,
     prefix,
     include_bolus,
     include_submesoscale,
@@ -440,6 +451,7 @@ def _compute_barotropic_streamfunction_vertex(
     vert_integ_velocity = compute_vertically_integrated_velocity(
         ds_mesh=ds_mesh,
         ds=ds,
+        ds_vert_coord=ds_vert_coord,
         logger=logger,
         min_depth=min_depth,
         max_depth=max_depth,
