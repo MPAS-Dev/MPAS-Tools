@@ -161,6 +161,8 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#i-o">I/O</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.io.write_netcdf.html">mpas_tools.io.write_netcdf</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.io.open_dataset.html">mpas_tools.io.open_dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="generated/mpas_tools.io.open_mfdataset.html">mpas_tools.io.open_mfdataset</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#parallelism">Parallelism</a><ul>
@@ -551,6 +553,12 @@ the documentation.</p>
 <tbody>
 <tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.io.write_netcdf.html#mpas_tools.io.write_netcdf" title="mpas_tools.io.write_netcdf"><code class="xref py py-obj docutils literal notranslate"><span class="pre">write_netcdf</span></code></a>(ds, fileName[, fillValues, ...])</p></td>
 <td><p>Write an xarray.Dataset to a file with NetCDF4 fill values and the given name of the string dimension.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="generated/mpas_tools.io.open_dataset.html#mpas_tools.io.open_dataset" title="mpas_tools.io.open_dataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open_dataset</span></code></a>(filename[, engine, logger])</p></td>
+<td><p>Open an <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> from a NetCDF file, accounting for quirks specific to MPAS components.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/mpas_tools.io.open_mfdataset.html#mpas_tools.io.open_mfdataset" title="mpas_tools.io.open_mfdataset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">open_mfdataset</span></code></a>(paths[, engine, logger])</p></td>
+<td><p>Open a multi-file <code class="docutils literal notranslate"><span class="pre">xarray.Dataset</span></code> from NetCDF files, accounting for quirks specific to MPAS components.</p></td>
 </tr>
 </tbody>
 </table>

@@ -130,6 +130,7 @@
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">netCDF4</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">xarray</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_call</span>
 
@@ -304,6 +305,101 @@
             <span class="n">check_call</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
         <span class="c1"># delete the temporary NETCDF4 file</span>
         <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">out_filename</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="open_dataset">
+<a class="viewcode-back" href="../../generated/mpas_tools.io.open_dataset.html#mpas_tools.io.open_dataset">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">open_dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Open an ``xarray.Dataset`` from a NetCDF file, accounting for quirks</span>
+<span class="sd">    specific to MPAS components.  This is a thin wrapper around</span>
+<span class="sd">    :py:func:`xarray.open_dataset` that selects the NetCDF ``engine`` from</span>
+<span class="sd">    ``mpas_tools.io.default_engine`` when ``engine`` is not given.</span>
+
+<span class="sd">    Specifying an ``engine`` explicitly is important because</span>
+<span class="sd">    :py:func:`xarray.open_dataset` otherwise sniffs the file for &quot;magic bits&quot;</span>
+<span class="sd">    to auto-select a backend, and that probe can crash on</span>
+<span class="sd">    ``NETCDF3_64BIT_DATA`` (CDF5) files.  Setting</span>
+<span class="sd">    ``mpas_tools.io.default_engine`` (e.g. to ``&#39;netcdf4&#39;``) provides a single,</span>
+<span class="sd">    process-wide way to avoid that crash without modifying every call site.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    filename : str or path-like or file-like</span>
+<span class="sd">        The path to the NetCDF file to open, passed on to</span>
+<span class="sd">        :py:func:`xarray.open_dataset`</span>
+
+<span class="sd">    engine : {&#39;netcdf4&#39;, &#39;scipy&#39;, &#39;h5netcdf&#39;}, optional</span>
+<span class="sd">        The library to use for reading the NetCDF file.  The default is</span>
+<span class="sd">        ``mpas_tools.io.default_engine``, which can be modified but which</span>
+<span class="sd">        defaults to ``None`` (xarray auto-selects the backend)</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger to write messages to.  Reserved for future diagnostics; no</span>
+<span class="sd">        error recovery is performed because the CDF5 backend-sniffing failure</span>
+<span class="sd">        is a hard crash that cannot be caught.</span>
+
+<span class="sd">    **kwargs</span>
+<span class="sd">        Additional keyword arguments passed on to</span>
+<span class="sd">        :py:func:`xarray.open_dataset` (e.g. ``decode_times``, ``decode_cf``,</span>
+<span class="sd">        ``mask_and_scale``)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ds : xarray.Dataset</span>
+<span class="sd">        The opened dataset</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="n">default_engine</span>
+
+    <span class="k">return</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="open_mfdataset">
+<a class="viewcode-back" href="../../generated/mpas_tools.io.open_mfdataset.html#mpas_tools.io.open_mfdataset">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">open_mfdataset</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Open a multi-file ``xarray.Dataset`` from NetCDF files, accounting for</span>
+<span class="sd">    quirks specific to MPAS components.  This is a thin wrapper around</span>
+<span class="sd">    :py:func:`xarray.open_mfdataset` that selects the NetCDF ``engine`` from</span>
+<span class="sd">    ``mpas_tools.io.default_engine`` when ``engine`` is not given.</span>
+
+<span class="sd">    See :py:func:`mpas_tools.io.open_dataset` for why specifying an ``engine``</span>
+<span class="sd">    explicitly (via ``mpas_tools.io.default_engine``) is useful for</span>
+<span class="sd">    ``NETCDF3_64BIT_DATA`` (CDF5) files.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    paths : str or sequence of str or path-like</span>
+<span class="sd">        The paths to the NetCDF files to open, passed on to</span>
+<span class="sd">        :py:func:`xarray.open_mfdataset`</span>
+
+<span class="sd">    engine : {&#39;netcdf4&#39;, &#39;scipy&#39;, &#39;h5netcdf&#39;}, optional</span>
+<span class="sd">        The library to use for reading the NetCDF files.  The default is</span>
+<span class="sd">        ``mpas_tools.io.default_engine``, which can be modified but which</span>
+<span class="sd">        defaults to ``None`` (xarray auto-selects the backend)</span>
+
+<span class="sd">    logger : logging.Logger, optional</span>
+<span class="sd">        A logger to write messages to.  Reserved for future diagnostics; no</span>
+<span class="sd">        error recovery is performed because the CDF5 backend-sniffing failure</span>
+<span class="sd">        is a hard crash that cannot be caught.</span>
+
+<span class="sd">    **kwargs</span>
+<span class="sd">        Additional keyword arguments passed on to</span>
+<span class="sd">        :py:func:`xarray.open_mfdataset` (e.g. ``combine``, ``concat_dim``,</span>
+<span class="sd">        ``decode_times``)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ds : xarray.Dataset</span>
+<span class="sd">        The opened dataset</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="n">default_engine</span>
+
+    <span class="k">return</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_mfdataset</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="n">engine</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 

@@ -54,6 +54,7 @@
 <li class="toctree-l1"><a class="reference internal" href="config.html">Config files</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">I/O Tools</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#write-netcdf">write_netcdf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#open-dataset-and-open-mfdataset">open_dataset and open_mfdataset</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="logging.html">Logging</a></li>
@@ -145,6 +146,30 @@ conversion to <code class="docutils literal notranslate"><span class="pre">NETCD
 <span class="c1"># Create a simple dataset</span>
 <span class="n">ds</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">({</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span> <span class="p">((</span><span class="s1">&#39;x&#39;</span><span class="p">,),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])})</span>
 <span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="s1">&#39;output.nc&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="open-dataset-and-open-mfdataset">
+<h2>open_dataset and open_mfdataset<a class="headerlink" href="#open-dataset-and-open-mfdataset" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="generated/mpas_tools.io.open_dataset.html#mpas_tools.io.open_dataset" title="mpas_tools.io.open_dataset"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.io.open_dataset()</span></code></a> and
+<a class="reference internal" href="generated/mpas_tools.io.open_mfdataset.html#mpas_tools.io.open_mfdataset" title="mpas_tools.io.open_mfdataset"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.io.open_mfdataset()</span></code></a> functions are thin wrappers around
+<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.open_dataset.html#xarray.open_dataset" title="(in xarray v2026.4.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">xarray.open_dataset()</span></code></a> and <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.open_mfdataset.html#xarray.open_mfdataset" title="(in xarray v2026.4.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">xarray.open_mfdataset()</span></code></a>.  They
+select the NetCDF <code class="docutils literal notranslate"><span class="pre">engine</span></code> from the module-level
+<code class="xref py py-data docutils literal notranslate"><span class="pre">mpas_tools.io.default_engine</span></code> variable when an <code class="docutils literal notranslate"><span class="pre">engine</span></code> is not
+passed explicitly.</p>
+<p>This is useful because <a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.open_dataset.html#xarray.open_dataset" title="(in xarray v2026.4.0)"><code class="xref py py-func docutils literal notranslate"><span class="pre">xarray.open_dataset()</span></code></a> otherwise sniffs the
+file for “magic bits” to auto-select a backend, and that probe can crash on
+<code class="docutils literal notranslate"><span class="pre">NETCDF3_64BIT_DATA</span></code> (CDF5) files.  xarray provides no global way to set a
+default engine, so <code class="docutils literal notranslate"><span class="pre">mpas_tools.io.default_engine</span></code> offers a single,
+process-wide knob that applies to both reading and writing.</p>
+<p>Example usage:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">mpas_tools.io</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">open_dataset</span>
+
+<span class="c1"># use the netcdf4 engine everywhere to avoid the CDF5 sniffing crash</span>
+<span class="n">mpas_tools</span><span class="o">.</span><span class="n">io</span><span class="o">.</span><span class="n">default_engine</span> <span class="o">=</span> <span class="s1">&#39;netcdf4&#39;</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mesh.nc&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
