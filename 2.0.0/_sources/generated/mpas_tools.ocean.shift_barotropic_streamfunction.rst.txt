@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.shift\_barotropic\_streamfunction
+===================================================
+
+.. currentmodule:: mpas_tools.ocean
+
+.. autofunction:: shift_barotropic_streamfunction

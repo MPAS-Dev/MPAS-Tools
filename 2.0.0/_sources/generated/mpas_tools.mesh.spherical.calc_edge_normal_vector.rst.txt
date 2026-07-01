@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.spherical.calc\_edge\_normal\_vector
+=====================================================
+
+.. currentmodule:: mpas_tools.mesh.spherical
+
+.. autofunction:: calc_edge_normal_vector

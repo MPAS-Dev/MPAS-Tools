@@ -1,0 +1,6 @@
+﻿mpas\_tools.io.write\_netcdf
+============================
+
+.. currentmodule:: mpas_tools.io
+
+.. autofunction:: write_netcdf

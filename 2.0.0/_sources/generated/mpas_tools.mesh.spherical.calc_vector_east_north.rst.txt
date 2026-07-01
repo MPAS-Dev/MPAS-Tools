@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.spherical.calc\_vector\_east\_north
+====================================================
+
+.. currentmodule:: mpas_tools.mesh.spherical
+
+.. autofunction:: calc_vector_east_north

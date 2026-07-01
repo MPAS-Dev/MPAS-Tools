@@ -1,0 +1,22 @@
+﻿mpas\_tools.logging.LoggingContext
+==================================
+
+.. currentmodule:: mpas_tools.logging
+
+.. autoclass:: LoggingContext
+
+   
+   .. automethod:: __init__
+
+   
+   .. rubric:: Methods
+
+   .. autosummary::
+   
+      ~LoggingContext.__init__
+   
+   
+
+   
+   
+   

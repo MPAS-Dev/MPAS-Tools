@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.creation.signed\_distance.distance\_from\_geojson
+==================================================================
+
+.. currentmodule:: mpas_tools.mesh.creation.signed_distance
+
+.. autofunction:: distance_from_geojson

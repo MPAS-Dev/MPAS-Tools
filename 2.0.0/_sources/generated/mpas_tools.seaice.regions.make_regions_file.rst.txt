@@ -1,0 +1,6 @@
+﻿mpas\_tools.seaice.regions.make\_regions\_file
+==============================================
+
+.. currentmodule:: mpas_tools.seaice.regions
+
+.. autofunction:: make_regions_file

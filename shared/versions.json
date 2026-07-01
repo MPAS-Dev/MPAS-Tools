@@ -4,6 +4,10 @@
     "url": "/MPAS-Tools/master/"
   },
   {
+    "version": "2.0.0",
+    "url": "/MPAS-Tools/2.0.0/"
+  },
+  {
     "version": "1.6.0",
     "url": "/MPAS-Tools/1.6.0/"
   },

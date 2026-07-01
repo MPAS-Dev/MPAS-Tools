@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.spherical.recompute\_angle\_edge
+=================================================
+
+.. currentmodule:: mpas_tools.mesh.spherical
+
+.. autofunction:: recompute_angle_edge

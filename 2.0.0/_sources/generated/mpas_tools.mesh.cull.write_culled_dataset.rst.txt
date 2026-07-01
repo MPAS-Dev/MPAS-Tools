@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.cull.write\_culled\_dataset
+============================================
+
+.. currentmodule:: mpas_tools.mesh.cull
+
+.. autofunction:: write_culled_dataset

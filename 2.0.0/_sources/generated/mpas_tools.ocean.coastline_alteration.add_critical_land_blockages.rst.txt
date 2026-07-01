@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.coastline\_alteration.add\_critical\_land\_blockages
+======================================================================
+
+.. currentmodule:: mpas_tools.ocean.coastline_alteration
+
+.. autofunction:: add_critical_land_blockages

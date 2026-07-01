@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.depth.add\_zmid
+=================================
+
+.. currentmodule:: mpas_tools.ocean.depth
+
+.. autofunction:: add_zmid
