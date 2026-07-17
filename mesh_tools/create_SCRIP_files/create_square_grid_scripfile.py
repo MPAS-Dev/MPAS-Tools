@@ -39,20 +39,31 @@ def read_mali_domain(mali_scripfile):
     lat_deg = np.degrees(lat_rad)
     lon_deg = np.degrees(lon_rad)
 
-    # Handle longitude wrapping
-    lon_deg = np.where(lon_deg > 180, lon_deg - 360, lon_deg)
+    # Detect longitude convention from input
+    lon_min_raw = float(lon_deg.min())
+    lon_max_raw = float(lon_deg.max())
+
+    # If input uses [0, 360], keep it; if [-180, 180], keep it
+    use_360 = (lon_min_raw >= 0 and lon_max_raw > 180)
+
+    if not use_360:
+        # Convert to [-180, 180] for consistency
+        lon_deg = np.where(lon_deg > 180, lon_deg - 360, lon_deg)
 
     bounds = {
         'lat_min': float(lat_deg.min()),
         'lat_max': float(lat_deg.max()),
         'lon_min': float(lon_deg.min()),
-        'lon_max': float(lon_deg.max())
+        'lon_max': float(lon_deg.max()),
+        'use_360': use_360
     }
 
     ds.close()
 
     print(f"  Domain: lat [{bounds['lat_min']:.2f}, {bounds['lat_max']:.2f}]°")
     print(f"          lon [{bounds['lon_min']:.2f}, {bounds['lon_max']:.2f}]°")
+    lon_convention = "[0, 360]" if bounds['use_360'] else "[-180, 180]"
+    print(f"  Longitude convention: {lon_convention}")
 
     return bounds
 
@@ -87,6 +98,11 @@ def create_square_grid_scripfile(bounds, nx, output_file, padding_km=0):
     lats = np.linspace(bounds['lat_min'], bounds['lat_max'], ny)
     lons = np.linspace(bounds['lon_min'], bounds['lon_max'], nx)
 
+    # Ensure longitude convention matches input (critical for ESMF)
+    if bounds['use_360']:
+        # Keep in [0, 360] range
+        lons = np.where(lons < 0, lons + 360, lons)
+
     dlat = lats[1] - lats[0]
     dlon = lons[1] - lons[0]
 
@@ -113,6 +129,11 @@ def create_square_grid_scripfile(bounds, nx, output_file, padding_km=0):
     for i in range(grid_size):
         grid_corner_lat[i, :] = grid_center_lat[i] + corner_dlat
         grid_corner_lon[i, :] = grid_center_lon[i] + corner_dlon
+
+    # Ensure longitude consistency after corner calculation
+    if bounds['use_360']:
+        grid_corner_lon = np.where(grid_corner_lon < 0, grid_corner_lon + 360, grid_corner_lon)
+        grid_corner_lon = np.where(grid_corner_lon >= 360, grid_corner_lon - 360, grid_corner_lon)
 
     # Convert to radians
     grid_center_lat_rad = np.radians(grid_center_lat)
@@ -214,10 +235,10 @@ def main():
     print(f"1. Generate weight files with ESMF_RegridWeightGen:")
     print(f"   # MALI to FastIsostasy")
     print(f"   ESMF_RegridWeightGen -s {args.mali_scripfile} -d {args.output} \\")
-    print(f"       -w mpas_to_fastisostasy.nc -i --64bit_offset --src_regional")
+    print(f"       -w mpas_to_fastisostasy.nc -i --64bit_offset --src_regional --dst_regional")
     print(f"   # FastIsostasy to MALI")
     print(f"   ESMF_RegridWeightGen -s {args.output} -d {args.mali_scripfile} \\")
-    print(f"       -w fastisostasy_to_mpas.nc -i --64bit_offset --dst_regional")
+    print(f"       -w fastisostasy_to_mpas.nc -i --64bit_offset --src_regional --dst_regional")
 
 
 if __name__ == '__main__':
