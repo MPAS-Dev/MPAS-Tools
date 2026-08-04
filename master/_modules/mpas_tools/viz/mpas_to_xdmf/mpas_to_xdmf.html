@@ -157,6 +157,7 @@
 <span class="sd">&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.mpas_to_xdmf.io</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">_DEFAULT_MAX_READ_BYTES</span><span class="p">,</span>
     <span class="n">_convert_to_xdmf</span><span class="p">,</span>
     <span class="n">_load_dataset</span><span class="p">,</span>
     <span class="n">_parse_extra_dims</span><span class="p">,</span>
@@ -257,7 +258,14 @@
 
 <div class="viewcode-block" id="MpasToXdmf.convert_to_xdmf">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.convert_to_xdmf.html#mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.convert_to_xdmf">[docs]</a>
-    <span class="k">def</span><span class="w"> </span><span class="nf">convert_to_xdmf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out_dir</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">quiet</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">convert_to_xdmf</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">out_dir</span><span class="p">,</span>
+        <span class="n">extra_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">quiet</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">float32</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">max_read_bytes</span><span class="o">=</span><span class="n">_DEFAULT_MAX_READ_BYTES</span><span class="p">,</span>
+    <span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Convert the loaded xarray Dataset to XDMF + HDF5 format.</span>
 
@@ -271,6 +279,15 @@
 <span class="sd">            included.</span>
 <span class="sd">        quiet : bool, optional</span>
 <span class="sd">            If True, suppress progress output.</span>
+<span class="sd">        float32 : bool, optional</span>
+<span class="sd">            If True, write floating-point fields in single precision, halving</span>
+<span class="sd">            the size of the HDF5 files (the mesh geometry stays in double</span>
+<span class="sd">            precision).</span>
+<span class="sd">        max_read_bytes : int, optional</span>
+<span class="sd">            Approximate limit on the number of bytes read from the input</span>
+<span class="sd">            dataset at a time.  Larger values allow more indices of an extra</span>
+<span class="sd">            dimension (e.g. ``nVertLevels``) to be read in a single pass over</span>
+<span class="sd">            a variable, which is faster but uses more memory.</span>
 
 <span class="sd">        Output</span>
 <span class="sd">        ------</span>
@@ -288,7 +305,10 @@
             <span class="n">ds</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="p">,</span>
             <span class="n">ds_mesh</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ds_mesh</span><span class="p">,</span>
             <span class="n">out_dir</span><span class="o">=</span><span class="n">out_dir</span><span class="p">,</span>
+            <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">,</span>
             <span class="n">quiet</span><span class="o">=</span><span class="n">quiet</span><span class="p">,</span>
+            <span class="n">float32</span><span class="o">=</span><span class="n">float32</span><span class="p">,</span>
+            <span class="n">max_read_bytes</span><span class="o">=</span><span class="n">max_read_bytes</span><span class="p">,</span>
         <span class="p">)</span></div>
 </div>
 
@@ -363,6 +383,26 @@
         <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Suppress progress output.&#39;</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;-f&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;--float32&#39;</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;Write floating-point fields in single precision, halving the &#39;</span>
+            <span class="s1">&#39;size of the HDF5 files.  The mesh geometry stays in double &#39;</span>
+            <span class="s1">&#39;precision.&#39;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
+        <span class="s1">&#39;--max-read-gb&#39;</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="n">_DEFAULT_MAX_READ_BYTES</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="p">(</span>
+            <span class="s1">&#39;Approximate limit in GB on the amount of data read from the &#39;</span>
+            <span class="s1">&#39;input files at a time.  Larger values are faster but use more &#39;</span>
+            <span class="s1">&#39;memory.&#39;</span>
+        <span class="p">),</span>
+    <span class="p">)</span>
 
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
@@ -381,6 +421,8 @@
         <span class="n">out_dir</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">output_dir</span><span class="p">,</span>
         <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">,</span>
         <span class="n">quiet</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">quiet</span><span class="p">,</span>
+        <span class="n">float32</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+        <span class="n">max_read_bytes</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">max_read_gb</span> <span class="o">*</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">),</span>
     <span class="p">)</span></div>
 
 </pre></div>

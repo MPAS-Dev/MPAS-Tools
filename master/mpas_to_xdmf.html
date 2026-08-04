@@ -77,6 +77,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#features">Features</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-on-large-meshes">Performance on Large Meshes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#opening-files-in-paraview">Opening Files in ParaView</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#references">References</a></li>
@@ -192,6 +193,11 @@ CLI option or the <code class="docutils literal notranslate"><span class="pre">e
 <li><p><code class="docutils literal notranslate"><span class="pre">-x,</span> <span class="pre">--xtime</span></code>: Name of the variable containing time information (optional).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">-d,</span> <span class="pre">--dim-list</span></code>: List of dimensions and indices to slice (e.g.,
 <code class="docutils literal notranslate"><span class="pre">nVertLevels=0:10:2</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-q,</span> <span class="pre">--quiet</span></code>: Suppress progress output.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-f,</span> <span class="pre">--float32</span></code>: Write floating-point fields in single precision, halving
+the size of the HDF5 files.  The mesh geometry stays in double precision.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--max-read-gb</span></code>: Approximate limit in GB on the amount of data read from
+the input files at a time (default 2).  See <a class="reference internal" href="#xdmf-performance"><span class="std std-ref">Performance on Large Meshes</span></a>.</p></li>
 </ul>
 </section>
 <section id="examples">
@@ -284,6 +290,31 @@ for cell-centered, edge-centered, and vertex-centered data.</p>
 series files into a single dataset for conversion.</p></li>
 <li><p><strong>Selective Variable Conversion</strong>: Users can choose specific variables or
 groups of variables (e.g., <code class="docutils literal notranslate"><span class="pre">allOnCells</span></code>) for conversion.</p></li>
+</ul>
+</section>
+<section id="performance-on-large-meshes">
+<span id="xdmf-performance"></span><h2>Performance on Large Meshes<a class="headerlink" href="#performance-on-large-meshes" title="Link to this heading"></a></h2>
+<p>Each index of an extra dimension becomes its own field in the output, so a
+3D field such as <code class="docutils literal notranslate"><span class="pre">temperature(Time,</span> <span class="pre">nCells,</span> <span class="pre">nVertLevels)</span></code> is written as one
+2D field per vertical level.  A single vertical level is strided across the
+whole variable on disk, so reading the levels one at a time means reading the
+entire variable once per level.  On a 4-million-cell, 80-layer mesh that read
+amplification dominated the run time completely.</p>
+<p>Instead, the converter reads as many indices of an extra dimension as it can
+in a single pass over each variable, and slices them apart in memory.  The
+amount read at a time is capped by <code class="docutils literal notranslate"><span class="pre">max_read_bytes</span></code> (<code class="docutils literal notranslate"><span class="pre">--max-read-gb</span></code> on
+the command line, 2 GB by default) so that memory use stays bounded; peak
+memory is roughly two to three times that limit, because masking the fill
+values makes a copy.  Raising the limit lets larger variables be read in a
+single pass; lowering it trades speed for memory.</p>
+<p>Two further options help with the sheer volume of data:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">float32</span></code> (<code class="docutils literal notranslate"><span class="pre">-f</span></code>/<code class="docutils literal notranslate"><span class="pre">--float32</span></code>) writes floating-point fields in single
+precision.  This halves both the size of the HDF5 files and the time
+ParaView needs to load them.  The mesh geometry stays in double precision so
+that the cell shapes are unaffected.</p></li>
+<li><p>Passing only the vertical levels you actually want to look at, via
+<code class="docutils literal notranslate"><span class="pre">extra_dims</span></code>/<code class="docutils literal notranslate"><span class="pre">-d</span></code>, avoids writing the rest.</p></li>
 </ul>
 </section>
 <section id="opening-files-in-paraview">

@@ -50,6 +50,11 @@ The following arguments are supported:
 - ``-x, --xtime``: Name of the variable containing time information (optional).
 - ``-d, --dim-list``: List of dimensions and indices to slice (e.g.,
   ``nVertLevels=0:10:2``).
+- ``-q, --quiet``: Suppress progress output.
+- ``-f, --float32``: Write floating-point fields in single precision, halving
+  the size of the HDF5 files.  The mesh geometry stays in double precision.
+- ``--max-read-gb``: Approximate limit in GB on the amount of data read from
+  the input files at a time (default 2).  See :ref:`xdmf_performance`.
 
 Examples
 --------
@@ -142,6 +147,34 @@ The MPAS to XDMF Converter includes several basic features:
   series files into a single dataset for conversion.
 - **Selective Variable Conversion**: Users can choose specific variables or
   groups of variables (e.g., ``allOnCells``) for conversion.
+
+.. _xdmf_performance:
+
+Performance on Large Meshes
+===========================
+Each index of an extra dimension becomes its own field in the output, so a
+3D field such as ``temperature(Time, nCells, nVertLevels)`` is written as one
+2D field per vertical level.  A single vertical level is strided across the
+whole variable on disk, so reading the levels one at a time means reading the
+entire variable once per level.  On a 4-million-cell, 80-layer mesh that read
+amplification dominated the run time completely.
+
+Instead, the converter reads as many indices of an extra dimension as it can
+in a single pass over each variable, and slices them apart in memory.  The
+amount read at a time is capped by ``max_read_bytes`` (``--max-read-gb`` on
+the command line, 2 GB by default) so that memory use stays bounded; peak
+memory is roughly two to three times that limit, because masking the fill
+values makes a copy.  Raising the limit lets larger variables be read in a
+single pass; lowering it trades speed for memory.
+
+Two further options help with the sheer volume of data:
+
+- ``float32`` (``-f``/``--float32``) writes floating-point fields in single
+  precision.  This halves both the size of the HDF5 files and the time
+  ParaView needs to load them.  The mesh geometry stays in double precision so
+  that the cell shapes are unaffected.
+- Passing only the vertical levels you actually want to look at, via
+  ``extra_dims``/``-d``, avoids writing the rest.
 
 Opening Files in ParaView
 =========================
