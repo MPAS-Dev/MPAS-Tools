@@ -146,7 +146,7 @@ class mpasToMaliInterp:
 
         # open and concatenate diagnostic dataset
         self.DS = xr.open_mfdataset(os.path.join(self.options.mpasoHistDir,
-            f'*.mpaso.hist.am.timeSeriesStatsMonthly.{year}-*-01.nc'), combine='nested', concat_dim='Time', decode_timedelta=False)
+            f'*.mpaso.hist.am.timeSeriesStatsMonthly.{year:04d}-*-01.nc'), combine='nested', concat_dim='Time', decode_timedelta=False)
         
         # variables for time averaging
         self.temperature = self.DS['timeMonthly_avg_activeTracers_temperature']
@@ -157,10 +157,8 @@ class mpasToMaliInterp:
         avg_layerThickness = self.DS['timeMonthly_avg_layerThickness']
         self.layerThickness = avg_layerThickness.data
 
-        #xt = DS['xtime_startMonthly']
-        
-        #xtime = np.array([xt],dtype=('S',64)) 
-        # << NOTE >>: may need to eventually use: "xtime.data.tobytes().decode()" but not sure yet
+        # monthly xtime strings (one per month), used when not time averaging
+        self.xtimeMonthly = self.DS['xtime_startMonthly'].values
         
         self.have_landIceFreshwaterFlux = False
         try:
@@ -227,16 +225,18 @@ class mpasToMaliInterp:
             dates.append(xt_reformat)
             #self.newXtime = dates        
             self.newXtime = xt_reformat
-        else : #do nothing if not time averaging
-            self.newTemp = self.temperature
-            self.newSal = self.salinity
-            self.newDens= self.density
-            self.newLThick = self.layerThickness
-            self.newMpasCCE = self.mpas_cellCenterElev
-            self.newAtmPr = self.atmPressure
+        else : #keep monthly resolution, but evaluate lazy arrays to NumPy
+            self.newTemp = self.temperature.values
+            self.newSal = self.salinity.values
+            self.newDens = self.density.values
+            self.newLThick = np.asarray(self.layerThickness)
+            self.newMpasCCE = np.asarray(self.mpas_cellCenterElev)
+            self.newAtmPr = self.atmPressure.values
             if self.have_landIceFreshwaterFlux:
-               self.newLandIceFWFlux = self.landIceFreshwaterFlux
-            self.newXtime = np.nan #use as placeholder for now
+               self.newLandIceFWFlux = self.landIceFreshwaterFlux.values
+            # one xtime string per month, padded to 64 characters
+            self.newXtime = [b.tobytes().decode().strip().ljust(64)
+                             for b in self.xtimeMonthly]
 
         print("New xtime: {}".format(self.newXtime))
 
