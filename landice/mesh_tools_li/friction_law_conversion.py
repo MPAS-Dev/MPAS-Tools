@@ -37,13 +37,17 @@ below) and is not user-configurable.
 
 so Lambda * A * N^n has units of velocity.
 
-The Glen flow-rate factor A is always computed with Albany's
-"Temperature Based" Flow Rate Type (LandIce_FlowRate_Def.hpp), i.e. a
-two-branch Arrhenius law keyed on ice temperature, evaluated using the
-basal-most (last) vertical level of the MALI `temperature` field as an
-approximation of basal temperature. A constant/scalar flow rate is no
-longer supported; the Temperature Based constants below assume a
-Glen's Law n of 3 (see ALBANY_FLOW_RATE_* constants).
+The Glen flow-rate factor A can be obtained in one of two ways,
+selected via --flow-rate-type:
+
+- "temperature" (default): computed with Albany's "Temperature Based"
+  Flow Rate Type (LandIce_FlowRate_Def.hpp), i.e. a two-branch
+  Arrhenius law keyed on ice temperature, evaluated using the
+  basal-most (last) vertical level of the MALI `temperature` field as
+  an approximation of basal temperature. This is only valid for a
+  Glen's Law n of 3 (see ALBANY_FLOW_RATE_* constants).
+- "constant": a single scalar value supplied via --flow-rate is used
+  for all cells (Albany Flow Rate Type: Constant).
 
 All quantities supplied here must use a mutually consistent unit system.
 For typical MALI/Albany configurations:
@@ -190,7 +194,13 @@ def area_weighted_optimal_C(mu, N, area, uc, q, mask):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Convert MALI Weertman friction IC to Regularized Coulomb."
+        description="Convert MALI Weertman friction IC to Regularized Coulomb.",
+        # Disable prefix-abbreviation matching. Without this, obsolete or
+        # mistyped flags (e.g. a leftover "--flow-rate VALUE" from before
+        # flow rate became Temperature Based-only) can silently be matched
+        # as an unambiguous prefix of another option (e.g.
+        # "--flow-rate-field"), corrupting its value instead of erroring.
+        allow_abbrev=False,
     )
 
     parser.add_argument("input", help="Input MALI initial-condition NetCDF file")
@@ -236,17 +246,38 @@ def main():
     parser.add_argument("--rho-water", type=float, default=1028.0)
     parser.add_argument("--gravity", type=float, default=9.80616)
 
-    # Needed for Lambda = uc / (A N^n); A is always computed via
-    # Albany's Temperature Based Flow Rate Type.
+    # Needed for Lambda = uc / (A N^n).
+    parser.add_argument(
+        "--flow-rate-type",
+        choices=["temperature", "constant"],
+        default="temperature",
+        help=(
+            'How to obtain the Glen flow rate A (default: temperature). '
+            '"temperature" computes a per-cell A from ice temperature '
+            "via Albany's Temperature Based Flow Rate Type "
+            '(see --temperature-field); "constant" uses a single '
+            "scalar value supplied via --flow-rate for all cells."
+        )
+    )
     parser.add_argument(
         "--temperature-field",
         default="temperature",
         help=(
             "MALI ice temperature field [K] (default: temperature). "
             "Used to compute the Glen flow rate A via Albany's "
-            "Temperature Based Flow Rate Type. If the field has a "
+            "Temperature Based Flow Rate Type when "
+            "--flow-rate-type=temperature. If the field has a "
             "nVertLevels dimension, the last (basal-most) level is "
             "used as an approximation of basal temperature."
+        )
+    )
+    parser.add_argument(
+        "--flow-rate",
+        type=float,
+        default=None,
+        help=(
+            "Constant Glen flow rate A [Pa^-3 s^-1], required when "
+            "--flow-rate-type=constant. Ignored otherwise."
         )
     )
     parser.add_argument(
@@ -256,7 +287,8 @@ def main():
         help=(
             "Glen-law exponent n (default: 3). Albany's Temperature "
             "Based Flow Rate Type constants are only valid for n=3; "
-            "a warning is issued if a different value is used."
+            "a warning is issued if a different value is used with "
+            "--flow-rate-type=temperature."
         )
     )
 
@@ -310,14 +342,25 @@ def main():
 
     args = parser.parse_args()
 
-    if args.glen_n != 3.0:
-        print(
-            "WARNING: Albany's Temperature Based Flow Rate Type "
-            "constants (arrmlh/arrmll) are only valid for a Glen's "
-            f"Law n of 3; --glen-n was set to {args.glen_n:g}. The "
-            "computed flow rate A will be physically inconsistent "
-            "with this exponent."
-        )
+    if args.flow_rate_type == "constant":
+        if args.flow_rate is None:
+            parser.error(
+                "--flow-rate is required when --flow-rate-type=constant"
+            )
+    else:
+        if args.flow_rate is not None:
+            parser.error(
+                "--flow-rate is only used with --flow-rate-type=constant "
+                "(got --flow-rate-type=temperature)"
+            )
+        if args.glen_n != 3.0:
+            print(
+                "WARNING: Albany's Temperature Based Flow Rate Type "
+                "constants (arrmlh/arrmll) are only valid for a Glen's "
+                f"Law n of 3; --glen-n was set to {args.glen_n:g}. The "
+                "computed flow rate A will be physically inconsistent "
+                "with this exponent."
+            )
 
     # -------------------------------------------------------------
     # Read IC
@@ -329,8 +372,9 @@ def main():
         args.thickness_field,
         args.bed_field,
         args.area_field,
-        args.temperature_field,
     ]
+    if args.flow_rate_type == "temperature":
+        required.append(args.temperature_field)
 
     missing = [name for name in required if name not in ds]
     if missing:
@@ -384,13 +428,16 @@ def main():
     H = cell_field(args.thickness_field)
     bed = cell_field(args.bed_field)
     area = cell_field(args.area_field)
-    basal_temperature = basal_cell_field(args.temperature_field)
 
     # -------------------------------------------------------------
-    # Glen flow-rate factor A, via Albany's Temperature Based Flow
-    # Rate Type, using basal temperature as an approximation.
+    # Glen flow-rate factor A.
     # -------------------------------------------------------------
-    A = albany_temperature_based_flow_rate(basal_temperature)
+    if args.flow_rate_type == "temperature":
+        basal_temperature = basal_cell_field(args.temperature_field)
+        A = albany_temperature_based_flow_rate(basal_temperature)
+    else:
+        basal_temperature = None
+        A = np.full_like(H, args.flow_rate)
 
     # -------------------------------------------------------------
     # Effective pressure
@@ -462,15 +509,14 @@ def main():
     print(f"Weertman power exponent, qW   : {args.weertman_q:g}")
     print(f"RC power exponent, qR         : {RC_POWER_EXPONENT:g}")
     print(f"Glen exponent, n              : {args.glen_n:g}")
-    print(
-        "Flow rate A (Temperature Based) : "
-        f"{np.min(A):.10e} -- {np.max(A):.10e}"
-    )
-    print(
-        "Basal temperature range        : "
-        f"{np.min(basal_temperature):.6f} -- "
-        f"{np.max(basal_temperature):.6f} K"
-    )
+    print(f"Flow rate type                : {args.flow_rate_type}")
+    print(f"Flow rate A range              : {np.min(A):.10e} -- {np.max(A):.10e}")
+    if basal_temperature is not None:
+        print(
+            "Basal temperature range        : "
+            f"{np.min(basal_temperature):.6f} -- "
+            f"{np.max(basal_temperature):.6f} K"
+        )
     print(f"Cells used in C fit           : {np.count_nonzero(fit_mask)}")
     print(f"Grounded area used            : {np.sum(area[fit_mask]):.10e}")
     print()
@@ -548,14 +594,24 @@ def main():
         },
     )
 
+    if args.flow_rate_type == "temperature":
+        flow_rate_long_name = (
+            "Glen flow-rate factor A from Albany's Temperature "
+            "Based Flow Rate Type, evaluated at basal temperature"
+        )
+        albany_flow_rate_type = "Temperature Based"
+    else:
+        flow_rate_long_name = (
+            "Glen flow-rate factor A, constant value supplied by the "
+            "user (Albany Flow Rate Type: Constant)"
+        )
+        albany_flow_rate_type = "Constant"
+
     out[args.flow_rate_field] = xr.DataArray(
         A,
         dims=(ncell_dim,),
         attrs={
-            "long_name": (
-                "Glen flow-rate factor A from Albany's Temperature "
-                "Based Flow Rate Type, evaluated at basal temperature"
-            ),
+            "long_name": flow_rate_long_name,
             "units": "Pa-3 s-1",
         },
     )
@@ -568,7 +624,7 @@ def main():
     out.attrs["regularizedCoulomb_q"] = float(RC_POWER_EXPONENT)
     out.attrs["weertman_q"] = float(args.weertman_q)
     out.attrs["regularizedCoulomb_GlenN"] = float(args.glen_n)
-    out.attrs["regularizedCoulomb_flowRateType"] = "Temperature Based"
+    out.attrs["regularizedCoulomb_flowRateType"] = albany_flow_rate_type
     out.attrs["regularizedCoulomb_minFractionOverburden"] = (
         float(args.min_fraction_overburden)
     )
@@ -585,6 +641,16 @@ def main():
 
     print(f"Wrote converted IC: {args.output}")
 
+    if args.flow_rate_type == "constant":
+        flow_rate_yaml_lines = (
+            f"        Flow Rate Type: Constant\n"
+            f"        Flow Rate: {args.flow_rate:.16e}\n"
+        )
+    else:
+        flow_rate_yaml_lines = (
+            f"        Flow Rate Type: Temperature Based\n"
+        )
+
     print()
     print("Suggested Albany YAML section")
     print("-----------------------------")
@@ -597,7 +663,7 @@ def main():
 
         Coulomb Friction Coefficient: {C:.16e}
         Power Exponent: {RC_POWER_EXPONENT:.16e}
-
+{flow_rate_yaml_lines}
         Effective Pressure:
           Type: From Surface
           Minimum Fraction Overburden Pressure: {args.min_fraction_overburden:.16e}
@@ -610,9 +676,14 @@ def main():
     )
     print(
         "NOTE: Lambda was derived assuming Albany's \"Flow Rate Type\": "
-        "\"Temperature Based\" (in the Viscosity/Flow Rate section of "
-        "the Albany YAML, applied to the basal ice temperature); ensure "
-        "that setting is used at run time, or Lambda will be "
+        f"\"{albany_flow_rate_type}\" (in the Viscosity/Flow Rate section "
+        "of the Albany YAML"
+        + (
+            ", applied to the basal ice temperature"
+            if albany_flow_rate_type == "Temperature Based"
+            else f", with \"Flow Rate\": {args.flow_rate:.16e}"
+        )
+        + "); ensure that setting is used at run time, or Lambda will be "
         "inconsistent with the actual A used by Albany."
     )
 
