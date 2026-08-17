@@ -37,11 +37,19 @@ below) and is not user-configurable.
 
 so Lambda * A * N^n has units of velocity.
 
+The Glen flow-rate factor A is always computed with Albany's
+"Temperature Based" Flow Rate Type (LandIce_FlowRate_Def.hpp), i.e. a
+two-branch Arrhenius law keyed on ice temperature, evaluated using the
+basal-most (last) vertical level of the MALI `temperature` field as an
+approximation of basal temperature. A constant/scalar flow rate is no
+longer supported; the Temperature Based constants below assume a
+Glen's Law n of 3 (see ALBANY_FLOW_RATE_* constants).
+
 All quantities supplied here must use a mutually consistent unit system.
 For typical MALI/Albany configurations:
     velocity : m yr^-1
     N        : check whether the Albany interface expects Pa or kPa
-    A        : consistent with N and yr
+    A        : Pa^-3 s^-1 (Albany's Temperature Based flow rate is SI)
 """
 
 import argparse
@@ -54,6 +62,16 @@ import xarray as xr
 # of 1/3. This is independent of the input Weertman/Power-Law exponent
 # (--weertman-q), which is used only to derive the optimal C.
 RC_POWER_EXPONENT = 1.0 / 3.0
+
+# Albany's "Temperature Based" Flow Rate Type constants, reproduced
+# exactly from LandIce_FlowRate_Def.hpp. These are only valid for a
+# Glen's Law n of 3 (arrmlh/arrmll are in Pa^-3 s^-1).
+ALBANY_FLOW_RATE_ACTENH = 1.39e5      # [J mol-1]
+ALBANY_FLOW_RATE_ACTENL = 6.0e4       # [J mol-1]
+ALBANY_FLOW_RATE_GASCON = 8.314       # [J mol-1 K-1]
+ALBANY_FLOW_RATE_SWITCHING_T = 263.15  # [K]
+ALBANY_FLOW_RATE_ARRMLH = 1.733e3     # [Pa-3 s-1]
+ALBANY_FLOW_RATE_ARRMLL = 3.613e-13   # [Pa-3 s-1]
 
 
 def downs_johnson_effective_pressure(
@@ -112,6 +130,36 @@ def downs_johnson_effective_pressure(
     )
 
     return N
+
+
+def albany_temperature_based_flow_rate(temperature):
+    """
+    Reproduce Albany's "Temperature Based" Flow Rate Type exactly
+    (LandIce_FlowRate_Def.hpp, TEMPERATURE_BASED case):
+
+        A(T) = arrmll * exp(-actenl / (gascon * T))   if T < switchingT
+        A(T) = arrmlh * exp(-actenh / (gascon * T))   otherwise
+
+    Parameters
+    ----------
+    temperature : ndarray
+        Ice temperature [K]. Only valid for a Glen's Law n of 3.
+
+    Returns
+    -------
+    A : ndarray
+        Glen flow-rate factor [Pa^-3 s^-1].
+    """
+    T = np.asarray(temperature, dtype=np.float64)
+
+    A_low = ALBANY_FLOW_RATE_ARRMLL * np.exp(
+        -ALBANY_FLOW_RATE_ACTENL / (ALBANY_FLOW_RATE_GASCON * T)
+    )
+    A_high = ALBANY_FLOW_RATE_ARRMLH * np.exp(
+        -ALBANY_FLOW_RATE_ACTENH / (ALBANY_FLOW_RATE_GASCON * T)
+    )
+
+    return np.where(T < ALBANY_FLOW_RATE_SWITCHING_T, A_low, A_high)
 
 
 def area_weighted_optimal_C(mu, N, area, uc, q, mask):
@@ -188,21 +236,28 @@ def main():
     parser.add_argument("--rho-water", type=float, default=1028.0)
     parser.add_argument("--gravity", type=float, default=9.80616)
 
-    # Needed for Lambda = uc / (A N^n)
+    # Needed for Lambda = uc / (A N^n); A is always computed via
+    # Albany's Temperature Based Flow Rate Type.
     parser.add_argument(
-        "--flow-rate",
-        type=float,
-        required=True,
+        "--temperature-field",
+        default="temperature",
         help=(
-            "Constant Glen flow rate A, in units consistent with "
-            "critical velocity and effective pressure"
+            "MALI ice temperature field [K] (default: temperature). "
+            "Used to compute the Glen flow rate A via Albany's "
+            "Temperature Based Flow Rate Type. If the field has a "
+            "nVertLevels dimension, the last (basal-most) level is "
+            "used as an approximation of basal temperature."
         )
     )
     parser.add_argument(
         "--glen-n",
         type=float,
         default=3.0,
-        help="Glen-law exponent n (default: 3)"
+        help=(
+            "Glen-law exponent n (default: 3). Albany's Temperature "
+            "Based Flow Rate Type constants are only valid for n=3; "
+            "a warning is issued if a different value is used."
+        )
     )
 
     # MALI field names
@@ -237,6 +292,11 @@ def main():
         default="effectivePressure",
         help="Name for diagnostic N field"
     )
+    parser.add_argument(
+        "--flow-rate-field",
+        default="flowRateA",
+        help="Name for diagnostic Glen flow-rate A field"
+    )
 
     parser.add_argument(
         "--time-index",
@@ -246,6 +306,15 @@ def main():
     )
 
     args = parser.parse_args()
+
+    if args.glen_n != 3.0:
+        print(
+            "WARNING: Albany's Temperature Based Flow Rate Type "
+            "constants (arrmlh/arrmll) are only valid for a Glen's "
+            f"Law n of 3; --glen-n was set to {args.glen_n:g}. The "
+            "computed flow rate A will be physically inconsistent "
+            "with this exponent."
+        )
 
     # -------------------------------------------------------------
     # Read IC
@@ -257,6 +326,7 @@ def main():
         args.thickness_field,
         args.bed_field,
         args.area_field,
+        args.temperature_field,
     ]
 
     missing = [name for name in required if name not in ds]
@@ -282,10 +352,42 @@ def main():
 
         return values.astype(np.float64)
 
+    def basal_cell_field(name):
+        """
+        Extract nCells field from a (Time, nCells, nVertLevels) or
+        (nCells, nVertLevels) field, taking the last vertical level as
+        an approximation of the basal-most value.
+        """
+        da = ds[name]
+
+        if "Time" in da.dims:
+            da = da.isel(Time=args.time_index)
+
+        vert_dims = [d for d in da.dims if d.lower().startswith("nvertlevel")]
+        if vert_dims:
+            da = da.isel({vert_dims[0]: -1})
+
+        values = np.asarray(da.values).squeeze()
+
+        if values.ndim != 1:
+            raise ValueError(
+                f"{name} must reduce to a 1-D nCells field; "
+                f"got shape {values.shape}"
+            )
+
+        return values.astype(np.float64)
+
     mu = cell_field(args.mu_field)
     H = cell_field(args.thickness_field)
     bed = cell_field(args.bed_field)
     area = cell_field(args.area_field)
+    basal_temperature = basal_cell_field(args.temperature_field)
+
+    # -------------------------------------------------------------
+    # Glen flow-rate factor A, via Albany's Temperature Based Flow
+    # Rate Type, using basal temperature as an approximation.
+    # -------------------------------------------------------------
+    A = albany_temperature_based_flow_rate(basal_temperature)
 
     # -------------------------------------------------------------
     # Effective pressure
@@ -333,7 +435,7 @@ def main():
 
     Lambda[lambda_mask] = (
         args.critical_velocity
-        / (args.flow_rate * N[lambda_mask] ** args.glen_n)
+        / (A[lambda_mask] * N[lambda_mask] ** args.glen_n)
     )
 
     # Floating/ice-free cells are deliberately zero.
@@ -357,7 +459,15 @@ def main():
     print(f"Weertman power exponent, qW   : {args.weertman_q:g}")
     print(f"RC power exponent, qR         : {RC_POWER_EXPONENT:g}")
     print(f"Glen exponent, n              : {args.glen_n:g}")
-    print(f"Flow rate, A                  : {args.flow_rate:.10e}")
+    print(
+        "Flow rate A (Temperature Based) : "
+        f"{np.min(A):.10e} -- {np.max(A):.10e}"
+    )
+    print(
+        "Basal temperature range        : "
+        f"{np.min(basal_temperature):.6f} -- "
+        f"{np.max(basal_temperature):.6f} K"
+    )
     print(f"Cells used in C fit           : {np.count_nonzero(fit_mask)}")
     print(f"Grounded area used            : {np.sum(area[fit_mask]):.10e}")
     print()
@@ -430,6 +540,18 @@ def main():
         },
     )
 
+    out[args.flow_rate_field] = xr.DataArray(
+        A,
+        dims=(ncell_dim,),
+        attrs={
+            "long_name": (
+                "Glen flow-rate factor A from Albany's Temperature "
+                "Based Flow Rate Type, evaluated at basal temperature"
+            ),
+            "units": "Pa-3 s-1",
+        },
+    )
+
     # Save conversion information globally.
     out.attrs["regularizedCoulomb_C"] = float(C)
     out.attrs["regularizedCoulomb_criticalVelocity"] = (
@@ -438,7 +560,7 @@ def main():
     out.attrs["regularizedCoulomb_q"] = float(RC_POWER_EXPONENT)
     out.attrs["weertman_q"] = float(args.weertman_q)
     out.attrs["regularizedCoulomb_GlenN"] = float(args.glen_n)
-    out.attrs["regularizedCoulomb_flowRate"] = float(args.flow_rate)
+    out.attrs["regularizedCoulomb_flowRateType"] = "Temperature Based"
     out.attrs["regularizedCoulomb_minFractionOverburden"] = (
         float(args.min_fraction_overburden)
     )
@@ -477,6 +599,13 @@ def main():
           Type: Field
           Field Name: {args.lambda_field}
     """
+    )
+    print(
+        "NOTE: Lambda was derived assuming Albany's \"Flow Rate Type\": "
+        "\"Temperature Based\" (in the Viscosity/Flow Rate section of "
+        "the Albany YAML, applied to the basal ice temperature); ensure "
+        "that setting is used at run time, or Lambda will be "
+        "inconsistent with the actual A used by Albany."
     )
 
 
