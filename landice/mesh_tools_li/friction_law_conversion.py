@@ -427,7 +427,30 @@ def main():
     shutil.move(tmp, args.output)
 
     print(f"Wrote converted IC: {args.output}")
-    print(f"Use C = {C:.16e} in the Albany RC configuration.")
+
+    print()
+    print("Suggested Albany YAML section")
+    print("-----------------------------")
+    print(
+    f"""
+    LandIce BCs:
+      Basal Friction Coefficient:
+        Type: Regularized Coulomb
+        Given Constant Beta: false
+
+        Coulomb Friction Coefficient: {C:.16e}
+        Power Exponent: {args.q:.16e}
+
+        Effective Pressure:
+          Type: From Surface
+          Minimum Fraction Overburden Pressure: {args.min_fraction_overburden:.16e}
+          Length Scale Factor: {args.pressure_length_scale:.16e}
+
+        Bed Roughness:
+          Type: Field
+          Field Name: {args.lambda_field}
+    """
+    )
 
 
 if __name__ == "__main__":
