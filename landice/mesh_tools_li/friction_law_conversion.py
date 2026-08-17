@@ -284,8 +284,11 @@ def main():
 
     parser.add_argument(
         "--lambda-field",
-        default="Lambda",
-        help="Name for output bed-roughness field (default: Lambda)"
+        default="bedRoughnessRC",
+        help=(
+            "Name for output Regularized Coulomb bed-roughness field "
+            "(default: bedRoughnessRC)"
+        )
     )
     parser.add_argument(
         "--effective-pressure-field",
@@ -521,6 +524,11 @@ def main():
     # For very large production files, netCDF4.Dataset can instead be
     # used to modify the copied file in-place.
     out = xr.open_dataset(args.output).load()
+
+    # The Weertman muFriction field is not used by the Regularized
+    # Coulomb law; drop it from the converted IC.
+    if args.mu_field in out:
+        out = out.drop_vars(args.mu_field)
 
     out[args.lambda_field] = xr.DataArray(
         Lambda,
