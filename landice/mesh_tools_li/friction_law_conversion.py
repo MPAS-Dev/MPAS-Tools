@@ -67,6 +67,28 @@ import xarray as xr
 # (--weertman-q), which is used only to derive the optimal C.
 RC_POWER_EXPONENT = 1.0 / 3.0
 
+# Seconds per year, matching Albany's own hardcoded conversion factor
+# exactly (LandIce_BasalFrictionCoefficient_Def.hpp: "secsInYr = 365 *
+# 24 * 3600"). Albany's Regularized Coulomb evaluator computes the
+# Glen flow rate A in SI units (Pa^-3 s^-1, per second) but solves for
+# velocity in m/yr; this factor converts between the two so that a
+# critical velocity supplied in m/yr and a flow rate in Pa^-3 s^-1
+# combine correctly when deriving Lambda (bedRoughnessRC).
+SECONDS_PER_YEAR = 365.0 * 24.0 * 3600.0
+
+# Albany's internal effective pressure representation (used e.g. by
+# its "Hydrostatic" Effective Pressure Type) is computed from bed/
+# thickness fields that MALI's coupling interface has already divided
+# by 1000 (m -> km) before Albany ever sees them
+# (Interface_velocity_solver.cpp: "unit_length = 1000"). Combined with
+# SI density/gravity, this makes Albany's internal effective-pressure
+# number equal to the physical pressure in Pa divided by 1000 (i.e.
+# numerically "kPa", matching Albany's own documentation: "Effective
+# Pressure [kPa]"). C must be derived against this same kPa-scaled N
+# so that it is dimensionally consistent with Albany's own
+# "beta = C * N * |u|^(q-1)" evaluation at runtime.
+ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT = 1000.0
+
 # Albany's "Temperature Based" Flow Rate Type constants, reproduced
 # exactly from LandIce_FlowRate_Def.hpp. These are only valid for a
 # Glen's Law n of 3 (arrmlh/arrmll are in Pa^-3 s^-1).
@@ -172,6 +194,13 @@ def area_weighted_optimal_C(mu, N, area, uc, q, mask):
 
     `q` here is the input Weertman/Power-Law exponent (qW), not the
     Regularized Coulomb exponent.
+
+    IMPORTANT: `N` must already be expressed in the same units Albany
+    will actually use at runtime for its own internal effective
+    pressure (numerically equal to physical Pa / 1000, i.e. "kPa";
+    see ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT), not raw SI Pascals.
+    Passing raw-Pa N here would make C inconsistent with how Albany
+    multiplies C against its own internal N at runtime.
     """
     valid = (
         mask
@@ -452,6 +481,15 @@ def main():
         gravity=args.gravity,
     )
 
+    # Albany's own internal effective pressure (e.g. "Hydrostatic"
+    # Effective Pressure Type) is computed from bed/thickness fields
+    # that MALI's coupling interface has already divided by 1000 (m ->
+    # km) before Albany sees them, which numerically makes Albany's
+    # internal N equal to physical N[Pa] / 1000. C must be derived
+    # against this same scale for consistency with Albany's own
+    # "beta = C * N * |u|^(q-1)" evaluation.
+    N_albany = N / ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
+
     # Grounded-ice test used by Albany:
     #
     #     rho_i H + rho_w b > 0
@@ -467,7 +505,7 @@ def main():
     # -------------------------------------------------------------
     C, fit_mask = area_weighted_optimal_C(
         mu=mu,
-        N=N,
+        N=N_albany,
         area=area,
         uc=args.critical_velocity,
         q=args.weertman_q,
@@ -477,7 +515,16 @@ def main():
     # -------------------------------------------------------------
     # Lambda / Albany Bed Roughness
     #
-    # uc = Lambda * A * N^n
+    # uc[m/yr] = Lambda[m] * A[Pa^-3 s^-1] * N[Pa]^n * SECONDS_PER_YEAR
+    #
+    # Note N here (unlike in the C calculation above) is used in raw
+    # Pa: Albany's own hardcoded "scaling" factor in
+    # LandIce_BasalFrictionCoefficient_Def.hpp already accounts for
+    # its internal km/kPa nondimensionalization once Lambda is
+    # expressed in physical meters and N in physical Pa, so long as
+    # the SECONDS_PER_YEAR factor below is included to convert the
+    # per-second Glen flow rate A to match a critical velocity given
+    # in m/yr.
     # -------------------------------------------------------------
     Lambda = np.zeros_like(N)
 
@@ -485,7 +532,7 @@ def main():
 
     Lambda[lambda_mask] = (
         args.critical_velocity
-        / (A[lambda_mask] * N[lambda_mask] ** args.glen_n)
+        / (SECONDS_PER_YEAR * A[lambda_mask] * N[lambda_mask] ** args.glen_n)
     )
 
     # Floating/ice-free cells are deliberately zero.
@@ -498,7 +545,7 @@ def main():
     local_C[fit_mask] = (
         args.critical_velocity ** args.weertman_q
         * mu[fit_mask]
-        / N[fit_mask]
+        / N_albany[fit_mask]
     )
 
     print()
@@ -581,7 +628,12 @@ def main():
         dims=(ncell_dim,),
         attrs={
             "long_name": "Albany regularized-Coulomb bed roughness Lambda",
-            "description": "Lambda = u_c / (A N^n)",
+            "description": (
+                "Lambda = u_c / (SECONDS_PER_YEAR * A * N^n), with u_c "
+                "in m/yr, A in Pa^-3 s^-1, N in Pa, matching Albany's "
+                "internal secsInYr scaling in "
+                "LandIce_BasalFrictionCoefficient_Def.hpp"
+            ),
         },
     )
 
@@ -665,9 +717,10 @@ def main():
         Power Exponent: {RC_POWER_EXPONENT:.16e}
 {flow_rate_yaml_lines}
         Effective Pressure:
-          Type: From Surface
+          Type: Hydrostatic
+          Use Pressurized Bed Above Sea Level: true
           Minimum Fraction Overburden Pressure: {args.min_fraction_overburden:.16e}
-          Length Scale Factor: {args.pressure_length_scale:.16e}
+          Length Scale Factor: {args.pressure_length_scale / 1000.0:.16e}
 
         Bed Roughness:
           Type: Field
