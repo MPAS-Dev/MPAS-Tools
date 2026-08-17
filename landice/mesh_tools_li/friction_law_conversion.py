@@ -8,7 +8,7 @@ Computes
 1. Downs & Johnson-style effective pressure N
 2. Area-weighted optimal scalar C:
 
-       C = integral[ uc**q * mu / N dA ] / integral[dA]
+       C = integral[ uc**qW * mu / N dA ] / integral[dA]
 
 3. Albany bed-roughness/Lambda field:
 
@@ -19,10 +19,21 @@ The output is a copy of the input MALI initial-condition file with
 
 Notes
 -----
-Albany's RC law is
+The input Weertman/Power-Law friction law is
 
-    beta = C * N * |u|^(q-1) /
-           (|u| + Lambda * A * N^n)^q
+    beta = mu * N * |u|^(qW-1)
+
+with its own "Power Exponent" qW (the exponent MALI's `muFriction`
+field was calibrated with). Albany's RC law is
+
+    beta = C * N * |u|^(qR-1) /
+           (|u| + Lambda * A * N^n)^qR
+
+with its own, independent, "Power Exponent" qR. qW and qR need not
+match: qW describes the input Weertman law used to derive C, while
+qR is the exponent Albany will actually use for the RC law. Per
+project convention, qR is always fixed at 1/3 (see RC_POWER_EXPONENT
+below) and is not user-configurable.
 
 so Lambda * A * N^n has units of velocity.
 
@@ -38,6 +49,11 @@ import shutil
 
 import numpy as np
 import xarray as xr
+
+# Albany's Regularized Coulomb law always uses a fixed Power Exponent
+# of 1/3. This is independent of the input Weertman/Power-Law exponent
+# (--weertman-q), which is used only to derive the optimal C.
+RC_POWER_EXPONENT = 1.0 / 3.0
 
 
 def downs_johnson_effective_pressure(
@@ -101,6 +117,9 @@ def downs_johnson_effective_pressure(
 def area_weighted_optimal_C(mu, N, area, uc, q, mask):
     """
     C = integral(uc^q * mu / N dA) / integral(dA)
+
+    `q` here is the input Weertman/Power-Law exponent (qW), not the
+    Regularized Coulomb exponent.
     """
     valid = (
         mask
@@ -136,10 +155,16 @@ def main():
         help="Critical velocity u_c, e.g. in m/yr"
     )
     parser.add_argument(
-        "--q",
+        "--weertman-q", "--q",
+        dest="weertman_q",
         type=float,
         default=0.2,
-        help="Sliding-law exponent q (default: 0.2)"
+        help=(
+            "Input Weertman/Power-Law sliding exponent qW, used to "
+            "derive the optimal C (default: 0.2). This is independent "
+            "of the Regularized Coulomb law's Power Exponent, which is "
+            f"always {RC_POWER_EXPONENT:g} (see RC_POWER_EXPONENT)."
+        )
     )
 
     # Downs & Johnson / Albany parameters
@@ -293,7 +318,7 @@ def main():
         N=N,
         area=area,
         uc=args.critical_velocity,
-        q=args.q,
+        q=args.weertman_q,
         mask=grounded,
     )
 
@@ -319,7 +344,7 @@ def main():
     # -------------------------------------------------------------
     local_C = np.full_like(N, np.nan)
     local_C[fit_mask] = (
-        args.critical_velocity ** args.q
+        args.critical_velocity ** args.weertman_q
         * mu[fit_mask]
         / N[fit_mask]
     )
@@ -329,7 +354,8 @@ def main():
     print("------------------------------------------------")
     print(f"Input file                    : {args.input}")
     print(f"Critical velocity, uc         : {args.critical_velocity:g}")
-    print(f"Power exponent, q             : {args.q:g}")
+    print(f"Weertman power exponent, qW   : {args.weertman_q:g}")
+    print(f"RC power exponent, qR         : {RC_POWER_EXPONENT:g}")
     print(f"Glen exponent, n              : {args.glen_n:g}")
     print(f"Flow rate, A                  : {args.flow_rate:.10e}")
     print(f"Cells used in C fit           : {np.count_nonzero(fit_mask)}")
@@ -409,7 +435,8 @@ def main():
     out.attrs["regularizedCoulomb_criticalVelocity"] = (
         float(args.critical_velocity)
     )
-    out.attrs["regularizedCoulomb_q"] = float(args.q)
+    out.attrs["regularizedCoulomb_q"] = float(RC_POWER_EXPONENT)
+    out.attrs["weertman_q"] = float(args.weertman_q)
     out.attrs["regularizedCoulomb_GlenN"] = float(args.glen_n)
     out.attrs["regularizedCoulomb_flowRate"] = float(args.flow_rate)
     out.attrs["regularizedCoulomb_minFractionOverburden"] = (
@@ -439,7 +466,7 @@ def main():
         Given Constant Beta: false
 
         Coulomb Friction Coefficient: {C:.16e}
-        Power Exponent: {args.q:.16e}
+        Power Exponent: {RC_POWER_EXPONENT:.16e}
 
         Effective Pressure:
           Type: From Surface
