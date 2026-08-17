@@ -711,20 +711,14 @@ def main():
     LandIce BCs:
       Basal Friction Coefficient:
         Type: Regularized Coulomb
-        Given Constant Beta: false
-
         Coulomb Friction Coefficient: {C:.16e}
         Power Exponent: {RC_POWER_EXPONENT:.16e}
 {flow_rate_yaml_lines}
-        Effective Pressure:
-          Type: Hydrostatic
-          Use Pressurized Bed Above Sea Level: true
-          Minimum Fraction Overburden Pressure: {args.min_fraction_overburden:.16e}
-          Length Scale Factor: {args.pressure_length_scale / 1000.0:.16e}
-
-        Bed Roughness:
-          Type: Field
-          Field Name: {args.lambda_field}
+        Bed Roughness Type: Field
+        Effective Pressure Type: Hydrostatic At Nodes
+        Use Pressurized Bed Above Sea Level: true
+        Minimum Fraction Overburden Pressure: {args.min_fraction_overburden:.16e}
+        Length Scale Factor: {args.pressure_length_scale / 1000.0:.16e}
     """
     )
     print(
