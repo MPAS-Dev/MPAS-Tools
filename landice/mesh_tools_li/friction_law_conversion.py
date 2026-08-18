@@ -342,6 +342,22 @@ def main():
         default="areaCell",
         help="MPAS cell area field (default: areaCell)"
     )
+    parser.add_argument(
+        "--velocity-x-field",
+        default="uReconstructX",
+        help=(
+            "MALI x-velocity field [m s^-1] (default: uReconstructX). "
+            "Used, together with --velocity-y-field, to compute the "
+            "basal sliding speed (last nVertInterfaces level) that "
+            "Lambda is solved against. Units are assumed m/s, matching "
+            "standard MALI output/restart files."
+        )
+    )
+    parser.add_argument(
+        "--velocity-y-field",
+        default="uReconstructY",
+        help="MALI y-velocity field [m s^-1] (default: uReconstructY)"
+    )
 
     parser.add_argument(
         "--lambda-field",
@@ -401,6 +417,8 @@ def main():
         args.thickness_field,
         args.bed_field,
         args.area_field,
+        args.velocity_x_field,
+        args.velocity_y_field,
     ]
     if args.flow_rate_type == "temperature":
         required.append(args.temperature_field)
@@ -430,16 +448,17 @@ def main():
 
     def basal_cell_field(name):
         """
-        Extract nCells field from a (Time, nCells, nVertLevels) or
-        (nCells, nVertLevels) field, taking the last vertical level as
-        an approximation of the basal-most value.
+        Extract nCells field from a (Time, nCells, nVertLevels),
+        (Time, nCells, nVertInterfaces), (nCells, nVertLevels), or
+        (nCells, nVertInterfaces) field, taking the last vertical
+        level/interface as an approximation of the basal-most value.
         """
         da = ds[name]
 
         if "Time" in da.dims:
             da = da.isel(Time=args.time_index)
 
-        vert_dims = [d for d in da.dims if d.lower().startswith("nvertlevel")]
+        vert_dims = [d for d in da.dims if d.lower().startswith("nvert")]
         if vert_dims:
             da = da.isel({vert_dims[0]: -1})
 
@@ -457,6 +476,21 @@ def main():
     H = cell_field(args.thickness_field)
     bed = cell_field(args.bed_field)
     area = cell_field(args.area_field)
+
+    # -------------------------------------------------------------
+    # Basal sliding speed, from the input file's basal-most
+    # (last nVertInterfaces level) horizontal velocity components.
+    # This is the *actual* current sliding speed used to solve the
+    # Regularized Coulomb law for Lambda below (as opposed to an
+    # assumed critical velocity).
+    # -------------------------------------------------------------
+    uX = basal_cell_field(args.velocity_x_field)
+    uY = basal_cell_field(args.velocity_y_field)
+    # Convert from m/s (standard MALI units) to m/yr, matching
+    # Albany's internal u_norm convention (see
+    # LandIce_BasalFrictionCoefficient_Def.hpp: "Sliding Velocity
+    # Regularization [m yr^-1]").
+    speed = np.sqrt(uX ** 2 + uY ** 2) * SECONDS_PER_YEAR
 
     # -------------------------------------------------------------
     # Glen flow-rate factor A.
@@ -515,28 +549,91 @@ def main():
     # -------------------------------------------------------------
     # Lambda / Albany Bed Roughness
     #
-    # uc[m/yr] = Lambda[m] * A[Pa^-3 s^-1] * N[Pa]^n * SECONDS_PER_YEAR
+    # Rather than assuming the sliding speed equals a prescribed
+    # critical velocity, Lambda is now solved for exactly, per cell,
+    # by requiring that Albany's Regularized Coulomb law reproduce
+    # the *same basal shear stress* Tau_b that the original
+    # Weertman/Power-Law would produce at the cell's actual current
+    # sliding speed (from --velocity-x-field/--velocity-y-field).
     #
-    # Note N here (unlike in the C calculation above) is used in raw
-    # Pa: Albany's own hardcoded "scaling" factor in
-    # LandIce_BasalFrictionCoefficient_Def.hpp already accounts for
-    # its internal km/kPa nondimensionalization once Lambda is
-    # expressed in physical meters and N in physical Pa, so long as
-    # the SECONDS_PER_YEAR factor below is included to convert the
-    # per-second Glen flow rate A to match a critical velocity given
-    # in m/yr.
+    # NOTE: MALI's Weertman sliding law (which muFriction was
+    # calibrated for) has NO effective pressure term:
+    #
+    #   Weertman:            beta_W  = mu * u^(qW-1)
+    #                        Tau_b   = beta_W * u = mu * u^qW
+    #
+    #   Regularized Coulomb (LandIce_BasalFrictionCoefficient_Def.hpp):
+    #                        beta_RC = C * N * u^(p-1)
+    #                                  / (u + Lambda*scaling*A*N^n)^p
+    #                        Tau_b   = beta_RC * u
+    #                                = C * N * u^p
+    #                                  / (u + Lambda*scaling*A*N^n)^p
+    #
+    #   Setting Tau_b_RC == Tau_b_W and solving for Lambda:
+    #
+    #     u + Lambda*scaling*A*N^n = u * (C*N / Tau_b_W)^(1/p)
+    #                              = u * (C*N / (mu * u^qW))^(1/p)
+    #
+    #     Lambda = u * [(C*N / (mu * u^qW))^(1/p) - 1]
+    #              / (SECONDS_PER_YEAR * A * N^n)
+    #
+    # This is exactly the same premise used by area_weighted_optimal_C
+    # above (which likewise assumes Tau_b_W = mu * uc^qW with no N
+    # term, matched against the RC Coulomb limit C*N).
+    #
+    # where u is in m/yr, A is in Pa^-3 s^-1, N (raw Pa) is used here
+    # exactly as in the previous uc-based derivation (Albany's
+    # internal km/kPa/yr "scaling" factor reduces to the plain
+    # SECONDS_PER_YEAR factor once Lambda is expressed in meters and N
+    # in Pa). N_albany (the kPa-equivalent convention) is used for the
+    # "C*N" Coulomb-limit term, matching how C was itself fit.
+    #
+    # Because Albany's Regularized Coulomb law can never produce a
+    # shear stress above the Coulomb limit C*N (attained only in the
+    # Lambda -> 0 limit), cells where the Weertman law's Tau_b at the
+    # current speed already meets or exceeds C*N have no valid
+    # (non-negative) solution for Lambda; these are set to 0 (maximal
+    # Coulomb sliding) and reported below.
     # -------------------------------------------------------------
     Lambda = np.zeros_like(N)
 
-    lambda_mask = grounded & np.isfinite(N) & (N > 0.0)
+    valid_speed = (
+        grounded
+        & np.isfinite(N) & (N > 0.0)
+        & np.isfinite(mu) & (mu > 0.0)
+        & np.isfinite(speed) & (speed > 0.0)
+    )
+
+    tau_b_weertman = np.full_like(N, np.nan)
+    tau_b_weertman[valid_speed] = (
+        mu[valid_speed] * speed[valid_speed] ** args.weertman_q
+    )
+
+    stress_ratio = np.full_like(N, np.nan)
+    stress_ratio[valid_speed] = (
+        (C * N_albany[valid_speed]) / tau_b_weertman[valid_speed]
+    )
+
+    lambda_mask = valid_speed & np.isfinite(stress_ratio) & (stress_ratio > 1.0)
 
     Lambda[lambda_mask] = (
-        args.critical_velocity
+        speed[lambda_mask]
+        * (stress_ratio[lambda_mask] ** (1.0 / RC_POWER_EXPONENT) - 1.0)
         / (SECONDS_PER_YEAR * A[lambda_mask] * N[lambda_mask] ** args.glen_n)
     )
 
-    # Floating/ice-free cells are deliberately zero.
-    Lambda[~lambda_mask] = 0.0
+    n_unreachable = int(np.count_nonzero(valid_speed & ~lambda_mask))
+    if n_unreachable > 0:
+        print(
+            f"WARNING: {n_unreachable} grounded cells have a Weertman "
+            "basal shear stress (mu*u^qW) at the current sliding "
+            "speed that meets or exceeds the Coulomb limit C*N; "
+            "Lambda set to 0.0 (maximal Coulomb sliding) at these "
+            "cells."
+        )
+
+    # Floating/ice-free/invalid-speed/unreachable-stress cells are
+    # deliberately left at zero (see Lambda initialization above).
 
     # -------------------------------------------------------------
     # Diagnostics
@@ -575,9 +672,24 @@ def main():
         f"{np.nanmax(N[fit_mask]):.6e}"
     )
     print(
+        "Basal sliding speed range     : "
+        + (
+            f"{np.nanmin(speed[valid_speed]):.6e} -- "
+            f"{np.nanmax(speed[valid_speed]):.6e} m/yr"
+            if np.any(valid_speed) else "n/a (no valid cells)"
+        )
+    )
+    print(
+        f"Cells with valid Lambda solve  : {int(np.count_nonzero(lambda_mask))} "
+        f"/ {int(np.count_nonzero(grounded))} grounded"
+    )
+    print(
         "Lambda range grounded        : "
-        f"{np.nanmin(Lambda[lambda_mask]):.6e} -- "
-        f"{np.nanmax(Lambda[lambda_mask]):.6e}"
+        + (
+            f"{np.nanmin(Lambda[lambda_mask]):.6e} -- "
+            f"{np.nanmax(Lambda[lambda_mask]):.6e}"
+            if np.any(lambda_mask) else "n/a (no valid cells)"
+        )
     )
     print(
         "Local C range                : "
@@ -629,9 +741,14 @@ def main():
         attrs={
             "long_name": "Albany regularized-Coulomb bed roughness Lambda",
             "description": (
-                "Lambda = u_c / (SECONDS_PER_YEAR * A * N^n), with u_c "
-                "in m/yr, A in Pa^-3 s^-1, N in Pa, matching Albany's "
-                "internal secsInYr scaling in "
+                "Lambda solved exactly so that the Regularized Coulomb "
+                "law reproduces the Weertman law's basal shear stress "
+                "(mu*u^qW, no effective-pressure term) at the cell's "
+                "actual current sliding speed u (from velocity-x/y-"
+                "field, last nVertInterfaces level): Lambda = u * "
+                "[(C*N/(mu*u^qW))^(1/qR) - 1] / (SECONDS_PER_YEAR * A "
+                "* N^n), with u in m/yr, A in Pa^-3 s^-1, N in Pa, "
+                "matching Albany's internal secsInYr scaling in "
                 "LandIce_BasalFrictionCoefficient_Def.hpp"
             ),
         },
