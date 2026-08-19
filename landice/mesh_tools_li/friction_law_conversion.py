@@ -198,19 +198,23 @@ def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
 
         Tau_b_RC = C * N
 
-    C is chosen to be the area-weighted least-squares best fit of this
-    relation against the Weertman law's basal shear stress at the
-    cell's actual current sliding speed,
+    C is chosen to be the area-weighted mean, over the fast-flowing
+    region, of the per-cell "local C" implied by that relation against
+    the Weertman law's basal shear stress at the cell's actual current
+    sliding speed,
 
         Tau_b_Weertman = mu * speed^qW
 
     (no effective-pressure term -- MALI's Weertman sliding law has
     none; muFriction was calibrated against this convention).
 
-    Minimizing sum_i area_i * (C * N_i - Tau_b_Weertman_i)^2 over C
-    gives the normal-equations solution
+        local_C = Tau_b_Weertman / N
 
-        C = sum(area * N * Tau_b_Weertman) / sum(area * N^2)
+        C = sum(area * local_C) / sum(area)
+
+    A straight area-weighted mean is used (rather than an N^2-weighted
+    least-squares fit through the origin) so that a small number of
+    high-N, high-leverage cells cannot dominate the result.
 
     `q` here is the input Weertman/Power-Law exponent (qW), not the
     Regularized Coulomb exponent.
@@ -240,11 +244,9 @@ def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
         )
 
     tau_b_weertman = mu[valid] * speed[valid] ** q
+    local_C = tau_b_weertman / N[valid]
 
-    numerator = np.sum(area[valid] * N[valid] * tau_b_weertman)
-    denominator = np.sum(area[valid] * N[valid] ** 2)
-
-    C = numerator / denominator
+    C = np.sum(area[valid] * local_C) / np.sum(area[valid])
 
     return C, valid
 
@@ -279,6 +281,25 @@ def main():
             "derive the optimal C (default: 0.2). This is independent "
             "of the Regularized Coulomb law's Power Exponent, which is "
             f"always {RC_POWER_EXPONENT:g} (see RC_POWER_EXPONENT)."
+        )
+    )
+
+    parser.add_argument(
+        "--lambda-reference-value",
+        type=float,
+        default=0.0,
+        help=(
+            "Value assigned to bedRoughnessRC (Lambda) at cells "
+            "assumed to be in the full-Coulomb regime: all "
+            "fast-flowing cells (speed > critical velocity, the same "
+            "region used to fit C), plus any other grounded cell "
+            "where the exact per-cell Lambda solve is ill-defined "
+            "(Weertman Tau_b already meets or exceeds the Coulomb "
+            "limit C*N). Lambda -> 0 exactly reproduces the "
+            "full-Coulomb limit, so 0.0 (default) is physically "
+            "correct; a small positive reference value can be used "
+            "instead if a strictly-zero bed roughness is undesirable "
+            "for other reasons (default: 0.0)."
         )
     )
 
@@ -628,14 +649,28 @@ def main():
     # (non-negative) solution for Lambda. Physically, Lambda -> 0 is
     # *exactly* the fully-plastic Coulomb regime (Tau_b_RC saturates
     # at its maximum achievable value, C*N, independent of speed), so
-    # setting Lambda = 0 at these cells is not an arbitrary filler
-    # value -- it is the correct behavior for cells that the fast-
-    # flowing/full-Coulomb assumption used to fit C was designed to
-    # describe in the first place. These cells are reported below.
+    # setting Lambda = args.lambda_reference_value at these cells is
+    # not an arbitrary filler value -- it is the correct behavior for
+    # cells that the fast-flowing/full-Coulomb assumption is designed
+    # to describe in the first place.
+    #
+    # Fast-flowing cells (the same region used to fit C, i.e.
+    # speed > critical_velocity) are *always* assumed to be in this
+    # full-Coulomb regime and are therefore always forced to
+    # Lambda = args.lambda_reference_value, regardless of what the
+    # per-cell algebraic solve above would otherwise give -- the exact
+    # per-cell solve is not attempted there at all, since matching the
+    # Weertman law exactly at high speed is not the goal (the fast
+    # region is assumed C-limited by construction).
     # -------------------------------------------------------------
-    Lambda = np.zeros_like(N)
+    Lambda = np.full_like(N, args.lambda_reference_value)
 
-    valid_speed = (
+    # tau_b_weertman/local_C are computed over all grounded cells with
+    # a well-defined speed and mu (independent of the fast/slow split)
+    # so that diagnostics (local_C) remain meaningful for the
+    # fast-flowing fit region even though the exact Lambda solve below
+    # is only attempted for the slow-flowing cells.
+    speed_defined = (
         grounded
         & np.isfinite(N) & (N > 0.0)
         & np.isfinite(mu) & (mu > 0.0)
@@ -643,9 +678,11 @@ def main():
     )
 
     tau_b_weertman = np.full_like(N, np.nan)
-    tau_b_weertman[valid_speed] = (
-        mu[valid_speed] * speed[valid_speed] ** args.weertman_q
+    tau_b_weertman[speed_defined] = (
+        mu[speed_defined] * speed[speed_defined] ** args.weertman_q
     )
+
+    valid_speed = speed_defined & ~fast_flowing
 
     stress_ratio = np.full_like(N, np.nan)
     stress_ratio[valid_speed] = (
@@ -663,12 +700,17 @@ def main():
     n_unreachable = int(np.count_nonzero(valid_speed & ~lambda_mask))
     if n_unreachable > 0:
         print(
-            f"NOTE: {n_unreachable} grounded cells have a Weertman "
-            "basal shear stress (mu*u^qW) at the current sliding "
-            "speed that meets or exceeds the Coulomb limit C*N; "
-            "Lambda set to 0.0 (maximal Coulomb sliding) at these "
-            "cells."
+            f"NOTE: {n_unreachable} slow-flowing grounded cells have a "
+            "Weertman basal shear stress (mu*u^qW) at the current "
+            "sliding speed that meets or exceeds the Coulomb limit "
+            f"C*N; Lambda set to {args.lambda_reference_value:g} "
+            "(maximal Coulomb sliding) at these cells."
         )
+    print(
+        f"Fast-flowing cells forced to Lambda = "
+        f"{args.lambda_reference_value:g} (full-Coulomb assumption) : "
+        f"{int(np.count_nonzero(fast_flowing))}"
+    )
 
     # Floating/ice-free/invalid-speed/unreachable-stress cells are
     # deliberately left at zero (see Lambda initialization above).
@@ -683,8 +725,8 @@ def main():
     # region gives a sense of how well a single scalar C fits that
     # region.
     local_C = np.full_like(N, np.nan)
-    local_C[valid_speed] = (
-        tau_b_weertman[valid_speed] / N_albany[valid_speed]
+    local_C[speed_defined] = (
+        tau_b_weertman[speed_defined] / N_albany[speed_defined]
     )
 
     print()
@@ -717,11 +759,11 @@ def main():
         f"{np.nanmax(N[fit_mask]):.6e}"
     )
     print(
-        "Basal sliding speed range     : "
+        "Basal sliding speed range (all grounded) : "
         + (
-            f"{np.nanmin(speed[valid_speed]):.6e} -- "
-            f"{np.nanmax(speed[valid_speed]):.6e} m/yr"
-            if np.any(valid_speed) else "n/a (no valid cells)"
+            f"{np.nanmin(speed[speed_defined]):.6e} -- "
+            f"{np.nanmax(speed[speed_defined]):.6e} m/yr"
+            if np.any(speed_defined) else "n/a (no valid cells)"
         )
     )
     print(
@@ -786,11 +828,17 @@ def main():
         attrs={
             "long_name": "Albany regularized-Coulomb bed roughness Lambda",
             "description": (
-                "Lambda solved exactly so that the Regularized Coulomb "
-                "law reproduces the Weertman law's basal shear stress "
-                "(mu*u^qW, no effective-pressure term) at the cell's "
-                "actual current sliding speed u (from velocity-x/y-"
-                "field, last nVertInterfaces level): Lambda = u * "
+                "Fast-flowing cells (speed > critical velocity) and "
+                "any other grounded cell where the solve below is "
+                "ill-defined are assumed to be in the full-Coulomb "
+                f"regime and set to {args.lambda_reference_value:g} "
+                "(see maskFastFlowing/maskValidBedRoughnessRC). "
+                "Elsewhere, Lambda is solved exactly so that the "
+                "Regularized Coulomb law reproduces the Weertman "
+                "law's basal shear stress (mu*u^qW, no effective-"
+                "pressure term) at the cell's actual current sliding "
+                "speed u (from velocity-x/y-field, last "
+                "nVertInterfaces level): Lambda = u * "
                 "[(C*N/(mu*u^qW))^(1/qR) - 1] / (SECONDS_PER_YEAR * A "
                 "* N^n), with u in m/yr, A in Pa^-3 s^-1, N in Pa, "
                 "matching Albany's internal secsInYr scaling in "
@@ -805,6 +853,55 @@ def main():
         attrs={
             "long_name": "Downs-Johnson effective pressure",
             "units": "Pa",
+        },
+    )
+
+    out["maskGrounded"] = xr.DataArray(
+        grounded.astype(np.int8),
+        dims=(ncell_dim,),
+        attrs={
+            "long_name": "Mask of grounded ice (Albany grounded-ice test)",
+            "description": (
+                "1 where rho_i*H + rho_w*bed > 0 and H > 0, else 0"
+            ),
+        },
+    )
+
+    out["maskFastFlowing"] = xr.DataArray(
+        fast_flowing.astype(np.int8),
+        dims=(ncell_dim,),
+        attrs={
+            "long_name": (
+                "Mask of grounded, fast-flowing cells assumed to be in "
+                "the full-Coulomb regime (used to fit C)"
+            ),
+            "description": (
+                "1 where maskGrounded and speed (from velocity-x/y-"
+                "field, last nVertInterfaces level) > critical "
+                "velocity, else 0. bedRoughnessRC is forced to "
+                f"{args.lambda_reference_value:g} at these cells."
+            ),
+        },
+    )
+
+    out["maskValidBedRoughnessRC"] = xr.DataArray(
+        lambda_mask.astype(np.int8),
+        dims=(ncell_dim,),
+        attrs={
+            "long_name": (
+                "Mask of cells where bedRoughnessRC (Lambda) was "
+                "solved exactly, rather than set to the full-Coulomb "
+                f"reference value ({args.lambda_reference_value:g})"
+            ),
+            "description": (
+                "1 where the cell is grounded, not fast-flowing, and "
+                "the Weertman basal shear stress at the cell's "
+                "current sliding speed is strictly below the Coulomb "
+                "limit C*N (a valid, non-negative Lambda solution "
+                "exists); 0 otherwise (includes maskFastFlowing "
+                "cells and any slow-flowing grounded cell where the "
+                "solve is ill-defined)."
+            ),
         },
     )
 
