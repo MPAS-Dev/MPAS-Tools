@@ -154,8 +154,8 @@ rattler-build<span class="w"> </span>build<span class="w"> </span>-m<span class=
 <p>To install the locally built package into the pixi environment, add the local
 build output as a channel and then add <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> from that channel:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>conda_package
-pixi<span class="w"> </span>workspace<span class="w"> </span>channel<span class="w"> </span>add<span class="w"> </span><span class="s2">&quot;file://</span><span class="nv">$PWD</span><span class="s2">/output&quot;</span>
-pixi<span class="w"> </span>add<span class="w"> </span>--platform<span class="w"> </span>linux-64<span class="w"> </span><span class="s2">&quot;mpas_tools [channel=&#39;file://</span><span class="nv">$PWD</span><span class="s2">/output&#39;]&quot;</span>
+pixi<span class="w"> </span>workspace<span class="w"> </span>channel<span class="w"> </span>add<span class="w"> </span><span class="s2">"file://</span><span class="nv">$PWD</span><span class="s2">/output"</span>
+pixi<span class="w"> </span>add<span class="w"> </span>--platform<span class="w"> </span>linux-64<span class="w"> </span><span class="s2">"mpas_tools [channel='file://</span><span class="nv">$PWD</span><span class="s2">/output']"</span>
 </pre></div>
 </div>
 <div class="admonition important">

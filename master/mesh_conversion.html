@@ -177,7 +177,7 @@ filenames as arguments; if omitted, it prompts for them.</p>
 <span class="n">ds</span> <span class="o">=</span> <span class="n">make_planar_hex_mesh</span><span class="p">(</span><span class="n">nx</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">dc</span><span class="o">=</span><span class="mf">10e3</span><span class="p">,</span> <span class="n">nonperiodic_x</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                           <span class="n">nonperiodic_y</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 <span class="n">ds</span> <span class="o">=</span> <span class="n">convert</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
-<span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="s1">&#39;mesh.nc&#39;</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="s1">'mesh.nc'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>Input requirements:</strong> The mesh must define the following dimensions,
@@ -198,9 +198,9 @@ variables, and global attributes (example sizes shown):</p>
   <span class="n">double</span> <span class="n">meshDensity</span><span class="p">(</span><span class="n">nCells</span><span class="p">)</span> <span class="p">;</span>
 
 <span class="o">//</span> <span class="k">global</span> <span class="n">attributes</span><span class="p">:</span>
-      <span class="p">:</span><span class="n">on_a_sphere</span> <span class="o">=</span> <span class="s2">&quot;NO&quot;</span> <span class="p">;</span>
+      <span class="p">:</span><span class="n">on_a_sphere</span> <span class="o">=</span> <span class="s2">"NO"</span> <span class="p">;</span>
       <span class="p">:</span><span class="n">sphere_radius</span> <span class="o">=</span> <span class="mf">0.</span> <span class="p">;</span>
-      <span class="p">:</span><span class="n">is_periodic</span> <span class="o">=</span> <span class="s2">&quot;YES&quot;</span> <span class="p">;</span>
+      <span class="p">:</span><span class="n">is_periodic</span> <span class="o">=</span> <span class="s2">"YES"</span> <span class="p">;</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">meshDensity</span></code> variable is required for historical reasons and is passed
@@ -209,7 +209,7 @@ unchanged to the output mesh.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">//</span> <span class="k">global</span> <span class="n">attributes</span><span class="p">:</span>
       <span class="p">:</span><span class="n">x_period</span> <span class="o">=</span> <span class="mf">40000.</span> <span class="p">;</span>
       <span class="p">:</span><span class="n">y_period</span> <span class="o">=</span> <span class="mf">34641.0161513775</span> <span class="p">;</span>
-      <span class="p">:</span><span class="n">history</span> <span class="o">=</span> <span class="s2">&quot;Tue May 26 20:58:10 2020: /home/xylar/miniconda3/envs/mpas/bin/planar_hex --nx 4 --ny 4 --dc 10e3 -o base_mesh.nc&quot;</span> <span class="p">;</span>
+      <span class="p">:</span><span class="n">history</span> <span class="o">=</span> <span class="s2">"Tue May 26 20:58:10 2020: /home/xylar/miniconda3/envs/mpas/bin/planar_hex --nx 4 --ny 4 --dc 10e3 -o base_mesh.nc"</span> <span class="p">;</span>
 </pre></div>
 </div>
 <p>If present, the <code class="docutils literal notranslate"><span class="pre">file_id</span></code> attribute is preserved as <code class="docutils literal notranslate"><span class="pre">parent_id</span></code> in the
@@ -233,7 +233,7 @@ mask(s) from an inverse-masking dataset are merged (union).</p></li>
 <li><p>A preserve-masking dataset indicates cells that must <em>not</em> be culled.</p></li>
 </ul>
 <p>Example workflow (command line):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ merge_features -c natural_earth -b region -n &quot;Land Coverage&quot; -o land.geojson
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ merge_features -c natural_earth -b region -n "Land Coverage" -o land.geojson
 $ MpasMaskCreator.x base_mesh.nc land.nc -f land.geojson
 $ MpasCellCuller.x base_mesh.nc culled_mesh.nc -m land.nc
 </pre></div>
@@ -247,14 +247,14 @@ and culls cells where the mask is 1.</p>
 
 <span class="n">gf</span> <span class="o">=</span> <span class="n">GeometricFeatures</span><span class="p">()</span>
 <span class="n">fcLandCoverage</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span>
-    <span class="n">componentName</span><span class="o">=</span><span class="s1">&#39;natural_earth&#39;</span><span class="p">,</span>
-    <span class="n">objectType</span><span class="o">=</span><span class="s1">&#39;region&#39;</span><span class="p">,</span>
-    <span class="n">featureNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Land Coverage&#39;</span><span class="p">]</span>
+    <span class="n">componentName</span><span class="o">=</span><span class="s1">'natural_earth'</span><span class="p">,</span>
+    <span class="n">objectType</span><span class="o">=</span><span class="s1">'region'</span><span class="p">,</span>
+    <span class="n">featureNames</span><span class="o">=</span><span class="p">[</span><span class="s1">'Land Coverage'</span><span class="p">]</span>
 <span class="p">)</span>
-<span class="n">dsBaseMesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">)</span>
+<span class="n">dsBaseMesh</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">'base_mesh.nc'</span><span class="p">)</span>
 <span class="n">dsLandMask</span> <span class="o">=</span> <span class="n">mask</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="o">=</span><span class="n">fcLandCoverage</span><span class="p">)</span>
 <span class="n">dsCulledMesh</span> <span class="o">=</span> <span class="n">cull</span><span class="p">(</span><span class="n">dsBaseMesh</span><span class="p">,</span> <span class="n">dsMask</span><span class="o">=</span><span class="n">dsLandMask</span><span class="p">)</span>
-<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsCulledMesh</span><span class="p">,</span> <span class="s1">&#39;culled_mesh.nc&#39;</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsCulledMesh</span><span class="p">,</span> <span class="s1">'culled_mesh.nc'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Full usage of <code class="docutils literal notranslate"><span class="pre">MpasCellCuller.x</span></code>:</p>
@@ -349,13 +349,13 @@ collection, and pool.</p></li>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.parallel</span><span class="w"> </span><span class="kn">import</span> <span class="n">create_pool</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.io</span><span class="w"> </span><span class="kn">import</span> <span class="n">write_netcdf</span>
 
-<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mesh.nc&#39;</span><span class="p">,</span> <span class="n">decode_cf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">decode_times</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">fcMask</span> <span class="o">=</span> <span class="n">read_feature_collection</span><span class="p">(</span><span class="s1">&#39;regions.geojson&#39;</span><span class="p">)</span>
+<span class="n">dsMesh</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">'mesh.nc'</span><span class="p">,</span> <span class="n">decode_cf</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">decode_times</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">fcMask</span> <span class="o">=</span> <span class="n">read_feature_collection</span><span class="p">(</span><span class="s1">'regions.geojson'</span><span class="p">)</span>
 <span class="n">pool</span> <span class="o">=</span> <span class="n">create_pool</span><span class="p">(</span><span class="n">process_count</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
 <span class="n">dsMasks</span> <span class="o">=</span> <span class="n">compute_mpas_region_masks</span><span class="p">(</span>
-    <span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;cell&#39;</span><span class="p">,</span> <span class="s1">&#39;vertex&#39;</span><span class="p">),</span> <span class="n">pool</span><span class="o">=</span><span class="n">pool</span>
+    <span class="n">dsMesh</span><span class="p">,</span> <span class="n">fcMask</span><span class="p">,</span> <span class="n">maskTypes</span><span class="o">=</span><span class="p">(</span><span class="s1">'cell'</span><span class="p">,</span> <span class="s1">'vertex'</span><span class="p">),</span> <span class="n">pool</span><span class="o">=</span><span class="n">pool</span>
 <span class="p">)</span>
-<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasks</span><span class="p">,</span> <span class="s1">&#39;region_masks.nc&#39;</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasks</span><span class="p">,</span> <span class="s1">'region_masks.nc'</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -428,7 +428,7 @@ optional arguments:
                         default is to use all available cores
   --multiprocessing_method MULTIPROCESSING_METHOD
                         The multiprocessing method use for python mask
-                        creation (&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)
+                        creation ('fork', 'spawn' or 'forkserver')
 </pre></div>
 </div>
 </section>
@@ -517,7 +517,7 @@ optional arguments:
                         default is to use all available cores
   --multiprocessing_method MULTIPROCESSING_METHOD
                         The multiprocessing method use for python mask
-                        creation (&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)
+                        creation ('fork', 'spawn' or 'forkserver')
   --add_edge_sign       Whether to add the transectEdgeMaskSigns variable
 </pre></div>
 </div>
@@ -601,7 +601,7 @@ optional arguments:
                         default is to use all available cores
   --multiprocessing_method MULTIPROCESSING_METHOD
                         The multiprocessing method use for python mask
-                        creation (&#39;fork&#39;, &#39;spawn&#39; or &#39;forkserver&#39;)
+                        creation ('fork', 'spawn' or 'forkserver')
 </pre></div>
 </div>
 </section>
@@ -646,16 +646,16 @@ to <code class="docutils literal notranslate"><span class="pre">initial_state_no
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">LoggingContext</span>
 
 
-<span class="n">in_filename</span> <span class="o">=</span> <span class="s1">&#39;initial_state.nc&#39;</span>
-<span class="n">out_filename</span> <span class="o">=</span> <span class="s1">&#39;initial_state_no_isc.nc&#39;</span>
-<span class="n">base_mesh_filename</span> <span class="o">=</span> <span class="s1">&#39;culled_mesh.nc&#39;</span>
-<span class="n">culled_mesh_filename</span> <span class="o">=</span> <span class="s1">&#39;culled_mesh_no_isc.nc&#39;</span>
-<span class="n">map_filename</span> <span class="o">=</span> <span class="s1">&#39;no_isc_to_culled_map.nc&#39;</span>
+<span class="n">in_filename</span> <span class="o">=</span> <span class="s1">'initial_state.nc'</span>
+<span class="n">out_filename</span> <span class="o">=</span> <span class="s1">'initial_state_no_isc.nc'</span>
+<span class="n">base_mesh_filename</span> <span class="o">=</span> <span class="s1">'culled_mesh.nc'</span>
+<span class="n">culled_mesh_filename</span> <span class="o">=</span> <span class="s1">'culled_mesh_no_isc.nc'</span>
+<span class="n">map_filename</span> <span class="o">=</span> <span class="s1">'no_isc_to_culled_map.nc'</span>
 
 <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">culled_mesh_filename</span><span class="p">):</span>
     <span class="n">ds_culled_mesh</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">base_mesh_filename</span><span class="p">)</span>
     <span class="n">ds_init</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">in_filename</span><span class="p">)</span>
-    <span class="n">ds_culled_mesh</span><span class="p">[</span><span class="s1">&#39;cullCell&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ds_init</span><span class="o">.</span><span class="n">landIceMask</span>
+    <span class="n">ds_culled_mesh</span><span class="p">[</span><span class="s1">'cullCell'</span><span class="p">]</span> <span class="o">=</span> <span class="n">ds_init</span><span class="o">.</span><span class="n">landIceMask</span>
     <span class="n">ds_culled_mesh_no_isc</span> <span class="o">=</span> <span class="n">cull</span><span class="p">(</span><span class="n">ds_culled_mesh</span><span class="p">)</span>
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds_culled_mesh_no_isc</span><span class="p">,</span> <span class="n">culled_mesh_filename</span><span class="p">)</span>
 
@@ -664,7 +664,7 @@ to <code class="docutils literal notranslate"><span class="pre">initial_state_no
                              <span class="n">culled_mesh_filename</span><span class="o">=</span><span class="n">culled_mesh_filename</span><span class="p">,</span>
                              <span class="n">out_filename</span><span class="o">=</span><span class="n">map_filename</span><span class="p">)</span>
 
-<span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
+<span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="s1">'test'</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
     <span class="n">write_culled_dataset</span><span class="p">(</span><span class="n">in_filename</span><span class="o">=</span><span class="n">in_filename</span><span class="p">,</span> <span class="n">out_filename</span><span class="o">=</span><span class="n">out_filename</span><span class="p">,</span>
                          <span class="n">base_mesh_filename</span><span class="o">=</span><span class="n">base_mesh_filename</span><span class="p">,</span>
                          <span class="n">culled_mesh_filename</span><span class="o">=</span><span class="n">culled_mesh_filename</span><span class="p">,</span>
@@ -695,11 +695,11 @@ support merging and splitting MPAS meshes.</p>
 
 <span class="n">translate</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">20000.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
 
-<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh1</span><span class="p">,</span> <span class="s1">&#39;mesh1.nc&#39;</span><span class="p">)</span>
-<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="s1">&#39;mesh2.nc&#39;</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh1</span><span class="p">,</span> <span class="s1">'mesh1.nc'</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="s1">'mesh2.nc'</span><span class="p">)</span>
 
-<span class="n">merge_grids</span><span class="p">(</span><span class="n">infile1</span><span class="o">=</span><span class="s1">&#39;mesh1.nc&#39;</span><span class="p">,</span> <span class="n">infile2</span><span class="o">=</span><span class="s1">&#39;mesh2.nc&#39;</span><span class="p">,</span>
-            <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;merged_mesh.nc&#39;</span><span class="p">)</span>
+<span class="n">merge_grids</span><span class="p">(</span><span class="n">infile1</span><span class="o">=</span><span class="s1">'mesh1.nc'</span><span class="p">,</span> <span class="n">infile2</span><span class="o">=</span><span class="s1">'mesh2.nc'</span><span class="p">,</span>
+            <span class="n">outfile</span><span class="o">=</span><span class="s1">'merged_mesh.nc'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Typically, it will only make sense to merge non-periodic meshes in this way.</p>
@@ -720,12 +720,12 @@ apart the merged meshes.  This can be done with
 
 <span class="n">translate</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="n">xOffset</span><span class="o">=</span><span class="mf">20000.</span><span class="p">,</span> <span class="n">yOffset</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
 
-<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh1</span><span class="p">,</span> <span class="s1">&#39;mesh1.nc&#39;</span><span class="p">)</span>
-<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="s1">&#39;mesh2.nc&#39;</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh1</span><span class="p">,</span> <span class="s1">'mesh1.nc'</span><span class="p">)</span>
+<span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMesh2</span><span class="p">,</span> <span class="s1">'mesh2.nc'</span><span class="p">)</span>
 
 
-<span class="n">split_grids</span><span class="p">(</span><span class="n">infile</span><span class="o">=</span><span class="s1">&#39;merged_mesh.nc&#39;</span><span class="p">,</span> <span class="n">outfile1</span><span class="o">=</span><span class="s1">&#39;split_mesh1.nc&#39;</span><span class="p">,</span>
-            <span class="n">outfile</span><span class="o">=</span><span class="s1">&#39;split_mesh2.nc&#39;</span><span class="p">)</span>
+<span class="n">split_grids</span><span class="p">(</span><span class="n">infile</span><span class="o">=</span><span class="s1">'merged_mesh.nc'</span><span class="p">,</span> <span class="n">outfile1</span><span class="o">=</span><span class="s1">'split_mesh1.nc'</span><span class="p">,</span>
+            <span class="n">outfile</span><span class="o">=</span><span class="s1">'split_mesh2.nc'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Merging meshes can also be accomplished with the <code class="docutils literal notranslate"><span class="pre">merge_grids</span></code> command-line

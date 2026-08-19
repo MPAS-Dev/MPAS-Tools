@@ -133,8 +133,8 @@
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mask.extend_seaice_mask.html#mpas_tools.seaice.mask.extend_seaice_mask">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">extend_seaice_mask</span><span class="p">(</span><span class="n">filenameMesh</span><span class="p">,</span> <span class="n">filenamePresence</span><span class="p">,</span> <span class="n">extendDistance</span><span class="p">,</span>
                        <span class="n">unitSphere</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Add a field ``icePresenceExtended`` to ``filenamePresence`` if it doesn&#39;t</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Add a field ``icePresenceExtended`` to ``filenamePresence`` if it doesn't</span>
 <span class="sd">    already exist.  This field is the ``icePresence`` field extended by</span>
 <span class="sd">    a distance of ``extendDistance``.</span>
 
@@ -154,46 +154,46 @@
 <span class="sd">    unitSphere : bool, optional</span>
 <span class="sd">        Whether the mesh is provided on the unit sphere, rather than one with</span>
 <span class="sd">        the radius of the Earth</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># mesh</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Load mesh...&quot;</span><span class="p">)</span>
-    <span class="n">fileMesh</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameMesh</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Load mesh..."</span><span class="p">)</span>
+    <span class="n">fileMesh</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameMesh</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
 
-    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fileMesh</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fileMesh</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">"nCells"</span><span class="p">])</span>
 
-    <span class="n">nEdgesOnCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;nEdgesOnCell&quot;</span><span class="p">][:]</span>
-    <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;cellsOnCell&quot;</span><span class="p">][:]</span>
+    <span class="n">nEdgesOnCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"nEdgesOnCell"</span><span class="p">][:]</span>
+    <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"cellsOnCell"</span><span class="p">][:]</span>
 
     <span class="n">cellsOnCell</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="p">[:]</span> <span class="o">-</span> <span class="mi">1</span>
 
-    <span class="n">xCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;xCell&quot;</span><span class="p">][:]</span>
-    <span class="n">yCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;yCell&quot;</span><span class="p">][:]</span>
-    <span class="n">zCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;zCell&quot;</span><span class="p">][:]</span>
+    <span class="n">xCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"xCell"</span><span class="p">][:]</span>
+    <span class="n">yCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"yCell"</span><span class="p">][:]</span>
+    <span class="n">zCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"zCell"</span><span class="p">][:]</span>
 
     <span class="n">fileMesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># presence</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Load ice presence...&quot;</span><span class="p">)</span>
-    <span class="n">filePresence</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenamePresence</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Load ice presence..."</span><span class="p">)</span>
+    <span class="n">filePresence</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenamePresence</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="s2">&quot;icePresenceExtended&quot;</span> <span class="ow">in</span> <span class="n">filePresence</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
-        <span class="c1"># we&#39;re already done, probably from a previous call</span>
+    <span class="k">if</span> <span class="s2">"icePresenceExtended"</span> <span class="ow">in</span> <span class="n">filePresence</span><span class="o">.</span><span class="n">variables</span><span class="p">:</span>
+        <span class="c1"># we're already done, probably from a previous call</span>
         <span class="n">filePresence</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">return</span>
 
-    <span class="n">icePresence</span> <span class="o">=</span> <span class="n">filePresence</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;icePresence&quot;</span><span class="p">][:]</span>
+    <span class="n">icePresence</span> <span class="o">=</span> <span class="n">filePresence</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"icePresence"</span><span class="p">][:]</span>
 
     <span class="n">filePresence</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># ice edge cells</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Get ice edge cells...&quot;</span><span class="p">)</span>
-    <span class="n">iceEdgeCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Get ice edge cells..."</span><span class="p">)</span>
+    <span class="n">iceEdgeCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"i"</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">iCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">):</span>
 
         <span class="c1"># if (iCell % 100000 == 0):</span>
-        <span class="c1">#    print(iCell, &quot; of &quot;, nCells, &quot; cells...&quot;)</span>
+        <span class="c1">#    print(iCell, " of ", nCells, " cells...")</span>
 
         <span class="k">for</span> <span class="n">iCellOnCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nEdgesOnCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]):</span>
 
@@ -204,10 +204,10 @@
 
     <span class="c1"># only edge cells</span>
     <span class="n">nEdgeCells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">iceEdgeCell</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;nEdgeCells: &quot;</span><span class="p">,</span> <span class="n">nEdgeCells</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"nEdgeCells: "</span><span class="p">,</span> <span class="n">nEdgeCells</span><span class="p">)</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Get edge cell vector...&quot;</span><span class="p">)</span>
-    <span class="n">iCellEdge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdgeCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Get edge cell vector..."</span><span class="p">)</span>
+    <span class="n">iCellEdge</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdgeCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"i"</span><span class="p">)</span>
 
     <span class="n">iEdgeCell</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">iCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">):</span>
@@ -218,7 +218,7 @@
     <span class="k">del</span> <span class="n">iceEdgeCell</span>
 
     <span class="c1"># get edge positions</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Get edge positions...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Get edge positions..."</span><span class="p">)</span>
     <span class="n">xCellEdgeCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdgeCells</span><span class="p">)</span>
     <span class="n">yCellEdgeCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdgeCells</span><span class="p">)</span>
     <span class="n">zCellEdgeCell</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdgeCells</span><span class="p">)</span>
@@ -230,12 +230,12 @@
         <span class="n">zCellEdgeCell</span><span class="p">[</span><span class="n">iEdgeCell</span><span class="p">]</span> <span class="o">=</span> <span class="n">zCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span>
 
     <span class="c1"># find extended mask</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Find new extended mask...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Find new extended mask..."</span><span class="p">)</span>
 
     <span class="n">extendDistance</span> <span class="o">=</span> <span class="n">extendDistance</span> <span class="o">*</span> <span class="mf">1000.0</span>  <span class="c1"># convert from km to m</span>
 
     <span class="k">if</span> <span class="n">unitSphere</span><span class="p">:</span>
-        <span class="n">earthRadius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
+        <span class="n">earthRadius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">'SHR_CONST_REARTH'</span><span class="p">]</span>
         <span class="n">extendDistance</span> <span class="o">=</span> <span class="n">extendDistance</span> <span class="o">/</span> <span class="n">earthRadius</span>
 
     <span class="n">distanceLimit</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">extendDistance</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -249,7 +249,7 @@
         <span class="k">for</span> <span class="n">iCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">):</span>
 
             <span class="k">if</span> <span class="n">iCell</span> <span class="o">%</span> <span class="mi">100000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">iCell</span><span class="p">,</span> <span class="s2">&quot; of &quot;</span><span class="p">,</span> <span class="n">nCells</span><span class="p">,</span> <span class="s2">&quot; cells...&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">iCell</span><span class="p">,</span> <span class="s2">" of "</span><span class="p">,</span> <span class="n">nCells</span><span class="p">,</span> <span class="s2">" cells..."</span><span class="p">)</span>
 
             <span class="n">distances</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span>
                 <span class="p">(</span><span class="n">xCell</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">-</span> <span class="n">xCellEdgeCell</span><span class="p">),</span>
@@ -262,11 +262,11 @@
             <span class="k">if</span> <span class="n">distances</span><span class="p">[</span><span class="n">distances</span><span class="o">.</span><span class="n">argmin</span><span class="p">()]</span> <span class="o">&lt;=</span> <span class="n">distanceLimit</span><span class="p">:</span>
                 <span class="n">icePresenceNew</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Load ice presence...&quot;</span><span class="p">)</span>
-    <span class="n">filePresence</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenamePresence</span><span class="p">,</span> <span class="s2">&quot;a&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Load ice presence..."</span><span class="p">)</span>
+    <span class="n">filePresence</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenamePresence</span><span class="p">,</span> <span class="s2">"a"</span><span class="p">)</span>
 
     <span class="n">icePresenceVar</span> <span class="o">=</span> <span class="n">filePresence</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;icePresenceExtended&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+        <span class="s2">"icePresenceExtended"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">"nCells"</span><span class="p">])</span>
     <span class="n">icePresenceVar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">icePresenceNew</span><span class="p">[:]</span>
 
     <span class="n">filePresence</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>

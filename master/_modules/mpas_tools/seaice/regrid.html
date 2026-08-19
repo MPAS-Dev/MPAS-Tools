@@ -139,63 +139,63 @@
                          <span class="n">generateWeights</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">weightsFilename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
     <span class="c1"># make scrip files</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Make scrip files...&quot;</span><span class="p">)</span>
-    <span class="n">SCRIPFilenameSrc</span> <span class="o">=</span> <span class="s2">&quot;scrip_src_tmp.nc&quot;</span>
-    <span class="n">SCRIPFilenameDst</span> <span class="o">=</span> <span class="s2">&quot;scrip_dst_tmp.nc&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Make scrip files..."</span><span class="p">)</span>
+    <span class="n">SCRIPFilenameSrc</span> <span class="o">=</span> <span class="s2">"scrip_src_tmp.nc"</span>
+    <span class="n">SCRIPFilenameDst</span> <span class="o">=</span> <span class="s2">"scrip_dst_tmp.nc"</span>
 
-    <span class="n">titleSrc</span> <span class="o">=</span> <span class="s2">&quot;MPAS grid src&quot;</span>
-    <span class="n">titleDst</span> <span class="o">=</span> <span class="s2">&quot;MPAS grid dst&quot;</span>
+    <span class="n">titleSrc</span> <span class="o">=</span> <span class="s2">"MPAS grid src"</span>
+    <span class="n">titleDst</span> <span class="o">=</span> <span class="s2">"MPAS grid dst"</span>
 
     <span class="n">make_mpas_scripfile_on_cells</span><span class="p">(</span><span class="n">meshFilenameSrc</span><span class="p">,</span> <span class="n">SCRIPFilenameSrc</span><span class="p">,</span> <span class="n">titleSrc</span><span class="p">)</span>
     <span class="n">make_mpas_scripfile_on_cells</span><span class="p">(</span><span class="n">meshFilenameDst</span><span class="p">,</span> <span class="n">SCRIPFilenameDst</span><span class="p">,</span> <span class="n">titleDst</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">weightsFilename</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">weightsFilename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/weights_tmp.nc&quot;</span>
+        <span class="n">weightsFilename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span> <span class="o">+</span> <span class="s2">"/weights_tmp.nc"</span>
 
     <span class="k">if</span> <span class="n">generateWeights</span><span class="p">:</span>
         <span class="c1"># generate weights file</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Generate weights...&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">"Generate weights..."</span><span class="p">)</span>
         <span class="n">_generate_weights_file</span><span class="p">(</span><span class="n">SCRIPFilenameSrc</span><span class="p">,</span> <span class="n">SCRIPFilenameDst</span><span class="p">,</span>
                                <span class="n">weightsFilename</span><span class="p">,</span> <span class="n">reuseWeights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">weightsFilename</span><span class="p">)</span>
 
     <span class="c1"># load output mesh</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Load output mesh...&quot;</span><span class="p">)</span>
-    <span class="n">meshFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">meshFilenameDst</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Load output mesh..."</span><span class="p">)</span>
+    <span class="n">meshFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">meshFilenameDst</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
 
-    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meshFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meshFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">"nCells"</span><span class="p">])</span>
 
-    <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;cellsOnCell&quot;</span><span class="p">][:]</span>
+    <span class="n">cellsOnCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"cellsOnCell"</span><span class="p">][:]</span>
     <span class="n">cellsOnCell</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">cellsOnCell</span><span class="p">[:]</span> <span class="o">-</span> <span class="mi">1</span>
 
     <span class="n">meshFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># load data</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Load input data...&quot;</span><span class="p">)</span>
-    <span class="n">fileIn</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameData</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Load input data..."</span><span class="p">)</span>
+    <span class="n">fileIn</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameData</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
 
-    <span class="n">iceFractionIn</span> <span class="o">=</span> <span class="n">fileIn</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;iceFraction&quot;</span><span class="p">][:]</span>
+    <span class="n">iceFractionIn</span> <span class="o">=</span> <span class="n">fileIn</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"iceFraction"</span><span class="p">][:]</span>
 
     <span class="n">fileIn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># regrid</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Regrid array...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Regrid array..."</span><span class="p">)</span>
     <span class="n">iceFractionOut</span><span class="p">,</span> <span class="n">iceFractionOutMask</span> <span class="o">=</span> <span class="n">_regrid_mpas_array</span><span class="p">(</span>
         <span class="n">weightsFilename</span><span class="p">,</span> <span class="n">iceFractionIn</span><span class="p">)</span>
 
     <span class="c1"># output</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Output...&quot;</span><span class="p">)</span>
-    <span class="n">fileOut</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameOut</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;NETCDF3_CLASSIC&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Output..."</span><span class="p">)</span>
+    <span class="n">fileOut</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameOut</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"NETCDF3_CLASSIC"</span><span class="p">)</span>
 
-    <span class="n">fileOut</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;nCells&quot;</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
+    <span class="n">fileOut</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"nCells"</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
 
     <span class="n">iceFractionVar</span> <span class="o">=</span> <span class="n">fileOut</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;iceFraction&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+        <span class="s2">"iceFraction"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">"nCells"</span><span class="p">])</span>
     <span class="n">iceFractionVar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">iceFractionOut</span><span class="p">[:]</span>
 
     <span class="n">iceFractionMaskVar</span> <span class="o">=</span> <span class="n">fileOut</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;iceFractionMask&quot;</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+        <span class="s2">"iceFractionMask"</span><span class="p">,</span> <span class="s2">"i"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">"nCells"</span><span class="p">])</span>
     <span class="n">iceFractionMaskVar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">iceFractionOutMask</span><span class="p">[:]</span>
 
     <span class="n">fileOut</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
@@ -208,12 +208,12 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_weights_filename</span><span class="p">(</span><span class="n">inputStrings</span><span class="p">):</span>
 
-    <span class="n">hashInput</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">hashInput</span> <span class="o">=</span> <span class="s2">""</span>
     <span class="k">for</span> <span class="n">inputString</span> <span class="ow">in</span> <span class="n">inputStrings</span><span class="p">:</span>
         <span class="n">hashInput</span> <span class="o">=</span> <span class="n">hashInput</span> <span class="o">+</span> <span class="n">inputString</span>
 
     <span class="n">hashOutput</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">hashInput</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-    <span class="n">weightFilename</span> <span class="o">=</span> <span class="s2">&quot;weights_</span><span class="si">%s</span><span class="s2">.nc&quot;</span> <span class="o">%</span> <span class="n">hashOutput</span>
+    <span class="n">weightFilename</span> <span class="o">=</span> <span class="s2">"weights_</span><span class="si">%s</span><span class="s2">.nc"</span> <span class="o">%</span> <span class="n">hashOutput</span>
 
     <span class="k">return</span> <span class="n">weightFilename</span>
 
@@ -223,11 +223,11 @@
 
     <span class="k">if</span> <span class="ow">not</span> <span class="n">reuseWeights</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">weightsFilename</span><span class="p">):</span>
 
-        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;ESMF_RegridWeightGen&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;--source&quot;</span><span class="p">,</span> <span class="n">SCRIPFilenameSrc</span><span class="p">,</span>
-                <span class="s2">&quot;--destination&quot;</span><span class="p">,</span> <span class="n">SCRIPFilenameDst</span><span class="p">,</span>
-                <span class="s2">&quot;--weight&quot;</span><span class="p">,</span> <span class="n">weightsFilename</span><span class="p">,</span>
-                <span class="s2">&quot;--src_regional&quot;</span><span class="p">,</span> <span class="s2">&quot;--dst_regional&quot;</span><span class="p">,</span> <span class="s2">&quot;--ignore_unmapped&quot;</span><span class="p">]</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"ESMF_RegridWeightGen"</span><span class="p">,</span>
+                <span class="s2">"--source"</span><span class="p">,</span> <span class="n">SCRIPFilenameSrc</span><span class="p">,</span>
+                <span class="s2">"--destination"</span><span class="p">,</span> <span class="n">SCRIPFilenameDst</span><span class="p">,</span>
+                <span class="s2">"--weight"</span><span class="p">,</span> <span class="n">weightsFilename</span><span class="p">,</span>
+                <span class="s2">"--src_regional"</span><span class="p">,</span> <span class="s2">"--dst_regional"</span><span class="p">,</span> <span class="s2">"--ignore_unmapped"</span><span class="p">]</span>
 
         <span class="n">subprocess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">check</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -236,17 +236,17 @@
 
     <span class="n">weights</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="n">weightsFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">weightsFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">weightsFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">weightsFilename</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
 
-    <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;n_s&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">weightsFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;n_s&quot;</span><span class="p">])</span>
+    <span class="n">weights</span><span class="p">[</span><span class="s2">"n_s"</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">weightsFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">"n_s"</span><span class="p">])</span>
 
-    <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">][:]</span>
-    <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;row&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;row&quot;</span><span class="p">][:]</span>
-    <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;S&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;S&quot;</span><span class="p">][:]</span>
+    <span class="n">weights</span><span class="p">[</span><span class="s2">"col"</span><span class="p">]</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"col"</span><span class="p">][:]</span>
+    <span class="n">weights</span><span class="p">[</span><span class="s2">"row"</span><span class="p">]</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"row"</span><span class="p">][:]</span>
+    <span class="n">weights</span><span class="p">[</span><span class="s2">"S"</span><span class="p">]</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"S"</span><span class="p">][:]</span>
 
-    <span class="n">dst_grid_dims</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;dst_grid_dims&quot;</span><span class="p">][:]</span>
-    <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;nRows&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dst_grid_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;nColumns&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dst_grid_dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">dst_grid_dims</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"dst_grid_dims"</span><span class="p">][:]</span>
+    <span class="n">weights</span><span class="p">[</span><span class="s2">"nRows"</span><span class="p">]</span> <span class="o">=</span> <span class="n">dst_grid_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">weights</span><span class="p">[</span><span class="s2">"nColumns"</span><span class="p">]</span> <span class="o">=</span> <span class="n">dst_grid_dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="n">weightsFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
@@ -255,14 +255,14 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_regrid_obs_array</span><span class="p">(</span><span class="n">obsArray</span><span class="p">,</span> <span class="n">weights</span><span class="p">):</span>
 
-    <span class="n">n_s</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;n_s&quot;</span><span class="p">]</span>
+    <span class="n">n_s</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"n_s"</span><span class="p">]</span>
 
-    <span class="n">col</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">]</span>
-    <span class="n">row</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;row&quot;</span><span class="p">]</span>
-    <span class="n">S</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;S&quot;</span><span class="p">]</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"col"</span><span class="p">]</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"row"</span><span class="p">]</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"S"</span><span class="p">]</span>
 
-    <span class="n">nColumns</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;nColumns&quot;</span><span class="p">]</span>
-    <span class="n">nRows</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">&quot;nRows&quot;</span><span class="p">]</span>
+    <span class="n">nColumns</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"nColumns"</span><span class="p">]</span>
+    <span class="n">nRows</span> <span class="o">=</span> <span class="n">weights</span><span class="p">[</span><span class="s2">"nRows"</span><span class="p">]</span>
 
     <span class="n">nRowsIn</span> <span class="o">=</span> <span class="n">obsArray</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
@@ -286,22 +286,22 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_regrid_mpas_array</span><span class="p">(</span><span class="n">weightsFilename</span><span class="p">,</span> <span class="n">mpasArrayIn</span><span class="p">):</span>
 
     <span class="c1"># load weights</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Load weights...&quot;</span><span class="p">,</span> <span class="n">weightsFilename</span><span class="p">)</span>
-    <span class="n">weightsFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">weightsFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Load weights..."</span><span class="p">,</span> <span class="n">weightsFilename</span><span class="p">)</span>
+    <span class="n">weightsFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">weightsFilename</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
 
-    <span class="n">n_s</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">weightsFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;n_s&quot;</span><span class="p">])</span>
-    <span class="n">n_b</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">weightsFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;n_b&quot;</span><span class="p">])</span>
+    <span class="n">n_s</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">weightsFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">"n_s"</span><span class="p">])</span>
+    <span class="n">n_b</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">weightsFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">"n_b"</span><span class="p">])</span>
 
-    <span class="n">col</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;col&quot;</span><span class="p">][:]</span>
-    <span class="n">row</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;row&quot;</span><span class="p">][:]</span>
-    <span class="n">S</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;S&quot;</span><span class="p">][:]</span>
+    <span class="n">col</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"col"</span><span class="p">][:]</span>
+    <span class="n">row</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"row"</span><span class="p">][:]</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">weightsFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"S"</span><span class="p">][:]</span>
 
     <span class="n">weightsFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># regrid</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Regrid array...&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">"Regrid array..."</span><span class="p">)</span>
     <span class="n">mpasArrayOut</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_b</span><span class="p">)</span>
-    <span class="n">mpasArrayOutMask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_b</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+    <span class="n">mpasArrayOutMask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_b</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"i"</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i_s</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n_s</span><span class="p">):</span>
         <span class="n">mpasArrayOut</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">i_s</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mpasArrayOut</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="n">i_s</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> \
             <span class="n">S</span><span class="p">[</span><span class="n">i_s</span><span class="p">]</span> <span class="o">*</span> <span class="n">mpasArrayIn</span><span class="p">[</span><span class="n">col</span><span class="p">[</span><span class="n">i_s</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>

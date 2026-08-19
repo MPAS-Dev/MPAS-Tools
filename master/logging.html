@@ -140,11 +140,11 @@ statement:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
 
     <span class="o">...</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 1. Generate mesh with JIGSAW&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Step 1. Generate mesh with JIGSAW'</span><span class="p">)</span>
     <span class="o">...</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 2. Convert triangles from jigsaw format to netcdf&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Step 2. Convert triangles from jigsaw format to netcdf'</span><span class="p">)</span>
     <span class="o">...</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 3. Convert from triangles to MPAS mesh&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Step 3. Convert from triangles to MPAS mesh'</span><span class="p">)</span>
     <span class="o">...</span>
 </pre></div>
 </div>
@@ -164,23 +164,23 @@ if there is one or create a new ong for <code class="docutils literal notranslat
 provided.  As an example, here is a snippet from
 <a class="reference internal" href="generated/mpas_tools.mesh.creation.build_mesh.build_spherical_mesh.html#mpas_tools.mesh.creation.build_mesh.build_spherical_mesh" title="mpas_tools.mesh.creation.build_mesh.build_spherical_mesh"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.mesh.creation.build_mesh.build_spherical_mesh()</span></code></a>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">build_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
-                         <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">,</span> <span class="n">plot_cellWidth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="nb">dir</span><span class="o">=</span><span class="s1">&#39;./&#39;</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                         <span class="n">out_filename</span><span class="o">=</span><span class="s1">'base_mesh.nc'</span><span class="p">,</span> <span class="n">plot_cellWidth</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="nb">dir</span><span class="o">=</span><span class="s1">'./'</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="o">...</span>
     <span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
 
         <span class="o">...</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 1. Generate mesh with JIGSAW&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Step 1. Generate mesh with JIGSAW'</span><span class="p">)</span>
         <span class="n">jigsaw_driver</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">earth_radius</span><span class="o">=</span><span class="n">earth_radius</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 2. Convert triangles from jigsaw format to netcdf&#39;</span><span class="p">)</span>
-        <span class="n">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">msh_filename</span><span class="o">=</span><span class="s1">&#39;mesh-MESH.msh&#39;</span><span class="p">,</span>
-                         <span class="n">output_name</span><span class="o">=</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Step 2. Convert triangles from jigsaw format to netcdf'</span><span class="p">)</span>
+        <span class="n">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">msh_filename</span><span class="o">=</span><span class="s1">'mesh-MESH.msh'</span><span class="p">,</span>
+                         <span class="n">output_name</span><span class="o">=</span><span class="s1">'mesh_triangles.nc'</span><span class="p">,</span> <span class="n">on_sphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">sphere_radius</span><span class="o">=</span><span class="n">earth_radius</span><span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 3. Convert from triangles to MPAS mesh&#39;</span><span class="p">)</span>
-        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">convert</span><span class="p">(</span><span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">&#39;mesh_triangles.nc&#39;</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">,</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Step 3. Convert from triangles to MPAS mesh'</span><span class="p">)</span>
+        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">convert</span><span class="p">(</span><span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="s1">'mesh_triangles.nc'</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="nb">dir</span><span class="p">,</span>
                              <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">),</span>
                      <span class="n">out_filename</span><span class="p">)</span>
 </pre></div>
@@ -192,9 +192,9 @@ work properly).  The <code class="docutils literal notranslate"><span class="pre
 <a class="reference internal" href="generated/mpas_tools.io.write_netcdf.html#mpas_tools.io.write_netcdf" title="mpas_tools.io.write_netcdf"><code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.io.write_netcdf()</span></code></a> for output from those functions.</p>
 <p>To log to a new log file, simply pass a file name to the <code class="docutils literal notranslate"><span class="pre">log_filename</span></code>
 argument:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">log_filename</span><span class="o">=</span><span class="s1">&#39;output.log&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">LoggingContext</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="vm">__name__</span><span class="p">,</span> <span class="n">log_filename</span><span class="o">=</span><span class="s1">'output.log'</span><span class="p">)</span> <span class="k">as</span> <span class="n">logger</span><span class="p">:</span>
     <span class="o">...</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Step 1. Generate mesh with JIGSAW&#39;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'Step 1. Generate mesh with JIGSAW'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>If both the <code class="docutils literal notranslate"><span class="pre">logger</span></code> and <code class="docutils literal notranslate"><span class="pre">log_filename</span></code> arguments are not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the
@@ -215,9 +215,9 @@ the logger, as in this example from
                   <span class="n">geom_points</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">geom_edges</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
     <span class="o">...</span>
-    <span class="n">opts</span><span class="o">.</span><span class="n">jcfg_file</span> <span class="o">=</span> <span class="s1">&#39;mesh.jig&#39;</span>
+    <span class="n">opts</span><span class="o">.</span><span class="n">jcfg_file</span> <span class="o">=</span> <span class="s1">'mesh.jig'</span>
     <span class="o">...</span>
-    <span class="n">check_call</span><span class="p">([</span><span class="s1">&#39;jigsaw&#39;</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">jcfg_file</span><span class="p">],</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
+    <span class="n">check_call</span><span class="p">([</span><span class="s1">'jigsaw'</span><span class="p">,</span> <span class="n">opts</span><span class="o">.</span><span class="n">jcfg_file</span><span class="p">],</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>

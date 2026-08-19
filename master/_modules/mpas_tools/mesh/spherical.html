@@ -131,7 +131,7 @@
 <div class="viewcode-block" id="recompute_angle_edge">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.spherical.recompute_angle_edge.html#mpas_tools.mesh.spherical.recompute_angle_edge">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">recompute_angle_edge</span><span class="p">(</span><span class="n">ds_mesh</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Recompute ``angleEdge`` from edge and vertex locations on the sphere.</span>
 
 <span class="sd">    Parameters</span>
@@ -143,7 +143,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    angle_edge : xarray.DataArray</span>
 <span class="sd">        ``angleEdge`` recomputed from spherical geometry.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">normal_east_north</span> <span class="o">=</span> <span class="n">calc_edge_normal_vector</span><span class="p">(</span><span class="n">ds_mesh</span><span class="p">)</span>
     <span class="n">angle_edge</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">ds_mesh</span><span class="o">.</span><span class="n">angleEdge</span><span class="p">)</span>
     <span class="n">angle_edge</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atan2</span><span class="p">(</span>
@@ -156,7 +156,7 @@
 <div class="viewcode-block" id="calc_edge_normal_vector">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.spherical.calc_edge_normal_vector.html#mpas_tools.mesh.spherical.calc_edge_normal_vector">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">calc_edge_normal_vector</span><span class="p">(</span><span class="n">ds_mesh</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Compute edge-normal vectors projected onto local east/north coordinates.</span>
 
 <span class="sd">    Parameters</span>
@@ -169,7 +169,7 @@
 <span class="sd">    normal_east_north : numpy.ndarray</span>
 <span class="sd">        A ``(nEdges, 2)`` array of unit normal vectors in local east/north</span>
 <span class="sd">        coordinates.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">edge_cartesian</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
         <span class="n">lon_lat_to_cartesian</span><span class="p">(</span>
             <span class="n">ds_mesh</span><span class="o">.</span><span class="n">lonEdge</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="o">.</span><span class="n">latEdge</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">degrees</span><span class="o">=</span><span class="kc">False</span>
@@ -198,7 +198,7 @@
         <span class="n">edge_cartesian</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">edge_cartesian</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">edge_cartesian</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="p">:]</span>
     <span class="p">)</span>
 
-    <span class="n">normal_east_north</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ds_mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">],</span> <span class="mi">2</span><span class="p">))</span>
+    <span class="n">normal_east_north</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">ds_mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nEdges'</span><span class="p">],</span> <span class="mi">2</span><span class="p">))</span>
     <span class="n">normal_east_north</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">edge_east</span> <span class="o">*</span> <span class="n">normal_cartesian</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">normal_east_north</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">edge_north</span> <span class="o">*</span> <span class="n">normal_cartesian</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
@@ -213,7 +213,7 @@
 <div class="viewcode-block" id="calc_vector_east_north">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.spherical.calc_vector_east_north.html#mpas_tools.mesh.spherical.calc_vector_east_north">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">calc_vector_east_north</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Compute local east and north unit vectors on the sphere.</span>
 
 <span class="sd">    Parameters</span>
@@ -225,7 +225,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    east, north : tuple of numpy.ndarray</span>
 <span class="sd">        Local east and north unit vectors, each with shape ``(3, nPoints)``.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">axis</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
     <span class="n">xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">stack</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">east</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">xyz</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>

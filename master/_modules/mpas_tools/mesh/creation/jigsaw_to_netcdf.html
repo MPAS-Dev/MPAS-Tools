@@ -135,7 +135,7 @@
 <div class="viewcode-block" id="jigsaw_to_netcdf">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf.html#mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">jigsaw_to_netcdf</span><span class="p">(</span><span class="n">msh_filename</span><span class="p">,</span> <span class="n">output_name</span><span class="p">,</span> <span class="n">on_sphere</span><span class="p">,</span> <span class="n">sphere_radius</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Converts mesh data defined in triangle format to NetCDF</span>
 
 <span class="sd">    Parameters</span>
@@ -152,54 +152,54 @@
 <span class="sd">    sphere_radius : float, optional</span>
 <span class="sd">        The radius of the sphere in meters.  If ``on_sphere=True`` this</span>
 <span class="sd">        argument is required, otherwise it is ignored.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># Get dimensions</span>
     <span class="c1"># Get nCells</span>
     <span class="n">msh</span> <span class="o">=</span> <span class="n">readmsh</span><span class="p">(</span><span class="n">msh_filename</span><span class="p">)</span>
-    <span class="n">nCells</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;POINT&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">'POINT'</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="c1"># always triangles with JIGSAW output</span>
     <span class="n">vertexDegree</span> <span class="o">=</span> <span class="mi">3</span>
-    <span class="n">nVertices</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;TRIA3&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">nVertices</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">'TRIA3'</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">vertexDegree</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s1">&#39;This script can only compute vertices with triangular &#39;</span>
-            <span class="s1">&#39;dual meshes currently.&#39;</span>
+            <span class="s1">'This script can only compute vertices with triangular '</span>
+            <span class="s1">'dual meshes currently.'</span>
         <span class="p">)</span>
 
     <span class="c1"># Create cell variables and sphere_radius</span>
-    <span class="n">xCell_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;POINT&#39;</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span>
-    <span class="n">yCell_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;POINT&#39;</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;NDIMS&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+    <span class="n">xCell_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">'POINT'</span><span class="p">][:,</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">yCell_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">'POINT'</span><span class="p">][:,</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">msh</span><span class="p">[</span><span class="s1">'NDIMS'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
         <span class="n">zCell_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">yCell_full</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;NDIMS&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="n">zCell_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;POINT&#39;</span><span class="p">][:,</span> <span class="mi">2</span><span class="p">]</span>
+    <span class="k">elif</span> <span class="n">msh</span><span class="p">[</span><span class="s1">'NDIMS'</span><span class="p">]</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">zCell_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">'POINT'</span><span class="p">][:,</span> <span class="mi">2</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="sa">f</span><span class="s1">&#39;NDIMS must be 2 or 3; input mesh has NDIMS=</span><span class="si">{</span><span class="n">msh</span><span class="p">[</span><span class="s2">&quot;NDIMS&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="sa">f</span><span class="s1">'NDIMS must be 2 or 3; input mesh has NDIMS=</span><span class="si">{</span><span class="n">msh</span><span class="p">[</span><span class="s2">"NDIMS"</span><span class="p">]</span><span class="si">}</span><span class="s1">'</span>
         <span class="p">)</span>
     <span class="k">for</span> <span class="n">cells</span> <span class="ow">in</span> <span class="p">[</span><span class="n">xCell_full</span><span class="p">,</span> <span class="n">yCell_full</span><span class="p">,</span> <span class="n">zCell_full</span><span class="p">]:</span>
         <span class="k">assert</span> <span class="n">cells</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">nCells</span><span class="p">,</span> <span class="p">(</span>
-            <span class="s1">&#39;Number of anticipated nodes is not correct!&#39;</span>
+            <span class="s1">'Number of anticipated nodes is not correct!'</span>
         <span class="p">)</span>
 
     <span class="n">attrs</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="n">on_sphere</span><span class="p">:</span>
-        <span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;on_a_sphere&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;YES&#39;</span>
-        <span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;sphere_radius&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sphere_radius</span>
+        <span class="n">attrs</span><span class="p">[</span><span class="s1">'on_a_sphere'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'YES'</span>
+        <span class="n">attrs</span><span class="p">[</span><span class="s1">'sphere_radius'</span><span class="p">]</span> <span class="o">=</span> <span class="n">sphere_radius</span>
         <span class="c1"># convert from km to meters</span>
         <span class="n">xCell_full</span> <span class="o">=</span> <span class="n">xCell_full</span> <span class="o">*</span> <span class="mf">1e3</span>
         <span class="n">yCell_full</span> <span class="o">=</span> <span class="n">yCell_full</span> <span class="o">*</span> <span class="mf">1e3</span>
         <span class="n">zCell_full</span> <span class="o">=</span> <span class="n">zCell_full</span> <span class="o">*</span> <span class="mf">1e3</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;on_a_sphere&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;NO&#39;</span>
-        <span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;sphere_radius&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">attrs</span><span class="p">[</span><span class="s1">'on_a_sphere'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'NO'</span>
+        <span class="n">attrs</span><span class="p">[</span><span class="s1">'sphere_radius'</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="c1"># Create cellsOnVertex</span>
-    <span class="n">cellsOnVertex_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">&#39;TRIA3&#39;</span><span class="p">][:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="n">cellsOnVertex_full</span> <span class="o">=</span> <span class="n">msh</span><span class="p">[</span><span class="s1">'TRIA3'</span><span class="p">][:,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">assert</span> <span class="n">cellsOnVertex_full</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="p">(</span>
-        <span class="s1">&#39;cellsOnVertex_full is not the right shape!&#39;</span>
+        <span class="s1">'cellsOnVertex_full is not the right shape!'</span>
     <span class="p">)</span>
 
     <span class="c1"># Vectorized circumcenter calculation</span>
@@ -222,14 +222,14 @@
     <span class="c1"># Build xarray.Dataset</span>
     <span class="n">ds</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span>
         <span class="n">data_vars</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span>
-            <span class="n">xCell</span><span class="o">=</span><span class="p">((</span><span class="s1">&#39;nCells&#39;</span><span class="p">,),</span> <span class="n">xCell_full</span><span class="p">),</span>
-            <span class="n">yCell</span><span class="o">=</span><span class="p">((</span><span class="s1">&#39;nCells&#39;</span><span class="p">,),</span> <span class="n">yCell_full</span><span class="p">),</span>
-            <span class="n">zCell</span><span class="o">=</span><span class="p">((</span><span class="s1">&#39;nCells&#39;</span><span class="p">,),</span> <span class="n">zCell_full</span><span class="p">),</span>
-            <span class="n">xVertex</span><span class="o">=</span><span class="p">((</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,),</span> <span class="n">xVertex_full</span><span class="p">),</span>
-            <span class="n">yVertex</span><span class="o">=</span><span class="p">((</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,),</span> <span class="n">yVertex_full</span><span class="p">),</span>
-            <span class="n">zVertex</span><span class="o">=</span><span class="p">((</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,),</span> <span class="n">zVertex_full</span><span class="p">),</span>
-            <span class="n">cellsOnVertex</span><span class="o">=</span><span class="p">((</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,</span> <span class="s1">&#39;vertexDegree&#39;</span><span class="p">),</span> <span class="n">cellsOnVertex_full</span><span class="p">),</span>
-            <span class="n">meshDensity</span><span class="o">=</span><span class="p">((</span><span class="s1">&#39;nCells&#39;</span><span class="p">,),</span> <span class="n">meshDensity_full</span><span class="p">),</span>
+            <span class="n">xCell</span><span class="o">=</span><span class="p">((</span><span class="s1">'nCells'</span><span class="p">,),</span> <span class="n">xCell_full</span><span class="p">),</span>
+            <span class="n">yCell</span><span class="o">=</span><span class="p">((</span><span class="s1">'nCells'</span><span class="p">,),</span> <span class="n">yCell_full</span><span class="p">),</span>
+            <span class="n">zCell</span><span class="o">=</span><span class="p">((</span><span class="s1">'nCells'</span><span class="p">,),</span> <span class="n">zCell_full</span><span class="p">),</span>
+            <span class="n">xVertex</span><span class="o">=</span><span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,),</span> <span class="n">xVertex_full</span><span class="p">),</span>
+            <span class="n">yVertex</span><span class="o">=</span><span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,),</span> <span class="n">yVertex_full</span><span class="p">),</span>
+            <span class="n">zVertex</span><span class="o">=</span><span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,),</span> <span class="n">zVertex_full</span><span class="p">),</span>
+            <span class="n">cellsOnVertex</span><span class="o">=</span><span class="p">((</span><span class="s1">'nVertices'</span><span class="p">,</span> <span class="s1">'vertexDegree'</span><span class="p">),</span> <span class="n">cellsOnVertex_full</span><span class="p">),</span>
+            <span class="n">meshDensity</span><span class="o">=</span><span class="p">((</span><span class="s1">'nCells'</span><span class="p">,),</span> <span class="n">meshDensity_full</span><span class="p">),</span>
         <span class="p">),</span>
         <span class="n">attrs</span><span class="o">=</span><span class="n">attrs</span><span class="p">,</span>
     <span class="p">)</span>
@@ -240,42 +240,42 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Convert a JIGSAW mesh file to NetCDF format for MPAS-Tools.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span> <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-m&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--msh&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;msh&#39;</span><span class="p">,</span>
+        <span class="s1">'-m'</span><span class="p">,</span>
+        <span class="s1">'--msh'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'msh'</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;input .msh file generated by JIGSAW.&#39;</span><span class="p">,</span>
-        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;FILE&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'input .msh file generated by JIGSAW.'</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">'FILE'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--output&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;output&#39;</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;grid.nc&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;output file name.&#39;</span><span class="p">,</span>
-        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;FILE&#39;</span><span class="p">,</span>
+        <span class="s1">'-o'</span><span class="p">,</span>
+        <span class="s1">'--output'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'output'</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">'grid.nc'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'output file name.'</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">'FILE'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-s&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--spherical&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;spherical&#39;</span><span class="p">,</span>
-        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="s1">'-s'</span><span class="p">,</span>
+        <span class="s1">'--spherical'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'spherical'</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">'store_true'</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Determines if the input/output should be spherical or not.&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'Determines if the input/output should be spherical or not.'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-r&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--sphere_radius&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;sphere_radius&#39;</span><span class="p">,</span>
+        <span class="s1">'-r'</span><span class="p">,</span>
+        <span class="s1">'--sphere_radius'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'sphere_radius'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The radius of the sphere in meters&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'The radius of the sphere in meters'</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>

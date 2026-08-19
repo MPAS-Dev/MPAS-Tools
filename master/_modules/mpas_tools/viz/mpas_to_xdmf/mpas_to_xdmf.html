@@ -122,7 +122,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">MPAS to XDMF Converter</span>
 <span class="sd">======================</span>
 
@@ -135,7 +135,7 @@
 <span class="sd">- Supports cell-, edge-, and vertex-centered variables.</span>
 <span class="sd">- Allows slicing along extra dimensions (e.g., nVertLevels).</span>
 <span class="sd">- Combines mesh and time series files.</span>
-<span class="sd">- Selects variables by name or by special keys (e.g., &#39;allOnCells&#39;).</span>
+<span class="sd">- Selects variables by name or by special keys (e.g., 'allOnCells').</span>
 
 <span class="sd">Example Usage</span>
 <span class="sd">-------------</span>
@@ -143,9 +143,9 @@
 
 <span class="sd">    &gt;&gt;&gt; from mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf import MpasToXdmf</span>
 <span class="sd">    &gt;&gt;&gt; converter = MpasToXdmf()</span>
-<span class="sd">    &gt;&gt;&gt; converter.load(mesh_filename=&quot;mesh.nc&quot;, time_series_filenames=&quot;output.*.nc&quot;,</span>
-<span class="sd">    ...                variables=[&quot;temperature&quot;, &quot;salinity&quot;], xtime_var=&quot;xtime&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; converter.convert_to_xdmf(out_dir=&quot;output_dir&quot;, extra_dims={&quot;nVertLevels&quot;: [0, 1, 2]})</span>
+<span class="sd">    &gt;&gt;&gt; converter.load(mesh_filename="mesh.nc", time_series_filenames="output.*.nc",</span>
+<span class="sd">    ...                variables=["temperature", "salinity"], xtime_var="xtime")</span>
+<span class="sd">    &gt;&gt;&gt; converter.convert_to_xdmf(out_dir="output_dir", extra_dims={"nVertLevels": [0, 1, 2]})</span>
 
 <span class="sd">Command line:</span>
 
@@ -154,7 +154,7 @@
 <span class="sd">See Also</span>
 <span class="sd">--------</span>
 <span class="sd">- Documentation: https://mpas-dev.github.io/MPAS-Tools/latest/mpas_to_xdmf.html</span>
-<span class="sd">&quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+<span class="sd">"""</span>  <span class="c1"># noqa: E501</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.viz.mpas_to_xdmf.io</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">_DEFAULT_MAX_READ_BYTES</span><span class="p">,</span>
@@ -170,7 +170,7 @@
 <div class="viewcode-block" id="MpasToXdmf">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.html#mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">MpasToXdmf</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A class for converting MPAS NetCDF files to XDMF + HDF5 format for</span>
 <span class="sd">    visualization in ParaView.</span>
 
@@ -185,14 +185,14 @@
 <span class="sd">    -----</span>
 <span class="sd">    - Use the `load()` method to read mesh and time series files.</span>
 <span class="sd">    - Use `convert_to_xdmf()` to write XDMF and HDF5 files.</span>
-<span class="sd">    - Special variable keys: &#39;allOnCells&#39;, &#39;allOnEdges&#39;, &#39;allOnVertices&#39;.</span>
+<span class="sd">    - Special variable keys: 'allOnCells', 'allOnEdges', 'allOnVertices'.</span>
 <span class="sd">    - Extra dimensions can be sliced using the `extra_dims` argument.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
 <div class="viewcode-block" id="MpasToXdmf.__init__">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.html#mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.MpasToXdmf.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ds_mesh</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">xtime_var</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Initialize the converter with a mesh file and optional time series</span>
 <span class="sd">        files.</span>
 
@@ -205,8 +205,8 @@
 <span class="sd">            An xarray Dataset representing the mesh. If not provided, ds is</span>
 <span class="sd">            used as the mesh.</span>
 <span class="sd">        xtime_var : str, optional</span>
-<span class="sd">            Name of the variable containing time information (e.g., &#39;xtime&#39;).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            Name of the variable containing time information (e.g., 'xtime').</span>
+<span class="sd">        """</span>
         <span class="k">if</span> <span class="n">ds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">ds_mesh</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">ds_mesh</span> <span class="o">=</span> <span class="n">ds</span>
         <span class="k">if</span> <span class="n">ds_mesh</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -225,7 +225,7 @@
         <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">xtime_var</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Load the MPAS mesh file and optional time series.</span>
 
 <span class="sd">        Parameters</span>
@@ -238,16 +238,16 @@
 <span class="sd">        variables : list of str, optional</span>
 <span class="sd">            List of variables to convert. Special keys:</span>
 
-<span class="sd">            * ``&quot;allOnCells&quot;``: all variables with dimension ``&quot;nCells&quot;``.</span>
-<span class="sd">            * ``&quot;allOnEdges&quot;``: all variables with dimension ``&quot;nEdges&quot;``.</span>
-<span class="sd">            * ``&quot;allOnVertices&quot;``: all variables with dimension</span>
-<span class="sd">              ``&quot;nVertices&quot;``.</span>
+<span class="sd">            * ``"allOnCells"``: all variables with dimension ``"nCells"``.</span>
+<span class="sd">            * ``"allOnEdges"``: all variables with dimension ``"nEdges"``.</span>
+<span class="sd">            * ``"allOnVertices"``: all variables with dimension</span>
+<span class="sd">              ``"nVertices"``.</span>
 
 <span class="sd">            If None, all variables are included.</span>
 <span class="sd">        xtime_var : str, optional</span>
 <span class="sd">            Name of the variable containing time information (e.g.,</span>
-<span class="sd">            ``&quot;xtime&quot;``).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">            ``"xtime"``).</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ds_mesh</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ds</span> <span class="o">=</span> <span class="n">_load_dataset</span><span class="p">(</span>
             <span class="n">mesh_filename</span><span class="o">=</span><span class="n">mesh_filename</span><span class="p">,</span>
             <span class="n">time_series_filenames</span><span class="o">=</span><span class="n">time_series_filenames</span><span class="p">,</span>
@@ -266,7 +266,7 @@
         <span class="n">float32</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">max_read_bytes</span><span class="o">=</span><span class="n">_DEFAULT_MAX_READ_BYTES</span><span class="p">,</span>
     <span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Convert the loaded xarray Dataset to XDMF + HDF5 format.</span>
 
 <span class="sd">        Parameters</span>
@@ -275,7 +275,7 @@
 <span class="sd">            Directory where XDMF and HDF5 files will be saved.</span>
 <span class="sd">        extra_dims : dict, optional</span>
 <span class="sd">            Dictionary mapping extra dimensions to their selected indices.</span>
-<span class="sd">            Example - ``{&#39;nVertLevels&#39;: [0, 1, 2]}``. If None, all indices are</span>
+<span class="sd">            Example - ``{'nVertLevels': [0, 1, 2]}``. If None, all indices are</span>
 <span class="sd">            included.</span>
 <span class="sd">        quiet : bool, optional</span>
 <span class="sd">            If True, suppress progress output.</span>
@@ -297,7 +297,7 @@
 <span class="sd">        ------</span>
 <span class="sd">        ValueError</span>
 <span class="sd">            If required files or variables are missing.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="c1"># Process extra dimensions</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ds</span> <span class="o">=</span> <span class="n">_process_extra_dims</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ds</span><span class="p">,</span> <span class="n">extra_dims</span><span class="p">)</span>
 
@@ -317,7 +317,7 @@
 <div class="viewcode-block" id="main">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.main.html#mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf.main">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Command-line interface for the MpasToXdmf.</span>
 
 <span class="sd">    Usage</span>
@@ -325,82 +325,82 @@
 <span class="sd">    $ mpas_to_xdmf -m mesh.nc -t output.*.nc -v temperature salinity -o output_dir -d nVertLevels=0:3</span>
 
 <span class="sd">    See `mpas_to_xdmf --help` for all options.</span>
-<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+<span class="sd">    """</span>  <span class="c1"># noqa: E501</span>
     <span class="kn">import</span><span class="w"> </span><span class="nn">argparse</span>
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">description</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;Convert MPAS NetCDF files to XDMF + HDF5 format for ParaView.&#39;</span>
+            <span class="s1">'Convert MPAS NetCDF files to XDMF + HDF5 format for ParaView.'</span>
         <span class="p">)</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;--mesh&#39;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to the MPAS mesh file.&#39;</span>
+        <span class="s1">'-m'</span><span class="p">,</span> <span class="s1">'--mesh'</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">'Path to the MPAS mesh file.'</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-t&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--time-series&#39;</span><span class="p">,</span>
-        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span>
+        <span class="s1">'-t'</span><span class="p">,</span>
+        <span class="s1">'--time-series'</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">'*'</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;Wildcard or list of time series files.  If not provided, the &#39;</span>
-            <span class="s1">&#39;mesh file will be used.&#39;</span>
+            <span class="s1">'Wildcard or list of time series files.  If not provided, the '</span>
+            <span class="s1">'mesh file will be used.'</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-v&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--variables&#39;</span><span class="p">,</span>
-        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span>
+        <span class="s1">'-v'</span><span class="p">,</span>
+        <span class="s1">'--variables'</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">'*'</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;List of variables to convert. Special keys include: &#39;</span>
-            <span class="s2">&quot;&#39;allOnCells&#39; (variables with dimension `nCells`), &quot;</span>
-            <span class="s2">&quot;&#39;allOnEdges&#39; (variables with dimension `nEdges`), and &quot;</span>
-            <span class="s2">&quot;&#39;allOnVertices&#39; (variables with dimension `nVertices`). &quot;</span>
-            <span class="s1">&#39;If not provided, all variables will be converted.&#39;</span>
+            <span class="s1">'List of variables to convert. Special keys include: '</span>
+            <span class="s2">"'allOnCells' (variables with dimension `nCells`), "</span>
+            <span class="s2">"'allOnEdges' (variables with dimension `nEdges`), and "</span>
+            <span class="s2">"'allOnVertices' (variables with dimension `nVertices`). "</span>
+            <span class="s1">'If not provided, all variables will be converted.'</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--output-dir&#39;</span><span class="p">,</span>
+        <span class="s1">'-o'</span><span class="p">,</span>
+        <span class="s1">'--output-dir'</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Directory to save XDMF files.&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'Directory to save XDMF files.'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-x&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--xtime&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Name of the variable containing time information.&#39;</span><span class="p">,</span>
+        <span class="s1">'-x'</span><span class="p">,</span>
+        <span class="s1">'--xtime'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'Name of the variable containing time information.'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-d&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--dim-list&#39;</span><span class="p">,</span>
-        <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;+&#39;</span><span class="p">,</span>
+        <span class="s1">'-d'</span><span class="p">,</span>
+        <span class="s1">'--dim-list'</span><span class="p">,</span>
+        <span class="n">nargs</span><span class="o">=</span><span class="s1">'+'</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;List of dimensions and indices to slice &#39;</span>
-            <span class="s1">&#39;(e.g., nVertLevels=0:10:2).&#39;</span>
+            <span class="s1">'List of dimensions and indices to slice '</span>
+            <span class="s1">'(e.g., nVertLevels=0:10:2).'</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-q&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--quiet&#39;</span><span class="p">,</span>
-        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Suppress progress output.&#39;</span><span class="p">,</span>
+        <span class="s1">'-q'</span><span class="p">,</span>
+        <span class="s1">'--quiet'</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">'store_true'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'Suppress progress output.'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-f&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--float32&#39;</span><span class="p">,</span>
-        <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+        <span class="s1">'-f'</span><span class="p">,</span>
+        <span class="s1">'--float32'</span><span class="p">,</span>
+        <span class="n">action</span><span class="o">=</span><span class="s1">'store_true'</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;Write floating-point fields in single precision, halving the &#39;</span>
-            <span class="s1">&#39;size of the HDF5 files.  The mesh geometry stays in double &#39;</span>
-            <span class="s1">&#39;precision.&#39;</span>
+            <span class="s1">'Write floating-point fields in single precision, halving the '</span>
+            <span class="s1">'size of the HDF5 files.  The mesh geometry stays in double '</span>
+            <span class="s1">'precision.'</span>
         <span class="p">),</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;--max-read-gb&#39;</span><span class="p">,</span>
+        <span class="s1">'--max-read-gb'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">float</span><span class="p">,</span>
         <span class="n">default</span><span class="o">=</span><span class="n">_DEFAULT_MAX_READ_BYTES</span> <span class="o">/</span> <span class="mi">1024</span><span class="o">**</span><span class="mi">3</span><span class="p">,</span>
         <span class="n">help</span><span class="o">=</span><span class="p">(</span>
-            <span class="s1">&#39;Approximate limit in GB on the amount of data read from the &#39;</span>
-            <span class="s1">&#39;input files at a time.  Larger values are faster but use more &#39;</span>
-            <span class="s1">&#39;memory.&#39;</span>
+            <span class="s1">'Approximate limit in GB on the amount of data read from the '</span>
+            <span class="s1">'input files at a time.  Larger values are faster but use more '</span>
+            <span class="s1">'memory.'</span>
         <span class="p">),</span>
     <span class="p">)</span>
 

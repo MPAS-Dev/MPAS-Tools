@@ -146,7 +146,7 @@
     <span class="n">spherical</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">z_transect</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    build a sequence of quads showing the transect intersecting mpas cells.</span>
 <span class="sd">    This can be used to plot transects of fields with dimensions ``nCells`` and</span>
 <span class="sd">    either ``nVertLevels`` (levels) or ``nVertLevelsP1`` (interfaces).</span>
@@ -189,7 +189,7 @@
 <span class="sd">        The transect dataset, see</span>
 <span class="sd">        :py:func:`mpas_tools.ocean.viz.transect.vert.find_transect_levels_and_weights()`</span>
 <span class="sd">        for details</span>
-<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+<span class="sd">    """</span>  <span class="c1"># noqa: E501</span>
 
     <span class="n">ds_tris</span> <span class="o">=</span> <span class="n">mesh_to_triangles</span><span class="p">(</span><span class="n">ds_horiz_mesh</span><span class="p">)</span>
 
@@ -207,7 +207,7 @@
     <span class="c1"># mask horizontal transect to valid cells (max_level_cell &gt;= 0)</span>
     <span class="n">cell_indices</span> <span class="o">=</span> <span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">horizCellIndices</span>
     <span class="n">seg_mask</span> <span class="o">=</span> <span class="n">max_level_cell</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cell_indices</span><span class="p">)</span><span class="o">.</span><span class="n">values</span> <span class="o">&gt;=</span> <span class="mi">0</span>
-    <span class="n">node_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nNodes&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+    <span class="n">node_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nNodes'</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="n">node_mask</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">seg_mask</span>
     <span class="n">node_mask</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">node_mask</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">seg_mask</span><span class="p">)</span>
 
@@ -240,7 +240,7 @@
     <span class="n">max_level_cell</span><span class="p">,</span>
     <span class="n">z_transect</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Construct a vertical coordinate for a transect produced by</span>
 <span class="sd">    :py:func:`mpas_tools.viz.transect.horiz.find_spherical_transect_cells_and_weights()`</span>
 <span class="sd">    or :py:func:`mpas_tools.viz.transect.horiz.find_planar_transect_cells_and_weights()`.</span>
@@ -310,13 +310,13 @@
 <span class="sd">        :py:func:`mpas_tools.ocean.viz.transect.vert.interp_mpas_to_transect_cells()`.</span>
 <span class="sd">        Similarly, interpolation to transect nodes can be performed with</span>
 <span class="sd">        :py:func:`mpas_tools.ocean.viz.transect.vert.interp_mpas_to_transect_nodes()`.</span>
-<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
-    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+<span class="sd">    """</span>  <span class="c1"># noqa: E501</span>
+    <span class="k">if</span> <span class="s1">'Time'</span> <span class="ow">in</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s1">&#39;Please select a single time level in layer thickness.&#39;</span>
+            <span class="s1">'Please select a single time level in layer thickness.'</span>
         <span class="p">)</span>
 
-    <span class="n">ds_transect_cells</span> <span class="o">=</span> <span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nNodes&#39;</span><span class="p">:</span> <span class="s1">&#39;nHorizNodes&#39;</span><span class="p">})</span>
+    <span class="n">ds_transect_cells</span> <span class="o">=</span> <span class="n">ds_horiz_transect</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'nNodes'</span><span class="p">:</span> <span class="s1">'nHorizNodes'</span><span class="p">})</span>
 
     <span class="n">_add_vert_coord_and_interp_data</span><span class="p">(</span>
         <span class="n">ds_transect_cells</span><span class="p">,</span>
@@ -332,8 +332,8 @@
         <span class="n">ds_transect_cells</span><span class="o">.</span><span class="n">validCells</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">ds_transect_cells</span><span class="p">[</span><span class="s1">&#39;dInterfaceSegment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d_interface_seg</span>
-    <span class="n">ds_transect_cells</span><span class="p">[</span><span class="s1">&#39;zInterfaceSegment&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_interface_seg</span>
+    <span class="n">ds_transect_cells</span><span class="p">[</span><span class="s1">'dInterfaceSegment'</span><span class="p">]</span> <span class="o">=</span> <span class="n">d_interface_seg</span>
+    <span class="n">ds_transect_cells</span><span class="p">[</span><span class="s1">'zInterfaceSegment'</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_interface_seg</span>
 
     <span class="n">d_cell_boundary</span><span class="p">,</span> <span class="n">z_cell_boundary</span> <span class="o">=</span> <span class="n">_get_cell_boundary_segments</span><span class="p">(</span>
         <span class="n">ds_transect_cells</span><span class="o">.</span><span class="n">ssh</span><span class="p">,</span>
@@ -342,20 +342,20 @@
         <span class="n">ds_transect_cells</span><span class="o">.</span><span class="n">horizCellIndices</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">ds_transect_cells</span><span class="p">[</span><span class="s1">&#39;dCellBoundary&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d_cell_boundary</span>
-    <span class="n">ds_transect_cells</span><span class="p">[</span><span class="s1">&#39;zCellBoundary&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_cell_boundary</span>
+    <span class="n">ds_transect_cells</span><span class="p">[</span><span class="s1">'dCellBoundary'</span><span class="p">]</span> <span class="o">=</span> <span class="n">d_cell_boundary</span>
+    <span class="n">ds_transect_cells</span><span class="p">[</span><span class="s1">'zCellBoundary'</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_cell_boundary</span>
 
     <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="s1">&#39;nSegments&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;nHalfLevels&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;nHorizNodes&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;nVertNodes&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;nInterfaceSegments&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;nCellBoundaries&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;nHorizBounds&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;nVertBounds&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;nHorizWeights&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;nVertWeights&#39;</span><span class="p">,</span>
+        <span class="s1">'nSegments'</span><span class="p">,</span>
+        <span class="s1">'nHalfLevels'</span><span class="p">,</span>
+        <span class="s1">'nHorizNodes'</span><span class="p">,</span>
+        <span class="s1">'nVertNodes'</span><span class="p">,</span>
+        <span class="s1">'nInterfaceSegments'</span><span class="p">,</span>
+        <span class="s1">'nCellBoundaries'</span><span class="p">,</span>
+        <span class="s1">'nHorizBounds'</span><span class="p">,</span>
+        <span class="s1">'nVertBounds'</span><span class="p">,</span>
+        <span class="s1">'nHorizWeights'</span><span class="p">,</span>
+        <span class="s1">'nVertWeights'</span><span class="p">,</span>
     <span class="p">]</span>
     <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">ds_transect_cells</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dims</span><span class="p">:</span>
@@ -374,7 +374,7 @@
 <div class="viewcode-block" id="interp_mpas_to_transect_cells">
 <a class="viewcode-back" href="../../../../../generated/mpas_tools.ocean.viz.transect.interp_mpas_to_transect_cells.html#mpas_tools.ocean.viz.transect.interp_mpas_to_transect_cells">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">interp_mpas_to_transect_cells</span><span class="p">(</span><span class="n">ds_transect</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Interpolate an MPAS-Ocean DataArray with dimensions ``nCells`` by</span>
 <span class="sd">    either ``nVertLevels`` (levels) or ``nVertLevelsP1`` (interfaces) to</span>
 <span class="sd">    transect cells</span>
@@ -396,21 +396,21 @@
 <span class="sd">        ``nSegments`` and ``nHalfLevels`` (in addition to whatever</span>
 <span class="sd">        dimensions were in ``da`` besides ``nCells`` and either</span>
 <span class="sd">        ``nVertLevels`` or ``nVertLevelsP1``)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">cell_indices</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">cellIndices</span>
-    <span class="k">if</span> <span class="s1">&#39;nVertLevels&#39;</span> <span class="ow">in</span> <span class="n">da</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s1">'nVertLevels'</span> <span class="ow">in</span> <span class="n">da</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="n">level_indices</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">levelIndices</span>
         <span class="n">da_cells</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cell_indices</span><span class="p">,</span> <span class="n">nVertLevels</span><span class="o">=</span><span class="n">level_indices</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="s1">&#39;nVertLevelsP1&#39;</span> <span class="ow">in</span> <span class="n">da</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="s1">'nVertLevelsP1'</span> <span class="ow">in</span> <span class="n">da</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="n">intreface_indices</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">interfaceIndices</span>
         <span class="n">da_cells</span> <span class="o">=</span> <span class="n">da</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span>
             <span class="n">nCells</span><span class="o">=</span><span class="n">cell_indices</span><span class="p">,</span> <span class="n">nVertLevelsP1</span><span class="o">=</span><span class="n">intreface_indices</span>
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s1">&#39;da must have dimensions nCells and either &#39;</span>
-            <span class="s1">&#39;nVertLevels or nVertLevelsP1&#39;</span>
+            <span class="s1">'da must have dimensions nCells and either '</span>
+            <span class="s1">'nVertLevels or nVertLevelsP1'</span>
         <span class="p">)</span>
 
     <span class="n">da_cells</span> <span class="o">=</span> <span class="n">da_cells</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ds_transect</span><span class="o">.</span><span class="n">validCells</span><span class="p">)</span>
@@ -422,7 +422,7 @@
 <div class="viewcode-block" id="interp_mpas_to_transect_nodes">
 <a class="viewcode-back" href="../../../../../generated/mpas_tools.ocean.viz.transect.interp_mpas_to_transect_nodes.html#mpas_tools.ocean.viz.transect.interp_mpas_to_transect_nodes">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">interp_mpas_to_transect_nodes</span><span class="p">(</span><span class="n">ds_transect</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Interpolate an MPAS-Ocean DataArray with dimensions ``nCells`` by</span>
 <span class="sd">    either ``nVertLevels`` or ``nVertLevelsP1`` to transect nodes, linearly</span>
 <span class="sd">    interpolating fields between the closest neighboring cells</span>
@@ -444,11 +444,11 @@
 <span class="sd">        ``nHorizNodes`` and ``nVertNodes`` (in addition to whatever</span>
 <span class="sd">        dimensions were in ``da`` besides ``nCells`` and either</span>
 <span class="sd">        ``nVertLevels`` or ``nVertLevelsP1``)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">interp_cell_indices</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">interpCellIndices</span>
 
-    <span class="k">if</span> <span class="s1">&#39;nVertLevels&#39;</span> <span class="ow">in</span> <span class="n">da</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s1">'nVertLevels'</span> <span class="ow">in</span> <span class="n">da</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="n">interp_level_indices</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">interpLevelIndices</span>
         <span class="n">interp_weights</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">interpLevelWeights</span>
 
@@ -456,7 +456,7 @@
             <span class="n">nCells</span><span class="o">=</span><span class="n">interp_cell_indices</span><span class="p">,</span> <span class="n">nVertLevels</span><span class="o">=</span><span class="n">interp_level_indices</span>
         <span class="p">)</span>
 
-    <span class="k">elif</span> <span class="s1">&#39;nVertLevelsP1&#39;</span> <span class="ow">in</span> <span class="n">da</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="s1">'nVertLevelsP1'</span> <span class="ow">in</span> <span class="n">da</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="n">interp_interface_indices</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">interpInterfaceIndices</span>
         <span class="n">interp_weights</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">interpInterfaceWeights</span>
 
@@ -465,11 +465,11 @@
         <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s1">&#39;da must have dimensions nCells and either &#39;</span>
-            <span class="s1">&#39;nVertLevels or nVertLevelsP1&#39;</span>
+            <span class="s1">'da must have dimensions nCells and either '</span>
+            <span class="s1">'nVertLevels or nVertLevelsP1'</span>
         <span class="p">)</span>
 
-    <span class="n">da_nodes</span> <span class="o">=</span> <span class="p">(</span><span class="n">da</span> <span class="o">*</span> <span class="n">interp_weights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nHorizWeights&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertWeights&#39;</span><span class="p">))</span>
+    <span class="n">da_nodes</span> <span class="o">=</span> <span class="p">(</span><span class="n">da</span> <span class="o">*</span> <span class="n">interp_weights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizWeights'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">))</span>
 
     <span class="n">da_nodes</span> <span class="o">=</span> <span class="n">da_nodes</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ds_transect</span><span class="o">.</span><span class="n">validNodes</span><span class="p">)</span>
 
@@ -480,7 +480,7 @@
 <div class="viewcode-block" id="interp_transect_grid_to_transect_nodes">
 <a class="viewcode-back" href="../../../../../generated/mpas_tools.ocean.viz.transect.interp_transect_grid_to_transect_nodes.html#mpas_tools.ocean.viz.transect.interp_transect_grid_to_transect_nodes">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">interp_transect_grid_to_transect_nodes</span><span class="p">(</span><span class="n">ds_transect</span><span class="p">,</span> <span class="n">da</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Interpolate a DataArray on the original transect grid to nodes on the</span>
 <span class="sd">    MPAS-Ocean transect.</span>
 
@@ -500,7 +500,7 @@
 <span class="sd">    da_nodes : xarray.DataArray</span>
 <span class="sd">        The data array interpolated to transect nodes with dimensions</span>
 <span class="sd">        ``nHorizNodes`` and ``nVertNodes``</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">horiz_dim</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">dTransect</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">z_transect</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">zTransect</span>
@@ -565,7 +565,7 @@
     <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:],</span> <span class="n">valid_cells</span><span class="p">)</span>
 
     <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nHorizNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLevels&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertLevels'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
     <span class="p">)</span>
 
     <span class="n">interp_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
@@ -573,7 +573,7 @@
     <span class="p">)</span>
 
     <span class="n">interp_level_weights</span> <span class="o">=</span> <span class="n">interp_mask</span> <span class="o">*</span> <span class="n">interp_horiz_cell_weights</span>
-    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_level_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nHorizWeights&#39;</span><span class="p">)</span>
+    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_level_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">'nHorizWeights'</span><span class="p">)</span>
 
     <span class="n">valid_weights</span> <span class="o">=</span> <span class="n">valid_nodes</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">interp_level_weights</span><span class="p">)</span>
     <span class="n">interp_level_weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">interp_level_weights</span> <span class="o">/</span> <span class="n">weight_sum</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
@@ -598,7 +598,7 @@
     <span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">valid_nodes</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="mi">1</span><span class="p">:],</span> <span class="n">valid_cells</span><span class="p">)</span>
 
     <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nHorizNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLevelsP1&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertLevelsP1'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
     <span class="p">)</span>
 
     <span class="n">interp_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
@@ -606,7 +606,7 @@
     <span class="p">)</span>
 
     <span class="n">interp_interface_weights</span> <span class="o">=</span> <span class="n">interp_mask</span> <span class="o">*</span> <span class="n">interp_horiz_cell_weights</span>
-    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_interface_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nHorizWeights&#39;</span><span class="p">)</span>
+    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_interface_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">'nHorizWeights'</span><span class="p">)</span>
 
     <span class="n">valid_weights</span> <span class="o">=</span> <span class="n">valid_nodes</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">interp_interface_weights</span><span class="p">)</span>
     <span class="n">interp_interface_weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">interp_interface_weights</span> <span class="o">/</span> <span class="n">weight_sum</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
@@ -627,7 +627,7 @@
     <span class="p">)</span>
 
     <span class="n">ssh_interp</span> <span class="o">=</span> <span class="o">-</span><span class="n">bottom_depth_interp</span> <span class="o">+</span> <span class="n">layer_thickness_interp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span>
+        <span class="n">dim</span><span class="o">=</span><span class="s1">'nVertLevels'</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">ssh_interp</span><span class="p">,</span> <span class="n">layer_thickness_interp</span>
@@ -635,7 +635,7 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_interp_horiz</span><span class="p">(</span><span class="n">field_at_interp</span><span class="p">,</span> <span class="n">interp_weights</span><span class="p">):</span>
     <span class="n">field_transect</span> <span class="o">=</span> <span class="p">(</span><span class="n">field_at_interp</span> <span class="o">*</span> <span class="n">interp_weights</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nHorizWeights&#39;</span>
+        <span class="n">dim</span><span class="o">=</span><span class="s1">'nHorizWeights'</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">field_transect</span>
 
@@ -643,9 +643,9 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_add_vert_coord_and_interp_data</span><span class="p">(</span>
     <span class="n">ds_transect</span><span class="p">,</span> <span class="n">layer_thickness</span><span class="p">,</span> <span class="n">bottom_depth</span><span class="p">,</span> <span class="n">min_level_cell</span><span class="p">,</span> <span class="n">max_level_cell</span>
 <span class="p">):</span>
-    <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nHorizNodes&#39;</span><span class="p">]</span>
-    <span class="n">n_segments</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nSegments&#39;</span><span class="p">]</span>
-    <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">]</span>
+    <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nHorizNodes'</span><span class="p">]</span>
+    <span class="n">n_segments</span> <span class="o">=</span> <span class="n">ds_transect</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nSegments'</span><span class="p">]</span>
+    <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nVertLevels'</span><span class="p">]</span>
 
     <span class="c1"># we assume below that there is a segment (whether valid or invalid)</span>
     <span class="c1"># connecting each pair of adjacent nodes</span>
@@ -666,7 +666,7 @@
         <span class="n">cell_indices</span><span class="p">,</span> <span class="n">min_level_cell</span><span class="p">,</span> <span class="n">max_level_cell</span><span class="p">,</span> <span class="n">n_vert_levels</span>
     <span class="p">)</span>
 
-    <span class="n">valid_cells</span> <span class="o">=</span> <span class="n">valid_cells</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;nSegments&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLevels&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">valid_cells</span> <span class="o">=</span> <span class="n">valid_cells</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">'nSegments'</span><span class="p">,</span> <span class="s1">'nVertLevels'</span><span class="p">)</span><span class="o">.</span><span class="n">values</span>
 
     <span class="n">interp_level_weights</span> <span class="o">=</span> <span class="n">_get_interp_level_weights</span><span class="p">(</span>
         <span class="n">valid_cells</span><span class="p">,</span>
@@ -691,7 +691,7 @@
         <span class="n">layer_thickness_at_interp</span><span class="p">,</span> <span class="n">interp_level_weights</span>
     <span class="p">)</span>
 
-    <span class="n">z_bot</span> <span class="o">=</span> <span class="n">ssh_transect</span> <span class="o">-</span> <span class="n">layer_thickness_transect</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">)</span>
+    <span class="n">z_bot</span> <span class="o">=</span> <span class="n">ssh_transect</span> <span class="o">-</span> <span class="n">layer_thickness_transect</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">'nVertLevels'</span><span class="p">)</span>
     <span class="n">z_mid</span> <span class="o">=</span> <span class="n">z_bot</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">layer_thickness_transect</span>
 
     <span class="n">z_half_interfaces</span> <span class="o">=</span> <span class="p">[</span><span class="n">ssh_transect</span><span class="p">]</span>
@@ -700,10 +700,10 @@
             <span class="p">[</span><span class="n">z_mid</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nVertLevels</span><span class="o">=</span><span class="n">z_index</span><span class="p">),</span> <span class="n">z_bot</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nVertLevels</span><span class="o">=</span><span class="n">z_index</span><span class="p">)]</span>
         <span class="p">)</span>
 
-    <span class="n">z_half_interface</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">z_half_interfaces</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nVertNodes&#39;</span><span class="p">)</span>
-    <span class="n">z_half_interface</span> <span class="o">=</span> <span class="n">z_half_interface</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;nHorizNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertNodes&#39;</span><span class="p">)</span>
+    <span class="n">z_half_interface</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">z_half_interfaces</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="s1">'nVertNodes'</span><span class="p">)</span>
+    <span class="n">z_half_interface</span> <span class="o">=</span> <span class="n">z_half_interface</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertNodes'</span><span class="p">)</span>
 
-    <span class="n">z_seafloor</span> <span class="o">=</span> <span class="n">ssh_transect</span> <span class="o">-</span> <span class="n">layer_thickness_transect</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">)</span>
+    <span class="n">z_seafloor</span> <span class="o">=</span> <span class="n">ssh_transect</span> <span class="o">-</span> <span class="n">layer_thickness_transect</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">'nVertLevels'</span><span class="p">)</span>
 
     <span class="n">valid_transect_cells</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
         <span class="p">(</span><span class="n">n_segments</span><span class="p">,</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span>
@@ -711,33 +711,33 @@
     <span class="n">valid_transect_cells</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_cells</span>
     <span class="n">valid_transect_cells</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_cells</span>
     <span class="n">valid_transect_cells</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nSegments&#39;</span><span class="p">,</span> <span class="s1">&#39;nHalfLevels&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_transect_cells</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nSegments'</span><span class="p">,</span> <span class="s1">'nHalfLevels'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_transect_cells</span>
     <span class="p">)</span>
 
     <span class="n">level_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">level_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">)</span>
     <span class="n">level_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">)</span>
-    <span class="n">level_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nHalfLevels&#39;</span><span class="p">,),</span> <span class="n">data</span><span class="o">=</span><span class="n">level_indices</span><span class="p">)</span>
+    <span class="n">level_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHalfLevels'</span><span class="p">,),</span> <span class="n">data</span><span class="o">=</span><span class="n">level_indices</span><span class="p">)</span>
 
     <span class="n">interface_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
     <span class="n">interface_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">)</span>
     <span class="n">interface_indices</span><span class="p">[</span><span class="mi">1</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">interface_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nHalfLevels&#39;</span><span class="p">,),</span> <span class="n">data</span><span class="o">=</span><span class="n">interface_indices</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHalfLevels'</span><span class="p">,),</span> <span class="n">data</span><span class="o">=</span><span class="n">interface_indices</span>
     <span class="p">)</span>
 
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;zTransectNode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_half_interface</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'zTransectNode'</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_half_interface</span>
 
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;ssh&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ssh_transect</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;zSeafloor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_seafloor</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'ssh'</span><span class="p">]</span> <span class="o">=</span> <span class="n">ssh_transect</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'zSeafloor'</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_seafloor</span>
 
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;cellIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;levelIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;interfaceIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interface_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;validCells&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_transect_cells</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'cellIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_indices</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'levelIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interfaceIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interface_indices</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'validCells'</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_transect_cells</span>
 
-    <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">interp_horiz_cell_indices</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nHorizNodes&#39;</span><span class="p">]</span>
-    <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">]</span>
+    <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">interp_horiz_cell_indices</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nHorizNodes'</span><span class="p">]</span>
+    <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nVertLevels'</span><span class="p">]</span>
     <span class="n">n_vert_nodes</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">n_vert_weights</span> <span class="o">=</span> <span class="mi">2</span>
 
@@ -748,7 +748,7 @@
     <span class="n">interp_level_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span><span class="o">.</span><span class="n">values</span>
 
     <span class="n">interp_level_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nVertNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertWeights&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">interp_level_indices</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nVertNodes'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">interp_level_indices</span>
     <span class="p">)</span>
 
     <span class="n">interp_interface_indices</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
@@ -758,7 +758,7 @@
     <span class="n">interp_interface_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">interface_indices</span><span class="o">.</span><span class="n">values</span>
 
     <span class="n">interp_interface_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nVertNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertWeights&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">interp_interface_indices</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nVertNodes'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">interp_interface_indices</span>
     <span class="p">)</span>
 
     <span class="n">half_level_thickness</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span>
@@ -775,7 +775,7 @@
     <span class="p">)</span>
 
     <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_half_level_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nHorizWeights&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertWeights&#39;</span><span class="p">)</span>
+        <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizWeights'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">out_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">weight_sum</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">interp_half_level_weights</span><span class="p">)</span>
     <span class="n">interp_half_level_weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">interp_half_level_weights</span> <span class="o">/</span> <span class="n">weight_sum</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
@@ -805,7 +805,7 @@
     <span class="p">)</span>
 
     <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_half_interface_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
-        <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nHorizWeights&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertWeights&#39;</span><span class="p">)</span>
+        <span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizWeights'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">)</span>
     <span class="p">)</span>
     <span class="n">out_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">weight_sum</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">interp_half_interface_weights</span><span class="p">)</span>
     <span class="n">interp_half_interface_weights</span> <span class="o">=</span> <span class="p">(</span>
@@ -825,22 +825,22 @@
     <span class="p">)</span>
 
     <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nHorizNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertNodes&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertNodes'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
     <span class="p">)</span>
 
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;interpCellIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_horiz_cell_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;interpLevelIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_level_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;interpLevelWeights&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_half_level_weights</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;interpInterfaceIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_interface_indices</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;interpInterfaceWeights&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_half_interface_weights</span>
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;validNodes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_nodes</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpCellIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_horiz_cell_indices</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpLevelIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_level_indices</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpLevelWeights'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_half_level_weights</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpInterfaceIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_interface_indices</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'interpInterfaceWeights'</span><span class="p">]</span> <span class="o">=</span> <span class="n">interp_half_interface_weights</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'validNodes'</span><span class="p">]</span> <span class="o">=</span> <span class="n">valid_nodes</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_cell_mask</span><span class="p">(</span>
     <span class="n">cell_indices</span><span class="p">,</span> <span class="n">min_level_cell</span><span class="p">,</span> <span class="n">max_level_cell</span><span class="p">,</span> <span class="n">n_vert_levels</span>
 <span class="p">):</span>
     <span class="n">level_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="s1">'nVertLevels'</span>
     <span class="p">)</span>
     <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">min_level_cell</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cell_indices</span><span class="p">)</span>
     <span class="n">max_level_cell</span> <span class="o">=</span> <span class="n">max_level_cell</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cell_indices</span><span class="p">)</span>
@@ -858,7 +858,7 @@
     <span class="n">cell_indices</span><span class="p">,</span> <span class="n">min_level_cell</span><span class="p">,</span> <span class="n">max_level_cell</span><span class="p">,</span> <span class="n">n_vert_levels</span>
 <span class="p">):</span>
     <span class="n">interface_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="s1">&#39;nVertLevelsP1&#39;</span>
+        <span class="n">data</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dims</span><span class="o">=</span><span class="s1">'nVertLevelsP1'</span>
     <span class="p">)</span>
     <span class="n">min_level_cell</span> <span class="o">=</span> <span class="n">min_level_cell</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cell_indices</span><span class="p">)</span>
     <span class="n">max_level_cell</span> <span class="o">=</span> <span class="n">max_level_cell</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">nCells</span><span class="o">=</span><span class="n">cell_indices</span><span class="p">)</span>
@@ -878,8 +878,8 @@
     <span class="n">z_interface</span> <span class="o">=</span> <span class="n">z_half_interface</span><span class="o">.</span><span class="n">values</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">values</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">::</span><span class="mi">2</span><span class="p">]</span>
 
-    <span class="n">n_segments</span> <span class="o">=</span> <span class="n">valid_transect_cells</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nSegments&#39;</span><span class="p">]</span>
-    <span class="n">n_half_levels</span> <span class="o">=</span> <span class="n">valid_transect_cells</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nHalfLevels&#39;</span><span class="p">]</span>
+    <span class="n">n_segments</span> <span class="o">=</span> <span class="n">valid_transect_cells</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nSegments'</span><span class="p">]</span>
+    <span class="n">n_half_levels</span> <span class="o">=</span> <span class="n">valid_transect_cells</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nHalfLevels'</span><span class="p">]</span>
     <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">n_half_levels</span> <span class="o">//</span> <span class="mi">2</span>
 
     <span class="n">valid_segs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_segments</span><span class="p">,</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
@@ -898,18 +898,18 @@
     <span class="n">z_seg</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_interface</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:][</span><span class="n">valid_segs</span><span class="p">]</span>
 
     <span class="n">d_seg</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nInterfaceSegments&#39;</span><span class="p">,</span> <span class="s1">&#39;nHorizBounds&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">d_seg</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nInterfaceSegments'</span><span class="p">,</span> <span class="s1">'nHorizBounds'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">d_seg</span>
     <span class="p">)</span>
 
     <span class="n">z_seg</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nInterfaceSegments&#39;</span><span class="p">,</span> <span class="s1">&#39;nHorizBounds&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">z_seg</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nInterfaceSegments'</span><span class="p">,</span> <span class="s1">'nHorizBounds'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">z_seg</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">d_seg</span><span class="p">,</span> <span class="n">z_seg</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_cell_boundary_segments</span><span class="p">(</span><span class="n">ssh</span><span class="p">,</span> <span class="n">z_seafloor</span><span class="p">,</span> <span class="n">d_node</span><span class="p">,</span> <span class="n">cell_indices</span><span class="p">):</span>
-    <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">d_node</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nHorizNodes&#39;</span><span class="p">]</span>
+    <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">d_node</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nHorizNodes'</span><span class="p">]</span>
 
     <span class="n">cell_boundary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_horiz_nodes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
     <span class="n">cell_boundary</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">cell_indices</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">cell_indices</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
@@ -923,9 +923,9 @@
     <span class="n">z_seg</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">ssh</span><span class="p">[</span><span class="n">cell_boundary</span><span class="p">]</span>
     <span class="n">z_seg</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_seafloor</span><span class="p">[</span><span class="n">cell_boundary</span><span class="p">]</span>
 
-    <span class="n">d_seg</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nCellBoundaries&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertBounds&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">d_seg</span><span class="p">)</span>
+    <span class="n">d_seg</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nCellBoundaries'</span><span class="p">,</span> <span class="s1">'nVertBounds'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">d_seg</span><span class="p">)</span>
 
-    <span class="n">z_seg</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nCellBoundaries&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertBounds&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">z_seg</span><span class="p">)</span>
+    <span class="n">z_seg</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span><span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nCellBoundaries'</span><span class="p">,</span> <span class="s1">'nVertBounds'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">z_seg</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">d_seg</span><span class="p">,</span> <span class="n">z_seg</span>
 
@@ -937,8 +937,8 @@
     <span class="n">level_indices</span><span class="p">,</span>
     <span class="n">valid_transect_cells</span><span class="p">,</span>
 <span class="p">):</span>
-    <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">interp_cell_indices</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nHorizNodes&#39;</span><span class="p">]</span>
-    <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">]</span>
+    <span class="n">n_horiz_nodes</span> <span class="o">=</span> <span class="n">interp_cell_indices</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nHorizNodes'</span><span class="p">]</span>
+    <span class="n">n_vert_levels</span> <span class="o">=</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nVertLevels'</span><span class="p">]</span>
     <span class="n">n_vert_nodes</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_vert_levels</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">n_vert_weights</span> <span class="o">=</span> <span class="mi">2</span>
 
@@ -949,7 +949,7 @@
     <span class="n">interp_level_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">level_indices</span><span class="o">.</span><span class="n">values</span>
 
     <span class="n">interp_level_indices</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nVertNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertWeights&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">interp_level_indices</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nVertNodes'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">interp_level_indices</span>
     <span class="p">)</span>
 
     <span class="n">half_level_thickness</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">layer_thickness</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span>
@@ -977,10 +977,10 @@
     <span class="p">)</span>
 
     <span class="n">valid_nodes</span> <span class="o">=</span> <span class="n">xr</span><span class="o">.</span><span class="n">DataArray</span><span class="p">(</span>
-        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nHorizNodes&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertNodes&#39;</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
+        <span class="n">dims</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizNodes'</span><span class="p">,</span> <span class="s1">'nVertNodes'</span><span class="p">),</span> <span class="n">data</span><span class="o">=</span><span class="n">valid_nodes</span>
     <span class="p">)</span>
 
-    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_cell_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;nHorizWeights&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertWeights&#39;</span><span class="p">))</span>
+    <span class="n">weight_sum</span> <span class="o">=</span> <span class="n">interp_cell_weights</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="p">(</span><span class="s1">'nHorizWeights'</span><span class="p">,</span> <span class="s1">'nVertWeights'</span><span class="p">))</span>
     <span class="n">out_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">weight_sum</span> <span class="o">&gt;</span> <span class="mf">0.0</span><span class="p">)</span><span class="o">.</span><span class="n">broadcast_like</span><span class="p">(</span><span class="n">interp_cell_weights</span><span class="p">)</span>
     <span class="n">interp_cell_weights</span> <span class="o">=</span> <span class="p">(</span><span class="n">interp_cell_weights</span> <span class="o">/</span> <span class="n">weight_sum</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">out_mask</span><span class="p">)</span>
 
@@ -1033,17 +1033,17 @@
         <span class="n">transect_interp_vert_weights</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">weights</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
         <span class="n">z0</span> <span class="o">=</span> <span class="n">z1</span>
 
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;transectInterpVertIndices&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'transectInterpVertIndices'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">z_transect_node</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span>
         <span class="n">transect_interp_vert_indices</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;transectInterpVertWeights&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'transectInterpVertWeights'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">z_transect_node</span><span class="o">.</span><span class="n">dims</span><span class="p">,</span>
         <span class="n">transect_interp_vert_weights</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">&#39;zTransect&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_transect</span>
+    <span class="n">ds_transect</span><span class="p">[</span><span class="s1">'zTransect'</span><span class="p">]</span> <span class="o">=</span> <span class="n">z_transect</span>
 </pre></div>
 
            </div>

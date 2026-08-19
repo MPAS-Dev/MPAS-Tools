@@ -148,40 +148,40 @@ a starting point for <code class="docutils literal notranslate"><span class="pre
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">default_params</span> <span class="o">=</span> <span class="p">{</span>
 
     <span class="c1"># Path to bathymetry data and name of file</span>
-    <span class="s2">&quot;nc_file&quot;</span><span class="p">:</span> <span class="s2">&quot;./earth_relief_15s.nc&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;nc_vars&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;lon&quot;</span><span class="p">,</span><span class="s2">&quot;lat&quot;</span><span class="p">,</span><span class="s2">&quot;z&quot;</span><span class="p">],</span>
+    <span class="s2">"nc_file"</span><span class="p">:</span> <span class="s2">"./earth_relief_15s.nc"</span><span class="p">,</span>
+    <span class="s2">"nc_vars"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"lon"</span><span class="p">,</span><span class="s2">"lat"</span><span class="p">,</span><span class="s2">"z"</span><span class="p">],</span>
 
     <span class="c1"># Bounding box of coastal refinement region</span>
-    <span class="s2">&quot;region_box&quot;</span><span class="p">:</span> <span class="n">Continental_US</span><span class="p">,</span>
-    <span class="s2">&quot;origin&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">40</span><span class="p">]),</span>
-    <span class="s2">&quot;restrict_box&quot;</span><span class="p">:</span> <span class="n">Empty</span><span class="p">,</span>
+    <span class="s2">"region_box"</span><span class="p">:</span> <span class="n">Continental_US</span><span class="p">,</span>
+    <span class="s2">"origin"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">40</span><span class="p">]),</span>
+    <span class="s2">"restrict_box"</span><span class="p">:</span> <span class="n">Empty</span><span class="p">,</span>
 
     <span class="c1"># Coastline extraction parameters</span>
-    <span class="s2">&quot;z_contour&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-    <span class="s2">&quot;n_longest&quot;</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
-    <span class="s2">&quot;smooth_coastline&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-    <span class="s2">&quot;point_list&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s2">"z_contour"</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+    <span class="s2">"n_longest"</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="s2">"smooth_coastline"</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="s2">"point_list"</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
 
     <span class="c1"># Global mesh parameters</span>
-    <span class="s2">&quot;grd_box&quot;</span><span class="p">:</span> <span class="n">Entire_Globe</span><span class="p">,</span>
-    <span class="s2">&quot;ddeg&quot;</span><span class="p">:</span> <span class="mf">.1</span><span class="p">,</span>
-    <span class="c1"># &#39;EC&#39; (defaults to 60to30), &#39;QU&#39; (uses dx_max_global),</span>
-    <span class="c1"># &#39;RRS&#39; (uses dx_max_global and dx_min_global)</span>
-    <span class="s2">&quot;mesh_type&quot;</span><span class="p">:</span> <span class="s1">&#39;EC&#39;</span><span class="p">,</span>
-    <span class="s2">&quot;dx_max_global&quot;</span><span class="p">:</span> <span class="mf">30.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
-    <span class="s2">&quot;dx_min_global&quot;</span><span class="p">:</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
+    <span class="s2">"grd_box"</span><span class="p">:</span> <span class="n">Entire_Globe</span><span class="p">,</span>
+    <span class="s2">"ddeg"</span><span class="p">:</span> <span class="mf">.1</span><span class="p">,</span>
+    <span class="c1"># 'EC' (defaults to 60to30), 'QU' (uses dx_max_global),</span>
+    <span class="c1"># 'RRS' (uses dx_max_global and dx_min_global)</span>
+    <span class="s2">"mesh_type"</span><span class="p">:</span> <span class="s1">'EC'</span><span class="p">,</span>
+    <span class="s2">"dx_max_global"</span><span class="p">:</span> <span class="mf">30.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
+    <span class="s2">"dx_min_global"</span><span class="p">:</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
 
     <span class="c1"># Coastal mesh parameters</span>
-    <span class="s2">&quot;dx_min_coastal&quot;</span><span class="p">:</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
-    <span class="s2">&quot;trans_width&quot;</span><span class="p">:</span> <span class="mf">600.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
-    <span class="s2">&quot;trans_start&quot;</span><span class="p">:</span> <span class="mf">400.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
+    <span class="s2">"dx_min_coastal"</span><span class="p">:</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
+    <span class="s2">"trans_width"</span><span class="p">:</span> <span class="mf">600.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
+    <span class="s2">"trans_start"</span><span class="p">:</span> <span class="mf">400.0</span> <span class="o">*</span> <span class="n">km</span><span class="p">,</span>
 
     <span class="c1"># Bounding box of plotting region</span>
-    <span class="s2">&quot;plot_box&quot;</span><span class="p">:</span> <span class="n">North_America</span><span class="p">,</span>
+    <span class="s2">"plot_box"</span><span class="p">:</span> <span class="n">North_America</span><span class="p">,</span>
 
     <span class="c1"># Options</span>
-    <span class="s2">&quot;nn_search&quot;</span><span class="p">:</span> <span class="s2">&quot;kdtree&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;plot_option&quot;</span><span class="p">:</span> <span class="kc">True</span>
+    <span class="s2">"nn_search"</span><span class="p">:</span> <span class="s2">"kdtree"</span><span class="p">,</span>
+    <span class="s2">"plot_option"</span><span class="p">:</span> <span class="kc">True</span>
 
 <span class="p">}</span>
 </pre></div>
@@ -275,45 +275,45 @@ resolution.</p>
 
 <span class="n">params</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">default_params</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;****QU 120 background mesh and enhanced Atlantic (30km)****&quot;</span><span class="p">)</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;mesh_type&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;QU&quot;</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;dx_max_global&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">120.0</span> <span class="o">*</span> <span class="n">km</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;region_box&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Atlantic</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;restrict_box&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Atlantic_restrict</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_box&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Western_Atlantic</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;dx_min_coastal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">30.0</span> <span class="o">*</span> <span class="n">km</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;trans_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5000.0</span> <span class="o">*</span> <span class="n">km</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;trans_start&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">500.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"****QU 120 background mesh and enhanced Atlantic (30km)****"</span><span class="p">)</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"mesh_type"</span><span class="p">]</span> <span class="o">=</span> <span class="s2">"QU"</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"dx_max_global"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">120.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"region_box"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Atlantic</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"restrict_box"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Atlantic_restrict</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"plot_box"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Western_Atlantic</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"dx_min_coastal"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">30.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"trans_width"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5000.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"trans_start"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">500.0</span> <span class="o">*</span> <span class="n">km</span>
 
 <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">coastal_refined_mesh</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;****Northeast refinement (10km)***&quot;</span><span class="p">)</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;region_box&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware_Bay</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_box&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Western_Atlantic</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;dx_min_coastal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">km</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;trans_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">600.0</span> <span class="o">*</span> <span class="n">km</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;trans_start&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">400.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"****Northeast refinement (10km)***"</span><span class="p">)</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"region_box"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware_Bay</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"plot_box"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Western_Atlantic</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"dx_min_coastal"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">10.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"trans_width"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">600.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"trans_start"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">400.0</span> <span class="o">*</span> <span class="n">km</span>
 
 <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">coastal_refined_mesh</span><span class="p">(</span>
     <span class="n">params</span><span class="p">,</span> <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;****Delaware regional refinement (5km)****&quot;</span><span class="p">)</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;region_box&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware_Region</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_box&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;dx_min_coastal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">*</span> <span class="n">km</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;trans_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">175.0</span> <span class="o">*</span> <span class="n">km</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;trans_start&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">75.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"****Delaware regional refinement (5km)****"</span><span class="p">)</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"region_box"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware_Region</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"plot_box"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"dx_min_coastal"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"trans_width"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">175.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"trans_start"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">75.0</span> <span class="o">*</span> <span class="n">km</span>
 
 <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">coastal_refined_mesh</span><span class="p">(</span>
     <span class="n">params</span><span class="p">,</span> <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;****Delaware Bay high-resolution (2km)****&quot;</span><span class="p">)</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;region_box&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware_Bay</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;plot_box&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;restrict_box&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware_restrict</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;dx_min_coastal&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">km</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;trans_width&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">km</span>
-<span class="n">params</span><span class="p">[</span><span class="s2">&quot;trans_start&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">17.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"****Delaware Bay high-resolution (2km)****"</span><span class="p">)</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"region_box"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware_Bay</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"plot_box"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"restrict_box"</span><span class="p">]</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">Delaware_restrict</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"dx_min_coastal"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"trans_width"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">100.0</span> <span class="o">*</span> <span class="n">km</span>
+<span class="n">params</span><span class="p">[</span><span class="s2">"trans_start"</span><span class="p">]</span> <span class="o">=</span> <span class="mf">17.0</span> <span class="o">*</span> <span class="n">km</span>
 
 <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">coastal_refined_mesh</span><span class="p">(</span>
     <span class="n">params</span><span class="p">,</span> <span class="n">cell_width</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">)</span>
@@ -389,7 +389,7 @@ of Mexico should not appear on the other Pacific Ocean side of Central America.
 The <code class="docutils literal notranslate"><span class="pre">params['restrict_box']</span></code> regions can be used to enforce this.</p>
 <p>Here is an example of a restriction box for the region around Delaware, used in
 the example above:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Delaware_restrict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">75.853</span><span class="p">,</span> <span class="mf">39.732</span><span class="p">],</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Delaware_restrict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"include"</span><span class="p">:</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">75.853</span><span class="p">,</span> <span class="mf">39.732</span><span class="p">],</span>
                                            <span class="p">[</span><span class="o">-</span><span class="mf">74.939</span><span class="p">,</span> <span class="mf">36.678</span><span class="p">],</span>
                                            <span class="p">[</span><span class="o">-</span><span class="mf">71.519</span><span class="p">,</span> <span class="mf">40.156</span><span class="p">],</span>
                                            <span class="p">[</span><span class="o">-</span><span class="mf">75.153</span><span class="p">,</span> <span class="mf">40.077</span><span class="p">]]),</span>
@@ -397,7 +397,7 @@ the example above:</p>
                                            <span class="p">[</span><span class="o">-</span><span class="mf">75.214</span><span class="p">,</span> <span class="mf">36.756</span><span class="p">],</span>
                                            <span class="p">[</span><span class="o">-</span><span class="mf">74.512</span><span class="p">,</span> <span class="mf">37.925</span><span class="p">],</span>
                                            <span class="p">[</span><span class="o">-</span><span class="mf">75.274</span><span class="p">,</span> <span class="mf">38.318</span><span class="p">]])],</span>
-                     <span class="s2">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[]}</span>
+                     <span class="s2">"exclude"</span><span class="p">:</span> <span class="p">[]}</span>
 </pre></div>
 </div>
 </section>
@@ -416,8 +416,8 @@ small islands in the Atlantic, which may need to be ignored when placing coastal
 refinement. In this case, <code class="docutils literal notranslate"><span class="pre">exclude</span></code> boxes can be specified to eliminate the
 small coastlines.</p>
 <p>An example of such a region is:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Greenland</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;include&quot;</span><span class="p">:[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">81.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">12.5</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">85</span><span class="p">])],</span>
-             <span class="s2">&quot;exclude&quot;</span><span class="p">:[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">87.6</span><span class="p">,</span> <span class="mf">58.7</span><span class="p">],</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">Greenland</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"include"</span><span class="p">:[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="o">-</span><span class="mf">81.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">12.5</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">85</span><span class="p">])],</span>
+             <span class="s2">"exclude"</span><span class="p">:[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mf">87.6</span><span class="p">,</span> <span class="mf">58.7</span><span class="p">],</span>
                                   <span class="p">[</span><span class="o">-</span><span class="mf">51.9</span><span class="p">,</span> <span class="mf">56.6</span><span class="p">],</span>
                                   <span class="p">[</span><span class="o">-</span><span class="mf">68.9</span><span class="p">,</span> <span class="mf">75.5</span><span class="p">],</span>
                                   <span class="p">[</span><span class="o">-</span><span class="mf">107.0</span><span class="p">,</span> <span class="mf">73.3</span><span class="p">]]),</span>

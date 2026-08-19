@@ -202,9 +202,9 @@ files, listing contributing files, and merging config parsers:</p>
 <h2>Example usage<a class="headerlink" href="#example-usage" title="Link to this heading"></a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">MpasConfigParser</span>
 <span class="n">config</span> <span class="o">=</span> <span class="n">MpasConfigParser</span><span class="p">()</span>
-<span class="n">config</span><span class="o">.</span><span class="n">add_from_file</span><span class="p">(</span><span class="s1">&#39;defaults.cfg&#39;</span><span class="p">)</span>
-<span class="n">config</span><span class="o">.</span><span class="n">add_user_config</span><span class="p">(</span><span class="s1">&#39;user.cfg&#39;</span><span class="p">)</span>
-<span class="n">value</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;section&#39;</span><span class="p">,</span> <span class="s1">&#39;option&#39;</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_from_file</span><span class="p">(</span><span class="s1">'defaults.cfg'</span><span class="p">)</span>
+<span class="n">config</span><span class="o">.</span><span class="n">add_user_config</span><span class="p">(</span><span class="s1">'user.cfg'</span><span class="p">)</span>
+<span class="n">value</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'section'</span><span class="p">,</span> <span class="s1">'option'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The <a class="reference internal" href="generated/mpas_tools.config.MpasConfigParser.copy.html#mpas_tools.config.MpasConfigParser.copy" title="mpas_tools.config.MpasConfigParser.copy"><code class="xref py py-meth docutils literal notranslate"><span class="pre">mpas_tools.config.MpasConfigParser.copy()</span></code></a> method can be used to
@@ -233,8 +233,8 @@ of functions (<code class="docutils literal notranslate"><span class="pre">range
 <code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.arange()</span></code>, and <code class="xref py py-meth docutils literal notranslate"><span class="pre">numpy.array()</span></code>)</p>
 <p>Currently, <code class="docutils literal notranslate"><span class="pre">MpasConfigParser</span></code> supports accessing a config section using
 section names as keys, e.g.:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">section</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;enthalpy_benchmark_viz&#39;</span><span class="p">]</span>
-<span class="n">display_image</span> <span class="o">=</span> <span class="n">section</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">&#39;display_image&#39;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">section</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">'enthalpy_benchmark_viz'</span><span class="p">]</span>
+<span class="n">display_image</span> <span class="o">=</span> <span class="n">section</span><span class="o">.</span><span class="n">getboolean</span><span class="p">(</span><span class="s1">'display_image'</span><span class="p">)</span>
 <span class="o">...</span>
 </pre></div>
 </div>

@@ -176,9 +176,9 @@ options to always take precedence over other config options (even if they
 are added later).</p>
 <p class="rubric">Example</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">config</span> <span class="o">=</span> <span class="n">MpasConfigParser</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">add_from_file</span><span class="p">(</span><span class="s1">&#39;default.cfg&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">add_user_config</span><span class="p">(</span><span class="s1">&#39;user.cfg&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">value</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;section&#39;</span><span class="p">,</span> <span class="s1">&#39;option&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">add_from_file</span><span class="p">(</span><span class="s1">'default.cfg'</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">config</span><span class="o">.</span><span class="n">add_user_config</span><span class="p">(</span><span class="s1">'user.cfg'</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">value</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'section'</span><span class="p">,</span> <span class="s1">'option'</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">

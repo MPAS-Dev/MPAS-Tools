@@ -204,10 +204,10 @@ of daily output from the MPAS-Ocean model:</p>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
-    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
-    <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span>
-    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
-    <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">'analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc'</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="s1">'timeDaily_avg_activeTracers_temperature'</span><span class="p">,</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLevels=0'</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">'init.nc'</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="o">=</span><span class="s1">'vtk_files'</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">'xtime_startDaily'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The top index (<code class="docutils literal notranslate"><span class="pre">nVertLevels=0</span></code>) is extracted from the temperature time series.
@@ -231,7 +231,7 @@ they are requested within ParaView.  See <a class="reference internal" href="#pa
 on filling in the continents and displaying the current date in ParaView.</p>
 <p>The same extraction could be accomplished with the command-line tool as follows:</p>
 <div class="highlight-none notranslate"><div class="highlight"><pre><span></span>$ paraview_vtk_field_extractor \
-     -f &quot;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&quot; \
+     -f "analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc" \
      -v timeDaily_avg_activeTracers_temperature -d nVertLevels=0 \
      -m init.nc -o vtk_files --xtime=xtime_startDaily
 </pre></div>
@@ -249,10 +249,10 @@ keep time-independent and time-dependent variables separate:</p>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
-    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
-    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span> <span class="s1">&#39;areaCell&#39;</span><span class="p">],</span>
-    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
-    <span class="n">combine</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files2&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">'analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc'</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'timeDaily_avg_activeTracers_temperature'</span><span class="p">,</span> <span class="s1">'areaCell'</span><span class="p">],</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLevels=0'</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">'init.nc'</span><span class="p">,</span>
+    <span class="n">combine</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">'vtk_files2'</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">'xtime_startDaily'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The result is:</p>
@@ -271,10 +271,10 @@ convenient to combine them into the same files:</p>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
-    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
-    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span> <span class="s1">&#39;areaCell&#39;</span><span class="p">],</span>
-    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
-    <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files3&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">'analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc'</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'timeDaily_avg_activeTracers_temperature'</span><span class="p">,</span> <span class="s1">'areaCell'</span><span class="p">],</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLevels=0'</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">'init.nc'</span><span class="p">,</span>
+    <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">'vtk_files3'</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">'xtime_startDaily'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Now, the result is that <code class="docutils literal notranslate"><span class="pre">areaCell</span></code> is included in the time-series files</p>
@@ -303,11 +303,11 @@ excluded:</p>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
-    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
-    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;allOnCells&#39;</span><span class="p">],</span>
-    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLevelsP1=0&#39;</span><span class="p">,</span> <span class="s1">&#39;maxEdges=&#39;</span><span class="p">],</span>
-    <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files4&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">'analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc'</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'allOnCells'</span><span class="p">],</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLevels=0'</span><span class="p">,</span> <span class="s1">'nVertLevelsP1=0'</span><span class="p">,</span> <span class="s1">'maxEdges='</span><span class="p">],</span>
+    <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">'init.nc'</span><span class="p">,</span> <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="o">=</span><span class="s1">'vtk_files4'</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">'xtime_startDaily'</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -323,7 +323,7 @@ associated indices.  For each extra dimension, you can specify nothing for the
 indices (an empty string, meaning skip any fields with this dimension), a single
 index, a comma-separated list of indices, or a range of indices (separated by 1
 or 2 colons).  For example,</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;maxEdges=&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLeves=0:10:2&#39;</span><span class="p">,</span> <span class="s1">&#39;nParticles=0,2,4,6,8&#39;</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'maxEdges='</span><span class="p">,</span> <span class="s1">'nVertLeves=0:10:2'</span><span class="p">,</span> <span class="s1">'nParticles=0,2,4,6,8'</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>will ignore any fields with dimension <code class="docutils literal notranslate"><span class="pre">maxEdges</span></code>, extract every other
@@ -332,7 +332,7 @@ extract the 5 specified particles.</p>
 <p>An index array can also be specified in this way (and these can be mixed
 with integer indices in a comma-separated list but not in a colon-separated
 range):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLeves=0,maxLevelCell&#39;</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLeves=0,maxLevelCell'</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>This will extract fields from the first vertical level and the vertical level
@@ -343,12 +343,12 @@ layer thickness at the sea surface and seafloor.</p>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
-    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
-    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;timeDaily_avg_activeTracers_salinity&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;timeDaily_avg_layerThickness&#39;</span><span class="p">],</span>
-    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0,maxLevelCell&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
-    <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files5&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">'analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc'</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'timeDaily_avg_activeTracers_temperature'</span><span class="p">,</span>
+                   <span class="s1">'timeDaily_avg_activeTracers_salinity'</span><span class="p">,</span>
+                   <span class="s1">'timeDaily_avg_layerThickness'</span><span class="p">],</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLevels=0,maxLevelCell'</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">'init.nc'</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="o">=</span><span class="s1">'vtk_files5'</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">'xtime_startDaily'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The resulting fields are named:</p>
@@ -383,10 +383,10 @@ end index <code class="docutils literal notranslate"><span class="pre">n</span><
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
-    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
-    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">],</span>
-    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
-    <span class="n">time</span><span class="o">=</span><span class="s1">&#39;0::6&#39;</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files6&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">'analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc'</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'timeDaily_avg_activeTracers_temperature'</span><span class="p">],</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLevels=0'</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">'init.nc'</span><span class="p">,</span>
+    <span class="n">time</span><span class="o">=</span><span class="s1">'0::6'</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">'vtk_files6'</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">'xtime_startDaily'</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
@@ -414,10 +414,10 @@ this time in lon/lat coordinates.</p>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
-    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
-    <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span>
-    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
-    <span class="n">lonlat</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files7&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">'analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc'</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="s1">'timeDaily_avg_activeTracers_temperature'</span><span class="p">,</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLevels=0'</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">'init.nc'</span><span class="p">,</span>
+    <span class="n">lonlat</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">'vtk_files7'</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">'xtime_startDaily'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>In ParaView, the data lies approximately 0 and 360 degrees long the x axis but
@@ -460,7 +460,7 @@ for displaying variables at the depth of a topographic feature (typically
 the top or bottom of the domain) for MPAS components with a spatially
 variable top or bottom index (e.g. <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> in MPAS-Ocean).  This is
 accomplished with arguments such as:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topo_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">,</span> <span class="n">topo_cell_index</span><span class="o">=</span><span class="s1">&#39;maxLevelCell&#39;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topo_dim</span><span class="o">=</span><span class="s1">'nVertLevels'</span><span class="p">,</span> <span class="n">topo_cell_index</span><span class="o">=</span><span class="s1">'maxLevelCell'</span>
 </pre></div>
 </div>
 <p>Fields on cells are sampled at the topographic index and the geometry
@@ -480,12 +480,12 @@ dimensions by leaving their index strings blank.</p>
 
 
 <span class="n">extract_vtk</span><span class="p">(</span>
-    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
-    <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;allOnCells&#39;</span><span class="p">,</span>
-    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevelsP1=&#39;</span><span class="p">,</span> <span class="s1">&#39;maxEdges=&#39;</span><span class="p">],</span>
-    <span class="n">topo_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">,</span> <span class="n">topo_cell_index</span><span class="o">=</span><span class="s1">&#39;maxLevelCell&#39;</span><span class="p">,</span>
-    <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
-    <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files8&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">'analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc'</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="s1">'allOnCells'</span><span class="p">,</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLevelsP1='</span><span class="p">,</span> <span class="s1">'maxEdges='</span><span class="p">],</span>
+    <span class="n">topo_dim</span><span class="o">=</span><span class="s1">'nVertLevels'</span><span class="p">,</span> <span class="n">topo_cell_index</span><span class="o">=</span><span class="s1">'maxLevelCell'</span><span class="p">,</span>
+    <span class="n">combine</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_mesh_vars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">'init.nc'</span><span class="p">,</span>
+    <span class="n">out_dir</span><span class="o">=</span><span class="s1">'vtk_files8'</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">'xtime_startDaily'</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Together, this can be used to plot topography by using a Calculator Filter in
@@ -530,14 +530,14 @@ remove.</p>
 
 
 <span class="n">gf</span> <span class="o">=</span> <span class="n">GeometricFeatures</span><span class="p">()</span>
-<span class="n">fc</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">componentName</span><span class="o">=</span><span class="s1">&#39;ocean&#39;</span><span class="p">,</span> <span class="n">objectType</span><span class="o">=</span><span class="s1">&#39;region&#39;</span><span class="p">,</span>
-             <span class="n">featureNames</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Southern Ocean&#39;</span><span class="p">])</span>
+<span class="n">fc</span> <span class="o">=</span> <span class="n">gf</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">componentName</span><span class="o">=</span><span class="s1">'ocean'</span><span class="p">,</span> <span class="n">objectType</span><span class="o">=</span><span class="s1">'region'</span><span class="p">,</span>
+             <span class="n">featureNames</span><span class="o">=</span><span class="p">[</span><span class="s1">'Southern Ocean'</span><span class="p">])</span>
 
 <span class="n">extract_vtk</span><span class="p">(</span>
-    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">&#39;analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc&#39;</span><span class="p">,</span>
-    <span class="n">variable_list</span><span class="o">=</span><span class="s1">&#39;timeDaily_avg_activeTracers_temperature&#39;</span><span class="p">,</span>
-    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLevels=0&#39;</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">&#39;init.nc&#39;</span><span class="p">,</span>
-    <span class="n">fc_region_mask</span><span class="o">=</span><span class="n">fc</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">&#39;vtk_files9&#39;</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">&#39;xtime_startDaily&#39;</span><span class="p">)</span>
+    <span class="n">filename_pattern</span><span class="o">=</span><span class="s1">'analysis_members/mpaso.hist.am.timeSeriesStatsDaily.*.nc'</span><span class="p">,</span>
+    <span class="n">variable_list</span><span class="o">=</span><span class="s1">'timeDaily_avg_activeTracers_temperature'</span><span class="p">,</span>
+    <span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLevels=0'</span><span class="p">],</span> <span class="n">mesh_filename</span><span class="o">=</span><span class="s1">'init.nc'</span><span class="p">,</span>
+    <span class="n">fc_region_mask</span><span class="o">=</span><span class="n">fc</span><span class="p">,</span> <span class="n">out_dir</span><span class="o">=</span><span class="s1">'vtk_files9'</span><span class="p">,</span> <span class="n">xtime</span><span class="o">=</span><span class="s1">'xtime_startDaily'</span><span class="p">)</span>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="_images/so_cropped.png"><img alt="_images/so_cropped.png" class="align-center" src="_images/so_cropped.png" style="width: 500px;" />

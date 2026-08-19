@@ -131,7 +131,7 @@
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.regions.make_regions_file.html#mpas_tools.seaice.regions.make_regions_file">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_regions_file</span><span class="p">(</span><span class="n">filenameIcePresent</span><span class="p">,</span> <span class="n">filenameMesh</span><span class="p">,</span>
                       <span class="n">regionType</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">limit</span><span class="p">,</span> <span class="n">filenameOut</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">""""</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -142,7 +142,7 @@
 <span class="sd">    filenameMesh : str</span>
 <span class="sd">        The name of a file containing the MPAS-Seaice mesh</span>
 
-<span class="sd">    regionType : {&quot;three_region&quot;, &quot;two_region_eq&quot;, &quot;three_region_eq&quot;, &quot;five_region_eq&quot;}</span>
+<span class="sd">    regionType : {"three_region", "two_region_eq", "three_region_eq", "five_region_eq"}</span>
 <span class="sd">        The type of regions to write</span>
 
 <span class="sd">    varname : str</span>
@@ -156,30 +156,30 @@
 
 <span class="sd">    filenameOut : str</span>
 <span class="sd">        The NetCDF filename to write the resulting ``region`` field to</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># load ice presence</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">filenameIcePresent</span><span class="p">)</span>
-    <span class="n">fileIcePresent</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameIcePresent</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">fileIcePresent</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameIcePresent</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
 
     <span class="n">icePresence</span> <span class="o">=</span> <span class="n">fileIcePresent</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">varname</span><span class="p">][:]</span>
 
     <span class="n">fileIcePresent</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># load mesh data</span>
-    <span class="n">fileMesh</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameMesh</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">fileMesh</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameMesh</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
 
-    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fileMesh</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">fileMesh</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">"nCells"</span><span class="p">])</span>
 
-    <span class="n">latCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;latCell&quot;</span><span class="p">][:]</span>
+    <span class="n">latCell</span> <span class="o">=</span> <span class="n">fileMesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"latCell"</span><span class="p">][:]</span>
 
     <span class="n">fileMesh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># output region mask</span>
-    <span class="n">region</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+    <span class="n">region</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"i"</span><span class="p">)</span>
 
     <span class="c1"># no equatorial removal</span>
-    <span class="k">if</span> <span class="n">regionType</span> <span class="o">==</span> <span class="s2">&quot;three_region&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">regionType</span> <span class="o">==</span> <span class="s2">"three_region"</span><span class="p">:</span>
 
         <span class="n">nRegions</span> <span class="o">=</span> <span class="mi">3</span>
 
@@ -192,7 +192,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">region</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
-    <span class="k">elif</span> <span class="n">regionType</span> <span class="o">==</span> <span class="s2">&quot;two_region_eq&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">regionType</span> <span class="o">==</span> <span class="s2">"two_region_eq"</span><span class="p">:</span>
 
         <span class="n">nRegions</span> <span class="o">=</span> <span class="mi">2</span>
 
@@ -205,7 +205,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">region</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
-    <span class="k">elif</span> <span class="n">regionType</span> <span class="o">==</span> <span class="s2">&quot;three_region_eq&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">regionType</span> <span class="o">==</span> <span class="s2">"three_region_eq"</span><span class="p">:</span>
 
         <span class="n">nRegions</span> <span class="o">=</span> <span class="mi">3</span>
 
@@ -218,7 +218,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">region</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 
-    <span class="k">elif</span> <span class="n">regionType</span> <span class="o">==</span> <span class="s2">&quot;five_region_eq&quot;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">regionType</span> <span class="o">==</span> <span class="s2">"five_region_eq"</span><span class="p">:</span>
 
         <span class="n">nRegions</span> <span class="o">=</span> <span class="mi">5</span>
 
@@ -235,16 +235,16 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">region</span><span class="p">[</span><span class="n">iCell</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Unexpected regionType </span><span class="si">{</span><span class="n">regionType</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Unexpected regionType </span><span class="si">{</span><span class="n">regionType</span><span class="si">}</span><span class="s1">'</span><span class="p">)</span>
 
     <span class="c1"># output</span>
-    <span class="n">fileOut</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameOut</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;NETCDF3_CLASSIC&quot;</span><span class="p">)</span>
+    <span class="n">fileOut</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameOut</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"NETCDF3_CLASSIC"</span><span class="p">)</span>
 
     <span class="n">fileOut</span><span class="o">.</span><span class="n">nRegions</span> <span class="o">=</span> <span class="n">nRegions</span>
 
-    <span class="n">fileOut</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;nCells&quot;</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
+    <span class="n">fileOut</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"nCells"</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
 
-    <span class="n">regionVar</span> <span class="o">=</span> <span class="n">fileOut</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s2">&quot;region&quot;</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
+    <span class="n">regionVar</span> <span class="o">=</span> <span class="n">fileOut</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s2">"region"</span><span class="p">,</span> <span class="s2">"i"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">"nCells"</span><span class="p">])</span>
     <span class="n">regionVar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">region</span><span class="p">[:]</span>
 
     <span class="n">fileOut</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>

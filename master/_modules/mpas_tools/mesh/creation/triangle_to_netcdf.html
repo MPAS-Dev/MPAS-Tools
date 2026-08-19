@@ -136,7 +136,7 @@
 <div class="viewcode-block" id="triangle_to_netcdf">
 <a class="viewcode-back" href="../../../../generated/mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf.html#mpas_tools.mesh.creation.triangle_to_netcdf.triangle_to_netcdf">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">triangle_to_netcdf</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">ele</span><span class="p">,</span> <span class="n">output_name</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Converts mesh data defined in triangle format to NetCDF</span>
 
 <span class="sd">    Parameters</span>
@@ -147,50 +147,50 @@
 <span class="sd">        An element file name</span>
 <span class="sd">    output_name: str</span>
 <span class="sd">        The name of the output file</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Authors: Phillip J. Wolfram, Matthew Hoffman and Xylar Asay-Davis</span>
     <span class="n">on_sphere</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="n">grid</span> <span class="o">=</span> <span class="n">NetCDFFile</span><span class="p">(</span><span class="n">output_name</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">&#39;NETCDF3_CLASSIC&#39;</span><span class="p">)</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">NetCDFFile</span><span class="p">(</span><span class="n">output_name</span><span class="p">,</span> <span class="s1">'w'</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s1">'NETCDF3_CLASSIC'</span><span class="p">)</span>
 
     <span class="c1"># Get dimensions</span>
     <span class="c1"># Get nCells</span>
-    <span class="n">cell_info</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">cell_info</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span>
     <span class="n">nCells</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># There is one header line</span>
-    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">cell_info</span><span class="o">.</span><span class="n">readline</span><span class="p">(),</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">cell_info</span><span class="o">.</span><span class="n">readline</span><span class="p">(),</span> <span class="s2">""</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"#"</span><span class="p">):</span>
             <span class="k">continue</span>  <span class="c1"># skip comment lines</span>
         <span class="n">nCells</span> <span class="o">=</span> <span class="n">nCells</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">cell_info</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># Get vertexDegree and nVertices</span>
-    <span class="n">cov_info</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">ele</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">cov_info</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">ele</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span>
     <span class="n">vertexDegree</span> <span class="o">=</span> <span class="mi">3</span>  <span class="c1"># always triangles with Triangle!</span>
     <span class="n">nVertices</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>  <span class="c1"># There is one header line</span>
-    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">cov_info</span><span class="o">.</span><span class="n">readline</span><span class="p">(),</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;#&quot;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">cov_info</span><span class="o">.</span><span class="n">readline</span><span class="p">(),</span> <span class="s2">""</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">block</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"#"</span><span class="p">):</span>
             <span class="k">continue</span>  <span class="c1"># skip comment lines</span>
         <span class="n">nVertices</span> <span class="o">=</span> <span class="n">nVertices</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">cov_info</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">vertexDegree</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;This script can only compute vertices with triangular &quot;</span>
-                   <span class="s2">&quot;dual meshes currently.&quot;</span><span class="p">)</span>
+        <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"This script can only compute vertices with triangular "</span>
+                   <span class="s2">"dual meshes currently."</span><span class="p">)</span>
 
-    <span class="n">grid</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
-    <span class="n">grid</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,</span> <span class="n">nVertices</span><span class="p">)</span>
-    <span class="n">grid</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">&#39;vertexDegree&#39;</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">)</span>
+    <span class="n">grid</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">'nCells'</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
+    <span class="n">grid</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">'nVertices'</span><span class="p">,</span> <span class="n">nVertices</span><span class="p">)</span>
+    <span class="n">grid</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s1">'vertexDegree'</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">)</span>
 
     <span class="c1"># Create cell variables and sphere_radius</span>
     <span class="n">xCell_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,))</span>
     <span class="n">yCell_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,))</span>
     <span class="n">zCell_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,))</span>
 
-    <span class="n">cell_info</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">cell_info</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span>
     <span class="n">cell_info</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>  <span class="c1"># read header</span>
     <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">cell_info</span><span class="o">.</span><span class="n">readline</span><span class="p">(),</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">cell_info</span><span class="o">.</span><span class="n">readline</span><span class="p">(),</span> <span class="s2">""</span><span class="p">):</span>
         <span class="n">block_arr</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">block_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;#&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">block_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"#"</span><span class="p">:</span>
             <span class="k">continue</span>  <span class="c1"># skip comment lines</span>
         <span class="n">xCell_full</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">block_arr</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">yCell_full</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">block_arr</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
@@ -198,18 +198,18 @@
         <span class="n">i</span> <span class="o">=</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="n">cell_info</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
-    <span class="n">grid</span><span class="o">.</span><span class="n">on_a_sphere</span> <span class="o">=</span> <span class="s2">&quot;NO&quot;</span>
+    <span class="n">grid</span><span class="o">.</span><span class="n">on_a_sphere</span> <span class="o">=</span> <span class="s2">"NO"</span>
     <span class="n">grid</span><span class="o">.</span><span class="n">sphere_radius</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="n">cellsOnVertex_full</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
         <span class="p">(</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
-    <span class="n">cov_info</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">ele</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+    <span class="n">cov_info</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">ele</span><span class="p">,</span> <span class="s1">'r'</span><span class="p">)</span>
     <span class="n">cov_info</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>  <span class="c1"># read header</span>
     <span class="n">iVertex</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">cov_info</span><span class="o">.</span><span class="n">readline</span><span class="p">(),</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">iter</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">cov_info</span><span class="o">.</span><span class="n">readline</span><span class="p">(),</span> <span class="s2">""</span><span class="p">):</span>
         <span class="n">block_arr</span> <span class="o">=</span> <span class="n">block</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">block_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;#&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">block_arr</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s2">"#"</span><span class="p">:</span>
             <span class="k">continue</span>  <span class="c1"># skip comment lines</span>
         <span class="n">cellsOnVertex_full</span><span class="p">[</span><span class="n">iVertex</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
         <span class="c1"># skip the first column, which is the triangle number, and then</span>
@@ -247,24 +247,24 @@
         <span class="n">zVertex_full</span><span class="p">[</span><span class="n">iVertex</span><span class="p">]</span> <span class="o">=</span> <span class="n">pv</span><span class="o">.</span><span class="n">z</span>
 
     <span class="n">meshDensity_full</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s1">&#39;meshDensity&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,))</span>
+        <span class="s1">'meshDensity'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'nCells'</span><span class="p">,))</span>
 
     <span class="n">meshDensity_full</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">nCells</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
 
-    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;xCell&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,))</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'xCell'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'nCells'</span><span class="p">,))</span>
     <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">xCell_full</span>
-    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;yCell&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,))</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'yCell'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'nCells'</span><span class="p">,))</span>
     <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">yCell_full</span>
-    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;zCell&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,))</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'zCell'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'nCells'</span><span class="p">,))</span>
     <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">zCell_full</span>
-    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;xVertex&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,))</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'xVertex'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'nVertices'</span><span class="p">,))</span>
     <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">xVertex_full</span>
-    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;yVertex&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,))</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'yVertex'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'nVertices'</span><span class="p">,))</span>
     <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">yVertex_full</span>
-    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">&#39;zVertex&#39;</span><span class="p">,</span> <span class="s1">&#39;f8&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,))</span>
+    <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span><span class="s1">'zVertex'</span><span class="p">,</span> <span class="s1">'f8'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'nVertices'</span><span class="p">,))</span>
     <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">zVertex_full</span>
     <span class="n">var</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s1">&#39;cellsOnVertex&#39;</span><span class="p">,</span> <span class="s1">&#39;i4&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,</span> <span class="s1">&#39;vertexDegree&#39;</span><span class="p">,))</span>
+        <span class="s1">'cellsOnVertex'</span><span class="p">,</span> <span class="s1">'i4'</span><span class="p">,</span> <span class="p">(</span><span class="s1">'nVertices'</span><span class="p">,</span> <span class="s1">'vertexDegree'</span><span class="p">,))</span>
     <span class="n">var</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">cellsOnVertex_full</span>
 
     <span class="n">grid</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
@@ -277,26 +277,26 @@
         <span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span>
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;-n&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;--node&quot;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;node&quot;</span><span class="p">,</span>
+        <span class="s2">"-n"</span><span class="p">,</span>
+        <span class="s2">"--node"</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">"node"</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;input .node file generated by Triangle.&quot;</span><span class="p">,</span>
-        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;FILE&quot;</span><span class="p">)</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"input .node file generated by Triangle."</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">"FILE"</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;-e&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;--ele&quot;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;ele&quot;</span><span class="p">,</span>
+        <span class="s2">"-e"</span><span class="p">,</span>
+        <span class="s2">"--ele"</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">"ele"</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;input .ele file generated by Triangle.&quot;</span><span class="p">,</span>
-        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;FILE&quot;</span><span class="p">)</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"input .ele file generated by Triangle."</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">"FILE"</span><span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s2">&quot;-o&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;--output&quot;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s2">&quot;output&quot;</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;grid.nc&quot;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;output file name.&quot;</span><span class="p">,</span>
-        <span class="n">metavar</span><span class="o">=</span><span class="s2">&quot;FILE&quot;</span><span class="p">)</span>
+        <span class="s2">"-o"</span><span class="p">,</span>
+        <span class="s2">"--output"</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s2">"output"</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">"grid.nc"</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s2">"output file name."</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s2">"FILE"</span><span class="p">)</span>
     <span class="n">options</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
     <span class="n">triangle_to_netcdf</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">node</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">ele</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">output</span><span class="p">)</span>

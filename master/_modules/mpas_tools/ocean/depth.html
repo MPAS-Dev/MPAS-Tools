@@ -136,7 +136,7 @@
 <div class="viewcode-block" id="compute_depth">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.compute_depth.html#mpas_tools.ocean.depth.compute_depth">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_depth</span><span class="p">(</span><span class="n">refBottomDepth</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Computes depth and depth bounds given refBottomDepth</span>
 
 <span class="sd">    .. note::</span>
@@ -160,7 +160,7 @@
 
 <span class="sd">    depth_bnds : numpy.ndarray</span>
 <span class="sd">        the vertical coordinate defining the top and bottom of each layer</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Authors</span>
     <span class="c1"># -------</span>
     <span class="c1"># Xylar Asay-Davis</span>
@@ -181,9 +181,9 @@
 <div class="viewcode-block" id="compute_zmid">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.compute_zmid.html#mpas_tools.ocean.depth.compute_zmid">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">compute_zmid</span><span class="p">(</span>
-    <span class="n">bottomDepth</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span> <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span>
+    <span class="n">bottomDepth</span><span class="p">,</span> <span class="n">maxLevelCell</span><span class="p">,</span> <span class="n">layerThickness</span><span class="p">,</span> <span class="n">depth_dim</span><span class="o">=</span><span class="s1">'nVertLevels'</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Computes zMid given data arrays for bottomDepth, maxLevelCell and</span>
 <span class="sd">    layerThickness</span>
 
@@ -206,7 +206,7 @@
 <span class="sd">    zMid : xarray.DataArray</span>
 <span class="sd">        the vertical coordinate defining the middle of each layer, masked below</span>
 <span class="sd">        the bathymetry</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Authors</span>
     <span class="c1"># -------</span>
     <span class="c1"># Xylar Asay-Davis</span>
@@ -214,7 +214,7 @@
     <span class="n">nDepth</span> <span class="o">=</span> <span class="n">layerThickness</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="n">depth_dim</span><span class="p">]</span>
 
     <span class="n">vertIndex</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span>
-        <span class="p">{</span><span class="s1">&#39;dims&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">depth_dim</span><span class="p">,),</span> <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nDepth</span><span class="p">)}</span>
+        <span class="p">{</span><span class="s1">'dims'</span><span class="p">:</span> <span class="p">(</span><span class="n">depth_dim</span><span class="p">,),</span> <span class="s1">'data'</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nDepth</span><span class="p">)}</span>
     <span class="p">)</span>
 
     <span class="n">layerThickness</span> <span class="o">=</span> <span class="n">layerThickness</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">vertIndex</span> <span class="o">&lt;</span> <span class="n">maxLevelCell</span><span class="p">)</span>
@@ -228,10 +228,10 @@
     <span class="n">zMid</span> <span class="o">=</span> <span class="n">zLayerBot</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">layerThickness</span>
 
     <span class="n">zMid</span> <span class="o">=</span> <span class="n">zMid</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">vertIndex</span> <span class="o">&lt;</span> <span class="n">maxLevelCell</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">zMid</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-        <span class="n">zMid</span> <span class="o">=</span> <span class="n">zMid</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;Time&#39;</span><span class="p">,</span> <span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="n">depth_dim</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">'Time'</span> <span class="ow">in</span> <span class="n">zMid</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">zMid</span> <span class="o">=</span> <span class="n">zMid</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">'Time'</span><span class="p">,</span> <span class="s1">'nCells'</span><span class="p">,</span> <span class="n">depth_dim</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">zMid</span> <span class="o">=</span> <span class="n">zMid</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">&#39;nCells&#39;</span><span class="p">,</span> <span class="n">depth_dim</span><span class="p">)</span>
+        <span class="n">zMid</span> <span class="o">=</span> <span class="n">zMid</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="s1">'nCells'</span><span class="p">,</span> <span class="n">depth_dim</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">zMid</span></div>
 
@@ -240,7 +240,7 @@
 <div class="viewcode-block" id="add_depth">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.add_depth.html#mpas_tools.ocean.depth.add_depth">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">add_depth</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Add a 1D depth coordinate to an MPAS-Ocean file.</span>
 
 <span class="sd">    .. note::</span>
@@ -261,57 +261,57 @@
 
 <span class="sd">    coordFileName : str, optional</span>
 <span class="sd">        An MPAS-Ocean file with ``refBottomDepth``</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="n">coordFileName</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">coordFileName</span> <span class="o">=</span> <span class="n">inFileName</span>
 
     <span class="n">ds</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">mask_and_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;nVertLevels&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-        <span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
+    <span class="k">if</span> <span class="s1">'nVertLevels'</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'nVertLevels'</span><span class="p">:</span> <span class="s1">'depth'</span><span class="p">})</span>
 
         <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">coordFileName</span><span class="p">,</span> <span class="n">mask_and_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
+        <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'nVertLevels'</span><span class="p">:</span> <span class="s1">'depth'</span><span class="p">})</span>
 
-        <span class="k">if</span> <span class="s1">&#39;refBottomDepth&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dsCoord</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">'refBottomDepth'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dsCoord</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="s1">&#39;add_depth() requires a 1D refBottomDepth variable, which &#39;</span>
-                <span class="s1">&#39;defines a z-level/z-star reference depth for each layer.  &#39;</span>
-                <span class="s1">&#39;This is not available in Omega or for general vertical &#39;</span>
-                <span class="s1">&#39;coordinates.  Use add_zmid() to add a 3D zMid coordinate &#39;</span>
-                <span class="s1">&#39;instead.&#39;</span>
+                <span class="s1">'add_depth() requires a 1D refBottomDepth variable, which '</span>
+                <span class="s1">'defines a z-level/z-star reference depth for each layer.  '</span>
+                <span class="s1">'This is not available in Omega or for general vertical '</span>
+                <span class="s1">'coordinates.  Use add_zmid() to add a 3D zMid coordinate '</span>
+                <span class="s1">'instead.'</span>
             <span class="p">)</span>
 
         <span class="n">depth</span><span class="p">,</span> <span class="n">depth_bnds</span> <span class="o">=</span> <span class="n">compute_depth</span><span class="p">(</span><span class="n">dsCoord</span><span class="o">.</span><span class="n">refBottomDepth</span><span class="p">)</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;depth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;depth&#39;</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;long_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="s1">&#39;reference depth of the center of each vertical level&#39;</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'depth'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s1">'depth'</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'long_name'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s1">'reference depth of the center of each vertical level'</span>
         <span class="p">)</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;standard_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;depth&#39;</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;meters&#39;</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;axis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Z&#39;</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;positive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;down&#39;</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;valid_min&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">depth_bnds</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;valid_max&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">depth_bnds</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;bounds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;depth_bnds&#39;</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'standard_name'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'depth'</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'units'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'meters'</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'axis'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Z'</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'positive'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'down'</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'valid_min'</span><span class="p">]</span> <span class="o">=</span> <span class="n">depth_bnds</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'valid_max'</span><span class="p">]</span> <span class="o">=</span> <span class="n">depth_bnds</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'bounds'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'depth_bnds'</span>
 
-        <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;depth_bnds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;depth&#39;</span><span class="p">,</span> <span class="s1">&#39;nbnd&#39;</span><span class="p">),</span> <span class="n">depth_bnds</span><span class="p">)</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">depth_bnds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;long_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Gridcell depth interfaces&#39;</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'depth_bnds'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'depth'</span><span class="p">,</span> <span class="s1">'nbnd'</span><span class="p">),</span> <span class="n">depth_bnds</span><span class="p">)</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">depth_bnds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'long_name'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'Gridcell depth interfaces'</span>
 
         <span class="k">for</span> <span class="n">varName</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">data_vars</span><span class="p">:</span>
             <span class="n">var</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">varName</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s1">&#39;depth&#39;</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">'depth'</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
                 <span class="n">var</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">assign_coords</span><span class="p">(</span><span class="n">depth</span><span class="o">=</span><span class="n">ds</span><span class="o">.</span><span class="n">depth</span><span class="p">)</span>
                 <span class="n">ds</span><span class="p">[</span><span class="n">varName</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span>
 
-    <span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%c</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'</span><span class="si">%c</span><span class="s1">'</span><span class="p">)</span>
 
-    <span class="n">history</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">history</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span><span class="si">}</span><span class="s1">'</span>
 
-    <span class="k">if</span> <span class="s1">&#39;history&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">history</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;history&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">if</span> <span class="s1">'history'</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'history'</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">history</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"history"</span><span class="p">]</span><span class="si">}</span><span class="s1">'</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">history</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'history'</span><span class="p">]</span> <span class="o">=</span> <span class="n">history</span>
 
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">)</span></div>
 
@@ -322,30 +322,30 @@
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-c&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--coordFileName&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;coordFileName&#39;</span><span class="p">,</span>
+        <span class="s1">'-c'</span><span class="p">,</span>
+        <span class="s1">'--coordFileName'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'coordFileName'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An MPAS-Ocean file with refBottomDepth&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'An MPAS-Ocean file with refBottomDepth'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-i&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--inFileName&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;inFileName&#39;</span><span class="p">,</span>
+        <span class="s1">'-i'</span><span class="p">,</span>
+        <span class="s1">'--inFileName'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'inFileName'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An input MPAS-Ocean file that depth should be&#39;</span>
-        <span class="s1">&#39;added to, used for coords if another file is&#39;</span>
-        <span class="s1">&#39;not provided via -c.&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'An input MPAS-Ocean file that depth should be'</span>
+        <span class="s1">'added to, used for coords if another file is'</span>
+        <span class="s1">'not provided via -c.'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--outFileName&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;outFileName&#39;</span><span class="p">,</span>
+        <span class="s1">'-o'</span><span class="p">,</span>
+        <span class="s1">'--outFileName'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'outFileName'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An output MPAS-Ocean file with depth added&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'An output MPAS-Ocean file with depth added'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
@@ -357,7 +357,7 @@
 <div class="viewcode-block" id="add_zmid">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.add_zmid.html#mpas_tools.ocean.depth.add_zmid">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">add_zmid</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</span>
 
 <span class="sd">    Parameters</span>
@@ -373,54 +373,54 @@
 <span class="sd">        An MPAS-Ocean file with ``bottomDepth`` and ``maxLevelCell`` but not</span>
 <span class="sd">        ``zMid``.  ``layerThickness`` is a dynamic field and is always read</span>
 <span class="sd">        from ``inFileName``.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">coordFileName</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">coordFileName</span> <span class="o">=</span> <span class="n">inFileName</span>
 
     <span class="n">ds</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">inFileName</span><span class="p">,</span> <span class="n">mask_and_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;nVertLevels&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
-        <span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
+    <span class="k">if</span> <span class="s1">'nVertLevels'</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'nVertLevels'</span><span class="p">:</span> <span class="s1">'depth'</span><span class="p">})</span>
 
-        <span class="c1"># dsIn doesn&#39;t have masking disabled because we want NaNs below the</span>
+        <span class="c1"># dsIn doesn't have masking disabled because we want NaNs below the</span>
         <span class="c1"># bathymetry for zMid; layerThickness is a dynamic field so it comes</span>
         <span class="c1"># from the input file, not the (static) coordinate file</span>
         <span class="n">dsIn</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">inFileName</span><span class="p">)</span>
-        <span class="n">dsIn</span> <span class="o">=</span> <span class="n">dsIn</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
-        <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">dsIn</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">dsIn</span> <span class="o">=</span> <span class="n">dsIn</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'nVertLevels'</span><span class="p">:</span> <span class="s1">'depth'</span><span class="p">})</span>
+        <span class="k">if</span> <span class="s1">'Time'</span> <span class="ow">in</span> <span class="n">dsIn</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
             <span class="n">dsIn</span> <span class="o">=</span> <span class="n">dsIn</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="c1"># dsCoord doesn&#39;t have masking disabled because we want it for zMid</span>
+        <span class="c1"># dsCoord doesn't have masking disabled because we want it for zMid</span>
         <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">coordFileName</span><span class="p">)</span>
-        <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
-        <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+        <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'nVertLevels'</span><span class="p">:</span> <span class="s1">'depth'</span><span class="p">})</span>
+        <span class="k">if</span> <span class="s1">'Time'</span> <span class="ow">in</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
             <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">Time</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;zMid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute_zmid</span><span class="p">(</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'zMid'</span><span class="p">]</span> <span class="o">=</span> <span class="n">compute_zmid</span><span class="p">(</span>
             <span class="n">dsCoord</span><span class="o">.</span><span class="n">bottomDepth</span><span class="p">,</span>
             <span class="n">dsCoord</span><span class="o">.</span><span class="n">maxLevelCell</span><span class="p">,</span>
             <span class="n">dsIn</span><span class="o">.</span><span class="n">layerThickness</span><span class="p">,</span>
-            <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;depth&#39;</span><span class="p">,</span>
+            <span class="n">depth_dim</span><span class="o">=</span><span class="s1">'depth'</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="n">fillValue</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">default_fillvals</span><span class="p">[</span><span class="s1">&#39;f8&#39;</span><span class="p">]</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;zMid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">notnull</span><span class="p">(),</span> <span class="n">other</span><span class="o">=</span><span class="n">fillValue</span><span class="p">)</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;meters&#39;</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;positive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;up&#39;</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fillValue</span>
+        <span class="n">fillValue</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">default_fillvals</span><span class="p">[</span><span class="s1">'f8'</span><span class="p">]</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">'zMid'</span><span class="p">]</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">notnull</span><span class="p">(),</span> <span class="n">other</span><span class="o">=</span><span class="n">fillValue</span><span class="p">)</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'units'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'meters'</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'positive'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'up'</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'_FillValue'</span><span class="p">]</span> <span class="o">=</span> <span class="n">fillValue</span>
 
         <span class="k">for</span> <span class="n">varName</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">data_vars</span><span class="p">:</span>
             <span class="n">var</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">varName</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s1">&#39;nCells&#39;</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s1">&#39;depth&#39;</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s1">'nCells'</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span> <span class="ow">and</span> <span class="s1">'depth'</span> <span class="ow">in</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
                 <span class="n">var</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">assign_coords</span><span class="p">(</span><span class="n">zMid</span><span class="o">=</span><span class="n">ds</span><span class="o">.</span><span class="n">zMid</span><span class="p">)</span>
                 <span class="n">ds</span><span class="p">[</span><span class="n">varName</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span>
 
-    <span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%c</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'</span><span class="si">%c</span><span class="s1">'</span><span class="p">)</span>
 
-    <span class="n">history</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">history</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span><span class="si">}</span><span class="s1">'</span>
 
-    <span class="k">if</span> <span class="s1">&#39;history&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">history</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">&quot;history&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="k">if</span> <span class="s1">'history'</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'history'</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">history</span><span class="si">}</span><span class="se">\n</span><span class="si">{</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s2">"history"</span><span class="p">]</span><span class="si">}</span><span class="s1">'</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">history</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'history'</span><span class="p">]</span> <span class="o">=</span> <span class="n">history</span>
 
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">ds</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">)</span></div>
 
@@ -431,32 +431,32 @@
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-c&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--coordFileName&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;coordFileName&#39;</span><span class="p">,</span>
+        <span class="s1">'-c'</span><span class="p">,</span>
+        <span class="s1">'--coordFileName'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'coordFileName'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An MPAS-Ocean file with bottomDepth and &#39;</span>
-        <span class="s1">&#39;maxLevelCell but not zMid (layerThickness is &#39;</span>
-        <span class="s1">&#39;always read from the input file)&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'An MPAS-Ocean file with bottomDepth and '</span>
+        <span class="s1">'maxLevelCell but not zMid (layerThickness is '</span>
+        <span class="s1">'always read from the input file)'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-i&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--inFileName&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;inFileName&#39;</span><span class="p">,</span>
+        <span class="s1">'-i'</span><span class="p">,</span>
+        <span class="s1">'--inFileName'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'inFileName'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An input MPAS-Ocean file that zMid should be&#39;</span>
-        <span class="s1">&#39;added to, used for coords if another file is&#39;</span>
-        <span class="s1">&#39;not provided via -c.&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'An input MPAS-Ocean file that zMid should be'</span>
+        <span class="s1">'added to, used for coords if another file is'</span>
+        <span class="s1">'not provided via -c.'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--outFileName&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;outFileName&#39;</span><span class="p">,</span>
+        <span class="s1">'-o'</span><span class="p">,</span>
+        <span class="s1">'--outFileName'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'outFileName'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An output MPAS-Ocean file with zMid added&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'An output MPAS-Ocean file with zMid added'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
@@ -468,9 +468,9 @@
 <div class="viewcode-block" id="write_time_varying_zmid">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.depth.write_time_varying_zmid.html#mpas_tools.ocean.depth.write_time_varying_zmid">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">write_time_varying_zmid</span><span class="p">(</span>
-    <span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span>
+    <span class="n">inFileName</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">,</span> <span class="n">coordFileName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">''</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Add a 3D, time-independent depth coordinate to an MPAS-Ocean file.</span>
 
 <span class="sd">    Parameters</span>
@@ -489,40 +489,40 @@
 <span class="sd">    prefix : str, optional</span>
 <span class="sd">        A prefix on ``layerThickness`` (in) and ``zMid`` (out), such as</span>
 <span class="sd">        ``timeMonthly_avg_``</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">coordFileName</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">coordFileName</span> <span class="o">=</span> <span class="n">inFileName</span>
 
     <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">coordFileName</span><span class="p">)</span>
-    <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
+    <span class="n">dsCoord</span> <span class="o">=</span> <span class="n">dsCoord</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'nVertLevels'</span><span class="p">:</span> <span class="s1">'depth'</span><span class="p">})</span>
 
     <span class="n">dsIn</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">open_dataset</span><span class="p">(</span><span class="n">inFileName</span><span class="p">)</span>
-    <span class="n">dsIn</span> <span class="o">=</span> <span class="n">dsIn</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">:</span> <span class="s1">&#39;depth&#39;</span><span class="p">})</span>
-    <span class="n">inVarName</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">layerThickness&#39;</span>
-    <span class="n">outVarName</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">zMid&#39;</span>
+    <span class="n">dsIn</span> <span class="o">=</span> <span class="n">dsIn</span><span class="o">.</span><span class="n">rename</span><span class="p">({</span><span class="s1">'nVertLevels'</span><span class="p">:</span> <span class="s1">'depth'</span><span class="p">})</span>
+    <span class="n">inVarName</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">layerThickness'</span>
+    <span class="n">outVarName</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">prefix</span><span class="si">}</span><span class="s1">zMid'</span>
     <span class="n">layerThickness</span> <span class="o">=</span> <span class="n">dsIn</span><span class="p">[</span><span class="n">inVarName</span><span class="p">]</span>
 
     <span class="n">zMid</span> <span class="o">=</span> <span class="n">compute_zmid</span><span class="p">(</span>
         <span class="n">dsCoord</span><span class="o">.</span><span class="n">bottomDepth</span><span class="p">,</span>
         <span class="n">dsCoord</span><span class="o">.</span><span class="n">maxLevelCell</span><span class="p">,</span>
         <span class="n">layerThickness</span><span class="p">,</span>
-        <span class="n">depth_dim</span><span class="o">=</span><span class="s1">&#39;depth&#39;</span><span class="p">,</span>
+        <span class="n">depth_dim</span><span class="o">=</span><span class="s1">'depth'</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="n">dsOut</span> <span class="o">=</span> <span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="p">()</span>
     <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span> <span class="o">=</span> <span class="n">zMid</span>
-    <span class="n">fillValue</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">default_fillvals</span><span class="p">[</span><span class="s1">&#39;f8&#39;</span><span class="p">]</span>
+    <span class="n">fillValue</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">default_fillvals</span><span class="p">[</span><span class="s1">'f8'</span><span class="p">]</span>
     <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span> <span class="o">=</span> <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
         <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">notnull</span><span class="p">(),</span> <span class="n">other</span><span class="o">=</span><span class="n">fillValue</span>
     <span class="p">)</span>
-    <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;units&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;meters&#39;</span>
-    <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;positive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;up&#39;</span>
-    <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fillValue</span>
+    <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'units'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'meters'</span>
+    <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'positive'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'up'</span>
+    <span class="n">dsOut</span><span class="p">[</span><span class="n">outVarName</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'_FillValue'</span><span class="p">]</span> <span class="o">=</span> <span class="n">fillValue</span>
 
-    <span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%c</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'</span><span class="si">%c</span><span class="s1">'</span><span class="p">)</span>
 
-    <span class="n">history</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
-    <span class="n">dsOut</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">history</span>
+    <span class="n">history</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">time</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="s2">" "</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span><span class="si">}</span><span class="s1">'</span>
+    <span class="n">dsOut</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'history'</span><span class="p">]</span> <span class="o">=</span> <span class="n">history</span>
 
     <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsOut</span><span class="p">,</span> <span class="n">outFileName</span><span class="p">)</span></div>
 
@@ -533,41 +533,41 @@
         <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-c&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--coordFileName&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;coordFileName&#39;</span><span class="p">,</span>
+        <span class="s1">'-c'</span><span class="p">,</span>
+        <span class="s1">'--coordFileName'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'coordFileName'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An MPAS-Ocean file with bottomDepth and maxLevelCell&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'An MPAS-Ocean file with bottomDepth and maxLevelCell'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-i&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--inFileName&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;inFileName&#39;</span><span class="p">,</span>
+        <span class="s1">'-i'</span><span class="p">,</span>
+        <span class="s1">'--inFileName'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'inFileName'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An input MPAS-Ocean file with some form of&#39;</span>
-        <span class="s1">&#39;layerThickness, and also bottomDepth and&#39;</span>
-        <span class="s1">&#39;maxLevelCell if no coordinate file is provided.&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'An input MPAS-Ocean file with some form of'</span>
+        <span class="s1">'layerThickness, and also bottomDepth and'</span>
+        <span class="s1">'maxLevelCell if no coordinate file is provided.'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--outFileName&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;outFileName&#39;</span><span class="p">,</span>
+        <span class="s1">'-o'</span><span class="p">,</span>
+        <span class="s1">'--outFileName'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'outFileName'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;An output MPAS-Ocean file with zMid for each&#39;</span>
-        <span class="s1">&#39;time in the input file&#39;</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'An output MPAS-Ocean file with zMid for each'</span>
+        <span class="s1">'time in the input file'</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-p&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--prefix&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;prefix&#39;</span><span class="p">,</span>
+        <span class="s1">'-p'</span><span class="p">,</span>
+        <span class="s1">'--prefix'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'prefix'</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A prefix on layerThickness (in) and zMid (out),&#39;</span>
-        <span class="s2">&quot;such as &#39;timeMonthly_avg_&#39;&quot;</span><span class="p">,</span>
+        <span class="n">default</span><span class="o">=</span><span class="s1">''</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'A prefix on layerThickness (in) and zMid (out),'</span>
+        <span class="s2">"such as 'timeMonthly_avg_'"</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 

@@ -215,7 +215,7 @@ resolution:</p>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">cellWidthVsLatLon</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Create cell width array for this mesh on a regular latitude-longitude grid.</span>
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -225,7 +225,7 @@ resolution:</p>
 <span class="sd">        longitude in degrees (length n and between -180 and 180)</span>
 <span class="sd">    lat : ndarray</span>
 <span class="sd">        longitude in degrees (length m and between -90 and 90)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">dlat</span> <span class="o">=</span> <span class="mi">10</span>
     <span class="n">dlon</span> <span class="o">=</span> <span class="mi">10</span>
     <span class="n">constantCellWidth</span> <span class="o">=</span> <span class="mi">240</span>
@@ -242,10 +242,10 @@ resolution:</p>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
     <span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span> <span class="o">=</span> <span class="n">cellWidthVsLatLon</span><span class="p">()</span>
-    <span class="n">build_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">out_filename</span><span class="o">=</span><span class="s1">&#39;base_mesh.nc&#39;</span><span class="p">)</span>
+    <span class="n">build_spherical_mesh</span><span class="p">(</span><span class="n">cellWidth</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">out_filename</span><span class="o">=</span><span class="s1">'base_mesh.nc'</span><span class="p">)</span>
 
 
-<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">'__main__'</span><span class="p">:</span>
     <span class="n">main</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -449,7 +449,7 @@ km) around Antarctica.</p>
 
 <span class="n">dlon</span> <span class="o">=</span> <span class="mf">0.1</span>
 <span class="n">dlat</span> <span class="o">=</span> <span class="n">dlon</span>
-<span class="n">earth_radius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
+<span class="n">earth_radius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">'SHR_CONST_REARTH'</span><span class="p">]</span>
 <span class="n">nlon</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">360.</span><span class="o">/</span><span class="n">dlon</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 <span class="n">nlat</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">180.</span><span class="o">/</span><span class="n">dlat</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 <span class="n">lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">-</span><span class="mf">180.</span><span class="p">,</span> <span class="mf">180.</span><span class="p">,</span> <span class="n">nlon</span><span class="p">)</span>
@@ -461,7 +461,7 @@ km) around Antarctica.</p>
 <span class="n">_</span><span class="p">,</span> <span class="n">cellWidth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="n">lon</span><span class="p">,</span> <span class="n">cellWidthVsLat</span><span class="p">)</span>
 
 <span class="c1"># now, add the high-res region</span>
-<span class="n">fc</span> <span class="o">=</span> <span class="n">read_feature_collection</span><span class="p">(</span><span class="s1">&#39;high_res_region.geojson&#39;</span><span class="p">)</span>
+<span class="n">fc</span> <span class="o">=</span> <span class="n">read_feature_collection</span><span class="p">(</span><span class="s1">'high_res_region.geojson'</span><span class="p">)</span>
 
 <span class="n">so_signed_distance</span> <span class="o">=</span> <span class="n">signed_distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span>
                                                   <span class="n">earth_radius</span><span class="p">,</span>
@@ -532,9 +532,9 @@ and 0 degrees latitude and the resolution is ~2 degrees elsewhere.  The shape
     <span class="n">lat</span> <span class="o">=</span> <span class="n">gaussian</span><span class="p">(</span><span class="n">dcoarse</span><span class="o">=</span><span class="n">dcoarse</span><span class="p">,</span> <span class="n">dfine</span><span class="o">=</span><span class="n">dfine</span><span class="p">,</span> <span class="n">cmin</span><span class="o">=-</span><span class="mf">90.</span><span class="p">,</span> <span class="n">cmax</span><span class="o">=</span><span class="mf">90.</span><span class="p">,</span>
                    <span class="n">center</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">width</span><span class="p">)</span>
 
-    <span class="n">earth_radius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">&#39;SHR_CONST_REARTH&#39;</span><span class="p">]</span>
+    <span class="n">earth_radius</span> <span class="o">=</span> <span class="n">constants</span><span class="p">[</span><span class="s1">'SHR_CONST_REARTH'</span><span class="p">]</span>
 
-    <span class="n">fc</span> <span class="o">=</span> <span class="n">read_feature_collection</span><span class="p">(</span><span class="s1">&#39;test.geojson&#39;</span><span class="p">)</span>
+    <span class="n">fc</span> <span class="o">=</span> <span class="n">read_feature_collection</span><span class="p">(</span><span class="s1">'test.geojson'</span><span class="p">)</span>
 
     <span class="n">distance</span> <span class="o">=</span> <span class="n">distance_from_geojson</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">lon</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">earth_radius</span><span class="p">,</span>
                                      <span class="n">max_length</span><span class="o">=</span><span class="n">dfine</span><span class="p">)</span>
@@ -547,19 +547,19 @@ and 0 degrees latitude and the resolution is ~2 degrees elsewhere.  The shape
 </div>
 <p>Here is <code class="docutils literal notranslate"><span class="pre">test.geojson</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;FeatureCollection&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="p">[</span>
+  <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"FeatureCollection"</span><span class="p">,</span>
+  <span class="s2">"features"</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">{</span>
-      <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Feature&quot;</span><span class="p">,</span>
-      <span class="s2">&quot;properties&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;weird shape&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;component&quot;</span><span class="p">:</span> <span class="s2">&quot;ocean&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;object&quot;</span><span class="p">:</span> <span class="s2">&quot;region&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="s2">&quot;Xylar Asay-Davis&quot;</span>
+      <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Feature"</span><span class="p">,</span>
+      <span class="s2">"properties"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"name"</span><span class="p">:</span> <span class="s2">"weird shape"</span><span class="p">,</span>
+        <span class="s2">"component"</span><span class="p">:</span> <span class="s2">"ocean"</span><span class="p">,</span>
+        <span class="s2">"object"</span><span class="p">:</span> <span class="s2">"region"</span><span class="p">,</span>
+        <span class="s2">"author"</span><span class="p">:</span> <span class="s2">"Xylar Asay-Davis"</span>
       <span class="p">},</span>
-      <span class="s2">&quot;geometry&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;Polygon&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;coordinates&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="s2">"geometry"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"Polygon"</span><span class="p">,</span>
+        <span class="s2">"coordinates"</span><span class="p">:</span> <span class="p">[</span>
           <span class="p">[</span>
             <span class="p">[</span>
               <span class="mf">3.8232421875000173</span><span class="p">,</span>

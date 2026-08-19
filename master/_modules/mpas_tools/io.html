@@ -134,9 +134,9 @@
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">mpas_tools.logging</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_call</span>
 
-<span class="n">default_format</span> <span class="o">=</span> <span class="s1">&#39;NETCDF3_64BIT&#39;</span>
+<span class="n">default_format</span> <span class="o">=</span> <span class="s1">'NETCDF3_64BIT'</span>
 <span class="n">default_engine</span> <span class="o">=</span> <span class="kc">None</span>
-<span class="n">default_char_dim_name</span> <span class="o">=</span> <span class="s1">&#39;StrLen&#39;</span>
+<span class="n">default_char_dim_name</span> <span class="o">=</span> <span class="s1">'StrLen'</span>
 <span class="n">default_fills</span> <span class="o">=</span> <span class="n">netCDF4</span><span class="o">.</span><span class="n">default_fillvals</span>
 <span class="n">default_nchar</span> <span class="o">=</span> <span class="mi">64</span>
 
@@ -153,7 +153,7 @@
     <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">nchar</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Write an xarray.Dataset to a file with NetCDF4 fill values and the given</span>
 <span class="sd">    name of the string dimension.  Also adds the time and command-line to the</span>
 <span class="sd">    history attribute.</span>
@@ -180,12 +180,12 @@
 <span class="sd">        ``mpas_tools.io.default_fills``, which can be modified but which</span>
 <span class="sd">        defaults to ``netCDF4.default_fillvals``</span>
 
-<span class="sd">    format : {&#39;NETCDF4&#39;, &#39;NETCDF4_CLASSIC&#39;, &#39;NETCDF3_64BIT&#39;, &#39;NETCDF3_CLASSIC&#39;}, optional</span>
+<span class="sd">    format : {'NETCDF4', 'NETCDF4_CLASSIC', 'NETCDF3_64BIT', 'NETCDF3_CLASSIC'}, optional</span>
 <span class="sd">        The NetCDF file format to use.  Default is</span>
 <span class="sd">        ``mpas_tools.io.default_format``, which can be modified but which</span>
-<span class="sd">        defaults to ``&#39;NETCDF3_64BIT&#39;``</span>
+<span class="sd">        defaults to ``'NETCDF3_64BIT'``</span>
 
-<span class="sd">    engine : {&#39;netcdf4&#39;, &#39;scipy&#39;, &#39;h5netcdf&#39;}, optional</span>
+<span class="sd">    engine : {'netcdf4', 'scipy', 'h5netcdf'}, optional</span>
 <span class="sd">        The library to use for NetCDF output.  The default is the same as</span>
 <span class="sd">        in :py:meth:`xarray.Dataset.to_netcdf` and depends on ``format``.</span>
 <span class="sd">        You can override the default by setting</span>
@@ -194,7 +194,7 @@
 <span class="sd">    char_dim_name : str, optional</span>
 <span class="sd">        The name of the dimension used for character strings. Default is</span>
 <span class="sd">        ``mpas_tools.io.default_char_dim_name``, which can be modified but</span>
-<span class="sd">        which defaults to ``&#39;StrLen&#39;``</span>
+<span class="sd">        which defaults to ``'StrLen'``</span>
 
 <span class="sd">    nchar : int, optional</span>
 <span class="sd">        The number of characters to use for string variables.  If None, the</span>
@@ -204,8 +204,8 @@
 <span class="sd">    logger : logging.Logger, optional</span>
 <span class="sd">        A logger to write messages to write the output of ``ncks`` conversion</span>
 <span class="sd">        calls to.  If None, ``ncks`` output is suppressed.  This is only</span>
-<span class="sd">        relevant if ``format`` is &#39;NETCDF3_64BIT_DATA&#39;</span>
-<span class="sd">    &quot;&quot;&quot;</span>  <span class="c1"># noqa: E501</span>
+<span class="sd">        relevant if ``format`` is 'NETCDF3_64BIT_DATA'</span>
+<span class="sd">    """</span>  <span class="c1"># noqa: E501</span>
     <span class="k">if</span> <span class="nb">format</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="nb">format</span> <span class="o">=</span> <span class="n">default_format</span>
 
@@ -224,7 +224,7 @@
     <span class="n">numpyFillValues</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">fillType</span> <span class="ow">in</span> <span class="n">fillValues</span><span class="p">:</span>
         <span class="c1"># drop string fill values</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">fillType</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">fillType</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">'S'</span><span class="p">):</span>
             <span class="n">numpyFillValues</span><span class="p">[</span><span class="n">numpy</span><span class="o">.</span><span class="n">dtype</span><span class="p">(</span><span class="n">fillType</span><span class="p">)]</span> <span class="o">=</span> <span class="n">fillValues</span><span class="p">[</span><span class="n">fillType</span><span class="p">]</span>
 
     <span class="n">encodingDict</span> <span class="o">=</span> <span class="p">{}</span>
@@ -236,16 +236,16 @@
 
         <span class="c1"># Convert int64 variables to int32 for MPAS compatibility</span>
         <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="n">numpy</span><span class="o">.</span><span class="n">int64</span><span class="p">:</span>
-            <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">][</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;int32&#39;</span>
+            <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">][</span><span class="s1">'dtype'</span><span class="p">]</span> <span class="o">=</span> <span class="s1">'int32'</span>
 
         <span class="c1"># add fill values</span>
         <span class="k">if</span> <span class="n">dtype</span> <span class="ow">in</span> <span class="n">numpyFillValues</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">numpy</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">var</span><span class="p">)):</span>
-                <span class="c1"># only add fill values if they&#39;re needed</span>
+                <span class="c1"># only add fill values if they're needed</span>
                 <span class="n">fill</span> <span class="o">=</span> <span class="n">numpyFillValues</span><span class="p">[</span><span class="n">dtype</span><span class="p">]</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">fill</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">][</span><span class="s1">&#39;_FillValue&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fill</span>
+            <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">][</span><span class="s1">'_FillValue'</span><span class="p">]</span> <span class="o">=</span> <span class="n">fill</span>
 
         <span class="n">isString</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span><span class="n">dtype</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">bytes_</span><span class="p">)</span> <span class="ow">or</span> <span class="n">numpy</span><span class="o">.</span><span class="n">issubdtype</span><span class="p">(</span>
             <span class="n">dtype</span><span class="p">,</span> <span class="n">numpy</span><span class="o">.</span><span class="n">str_</span>
@@ -253,30 +253,30 @@
         <span class="k">if</span> <span class="n">isString</span><span class="p">:</span>
             <span class="c1"># set the encoding for string variables</span>
             <span class="n">encodingDict</span><span class="p">[</span><span class="n">variableName</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="p">{</span><span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;|S</span><span class="si">{</span><span class="n">nchar</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;char_dim_name&#39;</span><span class="p">:</span> <span class="n">char_dim_name</span><span class="p">}</span>
+                <span class="p">{</span><span class="s1">'dtype'</span><span class="p">:</span> <span class="sa">f</span><span class="s1">'|S</span><span class="si">{</span><span class="n">nchar</span><span class="si">}</span><span class="s1">'</span><span class="p">,</span> <span class="s1">'char_dim_name'</span><span class="p">:</span> <span class="n">char_dim_name</span><span class="p">}</span>
             <span class="p">)</span>
 
     <span class="n">update_history</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="s1">&#39;Time&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s1">'Time'</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">:</span>
         <span class="c1"># make sure the Time dimension is unlimited because MPAS has trouble</span>
         <span class="c1"># reading Time otherwise</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">encoding</span><span class="p">[</span><span class="s1">&#39;unlimited_dims&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Time&#39;</span><span class="p">}</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">encoding</span><span class="p">[</span><span class="s1">'unlimited_dims'</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'Time'</span><span class="p">}</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">ds</span><span class="o">.</span><span class="n">encoding</span><span class="p">[</span><span class="s1">&#39;unlimited_dims&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">encoding</span><span class="p">[</span><span class="s1">'unlimited_dims'</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># for performance, we have to handle this as a special case</span>
-    <span class="n">convert</span> <span class="o">=</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">&#39;NETCDF3_64BIT_DATA&#39;</span>
+    <span class="n">convert</span> <span class="o">=</span> <span class="nb">format</span> <span class="o">==</span> <span class="s1">'NETCDF3_64BIT_DATA'</span>
 
     <span class="k">if</span> <span class="n">convert</span><span class="p">:</span>
         <span class="n">out_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
         <span class="n">out_filename</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s1">&#39;_tmp_</span><span class="si">{</span><span class="n">out_path</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s1">.netcdf4</span><span class="si">{</span><span class="n">out_path</span><span class="o">.</span><span class="n">suffix</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="n">out_path</span><span class="o">.</span><span class="n">parent</span> <span class="o">/</span> <span class="sa">f</span><span class="s1">'_tmp_</span><span class="si">{</span><span class="n">out_path</span><span class="o">.</span><span class="n">stem</span><span class="si">}</span><span class="s1">.netcdf4</span><span class="si">{</span><span class="n">out_path</span><span class="o">.</span><span class="n">suffix</span><span class="si">}</span><span class="s1">'</span>
         <span class="p">)</span>
-        <span class="nb">format</span> <span class="o">=</span> <span class="s1">&#39;NETCDF4&#39;</span>
-        <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s1">&#39;scipy&#39;</span><span class="p">:</span>
-            <span class="c1"># that&#39;s not going to work</span>
-            <span class="n">engine</span> <span class="o">=</span> <span class="s1">&#39;netcdf4&#39;</span>
+        <span class="nb">format</span> <span class="o">=</span> <span class="s1">'NETCDF4'</span>
+        <span class="k">if</span> <span class="n">engine</span> <span class="o">==</span> <span class="s1">'scipy'</span><span class="p">:</span>
+            <span class="c1"># that's not going to work</span>
+            <span class="n">engine</span> <span class="o">=</span> <span class="s1">'netcdf4'</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">out_filename</span> <span class="o">=</span> <span class="n">fileName</span>
 
@@ -286,9 +286,9 @@
 
     <span class="k">if</span> <span class="n">convert</span><span class="p">:</span>
         <span class="n">args</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="s1">&#39;ncks&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;-O&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;-5&#39;</span><span class="p">,</span>
+            <span class="s1">'ncks'</span><span class="p">,</span>
+            <span class="s1">'-O'</span><span class="p">,</span>
+            <span class="s1">'-5'</span><span class="p">,</span>
             <span class="n">out_filename</span><span class="p">,</span>
             <span class="n">fileName</span><span class="p">,</span>
         <span class="p">]</span>
@@ -311,17 +311,17 @@
 <div class="viewcode-block" id="open_dataset">
 <a class="viewcode-back" href="../../generated/mpas_tools.io.open_dataset.html#mpas_tools.io.open_dataset">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">open_dataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Open an ``xarray.Dataset`` from a NetCDF file, accounting for quirks</span>
 <span class="sd">    specific to MPAS components.  This is a thin wrapper around</span>
 <span class="sd">    :py:func:`xarray.open_dataset` that selects the NetCDF ``engine`` from</span>
 <span class="sd">    ``mpas_tools.io.default_engine`` when ``engine`` is not given.</span>
 
 <span class="sd">    Specifying an ``engine`` explicitly is important because</span>
-<span class="sd">    :py:func:`xarray.open_dataset` otherwise sniffs the file for &quot;magic bits&quot;</span>
+<span class="sd">    :py:func:`xarray.open_dataset` otherwise sniffs the file for "magic bits"</span>
 <span class="sd">    to auto-select a backend, and that probe can crash on</span>
 <span class="sd">    ``NETCDF3_64BIT_DATA`` (CDF5) files.  Setting</span>
-<span class="sd">    ``mpas_tools.io.default_engine`` (e.g. to ``&#39;netcdf4&#39;``) provides a single,</span>
+<span class="sd">    ``mpas_tools.io.default_engine`` (e.g. to ``'netcdf4'``) provides a single,</span>
 <span class="sd">    process-wide way to avoid that crash without modifying every call site.</span>
 
 <span class="sd">    Parameters</span>
@@ -330,7 +330,7 @@
 <span class="sd">        The path to the NetCDF file to open, passed on to</span>
 <span class="sd">        :py:func:`xarray.open_dataset`</span>
 
-<span class="sd">    engine : {&#39;netcdf4&#39;, &#39;scipy&#39;, &#39;h5netcdf&#39;}, optional</span>
+<span class="sd">    engine : {'netcdf4', 'scipy', 'h5netcdf'}, optional</span>
 <span class="sd">        The library to use for reading the NetCDF file.  The default is</span>
 <span class="sd">        ``mpas_tools.io.default_engine``, which can be modified but which</span>
 <span class="sd">        defaults to ``None`` (xarray auto-selects the backend)</span>
@@ -349,7 +349,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    ds : xarray.Dataset</span>
 <span class="sd">        The opened dataset</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">engine</span> <span class="o">=</span> <span class="n">default_engine</span>
 
@@ -360,7 +360,7 @@
 <div class="viewcode-block" id="open_mfdataset">
 <a class="viewcode-back" href="../../generated/mpas_tools.io.open_mfdataset.html#mpas_tools.io.open_mfdataset">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">open_mfdataset</span><span class="p">(</span><span class="n">paths</span><span class="p">,</span> <span class="n">engine</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Open a multi-file ``xarray.Dataset`` from NetCDF files, accounting for</span>
 <span class="sd">    quirks specific to MPAS components.  This is a thin wrapper around</span>
 <span class="sd">    :py:func:`xarray.open_mfdataset` that selects the NetCDF ``engine`` from</span>
@@ -376,7 +376,7 @@
 <span class="sd">        The paths to the NetCDF files to open, passed on to</span>
 <span class="sd">        :py:func:`xarray.open_mfdataset`</span>
 
-<span class="sd">    engine : {&#39;netcdf4&#39;, &#39;scipy&#39;, &#39;h5netcdf&#39;}, optional</span>
+<span class="sd">    engine : {'netcdf4', 'scipy', 'h5netcdf'}, optional</span>
 <span class="sd">        The library to use for reading the NetCDF files.  The default is</span>
 <span class="sd">        ``mpas_tools.io.default_engine``, which can be modified but which</span>
 <span class="sd">        defaults to ``None`` (xarray auto-selects the backend)</span>
@@ -395,7 +395,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    ds : xarray.Dataset</span>
 <span class="sd">        The opened dataset</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="k">if</span> <span class="n">engine</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">engine</span> <span class="o">=</span> <span class="n">default_engine</span>
 
@@ -404,18 +404,18 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">update_history</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Add or append history to attributes of a data set&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""Add or append history to attributes of a data set"""</span>
 
     <span class="n">thiscommand</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%a</span><span class="s1"> %b </span><span class="si">%d</span><span class="s1"> %H:%M:%S %Y&#39;</span><span class="p">)</span>
-        <span class="o">+</span> <span class="s1">&#39;: &#39;</span>
-        <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:])</span>
+        <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">'</span><span class="si">%a</span><span class="s1"> %b </span><span class="si">%d</span><span class="s1"> %H:%M:%S %Y'</span><span class="p">)</span>
+        <span class="o">+</span> <span class="s1">': '</span>
+        <span class="o">+</span> <span class="s1">' '</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:])</span>
     <span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;history&#39;</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
-        <span class="n">newhist</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">thiscommand</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]])</span>
+    <span class="k">if</span> <span class="s1">'history'</span> <span class="ow">in</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">:</span>
+        <span class="n">newhist</span> <span class="o">=</span> <span class="s1">'</span><span class="se">\n</span><span class="s1">'</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">thiscommand</span><span class="p">,</span> <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'history'</span><span class="p">]])</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">newhist</span> <span class="o">=</span> <span class="n">thiscommand</span>
-    <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;history&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">newhist</span>
+    <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'history'</span><span class="p">]</span> <span class="o">=</span> <span class="n">newhist</span>
 </pre></div>
 
            </div>

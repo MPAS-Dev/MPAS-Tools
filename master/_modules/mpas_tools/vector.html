@@ -128,7 +128,7 @@
 <div class="viewcode-block" id="Vector">
 <a class="viewcode-back" href="../../generated/mpas_tools.vector.Vector.html#mpas_tools.vector.Vector">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">Vector</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A class for representing Cartesian vectors with ``x``, ``y`` and ``z``</span>
 <span class="sd">    components that are either ``float`` or ``numpy.array`` objects of</span>
 <span class="sd">    identical size.</span>
@@ -143,11 +143,11 @@
 
 <span class="sd">    z : float or numpy.ndarray</span>
 <span class="sd">        The z component(s)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 <div class="viewcode-block" id="Vector.__init__">
 <a class="viewcode-back" href="../../generated/mpas_tools.vector.Vector.html#mpas_tools.vector.Vector.__init__">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        A class for representing Cartesian vectors with ``x``, ``y`` and ``z``</span>
 <span class="sd">        components that are either ``float`` or ``numpy.array`` objects of</span>
 <span class="sd">        identical size.</span>
@@ -162,7 +162,7 @@
 
 <span class="sd">        z : float or numpy.ndarray</span>
 <span class="sd">            The z component(s)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span></div>
@@ -171,7 +171,7 @@
 <div class="viewcode-block" id="Vector.angular_distance">
 <a class="viewcode-back" href="../../generated/mpas_tools.vector.Vector.angular_distance.html#mpas_tools.vector.Vector.angular_distance">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">angular_distance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Compute angular distance between points on the sphere, following:</span>
 <span class="sd">        https://en.wikipedia.org/wiki/Great-circle_distance</span>
 
@@ -184,7 +184,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        angularDistance : numpy.ndarray</span>
 <span class="sd">            The angular distance (in radians) between segments of the transect.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">angular_distance</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arctan2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">.</span><span class="n">mag</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">other</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">angular_distance</span></div>
 
@@ -193,7 +193,7 @@
 <a class="viewcode-back" href="../../generated/mpas_tools.vector.Vector.intersects.html#mpas_tools.vector.Vector.intersects">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">intersects</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Based on https://stackoverflow.com/a/26669130/7728169</span>
 <span class="sd">        Determine if the great circle arc from ``a1`` to ``a2`` intersects that</span>
 <span class="sd">        from ``b1`` to ``b2``.</span>
@@ -223,7 +223,7 @@
 <span class="sd">            A boolean array of the same size as ``a1`` and ``a2`` or ``b1`` and</span>
 <span class="sd">            ``b2``, whichever is greater, indicating if the particular pair of</span>
 <span class="sd">            arcs intersects</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">Vector</span><span class="o">.</span><span class="n">straddles</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">),</span>
                               <span class="n">Vector</span><span class="o">.</span><span class="n">straddles</span><span class="p">(</span><span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">))</span></div>
 
@@ -232,7 +232,7 @@
 <a class="viewcode-back" href="../../generated/mpas_tools.vector.Vector.intersection.html#mpas_tools.vector.Vector.intersection">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">intersection</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Based on https://stackoverflow.com/a/26669130/7728169</span>
 <span class="sd">        Find the intersection point as a unit vector between great circle arc</span>
 <span class="sd">        from ``a1`` to ``a2`` and from ``b1`` to ``b2``.  The arcs should have</span>
@@ -262,7 +262,7 @@
 <span class="sd">        points : mpas_tools.vector.Vector</span>
 <span class="sd">            An array of Cartesian points *on the unit sphere* indicating where</span>
 <span class="sd">            the arcs intersect</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="n">points</span> <span class="o">=</span> <span class="p">(</span><span class="n">a1</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">a2</span><span class="p">))</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">b1</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">b2</span><span class="p">))</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">Vector</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">))</span><span class="o">/</span><span class="n">points</span><span class="o">.</span><span class="n">mag</span><span class="p">()</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">Vector</span><span class="p">(</span><span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">x</span><span class="p">,</span>  <span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="o">*</span><span class="n">points</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
@@ -273,7 +273,7 @@
 <a class="viewcode-back" href="../../generated/mpas_tools.vector.Vector.straddles.html#mpas_tools.vector.Vector.straddles">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">straddles</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Based on https://stackoverflow.com/a/26669130/7728169</span>
 <span class="sd">        Determines if the great circle segment determined by (a1, a2)</span>
 <span class="sd">        straddles the great circle determined by (b1, b2)</span>
@@ -285,7 +285,7 @@
 <span class="sd">            The types of the attributes ``x``, ``y``, and ``z`` must either be</span>
 <span class="sd">            ``numpy.arrays`` of identical size for all 4 vectors (in which case</span>
 <span class="sd">            intersections are found element-wise), or scalars for</span>
-<span class="sd">            at least one of either the a&#39;s or the b&#39;s.</span>
+<span class="sd">            at least one of either the a's or the b's.</span>
 
 <span class="sd">        a2 : mpas_tools.vector.Vector</span>
 <span class="sd">            Second end point of first great circle arc.</span>
@@ -299,17 +299,17 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        straddle : numpy.ndarray</span>
-<span class="sd">            A boolean array of the same size as the a&#39;s or the b&#39;s, whichever</span>
+<span class="sd">            A boolean array of the same size as the a's or the b's, whichever</span>
 <span class="sd">            is greater, indicating if the great circle segment determined by</span>
 <span class="sd">            (a1, a2) straddles the great circle determined by (b1, b2)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">Vector</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">a1</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="o">*</span> <span class="n">Vector</span><span class="o">.</span><span class="n">det</span><span class="p">(</span><span class="n">a2</span><span class="p">,</span> <span class="n">b1</span><span class="p">,</span> <span class="n">b2</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span></div>
 
 
 <div class="viewcode-block" id="Vector.dot">
 <a class="viewcode-back" href="../../generated/mpas_tools.vector.Vector.dot.html#mpas_tools.vector.Vector.dot">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Compute the dot product between this vector and ``other``.</span>
 
 <span class="sd">        Parameters</span>
@@ -321,14 +321,14 @@
 <span class="sd">        -------</span>
 <span class="sd">        dot_product : numpy.ndarray</span>
 <span class="sd">            The dot product</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">z</span></div>
 
 
 <div class="viewcode-block" id="Vector.cross">
 <a class="viewcode-back" href="../../generated/mpas_tools.vector.Vector.cross.html#mpas_tools.vector.Vector.cross">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        Compute the dot product between this vector and ``other``.</span>
 
 <span class="sd">        Parameters</span>
@@ -340,7 +340,7 @@
 <span class="sd">        -------</span>
 <span class="sd">        cross_product : mpas_tools.vector.Vector</span>
 <span class="sd">            The cross product</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">Vector</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">z</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">y</span><span class="p">,</span>
                       <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
                       <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">x</span><span class="p">)</span></div>
@@ -350,7 +350,7 @@
 <a class="viewcode-back" href="../../generated/mpas_tools.vector.Vector.det.html#mpas_tools.vector.Vector.det">[docs]</a>
     <span class="nd">@staticmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">det</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v2</span><span class="p">,</span> <span class="n">v3</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The determinant of the matrix defined by the three ``Vector`` objects</span>
 
 <span class="sd">        Parameters</span>
@@ -368,21 +368,21 @@
 <span class="sd">        -------</span>
 <span class="sd">        determinant : numpy.ndarray</span>
 <span class="sd">            The determinant of the matrix</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">v1</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v2</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v3</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Vector.mag">
 <a class="viewcode-back" href="../../generated/mpas_tools.vector.Vector.mag.html#mpas_tools.vector.Vector.mag">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">mag</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">"""</span>
 <span class="sd">        The magnitude of the vector</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        magnitude : numpy.ndarray</span>
 <span class="sd">            The magnitude of the vector</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+<span class="sd">        """</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span></div>
 </div>
 

@@ -122,7 +122,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for mpas_tools.mesh.interpolation</h1><div class="highlight"><pre>
-<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span></span><span class="sd">"""</span>
 <span class="sd">Efficient interpolation from regular (tensor) grids to MPAS mesh cell centers.</span>
 
 <span class="sd">This module provides fast, memory-efficient routines for bilinear interpolation</span>
@@ -139,7 +139,7 @@
 <span class="sd">      should be in the same units (typically degrees for lon/lat).</span>
 <span class="sd">    - No extrapolation is performed: all xCell/yCell must be within the bounds</span>
 <span class="sd">      of x/y.</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">"""</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
@@ -147,7 +147,7 @@
 <div class="viewcode-block" id="interp_bilin">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.interpolation.interp_bilin.html#mpas_tools.mesh.interpolation.interp_bilin">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">interp_bilin</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">field</span><span class="p">,</span> <span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Perform bilinear interpolation of ``field`` on a regular (tensor) grid to</span>
 <span class="sd">    cell centers on an MPAS mesh.</span>
 
@@ -197,7 +197,7 @@
 <span class="sd">    &gt;&gt;&gt; xCell = np.array([0.0, 45.0])</span>
 <span class="sd">    &gt;&gt;&gt; yCell = np.array([0.0, 45.0])</span>
 <span class="sd">    &gt;&gt;&gt; values = interp_bilin(x, y, field, xCell, yCell)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">xCell</span> <span class="o">&gt;=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
     <span class="k">assert</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">xCell</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
@@ -216,7 +216,7 @@
     <span class="n">yFrac</span> <span class="o">-=</span> <span class="n">yIndices</span>
 
     <span class="c1"># If points are exactly at the upper index, this is going to give us a bit</span>
-    <span class="c1"># of trouble so we&#39;ll move them down one index and adjust the fraction</span>
+    <span class="c1"># of trouble so we'll move them down one index and adjust the fraction</span>
     <span class="c1"># accordingly</span>
     <span class="n">mask</span> <span class="o">=</span> <span class="n">xIndices</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
     <span class="n">xIndices</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>

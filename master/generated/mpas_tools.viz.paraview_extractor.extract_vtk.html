@@ -184,7 +184,7 @@ and associated indices.  For each extra dimension, you can specify
 nothing for the indices (an empty string, meaning skip any fields with this
 dimension), a single index, a comma-separated list of indices, or a range
 of indices (separated by 1 or 2 colons).  For example,</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;maxEdges=&#39;</span><span class="p">,</span> <span class="s1">&#39;nVertLeves=0:10:2&#39;</span><span class="p">,</span> <span class="s1">&#39;nParticles=0,2,4,6,8&#39;</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'maxEdges='</span><span class="p">,</span> <span class="s1">'nVertLeves=0:10:2'</span><span class="p">,</span> <span class="s1">'nParticles=0,2,4,6,8'</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>will ignore any fields with dimension <code class="docutils literal notranslate"><span class="pre">maxEdges</span></code>, extract every other
@@ -193,7 +193,7 @@ extract the 5 specified particles.</p>
 <p>An index array can also be specified in this way (and these can be mixed
 with integer indices in a comma-separated list but not in a colon-separated
 range):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;nVertLeves=0,maxLevelCell&#39;</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">dimension_list</span><span class="o">=</span><span class="p">[</span><span class="s1">'nVertLeves=0,maxLevelCell'</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>will extract fields from the first vertical level and the vertical level
@@ -203,7 +203,7 @@ for displaying variables at the depth of a topographic feature (typically
 the top or bottom of the domain) for MPAS components with a spatially
 variable top or bottom index (e.g. <code class="docutils literal notranslate"><span class="pre">maxLevelCell</span></code> in MPAS-Ocean).  This
 is accomplished with arguments such as:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topo_dim</span><span class="o">=</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">,</span> <span class="n">topo_cell_index</span><span class="o">=</span><span class="s1">&#39;maxLevelCell&#39;</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">topo_dim</span><span class="o">=</span><span class="s1">'nVertLevels'</span><span class="p">,</span> <span class="n">topo_cell_index</span><span class="o">=</span><span class="s1">'maxLevelCell'</span>
 </pre></div>
 </div>
 <p>Fields on cells are sampled at the topographic index and the geometry

@@ -134,7 +134,7 @@
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.write_scrip_file.html#mpas_tools.seaice.mesh.write_scrip_file">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">write_scrip_file</span><span class="p">(</span><span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">,</span>
                      <span class="n">latCell</span><span class="p">,</span> <span class="n">lonCell</span><span class="p">,</span> <span class="n">corner_lat</span><span class="p">,</span> <span class="n">corner_lon</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    A low-level function for writing a SCRIP file for the given MPAS-Seaice</span>
 <span class="sd">    mesh</span>
 
@@ -166,43 +166,43 @@
 
 <span class="sd">    mask  : numpy.ndarray, optional</span>
 <span class="sd">        A mask of where cells are valid</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># output mesh file</span>
-    <span class="n">scripFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">scripFilename</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;NETCDF3_CLASSIC&quot;</span><span class="p">)</span>
+    <span class="n">scripFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">scripFilename</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"NETCDF3_CLASSIC"</span><span class="p">)</span>
 
     <span class="n">scripFile</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">title</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 
-    <span class="n">scripFile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;grid_size&quot;</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
-    <span class="n">scripFile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;grid_corners&quot;</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">)</span>
-    <span class="n">scripFile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;grid_rank&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">scripFile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"grid_size"</span><span class="p">,</span> <span class="n">nCells</span><span class="p">)</span>
+    <span class="n">scripFile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"grid_corners"</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">)</span>
+    <span class="n">scripFile</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"grid_rank"</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="n">grid_dims</span> <span class="o">=</span> <span class="n">scripFile</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_dims&quot;</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;grid_rank&quot;</span><span class="p">])</span>
+        <span class="s2">"grid_dims"</span><span class="p">,</span> <span class="s2">"i"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">"grid_rank"</span><span class="p">])</span>
     <span class="n">grid_center_lat</span> <span class="o">=</span> <span class="n">scripFile</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_center_lat&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;grid_size&quot;</span><span class="p">])</span>
+        <span class="s2">"grid_center_lat"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">"grid_size"</span><span class="p">])</span>
     <span class="n">grid_center_lon</span> <span class="o">=</span> <span class="n">scripFile</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_center_lon&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;grid_size&quot;</span><span class="p">])</span>
+        <span class="s2">"grid_center_lon"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">"grid_size"</span><span class="p">])</span>
     <span class="n">grid_imask</span> <span class="o">=</span> <span class="n">scripFile</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_imask&quot;</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;grid_size&quot;</span><span class="p">])</span>
+        <span class="s2">"grid_imask"</span><span class="p">,</span> <span class="s2">"i"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span><span class="s2">"grid_size"</span><span class="p">])</span>
     <span class="n">grid_corner_lat</span> <span class="o">=</span> <span class="n">scripFile</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_corner_lat&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span>
-            <span class="s2">&quot;grid_size&quot;</span><span class="p">,</span> <span class="s2">&quot;grid_corners&quot;</span><span class="p">])</span>
+        <span class="s2">"grid_corner_lat"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span>
+            <span class="s2">"grid_size"</span><span class="p">,</span> <span class="s2">"grid_corners"</span><span class="p">])</span>
     <span class="n">grid_corner_lon</span> <span class="o">=</span> <span class="n">scripFile</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_corner_lon&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span>
-            <span class="s2">&quot;grid_size&quot;</span><span class="p">,</span> <span class="s2">&quot;grid_corners&quot;</span><span class="p">])</span>
+        <span class="s2">"grid_corner_lon"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">[</span>
+            <span class="s2">"grid_size"</span><span class="p">,</span> <span class="s2">"grid_corners"</span><span class="p">])</span>
 
-    <span class="n">grid_center_lat</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;radians&quot;</span>
-    <span class="n">grid_center_lon</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;radians&quot;</span>
-    <span class="n">grid_imask</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;unitless&quot;</span>
-    <span class="n">grid_corner_lat</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;radians&quot;</span>
-    <span class="n">grid_corner_lon</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;radians&quot;</span>
+    <span class="n">grid_center_lat</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">"radians"</span>
+    <span class="n">grid_center_lon</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">"radians"</span>
+    <span class="n">grid_imask</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">"unitless"</span>
+    <span class="n">grid_corner_lat</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">"radians"</span>
+    <span class="n">grid_corner_lon</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">"radians"</span>
 
     <span class="n">grid_dims</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">nCells</span><span class="p">]</span>
     <span class="n">grid_center_lat</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">latCell</span>
     <span class="n">grid_center_lon</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">lonCell</span>
     <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">grid_imask</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
+        <span class="n">grid_imask</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">nCells</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"i"</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">grid_imask</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">mask</span><span class="p">[:]</span>
     <span class="n">grid_corner_lat</span><span class="p">[:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">corner_lat</span><span class="p">[:,</span> <span class="p">:]</span>
@@ -219,7 +219,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">write_2D_scripfile</span><span class="p">(</span><span class="n">filenameScripOut</span><span class="p">,</span> <span class="n">scripTitle</span><span class="p">,</span> <span class="n">nColumns</span><span class="p">,</span> <span class="n">nRows</span><span class="p">,</span>
                        <span class="n">latsCentre</span><span class="p">,</span> <span class="n">lonsCentre</span><span class="p">,</span> <span class="n">latsVertex</span><span class="p">,</span> <span class="n">lonsVertex</span><span class="p">,</span>
                        <span class="n">degrees</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Write a SCRIP file for the given 2D grid</span>
 
 <span class="sd">    Parameters</span>
@@ -251,14 +251,14 @@
 <span class="sd">    degrees  : bool, optional</span>
 <span class="sd">        Whether the latitude and longitude variables are in degrees (as opposed</span>
 <span class="sd">        to radians)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="k">if</span> <span class="n">degrees</span><span class="p">:</span>
         <span class="n">scaling</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mf">180.</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">scaling</span> <span class="o">=</span> <span class="mf">1.0</span>
 
-    <span class="n">fileOut</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameScripOut</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;NETCDF3_CLASSIC&quot;</span><span class="p">)</span>
+    <span class="n">fileOut</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">filenameScripOut</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">"NETCDF3_CLASSIC"</span><span class="p">)</span>
 
     <span class="n">fileOut</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">scripTitle</span>
 
@@ -266,31 +266,31 @@
     <span class="n">grid_corners</span> <span class="o">=</span> <span class="mi">4</span>
     <span class="n">grid_rank</span> <span class="o">=</span> <span class="mi">2</span>
 
-    <span class="n">fileOut</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;grid_size&quot;</span><span class="p">,</span> <span class="n">grid_size</span><span class="p">)</span>
-    <span class="n">fileOut</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;grid_corners&quot;</span><span class="p">,</span> <span class="n">grid_corners</span><span class="p">)</span>
-    <span class="n">fileOut</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">&quot;grid_rank&quot;</span><span class="p">,</span> <span class="n">grid_rank</span><span class="p">)</span>
+    <span class="n">fileOut</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"grid_size"</span><span class="p">,</span> <span class="n">grid_size</span><span class="p">)</span>
+    <span class="n">fileOut</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"grid_corners"</span><span class="p">,</span> <span class="n">grid_corners</span><span class="p">)</span>
+    <span class="n">fileOut</span><span class="o">.</span><span class="n">createDimension</span><span class="p">(</span><span class="s2">"grid_rank"</span><span class="p">,</span> <span class="n">grid_rank</span><span class="p">)</span>
 
     <span class="n">grid_dimsVar</span> <span class="o">=</span> <span class="n">fileOut</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_dims&quot;</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;grid_rank&quot;</span><span class="p">,))</span>
+        <span class="s2">"grid_dims"</span><span class="p">,</span> <span class="s2">"i"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="s2">"grid_rank"</span><span class="p">,))</span>
     <span class="n">grid_center_latVar</span> <span class="o">=</span> <span class="n">fileOut</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_center_lat&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;grid_size&quot;</span><span class="p">,))</span>
+        <span class="s2">"grid_center_lat"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="s2">"grid_size"</span><span class="p">,))</span>
     <span class="n">grid_center_lonVar</span> <span class="o">=</span> <span class="n">fileOut</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_center_lon&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;grid_size&quot;</span><span class="p">,))</span>
+        <span class="s2">"grid_center_lon"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="s2">"grid_size"</span><span class="p">,))</span>
     <span class="n">grid_imaskVar</span> <span class="o">=</span> <span class="n">fileOut</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_imask&quot;</span><span class="p">,</span> <span class="s2">&quot;i&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;grid_size&quot;</span><span class="p">,))</span>
+        <span class="s2">"grid_imask"</span><span class="p">,</span> <span class="s2">"i"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span><span class="s2">"grid_size"</span><span class="p">,))</span>
     <span class="n">grid_corner_latVar</span> <span class="o">=</span> <span class="n">fileOut</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_corner_lat&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span>
-            <span class="s2">&quot;grid_size&quot;</span><span class="p">,</span> <span class="s2">&quot;grid_corners&quot;</span><span class="p">))</span>
+        <span class="s2">"grid_corner_lat"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"grid_size"</span><span class="p">,</span> <span class="s2">"grid_corners"</span><span class="p">))</span>
     <span class="n">grid_corner_lonVar</span> <span class="o">=</span> <span class="n">fileOut</span><span class="o">.</span><span class="n">createVariable</span><span class="p">(</span>
-        <span class="s2">&quot;grid_corner_lon&quot;</span><span class="p">,</span> <span class="s2">&quot;d&quot;</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span>
-            <span class="s2">&quot;grid_size&quot;</span><span class="p">,</span> <span class="s2">&quot;grid_corners&quot;</span><span class="p">))</span>
+        <span class="s2">"grid_corner_lon"</span><span class="p">,</span> <span class="s2">"d"</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="p">(</span>
+            <span class="s2">"grid_size"</span><span class="p">,</span> <span class="s2">"grid_corners"</span><span class="p">))</span>
 
-    <span class="n">grid_dims</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">grid_rank</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
-    <span class="n">grid_center_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">)</span>
-    <span class="n">grid_center_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">)</span>
-    <span class="n">grid_imask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;i&quot;</span><span class="p">)</span>
-    <span class="n">grid_corner_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">grid_corners</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">)</span>
-    <span class="n">grid_corner_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">grid_corners</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">)</span>
+    <span class="n">grid_dims</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">grid_rank</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"i"</span><span class="p">)</span>
+    <span class="n">grid_center_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"d"</span><span class="p">)</span>
+    <span class="n">grid_center_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"d"</span><span class="p">)</span>
+    <span class="n">grid_imask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"i"</span><span class="p">)</span>
+    <span class="n">grid_corner_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">grid_corners</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"d"</span><span class="p">)</span>
+    <span class="n">grid_corner_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">grid_size</span><span class="p">,</span> <span class="n">grid_corners</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"d"</span><span class="p">)</span>
 
     <span class="n">grid_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">nColumns</span>
     <span class="n">grid_dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">nRows</span>
@@ -318,11 +318,11 @@
     <span class="n">grid_corner_latVar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">grid_corner_lat</span>
     <span class="n">grid_corner_lonVar</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">grid_corner_lon</span>
 
-    <span class="n">grid_center_latVar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;radians&quot;</span>
-    <span class="n">grid_center_lonVar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;radians&quot;</span>
-    <span class="n">grid_imaskVar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;unitless&quot;</span>
-    <span class="n">grid_corner_latVar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;radians&quot;</span>
-    <span class="n">grid_corner_lonVar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;radians&quot;</span>
+    <span class="n">grid_center_latVar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">"radians"</span>
+    <span class="n">grid_center_lonVar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">"radians"</span>
+    <span class="n">grid_imaskVar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">"unitless"</span>
+    <span class="n">grid_corner_latVar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">"radians"</span>
+    <span class="n">grid_corner_lonVar</span><span class="o">.</span><span class="n">units</span> <span class="o">=</span> <span class="s2">"radians"</span>
 
     <span class="n">fileOut</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
@@ -333,7 +333,7 @@
 <div class="viewcode-block" id="make_mpas_scripfile_on_cells">
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_cells">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_mpas_scripfile_on_cells</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Write a SCRIP file for cel quantities on the given MPAS-Seaice mesh</span>
 
 <span class="sd">    Parameters</span>
@@ -346,28 +346,28 @@
 
 <span class="sd">    title : str</span>
 <span class="sd">        A string to include as the ``title`` attribute in the SCRIP file</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># input mesh data</span>
-    <span class="n">meshFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">meshFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
 
-    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meshFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nCells&quot;</span><span class="p">])</span>
-    <span class="n">maxEdges</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meshFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;maxEdges&quot;</span><span class="p">])</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meshFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">"nCells"</span><span class="p">])</span>
+    <span class="n">maxEdges</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meshFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">"maxEdges"</span><span class="p">])</span>
 
-    <span class="n">latCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;latCell&quot;</span><span class="p">][:]</span>
-    <span class="n">lonCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;lonCell&quot;</span><span class="p">][:]</span>
+    <span class="n">latCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"latCell"</span><span class="p">][:]</span>
+    <span class="n">lonCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"lonCell"</span><span class="p">][:]</span>
 
-    <span class="n">latVertex</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;latVertex&quot;</span><span class="p">][:]</span>
-    <span class="n">lonVertex</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;lonVertex&quot;</span><span class="p">][:]</span>
+    <span class="n">latVertex</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"latVertex"</span><span class="p">][:]</span>
+    <span class="n">lonVertex</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"lonVertex"</span><span class="p">][:]</span>
 
-    <span class="n">nEdgesOnCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;nEdgesOnCell&quot;</span><span class="p">][:]</span>
-    <span class="n">verticesOnCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;verticesOnCell&quot;</span><span class="p">][:]</span>
+    <span class="n">nEdgesOnCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"nEdgesOnCell"</span><span class="p">][:]</span>
+    <span class="n">verticesOnCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"verticesOnCell"</span><span class="p">][:]</span>
 
     <span class="n">meshFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># make corner arrays</span>
-    <span class="n">corner_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">)</span>
-    <span class="n">corner_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">)</span>
+    <span class="n">corner_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"d"</span><span class="p">)</span>
+    <span class="n">corner_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nCells</span><span class="p">,</span> <span class="n">maxEdges</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"d"</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">iCell</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nCells</span><span class="p">):</span>
 
@@ -405,7 +405,7 @@
 <div class="viewcode-block" id="make_mpas_scripfile_on_vertices">
 <a class="viewcode-back" href="../../../generated/mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices.html#mpas_tools.seaice.mesh.make_mpas_scripfile_on_vertices">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">make_mpas_scripfile_on_vertices</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="n">scripFilename</span><span class="p">,</span> <span class="n">title</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Write a SCRIP file for vertex quantities on the given MPAS-Seaice mesh</span>
 
 <span class="sd">    Parameters</span>
@@ -418,27 +418,27 @@
 
 <span class="sd">    title : str</span>
 <span class="sd">        A string to include as the ``title`` attribute in the SCRIP file</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># input mesh data</span>
-    <span class="n">meshFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
+    <span class="n">meshFile</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">meshFilename</span><span class="p">,</span> <span class="s2">"r"</span><span class="p">)</span>
 
-    <span class="n">nVertices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meshFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;nVertices&quot;</span><span class="p">])</span>
-    <span class="n">vertexDegree</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meshFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">&quot;vertexDegree&quot;</span><span class="p">])</span>
+    <span class="n">nVertices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meshFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">"nVertices"</span><span class="p">])</span>
+    <span class="n">vertexDegree</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">meshFile</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s2">"vertexDegree"</span><span class="p">])</span>
 
-    <span class="n">latCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;latCell&quot;</span><span class="p">][:]</span>
-    <span class="n">lonCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;lonCell&quot;</span><span class="p">][:]</span>
+    <span class="n">latCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"latCell"</span><span class="p">][:]</span>
+    <span class="n">lonCell</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"lonCell"</span><span class="p">][:]</span>
 
-    <span class="n">latVertex</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;latVertex&quot;</span><span class="p">][:]</span>
-    <span class="n">lonVertex</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;lonVertex&quot;</span><span class="p">][:]</span>
+    <span class="n">latVertex</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"latVertex"</span><span class="p">][:]</span>
+    <span class="n">lonVertex</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"lonVertex"</span><span class="p">][:]</span>
 
-    <span class="n">cellsOnVertex</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;cellsOnVertex&quot;</span><span class="p">][:]</span>
+    <span class="n">cellsOnVertex</span> <span class="o">=</span> <span class="n">meshFile</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"cellsOnVertex"</span><span class="p">][:]</span>
 
     <span class="n">meshFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
     <span class="c1"># make corner arrays</span>
-    <span class="n">corner_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">)</span>
-    <span class="n">corner_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">&quot;d&quot;</span><span class="p">)</span>
+    <span class="n">corner_lat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"d"</span><span class="p">)</span>
+    <span class="n">corner_lon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nVertices</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="s2">"d"</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">iVertex</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">nVertices</span><span class="p">):</span>
 
@@ -470,7 +470,7 @@
 <span class="c1"># ---------------------------------------------------------------------</span>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_rotate_about_vector</span><span class="p">(</span><span class="n">vectorToRotate</span><span class="p">,</span> <span class="n">vectorAxis</span><span class="p">,</span> <span class="n">rotationAngle</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Rotate the given Cartesian vector around the given axis by the given</span>
 <span class="sd">    angle.</span>
 
@@ -489,7 +489,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    rotatedVector : numpy.ndarray</span>
 <span class="sd">        The rotated vector</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># http://ksuweb.kennesaw.edu/~plaval//math4490/rotgen.pdf</span>
 
@@ -555,8 +555,8 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">_estimate_missing_cell_latlon</span><span class="p">(</span>
         <span class="n">iVertex</span><span class="p">,</span> <span class="n">iCellOnVertexNeeded</span><span class="p">,</span> <span class="n">vertexDegree</span><span class="p">,</span> <span class="n">cellsOnVertex</span><span class="p">,</span> <span class="n">latCell</span><span class="p">,</span>
         <span class="n">lonCell</span><span class="p">,</span> <span class="n">latVertex</span><span class="p">,</span> <span class="n">lonVertex</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Estimate the latitude and longitude of a &quot;missing&quot; neighbor cell that has</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Estimate the latitude and longitude of a "missing" neighbor cell that has</span>
 <span class="sd">    been culled from the MPAS-Seaice mesh</span>
 
 <span class="sd">    Parameters</span>
@@ -597,7 +597,7 @@
 <span class="sd">    ------</span>
 <span class="sd">    ValueError</span>
 <span class="sd">        If no reasonable location for the missing cell can be found</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># firstly we find a cell on vertex that exists</span>
     <span class="n">nRotations</span> <span class="o">=</span> <span class="mi">0</span>
@@ -631,7 +631,7 @@
 
             <span class="k">return</span> <span class="n">lat</span><span class="p">,</span> <span class="n">lon</span>
 
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t find position!&quot;</span><span class="p">)</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"Can't find position!"</span><span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_position_from_lat_lon</span><span class="p">(</span><span class="n">lat</span><span class="p">,</span> <span class="n">lon</span><span class="p">):</span>

@@ -148,13 +148,13 @@ vector field at cell centers, given the field on edge normals.</p>
 <p>This tool requires that the field <code class="docutils literal notranslate"><span class="pre">coeffs_reconstruct</span></code> has been saved to a
 NetCDF file.  The simplest way to do this is to include the following
 stream in a forward run:</p>
-<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;stream</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;vector_reconstruction&quot;</span>
-<span class="w">        </span><span class="na">clobber_mode=</span><span class="s">&quot;truncate&quot;</span>
-<span class="w">        </span><span class="na">type=</span><span class="s">&quot;output&quot;</span>
-<span class="w">        </span><span class="na">output_interval=</span><span class="s">&quot;initial_only&quot;</span>
-<span class="w">        </span><span class="na">filename_template=</span><span class="s">&quot;vector_reconstruction.nc&quot;</span><span class="nt">&gt;</span>
+<div class="highlight-xml notranslate"><div class="highlight"><pre><span></span><span class="nt">&lt;stream</span><span class="w"> </span><span class="na">name=</span><span class="s">"vector_reconstruction"</span>
+<span class="w">        </span><span class="na">clobber_mode=</span><span class="s">"truncate"</span>
+<span class="w">        </span><span class="na">type=</span><span class="s">"output"</span>
+<span class="w">        </span><span class="na">output_interval=</span><span class="s">"initial_only"</span>
+<span class="w">        </span><span class="na">filename_template=</span><span class="s">"vector_reconstruction.nc"</span><span class="nt">&gt;</span>
 
-<span class="w">    </span><span class="nt">&lt;var</span><span class="w"> </span><span class="na">name=</span><span class="s">&quot;coeffs_reconstruct&quot;</span><span class="nt">/&gt;</span>
+<span class="w">    </span><span class="nt">&lt;var</span><span class="w"> </span><span class="na">name=</span><span class="s">"coeffs_reconstruct"</span><span class="nt">/&gt;</span>
 <span class="nt">&lt;/stream&gt;</span>
 </pre></div>
 </div>

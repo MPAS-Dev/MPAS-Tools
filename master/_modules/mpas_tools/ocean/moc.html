@@ -145,7 +145,7 @@
     <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="nb">dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Builds features defining the ocean basins and southern transects used in</span>
 <span class="sd">    computing the meridional overturning circulation (MOC)</span>
 
@@ -177,7 +177,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    fc : geometric_features.FeatureCollection</span>
 <span class="sd">        The new feature collection</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="c1"># Authors</span>
     <span class="c1"># -------</span>
     <span class="c1"># Xylar Asay-Davis</span>
@@ -193,13 +193,13 @@
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">mask_filename</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasks</span><span class="p">,</span> <span class="n">mask_filename</span><span class="p">,</span> <span class="n">char_dim_name</span><span class="o">=</span><span class="s1">&#39;StrLen&#39;</span><span class="p">)</span>
+        <span class="n">write_netcdf</span><span class="p">(</span><span class="n">dsMasks</span><span class="p">,</span> <span class="n">mask_filename</span><span class="p">,</span> <span class="n">char_dim_name</span><span class="o">=</span><span class="s1">'StrLen'</span><span class="p">)</span>
 
     <span class="n">dsMasksAndTransects</span> <span class="o">=</span> <span class="n">add_moc_southern_boundary_transects</span><span class="p">(</span>
         <span class="n">dsMasks</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span>
     <span class="p">)</span>
     <span class="n">write_netcdf</span><span class="p">(</span>
-        <span class="n">dsMasksAndTransects</span><span class="p">,</span> <span class="n">mask_and_transect_filename</span><span class="p">,</span> <span class="n">char_dim_name</span><span class="o">=</span><span class="s1">&#39;StrLen&#39;</span>
+        <span class="n">dsMasksAndTransects</span><span class="p">,</span> <span class="n">mask_and_transect_filename</span><span class="p">,</span> <span class="n">char_dim_name</span><span class="o">=</span><span class="s1">'StrLen'</span>
     <span class="p">)</span></div>
 
 
@@ -207,7 +207,7 @@
 <div class="viewcode-block" id="add_moc_southern_boundary_transects">
 <a class="viewcode-back" href="../../../generated/mpas_tools.ocean.moc.add_moc_southern_boundary_transects.html#mpas_tools.ocean.moc.add_moc_southern_boundary_transects">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">add_moc_southern_boundary_transects</span><span class="p">(</span><span class="n">dsMask</span><span class="p">,</span> <span class="n">dsMesh</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    dsMask : ``xarray.Dataset``</span>
@@ -224,7 +224,7 @@
 <span class="sd">    dsMask : ``xarray.Dataset``</span>
 <span class="sd">        Region masks defining MOC basins and the corresponding</span>
 <span class="sd">        southern-boundary transects</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">useStdout</span> <span class="o">=</span> <span class="n">logger</span> <span class="ow">is</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="n">useStdout</span><span class="p">:</span>
@@ -256,42 +256,42 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">moc_southern_boundary_extractor</span><span class="p">():</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Entry point for moc_southern_boundary_extractor command-line tool</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">description</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="sd">    """</span>
+    <span class="n">description</span> <span class="o">=</span> <span class="s2">"""</span>
 <span class="s2">This script takes a mesh file (-m flag) and a file with MOC regions masks</span>
 <span class="s2">(-f flag) produce by the MPAS mask creator.  The script produces a copy of</span>
 <span class="s2">the contents of the MOC mask file, adding transects that mark the southern</span>
 <span class="s2">boundary of each region in a file indicated with the -o flag.  The transect</span>
 <span class="s2">is applied only to vertices and edges, not cells, because the need for southern</span>
 <span class="s2">boundary transect data on cells is not foreseen.</span>
-<span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">"""</span>
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span> <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-f&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--in_file&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;in_file&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input file with MOC masks&#39;</span><span class="p">,</span>
-        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;IN_FILE&#39;</span><span class="p">,</span>
+        <span class="s1">'-f'</span><span class="p">,</span>
+        <span class="s1">'--in_file'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'in_file'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'Input file with MOC masks'</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">'IN_FILE'</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-m&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--mesh_file&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;mesh_file&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Input mesh file&#39;</span><span class="p">,</span>
-        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;MESH_FILE&#39;</span><span class="p">,</span>
+        <span class="s1">'-m'</span><span class="p">,</span>
+        <span class="s1">'--mesh_file'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'mesh_file'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'Input mesh file'</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">'MESH_FILE'</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span>
-        <span class="s1">&#39;-o&#39;</span><span class="p">,</span>
-        <span class="s1">&#39;--out_file&#39;</span><span class="p">,</span>
-        <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;out_file&#39;</span><span class="p">,</span>
-        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Output file for MOC masks and southern-boundary transects&#39;</span><span class="p">,</span>
-        <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;OUT_FILE&#39;</span><span class="p">,</span>
+        <span class="s1">'-o'</span><span class="p">,</span>
+        <span class="s1">'--out_file'</span><span class="p">,</span>
+        <span class="n">dest</span><span class="o">=</span><span class="s1">'out_file'</span><span class="p">,</span>
+        <span class="n">help</span><span class="o">=</span><span class="s1">'Output file for MOC masks and southern-boundary transects'</span><span class="p">,</span>
+        <span class="n">metavar</span><span class="o">=</span><span class="s1">'OUT_FILE'</span><span class="p">,</span>
         <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
@@ -305,25 +305,25 @@
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_extract_southern_boundary</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">mocMask</span><span class="p">,</span> <span class="n">latBuffer</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Extracts the southern boundary of each region mask in mocMask.  Mesh info</span>
 <span class="sd">    is taken from mesh.  latBuffer is a number of radians above the southern-</span>
 <span class="sd">    most point that should be considered to definitely be in the southern</span>
 <span class="sd">    boundary.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
-    <span class="n">nCells</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span>
-    <span class="n">nEdges</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nCells'</span><span class="p">]</span>
+    <span class="n">nEdges</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nEdges'</span><span class="p">]</span>
 
-    <span class="n">nRegions</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nRegions&#39;</span><span class="p">]</span>
-    <span class="k">assert</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">nCells</span>
+    <span class="n">nRegions</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nRegions'</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nCells'</span><span class="p">]</span> <span class="o">==</span> <span class="n">nCells</span>
 
     <span class="c1"># convert to python zero-based indices</span>
-    <span class="n">cellsOnEdge</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;cellsOnEdge&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="n">verticesOnEdge</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;verticesOnEdge&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
-    <span class="n">edgesOnVertex</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;edgesOnVertex&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">cellsOnEdge</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'cellsOnEdge'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">verticesOnEdge</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'verticesOnEdge'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
+    <span class="n">edgesOnVertex</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'edgesOnVertex'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">-</span> <span class="mi">1</span>
 
-    <span class="n">latEdge</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;latEdge&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">latEdge</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'latEdge'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 
     <span class="n">cellsOnEdgeInRange</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
         <span class="n">cellsOnEdge</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">cellsOnEdge</span> <span class="o">&lt;</span> <span class="n">nCells</span>
@@ -334,9 +334,9 @@
     <span class="n">southernBoundaryVertices</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">iRegion</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRegions</span><span class="p">):</span>
-        <span class="n">name</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionNames</span><span class="p">[</span><span class="n">iRegion</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionNames</span><span class="p">[</span><span class="n">iRegion</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s1">'U'</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="n">cellMask</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;regionCellMasks&#39;</span><span class="p">][:,</span> <span class="n">iRegion</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+        <span class="n">cellMask</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'regionCellMasks'</span><span class="p">][:,</span> <span class="n">iRegion</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
 
         <span class="c1"># land cells are outside not in the MOC region</span>
         <span class="n">cellsOnEdgeMask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">cellsOnEdge</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)</span>
@@ -345,7 +345,7 @@
             <span class="n">cellMask</span><span class="p">[</span><span class="n">cellsOnEdge</span><span class="p">[</span><span class="n">cellsOnEdgeInRange</span><span class="p">]]</span> <span class="o">==</span> <span class="mi">1</span>
         <span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  computing edge sign...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'  computing edge sign...'</span><span class="p">)</span>
         <span class="n">edgeSign</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nEdges</span><span class="p">)</span>
         <span class="c1"># positive sign if the first cell on edge is in the region</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
@@ -359,13 +359,13 @@
         <span class="n">edgeSign</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
         <span class="n">isMOCBoundaryEdge</span> <span class="o">=</span> <span class="n">edgeSign</span> <span class="o">!=</span> <span class="mf">0.0</span>
         <span class="n">edgesMOCBoundary</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nEdges</span><span class="p">)[</span><span class="n">isMOCBoundaryEdge</span><span class="p">]</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  done.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'  done.'</span><span class="p">)</span>
 
         <span class="n">startEdge</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">latEdge</span><span class="p">[</span><span class="n">isMOCBoundaryEdge</span><span class="p">])</span>
         <span class="n">startEdge</span> <span class="o">=</span> <span class="n">edgesMOCBoundary</span><span class="p">[</span><span class="n">startEdge</span><span class="p">]</span>
         <span class="n">minLat</span> <span class="o">=</span> <span class="n">latEdge</span><span class="p">[</span><span class="n">startEdge</span><span class="p">]</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  getting edge sequence...&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">'  getting edge sequence...'</span><span class="p">)</span>
         <span class="c1"># follow the boundary from this point to get a loop of edges</span>
         <span class="c1"># Note: it is possible but unlikely that the southern-most point is</span>
         <span class="c1"># not within bulk region of the MOC mask if the region is not a single</span>
@@ -376,7 +376,7 @@
             <span class="p">)</span>
         <span class="p">)</span>
 
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;  done: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">edgeSequence</span><span class="p">)</span><span class="si">}</span><span class="s1"> edges in transect.&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">'  done: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">edgeSequence</span><span class="p">)</span><span class="si">}</span><span class="s1"> edges in transect.'</span><span class="p">)</span>
 
         <span class="n">aboveSouthernBoundary</span> <span class="o">=</span> <span class="n">latEdge</span><span class="p">[</span><span class="n">edgeSequence</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">minLat</span> <span class="o">+</span> <span class="n">latBuffer</span>
 
@@ -406,7 +406,7 @@
             <span class="n">southernBoundaryVertices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vertexSequence</span><span class="p">)</span>
             <span class="k">continue</span>
 
-        <span class="c1"># there are some parts of the sequence above the boundary. Let&#39;s</span>
+        <span class="c1"># there are some parts of the sequence above the boundary. Let's</span>
         <span class="c1"># eliminate the longest one.</span>
 
         <span class="n">aboveLength</span> <span class="o">=</span> <span class="n">endIndices</span> <span class="o">-</span> <span class="n">startIndices</span>
@@ -442,16 +442,16 @@
     <span class="n">southernBoiundaryEdgeSigns</span><span class="p">,</span>
     <span class="n">southernBoundaryVertices</span><span class="p">,</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Creates transect fields in mocMask from the edges, edge signs and</span>
 <span class="sd">    vertices defining the southern boundaries.  Mesh info (nEdges and</span>
 <span class="sd">    nVertices) is taken from the mesh file.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">nTransects</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">southernBoundaryEdges</span><span class="p">)</span>
 
-    <span class="n">nEdges</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nEdges&#39;</span><span class="p">]</span>
-    <span class="n">nVertices</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nVertices&#39;</span><span class="p">]</span>
+    <span class="n">nEdges</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nEdges'</span><span class="p">]</span>
+    <span class="n">nVertices</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nVertices'</span><span class="p">]</span>
 
     <span class="n">maxEdgesInTransect</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span>
         <span class="p">[</span>
@@ -496,30 +496,30 @@
             <span class="n">southernBoundaryVertices</span><span class="p">[</span><span class="n">iTransect</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="p">)</span>
 
-    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectEdgeMasks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="p">(</span><span class="s1">&#39;nEdges&#39;</span><span class="p">,</span> <span class="s1">&#39;nTransects&#39;</span><span class="p">),</span>
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">'transectEdgeMasks'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nEdges'</span><span class="p">,</span> <span class="s1">'nTransects'</span><span class="p">),</span>
         <span class="n">transectEdgeMasks</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectEdgeMaskSigns&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="p">(</span><span class="s1">&#39;nEdges&#39;</span><span class="p">,</span> <span class="s1">&#39;nTransects&#39;</span><span class="p">),</span>
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">'transectEdgeMaskSigns'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nEdges'</span><span class="p">,</span> <span class="s1">'nTransects'</span><span class="p">),</span>
         <span class="n">transectEdgeMaskSigns</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectEdgeGlobalIDs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="p">(</span><span class="s1">&#39;nTransects&#39;</span><span class="p">,</span> <span class="s1">&#39;maxEdgesInTransect&#39;</span><span class="p">),</span>
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">'transectEdgeGlobalIDs'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nTransects'</span><span class="p">,</span> <span class="s1">'maxEdgesInTransect'</span><span class="p">),</span>
         <span class="n">transectEdgeGlobalIDs</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectVertexMasks&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="p">(</span><span class="s1">&#39;nVertices&#39;</span><span class="p">,</span> <span class="s1">&#39;nTransects&#39;</span><span class="p">),</span>
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">'transectVertexMasks'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nVertices'</span><span class="p">,</span> <span class="s1">'nTransects'</span><span class="p">),</span>
         <span class="n">transectVertexMasks</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectVertexGlobalIDs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="p">(</span><span class="s1">&#39;nTransects&#39;</span><span class="p">,</span> <span class="s1">&#39;maxVerticesInTransect&#39;</span><span class="p">),</span>
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">'transectVertexGlobalIDs'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span><span class="s1">'nTransects'</span><span class="p">,</span> <span class="s1">'maxVerticesInTransect'</span><span class="p">),</span>
         <span class="n">transectVertexGlobalIDs</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">if</span> <span class="s1">&#39;nRegionsInGroup&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mocMask</span><span class="p">:</span>
-        <span class="n">nRegions</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">&#39;nRegions&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">'nRegionsInGroup'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mocMask</span><span class="p">:</span>
+        <span class="n">nRegions</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">sizes</span><span class="p">[</span><span class="s1">'nRegions'</span><span class="p">]</span>
         <span class="n">nRegionGroups</span> <span class="o">=</span> <span class="mi">2</span>
         <span class="n">nRegionsInGroup</span> <span class="o">=</span> <span class="n">nRegions</span> <span class="o">*</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span>
             <span class="n">nRegionGroups</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int32</span>
@@ -527,59 +527,59 @@
         <span class="n">regionsInGroup</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
             <span class="p">(</span><span class="n">nRegionGroups</span><span class="p">,</span> <span class="n">nRegions</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">numpy</span><span class="o">.</span><span class="n">int32</span>
         <span class="p">)</span>
-        <span class="n">regionGroupNames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MOCBasinRegionsGroup&#39;</span><span class="p">,</span> <span class="s1">&#39;all&#39;</span><span class="p">]</span>
+        <span class="n">regionGroupNames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'MOCBasinRegionsGroup'</span><span class="p">,</span> <span class="s1">'all'</span><span class="p">]</span>
         <span class="n">regionNames</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionNames</span><span class="o">.</span><span class="n">values</span>
         <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRegionGroups</span><span class="p">):</span>
             <span class="n">regionsInGroup</span><span class="p">[</span><span class="n">index</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nRegions</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
-        <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;nRegionsInGroup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">,),</span> <span class="n">nRegionsInGroup</span><span class="p">)</span>
+        <span class="n">mocMask</span><span class="p">[</span><span class="s1">'nRegionsInGroup'</span><span class="p">]</span> <span class="o">=</span> <span class="p">((</span><span class="s1">'nRegionGroups'</span><span class="p">,),</span> <span class="n">nRegionsInGroup</span><span class="p">)</span>
 
-        <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;regionsInGroup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">,</span> <span class="s1">&#39;maxRegionsInGroup&#39;</span><span class="p">),</span>
+        <span class="n">mocMask</span><span class="p">[</span><span class="s1">'regionsInGroup'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s1">'nRegionGroups'</span><span class="p">,</span> <span class="s1">'maxRegionsInGroup'</span><span class="p">),</span>
             <span class="n">regionsInGroup</span><span class="p">,</span>
         <span class="p">)</span>
 
-        <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;regionGroupNames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">,),</span>
-            <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nRegionGroups</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;|S</span><span class="si">{</span><span class="n">default_nchar</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span>
+        <span class="n">mocMask</span><span class="p">[</span><span class="s1">'regionGroupNames'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s1">'nRegionGroups'</span><span class="p">,),</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nRegionGroups</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="sa">f</span><span class="s1">'|S</span><span class="si">{</span><span class="n">default_nchar</span><span class="si">}</span><span class="s1">'</span><span class="p">),</span>
         <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRegionGroups</span><span class="p">):</span>
-            <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;regionGroupNames&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">regionGroupNames</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">mocMask</span><span class="p">[</span><span class="s1">'regionGroupNames'</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">regionGroupNames</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 
         <span class="c1"># we need to make sure the region names use the same string length</span>
-        <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;regionNames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="s1">&#39;nRegions&#39;</span><span class="p">,),</span>
-            <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nRegions</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;|S</span><span class="si">{</span><span class="n">default_nchar</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">),</span>
+        <span class="n">mocMask</span><span class="p">[</span><span class="s1">'regionNames'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s1">'nRegions'</span><span class="p">,),</span>
+            <span class="n">numpy</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nRegions</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="sa">f</span><span class="s1">'|S</span><span class="si">{</span><span class="n">default_nchar</span><span class="si">}</span><span class="s1">'</span><span class="p">),</span>
         <span class="p">)</span>
 
         <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nRegions</span><span class="p">):</span>
-            <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;regionNames&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">regionNames</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">mocMask</span><span class="p">[</span><span class="s1">'regionNames'</span><span class="p">][</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="n">regionNames</span><span class="p">[</span><span class="n">index</span><span class="p">]</span>
 
-    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectNames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionNames</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-        <span class="p">{</span><span class="s1">&#39;nRegions&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransects&#39;</span><span class="p">}</span>
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">'transectNames'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionNames</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">'nRegions'</span><span class="p">:</span> <span class="s1">'nTransects'</span><span class="p">}</span>
     <span class="p">)</span>
 
-    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;nTransectsInGroup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">nRegionsInGroup</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-        <span class="p">{</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransectGroups&#39;</span><span class="p">}</span>
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">'nTransectsInGroup'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">nRegionsInGroup</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">'nRegionGroups'</span><span class="p">:</span> <span class="s1">'nTransectGroups'</span><span class="p">}</span>
     <span class="p">)</span>
 
-    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectsInGroup&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionsInGroup</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">'transectsInGroup'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionsInGroup</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
         <span class="p">{</span>
-            <span class="s1">&#39;nRegionGroups&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransectGroups&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;maxRegionsInGroup&#39;</span><span class="p">:</span> <span class="s1">&#39;maxTransectsInGroup&#39;</span><span class="p">,</span>
+            <span class="s1">'nRegionGroups'</span><span class="p">:</span> <span class="s1">'nTransectGroups'</span><span class="p">,</span>
+            <span class="s1">'maxRegionsInGroup'</span><span class="p">:</span> <span class="s1">'maxTransectsInGroup'</span><span class="p">,</span>
         <span class="p">}</span>
     <span class="p">)</span>
 
-    <span class="n">mocMask</span><span class="p">[</span><span class="s1">&#39;transectGroupNames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionGroupNames</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
-        <span class="p">{</span><span class="s1">&#39;nRegionGroups&#39;</span><span class="p">:</span> <span class="s1">&#39;nTransectGroups&#39;</span><span class="p">}</span>
+    <span class="n">mocMask</span><span class="p">[</span><span class="s1">'transectGroupNames'</span><span class="p">]</span> <span class="o">=</span> <span class="n">mocMask</span><span class="o">.</span><span class="n">regionGroupNames</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="p">{</span><span class="s1">'nRegionGroups'</span><span class="p">:</span> <span class="s1">'nTransectGroups'</span><span class="p">}</span>
     <span class="p">)</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_edge_sequence_on_boundary</span><span class="p">(</span>
     <span class="n">startEdge</span><span class="p">,</span> <span class="n">edgeSign</span><span class="p">,</span> <span class="n">edgesOnVertex</span><span class="p">,</span> <span class="n">verticesOnEdge</span>
 <span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Follows the boundary from a starting edge to produce a sequence of</span>
 <span class="sd">    edges that form a closed loop.</span>
 
@@ -590,7 +590,7 @@
 <span class="sd">    boundary</span>
 
 <span class="sd">    returns lists of edges, edge signs and vertices</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">iEdge</span> <span class="o">=</span> <span class="n">startEdge</span>
     <span class="n">edgeSequence</span> <span class="o">=</span> <span class="p">[]</span>

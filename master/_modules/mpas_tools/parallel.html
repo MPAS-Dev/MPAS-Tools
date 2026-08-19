@@ -127,8 +127,8 @@
 
 <div class="viewcode-block" id="create_pool">
 <a class="viewcode-back" href="../../generated/mpas_tools.parallel.create_pool.html#mpas_tools.parallel.create_pool">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">create_pool</span><span class="p">(</span><span class="n">process_count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;forkserver&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">create_pool</span><span class="p">(</span><span class="n">process_count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">'forkserver'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Crate a pool for creating masks with Python multiprocessing.  This should</span>
 <span class="sd">    be called only once at the beginning of the script performing cell culling.</span>
 <span class="sd">    ``pool.terminate()`` should be called before exiting the script.</span>
@@ -138,14 +138,14 @@
 <span class="sd">    process_count : int, optional</span>
 <span class="sd">        The number of processors or None to use all available processors</span>
 
-<span class="sd">    method : {&#39;fork&#39;, &#39;spawn&#39;, &#39;forkserver&#39;}</span>
+<span class="sd">    method : {'fork', 'spawn', 'forkserver'}</span>
 <span class="sd">        The mutiprocessing method</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    pool : multiprocessing.Pool</span>
 <span class="sd">        A pool to use for python-based mask creation.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
     <span class="n">pool</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">multiprocessing</span><span class="o">.</span><span class="n">set_start_method</span><span class="p">(</span><span class="n">method</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">process_count</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>

@@ -138,9 +138,9 @@
 <a class="viewcode-back" href="../../../generated/mpas_tools.landice.visualization.plot_transect.html#mpas_tools.landice.visualization.plot_transect">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_transect</span><span class="p">(</span><span class="n">data_path</span><span class="p">,</span> <span class="n">variable</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                   <span class="n">coords_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                  <span class="n">time_cmap_name</span><span class="o">=</span><span class="s2">&quot;plasma&quot;</span><span class="p">,</span>
-                  <span class="n">temperature_cmap_name</span><span class="o">=</span><span class="s1">&#39;YlGnBu_r&#39;</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+                  <span class="n">time_cmap_name</span><span class="o">=</span><span class="s2">"plasma"</span><span class="p">,</span>
+                  <span class="n">temperature_cmap_name</span><span class="o">=</span><span class="s1">'YlGnBu_r'</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Plot transects of desired variable from MALI output.</span>
 
 <span class="sd">    Parameters</span>
@@ -149,7 +149,7 @@
 <span class="sd">        Path to .nc file containing MALI mesh and variables to plot</span>
 
 <span class="sd">    variable : str</span>
-<span class="sd">        MALI variable to plot. Can also be &quot;geometry&quot;, which will</span>
+<span class="sd">        MALI variable to plot. Can also be "geometry", which will</span>
 <span class="sd">        calculate upper and lower surfaces from thickness and bed topography.</span>
 
 <span class="sd">    ax : matplotlib.axes._axes.Axes</span>
@@ -172,23 +172,23 @@
 
 <span class="sd">    temperature_cmap_nam : str, optional</span>
 <span class="sd">        Name of matplotlib colormap for temperature transect</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">data_path</span><span class="p">)</span>
-    <span class="n">xCell</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;xCell&quot;</span><span class="p">][:]</span>
-    <span class="n">yCell</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;yCell&quot;</span><span class="p">][:]</span>
-    <span class="n">nCells</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;nCells&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
-    <span class="n">areaCell</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;areaCell&quot;</span><span class="p">][:]</span>
-    <span class="n">layerThicknessFractions</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;layerThicknessFractions&quot;</span><span class="p">][:]</span>
-    <span class="n">nVertLevels</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;nVertLevels&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
-    <span class="n">thk</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;thickness&quot;</span><span class="p">][:]</span>
-    <span class="n">bed</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;bedTopography&quot;</span><span class="p">][:]</span>
+    <span class="n">xCell</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"xCell"</span><span class="p">][:]</span>
+    <span class="n">yCell</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"yCell"</span><span class="p">][:]</span>
+    <span class="n">nCells</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">'nCells'</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">areaCell</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"areaCell"</span><span class="p">][:]</span>
+    <span class="n">layerThicknessFractions</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"layerThicknessFractions"</span><span class="p">][:]</span>
+    <span class="n">nVertLevels</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">'nVertLevels'</span><span class="p">]</span><span class="o">.</span><span class="n">size</span>
+    <span class="n">thk</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"thickness"</span><span class="p">][:]</span>
+    <span class="n">bed</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"bedTopography"</span><span class="p">][:]</span>
     <span class="c1"># ensure that times is a list, otherwise indexing will cause errors</span>
     <span class="n">times</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">times</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s2">&quot;daysSinceStart&quot;</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="k">if</span> <span class="s2">"daysSinceStart"</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">use_yrs</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">yrs</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;daysSinceStart&quot;</span><span class="p">][:]</span> <span class="o">/</span> <span class="mf">365.</span>
-        <span class="n">times_list</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">yrs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
+        <span class="n">yrs</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"daysSinceStart"</span><span class="p">][:]</span> <span class="o">/</span> <span class="mf">365.</span>
+        <span class="n">times_list</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">yrs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s1">.1f</span><span class="si">}</span><span class="s1">'</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">use_yrs</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">times_list</span> <span class="o">=</span>  <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">times</span><span class="p">]</span>
@@ -196,30 +196,30 @@
     <span class="c1"># Replace -1 time index with last forward index of time array.</span>
     <span class="c1"># It is unclear why these need to be in separate if-statements, but they do.</span>
     <span class="k">if</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">in</span> <span class="n">times</span><span class="p">:</span>
-        <span class="n">times</span><span class="p">[</span><span class="n">times</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;Time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;-1&#39;</span> <span class="ow">in</span> <span class="n">times_list</span><span class="p">:</span>
-        <span class="n">times_list</span><span class="p">[</span><span class="n">times_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;-1&#39;</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">&#39;Time&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">times</span><span class="p">[</span><span class="n">times</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">'Time'</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">'-1'</span> <span class="ow">in</span> <span class="n">times_list</span><span class="p">:</span>
+        <span class="n">times_list</span><span class="p">[</span><span class="n">times_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">'-1'</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">dimensions</span><span class="p">[</span><span class="s1">'Time'</span><span class="p">]</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># Use coordinates from CSV file or x,y options, but not both.</span>
     <span class="c1"># CSV file takes precedent if both are present.</span>
     <span class="k">if</span> <span class="n">coords_file</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">x</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">coords_file</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
-            <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">coords_file</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">''</span><span class="p">)</span> <span class="k">as</span> <span class="n">csvfile</span><span class="p">:</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csvfile</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">','</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">reader</span><span class="p">:</span>
                 <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
                 <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
         <span class="k">if</span> <span class="p">[</span><span class="n">options</span><span class="o">.</span><span class="n">x_coords</span><span class="p">,</span> <span class="n">options</span><span class="o">.</span><span class="n">y_coords</span><span class="p">]</span> <span class="o">!=</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;-c and -x/-y options were both provided. Reading from &#39;</span><span class="p">,</span>
-                  <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">coords_file</span><span class="si">}</span><span class="s1"> and ignoring -x and -y settings.&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">'-c and -x/-y options were both provided. Reading from '</span><span class="p">,</span>
+                  <span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">options</span><span class="o">.</span><span class="n">coords_file</span><span class="si">}</span><span class="s1"> and ignoring -x and -y settings.'</span><span class="p">)</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
 
     <span class="c1"># increase sampling to match highest mesh resolution</span>
     <span class="n">total_distance</span><span class="p">,</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">**</span><span class="mf">2.</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="mf">2.</span> <span class="p">)</span> <span class="p">)</span>
-    <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">total_distance</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;dcEdge&quot;</span><span class="p">][:])))</span>
+    <span class="n">n_samples</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">total_distance</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"dcEdge"</span><span class="p">][:])))</span>
     <span class="n">x_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">),</span>
                          <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span> <span class="n">x</span><span class="p">)</span>
     <span class="n">y_interp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">),</span>
@@ -236,12 +236,12 @@
     <span class="n">time_cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="n">time_cmap_name</span><span class="p">)</span>
     <span class="n">time_colors</span> <span class="o">=</span> <span class="n">time_cmap</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)))</span>
 
-    <span class="k">if</span> <span class="n">variable</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">,</span> <span class="s2">&quot;geometry&quot;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">variable</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"temperature"</span><span class="p">,</span> <span class="s2">"geometry"</span><span class="p">]:</span>
         <span class="c1"># Assume constant bed</span>
         <span class="n">bed_interpolator</span> <span class="o">=</span> <span class="n">LinearNDInterpolator</span><span class="p">(</span>
                      <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">bed</span><span class="p">[</span><span class="mi">0</span><span class="p">,:])</span>
         <span class="n">bed_transect</span> <span class="o">=</span> <span class="n">bed_interpolator</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">x_interp</span><span class="p">,</span> <span class="n">y_interp</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">bed_transect</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">bed_transect</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">'black'</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">time</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">times</span><span class="p">):</span>
             <span class="n">thk_interpolator</span> <span class="o">=</span> <span class="n">LinearNDInterpolator</span><span class="p">(</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">thk</span><span class="p">[</span><span class="n">time</span><span class="p">,:])</span>
@@ -255,12 +255,12 @@
             <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">lower_surf_nan</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">time_colors</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
             <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">distance</span><span class="p">,</span> <span class="n">upper_surf_nan</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">time_colors</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
 
-        <span class="k">if</span> <span class="n">variable</span> <span class="o">==</span> <span class="s2">&quot;temperature&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">variable</span> <span class="o">==</span> <span class="s2">"temperature"</span><span class="p">:</span>
             <span class="n">time</span> <span class="o">=</span> <span class="n">times</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Cannot plot temperature at more than one time.&quot;</span>
-                      <span class="s2">&quot; Only plotting temperature for final time.&quot;</span><span class="p">)</span>
-            <span class="n">temperature</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">][:]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">"Cannot plot temperature at more than one time."</span>
+                      <span class="s2">" Only plotting temperature for final time."</span><span class="p">)</span>
+            <span class="n">temperature</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"temperature"</span><span class="p">][:]</span>
             <span class="n">layer_thk</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">thk_transect</span><span class="p">),</span> <span class="n">nVertLevels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
             <span class="n">layer_midpoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">thk_transect</span><span class="p">),</span> <span class="n">nVertLevels</span><span class="p">))</span>
             <span class="n">layer_interfaces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">thk_transect</span><span class="p">),</span> <span class="n">nVertLevels</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
@@ -274,7 +274,7 @@
 
             <span class="n">temp_transect</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">x_interp</span><span class="p">),</span> <span class="n">nVertLevels</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">lev</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nVertLevels</span><span class="p">):</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Interpolating temperature for level </span><span class="si">{</span><span class="n">lev</span><span class="si">}</span><span class="s1"> of </span><span class="si">{</span><span class="n">nVertLevels</span><span class="si">}</span><span class="s1">. &#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'Interpolating temperature for level </span><span class="si">{</span><span class="n">lev</span><span class="si">}</span><span class="s1"> of </span><span class="si">{</span><span class="n">nVertLevels</span><span class="si">}</span><span class="s1">. '</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s2">""</span><span class="p">)</span>
                 <span class="n">temp_interpolant</span> <span class="o">=</span> <span class="n">LinearNDInterpolator</span><span class="p">(</span>
                                         <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">((</span><span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">))</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
                                         <span class="n">temperature</span><span class="p">[</span><span class="n">time</span><span class="p">,:,</span><span class="n">lev</span><span class="p">])</span>
@@ -286,7 +286,7 @@
                                 <span class="n">cmap</span><span class="o">=</span><span class="n">temperature_cmap_name</span><span class="p">,</span>
                                 <span class="n">vmin</span><span class="o">=</span><span class="mf">240.</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mf">273.15</span><span class="p">)</span>
             <span class="n">temp_cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">temp_plot</span><span class="p">)</span>
-            <span class="n">temp_cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;Temperature (K)&#39;</span><span class="p">)</span>
+            <span class="n">temp_cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">'Temperature (K)'</span><span class="p">)</span>
             <span class="n">temp_cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
 
     <span class="k">else</span><span class="p">:</span>
@@ -300,9 +300,9 @@
         <span class="n">time_cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">time_cmap_name</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">)</span>
         <span class="n">time_cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">use_yrs</span><span class="p">:</span>
-            <span class="n">time_cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;Year&#39;</span><span class="p">)</span>
+            <span class="n">time_cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">'Year'</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">time_cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;time index&#39;</span><span class="p">)</span>
+            <span class="n">time_cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">'time index'</span><span class="p">)</span>
         <span class="n">time_cbar</span><span class="o">.</span><span class="n">set_ticks</span><span class="p">(</span><span class="n">times</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">times</span><span class="p">))</span>
         <span class="n">time_cbar</span><span class="o">.</span><span class="n">set_ticklabels</span><span class="p">(</span><span class="n">times_list</span><span class="p">)</span></div>
 
@@ -314,7 +314,7 @@
              <span class="n">vmin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">log_plot</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
              <span class="n">mesh_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">triangles</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
              <span class="n">plot_grounding_line</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">variable_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Plot map of MALI output either by specifying a variable name or</span>
 <span class="sd">    a pre-computed field.</span>
 
@@ -373,7 +373,7 @@
 
 <span class="sd">    gl_plot : matplotlib.tri._tricontour.TriContourSet or None</span>
 <span class="sd">        Contour object of the grounding line, if plot_grounding_line=True</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="n">sec_per_year</span> <span class="o">=</span> <span class="mf">60.</span> <span class="o">*</span> <span class="mf">60.</span> <span class="o">*</span> <span class="mf">24.</span> <span class="o">*</span> <span class="mf">365.</span>
 
@@ -391,9 +391,9 @@
 
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">variable</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">variable_name</span> <span class="o">=</span> <span class="n">variable</span>
-        <span class="k">if</span> <span class="n">variable</span> <span class="o">==</span> <span class="s1">&#39;observedSpeed&#39;</span><span class="p">:</span>
-            <span class="n">var_to_plot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;observedSurfaceVelocityX&#39;</span><span class="p">][:]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span>
-                                  <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;observedSurfaceVelocityY&#39;</span><span class="p">][:]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">variable</span> <span class="o">==</span> <span class="s1">'observedSpeed'</span><span class="p">:</span>
+            <span class="n">var_to_plot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'observedSurfaceVelocityX'</span><span class="p">][:]</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span>
+                                  <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'observedSurfaceVelocityY'</span><span class="p">][:]</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">var_to_plot</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">variable</span><span class="p">][:]</span>
     <span class="k">else</span><span class="p">:</span>
@@ -402,48 +402,48 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">var_to_plot</span><span class="p">))</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
        <span class="n">var_to_plot</span> <span class="o">=</span> <span class="n">var_to_plot</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">var_to_plot</span><span class="p">)[</span><span class="mi">0</span><span class="p">]))</span>
 
-    <span class="k">if</span> <span class="s1">&#39;Speed&#39;</span> <span class="ow">in</span> <span class="n">variable</span><span class="p">:</span>
-        <span class="n">units</span> <span class="o">=</span> <span class="s1">&#39;m yr^{-1}&#39;</span>
+    <span class="k">if</span> <span class="s1">'Speed'</span> <span class="ow">in</span> <span class="n">variable</span><span class="p">:</span>
+        <span class="n">units</span> <span class="o">=</span> <span class="s1">'m yr^{-1}'</span>
         <span class="n">var_to_plot</span> <span class="o">*=</span> <span class="n">sec_per_year</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s1">)&#39;</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">'(</span><span class="si">{</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s1">)'</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span>  <span class="c1"># This leaves out units on the colorbar</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">"</span>  <span class="c1"># This leaves out units on the colorbar</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
-            <span class="n">units</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span>
+            <span class="n">units</span> <span class="o">=</span> <span class="s2">"</span><span class="si">{}</span><span class="s2">"</span>
 
-    <span class="n">default_colors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;thickness&#39;</span> <span class="p">:</span> <span class="s1">&#39;Blues&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;surfaceSpeed&#39;</span> <span class="p">:</span> <span class="s1">&#39;plasma&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;basalSpeed&#39;</span> <span class="p">:</span> <span class="s1">&#39;plasma&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;bedTopography&#39;</span> <span class="p">:</span> <span class="s1">&#39;BrBG&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;floatingBasalMassBalApplied&#39;</span> <span class="p">:</span> <span class="s1">&#39;cividis&#39;</span>
+    <span class="n">default_colors</span> <span class="o">=</span> <span class="p">{</span><span class="s1">'thickness'</span> <span class="p">:</span> <span class="s1">'Blues'</span><span class="p">,</span>
+                     <span class="s1">'surfaceSpeed'</span> <span class="p">:</span> <span class="s1">'plasma'</span><span class="p">,</span>
+                     <span class="s1">'basalSpeed'</span> <span class="p">:</span> <span class="s1">'plasma'</span><span class="p">,</span>
+                     <span class="s1">'bedTopography'</span> <span class="p">:</span> <span class="s1">'BrBG'</span><span class="p">,</span>
+                     <span class="s1">'floatingBasalMassBalApplied'</span> <span class="p">:</span> <span class="s1">'cividis'</span>
                     <span class="p">}</span>
     <span class="c1"># List of diverging colormaps for use in plotting bedTopography.</span>
-    <span class="c1"># I don&#39;t see a way around hard-coding this.</span>
-    <span class="n">div_color_maps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;PiYG&#39;</span><span class="p">,</span> <span class="s1">&#39;PRGn&#39;</span><span class="p">,</span> <span class="s1">&#39;BrBG&#39;</span><span class="p">,</span> <span class="s1">&#39;PuOr&#39;</span><span class="p">,</span> <span class="s1">&#39;RdGy&#39;</span><span class="p">,</span> <span class="s1">&#39;RdBu&#39;</span><span class="p">,</span> <span class="s1">&#39;RdYlBu&#39;</span><span class="p">,</span>
-                          <span class="s1">&#39;RdYlGn&#39;</span><span class="p">,</span> <span class="s1">&#39;Spectral&#39;</span><span class="p">,</span> <span class="s1">&#39;coolwarm&#39;</span><span class="p">,</span> <span class="s1">&#39;bwr&#39;</span><span class="p">,</span> <span class="s1">&#39;seismic&#39;</span><span class="p">]</span>
+    <span class="c1"># I don't see a way around hard-coding this.</span>
+    <span class="n">div_color_maps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">'PiYG'</span><span class="p">,</span> <span class="s1">'PRGn'</span><span class="p">,</span> <span class="s1">'BrBG'</span><span class="p">,</span> <span class="s1">'PuOr'</span><span class="p">,</span> <span class="s1">'RdGy'</span><span class="p">,</span> <span class="s1">'RdBu'</span><span class="p">,</span> <span class="s1">'RdYlBu'</span><span class="p">,</span>
+                          <span class="s1">'RdYlGn'</span><span class="p">,</span> <span class="s1">'Spectral'</span><span class="p">,</span> <span class="s1">'coolwarm'</span><span class="p">,</span> <span class="s1">'bwr'</span><span class="p">,</span> <span class="s1">'seismic'</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="n">cmap</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">variable_name</span> <span class="ow">in</span> <span class="n">default_colors</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="n">cmap</span> <span class="o">=</span> <span class="n">default_colors</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">cmap</span> <span class="o">=</span> <span class="s2">&quot;viridis&quot;</span>
+            <span class="n">cmap</span> <span class="o">=</span> <span class="s2">"viridis"</span>
 
     <span class="k">if</span> <span class="n">log_plot</span><span class="p">:</span>
         <span class="n">var_to_plot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">var_to_plot</span><span class="p">)</span>
         <span class="c1"># Get rid of +/- inf values that ruin vmin and vmax</span>
         <span class="c1"># calculations below.</span>
         <span class="n">var_to_plot</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">var_to_plot</span><span class="p">)]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
-        <span class="n">colorbar_label_prefix</span> <span class="o">=</span> <span class="s1">&#39;log10 &#39;</span>
+        <span class="n">colorbar_label_prefix</span> <span class="o">=</span> <span class="s1">'log10 '</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">colorbar_label_prefix</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="n">colorbar_label_prefix</span> <span class="o">=</span> <span class="s1">''</span>
 
     <span class="c1"># Set lower and upper bounds for plotting</span>
     <span class="k">if</span> <span class="n">vmin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># 0.1 m/yr is a pretty good lower bound for speed</span>
         <span class="n">first_quant</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">var_to_plot</span><span class="p">[</span><span class="n">time</span><span class="p">,</span> <span class="p">:],</span> <span class="mf">0.01</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;Speed&#39;</span> <span class="ow">in</span> <span class="n">variable</span> <span class="ow">and</span> <span class="n">log_plot</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s1">'Speed'</span> <span class="ow">in</span> <span class="n">variable</span> <span class="ow">and</span> <span class="n">log_plot</span><span class="p">:</span>
             <span class="n">vmin</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">first_quant</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">vmin</span> <span class="o">=</span> <span class="n">first_quant</span>
@@ -451,7 +451,7 @@
         <span class="n">vmax</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">var_to_plot</span><span class="p">[</span><span class="n">time</span><span class="p">,</span> <span class="p">:],</span> <span class="mf">0.99</span><span class="p">)</span>
     <span class="c1"># Plot bedTopography on an asymmetric colorbar if appropriate</span>
     <span class="k">if</span> <span class="n">norm</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">if</span> <span class="p">(</span> <span class="p">(</span><span class="n">variable_name</span> <span class="o">==</span> <span class="s1">&#39;bedTopography&#39;</span><span class="p">)</span> <span class="ow">and</span>
+        <span class="k">if</span> <span class="p">(</span> <span class="p">(</span><span class="n">variable_name</span> <span class="o">==</span> <span class="s1">'bedTopography'</span><span class="p">)</span> <span class="ow">and</span>
              <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nanquantile</span><span class="p">(</span><span class="n">var_to_plot</span><span class="p">[</span><span class="n">time</span><span class="p">,</span> <span class="p">:],</span> <span class="mf">0.99</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span> <span class="ow">and</span>
              <span class="p">(</span><span class="n">cmap</span> <span class="ow">in</span> <span class="n">div_color_maps</span><span class="p">)</span> <span class="p">):</span>
             <span class="n">norm</span> <span class="o">=</span> <span class="n">TwoSlopeNorm</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="n">vmin</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="n">vmax</span><span class="p">,</span> <span class="n">vcenter</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
@@ -460,18 +460,18 @@
 
     <span class="n">var_plot</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tripcolor</span><span class="p">(</span>
         <span class="n">triangles</span><span class="p">,</span> <span class="n">var_to_plot</span><span class="p">[</span><span class="n">time</span><span class="p">,</span> <span class="p">:],</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span>
-        <span class="n">shading</span><span class="o">=</span><span class="s1">&#39;flat&#39;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
-    <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+        <span class="n">shading</span><span class="o">=</span><span class="s1">'flat'</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">'equal'</span><span class="p">)</span>
 
     <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span> <span class="n">mappable</span><span class="o">=</span><span class="n">var_plot</span><span class="p">,</span>
-                        <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;vertical&#39;</span><span class="p">,</span>
-                        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">colorbar_label_prefix</span><span class="si">}{</span><span class="n">variable_name</span><span class="si">}</span><span class="s1"> $</span><span class="si">{</span><span class="n">units</span><span class="si">}</span><span class="s1">$&#39;</span><span class="p">)</span>
+                        <span class="n">orientation</span><span class="o">=</span><span class="s1">'vertical'</span><span class="p">,</span>
+                        <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s1">'</span><span class="si">{</span><span class="n">colorbar_label_prefix</span><span class="si">}{</span><span class="n">variable_name</span><span class="si">}</span><span class="s1"> $</span><span class="si">{</span><span class="n">units</span><span class="si">}</span><span class="s1">$'</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">plot_grounding_line</span><span class="p">:</span>
         <span class="n">valid_masks</span><span class="p">,</span> <span class="n">grounding_line_mask</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_calculate_masks</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">valid_masks</span><span class="p">:</span>
             <span class="n">gl_plot</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">tricontour</span><span class="p">(</span><span class="n">triangles</span><span class="p">,</span> <span class="n">grounding_line_mask</span><span class="p">[</span><span class="n">time</span><span class="p">,</span> <span class="p">:],</span>
-                                    <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mf">0.9999</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span>
-                                    <span class="n">linestyles</span><span class="o">=</span><span class="s1">&#39;solid&#39;</span><span class="p">)</span>
+                                    <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mf">0.9999</span><span class="p">],</span> <span class="n">colors</span><span class="o">=</span><span class="s1">'white'</span><span class="p">,</span>
+                                    <span class="n">linestyles</span><span class="o">=</span><span class="s1">'solid'</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">gl_plot</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
@@ -484,9 +484,9 @@
 <div class="viewcode-block" id="plot_grounding_lines">
 <a class="viewcode-back" href="../../../generated/mpas_tools.landice.visualization.plot_grounding_lines.html#mpas_tools.landice.visualization.plot_grounding_lines">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">plot_grounding_lines</span><span class="p">(</span><span class="n">data_paths</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                         <span class="n">cmap</span><span class="o">=</span><span class="s2">&quot;plasma_r&quot;</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                         <span class="n">cmap</span><span class="o">=</span><span class="s2">"plasma_r"</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                          <span class="n">mesh_file</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">triangles</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Plot MALI grounding line at arbitrary number of times.</span>
 
 <span class="sd">    Parameters</span>
@@ -516,7 +516,7 @@
 <span class="sd">    -------</span>
 <span class="sd">    gl_plots : list of matplotlib.tri._tricontour.TriContourSet</span>
 <span class="sd">        List of grounding line contour objects</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+<span class="sd">    """</span>
 
     <span class="c1"># Ensure data_path is a list for flexibility in loops</span>
     <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">data_paths</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">list</span><span class="p">:</span>
@@ -541,8 +541,8 @@
     <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">data_paths</span><span class="p">:</span>
         <span class="n">f</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
         <span class="n">f</span><span class="o">.</span><span class="n">set_auto_mask</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">if</span> <span class="s1">&#39;daysSinceStart&#39;</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="n">yr</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;daysSinceStart&#39;</span><span class="p">][</span><span class="n">times</span><span class="p">]</span> <span class="o">/</span> <span class="mf">365.</span>
+        <span class="k">if</span> <span class="s1">'daysSinceStart'</span> <span class="ow">in</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">yr</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'daysSinceStart'</span><span class="p">][</span><span class="n">times</span><span class="p">]</span> <span class="o">/</span> <span class="mf">365.</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">yr</span> <span class="o">=</span> <span class="n">times</span>
         <span class="n">plot_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">yr</span><span class="p">)</span>
@@ -568,12 +568,12 @@
 
     <span class="k">for</span> <span class="n">ii</span><span class="p">,</span> <span class="n">mask</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">grounding_line_masks</span><span class="p">):</span>
         <span class="n">gl_plots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="o">.</span><span class="n">tricontour</span><span class="p">(</span><span class="n">triangles</span><span class="p">,</span> <span class="n">mask</span><span class="p">,</span>
-                                <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mf">0.9999</span><span class="p">],</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">&#39;solid&#39;</span><span class="p">,</span>
+                                <span class="n">levels</span><span class="o">=</span><span class="p">[</span><span class="mf">0.9999</span><span class="p">],</span> <span class="n">linestyles</span><span class="o">=</span><span class="s1">'solid'</span><span class="p">,</span>
                                 <span class="n">colors</span><span class="o">=</span><span class="n">time_colors</span><span class="p">[</span><span class="n">ii</span><span class="p">,</span> <span class="kc">None</span><span class="p">]))</span>
 
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">plot_times</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">time_cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">),</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">,</span>
-                                 <span class="n">location</span><span class="o">=</span><span class="s1">&#39;bottom&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Grounding line year&quot;</span><span class="p">)</span>
+                                 <span class="n">location</span><span class="o">=</span><span class="s1">'bottom'</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"Grounding line year"</span><span class="p">)</span>
         <span class="n">time_cbar</span><span class="o">.</span><span class="n">ax</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">labelsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
         <span class="n">time_cbar</span><span class="o">.</span><span class="n">set_ticks</span><span class="p">(</span><span class="n">plot_times_norm</span><span class="p">)</span>
         <span class="n">time_cbar</span><span class="o">.</span><span class="n">set_ticklabels</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">plot_times</span><span class="p">)</span>
@@ -600,33 +600,33 @@
     <span class="n">rhoi</span> <span class="o">=</span> <span class="mf">910.</span>
     <span class="n">rhosw</span> <span class="o">=</span> <span class="mf">1028.</span>
 
-    <span class="k">if</span> <span class="s1">&#39;cellMask&#39;</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="k">if</span> <span class="s1">'cellMask'</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="n">valid_masks</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">cellMask</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;cellMask&quot;</span><span class="p">][:]</span>
+        <span class="n">cellMask</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"cellMask"</span><span class="p">][:]</span>
         <span class="n">float_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">cellMask</span> <span class="o">&amp;</span> <span class="n">float_value</span><span class="p">)</span> <span class="o">//</span> <span class="n">float_value</span>
         <span class="n">dynamic_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">cellMask</span> <span class="o">&amp;</span> <span class="n">dynamic_value</span><span class="p">)</span> <span class="o">//</span> <span class="n">dynamic_value</span>
         <span class="n">grounding_line_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">cellMask</span> <span class="o">&amp;</span> <span class="n">grounding_line_value</span><span class="p">)</span> <span class="o">//</span> <span class="n">grounding_line_value</span>
         <span class="n">initial_extent_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">cellMask</span> <span class="o">&amp;</span> <span class="n">initial_extent_value</span><span class="p">)</span> <span class="o">//</span> <span class="n">initial_extent_value</span>
-    <span class="k">elif</span> <span class="p">(</span> <span class="s1">&#39;cellMask&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span>
-         <span class="s1">&#39;thickness&#39;</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span>
-         <span class="s1">&#39;bedTopography&#39;</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;cellMask is not present in output file;&#39;</span>
-               <span class="s1">&#39; calculating masks from ice thickness&#39;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="p">(</span> <span class="s1">'cellMask'</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span>
+         <span class="s1">'thickness'</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span>
+         <span class="s1">'bedTopography'</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s1">'cellMask is not present in output file;'</span>
+               <span class="s1">' calculating masks from ice thickness'</span><span class="p">)</span>
         <span class="n">valid_masks</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="n">grounded_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;thickness&#39;</span><span class="p">][:]</span> <span class="o">&gt;</span>
+        <span class="n">grounded_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'thickness'</span><span class="p">][:]</span> <span class="o">&gt;</span>
                         <span class="p">(</span><span class="o">-</span><span class="n">rhosw</span> <span class="o">/</span> <span class="n">rhoi</span> <span class="o">*</span>
-                         <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;bedTopography&#39;</span><span class="p">][:]))</span>
+                         <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'bedTopography'</span><span class="p">][:]))</span>
         <span class="n">float_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
                          <span class="n">np</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">grounded_mask</span><span class="p">),</span>
-                         <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;thickness&#39;</span><span class="p">][:]</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">)</span>
+                         <span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'thickness'</span><span class="p">][:]</span> <span class="o">&gt;</span> <span class="mf">1.0</span><span class="p">)</span>
         <span class="n">dynamic_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_or</span><span class="p">(</span><span class="n">grounded_mask</span><span class="p">,</span> <span class="n">float_mask</span><span class="p">)</span>
-        <span class="c1"># This isn&#39;t technically correct, but works for plotting</span>
+        <span class="c1"># This isn't technically correct, but works for plotting</span>
         <span class="n">grounding_line_mask</span> <span class="o">=</span> <span class="n">grounded_mask</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">initial_extent_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">&#39;thickness&#39;</span><span class="p">][:]</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span>
+        <span class="n">initial_extent_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s1">'thickness'</span><span class="p">][:]</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;cellMask and thickness and/or bedTopography&#39;</span>
-              <span class="sa">f</span><span class="s1">&#39; not present in output file;&#39;</span>
-               <span class="s1">&#39; Skipping mask calculation.&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">'cellMask and thickness and/or bedTopography'</span>
+              <span class="sa">f</span><span class="s1">' not present in output file;'</span>
+               <span class="s1">' Skipping mask calculation.'</span><span class="p">)</span>
         <span class="n">valid_masks</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">return</span> <span class="n">valid_masks</span><span class="p">,</span> <span class="n">grounding_line_mask</span><span class="p">,</span> <span class="n">float_mask</span><span class="p">,</span> <span class="n">dynamic_mask</span><span class="p">,</span> <span class="n">initial_extent_mask</span>
@@ -634,9 +634,9 @@
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_get_triangles</span><span class="p">(</span><span class="n">mesh</span><span class="p">):</span>
 
-    <span class="n">xCell</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;xCell&quot;</span><span class="p">][:]</span>
-    <span class="n">yCell</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;yCell&quot;</span><span class="p">][:]</span>
-    <span class="n">dcEdge</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">&quot;dcEdge&quot;</span><span class="p">][:]</span>
+    <span class="n">xCell</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"xCell"</span><span class="p">][:]</span>
+    <span class="n">yCell</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"yCell"</span><span class="p">][:]</span>
+    <span class="n">dcEdge</span> <span class="o">=</span> <span class="n">mesh</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="s2">"dcEdge"</span><span class="p">][:]</span>
 
     <span class="n">triang</span> <span class="o">=</span> <span class="n">tri</span><span class="o">.</span><span class="n">Triangulation</span><span class="p">(</span><span class="n">xCell</span><span class="p">,</span> <span class="n">yCell</span><span class="p">)</span>
     <span class="n">tri_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">triang</span><span class="o">.</span><span class="n">triangles</span><span class="p">))</span>

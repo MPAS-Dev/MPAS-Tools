@@ -182,7 +182,7 @@ both in <code class="docutils literal notranslate"><span class="pre">conda_packa
 <p>As an example, the entry point <code class="docutils literal notranslate"><span class="pre">planar_hex</span></code> is defined in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> as:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">project</span><span class="o">.</span><span class="n">scripts</span><span class="p">]</span>
 <span class="o">...</span>
-<span class="n">planar_hex</span> <span class="o">=</span> <span class="s2">&quot;mpas_tools.planar_hex:main&quot;</span>
+<span class="n">planar_hex</span> <span class="o">=</span> <span class="s2">"mpas_tools.planar_hex:main"</span>
 <span class="o">...</span>
 </pre></div>
 </div>
@@ -200,8 +200,8 @@ in the module <code class="docutils literal notranslate"><span class="pre">mpas_
 
     <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span>
         <span class="n">description</span><span class="o">=</span><span class="vm">__doc__</span><span class="p">,</span> <span class="n">formatter_class</span><span class="o">=</span><span class="n">argparse</span><span class="o">.</span><span class="n">RawTextHelpFormatter</span><span class="p">)</span>
-    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--nx&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;nx&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Cells in x direction&#39;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">'--nx'</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">'nx'</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">'Cells in x direction'</span><span class="p">)</span>
     <span class="o">...</span>
     <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
@@ -251,15 +251,15 @@ cartopy
 <p>Before a release of the package, the version of <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code> needs to be
 updated in 3 places.  First, in <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/__init__.py</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">__version_info__</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span> <span class="k">for</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">__version_info__</span><span class="p">)</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">'.'</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">vi</span><span class="p">)</span> <span class="k">for</span> <span class="n">vi</span> <span class="ow">in</span> <span class="n">__version_info__</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Increment <code class="docutils literal notranslate"><span class="pre">__version_info__</span></code> (major, minor or micro version, depending on
 what makes sense).</p>
 <p>Second, the version in the conda recipe (<code class="docutils literal notranslate"><span class="pre">conda_package/recipe/recipe.yaml</span></code>)
 needs to match:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span> <span class="nb">set</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;mpas_tools&quot;</span> <span class="o">%</span><span class="p">}</span>
-<span class="p">{</span><span class="o">%</span> <span class="nb">set</span> <span class="n">version</span> <span class="o">=</span> <span class="s2">&quot;0.6.0&quot;</span> <span class="o">%</span><span class="p">}</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span> <span class="nb">set</span> <span class="n">name</span> <span class="o">=</span> <span class="s2">"mpas_tools"</span> <span class="o">%</span><span class="p">}</span>
+<span class="p">{</span><span class="o">%</span> <span class="nb">set</span> <span class="n">version</span> <span class="o">=</span> <span class="s2">"0.6.0"</span> <span class="o">%</span><span class="p">}</span>
 </pre></div>
 </div>
 </section>

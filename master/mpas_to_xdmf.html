@@ -223,14 +223,14 @@ the input files at a time (default 2).  See <a class="reference internal" href="
 
 <span class="c1"># Load the mesh and time series files</span>
 <span class="n">converter</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
-    <span class="n">mesh_filename</span><span class="o">=</span><span class="s2">&quot;mesh.nc&quot;</span><span class="p">,</span>
-    <span class="n">time_series_filenames</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;time_series.0001.nc&quot;</span><span class="p">,</span> <span class="s2">&quot;time_series.0002.nc&quot;</span><span class="p">],</span>
-    <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;temperature&quot;</span><span class="p">,</span> <span class="s2">&quot;salinity&quot;</span><span class="p">],</span>
-    <span class="n">xtime_var</span><span class="o">=</span><span class="s2">&quot;xtime&quot;</span>
+    <span class="n">mesh_filename</span><span class="o">=</span><span class="s2">"mesh.nc"</span><span class="p">,</span>
+    <span class="n">time_series_filenames</span><span class="o">=</span><span class="p">[</span><span class="s2">"time_series.0001.nc"</span><span class="p">,</span> <span class="s2">"time_series.0002.nc"</span><span class="p">],</span>
+    <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s2">"temperature"</span><span class="p">,</span> <span class="s2">"salinity"</span><span class="p">],</span>
+    <span class="n">xtime_var</span><span class="o">=</span><span class="s2">"xtime"</span>
 <span class="p">)</span>
 
 <span class="c1"># Convert to XDMF format</span>
-<span class="n">converter</span><span class="o">.</span><span class="n">convert_to_xdmf</span><span class="p">(</span><span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;output_dir&quot;</span><span class="p">)</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">convert_to_xdmf</span><span class="p">(</span><span class="n">out_dir</span><span class="o">=</span><span class="s2">"output_dir"</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Slice along extra dimensions and convert:</p>
@@ -241,17 +241,17 @@ the input files at a time (default 2).  See <a class="reference internal" href="
 
 <span class="c1"># Load the mesh and time series files</span>
 <span class="n">converter</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
-    <span class="n">mesh_filename</span><span class="o">=</span><span class="s2">&quot;mesh.nc&quot;</span><span class="p">,</span>
-    <span class="n">time_series_filenames</span><span class="o">=</span><span class="s2">&quot;time_series.*.nc&quot;</span><span class="p">,</span>
-    <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;allOnCells&quot;</span><span class="p">],</span>
-    <span class="n">xtime_var</span><span class="o">=</span><span class="s2">&quot;xtime&quot;</span>
+    <span class="n">mesh_filename</span><span class="o">=</span><span class="s2">"mesh.nc"</span><span class="p">,</span>
+    <span class="n">time_series_filenames</span><span class="o">=</span><span class="s2">"time_series.*.nc"</span><span class="p">,</span>
+    <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="s2">"allOnCells"</span><span class="p">],</span>
+    <span class="n">xtime_var</span><span class="o">=</span><span class="s2">"xtime"</span>
 <span class="p">)</span>
 
 <span class="c1"># Define extra dimensions to slice</span>
-<span class="n">extra_dims</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;nVertLevels&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]}</span>
+<span class="n">extra_dims</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"nVertLevels"</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]}</span>
 
 <span class="c1"># Convert to XDMF format with slicing</span>
-<span class="n">converter</span><span class="o">.</span><span class="n">convert_to_xdmf</span><span class="p">(</span><span class="n">out_dir</span><span class="o">=</span><span class="s2">&quot;output_dir&quot;</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span>
+<span class="n">converter</span><span class="o">.</span><span class="n">convert_to_xdmf</span><span class="p">(</span><span class="n">out_dir</span><span class="o">=</span><span class="s2">"output_dir"</span><span class="p">,</span> <span class="n">extra_dims</span><span class="o">=</span><span class="n">extra_dims</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
