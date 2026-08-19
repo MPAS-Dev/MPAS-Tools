@@ -188,9 +188,29 @@ def albany_temperature_based_flow_rate(temperature):
     return np.where(T < ALBANY_FLOW_RATE_SWITCHING_T, A_low, A_high)
 
 
-def area_weighted_optimal_C(mu, N, area, uc, q, mask):
+def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
     """
-    C = integral(uc^q * mu / N dA) / integral(dA)
+    Fit a single scalar Regularized Coulomb "Coulomb Friction
+    Coefficient" C by assuming that, in the fast-flowing region
+    identified by `mask` (typically grounded cells with a current
+    sliding speed above some critical velocity), the ice is already in
+    the fully-plastic Coulomb regime of the RC law, i.e.
+
+        Tau_b_RC = C * N
+
+    C is chosen to be the area-weighted least-squares best fit of this
+    relation against the Weertman law's basal shear stress at the
+    cell's actual current sliding speed,
+
+        Tau_b_Weertman = mu * speed^qW
+
+    (no effective-pressure term -- MALI's Weertman sliding law has
+    none; muFriction was calibrated against this convention).
+
+    Minimizing sum_i area_i * (C * N_i - Tau_b_Weertman_i)^2 over C
+    gives the normal-equations solution
+
+        C = sum(area * N * Tau_b_Weertman) / sum(area * N^2)
 
     `q` here is the input Weertman/Power-Law exponent (qW), not the
     Regularized Coulomb exponent.
@@ -207,16 +227,24 @@ def area_weighted_optimal_C(mu, N, area, uc, q, mask):
         & np.isfinite(mu)
         & np.isfinite(N)
         & np.isfinite(area)
+        & np.isfinite(speed)
         & (N > 0.0)
         & (area > 0.0)
+        & (speed > 0.0)
     )
 
     if not np.any(valid):
-        raise ValueError("No valid grounded cells available for C calculation.")
+        raise ValueError(
+            "No valid fast-flowing cells (speed > critical velocity) "
+            "available for C calculation."
+        )
 
-    integrand = (uc ** q) * mu[valid] / N[valid]
+    tau_b_weertman = mu[valid] * speed[valid] ** q
 
-    C = np.sum(area[valid] * integrand) / np.sum(area[valid])
+    numerator = np.sum(area[valid] * N[valid] * tau_b_weertman)
+    denominator = np.sum(area[valid] * N[valid] ** 2)
+
+    C = numerator / denominator
 
     return C, valid
 
@@ -535,15 +563,19 @@ def main():
     )
 
     # -------------------------------------------------------------
-    # Optimal C
+    # Optimal C: fit against the fast-flowing region only, assuming
+    # it is already in the fully-plastic Coulomb regime of the RC law
+    # (Tau_b = C * N).
     # -------------------------------------------------------------
-    C, fit_mask = area_weighted_optimal_C(
+    fast_flowing = grounded & (speed > args.critical_velocity)
+
+    C, fit_mask = fit_coulomb_C_fast_region(
         mu=mu,
         N=N_albany,
         area=area,
-        uc=args.critical_velocity,
+        speed=speed,
         q=args.weertman_q,
-        mask=grounded,
+        mask=fast_flowing,
     )
 
     # -------------------------------------------------------------
@@ -577,9 +609,10 @@ def main():
     #     Lambda = u * [(C*N / (mu * u^qW))^(1/p) - 1]
     #              / (SECONDS_PER_YEAR * A * N^n)
     #
-    # This is exactly the same premise used by area_weighted_optimal_C
-    # above (which likewise assumes Tau_b_W = mu * uc^qW with no N
-    # term, matched against the RC Coulomb limit C*N).
+    # This is the same Weertman shear-stress convention used by
+    # fit_coulomb_C_fast_region above (Tau_b_W = mu * u^qW, no N term,
+    # matched in the fast-flowing region against the RC Coulomb limit
+    # C*N).
     #
     # where u is in m/yr, A is in Pa^-3 s^-1, N (raw Pa) is used here
     # exactly as in the previous uc-based derivation (Albany's
@@ -592,8 +625,13 @@ def main():
     # shear stress above the Coulomb limit C*N (attained only in the
     # Lambda -> 0 limit), cells where the Weertman law's Tau_b at the
     # current speed already meets or exceeds C*N have no valid
-    # (non-negative) solution for Lambda; these are set to 0 (maximal
-    # Coulomb sliding) and reported below.
+    # (non-negative) solution for Lambda. Physically, Lambda -> 0 is
+    # *exactly* the fully-plastic Coulomb regime (Tau_b_RC saturates
+    # at its maximum achievable value, C*N, independent of speed), so
+    # setting Lambda = 0 at these cells is not an arbitrary filler
+    # value -- it is the correct behavior for cells that the fast-
+    # flowing/full-Coulomb assumption used to fit C was designed to
+    # describe in the first place. These cells are reported below.
     # -------------------------------------------------------------
     Lambda = np.zeros_like(N)
 
@@ -625,7 +663,7 @@ def main():
     n_unreachable = int(np.count_nonzero(valid_speed & ~lambda_mask))
     if n_unreachable > 0:
         print(
-            f"WARNING: {n_unreachable} grounded cells have a Weertman "
+            f"NOTE: {n_unreachable} grounded cells have a Weertman "
             "basal shear stress (mu*u^qW) at the current sliding "
             "speed that meets or exceeds the Coulomb limit C*N; "
             "Lambda set to 0.0 (maximal Coulomb sliding) at these "
@@ -638,11 +676,15 @@ def main():
     # -------------------------------------------------------------
     # Diagnostics
     # -------------------------------------------------------------
+    # "Local" implied C: the per-cell ratio of the actual Weertman
+    # shear stress (at the cell's current sliding speed) to N, i.e.
+    # what C would have to be for that cell alone to be exactly in
+    # the full-Coulomb regime. Its spread within the fast-flowing fit
+    # region gives a sense of how well a single scalar C fits that
+    # region.
     local_C = np.full_like(N, np.nan)
-    local_C[fit_mask] = (
-        args.critical_velocity ** args.weertman_q
-        * mu[fit_mask]
-        / N_albany[fit_mask]
+    local_C[valid_speed] = (
+        tau_b_weertman[valid_speed] / N_albany[valid_speed]
     )
 
     print()
@@ -661,8 +703,11 @@ def main():
             f"{np.min(basal_temperature):.6f} -- "
             f"{np.max(basal_temperature):.6f} K"
         )
-    print(f"Cells used in C fit           : {np.count_nonzero(fit_mask)}")
-    print(f"Grounded area used            : {np.sum(area[fit_mask]):.10e}")
+    print(
+        f"Fast-flowing (speed > uc) cells used in C fit : "
+        f"{np.count_nonzero(fit_mask)} / {int(np.count_nonzero(grounded))} grounded"
+    )
+    print(f"Fast-flowing area used         : {np.sum(area[fit_mask]):.10e}")
     print()
     print(f"Optimal C                     : {C:.16e}")
     print()
