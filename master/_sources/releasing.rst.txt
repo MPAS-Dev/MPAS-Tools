@@ -12,14 +12,26 @@ Version Bump and Dependency Updates
 
 1. **Update the Version Number**
 
-   - Open a pull request (PR) to update the version number in the following
-     two files:
+   - Run the helper script from the root of the repo:
+
+     ::
+
+         ./update_version.py -v 1.3.0
+
+     This updates the version in all three places that need it:
+
+     - ``CITATION.cff`` (both ``version`` and ``date-released``, which is set
+       to today's date)
      - ``conda_package/mpas_tools/__init__.py``
      - ``conda_package/recipe/recipe.yaml``
 
    - Make sure the version follows
      `semantic versioning <https://semver.org/>`_.
      For release candidates, use versions like ``1.3.0rc1`` (no ``v`` prefix).
+     The script only accepts ``X.Y.Z``, so update the files by hand for a
+     release candidate.
+
+   - Open a pull request (PR) with these changes.
 
 2. **Check and Update Dependencies**
 

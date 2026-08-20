@@ -136,16 +136,27 @@
 version of <code class="docutils literal notranslate"><span class="pre">mpas_tools</span></code>, and to update the conda-forge feedstock.</p>
 <section id="version-bump-and-dependency-updates">
 <h2>Version Bump and Dependency Updates<a class="headerlink" href="#version-bump-and-dependency-updates" title="Link to this heading"></a></h2>
-<ol class="arabic simple">
+<ol class="arabic">
 <li><p><strong>Update the Version Number</strong></p>
+<ul>
+<li><p>Run the helper script from the root of the repo:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">update_version</span><span class="o">.</span><span class="n">py</span> <span class="o">-</span><span class="n">v</span> <span class="mf">1.3.0</span>
+</pre></div>
+</div>
+<p>This updates the version in all three places that need it:</p>
 <ul class="simple">
-<li><p>Open a pull request (PR) to update the version number in the following
-two files:
-- <code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/__init__.py</span></code>
-- <code class="docutils literal notranslate"><span class="pre">conda_package/recipe/recipe.yaml</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CITATION.cff</span></code> (both <code class="docutils literal notranslate"><span class="pre">version</span></code> and <code class="docutils literal notranslate"><span class="pre">date-released</span></code>, which is set
+to today’s date)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">conda_package/mpas_tools/__init__.py</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">conda_package/recipe/recipe.yaml</span></code></p></li>
+</ul>
+</li>
 <li><p>Make sure the version follows
 <a class="reference external" href="https://semver.org/">semantic versioning</a>.
-For release candidates, use versions like <code class="docutils literal notranslate"><span class="pre">1.3.0rc1</span></code> (no <code class="docutils literal notranslate"><span class="pre">v</span></code> prefix).</p></li>
+For release candidates, use versions like <code class="docutils literal notranslate"><span class="pre">1.3.0rc1</span></code> (no <code class="docutils literal notranslate"><span class="pre">v</span></code> prefix).
+The script only accepts <code class="docutils literal notranslate"><span class="pre">X.Y.Z</span></code>, so update the files by hand for a
+release candidate.</p></li>
+<li><p>Open a pull request (PR) with these changes.</p></li>
 </ul>
 </li>
 <li><p><strong>Check and Update Dependencies</strong></p>

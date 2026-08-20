@@ -7,19 +7,30 @@ Main Authors
 
 Contributors
 ============
+* Carolyn Begeman
 * Riley X. Brady
 * Miles Curry
+* Althea Denlinger
+* Darren Engwirda
 * Amrapalli Garanaik
+* Alex Hager
+* Holly Han
 * Dom Heinzeller
 * Trevor Hillebrand
+* Divya Jaganathan
 * Joseph Kennedy
 * William Lipscomb
+* Andrew Nolan
 * Mark Petersen
 * Stephen Price
 * Todd Ringler
 * Juan Saenz
+* Courtney Shafer
+* William Skamarock
+* Cameron Smith
 * Adrian Turner
 * Luke Van Roekel
+* Maciej Waruszewski
 * Phillip J. Wolfram
 * Tong Zhang
 
