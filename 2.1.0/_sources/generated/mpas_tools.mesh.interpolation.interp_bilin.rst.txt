@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.interpolation.interp\_bilin
+============================================
+
+.. currentmodule:: mpas_tools.mesh.interpolation
+
+.. autofunction:: interp_bilin

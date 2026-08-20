@@ -1,0 +1,6 @@
+﻿mpas\_tools.viz.transect.find\_spherical\_transect\_cells\_and\_weights
+=======================================================================
+
+.. currentmodule:: mpas_tools.viz.transect
+
+.. autofunction:: find_spherical_transect_cells_and_weights

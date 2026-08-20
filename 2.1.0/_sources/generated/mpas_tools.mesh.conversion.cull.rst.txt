@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.conversion.cull
+================================
+
+.. currentmodule:: mpas_tools.mesh.conversion
+
+.. autofunction:: cull

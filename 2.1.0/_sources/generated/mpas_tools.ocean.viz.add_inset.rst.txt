@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.viz.add\_inset
+================================
+
+.. currentmodule:: mpas_tools.ocean.viz
+
+.. autofunction:: add_inset
