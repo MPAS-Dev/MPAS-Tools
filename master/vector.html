@@ -145,6 +145,13 @@ individual methods to find out more.</p>
 <code class="xref py py-func docutils literal notranslate"><span class="pre">mpas_tools.vector.reconstruct.reconstruct_variable()</span></code> are used to
 reconstruct Cartesian (X, Y, Z), zonal and meridional components of an MPAS
 vector field at cell centers, given the field on edge normals.</p>
+<p>On spherical meshes, the zonal and meridional components are found by rotating
+the Cartesian components into the local geographic frame at each cell center,
+using <code class="docutils literal notranslate"><span class="pre">latCell</span></code> and <code class="docutils literal notranslate"><span class="pre">lonCell</span></code>.  On planar meshes (indicated by the
+<code class="docutils literal notranslate"><span class="pre">on_a_sphere</span></code> attribute of the mesh being <code class="docutils literal notranslate"><span class="pre">NO</span></code>), no rotation is performed:
+the zonal and meridional components are the x and y components, respectively.
+This matches the convention in MPAS’ own <code class="docutils literal notranslate"><span class="pre">mpas_reconstruct_*</span></code> routines.  A
+mesh without the <code class="docutils literal notranslate"><span class="pre">on_a_sphere</span></code> attribute is assumed to be spherical.</p>
 <p>This tool requires that the field <code class="docutils literal notranslate"><span class="pre">coeffs_reconstruct</span></code> has been saved to a
 NetCDF file.  The simplest way to do this is to include the following
 stream in a forward run:</p>

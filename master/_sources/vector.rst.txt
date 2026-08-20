@@ -28,6 +28,14 @@ The command-line tool ``vector_reconstruct`` and the function
 reconstruct Cartesian (X, Y, Z), zonal and meridional components of an MPAS
 vector field at cell centers, given the field on edge normals.
 
+On spherical meshes, the zonal and meridional components are found by rotating
+the Cartesian components into the local geographic frame at each cell center,
+using ``latCell`` and ``lonCell``.  On planar meshes (indicated by the
+``on_a_sphere`` attribute of the mesh being ``NO``), no rotation is performed:
+the zonal and meridional components are the x and y components, respectively.
+This matches the convention in MPAS' own ``mpas_reconstruct_*`` routines.  A
+mesh without the ``on_a_sphere`` attribute is assumed to be spherical.
+
 This tool requires that the field ``coeffs_reconstruct`` has been saved to a
 NetCDF file.  The simplest way to do this is to include the following
 stream in a forward run:
