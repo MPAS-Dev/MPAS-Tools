@@ -209,6 +209,13 @@ def interpolate_to_mpasli_grid():  # noqa: C901
             wts = wtsCell
             outsideInd = outsideIndcell
             tree = treecell
+        elif gridType == 'cell_masked':
+            vtx = vtCellMasked
+            wts = wtsCellMasked
+            outsideInd = outsideIndcellMasked
+            tree = treecellMasked
+            # weights index into the ice-covered source subset only
+            values = values.flatten()[maskedSourceIdx]
         else:
             raise ValueError('unknown input file grid type specified.')
 
@@ -290,46 +297,50 @@ def interpolate_to_mpasli_grid():  # noqa: C901
             f'{InputField.max()}'
         )
 
+        gridType = fieldInfo[MPASfieldName]['gridType']
+        if MPASfieldName in args.maskedVars:
+            gridType = 'cell_masked'
+
         # Call the appropriate routine for actually doing the interpolation
         if args.interpType == 'b':
             print(
                 f'  ...Interpolating to {MPASfieldName} using built-in '
                 f'bilinear method...'
             )
-            MPASfield = _bilinear_interp(
-                InputField, fieldInfo[MPASfieldName]['gridType']
-            )
+            MPASfield = _bilinear_interp(InputField, gridType)
         elif args.interpType == 'd':
             print(
                 f'  ...Interpolating to {MPASfieldName} using barycentric  '
                 f'method...'
             )
-            MPASfield = _delaunay_interpolate(
-                InputField, fieldInfo[MPASfieldName]['gridType']
-            )
+            MPASfield = _delaunay_interpolate(InputField, gridType)
         elif args.interpType == 'n':
             print(
                 f'  ...Interpolating to {MPASfieldName} using nearest '
                 f'neighbor method...'
             )
-            if fieldInfo[MPASfieldName]['gridType'] == 'x0':
+            if gridType == 'x0':
                 # 2d cism fields need to be flattened. (Note the indices were
                 # flattened during init, so this just matches that operation
                 # for the field data itself.)  1d mpas fields do not, but the
                 # operation won't do anything because they are already flat.
                 MPASfield = InputField.flatten()[nn_idx_x0]
-            elif fieldInfo[MPASfieldName]['gridType'] == 'x1':
+            elif gridType == 'x1':
                 # 2d cism fields need to be flattened. (Note the indices were
                 # flattened during init, so this just matches that operation
                 # for the field data itself.)  1d mpas fields do not, but the
                 # operation won't do anything because they are already flat.
                 MPASfield = InputField.flatten()[nn_idx_x1]
-            elif fieldInfo[MPASfieldName]['gridType'] == 'cell':
+            elif gridType == 'cell':
                 # 2d cism fields need to be flattened. (Note the indices were
                 # flattened during init, so this just matches that operation
                 # for the field data itself.)  1d mpas fields do not, but the
                 # operation won't do anything because they are already flat.
                 MPASfield = InputField.flatten()[nn_idx_cell]
+            elif gridType == 'cell_masked':
+                MPASfield = InputField[maskedSourceIdx].flatten()[
+                    nn_idx_cell_masked
+                ]
         elif args.interpType == 'e':
             print(
                 f'  ...Interpolating to {MPASfieldName} using ESMF-weights  '
@@ -373,6 +384,9 @@ def interpolate_to_mpasli_grid():  # noqa: C901
             )
 
         InputFieldName = fieldInfo[MPASfieldName]['InputName']
+        gridType = fieldInfo[MPASfieldName]['gridType']
+        if MPASfieldName in args.maskedVars:
+            gridType = 'cell_masked'
         if filetype == 'cism':
             if 'time' in inputFile.variables[InputFieldName].dimensions:
                 InputField = inputFile.variables[InputFieldName][
@@ -473,7 +487,7 @@ def interpolate_to_mpasli_grid():  # noqa: C901
                     )
                     mpas_grid_input_layers[z, :] = _bilinear_interp(
                         InputField[z, :, :],
-                        fieldInfo[MPASfieldName]['gridType'],
+                        gridType,
                     )
                 elif args.interpType == 'd':
                     print(
@@ -483,19 +497,19 @@ def interpolate_to_mpasli_grid():  # noqa: C901
                     if filetype == 'cism':
                         mpas_grid_input_layers[z, :] = _delaunay_interpolate(
                             InputField[z, :, :],
-                            fieldInfo[MPASfieldName]['gridType'],
+                            gridType,
                         )
                     elif filetype == 'mpas':
                         mpas_grid_input_layers[z, :] = _delaunay_interpolate(
                             InputField[:, z],
-                            fieldInfo[MPASfieldName]['gridType'],
+                            gridType,
                         )
                 elif args.interpType == 'n':
                     print(
                         f'  ...Layer {z}, Interpolating this layer to MPAS '
                         f'grid using nearest neighbor method...'
                     )
-                    if fieldInfo[MPASfieldName]['gridType'] == 'x0':
+                    if gridType == 'x0':
                         # 2d cism fields need to be flattened. (Note the
                         # indices were flattened during init, so this just
                         # matches that operation for the field data itself.)
@@ -504,7 +518,7 @@ def interpolate_to_mpasli_grid():  # noqa: C901
                         mpas_grid_input_layers[z, :] = InputField[
                             z, :, :
                         ].flatten()[nn_idx_x0]
-                    elif fieldInfo[MPASfieldName]['gridType'] == 'x1':
+                    elif gridType == 'x1':
                         # 2d cism fields need to be flattened. (Note the
                         # indices were flattened during init, so this just
                         # matches that operation for the field data itself.)
@@ -513,7 +527,7 @@ def interpolate_to_mpasli_grid():  # noqa: C901
                         mpas_grid_input_layers[z, :] = InputField[
                             z, :, :
                         ].flatten()[nn_idx_x1]
-                    elif fieldInfo[MPASfieldName]['gridType'] == 'cell':
+                    elif gridType == 'cell':
                         # 2d cism fields need to be flattened. (Note the
                         # indices were flattened during init, so this just
                         # matches that operation for the field data itself.)
@@ -522,6 +536,10 @@ def interpolate_to_mpasli_grid():  # noqa: C901
                         mpas_grid_input_layers[z, :] = InputField[
                             :, z
                         ].flatten()[nn_idx_cell]
+                    elif gridType == 'cell_masked':
+                        mpas_grid_input_layers[z, :] = InputField[:, z][
+                            maskedSourceIdx
+                        ].flatten()[nn_idx_cell_masked]
                 elif args.interpType == 'e':
                     print(
                         f'  ...Layer {z}, Interpolating this layer to MPAS '
@@ -715,6 +733,19 @@ def interpolate_to_mpasli_grid():  # noqa: C901
         "destination files.  'all' can be used to attempt to interpolate "
         'all fields present in the destination mesh.  Provide a '
         'space-delimited list.',
+    )
+    parser.add_argument(
+        '--maskedVars',
+        dest='maskedVars',
+        nargs='*',
+        type=str,
+        default=[],
+        help='List of destination fields to interpolate using only '
+        'ice-covered source cells (source thickness > 0). This prevents '
+        'ice-free source cells (e.g. with zero temperature) from polluting '
+        'interpolated values near the ice margin.  Only supported for MPAS '
+        'source files with the barycentric (d) or nearest neighbor (n) '
+        'method.  Provide a space-delimited list.',
     )
     args = parser.parse_args()
 
@@ -1030,6 +1061,55 @@ def interpolate_to_mpasli_grid():  # noqa: C901
             nn_idx_cell = _nn_interp_weights(inputmpasXY, mpasXY)
             end = time.perf_counter()
             print(f'done in {end - start}')
+
+    # ----------------------------
+    # Setup masked interpolation weights built from ice-covered source cells
+    # only, so that ice-free source cells cannot pollute the fields listed in
+    # --maskedVars near the ice margin.
+    maskedSourceIdx = None
+    if args.maskedVars:
+        if filetype != 'mpas':
+            raise ValueError(
+                '--maskedVars is currently only supported for MPAS source '
+                'files.'
+            )
+        if args.interpType not in ('d', 'n'):
+            raise ValueError(
+                '--maskedVars requires the barycentric (d) or nearest '
+                'neighbor (n) interpolation method.'
+            )
+        # Ice mask is taken from the first requested source time level.
+        sourceThickness = inputFile.variables['thickness'][args.timestart, :]
+        sourceIceMask = sourceThickness > 0.0
+        maskedSourceIdx = np.where(sourceIceMask)[0]
+        if maskedSourceIdx.size < 3:
+            raise ValueError(
+                'Fewer than 3 ice-covered source cells found; cannot build '
+                'masked interpolation weights.'
+            )
+        print(
+            f'\nBuilding masked interpolation weights from '
+            f'{maskedSourceIdx.size} ice-covered source cells '
+            f'(of {sourceIceMask.size} total)'
+        )
+        maskedInputXY = np.vstack(
+            (inputxCell[maskedSourceIdx], inputyCell[maskedSourceIdx])
+        ).transpose()
+        mpasXY = np.vstack((xCell[:], yCell[:])).transpose()
+        start = time.perf_counter()
+        if args.interpType == 'd':
+            (
+                vtCellMasked,
+                wtsCellMasked,
+                outsideIndcellMasked,
+                treecellMasked,
+            ) = _delaunay_interp_weights(maskedInputXY, mpasXY)
+            if len(outsideIndcellMasked) > 0:
+                outsideIndcellMasked = outsideIndcellMasked[0]
+        else:
+            nn_idx_cell_masked = _nn_interp_weights(maskedInputXY, mpasXY)
+        end = time.perf_counter()
+        print(f'done in {end - start}')
 
     # ----------------------------
     # Map Input-Output field names - add new fields here as needed
