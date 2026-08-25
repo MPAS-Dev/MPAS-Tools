@@ -629,6 +629,41 @@ def main():
         default="flowRateA",
         help="Name for diagnostic Glen flow-rate A field"
     )
+    parser.add_argument(
+        "--floatation-fraction-field",
+        default="floatationFraction",
+        help="Name for diagnostic floatation fraction field (Pw/Pice)"
+    )
+    parser.add_argument(
+        "--hydropotential-field",
+        default="hydropotential",
+        help="Name for diagnostic hydraulic potential field"
+    )
+
+    diagnostics_group = parser.add_mutually_exclusive_group()
+    diagnostics_group.add_argument(
+        "--diagnostics",
+        dest="diagnostics",
+        action="store_true",
+        default=True,
+        help=(
+            "Include diagnostic fields (effectivePressure, flowRateA, "
+            "floatationFraction, hydropotential, maskGrounded, "
+            "maskFastFlowing, maskValidBedRoughnessRC) in the output "
+            "NetCDF, useful for debugging/evaluation/visualization "
+            "(default: enabled)."
+        )
+    )
+    diagnostics_group.add_argument(
+        "--no-diagnostics",
+        dest="diagnostics",
+        action="store_false",
+        help=(
+            "Omit diagnostic fields from the output NetCDF, e.g. for "
+            "production runs where only bedRoughnessRC is needed and "
+            "extra fields are unwanted clutter."
+        )
+    )
 
     parser.add_argument(
         "--time-index",
@@ -1088,63 +1123,109 @@ def main():
         },
     )
 
-    out[args.effective_pressure_field] = xr.DataArray(
-        N,
-        dims=(ncell_dim,),
-        attrs={
-            "long_name": "Downs-Johnson effective pressure",
-            "units": "Pa",
-        },
-    )
+    if args.diagnostics:
+        if args.effective_pressure_type == "downs-johnson":
+            effective_pressure_long_name = "Downs-Johnson effective pressure"
+        else:
+            effective_pressure_long_name = (
+                "Effective pressure (near-ocean/inland-transition "
+                "parameterization; see effective_pressure4())"
+            )
 
-    out["maskGrounded"] = xr.DataArray(
-        grounded.astype(np.int8),
-        dims=(ncell_dim,),
-        attrs={
-            "long_name": "Mask of grounded ice (Albany grounded-ice test)",
-            "description": (
-                "1 where rho_i*H + rho_w*bed > 0 and H > 0, else 0"
-            ),
-        },
-    )
+        out[args.effective_pressure_field] = xr.DataArray(
+            N,
+            dims=(ncell_dim,),
+            attrs={
+                "long_name": effective_pressure_long_name,
+                "units": "Pa",
+            },
+        )
 
-    out["maskFastFlowing"] = xr.DataArray(
-        fast_flowing.astype(np.int8),
-        dims=(ncell_dim,),
-        attrs={
-            "long_name": (
-                "Mask of grounded, fast-flowing cells assumed to be in "
-                "the full-Coulomb regime (used to fit C)"
-            ),
-            "description": (
-                "1 where maskGrounded and speed (from velocity-x/y-"
-                "field, last nVertInterfaces level) > critical "
-                "velocity, else 0. bedRoughnessRC is forced to "
-                f"{args.lambda_reference_value:g} at these cells."
-            ),
-        },
-    )
+        # Floatation fraction: Pw / Pice, where Pw is basal water
+        # pressure (Pice - N) and Pice is the ice overburden pressure
+        # (rho_i * g * H). 0 at ice-free cells (Pice == 0).
+        Pice = args.rho_ice * args.gravity * H
+        Pw = Pice - N
+        floatation_fraction = np.where(Pice > 0.0, Pw / np.where(Pice > 0.0, Pice, 1.0), 0.0)
 
-    out["maskValidBedRoughnessRC"] = xr.DataArray(
-        lambda_mask.astype(np.int8),
-        dims=(ncell_dim,),
-        attrs={
-            "long_name": (
-                "Mask of cells where bedRoughnessRC (Lambda) was "
-                "solved exactly, rather than set to the full-Coulomb "
-                f"reference value ({args.lambda_reference_value:g})"
-            ),
-            "description": (
-                "1 where the cell is grounded, not fast-flowing, and "
-                "the Weertman basal shear stress at the cell's "
-                "current sliding speed is strictly below the Coulomb "
-                "limit C*N (a valid, non-negative Lambda solution "
-                "exists); 0 otherwise (includes maskFastFlowing "
-                "cells and any slow-flowing grounded cell where the "
-                "solve is ill-defined)."
-            ),
-        },
-    )
+        out[args.floatation_fraction_field] = xr.DataArray(
+            floatation_fraction,
+            dims=(ncell_dim,),
+            attrs={
+                "long_name": "Floatation fraction (Pw / Pice)",
+                "description": (
+                    "Pw = Pice - N (basal water pressure), Pice = "
+                    "rho_i * gravity * thickness (ice overburden "
+                    "pressure); 0 at ice-free cells."
+                ),
+                "units": "1",
+            },
+        )
+
+        # Shreve hydraulic potential: phi = rho_w * g * bed + Pw.
+        hydropotential = args.rho_water * args.gravity * bed + Pw
+
+        out[args.hydropotential_field] = xr.DataArray(
+            hydropotential,
+            dims=(ncell_dim,),
+            attrs={
+                "long_name": "Shreve hydraulic potential",
+                "description": (
+                    "phi = rho_water * gravity * bedTopography + Pw, "
+                    "with Pw = Pice - N"
+                ),
+                "units": "Pa",
+            },
+        )
+
+        out["maskGrounded"] = xr.DataArray(
+            grounded.astype(np.int8),
+            dims=(ncell_dim,),
+            attrs={
+                "long_name": "Mask of grounded ice (Albany grounded-ice test)",
+                "description": (
+                    "1 where rho_i*H + rho_w*bed > 0 and H > 0, else 0"
+                ),
+            },
+        )
+
+        out["maskFastFlowing"] = xr.DataArray(
+            fast_flowing.astype(np.int8),
+            dims=(ncell_dim,),
+            attrs={
+                "long_name": (
+                    "Mask of grounded, fast-flowing cells assumed to be in "
+                    "the full-Coulomb regime (used to fit C)"
+                ),
+                "description": (
+                    "1 where maskGrounded and speed (from velocity-x/y-"
+                    "field, last nVertInterfaces level) > critical "
+                    "velocity, else 0. bedRoughnessRC is forced to "
+                    f"{args.lambda_reference_value:g} at these cells."
+                ),
+            },
+        )
+
+        out["maskValidBedRoughnessRC"] = xr.DataArray(
+            lambda_mask.astype(np.int8),
+            dims=(ncell_dim,),
+            attrs={
+                "long_name": (
+                    "Mask of cells where bedRoughnessRC (Lambda) was "
+                    "solved exactly, rather than set to the full-Coulomb "
+                    f"reference value ({args.lambda_reference_value:g})"
+                ),
+                "description": (
+                    "1 where the cell is grounded, not fast-flowing, and "
+                    "the Weertman basal shear stress at the cell's "
+                    "current sliding speed is strictly below the Coulomb "
+                    "limit C*N (a valid, non-negative Lambda solution "
+                    "exists); 0 otherwise (includes maskFastFlowing "
+                    "cells and any slow-flowing grounded cell where the "
+                    "solve is ill-defined)."
+                ),
+            },
+        )
 
     if args.flow_rate_type == "temperature":
         flow_rate_long_name = (
@@ -1159,14 +1240,15 @@ def main():
         )
         albany_flow_rate_type = "Constant"
 
-    out[args.flow_rate_field] = xr.DataArray(
-        A,
-        dims=(ncell_dim,),
-        attrs={
-            "long_name": flow_rate_long_name,
-            "units": "Pa-3 s-1",
-        },
-    )
+    if args.diagnostics:
+        out[args.flow_rate_field] = xr.DataArray(
+            A,
+            dims=(ncell_dim,),
+            attrs={
+                "long_name": flow_rate_long_name,
+                "units": "Pa-3 s-1",
+            },
+        )
 
     # Save conversion information globally.
     out.attrs["regularizedCoulomb_C"] = float(C)
