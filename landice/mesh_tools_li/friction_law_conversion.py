@@ -57,6 +57,8 @@ For typical MALI/Albany configurations:
 """
 
 import argparse
+import json
+import os
 import shutil
 
 import numpy as np
@@ -387,6 +389,167 @@ def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
     return C, valid
 
 
+def load_transect(name, transects_dir):
+    """
+    Load a flowline transect's lon/lat coordinates directly from a
+    geometric_features-style geojson file, without depending on the
+    geometric_features python package (which does not yet expose
+    these newer flowline transects).
+
+    Expects `<transects_dir>/<name>/transect.geojson`, containing a
+    single Feature with a LineString geometry of [lon, lat] pairs in
+    degrees (geometric_features convention).
+
+    Returns
+    -------
+    lon, lat : 1-D numpy arrays, in degrees.
+    """
+    path = os.path.join(transects_dir, name, "transect.geojson")
+
+    with open(path) as f:
+        geojson = json.load(f)
+
+    feature = geojson["features"][0]
+    geom = feature["geometry"]
+
+    if geom["type"] != "LineString":
+        raise ValueError(
+            f"Transect {name!r} ({path}) has unsupported geometry "
+            f"type {geom['type']!r}; only LineString is supported."
+        )
+
+    coords = np.asarray(geom["coordinates"], dtype=np.float64)
+    lon = coords[:, 0]
+    lat = coords[:, 1]
+
+    return lon, lat
+
+
+def project_transect(lon, lat, transformer):
+    """
+    Project a transect's lon/lat coordinates (degrees) into the
+    planar x/y coordinate system used by the MALI mesh (via the
+    supplied pyproj Transformer, e.g. EPSG:4326 -> EPSG:3031 for
+    Antarctica), and compute the cumulative along-transect distance
+    from the first point.
+
+    Returns
+    -------
+    x, y : 1-D numpy arrays, meters, in the MALI mesh's planar CRS.
+    distance : 1-D numpy array, meters, cumulative arc length along
+        the transect starting from 0 at the first point.
+    """
+    x, y = transformer.transform(lon, lat)
+    x = np.asarray(x, dtype=np.float64)
+    y = np.asarray(y, dtype=np.float64)
+
+    segment_length = np.hypot(np.diff(x), np.diff(y))
+    distance = np.concatenate(([0.0], np.cumsum(segment_length)))
+
+    return x, y, distance
+
+
+def plot_transects(
+    transect_names,
+    transects_dir,
+    plot_dir,
+    x_cell,
+    y_cell,
+    fields,
+):
+    """
+    For each named transect, sample the given cell-centered fields
+    (nearest-neighbor, via a KD-tree on MALI cell centers) along the
+    transect and save a stacked-panel PNG plot vs. along-transect
+    distance.
+
+    Parameters
+    ----------
+    transect_names : list of str
+        Names of subdirectories under `transects_dir`, each expected
+        to contain a `transect.geojson` (geometric_features
+        convention; see load_transect()).
+    transects_dir : str
+        Path to a geometric_features `landice/transect` directory
+        (e.g. `.../geometric_features/geometric_data/landice/
+        transect`).
+    plot_dir : str
+        Directory to write output PNGs to (created if needed).
+    x_cell, y_cell : 1-D numpy arrays
+        MALI mesh cell-center coordinates, meters, in the same planar
+        CRS the transects will be projected into (Antarctic MALI
+        meshes: EPSG:3031 polar stereographic).
+    fields : dict of str -> (1-D numpy array, str, str)
+        Mapping of field label -> (values on MALI cells, units
+        string, long_name string) to sample and plot along each
+        transect, e.g. {"N": (N, "Pa", "Effective pressure")}.
+    """
+    try:
+        import pyproj
+    except ImportError as e:
+        raise ImportError(
+            "Plotting transects requires the 'pyproj' package "
+            "(projects transect lon/lat into the MALI mesh's planar "
+            "CRS). Install it (e.g. `conda install pyproj`) or "
+            "disable transect plotting with --no-plot-transects."
+        ) from e
+
+    try:
+        from scipy.spatial import cKDTree
+    except ImportError as e:
+        raise ImportError(
+            "Plotting transects requires the 'scipy' package "
+            "(nearest-neighbor sampling of MALI cell fields onto "
+            "transect points). Install it or disable transect "
+            "plotting with --no-plot-transects."
+        ) from e
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    os.makedirs(plot_dir, exist_ok=True)
+
+    # Antarctic MALI meshes use EPSG:3031 polar stereographic (see
+    # e.g. MPAS-Tools' ismip7_postprocessing/grid_and_mapping.py);
+    # transects are stored in geographic lon/lat (EPSG:4326).
+    transformer = pyproj.Transformer.from_crs(
+        "epsg:4326", "epsg:3031", always_xy=True
+    )
+
+    tree = cKDTree(np.column_stack((x_cell, y_cell)))
+
+    for name in transect_names:
+        lon, lat = load_transect(name, transects_dir)
+        x, y, distance = project_transect(lon, lat, transformer)
+
+        _, cell_indices = tree.query(np.column_stack((x, y)))
+
+        fig, axes = plt.subplots(
+            len(fields), 1, sharex=True, figsize=(8, 2.5 * len(fields))
+        )
+        if len(fields) == 1:
+            axes = [axes]
+
+        for ax, (label, (values, units, long_name)) in zip(
+            axes, fields.items()
+        ):
+            ax.plot(distance / 1000.0, values[cell_indices])
+            ax.set_ylabel(f"{label} [{units}]")
+            ax.set_title(long_name, fontsize=10)
+            ax.grid(True, alpha=0.3)
+
+        axes[-1].set_xlabel("Along-transect distance [km]")
+        fig.suptitle(f"{name} transect")
+        fig.tight_layout()
+
+        out_path = os.path.join(plot_dir, f"{name}.png")
+        fig.savefig(out_path, dpi=150)
+        plt.close(fig)
+
+        print(f"Wrote transect plot: {out_path}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Convert MALI Weertman friction IC to Regularized Coulomb.",
@@ -640,6 +803,62 @@ def main():
         help="Name for diagnostic hydraulic potential field"
     )
 
+    parser.add_argument(
+        "--transects-dir",
+        default=None,
+        help=(
+            "Path to a geometric_features landice/transect directory "
+            "(e.g. .../geometric_features/geometric_data/landice/"
+            "transect), containing one subdirectory per named "
+            "transect, each with a transect.geojson (LineString "
+            "lon/lat, degrees). Required if --plot-transects is set."
+        )
+    )
+    parser.add_argument(
+        "--transect-names",
+        nargs="+",
+        default=[
+            "Thwaites", "Totten", "Lambert", "Foundation", "Bindschadler"
+        ],
+        help=(
+            "Names of transects to plot (subdirectory names under "
+            "--transects-dir). Default: Thwaites Totten Lambert "
+            "Foundation Bindschadler."
+        )
+    )
+    parser.add_argument(
+        "--plot-dir",
+        default="transect_plots",
+        help=(
+            "Directory to write transect PNG plots to (default: "
+            "transect_plots, created if needed)."
+        )
+    )
+
+    plot_transects_group = parser.add_mutually_exclusive_group()
+    plot_transects_group.add_argument(
+        "--plot-transects",
+        dest="plot_transects",
+        action="store_true",
+        default=False,
+        help=(
+            "Plot effectivePressure, floatationFraction, and "
+            "hydropotential along the transects in --transect-names, "
+            "sampled at MALI cell centers nearest each transect "
+            "point (projected from lon/lat into the MALI mesh's "
+            "planar CRS, EPSG:3031 for Antarctica). Requires "
+            "--diagnostics (the fields plotted are diagnostic "
+            "fields) and --transects-dir, plus the pyproj/scipy/"
+            "matplotlib packages. Default: disabled."
+        )
+    )
+    plot_transects_group.add_argument(
+        "--no-plot-transects",
+        dest="plot_transects",
+        action="store_false",
+        help="Do not plot transects (default)."
+    )
+
     diagnostics_group = parser.add_mutually_exclusive_group()
     diagnostics_group.add_argument(
         "--diagnostics",
@@ -718,6 +937,20 @@ def main():
                 "--min-fraction-overburden/--pressure-length-scale are "
                 "only used with --effective-pressure-type=downs-johnson "
                 "(got --effective-pressure-type=transition)"
+            )
+
+    if args.plot_transects:
+        if not args.diagnostics:
+            parser.error(
+                "--plot-transects requires --diagnostics (the fields "
+                "plotted -- effectivePressure, floatationFraction, "
+                "hydropotential -- are only computed when diagnostics "
+                "are enabled)"
+            )
+        if args.transects_dir is None:
+            parser.error(
+                "--transects-dir is required when --plot-transects "
+                "is set"
             )
 
     # -------------------------------------------------------------
@@ -1288,6 +1521,27 @@ def main():
     shutil.move(tmp, args.output)
 
     print(f"Wrote converted IC: {args.output}")
+
+    if args.plot_transects:
+        x_cell = np.asarray(ds["xCell"].values, dtype=np.float64)
+        y_cell = np.asarray(ds["yCell"].values, dtype=np.float64)
+
+        plot_transects(
+            transect_names=args.transect_names,
+            transects_dir=args.transects_dir,
+            plot_dir=args.plot_dir,
+            x_cell=x_cell,
+            y_cell=y_cell,
+            fields={
+                "N": (N, "Pa", effective_pressure_long_name),
+                "floatation fraction": (
+                    floatation_fraction, "1", "Floatation fraction (Pw / Pice)"
+                ),
+                "hydropotential": (
+                    hydropotential, "Pa", "Shreve hydraulic potential"
+                ),
+            },
+        )
 
     if args.flow_rate_type == "constant":
         flow_rate_yaml_lines = (
