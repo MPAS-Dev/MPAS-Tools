@@ -709,7 +709,7 @@ def plot_transects(
             fig.suptitle(f"{name} transect")
         fig.tight_layout()
 
-        out_path = os.path.join(plot_dir, f"{name}.png")
+        out_path = os.path.join(plot_dir, f"transect_{name}.png")
         fig.savefig(out_path, dpi=150, bbox_inches="tight")
         plt.close(fig)
 
