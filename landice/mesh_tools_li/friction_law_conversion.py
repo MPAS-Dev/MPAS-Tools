@@ -822,7 +822,7 @@ def plot_maps(mesh_ds, fields, plot_dir):
 
         fig.tight_layout()
 
-        out_path = os.path.join(plot_dir, f"{stem}.png")
+        out_path = os.path.join(plot_dir, f"map_{stem}.png")
         fig.savefig(out_path, dpi=150, bbox_inches="tight")
         plt.close(fig)
 
