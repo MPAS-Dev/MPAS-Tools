@@ -305,13 +305,16 @@ def downs_johnson_effective_pressure(
     arg = np.clip(b / length_scale, -700.0, 700.0)
     fp = 1.0 / (1.0 + np.exp(-arg))
 
+    print(fp.min(), fp.max())
+
     overburden_term = min_fraction_overburden * rho_i * H * fp
-    marine_term = (1.0 - fp) * np.maximum(-rho_w * b, 0.0)
+    marine_term = (1.0 - fp) * np.maximum(rho_w * b, 0.0)
 
     N = gravity * np.maximum(
         rho_i * H - (overburden_term + marine_term),
         0.0
     )
+    N=gravity * (rho_i*H - np.maximum(-rho_w * b, 0.0))
 
     return N
 
@@ -713,6 +716,65 @@ def plot_transects(
         print(f"Wrote transect plot: {out_path}")
 
 
+def plot_maps(mesh_ds, fields, plot_dir):
+    """
+    Plot Antarctic-wide maps of the given cell-centered fields on the
+    native MALI mesh, using the `mosaic` package (available in the
+    e3sm-unified conda environment) to render unstructured-mesh
+    polygons directly in the mesh's native planar (polar
+    stereographic) coordinates -- no reprojection needed since MALI's
+    Antarctic meshes are already planar.
+
+    Parameters
+    ----------
+    mesh_ds : xarray.Dataset
+        A MALI mesh dataset containing the coordinate/connectivity
+        arrays mosaic.Descriptor needs (xCell/yCell, verticesOnCell,
+        cellsOnEdge, cellsOnVertex, verticesOnEdge, edgesOnVertex) and
+        the `on_a_sphere`/`is_periodic` global attributes. Antarctic
+        MALI meshes are planar (on_a_sphere = "NO"), so no projection/
+        transform is needed.
+    fields : dict of str -> (1-D numpy array, str, str)
+        Mapping of output filename stem -> (cell-centered values,
+        units string, title string) to plot, e.g.
+        {"bedRoughnessRC": (lam, "Pa (m/yr)^-1/3", "RC bed roughness Lambda")}.
+    plot_dir : str
+        Directory to write output PNGs to (created if needed).
+    """
+    try:
+        import mosaic
+    except ImportError as e:
+        raise ImportError(
+            "Plotting maps requires the 'mosaic' package. This is "
+            "available in the e3sm-unified conda environment (see "
+            "load_latest_e3sm_unified_*.sh); it is not required for "
+            "the rest of this script."
+        ) from e
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
+    os.makedirs(plot_dir, exist_ok=True)
+
+    descriptor = mosaic.Descriptor(mesh_ds)
+
+    for stem, (values, units, title) in fields.items():
+        fig, ax = plt.subplots(figsize=(7, 7))
+        array = xr.DataArray(np.asarray(values), dims=("nCells",))
+        coll = mosaic.polypcolor(ax, descriptor, array, cmap="viridis")
+        ax.set_aspect("equal")
+        ax.set_title(title, fontsize=11)
+        fig.colorbar(coll, ax=ax, label=units, shrink=0.8)
+        fig.tight_layout()
+
+        out_path = os.path.join(plot_dir, f"{stem}.png")
+        fig.savefig(out_path, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+
+        print(f"Wrote map plot: {out_path}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Convert MALI Weertman friction IC to Regularized Coulomb.",
@@ -1041,7 +1103,12 @@ def main():
             "planar CRS, EPSG:3031 for Antarctica). Requires "
             "--diagnostics (the fields plotted are diagnostic "
             "fields) and --transects-dir, plus the pyproj/scipy/"
-            "matplotlib packages. Default: disabled."
+            "matplotlib packages. Also automatically produces "
+            "Antarctic-wide maps (in a 'maps' subdirectory of "
+            "--plot-dir) of the same diagnostic fields, the "
+            "diagnostic masks, and bedRoughnessRC, using the "
+            "'mosaic' package (available in the e3sm-unified conda "
+            "environment). Default: disabled."
         )
     )
     plot_transects_group.add_argument(
@@ -1725,6 +1792,45 @@ def main():
             rho_i=args.rho_ice,
             rho_w=args.rho_water,
             min_fraction_overburden=args.min_fraction_overburden,
+        )
+
+        # Antarctic-wide maps of the same diagnostic fields plus
+        # bedRoughnessRC, using mosaic (e3sm-unified environment).
+        # Always produced alongside the transect plots -- no separate
+        # CLI flag -- since both are diagnostic/evaluation outputs
+        # triggered by --plot-transects.
+        map_fields = {
+            args.lambda_field: (
+                Lambda, "Pa (m yr-1)^-1/3",
+                "Albany regularized-Coulomb bed roughness Lambda"
+            ),
+            args.effective_pressure_field: (
+                N, "Pa", effective_pressure_long_name
+            ),
+            args.floatation_fraction_field: (
+                floatation_fraction, "1",
+                "Floatation fraction (Pw / Pice)"
+            ),
+            args.hydropotential_field: (
+                hydropotential, "Pa", "Shreve hydraulic potential"
+            ),
+            args.flow_rate_field: (A, "Pa-3 s-1", flow_rate_long_name),
+            "maskGrounded": (
+                grounded.astype(np.int8), "1", "Mask of grounded ice"
+            ),
+            "maskFastFlowing": (
+                fast_flowing.astype(np.int8), "1",
+                "Mask of grounded, fast-flowing cells"
+            ),
+            "maskValidBedRoughnessRC": (
+                lambda_mask.astype(np.int8), "1",
+                "Mask of cells where bedRoughnessRC was solved exactly"
+            ),
+        }
+        plot_maps(
+            mesh_ds=ds,
+            fields=map_fields,
+            plot_dir=os.path.join(args.plot_dir, "maps"),
         )
 
     if args.flow_rate_type == "constant":
