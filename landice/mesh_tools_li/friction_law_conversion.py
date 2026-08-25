@@ -494,7 +494,9 @@ def plot_transects(
     elevation (computed from `thickness`/`bed`); subsequent panels
     show the caller-supplied `fields`. Background shading indicates
     floating ice, ice-free ocean, and ice-free land (grounded ice is
-    left unshaded).
+    left unshaded). Vertical dotted gray lines mark along-transect
+    distances where bed elevation crosses zero (interpolated between
+    sampled points).
 
     Parameters
     ----------
@@ -622,6 +624,23 @@ def plot_transects(
         _, cell_indices = tree.query(np.column_stack((x, y)))
         distance_km = distance / 1000.0
         class_along_transect = region_class[cell_indices]
+        bed_along_transect = bed[cell_indices]
+
+        # Distances (interpolated) where bed elevation crosses zero,
+        # marked with a vertical dotted line on every panel (a rough
+        # proxy for the coastline/grounding-line vicinity).
+        bed_sign_changes = np.flatnonzero(
+            np.diff(np.sign(bed_along_transect)) != 0
+        )
+        zero_crossing_distances_km = []
+        for i in bed_sign_changes:
+            b0, b1 = bed_along_transect[i], bed_along_transect[i + 1]
+            if b0 == b1:
+                continue
+            frac = -b0 / (b1 - b0)
+            zero_crossing_distances_km.append(
+                distance_km[i] + frac * (distance_km[i + 1] - distance_km[i])
+            )
 
         fig, axes = plt.subplots(
             len(all_fields), 1, sharex=True,
@@ -650,6 +669,12 @@ def plot_transects(
             x1 = distance_km[run_end]
             for ax in axes:
                 ax.axvspan(x0, x1, color=color, alpha=0.2, zorder=0)
+
+        for x0 in zero_crossing_distances_km:
+            for ax in axes:
+                ax.axvline(
+                    x0, color="gray", linestyle=":", linewidth=1, zorder=1
+                )
 
         for ax, (label, (values, units, long_name)) in zip(
             axes, all_fields.items()
