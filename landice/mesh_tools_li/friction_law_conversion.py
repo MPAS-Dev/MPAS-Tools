@@ -107,7 +107,7 @@ def effective_pressure4(
         rho_i=910.0,
         rho_w=1028.0,
         gravity=9.80616,
-        h_ocean=0.025):
+        h_ocean=25.0):
     """
     Effective pressure with a near-ocean region followed by a bounded
     transition to a prescribed inland fraction of overburden.
@@ -149,10 +149,11 @@ def effective_pressure4(
     gravity : float
         Gravitational acceleration [m s^-2].
     h_ocean : float
-        Height above flotation [m] below which the effective pressure
-        is assumed to be set purely by the ocean-connected
-        (hydrostatic) fraction, with no inland transition applied
-        (default: 0.025 m).
+        Height above flotation [m, same units as `bed`/`thickness`]
+        below which the effective pressure is assumed to be set
+        purely by the ocean-connected (hydrostatic) fraction, with no
+        inland transition applied (default: 25.0 m; originally
+        specified as 0.025 km).
 
     Returns
     -------
@@ -512,13 +513,13 @@ def main():
     parser.add_argument(
         "--transition-h-ocean",
         type=float,
-        default=0.025,
+        default=25.0,
         help=(
-            "Height above flotation [m] below which N is assumed set "
-            "purely by the ocean-connected fraction, with no inland "
-            "transition applied (see effective_pressure4()); only "
-            "used when --effective-pressure-type=transition "
-            "(default: 0.025)"
+            "Height above flotation [m, same units as bedTopography] "
+            "below which N is assumed set purely by the "
+            "ocean-connected fraction, with no inland transition "
+            "applied (see effective_pressure4()); only used when "
+            "--effective-pressure-type=transition (default: 25.0)"
         )
     )
 
