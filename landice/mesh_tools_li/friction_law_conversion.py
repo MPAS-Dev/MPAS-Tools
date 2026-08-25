@@ -485,6 +485,8 @@ def plot_transects(
     min_fraction_overburden=None,
     floatation_fraction_label="floatation fraction",
     fit_mask=None,
+    implied_c_label="implied C",
+    fitted_c=None,
 ):
     """
     For each named transect, sample the given cell-centered fields
@@ -543,6 +545,19 @@ def plot_transects(
         full-Coulomb-regime region). If provided, contiguous
         along-transect runs where this mask is True are shaded (on
         every panel) to indicate where the fit region is crossed.
+    implied_c_label : str
+        Key in `fields` identifying the implied-local-C panel
+        (default: "implied C"). On that panel, the line is only
+        drawn where `fit_mask` is True (elsewhere set to NaN so the
+        line breaks), and, if `fitted_c` is given, a horizontal
+        reference line at the fitted scalar C is overlaid but
+        restricted to the same along-transect fit-region runs (so it
+        is directly comparable to the local values plotted alongside
+        it).
+    fitted_c : float, optional
+        The single global scalar Coulomb Friction Coefficient C, used
+        to draw the reference line on the `implied_c_label` panel
+        described above.
     """
     try:
         import pyproj
@@ -686,6 +701,8 @@ def plot_transects(
         # Shade contiguous along-transect runs falling inside the
         # Coulomb-fit region (fit_mask), on every panel.
         fit_region_used = False
+        fit_region_ranges = []
+        fit_along_transect = None
         if fit_mask is not None:
             fit_along_transect = fit_mask[cell_indices]
             fit_change_indices = np.flatnonzero(
@@ -701,6 +718,7 @@ def plot_transects(
                 fit_region_used = True
                 x0 = distance_km[run_start]
                 x1 = distance_km[run_end]
+                fit_region_ranges.append((x0, x1))
                 for ax in axes:
                     ax.axvspan(
                         x0, x1, color="tab:orange", alpha=0.2, zorder=0
@@ -717,6 +735,25 @@ def plot_transects(
                         label=line_label, zorder=2,
                     )
                 ax.legend(loc="best", fontsize=8)
+            elif label == implied_c_label and fit_along_transect is not None:
+                # Only meaningful inside the Coulomb-fit region;
+                # break the line elsewhere.
+                sampled = values[cell_indices].astype(np.float64)
+                sampled = np.where(fit_along_transect, sampled, np.nan)
+                ax.plot(distance_km, sampled, zorder=2)
+                if fitted_c is not None:
+                    for i, (x0, x1) in enumerate(fit_region_ranges):
+                        ax.hlines(
+                            fitted_c, x0, x1,
+                            color="k", linestyle="--", linewidth=1,
+                            zorder=3,
+                            label=(
+                                f"fitted scalar C ({fitted_c:.3g})"
+                                if i == 0 else None
+                            ),
+                        )
+                    if fit_region_ranges:
+                        ax.legend(loc="best", fontsize=8)
             else:
                 ax.plot(distance_km, values[cell_indices], zorder=2)
             ax.set_ylabel(f"{label} [{units}]")
@@ -1940,6 +1977,11 @@ def main():
                 "hydropotential": (
                     hydropotential, "Pa", "Shreve hydraulic potential"
                 ),
+                "implied C": (
+                    local_C, "1",
+                    "Implied local C (Weertman Tau_b / N), Coulomb "
+                    "C-fit region only",
+                ),
             },
             thickness=H,
             bed=bed,
@@ -1947,6 +1989,7 @@ def main():
             rho_w=args.rho_water,
             min_fraction_overburden=args.min_fraction_overburden,
             fit_mask=fit_mask,
+            fitted_c=C,
         )
 
         # Antarctic-wide maps of the same diagnostic fields plus
