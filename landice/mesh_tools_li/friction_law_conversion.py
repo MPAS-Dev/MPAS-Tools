@@ -314,7 +314,6 @@ def downs_johnson_effective_pressure(
         rho_i * H - (overburden_term + marine_term),
         0.0
     )
-    N=gravity * (rho_i*H - np.maximum(-rho_w * b, 0.0))
 
     return N
 
