@@ -487,8 +487,11 @@ def plot_transects(
     For each named transect, sample the given cell-centered fields
     (nearest-neighbor, via a KD-tree on MALI cell centers) along the
     transect and save a stacked-panel PNG plot vs. along-transect
-    distance. Background shading indicates floating ice, ice-free
-    ocean, and ice-free land (grounded ice is left unshaded).
+    distance. The first panel always shows bed and ice-surface
+    elevation (computed from `thickness`/`bed`); subsequent panels
+    show the caller-supplied `fields`. Background shading indicates
+    floating ice, ice-free ocean, and ice-free land (grounded ice is
+    left unshaded).
 
     Parameters
     ----------
@@ -588,6 +591,27 @@ def plot_transects(
         3: ("Ice-free land", "tab:brown"),
     }
 
+    # Upper-surface elevation, consistent with the same grounded/
+    # floating classification used for shading above: grounded ice
+    # surface = bed + thickness; floating ice surface = thickness *
+    # (1 - rho_i/rho_w) (flotation criterion); ice-free cells show
+    # bare bed/sea-level (max(bed, 0)) since there is no ice surface.
+    surface = np.empty_like(thickness, dtype=np.float64)
+    surface[grounded] = bed[grounded] + thickness[grounded]
+    surface[floating] = thickness[floating] * (1.0 - rho_i / rho_w)
+    surface[ice_free] = np.maximum(bed[ice_free], 0.0)
+
+    # Elevation panel is always shown first, ahead of the
+    # caller-supplied `fields`.
+    elevation_fields = {
+        "elevation": (
+            {"surface": surface, "bed": bed},
+            "m",
+            "Bed and surface elevation",
+        ),
+    }
+    all_fields = {**elevation_fields, **fields}
+
     for name in transect_names:
         lon, lat = load_transect(name, transects_dir)
         x, y, distance = project_transect(lon, lat, transformer)
@@ -597,9 +621,10 @@ def plot_transects(
         class_along_transect = region_class[cell_indices]
 
         fig, axes = plt.subplots(
-            len(fields), 1, sharex=True, figsize=(8, 2.5 * len(fields))
+            len(all_fields), 1, sharex=True,
+            figsize=(8, 2.5 * len(all_fields))
         )
-        if len(fields) == 1:
+        if len(all_fields) == 1:
             axes = [axes]
 
         # Shade contiguous along-transect runs of each non-grounded
@@ -624,9 +649,18 @@ def plot_transects(
                 ax.axvspan(x0, x1, color=color, alpha=0.2, zorder=0)
 
         for ax, (label, (values, units, long_name)) in zip(
-            axes, fields.items()
+            axes, all_fields.items()
         ):
-            ax.plot(distance_km, values[cell_indices], zorder=2)
+            if isinstance(values, dict):
+                # Multi-line panel (e.g. bed & surface elevation).
+                for line_label, arr in values.items():
+                    ax.plot(
+                        distance_km, arr[cell_indices],
+                        label=line_label, zorder=2,
+                    )
+                ax.legend(loc="best", fontsize=8)
+            else:
+                ax.plot(distance_km, values[cell_indices], zorder=2)
             ax.set_ylabel(f"{label} [{units}]")
             ax.set_title(long_name, fontsize=10)
             ax.grid(True, alpha=0.3, zorder=1)
