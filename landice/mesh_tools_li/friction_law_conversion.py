@@ -1877,6 +1877,10 @@ def main():
                 {
                     "values": N, "units": "Pa",
                     "title": effective_pressure_long_name,
+                    # N is only physically meaningful for grounded
+                    # ice (see the floating-cell-nonzero-N note on
+                    # this field in the output NetCDF).
+                    "mask": grounded,
                 }
             ],
             args.floatation_fraction_field: [
