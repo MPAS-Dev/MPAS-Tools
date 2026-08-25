@@ -464,6 +464,8 @@ def plot_transects(
     bed,
     rho_i,
     rho_w,
+    min_fraction_overburden=None,
+    floatation_fraction_label="floatation fraction",
 ):
     """
     For each named transect, sample the given cell-centered fields
@@ -500,6 +502,17 @@ def plot_transects(
         rho_i * H + rho_w * bed > 0).
     rho_i, rho_w : float
         Ice/water density [kg m^-3], for the grounded-ice test above.
+    min_fraction_overburden : float, optional
+        If provided, and `fields` contains an entry keyed
+        `floatation_fraction_label`, draw a horizontal reference line
+        at 1 - min_fraction_overburden on that panel: the maximum
+        floatation fraction --min-fraction-overburden allows N to
+        imply inland (floatation_fraction = Pw/Pice = 1 - N/Pice, and
+        N/Pice is bounded below by min_fraction_overburden inland).
+    floatation_fraction_label : str
+        Key in `fields` identifying the floatation-fraction panel
+        (default: "floatation fraction"), used to place the
+        `min_fraction_overburden` reference line above.
     """
     try:
         import pyproj
@@ -602,6 +615,24 @@ def plot_transects(
             ax.set_ylabel(f"{label} [{units}]")
             ax.set_title(long_name, fontsize=10)
             ax.grid(True, alpha=0.3, zorder=1)
+
+            if (
+                label == floatation_fraction_label
+                and min_fraction_overburden is not None
+            ):
+                bound = 1.0 - min_fraction_overburden
+                ax.axhline(
+                    bound,
+                    color="k",
+                    linestyle="--",
+                    linewidth=1,
+                    zorder=3,
+                    label=(
+                        "1 - min-fraction-overburden bound "
+                        f"({bound:.3g})"
+                    ),
+                )
+                ax.legend(loc="best", fontsize=8)
 
         axes[-1].set_xlabel("Along-transect distance [km]")
 
@@ -1602,6 +1633,7 @@ def main():
             bed=bed,
             rho_i=args.rho_ice,
             rho_w=args.rho_water,
+            min_fraction_overburden=args.min_fraction_overburden,
         )
 
     if args.flow_rate_type == "constant":
