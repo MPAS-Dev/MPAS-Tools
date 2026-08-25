@@ -734,16 +734,27 @@ def plot_maps(mesh_ds, fields, plot_dir):
         the `on_a_sphere`/`is_periodic` global attributes. Antarctic
         MALI meshes are planar (on_a_sphere = "NO"), so no projection/
         transform is needed.
-    fields : dict of str -> list of panel tuples
+    fields : dict of str -> list of dict
         Mapping of output filename stem -> a list of one or more
-        panels to plot side by side in that file, each panel a
-        (values, units, title, log, cmap) tuple: cell-centered
-        values, units string, title string, bool selecting a
-        log-scale colormap (values <= 0 are masked out for log-scale
-        panels), and a matplotlib colormap name (default "viridis"
-        if omitted by passing a 4-tuple instead), e.g.
-        {"bedRoughnessRC": [(lam, "Pa (m/yr)^-1/3",
-        "RC bed roughness Lambda", True, "turbo")]}.
+        panels to plot side by side in that file. Each panel is a
+        dict with keys:
+            values : 1-D array, cell-centered values to plot.
+            units : str, colorbar label.
+            title : str, panel title.
+            log : bool, optional (default False). Use a log-scale
+                colormap (values <= 0 are masked out).
+            cmap : str, optional (default "viridis"). Matplotlib
+                colormap name.
+            vmin, vmax : float, optional. Clip the colormap to this
+                range (e.g. [0, 1] for a fraction field with a few
+                out-of-range outliers); ignored if `log` is True.
+            mask : 1-D bool array, optional. Cells where mask is
+                False are set to NaN (not displayed), e.g. to hide
+                non-grounded cells on a grounded-ice-only field.
+        e.g. {"bedRoughnessRC": [{"values": lam,
+        "units": "Pa (m/yr)^-1/3",
+        "title": "RC bed roughness Lambda", "log": True,
+        "cmap": "turbo"}]}.
     plot_dir : str
         Directory to write output PNGs to (created if needed).
     """
@@ -773,10 +784,18 @@ def plot_maps(mesh_ds, fields, plot_dir):
         axes = axes[0]
 
         for ax, panel in zip(axes, panels):
-            values, units, title, log = panel[:4]
-            cmap = panel[4] if len(panel) > 4 else "viridis"
+            units = panel["units"]
+            title = panel["title"]
+            log = panel.get("log", False)
+            cmap = panel.get("cmap", "viridis")
+            vmin = panel.get("vmin")
+            vmax = panel.get("vmax")
+            mask = panel.get("mask")
 
-            plot_values = np.asarray(values, dtype=np.float64)
+            plot_values = np.asarray(panel["values"], dtype=np.float64)
+            if mask is not None:
+                plot_values = np.where(mask, plot_values, np.nan)
+
             norm = None
             if log:
                 # Log-scale colormaps can't handle non-positive
@@ -788,6 +807,10 @@ def plot_maps(mesh_ds, fields, plot_dir):
                 norm = matplotlib.colors.LogNorm(
                     vmin=np.nanmin(plot_values),
                     vmax=np.nanmax(plot_values),
+                )
+            elif vmin is not None or vmax is not None:
+                norm = matplotlib.colors.Normalize(
+                    vmin=vmin, vmax=vmax, clip=True
                 )
             array = xr.DataArray(plot_values, dims=("nCells",))
             coll = mosaic.polypcolor(
@@ -1836,47 +1859,70 @@ def main():
         # diagnostic/evaluation outputs triggered by --plot-transects.
         map_fields = {
             args.lambda_field: [
-                (
-                    Lambda, "Pa (m yr-1)^-1/3",
-                    "Albany regularized-Coulomb bed roughness Lambda",
-                    True, "turbo",
-                ),
-                (
-                    mu, f"Pa (m yr-1)^-{args.weertman_q:g}",
-                    "Original Weertman muFriction (input)",
-                    True, "turbo_r",
-                ),
+                {
+                    "values": Lambda, "units": "Pa (m yr-1)^-1/3",
+                    "title": (
+                        "Albany regularized-Coulomb bed roughness Lambda"
+                    ),
+                    "log": True, "cmap": "turbo",
+                },
+                {
+                    "values": mu,
+                    "units": f"Pa (m yr-1)^-{args.weertman_q:g}",
+                    "title": "Original Weertman muFriction (input)",
+                    "log": True, "cmap": "turbo_r",
+                },
             ],
             args.effective_pressure_field: [
-                (N, "Pa", effective_pressure_long_name, False)
+                {
+                    "values": N, "units": "Pa",
+                    "title": effective_pressure_long_name,
+                }
             ],
             args.floatation_fraction_field: [
-                (
-                    floatation_fraction, "1",
-                    "Floatation fraction (Pw / Pice)", False,
-                )
+                {
+                    "values": floatation_fraction, "units": "1",
+                    "title": "Floatation fraction (Pw / Pice)",
+                    # A few outlier cells (very thin/no ice) can
+                    # produce huge ratios; clip the colormap to the
+                    # physically meaningful [0, 1] range, and mask
+                    # out non-grounded cells entirely (this field is
+                    # only meaningful for grounded ice).
+                    "vmin": 0.0, "vmax": 1.0, "mask": grounded,
+                }
             ],
             args.hydropotential_field: [
-                (hydropotential, "Pa", "Shreve hydraulic potential", False)
+                {
+                    "values": hydropotential, "units": "Pa",
+                    "title": "Shreve hydraulic potential",
+                }
             ],
             args.flow_rate_field: [
-                (A, "Pa-3 s-1", flow_rate_long_name, False)
+                {
+                    "values": A, "units": "Pa-3 s-1",
+                    "title": flow_rate_long_name,
+                }
             ],
             "maskGrounded": [
-                (grounded.astype(np.int8), "1", "Mask of grounded ice", False)
+                {
+                    "values": grounded.astype(np.int8), "units": "1",
+                    "title": "Mask of grounded ice",
+                }
             ],
             "maskFastFlowing": [
-                (
-                    fast_flowing.astype(np.int8), "1",
-                    "Mask of grounded, fast-flowing cells", False,
-                )
+                {
+                    "values": fast_flowing.astype(np.int8), "units": "1",
+                    "title": "Mask of grounded, fast-flowing cells",
+                }
             ],
             "maskValidBedRoughnessRC": [
-                (
-                    lambda_mask.astype(np.int8), "1",
-                    "Mask of cells where bedRoughnessRC was solved exactly",
-                    False,
-                )
+                {
+                    "values": lambda_mask.astype(np.int8), "units": "1",
+                    "title": (
+                        "Mask of cells where bedRoughnessRC was solved "
+                        "exactly"
+                    ),
+                }
             ],
         }
         plot_maps(
