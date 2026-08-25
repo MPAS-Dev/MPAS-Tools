@@ -716,7 +716,7 @@ def plot_transects(
         print(f"Wrote transect plot: {out_path}")
 
 
-def plot_maps(mesh_ds, fields, plot_dir):
+def plot_maps(mesh_ds, fields, plot_dir, transects=None):
     """
     Plot Antarctic-wide maps of the given cell-centered fields on the
     native MALI mesh, using the `mosaic` package (available in the
@@ -757,6 +757,11 @@ def plot_maps(mesh_ds, fields, plot_dir):
         "cmap": "turbo"}]}.
     plot_dir : str
         Directory to write output PNGs to (created if needed).
+    transects : list of (str, ndarray, ndarray), optional
+        (name, x, y) tuples, already projected into the mesh's planar
+        CRS (e.g. via project_transect()), overlaid as lines on every
+        panel of every map, with each transect's name labeled at its
+        starting point. Omit/None to disable (default: no overlay).
     """
     try:
         import mosaic
@@ -819,6 +824,14 @@ def plot_maps(mesh_ds, fields, plot_dir):
             ax.set_aspect("equal")
             ax.set_title(title, fontsize=11)
             fig.colorbar(coll, ax=ax, label=units, shrink=0.8)
+
+            if transects:
+                for name, x, y in transects:
+                    ax.plot(x, y, color="red", linewidth=1, zorder=3)
+                    ax.annotate(
+                        name, (x[0], y[0]), color="red", fontsize=7,
+                        zorder=4,
+                    )
 
         fig.tight_layout()
 
@@ -1173,6 +1186,25 @@ def main():
         dest="plot_transects",
         action="store_false",
         help="Do not plot transects (default)."
+    )
+
+    plot_transects_on_maps_group = parser.add_mutually_exclusive_group()
+    plot_transects_on_maps_group.add_argument(
+        "--plot-transects-on-maps",
+        dest="plot_transects_on_maps",
+        action="store_true",
+        default=True,
+        help=(
+            "Overlay the --transect-names transect lines (with "
+            "labels) on every panel of every Antarctic-wide map "
+            "produced by --plot-transects. Default: enabled."
+        )
+    )
+    plot_transects_on_maps_group.add_argument(
+        "--no-plot-transects-on-maps",
+        dest="plot_transects_on_maps",
+        action="store_false",
+        help="Do not overlay transect lines on the Antarctic-wide maps."
     )
 
     diagnostics_group = parser.add_mutually_exclusive_group()
@@ -1930,10 +1962,25 @@ def main():
                 }
             ],
         }
+
+        map_transects = None
+        if args.plot_transects_on_maps:
+            import pyproj
+
+            transformer = pyproj.Transformer.from_crs(
+                "epsg:4326", "epsg:3031", always_xy=True
+            )
+            map_transects = []
+            for name in args.transect_names:
+                t_lon, t_lat = load_transect(name, args.transects_dir)
+                t_x, t_y, _ = project_transect(t_lon, t_lat, transformer)
+                map_transects.append((name, t_x, t_y))
+
         plot_maps(
             mesh_ds=ds,
             fields=map_fields,
             plot_dir=args.plot_dir,
+            transects=map_transects,
         )
 
     if args.flow_rate_type == "constant":
