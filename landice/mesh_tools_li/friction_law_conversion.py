@@ -484,6 +484,7 @@ def plot_transects(
     rho_w,
     min_fraction_overburden=None,
     floatation_fraction_label="floatation fraction",
+    fit_mask=None,
 ):
     """
     For each named transect, sample the given cell-centered fields
@@ -535,6 +536,13 @@ def plot_transects(
         Key in `fields` identifying the floatation-fraction panel
         (default: "floatation fraction"), used to place the
         `min_fraction_overburden` reference line above.
+    fit_mask : 1-D bool numpy array, optional
+        MALI cell-centered mask (same shape as `thickness`/`bed`)
+        marking the region used to fit the single global scalar
+        Coulomb Friction Coefficient C (i.e. the "fast-flowing"/
+        full-Coulomb-regime region). If provided, contiguous
+        along-transect runs where this mask is True are shaded (on
+        every panel) to indicate where the fit region is crossed.
     """
     try:
         import pyproj
@@ -675,6 +683,29 @@ def plot_transects(
                     x0, color="gray", linestyle=":", linewidth=1, zorder=1
                 )
 
+        # Shade contiguous along-transect runs falling inside the
+        # Coulomb-fit region (fit_mask), on every panel.
+        fit_region_used = False
+        if fit_mask is not None:
+            fit_along_transect = fit_mask[cell_indices]
+            fit_change_indices = np.flatnonzero(
+                np.diff(fit_along_transect.astype(np.int8)) != 0
+            ) + 1
+            fit_run_starts = np.concatenate(([0], fit_change_indices))
+            fit_run_ends = np.concatenate(
+                (fit_change_indices, [len(fit_along_transect) - 1])
+            )
+            for run_start, run_end in zip(fit_run_starts, fit_run_ends):
+                if not fit_along_transect[run_start]:
+                    continue
+                fit_region_used = True
+                x0 = distance_km[run_start]
+                x1 = distance_km[run_end]
+                for ax in axes:
+                    ax.axvspan(
+                        x0, x1, color="tab:orange", alpha=0.2, zorder=0
+                    )
+
         for ax, (label, (values, units, long_name)) in zip(
             axes, all_fields.items()
         ):
@@ -719,6 +750,16 @@ def plot_transects(
                 )
                 for cls in sorted(classes_used)
             ]
+        else:
+            legend_handles = []
+        if fit_region_used:
+            legend_handles.append(
+                mpatches.Patch(
+                    color="tab:orange", alpha=0.2,
+                    label="Coulomb C-fit region",
+                )
+            )
+        if legend_handles:
             fig.legend(
                 handles=legend_handles,
                 loc="upper center",
@@ -727,7 +768,7 @@ def plot_transects(
                 frameon=False,
             )
 
-        if classes_used:
+        if classes_used or fit_region_used:
             fig.suptitle(f"{name} transect", y=1.08)
         else:
             fig.suptitle(f"{name} transect")
@@ -1905,6 +1946,7 @@ def main():
             rho_i=args.rho_ice,
             rho_w=args.rho_water,
             min_fraction_overburden=args.min_fraction_overburden,
+            fit_mask=fit_mask,
         )
 
         # Antarctic-wide maps of the same diagnostic fields plus
