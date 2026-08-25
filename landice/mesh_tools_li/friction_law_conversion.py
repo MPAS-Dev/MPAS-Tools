@@ -460,12 +460,17 @@ def plot_transects(
     x_cell,
     y_cell,
     fields,
+    thickness,
+    bed,
+    rho_i,
+    rho_w,
 ):
     """
     For each named transect, sample the given cell-centered fields
     (nearest-neighbor, via a KD-tree on MALI cell centers) along the
     transect and save a stacked-panel PNG plot vs. along-transect
-    distance.
+    distance. Background shading indicates floating ice, ice-free
+    ocean, and ice-free land (grounded ice is left unshaded).
 
     Parameters
     ----------
@@ -487,6 +492,14 @@ def plot_transects(
         Mapping of field label -> (values on MALI cells, units
         string, long_name string) to sample and plot along each
         transect, e.g. {"N": (N, "Pa", "Effective pressure")}.
+    thickness, bed : 1-D numpy arrays
+        MALI cell-centered ice thickness [m] and bed elevation [m],
+        used to classify each cell as grounded ice, floating ice,
+        ice-free ocean, or ice-free land for background shading
+        (same grounded-ice test used elsewhere in this script:
+        rho_i * H + rho_w * bed > 0).
+    rho_i, rho_w : float
+        Ice/water density [kg m^-3], for the grounded-ice test above.
     """
     try:
         import pyproj
@@ -510,6 +523,7 @@ def plot_transects(
 
     import matplotlib
     matplotlib.use("Agg")
+    import matplotlib.patches as mpatches
     import matplotlib.pyplot as plt
 
     os.makedirs(plot_dir, exist_ok=True)
@@ -523,11 +537,36 @@ def plot_transects(
 
     tree = cKDTree(np.column_stack((x_cell, y_cell)))
 
+    # Classify each MALI cell for background shading: grounded ice is
+    # left unshaded; floating ice, ice-free ocean, and ice-free land
+    # are shaded. Uses the same grounded-ice test as the rest of this
+    # script (rho_i * H + rho_w * bed > 0).
+    ice_free = thickness <= 0.0
+    grounded = (~ice_free) & (rho_i * thickness + rho_w * bed > 0.0)
+    floating = (~ice_free) & (~grounded)
+    ice_free_ocean = ice_free & (bed < 0.0)
+    ice_free_land = ice_free & (bed >= 0.0)
+
+    # 0 = grounded ice (unshaded), 1 = floating ice, 2 = ice-free
+    # ocean, 3 = ice-free land.
+    region_class = np.zeros(thickness.shape, dtype=np.int8)
+    region_class[floating] = 1
+    region_class[ice_free_ocean] = 2
+    region_class[ice_free_land] = 3
+
+    shading = {
+        1: ("Floating ice", "tab:blue"),
+        2: ("Ice-free ocean", "tab:cyan"),
+        3: ("Ice-free land", "tab:brown"),
+    }
+
     for name in transect_names:
         lon, lat = load_transect(name, transects_dir)
         x, y, distance = project_transect(lon, lat, transformer)
 
         _, cell_indices = tree.query(np.column_stack((x, y)))
+        distance_km = distance / 1000.0
+        class_along_transect = region_class[cell_indices]
 
         fig, axes = plt.subplots(
             len(fields), 1, sharex=True, figsize=(8, 2.5 * len(fields))
@@ -535,20 +574,60 @@ def plot_transects(
         if len(fields) == 1:
             axes = [axes]
 
+        # Shade contiguous along-transect runs of each non-grounded
+        # class, on every panel.
+        change_indices = np.flatnonzero(
+            np.diff(class_along_transect) != 0
+        ) + 1
+        run_starts = np.concatenate(([0], change_indices))
+        run_ends = np.concatenate(
+            (change_indices, [len(class_along_transect) - 1])
+        )
+        classes_used = set()
+        for run_start, run_end in zip(run_starts, run_ends):
+            cls = class_along_transect[run_start]
+            if cls == 0:
+                continue
+            classes_used.add(cls)
+            _, color = shading[cls]
+            x0 = distance_km[run_start]
+            x1 = distance_km[run_end]
+            for ax in axes:
+                ax.axvspan(x0, x1, color=color, alpha=0.2, zorder=0)
+
         for ax, (label, (values, units, long_name)) in zip(
             axes, fields.items()
         ):
-            ax.plot(distance / 1000.0, values[cell_indices])
+            ax.plot(distance_km, values[cell_indices], zorder=2)
             ax.set_ylabel(f"{label} [{units}]")
             ax.set_title(long_name, fontsize=10)
-            ax.grid(True, alpha=0.3)
+            ax.grid(True, alpha=0.3, zorder=1)
 
         axes[-1].set_xlabel("Along-transect distance [km]")
-        fig.suptitle(f"{name} transect")
+
+        if classes_used:
+            legend_handles = [
+                mpatches.Patch(
+                    color=shading[cls][1], alpha=0.2, label=shading[cls][0]
+                )
+                for cls in sorted(classes_used)
+            ]
+            fig.legend(
+                handles=legend_handles,
+                loc="upper center",
+                ncol=len(legend_handles),
+                bbox_to_anchor=(0.5, 1.02),
+                frameon=False,
+            )
+
+        if classes_used:
+            fig.suptitle(f"{name} transect", y=1.08)
+        else:
+            fig.suptitle(f"{name} transect")
         fig.tight_layout()
 
         out_path = os.path.join(plot_dir, f"{name}.png")
-        fig.savefig(out_path, dpi=150)
+        fig.savefig(out_path, dpi=150, bbox_inches="tight")
         plt.close(fig)
 
         print(f"Wrote transect plot: {out_path}")
@@ -1519,6 +1598,10 @@ def main():
                     hydropotential, "Pa", "Shreve hydraulic potential"
                 ),
             },
+            thickness=H,
+            bed=bed,
+            rho_i=args.rho_ice,
+            rho_w=args.rho_water,
         )
 
     if args.flow_rate_type == "constant":
