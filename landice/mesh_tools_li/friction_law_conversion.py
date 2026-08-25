@@ -1899,6 +1899,7 @@ def main():
                 {
                     "values": hydropotential, "units": "Pa",
                     "title": "Shreve hydraulic potential",
+                    "mask": grounded,
                 }
             ],
             args.flow_rate_field: [
