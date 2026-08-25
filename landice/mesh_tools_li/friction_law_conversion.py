@@ -1163,11 +1163,11 @@ def main():
         "--transect-names",
         nargs="+",
         default=[
-            "Thwaites", "Totten", "Lambert", "Foundation", "Bindschadler"
+            "Thwaites", "Totten", "Jutulstraumen", "Foundation", "Bindschadler"
         ],
         help=(
             "Names of transects to plot (subdirectory names under "
-            "--transects-dir). Default: Thwaites Totten Lambert "
+            "--transects-dir). Default: Thwaites Totten Jutulstraumen "
             "Foundation Bindschadler."
         )
     )
@@ -1983,6 +1983,18 @@ def main():
                         "Mask of cells where bedRoughnessRC was solved "
                         "exactly"
                     ),
+                }
+            ],
+            "impliedC": [
+                {
+                    "values": local_C, "units": "1",
+                    "title": (
+                        "Implied C (Weertman Tau_b / N) in the fast-"
+                        f"flowing/full-Coulomb fit region; fitted "
+                        f"scalar C = {C:.4g}"
+                    ),
+                    "log": True, "cmap": "turbo",
+                    "mask": fit_mask,
                 }
             ],
         }
