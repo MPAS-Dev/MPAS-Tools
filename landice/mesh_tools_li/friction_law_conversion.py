@@ -104,7 +104,7 @@ ALBANY_FLOW_RATE_ARRMLL = 3.613e-13   # [Pa-3 s-1]
 def effective_pressure4(
         thickness,
         bed,
-        alpha,
+        min_fraction_overburden,
         length_scale,
         rho_i=910.0,
         rho_w=1028.0,
@@ -130,13 +130,14 @@ def effective_pressure4(
         Ice thickness H [m].
     bed : ndarray
         Bed elevation b [m], positive above sea level.
-    alpha : float
-        1 minus the prescribed inland effective-pressure fraction of
-        overburden, i.e. the inland effective pressure is
-        N_inland = gravity * rho_i * H * (1 - alpha). Analogous in
-        spirit to downs_johnson_effective_pressure()'s
-        "min_fraction_overburden", but as a deficit fraction rather
-        than a retained fraction.
+    min_fraction_overburden : float
+        Prescribed inland effective-pressure fraction of overburden,
+        i.e. the inland effective pressure is
+        N_inland = gravity * rho_i * H * min_fraction_overburden.
+        Same convention as downs_johnson_effective_pressure()'s
+        parameter of the same name (a retained fraction, not a
+        deficit), so the same CLI value can be reused across both
+        effective-pressure parameterizations.
     length_scale : float
         Distance L [m, same units as `bed`/`thickness`] over which
         half the remaining difference between the near-ocean value and
@@ -186,8 +187,11 @@ def effective_pressure4(
         0.0,
     )
 
-    # Prescribed inland effective-pressure fraction.
-    q_inland = 1.0 - alpha
+    # Prescribed inland effective-pressure fraction. min_fraction_
+    # overburden is already a retained fraction (same convention as
+    # downs_johnson_effective_pressure()), so no deficit conversion
+    # is needed here.
+    q_inland = min_fraction_overburden
 
     # Ocean-connected value at the end of the fixed region.
     q_start = np.where(
@@ -616,7 +620,7 @@ def main():
             "runtime from thickness/bed, so no N field needs to be "
             "supplied. \"transition\" computes N here using a "
             "near-ocean/inland-transition parameterization (see "
-            "--transition-alpha/--transition-length-scale/"
+            "--min-fraction-overburden/--pressure-length-scale/"
             "--transition-h-ocean) and writes it to the output for "
             "reference; NOTE: Albany does not yet have a way to "
             "consume this precomputed N directly for the Regularized "
@@ -628,13 +632,25 @@ def main():
 
     # Downs & Johnson / Albany parameters (required only when
     # --effective-pressure-type=downs-johnson).
+    # Effective-pressure parameters shared between the "downs-johnson"
+    # and "transition" parameterizations (see --effective-pressure-
+    # type below): both use a retained fraction of overburden inland
+    # (min_fraction_overburden) and a length scale in meters
+    # (pressure_length_scale), even though each parameterization uses
+    # them in a different formula. Overloading the same CLI flags
+    # across both types makes it convenient to switch between them.
     parser.add_argument(
         "--min-fraction-overburden",
         type=float,
         default=None,
         help=(
-            'Albany "Minimum Fraction Overburden Pressure" (required '
-            "when --effective-pressure-type=downs-johnson)"
+            "Prescribed inland effective-pressure fraction of "
+            'overburden. For --effective-pressure-type=downs-johnson, '
+            'this is Albany\'s "Minimum Fraction Overburden Pressure". '
+            "For --effective-pressure-type=transition, this is the "
+            "inland target fraction used by effective_pressure4() "
+            "(N_inland = rho_i * gravity * H * "
+            "min_fraction_overburden). Required in either case."
         )
     )
     parser.add_argument(
@@ -642,37 +658,24 @@ def main():
         type=float,
         default=None,
         help=(
-            'Albany "Length Scale Factor", converted to the same '
-            "length units as bedTopography (normally m) (required "
-            "when --effective-pressure-type=downs-johnson)"
-        )
-    )
-
-    # "transition" effective-pressure parameters (required only when
-    # --effective-pressure-type=transition).
-    parser.add_argument(
-        "--transition-alpha",
-        type=float,
-        default=None,
-        help=(
-            "1 minus the prescribed inland effective-pressure "
-            "fraction of overburden (see effective_pressure4()); "
-            "required when --effective-pressure-type=transition"
-        )
-    )
-    parser.add_argument(
-        "--transition-length-scale",
-        type=float,
-        default=None,
-        help=(
-            "Distance [m] over which half the remaining difference "
+            "Length scale [m, same units as bedTopography] used by "
+            "the effective-pressure parameterization selected via "
+            "--effective-pressure-type. For downs-johnson, this is "
+            'Albany\'s "Length Scale Factor" (width of the bed-'
+            "elevation sigmoid). For transition, this is the "
+            "distance over which half the remaining difference "
             "between the near-ocean value and the inland target "
             "fraction is removed moving inland (see "
             "effective_pressure4()); 0 disables the smooth "
-            "transition (step function). Required when "
-            "--effective-pressure-type=transition."
+            "transition (step function) in that case. The two "
+            "parameterizations use this value in different formulas "
+            "-- a value tuned for one is not automatically "
+            "appropriate for the other. Required in either case."
         )
     )
+
+    # "transition"-only effective-pressure parameter (required only
+    # when --effective-pressure-type=transition).
     parser.add_argument(
         "--transition-h-ocean",
         type=float,
@@ -913,31 +916,13 @@ def main():
                 "with this exponent."
             )
 
-    if args.effective_pressure_type == "downs-johnson":
-        if args.min_fraction_overburden is None or args.pressure_length_scale is None:
-            parser.error(
-                "--min-fraction-overburden and --pressure-length-scale "
-                "are required when "
-                "--effective-pressure-type=downs-johnson"
-            )
-        if args.transition_alpha is not None or args.transition_length_scale is not None:
-            parser.error(
-                "--transition-alpha/--transition-length-scale are "
-                "only used with --effective-pressure-type=transition "
-                "(got --effective-pressure-type=downs-johnson)"
-            )
-    else:
-        if args.transition_alpha is None or args.transition_length_scale is None:
-            parser.error(
-                "--transition-alpha and --transition-length-scale are "
-                "required when --effective-pressure-type=transition"
-            )
-        if args.min_fraction_overburden is not None or args.pressure_length_scale is not None:
-            parser.error(
-                "--min-fraction-overburden/--pressure-length-scale are "
-                "only used with --effective-pressure-type=downs-johnson "
-                "(got --effective-pressure-type=transition)"
-            )
+    if args.min_fraction_overburden is None or args.pressure_length_scale is None:
+        parser.error(
+            "--min-fraction-overburden and --pressure-length-scale "
+            "are required (used by both "
+            "--effective-pressure-type=downs-johnson and "
+            "--effective-pressure-type=transition)"
+        )
 
     if args.plot_transects:
         if not args.diagnostics:
@@ -1065,8 +1050,8 @@ def main():
         N = effective_pressure4(
             thickness=H,
             bed=bed,
-            alpha=args.transition_alpha,
-            length_scale=args.transition_length_scale,
+            min_fraction_overburden=args.min_fraction_overburden,
+            length_scale=args.pressure_length_scale,
             rho_i=args.rho_ice,
             rho_w=args.rho_water,
             gravity=args.gravity,
@@ -1495,20 +1480,13 @@ def main():
     out.attrs["regularizedCoulomb_effectivePressureType"] = (
         args.effective_pressure_type
     )
-    if args.effective_pressure_type == "downs-johnson":
-        out.attrs["regularizedCoulomb_minFractionOverburden"] = (
-            float(args.min_fraction_overburden)
-        )
-        out.attrs["regularizedCoulomb_pressureLengthScale"] = (
-            float(args.pressure_length_scale)
-        )
-    else:
-        out.attrs["regularizedCoulomb_transitionAlpha"] = (
-            float(args.transition_alpha)
-        )
-        out.attrs["regularizedCoulomb_transitionLengthScale"] = (
-            float(args.transition_length_scale)
-        )
+    out.attrs["regularizedCoulomb_minFractionOverburden"] = (
+        float(args.min_fraction_overburden)
+    )
+    out.attrs["regularizedCoulomb_pressureLengthScale"] = (
+        float(args.pressure_length_scale)
+    )
+    if args.effective_pressure_type == "transition":
         out.attrs["regularizedCoulomb_transitionHOcean"] = (
             float(args.transition_h_ocean)
         )
