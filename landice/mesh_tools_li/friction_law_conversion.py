@@ -1948,7 +1948,7 @@ def main():
                     # physically meaningful [0, 1] range, and mask
                     # out non-grounded cells entirely (this field is
                     # only meaningful for grounded ice).
-                    "vmin": 0.0, "vmax": 1.0, "mask": grounded,
+                    "vmax": 1.0, "mask": grounded,
                 }
             ],
             args.hydropotential_field: [
