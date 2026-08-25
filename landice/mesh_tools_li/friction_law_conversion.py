@@ -734,10 +734,14 @@ def plot_maps(mesh_ds, fields, plot_dir):
         the `on_a_sphere`/`is_periodic` global attributes. Antarctic
         MALI meshes are planar (on_a_sphere = "NO"), so no projection/
         transform is needed.
-    fields : dict of str -> (1-D numpy array, str, str)
-        Mapping of output filename stem -> (cell-centered values,
-        units string, title string) to plot, e.g.
-        {"bedRoughnessRC": (lam, "Pa (m/yr)^-1/3", "RC bed roughness Lambda")}.
+    fields : dict of str -> list of (values, units, title, log)
+        Mapping of output filename stem -> a list of one or more
+        panels to plot side by side in that file, each panel a
+        (cell-centered values, units string, title string, bool)
+        tuple, where the bool selects a log-scale colormap (values
+        <= 0 are masked out for log-scale panels), e.g.
+        {"bedRoughnessRC": [(lam, "Pa (m/yr)^-1/3",
+        "RC bed roughness Lambda", True)]}.
     plot_dir : str
         Directory to write output PNGs to (created if needed).
     """
@@ -753,19 +757,41 @@ def plot_maps(mesh_ds, fields, plot_dir):
 
     import matplotlib
     matplotlib.use("Agg")
+    import matplotlib.colors
     import matplotlib.pyplot as plt
 
     os.makedirs(plot_dir, exist_ok=True)
 
     descriptor = mosaic.Descriptor(mesh_ds)
 
-    for stem, (values, units, title) in fields.items():
-        fig, ax = plt.subplots(figsize=(7, 7))
-        array = xr.DataArray(np.asarray(values), dims=("nCells",))
-        coll = mosaic.polypcolor(ax, descriptor, array, cmap="viridis")
-        ax.set_aspect("equal")
-        ax.set_title(title, fontsize=11)
-        fig.colorbar(coll, ax=ax, label=units, shrink=0.8)
+    for stem, panels in fields.items():
+        fig, axes = plt.subplots(
+            1, len(panels), figsize=(7 * len(panels), 7), squeeze=False
+        )
+        axes = axes[0]
+
+        for ax, (values, units, title, log) in zip(axes, panels):
+            plot_values = np.asarray(values, dtype=np.float64)
+            norm = None
+            if log:
+                # Log-scale colormaps can't handle non-positive
+                # values; mask them out (e.g. Lambda's full-Coulomb
+                # reference cells, typically 0.0).
+                plot_values = np.where(
+                    plot_values > 0.0, plot_values, np.nan
+                )
+                norm = matplotlib.colors.LogNorm(
+                    vmin=np.nanmin(plot_values),
+                    vmax=np.nanmax(plot_values),
+                )
+            array = xr.DataArray(plot_values, dims=("nCells",))
+            coll = mosaic.polypcolor(
+                ax, descriptor, array, cmap="viridis", norm=norm
+            )
+            ax.set_aspect("equal")
+            ax.set_title(title, fontsize=11)
+            fig.colorbar(coll, ax=ax, label=units, shrink=0.8)
+
         fig.tight_layout()
 
         out_path = os.path.join(plot_dir, f"{stem}.png")
@@ -1082,10 +1108,12 @@ def main():
     )
     parser.add_argument(
         "--plot-dir",
-        default="transect_plots",
+        default="diagnostic_plots",
         help=(
-            "Directory to write transect PNG plots to (default: "
-            "transect_plots, created if needed)."
+            "Directory to write all diagnostic PNG plots to (transect "
+            "plots and Antarctic-wide maps, all directly in this "
+            "single directory, no subdirectories). Default: "
+            "diagnostic_plots, created if needed."
         )
     )
 
@@ -1104,11 +1132,12 @@ def main():
             "--diagnostics (the fields plotted are diagnostic "
             "fields) and --transects-dir, plus the pyproj/scipy/"
             "matplotlib packages. Also automatically produces "
-            "Antarctic-wide maps (in a 'maps' subdirectory of "
-            "--plot-dir) of the same diagnostic fields, the "
-            "diagnostic masks, and bedRoughnessRC, using the "
-            "'mosaic' package (available in the e3sm-unified conda "
-            "environment). Default: disabled."
+            "Antarctic-wide maps (in --plot-dir) of the same "
+            "diagnostic fields, the diagnostic masks, bedRoughnessRC "
+            "(log scale), and the original muFriction field (log "
+            "scale, for comparison), using the 'mosaic' package "
+            "(available in the e3sm-unified conda environment). "
+            "Default: disabled."
         )
     )
     plot_transects_group.add_argument(
@@ -1795,42 +1824,60 @@ def main():
         )
 
         # Antarctic-wide maps of the same diagnostic fields plus
-        # bedRoughnessRC, using mosaic (e3sm-unified environment).
-        # Always produced alongside the transect plots -- no separate
-        # CLI flag -- since both are diagnostic/evaluation outputs
-        # triggered by --plot-transects.
+        # bedRoughnessRC (alongside the original Weertman muFriction
+        # field for comparison, both log scale), using mosaic
+        # (e3sm-unified environment). Always produced alongside the
+        # transect plots -- no separate CLI flag -- since both are
+        # diagnostic/evaluation outputs triggered by --plot-transects.
         map_fields = {
-            args.lambda_field: (
-                Lambda, "Pa (m yr-1)^-1/3",
-                "Albany regularized-Coulomb bed roughness Lambda"
-            ),
-            args.effective_pressure_field: (
-                N, "Pa", effective_pressure_long_name
-            ),
-            args.floatation_fraction_field: (
-                floatation_fraction, "1",
-                "Floatation fraction (Pw / Pice)"
-            ),
-            args.hydropotential_field: (
-                hydropotential, "Pa", "Shreve hydraulic potential"
-            ),
-            args.flow_rate_field: (A, "Pa-3 s-1", flow_rate_long_name),
-            "maskGrounded": (
-                grounded.astype(np.int8), "1", "Mask of grounded ice"
-            ),
-            "maskFastFlowing": (
-                fast_flowing.astype(np.int8), "1",
-                "Mask of grounded, fast-flowing cells"
-            ),
-            "maskValidBedRoughnessRC": (
-                lambda_mask.astype(np.int8), "1",
-                "Mask of cells where bedRoughnessRC was solved exactly"
-            ),
+            args.lambda_field: [
+                (
+                    Lambda, "Pa (m yr-1)^-1/3",
+                    "Albany regularized-Coulomb bed roughness Lambda",
+                    True,
+                ),
+                (
+                    mu, f"Pa (m yr-1)^-{args.weertman_q:g}",
+                    "Original Weertman muFriction (input)",
+                    True,
+                ),
+            ],
+            args.effective_pressure_field: [
+                (N, "Pa", effective_pressure_long_name, False)
+            ],
+            args.floatation_fraction_field: [
+                (
+                    floatation_fraction, "1",
+                    "Floatation fraction (Pw / Pice)", False,
+                )
+            ],
+            args.hydropotential_field: [
+                (hydropotential, "Pa", "Shreve hydraulic potential", False)
+            ],
+            args.flow_rate_field: [
+                (A, "Pa-3 s-1", flow_rate_long_name, False)
+            ],
+            "maskGrounded": [
+                (grounded.astype(np.int8), "1", "Mask of grounded ice", False)
+            ],
+            "maskFastFlowing": [
+                (
+                    fast_flowing.astype(np.int8), "1",
+                    "Mask of grounded, fast-flowing cells", False,
+                )
+            ],
+            "maskValidBedRoughnessRC": [
+                (
+                    lambda_mask.astype(np.int8), "1",
+                    "Mask of cells where bedRoughnessRC was solved exactly",
+                    False,
+                )
+            ],
         }
         plot_maps(
             mesh_ds=ds,
             fields=map_fields,
-            plot_dir=os.path.join(args.plot_dir, "maps"),
+            plot_dir=args.plot_dir,
         )
 
     if args.flow_rate_type == "constant":
