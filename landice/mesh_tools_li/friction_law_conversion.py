@@ -131,12 +131,17 @@ def effective_pressure4(
     bed : ndarray
         Bed elevation b [m], positive above sea level.
     min_fraction_overburden : float
-        Prescribed inland effective-pressure fraction of overburden,
+        Prescribed inland *minimum floatation fraction* (Pw/Pice),
         i.e. the inland effective pressure is
-        N_inland = gravity * rho_i * H * min_fraction_overburden.
+        N_inland = gravity * rho_i * H * (1 - min_fraction_overburden).
         Same convention as downs_johnson_effective_pressure()'s
-        parameter of the same name (a retained fraction, not a
-        deficit), so the same CLI value can be reused across both
+        parameter of the same name: Albany's "Minimum Fraction
+        Overburden Pressure" is subtracted from a retained-overburden
+        fraction of 1 (not applied directly as a retained fraction),
+        so the inland floatation fraction approaches
+        min_fraction_overburden itself (its floor), not
+        1 - min_fraction_overburden. Using the same convention here
+        lets the same CLI value be reused across both
         effective-pressure parameterizations.
     length_scale : float
         Distance L [m, same units as `bed`/`thickness`] over which
@@ -187,11 +192,13 @@ def effective_pressure4(
         0.0,
     )
 
-    # Prescribed inland effective-pressure fraction. min_fraction_
-    # overburden is already a retained fraction (same convention as
-    # downs_johnson_effective_pressure()), so no deficit conversion
-    # is needed here.
-    q_inland = min_fraction_overburden
+    # Prescribed inland effective-pressure fraction. Matches Albany's
+    # actual "Minimum Fraction Overburden Pressure" convention (see
+    # downs_johnson_effective_pressure()): it is subtracted from a
+    # retained-overburden fraction of 1, not applied directly as a
+    # retained fraction, so N/Pice_inland = 1 - min_fraction_overburden
+    # and floatation_fraction_inland = min_fraction_overburden.
+    q_inland = 1.0 - min_fraction_overburden
 
     # Ocean-connected value at the end of the fixed region.
     q_start = np.where(
@@ -260,7 +267,16 @@ def downs_johnson_effective_pressure(
     bed : ndarray
         Bed elevation b [m], positive above sea level.
     min_fraction_overburden : float
-        Albany "Minimum Fraction Overburden Pressure".
+        Albany "Minimum Fraction Overburden Pressure". Despite the
+        name, this is *subtracted* from a retained-overburden
+        fraction of 1 in Albany's actual formula (see
+        LandIce_BasalFrictionCoefficient_Def.hpp), not applied
+        directly as a retained fraction: far inland (bed elevation
+        well above sea level), N/Pice -> 1 - min_fraction_overburden,
+        i.e. the floatation fraction Pw/Pice -> min_fraction_
+        overburden itself (its floor/minimum value, attained inland;
+        near the grounding line the floatation fraction rises toward
+        1 regardless of this parameter).
     length_scale : float
         Albany "Length Scale Factor".
 
@@ -505,10 +521,9 @@ def plot_transects(
     min_fraction_overburden : float, optional
         If provided, and `fields` contains an entry keyed
         `floatation_fraction_label`, draw a horizontal reference line
-        at 1 - min_fraction_overburden on that panel: the maximum
-        floatation fraction --min-fraction-overburden allows N to
-        imply inland (floatation_fraction = Pw/Pice = 1 - N/Pice, and
-        N/Pice is bounded below by min_fraction_overburden inland).
+        at min_fraction_overburden on that panel: the minimum
+        floatation fraction (Pw/Pice) approached far inland (see
+        downs_johnson_effective_pressure()/effective_pressure4()).
     floatation_fraction_label : str
         Key in `fields` identifying the floatation-fraction panel
         (default: "floatation fraction"), used to place the
@@ -620,7 +635,7 @@ def plot_transects(
                 label == floatation_fraction_label
                 and min_fraction_overburden is not None
             ):
-                bound = 1.0 - min_fraction_overburden
+                bound = min_fraction_overburden
                 ax.axhline(
                     bound,
                     color="k",
@@ -628,7 +643,7 @@ def plot_transects(
                     linewidth=1,
                     zorder=3,
                     label=(
-                        "1 - min-fraction-overburden bound "
+                        "min-fraction-overburden bound "
                         f"({bound:.3g})"
                     ),
                 )
@@ -744,23 +759,28 @@ def main():
     # --effective-pressure-type=downs-johnson).
     # Effective-pressure parameters shared between the "downs-johnson"
     # and "transition" parameterizations (see --effective-pressure-
-    # type below): both use a retained fraction of overburden inland
-    # (min_fraction_overburden) and a length scale in meters
-    # (pressure_length_scale), even though each parameterization uses
-    # them in a different formula. Overloading the same CLI flags
-    # across both types makes it convenient to switch between them.
+    # type below): both use the same inland-floatation-fraction-floor
+    # convention (min_fraction_overburden) and a length scale in
+    # meters (pressure_length_scale), even though each
+    # parameterization uses them in a different formula. Overloading
+    # the same CLI flags across both types makes it convenient to
+    # switch between them.
     parser.add_argument(
         "--min-fraction-overburden",
         type=float,
         default=None,
         help=(
-            "Prescribed inland effective-pressure fraction of "
-            'overburden. For --effective-pressure-type=downs-johnson, '
-            'this is Albany\'s "Minimum Fraction Overburden Pressure". '
-            "For --effective-pressure-type=transition, this is the "
-            "inland target fraction used by effective_pressure4() "
-            "(N_inland = rho_i * gravity * H * "
-            "min_fraction_overburden). Required in either case."
+            "Prescribed inland floatation-fraction floor. Matches "
+            'Albany\'s "Minimum Fraction Overburden Pressure" '
+            "convention exactly: far inland, N/Pice -> "
+            "1 - min_fraction_overburden, i.e. the floatation "
+            "fraction Pw/Pice approaches min_fraction_overburden "
+            "itself (its minimum value; near the grounding line the "
+            "floatation fraction rises toward 1 regardless of this "
+            "parameter). Used by both --effective-pressure-type="
+            "downs-johnson and --effective-pressure-type=transition "
+            "(see downs_johnson_effective_pressure()/"
+            "effective_pressure4()). Required in either case."
         )
     )
     parser.add_argument(
@@ -800,7 +820,32 @@ def main():
     )
 
     parser.add_argument("--rho-ice", type=float, default=910.0)
-    parser.add_argument("--rho-water", type=float, default=1028.0)
+    parser.add_argument(
+        "--rho-water",
+        type=float,
+        default=1028.0,
+        help=(
+            "Ocean/seawater density [kg m^-3] (default: 1028.0), "
+            "used for ocean-connectivity terms: the grounded-ice "
+            "test, the marine term in the effective-pressure "
+            "parameterizations, and the floatation-fraction "
+            "denominator. Distinct from --rho-freshwater, used for "
+            "the subglacial water column in the hydropotential field."
+        )
+    )
+    parser.add_argument(
+        "--rho-freshwater",
+        type=float,
+        default=1000.0,
+        help=(
+            "Freshwater density [kg m^-3] (default: 1000.0), used "
+            "only for the bed-elevation term of the Shreve hydraulic "
+            "potential (hydropotential = rho_freshwater * gravity * "
+            "bedTopography + Pw), matching the standard convention "
+            "that subglacial water is fresh, distinct from the "
+            "ocean/seawater density (--rho-water) used elsewhere."
+        )
+    )
     parser.add_argument("--gravity", type=float, default=9.80616)
 
     # Needed for Lambda = uc / (A N^n).
@@ -1466,6 +1511,14 @@ def main():
             attrs={
                 "long_name": effective_pressure_long_name,
                 "units": "Pa",
+                "note": (
+                    "N is a smooth function of bed elevation only "
+                    "(not the actual flotation criterion, which also "
+                    "depends on thickness), so some floating cells "
+                    "near the grounding line (shallow bed) can have "
+                    "nonzero N/floatationFraction != 1; this is "
+                    "expected Albany behavior, not a bug."
+                ),
             },
         )
 
@@ -1490,8 +1543,12 @@ def main():
             },
         )
 
-        # Shreve hydraulic potential: phi = rho_w * g * bed + Pw.
-        hydropotential = args.rho_water * args.gravity * bed + Pw
+        # Shreve hydraulic potential: phi = rho_freshwater * g * bed +
+        # Pw. Uses freshwater density for the bed-elevation term
+        # (subglacial water is fresh), distinct from the ocean/
+        # seawater density (rho_water) used elsewhere in this script
+        # for ocean-connectivity terms.
+        hydropotential = args.rho_freshwater * args.gravity * bed + Pw
 
         out[args.hydropotential_field] = xr.DataArray(
             hydropotential,
@@ -1499,8 +1556,8 @@ def main():
             attrs={
                 "long_name": "Shreve hydraulic potential",
                 "description": (
-                    "phi = rho_water * gravity * bedTopography + Pw, "
-                    "with Pw = Pice - N"
+                    "phi = rho_freshwater * gravity * bedTopography "
+                    "+ Pw, with Pw = Pice - N"
                 ),
                 "units": "Pa",
             },
