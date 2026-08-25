@@ -734,14 +734,16 @@ def plot_maps(mesh_ds, fields, plot_dir):
         the `on_a_sphere`/`is_periodic` global attributes. Antarctic
         MALI meshes are planar (on_a_sphere = "NO"), so no projection/
         transform is needed.
-    fields : dict of str -> list of (values, units, title, log)
+    fields : dict of str -> list of panel tuples
         Mapping of output filename stem -> a list of one or more
         panels to plot side by side in that file, each panel a
-        (cell-centered values, units string, title string, bool)
-        tuple, where the bool selects a log-scale colormap (values
-        <= 0 are masked out for log-scale panels), e.g.
+        (values, units, title, log, cmap) tuple: cell-centered
+        values, units string, title string, bool selecting a
+        log-scale colormap (values <= 0 are masked out for log-scale
+        panels), and a matplotlib colormap name (default "viridis"
+        if omitted by passing a 4-tuple instead), e.g.
         {"bedRoughnessRC": [(lam, "Pa (m/yr)^-1/3",
-        "RC bed roughness Lambda", True)]}.
+        "RC bed roughness Lambda", True, "turbo")]}.
     plot_dir : str
         Directory to write output PNGs to (created if needed).
     """
@@ -770,7 +772,10 @@ def plot_maps(mesh_ds, fields, plot_dir):
         )
         axes = axes[0]
 
-        for ax, (values, units, title, log) in zip(axes, panels):
+        for ax, panel in zip(axes, panels):
+            values, units, title, log = panel[:4]
+            cmap = panel[4] if len(panel) > 4 else "viridis"
+
             plot_values = np.asarray(values, dtype=np.float64)
             norm = None
             if log:
@@ -786,7 +791,7 @@ def plot_maps(mesh_ds, fields, plot_dir):
                 )
             array = xr.DataArray(plot_values, dims=("nCells",))
             coll = mosaic.polypcolor(
-                ax, descriptor, array, cmap="viridis", norm=norm
+                ax, descriptor, array, cmap=cmap, norm=norm
             )
             ax.set_aspect("equal")
             ax.set_title(title, fontsize=11)
@@ -1834,12 +1839,12 @@ def main():
                 (
                     Lambda, "Pa (m yr-1)^-1/3",
                     "Albany regularized-Coulomb bed roughness Lambda",
-                    True,
+                    True, "turbo",
                 ),
                 (
                     mu, f"Pa (m yr-1)^-{args.weertman_q:g}",
                     "Original Weertman muFriction (input)",
-                    True,
+                    True, "turbo_r",
                 ),
             ],
             args.effective_pressure_field: [
