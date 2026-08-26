@@ -956,7 +956,7 @@ def plot_maps(mesh_ds, fields, plot_dir, transects=None):
                 )
             array = xr.DataArray(plot_values, dims=("nCells",))
             coll = mosaic.polypcolor(
-                ax, descriptor, array, cmap=cmap, norm=norm
+                ax, descriptor, array, cmap=cmap, norm=norm, aa=False
             )
             ax.set_aspect("equal")
             ax.set_title(title, fontsize=11)
