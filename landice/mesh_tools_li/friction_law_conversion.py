@@ -54,6 +54,11 @@ For typical MALI/Albany configurations:
     velocity : m yr^-1
     N        : check whether the Albany interface expects Pa or kPa
     A        : Pa^-3 s^-1 (Albany's Temperature Based flow rate is SI)
+    mu       : kPa * (yr/m)^qW (per a correction to MPAS-Tools'
+               Registry.xml; NOT Pa * (yr/m)^qW), so that
+               mu * speed^qW comes out already in the same kPa scale
+               as N_albany (see ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
+               and fit_coulomb_C_fast_region())
 """
 
 import argparse
@@ -384,7 +389,13 @@ def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
     pressure (numerically equal to physical Pa / 1000, i.e. "kPa";
     see ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT), not raw SI Pascals.
     Passing raw-Pa N here would make C inconsistent with how Albany
-    multiplies C against its own internal N at runtime.
+    multiplies C against its own internal N at runtime. This is
+    dimensionally consistent with `mu` (MALI's `muFriction`), whose
+    correct physical units -- per a correction to MPAS-Tools'
+    Registry.xml -- are kPa * (yr/m)^qW (not Pa * (yr/m)^qW as one
+    might otherwise assume): Tau_b_Weertman = mu * speed^qW therefore
+    comes out in kPa already, matching `N`'s kPa scale here, with no
+    separate unit conversion needed in this function.
     """
     valid = (
         mask
@@ -1187,7 +1198,13 @@ def main():
     parser.add_argument(
         "--mu-field",
         default="muFriction",
-        help="Weertman friction field (default: muFriction)"
+        help=(
+            "Weertman friction field (default: muFriction). Its "
+            "correct physical units -- per a correction to "
+            "MPAS-Tools' Registry.xml -- are kPa * (yr/m)^qW (not "
+            "Pa * (yr/m)^qW); this script's use of mu is dimensionally "
+            "consistent with that (see fit_coulomb_C_fast_region())."
+        )
     )
     parser.add_argument(
         "--thickness-field",
@@ -2034,7 +2051,7 @@ def main():
                 },
                 {
                     "values": mu,
-                    "units": f"Pa (m yr-1)^-{args.weertman_q:g}",
+                    "units": f"kPa (m yr-1)^-{args.weertman_q:g}",
                     "title": "Original Weertman muFriction (input)",
                     "log": True, "cmap": "turbo_r",
                 },

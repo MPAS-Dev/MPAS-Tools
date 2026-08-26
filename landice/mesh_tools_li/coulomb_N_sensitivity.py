@@ -21,6 +21,15 @@ can be visually compared against a range of candidate C values,
 including (optionally) the one friction_law_conversion.py itself
 would fit.
 
+NOTE on units: MALI's `muFriction` field's correct physical units --
+per a correction to MPAS-Tools' Registry.xml -- are kPa * (yr/m)^qW
+(not Pa * (yr/m)^qW). mu * speed^qW therefore comes out in kPa, so it
+is converted to Pa here (via ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT)
+before being used as an absolute Tau_b/N(C) in Pa (unlike
+friction_law_conversion.py, which only ever uses mu * speed^qW as a
+ratio against an already-kPa-scaled N, so no explicit conversion is
+needed there).
+
 This script is intentionally lightweight: it reuses
 friction_law_conversion.py's transect-loading/projection/plotting
 machinery directly (via import) rather than duplicating it, and
@@ -42,6 +51,7 @@ import numpy as np
 import xarray as xr
 
 from friction_law_conversion import (
+    ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT,
     SECONDS_PER_YEAR,
     plot_transects,
 )
@@ -177,8 +187,16 @@ def main():
 
     # MALI's Weertman sliding law has no effective-pressure term:
     # Tau_b = mu * speed^qW (same as fit_coulomb_C_fast_region() in
-    # friction_law_conversion.py).
-    tau_b_weertman = mu * speed ** args.weertman_q
+    # friction_law_conversion.py). mu's correct physical units are
+    # kPa * (yr/m)^qW (see module docstring), so this is in kPa;
+    # convert to physical Pa here since (unlike
+    # friction_law_conversion.py) this script uses Tau_b_weertman
+    # directly as an absolute quantity (N(C), floatation fraction,
+    # hydropotential), not only as a ratio against an already
+    # kPa-scaled N.
+    tau_b_weertman = (
+        mu * speed ** args.weertman_q * ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
+    )
 
     # Same grounded-ice/fast-flowing tests friction_law_conversion.py
     # uses to define the region assumed to already be in the
