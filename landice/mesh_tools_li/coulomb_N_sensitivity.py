@@ -231,6 +231,7 @@ def main():
                 floatation_fraction_of_c, "1",
                 "Pure-Coulomb-implied floatation fraction (Pw / Pice) "
                 "for candidate C values (fast-flowing region only)",
+                (0.0, 1.0),
             ),
             "hydropotential(C)": (
                 hydropotential_of_c, "Pa",

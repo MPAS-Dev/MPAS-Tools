@@ -516,10 +516,13 @@ def plot_transects(
         MALI mesh cell-center coordinates, meters, in the same planar
         CRS the transects will be projected into (Antarctic MALI
         meshes: EPSG:3031 polar stereographic).
-    fields : dict of str -> (1-D numpy array, str, str)
+    fields : dict of str -> (1-D numpy array, str, str[, (float, float)])
         Mapping of field label -> (values on MALI cells, units
-        string, long_name string) to sample and plot along each
-        transect, e.g. {"N": (N, "Pa", "Effective pressure")}.
+        string, long_name string, optional (ymin, ymax) tuple) to
+        sample and plot along each transect, e.g. {"N": (N, "Pa",
+        "Effective pressure")}. The optional 4th tuple element, if
+        given, is passed to ax.set_ylim() to fix that panel's y-axis
+        range (e.g. (0, 1) for a fraction).
     thickness, bed : 1-D numpy arrays
         MALI cell-centered ice thickness [m] and bed elevation [m],
         used to classify each cell as grounded ice, floating ice,
@@ -724,9 +727,11 @@ def plot_transects(
                         x0, x1, color="tab:orange", alpha=0.2, zorder=0
                     )
 
-        for ax, (label, (values, units, long_name)) in zip(
+        for ax, (label, field_spec) in zip(
             axes, all_fields.items()
         ):
+            values, units, long_name = field_spec[:3]
+            ylim = field_spec[3] if len(field_spec) > 3 else None
             if isinstance(values, dict):
                 # Multi-line panel (e.g. bed & surface elevation).
                 for line_label, arr in values.items():
@@ -759,6 +764,8 @@ def plot_transects(
             ax.set_ylabel(f"{label} [{units}]")
             ax.set_title(long_name, fontsize=10)
             ax.grid(True, alpha=0.3, zorder=1)
+            if ylim is not None:
+                ax.set_ylim(*ylim)
 
             if (
                 label == floatation_fraction_label
