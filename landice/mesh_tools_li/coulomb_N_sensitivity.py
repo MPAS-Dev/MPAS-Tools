@@ -86,6 +86,15 @@ def main():
 
     parser.add_argument("--rho-ice", type=float, default=910.0)
     parser.add_argument("--rho-water", type=float, default=1028.0)
+    parser.add_argument(
+        "--rho-freshwater", type=float, default=1000.0,
+        help=(
+            "Freshwater density [kg m^-3] (default: 1000.0), used "
+            "for the bed-elevation term of the hydropotential panel "
+            "(same convention as friction_law_conversion.py)."
+        ),
+    )
+    parser.add_argument("--gravity", type=float, default=9.80616)
 
     parser.add_argument(
         "--mu-field", default="muFriction",
@@ -178,12 +187,33 @@ def main():
 
     # Pure-Coulomb inversion: Tau_b = C * N  =>  N(C) = Tau_b / C, in
     # physical Pa (no Albany-internal kPa rescaling needed here since
-    # this script works entirely in physical units).
+    # this script works entirely in physical units). For each
+    # candidate C, also derive the floatation fraction and
+    # hydropotential that N(C) would imply, using the same formulas
+    # as friction_law_conversion.py (Pice = rho_i * g * H,
+    # Pw = Pice - N, floatation_fraction = Pw / Pice, hydropotential =
+    # rho_freshwater * g * bed + Pw), all restricted to the
+    # fast-flowing region.
+    Pice = args.rho_ice * args.gravity * H
+
     n_of_c = {}
+    floatation_fraction_of_c = {}
+    hydropotential_of_c = {}
     for c in args.c_values:
-        values = np.full_like(tau_b_weertman, np.nan)
-        values[fast_flowing] = tau_b_weertman[fast_flowing] / c
-        n_of_c[f"C={c:g}"] = values
+        label = f"C={c:g}"
+
+        n_c = np.full_like(tau_b_weertman, np.nan)
+        n_c[fast_flowing] = tau_b_weertman[fast_flowing] / c
+        n_of_c[label] = n_c
+
+        Pw_c = Pice - n_c
+        floatation_fraction_of_c[label] = np.where(
+            fast_flowing & (Pice > 0.0), Pw_c / Pice, np.nan
+        )
+        hydropotential_of_c[label] = np.where(
+            fast_flowing, args.rho_freshwater * args.gravity * bed + Pw_c,
+            np.nan,
+        )
 
     plot_transects(
         transect_names=args.transect_names,
@@ -196,6 +226,16 @@ def main():
                 n_of_c, "Pa",
                 "Pure-Coulomb-implied N for candidate C values "
                 "(fast-flowing region only)",
+            ),
+            "floatation fraction(C)": (
+                floatation_fraction_of_c, "1",
+                "Pure-Coulomb-implied floatation fraction (Pw / Pice) "
+                "for candidate C values (fast-flowing region only)",
+            ),
+            "hydropotential(C)": (
+                hydropotential_of_c, "Pa",
+                "Pure-Coulomb-implied Shreve hydraulic potential for "
+                "candidate C values (fast-flowing region only)",
             ),
         },
         thickness=H,
