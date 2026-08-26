@@ -133,7 +133,8 @@ def main():
         "--transect-names",
         nargs="+",
         default=[
-            "Thwaites", "Totten", "Jutulstraumen", "Foundation", "Bindschadler"
+            "Thwaites", "Totten", "Jutulstraumen", "Foundation",
+            "Bindschadler", "Pine_Island",
         ],
         help=(
             "Names of transects to plot (subdirectory names under "

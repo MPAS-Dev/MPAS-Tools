@@ -1248,12 +1248,13 @@ def main():
         "--transect-names",
         nargs="+",
         default=[
-            "Thwaites", "Totten", "Jutulstraumen", "Foundation", "Bindschadler"
+            "Thwaites", "Totten", "Jutulstraumen", "Foundation",
+            "Bindschadler", "Pine_Island",
         ],
         help=(
             "Names of transects to plot (subdirectory names under "
             "--transects-dir). Default: Thwaites Totten Jutulstraumen "
-            "Foundation Bindschadler."
+            "Foundation Bindschadler Pine_Island."
         )
     )
     parser.add_argument(
