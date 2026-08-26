@@ -35,7 +35,11 @@ qR is the exponent Albany will actually use for the RC law. Per
 project convention, qR is always fixed at 1/3 (see RC_POWER_EXPONENT
 below) and is not user-configurable.
 
-so Lambda * A * N^n has units of velocity.
+so Lambda * A * N^n has units of velocity. Lambda is solved for in
+physical meters and then divided by 1000 before being stored, since
+Albany's own internal "scaling" factor assumes the stored bed-
+roughness field value is expressed in km (see
+ALBANY_LAMBDA_METERS_PER_KM below).
 
 The Glen flow-rate factor A can be obtained in one of two ways,
 selected via --flow-rate-type:
@@ -82,6 +86,23 @@ RC_POWER_EXPONENT = 1.0 / 3.0
 # critical velocity supplied in m/yr and a flow rate in Pa^-3 s^-1
 # combine correctly when deriving Lambda (bedRoughnessRC).
 SECONDS_PER_YEAR = 365.0 * 24.0 * 3600.0
+
+# Albany reads its "Bed Roughness Field Name" field (Lambda,
+# bedRoughnessRC here) as-is, with no internal unit conversion, but
+# its hardcoded "scaling" factor in
+# LandIce_BasalFrictionCoefficient_Def.hpp (scaling = secsInYr *
+# pow(1000, n+1); comment: "//bedRoughness in km") is built assuming
+# that raw stored value is already expressed in km, not meters.
+# Combined with N in Albany's own kPa-scaled internal convention and
+# the Glen flow-rate factor A in physical Pa^-n s^-1, this scaling
+# factor reduces exactly to Lambda[km] * SECONDS_PER_YEAR * A[Pa^-n
+# s^-1] * N[Pa]^n -- i.e. numerically identical to using Lambda in
+# physical meters, physical N in Pa, and SECONDS_PER_YEAR, *provided
+# the value actually stored in the field is Lambda in km, a factor of
+# 1000 smaller than Lambda expressed in meters*. This constant
+# converts the meters-based Lambda solved for below into the km value
+# Albany actually expects to find in the field.
+ALBANY_LAMBDA_METERS_PER_KM = 1000.0
 
 # Albany's internal effective pressure representation (used e.g. by
 # its "Hydrostatic" Effective Pressure Type) is computed from bed/
@@ -1608,8 +1629,11 @@ def main():
     #     u + Lambda*scaling*A*N^n = u * (C*N / Tau_b_W)^(1/p)
     #                              = u * (C*N / (mu * u^qW))^(1/p)
     #
-    #     Lambda = u * [(C*N / (mu * u^qW))^(1/p) - 1]
-    #              / (SECONDS_PER_YEAR * A * N^n)
+    #     Lambda[m] = u * [(C*N / (mu * u^qW))^(1/p) - 1]
+    #                 / (SECONDS_PER_YEAR * A * N^n)
+    #     Lambda[km] (the value actually stored in the output field,
+    #                 see ALBANY_LAMBDA_METERS_PER_KM) = Lambda[m] /
+    #                 1000
     #
     # This is the same Weertman shear-stress convention used by
     # fit_coulomb_C_fast_region above (Tau_b_W = mu * u^qW, no N term,
@@ -1619,9 +1643,11 @@ def main():
     # where u is in m/yr, A is in Pa^-3 s^-1, N (raw Pa) is used here
     # exactly as in the previous uc-based derivation (Albany's
     # internal km/kPa/yr "scaling" factor reduces to the plain
-    # SECONDS_PER_YEAR factor once Lambda is expressed in meters and N
-    # in Pa). N_albany (the kPa-equivalent convention) is used for the
-    # "C*N" Coulomb-limit term, matching how C was itself fit.
+    # SECONDS_PER_YEAR factor once Lambda is expressed in meters, N in
+    # Pa, and the meters-based Lambda is then converted to km before
+    # being stored -- see ALBANY_LAMBDA_METERS_PER_KM). N_albany (the
+    # kPa-equivalent convention) is used for the "C*N" Coulomb-limit
+    # term, matching how C was itself fit.
     #
     # Because Albany's Regularized Coulomb law can never produce a
     # shear stress above the Coulomb limit C*N (attained only in the
@@ -1676,6 +1702,7 @@ def main():
         speed[lambda_mask]
         * (stress_ratio[lambda_mask] ** (1.0 / RC_POWER_EXPONENT) - 1.0)
         / (SECONDS_PER_YEAR * A[lambda_mask] * N[lambda_mask] ** args.glen_n)
+        / ALBANY_LAMBDA_METERS_PER_KM
     )
 
     n_unreachable = int(np.count_nonzero(valid_speed & ~lambda_mask))
@@ -1819,11 +1846,13 @@ def main():
                 "law's basal shear stress (mu*u^qW, no effective-"
                 "pressure term) at the cell's actual current sliding "
                 "speed u (from velocity-x/y-field, last "
-                "nVertInterfaces level): Lambda = u * "
+                "nVertInterfaces level): Lambda[m] = u * "
                 "[(C*N/(mu*u^qW))^(1/qR) - 1] / (SECONDS_PER_YEAR * A "
                 "* N^n), with u in m/yr, A in Pa^-3 s^-1, N in Pa, "
                 "matching Albany's internal secsInYr scaling in "
-                "LandIce_BasalFrictionCoefficient_Def.hpp"
+                "LandIce_BasalFrictionCoefficient_Def.hpp; the stored "
+                "value is Lambda[m] / 1000 (km), matching Albany's "
+                "'bedRoughness in km' convention for this field"
             ),
         },
     )
@@ -2041,7 +2070,7 @@ def main():
         map_fields = {
             args.lambda_field: [
                 {
-                    "values": Lambda, "units": "Pa (m yr-1)^-1/3",
+                    "values": Lambda, "units": "km",
                     "title": (
                         "Albany regularized-Coulomb bed roughness Lambda"
                     ),
