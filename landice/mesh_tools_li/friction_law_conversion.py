@@ -518,11 +518,15 @@ def plot_transects(
         meshes: EPSG:3031 polar stereographic).
     fields : dict of str -> (1-D numpy array, str, str[, (float, float)])
         Mapping of field label -> (values on MALI cells, units
-        string, long_name string, optional (ymin, ymax) tuple) to
+        string, long_name string, optional (ymin, ymax) bound) to
         sample and plot along each transect, e.g. {"N": (N, "Pa",
         "Effective pressure")}. The optional 4th tuple element, if
-        given, is passed to ax.set_ylim() to fix that panel's y-axis
-        range (e.g. (0, 1) for a fraction).
+        given, clamps that panel's autoscaled y-axis range to be no
+        wider than (ymin, ymax) -- e.g. (0, 1) for a fraction field --
+        without forcing the full range when the real data only span a
+        narrower band within those bounds (which would otherwise
+        squash genuinely narrow-but-valid data, e.g. 0.95-1.0, into an
+        invisible sliver).
     thickness, bed : 1-D numpy arrays
         MALI cell-centered ice thickness [m] and bed elevation [m],
         used to classify each cell as grounded ice, floating ice,
@@ -765,7 +769,20 @@ def plot_transects(
             ax.set_title(long_name, fontsize=10)
             ax.grid(True, alpha=0.3, zorder=1)
             if ylim is not None:
-                ax.set_ylim(*ylim)
+                # Clamp the autoscaled range to at most `ylim`, rather
+                # than forcing it outright: this still prevents a
+                # runaway/outlier-driven range (e.g. a fraction field
+                # that should be in [0, 1]), while preserving natural
+                # detail when the real data only span a narrow band
+                # within those bounds (a hard set_ylim(*ylim) can
+                # otherwise squash a genuinely narrow-but-valid range,
+                # like 0.95-1.0, into an invisible sliver).
+                ax.relim()
+                ax.autoscale_view()
+                data_lo, data_hi = ax.get_ylim()
+                ax.set_ylim(
+                    max(data_lo, ylim[0]), min(data_hi, ylim[1])
+                )
 
             if (
                 label == floatation_fraction_label
