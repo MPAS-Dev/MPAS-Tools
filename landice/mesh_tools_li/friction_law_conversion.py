@@ -310,10 +310,8 @@ def downs_johnson_effective_pressure(
     arg = np.clip(b / length_scale, -700.0, 700.0)
     fp = 1.0 / (1.0 + np.exp(-arg))
 
-    print(fp.min(), fp.max())
-
     overburden_term = min_fraction_overburden * rho_i * H * fp
-    marine_term = (1.0 - fp) * np.maximum(rho_w * b, 0.0)
+    marine_term = (1.0 - fp) * np.maximum(-rho_w * b, 0.0)
 
     N = gravity * np.maximum(
         rho_i * H - (overburden_term + marine_term),
