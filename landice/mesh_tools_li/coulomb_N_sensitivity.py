@@ -197,6 +197,12 @@ def main():
     # fast-flowing region.
     Pice = args.rho_ice * args.gravity * H
 
+    # Basal shear stress used to derive N(C) below (masked to the
+    # same fast-flowing region, for direct comparison against the
+    # N(C) panel).
+    tau_b_weertman_masked = np.full_like(tau_b_weertman, np.nan)
+    tau_b_weertman_masked[fast_flowing] = tau_b_weertman[fast_flowing]
+
     n_of_c = {}
     floatation_fraction_of_c = {}
     hydropotential_of_c = {}
@@ -223,6 +229,11 @@ def main():
         x_cell=x_cell,
         y_cell=y_cell,
         fields={
+            "Tau_b (Weertman)": (
+                tau_b_weertman_masked, "Pa",
+                "Weertman basal shear stress (mu * speed^qW) used to "
+                "derive N(C) below (fast-flowing region only)",
+            ),
             "N(C)": (
                 n_of_c, "Pa",
                 "Pure-Coulomb-implied N for candidate C values "
