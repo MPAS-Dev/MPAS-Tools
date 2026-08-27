@@ -342,6 +342,60 @@ def downs_johnson_effective_pressure(
     return N
 
 
+def ocean_connection_effective_pressure(
+        thickness,
+        bed,
+        rho_i=910.0,
+        rho_w=1028.0,
+        gravity=9.80616):
+    """
+    Reproduce Albany's "Hydrostatic Computed At Nodes" Effective
+    Pressure Type with "Use Pressurized Bed Above Sea Level: false"
+    (LandIce_BasalFrictionCoefficient_Def.hpp).
+
+    With `use_pressurized_bed` false, Albany's sigmoid bed-pressure
+    fraction f_p is identically 0 everywhere (rather than a smooth
+    function of bed elevation), which removes any dependence on
+    "Minimum Fraction Overburden Pressure"/"Length Scale Factor" (they
+    are not even read by Albany in this case) and collapses
+    downs_johnson_effective_pressure()'s formula to a simple
+    overburden-minus-ocean-pressure relation:
+
+        N = max(rho_i * g * H - max(-rho_w * g * bed, 0), 0)
+
+    i.e. full ocean (hydrostatic) water pressure wherever the bed is
+    below sea level, with no inland tapering/floor -- hence
+    "ocean-connection" here: N depends only on whether/how deeply the
+    bed sits below sea level, not on distance from the ocean.
+
+    Parameters
+    ----------
+    thickness : ndarray
+        Ice thickness H [m].
+    bed : ndarray
+        Bed elevation b [m], positive above sea level.
+    rho_i : float
+        Ice density [kg m^-3].
+    rho_w : float
+        Water density [kg m^-3].
+    gravity : float
+        Gravitational acceleration [m s^-2].
+
+    Returns
+    -------
+    N : ndarray
+        Effective pressure [Pa].
+    """
+    H = np.asarray(thickness, dtype=np.float64)
+    b = np.asarray(bed, dtype=np.float64)
+
+    marine_term = np.maximum(-rho_w * b, 0.0)
+
+    N = gravity * np.maximum(rho_i * H - marine_term, 0.0)
+
+    return N
+
+
 def albany_temperature_based_flow_rate(temperature):
     """
     Reproduce Albany's "Temperature Based" Flow Rate Type exactly
@@ -1053,24 +1107,33 @@ def main():
     # Effective pressure N
     parser.add_argument(
         "--effective-pressure-type",
-        choices=["downs-johnson", "transition"],
+        choices=["downs-johnson", "ocean-connection", "transition"],
         default="downs-johnson",
         help=(
             "How to compute the effective pressure N (default: "
             "downs-johnson). \"downs-johnson\" reproduces Albany's "
-            "own internal \"Hydrostatic At Nodes\" Effective Pressure "
-            "Type formula exactly (see --min-fraction-overburden/"
-            "--pressure-length-scale); Albany recomputes N itself at "
-            "runtime from thickness/bed, so no N field needs to be "
-            "supplied. \"transition\" computes N here using a "
-            "near-ocean/inland-transition parameterization (see "
-            "--min-fraction-overburden/--pressure-length-scale/"
-            "--transition-h-ocean) and writes it to the output for "
-            "reference; NOTE: Albany does not yet have a way to "
-            "consume this precomputed N directly for the Regularized "
-            "Coulomb law, so \"transition\" cannot currently be used "
-            "to actually run Albany (offline evaluation only, pending "
-            "upstream Albany support)."
+            "own internal \"Hydrostatic Computed At Nodes\" Effective "
+            "Pressure Type formula, with \"Use Pressurized Bed Above "
+            "Sea Level: true\" (see --min-fraction-overburden/"
+            "--pressure-length-scale). \"ocean-connection\" reproduces "
+            "the same Albany \"Hydrostatic Computed At Nodes\" "
+            "Effective Pressure Type but with \"Use Pressurized Bed "
+            "Above Sea Level: false\" -- i.e. full ocean (hydrostatic) "
+            "water pressure wherever bed is below sea level, with no "
+            "inland tapering/floor, and no dependence on "
+            "--min-fraction-overburden/--pressure-length-scale (see "
+            "ocean_connection_effective_pressure()). Both "
+            "\"downs-johnson\" and \"ocean-connection\" are computed "
+            "by Albany itself at runtime from thickness/bed, so no N "
+            "field needs to be supplied for either. \"transition\" "
+            "computes N here using a near-ocean/inland-transition "
+            "parameterization (see --min-fraction-overburden/"
+            "--pressure-length-scale/--transition-h-ocean) and writes "
+            "it to the output for reference; NOTE: Albany does not "
+            "yet have a way to consume this precomputed N directly "
+            "for the Regularized Coulomb law, so \"transition\" cannot "
+            "currently be used to actually run Albany (offline "
+            "evaluation only, pending upstream Albany support)."
         )
     )
 
@@ -1424,13 +1487,18 @@ def main():
                 "with this exponent."
             )
 
-    if args.min_fraction_overburden is None or args.pressure_length_scale is None:
-        parser.error(
-            "--min-fraction-overburden and --pressure-length-scale "
-            "are required (used by both "
-            "--effective-pressure-type=downs-johnson and "
-            "--effective-pressure-type=transition)"
-        )
+    if args.effective_pressure_type != "ocean-connection":
+        if (
+            args.min_fraction_overburden is None
+            or args.pressure_length_scale is None
+        ):
+            parser.error(
+                "--min-fraction-overburden and --pressure-length-scale "
+                "are required (used by both "
+                "--effective-pressure-type=downs-johnson and "
+                "--effective-pressure-type=transition; not needed for "
+                "--effective-pressure-type=ocean-connection)"
+            )
 
     if args.plot_transects:
         if not args.diagnostics:
@@ -1550,6 +1618,14 @@ def main():
             bed=bed,
             min_fraction_overburden=args.min_fraction_overburden,
             length_scale=args.pressure_length_scale,
+            rho_i=args.rho_ice,
+            rho_w=args.rho_water,
+            gravity=args.gravity,
+        )
+    elif args.effective_pressure_type == "ocean-connection":
+        N = ocean_connection_effective_pressure(
+            thickness=H,
+            bed=bed,
             rho_i=args.rho_ice,
             rho_w=args.rho_water,
             gravity=args.gravity,
@@ -1860,6 +1936,12 @@ def main():
     if args.diagnostics:
         if args.effective_pressure_type == "downs-johnson":
             effective_pressure_long_name = "Downs-Johnson effective pressure"
+        elif args.effective_pressure_type == "ocean-connection":
+            effective_pressure_long_name = (
+                "Ocean-connection effective pressure (Hydrostatic "
+                "Computed At Nodes, Use Pressurized Bed Above Sea "
+                "Level: false)"
+            )
         else:
             effective_pressure_long_name = (
                 "Effective pressure (near-ocean/inland-transition "
@@ -2008,12 +2090,13 @@ def main():
     out.attrs["regularizedCoulomb_effectivePressureType"] = (
         args.effective_pressure_type
     )
-    out.attrs["regularizedCoulomb_minFractionOverburden"] = (
-        float(args.min_fraction_overburden)
-    )
-    out.attrs["regularizedCoulomb_pressureLengthScale"] = (
-        float(args.pressure_length_scale)
-    )
+    if args.effective_pressure_type != "ocean-connection":
+        out.attrs["regularizedCoulomb_minFractionOverburden"] = (
+            float(args.min_fraction_overburden)
+        )
+        out.attrs["regularizedCoulomb_pressureLengthScale"] = (
+            float(args.pressure_length_scale)
+        )
     if args.effective_pressure_type == "transition":
         out.attrs["regularizedCoulomb_transitionHOcean"] = (
             float(args.transition_h_ocean)
@@ -2185,12 +2268,19 @@ def main():
 
     if args.effective_pressure_type == "downs-johnson":
         effective_pressure_yaml_lines = (
-            "        Effective Pressure Type: Hydrostatic At Nodes\n"
+            "        Effective Pressure Type: Hydrostatic Computed At "
+            "Nodes\n"
             "        Use Pressurized Bed Above Sea Level: true\n"
             "        Minimum Fraction Overburden Pressure: "
             f"{args.min_fraction_overburden:.16e}\n"
             "        Length Scale Factor: "
             f"{args.pressure_length_scale / 1000.0:.16e}"
+        )
+    elif args.effective_pressure_type == "ocean-connection":
+        effective_pressure_yaml_lines = (
+            "        Effective Pressure Type: Hydrostatic Computed At "
+            "Nodes\n"
+            "        Use Pressurized Bed Above Sea Level: false"
         )
     else:
         effective_pressure_yaml_lines = (
