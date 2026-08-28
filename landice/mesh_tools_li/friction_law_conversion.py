@@ -15,7 +15,10 @@ Computes
        Lambda = uc / (A * N**n)
 
 The output is a copy of the input MALI initial-condition file with
-`Lambda` and optionally `effectivePressure` added.
+`Lambda` (stored in the bed-roughness field, `--lambda-field`,
+default `bedRoughnessRC`) added, the input Weertman `muFriction`
+field (`--mu-field`) overwritten with the fitted, spatially uniform
+RC coefficient C, and optionally `effectivePressure` added.
 
 Notes
 -----
@@ -1465,8 +1468,8 @@ def main():
         action="store_false",
         help=(
             "Omit diagnostic fields from the output NetCDF, e.g. for "
-            "production runs where only bedRoughnessRC is needed and "
-            "extra fields are unwanted clutter."
+            "production runs where only bedRoughnessRC and muFriction "
+            "are needed and extra fields are unwanted clutter."
         )
     )
 
@@ -1915,10 +1918,23 @@ def main():
     # used to modify the copied file in-place.
     out = xr.open_dataset(args.output).load()
 
-    # The Weertman muFriction field is not used by the Regularized
-    # Coulomb law; drop it from the converted IC.
-    if args.mu_field in out:
-        out = out.drop_vars(args.mu_field)
+    # The Weertman muFriction field is not used directly by the
+    # Regularized Coulomb law; overwrite it with the fitted, spatially
+    # uniform RC coefficient C (Albany's "Mu"/"Mu Field Name"), so
+    # that an Albany YAML using "Mu Type: Field" (reading this same
+    # field name, per --mu-field) picks up the fitted value.
+    out[args.mu_field] = xr.DataArray(
+        np.full_like(N, C),
+        dims=(ncell_dim,),
+        attrs={
+            "long_name": (
+                "Albany regularized-Coulomb coefficient C (Mu), "
+                "spatially uniform, area-weighted fit over the "
+                "fast-flowing region -- see fit_coulomb_C_fast_region()"
+            ),
+            "units": "1",
+        },
+    )
 
     out[args.lambda_field] = xr.DataArray(
         Lambda,
