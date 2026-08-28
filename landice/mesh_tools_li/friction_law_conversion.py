@@ -2292,10 +2292,10 @@ def main():
     print("-----------------------------")
     print(
     f"""
-    LandIce BCs:
       Basal Friction Coefficient:
         Type: Regularized Coulomb
-        Coulomb Friction Coefficient: {C:.16e}
+        Mu Type: Constant
+        Mu: {C:.16e}
         Power Exponent: {RC_POWER_EXPONENT:.16e}
 {flow_rate_yaml_lines}
         Bed Roughness Type: Field
