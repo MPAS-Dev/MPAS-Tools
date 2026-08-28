@@ -36,10 +36,18 @@ project convention, qR is always fixed at 1/3 (see RC_POWER_EXPONENT
 below) and is not user-configurable.
 
 so Lambda * A * N^n has units of velocity. Lambda is solved for in
-physical meters and then divided by 1000 before being stored, since
-Albany's own internal "scaling" factor assumes the stored bed-
-roughness field value is expressed in km (see
-ALBANY_LAMBDA_METERS_PER_KM below).
+physical meters and stored in the output `bedRoughnessRC` field
+as-is, in meters, matching MALI's Registry.xml declaration of
+`bedRoughnessRC` (units="m"). MALI's own Albany coupling interface
+(mode_forward/Interface_velocity_solver.cpp) divides the raw,
+meters-valued `bedRoughnessRC` field by 1000 before ever handing it
+to Albany -- the exact same way it converts `bedTopography` and
+`thickness` from meters to km -- so Albany's internal "scaling"
+factor (which assumes an already-km-valued field) is satisfied
+automatically by MALI's coupling layer. No additional m -> km
+conversion should be applied here; doing so would double-convert the
+value (dividing by 1000 twice), making Lambda 1000x too small by the
+time it reaches Albany.
 
 The Glen flow-rate factor A can be obtained in one of two ways,
 selected via --flow-rate-type:
@@ -87,22 +95,26 @@ RC_POWER_EXPONENT = 1.0 / 3.0
 # combine correctly when deriving Lambda (bedRoughnessRC).
 SECONDS_PER_YEAR = 365.0 * 24.0 * 3600.0
 
-# Albany reads its "Bed Roughness Field Name" field (Lambda,
-# bedRoughnessRC here) as-is, with no internal unit conversion, but
-# its hardcoded "scaling" factor in
+# Albany's "Bed Roughness Field Name" evaluator (Lambda,
+# bedRoughnessRC here) hardcodes a "scaling" factor in
 # LandIce_BasalFrictionCoefficient_Def.hpp (scaling = secsInYr *
-# pow(1000, n+1); comment: "//bedRoughness in km") is built assuming
-# that raw stored value is already expressed in km, not meters.
-# Combined with N in Albany's own kPa-scaled internal convention and
-# the Glen flow-rate factor A in physical Pa^-n s^-1, this scaling
-# factor reduces exactly to Lambda[km] * SECONDS_PER_YEAR * A[Pa^-n
-# s^-1] * N[Pa]^n -- i.e. numerically identical to using Lambda in
-# physical meters, physical N in Pa, and SECONDS_PER_YEAR, *provided
-# the value actually stored in the field is Lambda in km, a factor of
-# 1000 smaller than Lambda expressed in meters*. This constant
-# converts the meters-based Lambda solved for below into the km value
-# Albany actually expects to find in the field.
-ALBANY_LAMBDA_METERS_PER_KM = 1000.0
+# pow(1000, n+1); comment: "//bedRoughness in km") that assumes the
+# Lambda *value it receives* is expressed in km, not meters. However,
+# Albany never reads bedRoughnessRC directly from the MALI NetCDF
+# file -- MALI's own coupling interface
+# (mode_forward/Interface_velocity_solver.cpp: "bedRoughnessData[index]
+# = bedRoughnessRC_F[iCell] / unit_length;", unit_length = 1000)
+# divides the raw field by 1000 before Albany ever sees it, exactly
+# as it does for bedTopography and thickness. MALI's Registry.xml
+# also declares bedRoughnessRC with units="m". So the value that must
+# actually be written to the output NetCDF field is Lambda in
+# physical meters, with NO additional m -> km conversion applied
+# here -- that conversion is already performed by MALI's coupling
+# layer. (A previous version of this script divided the solved-for
+# meters-based Lambda by 1000 before storing it, under the mistaken
+# assumption that Albany reads the field as-is; that produced a
+# double conversion, making the stored value -- and therefore the
+# Lambda Albany actually uses at runtime -- 1000x too small.)
 
 # Albany's internal effective pressure representation (used e.g. by
 # its "Hydrostatic" Effective Pressure Type) is computed from bed/
@@ -1707,9 +1719,11 @@ def main():
     #
     #     Lambda[m] = u * [(C*N / (mu * u^qW))^(1/p) - 1]
     #                 / (SECONDS_PER_YEAR * A * N^n)
-    #     Lambda[km] (the value actually stored in the output field,
-    #                 see ALBANY_LAMBDA_METERS_PER_KM) = Lambda[m] /
-    #                 1000
+    #     Lambda[m] is the value actually stored in the output field
+    #     -- see the module docstring / comment above
+    #     SECONDS_PER_YEAR's definition for why no further m -> km
+    #     conversion is applied here (MALI's own coupling interface
+    #     performs that conversion before Albany ever sees the field).
     #
     # This is the same Weertman shear-stress convention used by
     # fit_coulomb_C_fast_region above (Tau_b_W = mu * u^qW, no N term,
@@ -1720,8 +1734,9 @@ def main():
     # exactly as in the previous uc-based derivation (Albany's
     # internal km/kPa/yr "scaling" factor reduces to the plain
     # SECONDS_PER_YEAR factor once Lambda is expressed in meters, N in
-    # Pa, and the meters-based Lambda is then converted to km before
-    # being stored -- see ALBANY_LAMBDA_METERS_PER_KM). N_albany (the
+    # Pa, and the meters-based Lambda is stored as-is, in meters, with
+    # MALI's coupling interface performing the m -> km conversion
+    # before Albany sees it). N_albany (the
     # kPa-equivalent convention) is used for the "C*N" Coulomb-limit
     # term, matching how C was itself fit.
     #
@@ -1778,7 +1793,6 @@ def main():
         speed[lambda_mask]
         * (stress_ratio[lambda_mask] ** (1.0 / RC_POWER_EXPONENT) - 1.0)
         / (SECONDS_PER_YEAR * A[lambda_mask] * N[lambda_mask] ** args.glen_n)
-        / ALBANY_LAMBDA_METERS_PER_KM
     )
 
     n_unreachable = int(np.count_nonzero(valid_speed & ~lambda_mask))
@@ -1927,8 +1941,12 @@ def main():
                 "* N^n), with u in m/yr, A in Pa^-3 s^-1, N in Pa, "
                 "matching Albany's internal secsInYr scaling in "
                 "LandIce_BasalFrictionCoefficient_Def.hpp; the stored "
-                "value is Lambda[m] / 1000 (km), matching Albany's "
-                "'bedRoughness in km' convention for this field"
+                "value is Lambda in meters, as-is (matching MALI's "
+                "Registry.xml units=\"m\" declaration for this field) "
+                "-- MALI's own Albany coupling interface "
+                "(Interface_velocity_solver.cpp) divides this field "
+                "by 1000 before Albany sees it, satisfying Albany's "
+                "'bedRoughness in km' scaling convention"
             ),
         },
     )
