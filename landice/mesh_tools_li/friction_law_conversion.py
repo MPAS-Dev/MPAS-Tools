@@ -2328,8 +2328,7 @@ def main():
     f"""
       Basal Friction Coefficient:
         Type: Regularized Coulomb
-        Mu Type: Constant
-        Mu: {C:.16e}
+        Mu Type: Field
         Power Exponent: {RC_POWER_EXPONENT:.16e}
 {flow_rate_yaml_lines}
         Bed Roughness Type: Field
