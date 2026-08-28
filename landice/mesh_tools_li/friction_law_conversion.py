@@ -2171,7 +2171,7 @@ def main():
         map_fields = {
             args.lambda_field: [
                 {
-                    "values": Lambda, "units": "km",
+                    "values": Lambda, "units": "m",
                     "title": (
                         "Albany regularized-Coulomb bed roughness Lambda"
                     ),
