@@ -3,22 +3,44 @@
 Convert a MALI Weertman basal-friction initial condition to parameters
 for Albany's Regularized Coulomb friction law.
 
-Computes
---------
-1. Downs & Johnson-style effective pressure N
-2. Area-weighted optimal scalar C:
+Two methods are available, selected via --method:
 
-       C = integral[ uc**qW * mu / N dA ] / integral[dA]
+- "stress-match-fit" (default): computes
+  1. Downs & Johnson-style effective pressure N
+  2. Area-weighted optimal scalar C:
 
-3. Albany bed-roughness/Lambda field:
+         C = integral[ uc**qW * mu / N dA ] / integral[dA]
 
-       Lambda = uc / (A * N**n)
+  3. Albany bed-roughness/Lambda field:
+
+         Lambda = uc / (A * N**n)
+
+  Lambda is solved per-cell so that the RC law matches the
+  Weertman law's stress outside the fast-flowing (uc) region; C is
+  a single scalar written uniformly to every cell.
+
+- "transition-velocity": given a fixed transition velocity u0
+  (--transition-velocity), computes, for every grounded cell,
+
+         Lambda = u0 / (A * N**n)
+         C = tau_b * (ub + u0)**(1/3) / (N * ub**(1/3))
+
+  (ub = current sliding speed, tau_b = Weertman shear stress
+  mu*ub**qW), so both Lambda and a spatially-varying C exactly
+  reproduce the Weertman law's stress at every cell's current
+  speed, with no fast/slow-region split. See
+  solve_transition_velocity().
+
+In both cases N can be computed with any of the
+--effective-pressure-type options below.
 
 The output is a copy of the input MALI initial-condition file with
 `Lambda` (stored in the bed-roughness field, `--lambda-field`,
 default `bedRoughnessRC`) added, the input Weertman `muFriction`
-field (`--mu-field`) overwritten with the fitted, spatially uniform
-RC coefficient C, and optionally `effectivePressure` added.
+field (`--mu-field`) overwritten with the RC coefficient C (a
+spatially-uniform scalar for --method=stress-match-fit, spatially
+varying for --method=transition-velocity), and optionally
+`effectivePressure` added.
 
 Notes
 -----
@@ -508,6 +530,68 @@ def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
     C = np.sum(area[valid] * local_C) / np.sum(area[valid])
 
     return C, valid
+
+
+def solve_transition_velocity(
+    tau_b_weertman, speed, N, N_albany, A, glen_n, transition_velocity,
+    lambda_reference_value, mu_reference_value, valid,
+):
+    """
+    Alternative to fit_coulomb_C_fast_region() plus the per-cell
+    Lambda solve: rather than fitting a single scalar C over a
+    fast-flowing region and solving for Lambda elsewhere, pick a
+    fixed transition velocity u0 and compute both Lambda and a
+    spatially-varying Regularized Coulomb coefficient C in closed
+    form, for every valid cell, such that the RC law exactly
+    reproduces the Weertman law's basal shear stress
+    (tau_b_weertman = mu * speed^qW) at that cell's current sliding
+    speed:
+
+        Lambda = u0 / (SECONDS_PER_YEAR * A * N^n)
+        C      = tau_b_weertman * (speed + u0)^qR
+                 / (N_albany * speed^qR)
+
+    (qR = RC_POWER_EXPONENT). This follows from substituting
+    Lambda*SECONDS_PER_YEAR*A*N^n = u0 into the RC law's
+    Tau_b_RC == Tau_b_weertman equation used elsewhere in this
+    script (see the module-level Lambda-solve comment in main()) --
+    i.e. u0 plays the same role as the per-cell solve's "stress
+    ratio" term, but is fixed instead of solved from a separate
+    scalar C fit. Unlike fit_coulomb_C_fast_region()/the per-cell
+    Lambda solve, there is no fast/slow-region split and no
+    ill-defined-solve case: every cell in `valid` gets an exact
+    match.
+
+    `N` (raw Pa) is used for Lambda for unit consistency with A
+    (Pa^-3 s^-1) and SECONDS_PER_YEAR, exactly as in the per-cell
+    Lambda solve elsewhere in this script. `N_albany` (physical N /
+    ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT) is used for C, matching
+    how C is fit in fit_coulomb_C_fast_region() (dimensionally
+    consistent with tau_b_weertman via the kPa-scaled `mu` field).
+
+    Cells outside `valid` (non-grounded, ice-free, or zero/invalid
+    current sliding speed/N/mu) get `lambda_reference_value` and
+    `mu_reference_value` respectively, since the closed-form
+    expressions above are undefined there (division by zero speed,
+    or an ill-defined tau_b_weertman/N).
+
+    Returns
+    -------
+    Lambda, C : 1-D numpy arrays, same shape as `N`
+    """
+    Lambda = np.full_like(N, lambda_reference_value)
+    Lambda[valid] = transition_velocity / (
+        SECONDS_PER_YEAR * A[valid] * N[valid] ** glen_n
+    )
+
+    C = np.full_like(N, mu_reference_value)
+    C[valid] = (
+        tau_b_weertman[valid]
+        * (speed[valid] + transition_velocity) ** RC_POWER_EXPONENT
+        / (N_albany[valid] * speed[valid] ** RC_POWER_EXPONENT)
+    )
+
+    return Lambda, C
 
 
 def load_transect(name, transects_dir):
@@ -1082,10 +1166,70 @@ def main():
     parser.add_argument("output", help="Output NetCDF file")
 
     parser.add_argument(
+        "--method",
+        choices=["stress-match-fit", "transition-velocity"],
+        default="stress-match-fit",
+        help=(
+            "How to derive bedRoughnessRC (Lambda) and the Regularized "
+            "Coulomb friction coefficient (--mu-field) (default: "
+            "stress-match-fit). \"stress-match-fit\" (the original "
+            "method) fits a single, spatially-uniform scalar C over "
+            "the fast-flowing region (speed > --critical-velocity), "
+            "assumed already in the full-Coulomb regime, then solves "
+            "per-cell for Lambda elsewhere so the RC law reproduces "
+            "the Weertman law's basal shear stress at each cell's "
+            "current sliding speed (see fit_coulomb_C_fast_region()/ "
+            "the Lambda solve below --critical-velocity/"
+            "--lambda-reference-value are used by this method). "
+            "\"transition-velocity\" instead picks a fixed transition "
+            "velocity u0 (--transition-velocity) and computes, in "
+            "closed form for every grounded cell, "
+            "Lambda = u0 / (SECONDS_PER_YEAR * A * N^n) and a "
+            "spatially-varying C = tau_b * (ub + u0)^(1/3) / "
+            "(N * ub^(1/3)) (ub = current sliding speed, tau_b = "
+            "Weertman shear stress mu*ub^qW), so that the RC law "
+            "exactly reproduces the Weertman law's stress at every "
+            "grounded cell's current speed, with no fast/slow-region "
+            "split (--transition-velocity/--mu-reference-value/"
+            "--lambda-reference-value are used by this method)."
+        )
+    )
+    parser.add_argument(
         "--critical-velocity", "--uc",
         type=float,
-        required=True,
-        help="Critical velocity u_c, e.g. in m/yr"
+        default=None,
+        help=(
+            "Critical velocity u_c, e.g. in m/yr. Required, and only "
+            "used, when --method=stress-match-fit."
+        )
+    )
+    parser.add_argument(
+        "--transition-velocity", "--u0",
+        dest="transition_velocity",
+        type=float,
+        default=None,
+        help=(
+            "Transition velocity u0, e.g. in m/yr, used to derive "
+            "Lambda = u0 / (SECONDS_PER_YEAR * A * N^n) and the "
+            "per-cell Regularized Coulomb coefficient C = tau_b * "
+            "(ub + u0)^(1/3) / (N * ub^(1/3)). Required, and only "
+            "used, when --method=transition-velocity."
+        )
+    )
+    parser.add_argument(
+        "--mu-reference-value",
+        type=float,
+        default=0.3,
+        help=(
+            "Value assigned to the output --mu-field (the per-cell "
+            "Regularized Coulomb coefficient C) at cells where the "
+            "--method=transition-velocity closed-form solve is "
+            "undefined (non-grounded, ice-free, or zero/invalid "
+            "current sliding speed, N, or input mu -- the same cells "
+            "that fall back to --lambda-reference-value for Lambda). "
+            "Only used when --method=transition-velocity (default: "
+            "0.3)."
+        )
     )
     parser.add_argument(
         "--weertman-q", "--q",
@@ -1105,17 +1249,20 @@ def main():
         type=float,
         default=0.0,
         help=(
-            "Value assigned to bedRoughnessRC (Lambda) at cells "
-            "assumed to be in the full-Coulomb regime: all "
-            "fast-flowing cells (speed > critical velocity, the same "
-            "region used to fit C), plus any other grounded cell "
-            "where the exact per-cell Lambda solve is ill-defined "
-            "(Weertman Tau_b already meets or exceeds the Coulomb "
-            "limit C*N). Lambda -> 0 exactly reproduces the "
-            "full-Coulomb limit, so 0.0 (default) is physically "
-            "correct; a small positive reference value can be used "
-            "instead if a strictly-zero bed roughness is undesirable "
-            "for other reasons (default: 0.0)."
+            "Value assigned to bedRoughnessRC (Lambda) at cells where "
+            "no valid Lambda can be computed. For "
+            "--method=stress-match-fit, this is all fast-flowing "
+            "cells (speed > critical velocity, the same region used "
+            "to fit C), plus any other grounded cell where the exact "
+            "per-cell Lambda solve is ill-defined (Weertman Tau_b "
+            "already meets or exceeds the Coulomb limit C*N); Lambda "
+            "-> 0 exactly reproduces the full-Coulomb limit there, so "
+            "0.0 (default) is physically correct, though a small "
+            "positive value can be used instead if a strictly-zero "
+            "bed roughness is undesirable for other reasons. For "
+            "--method=transition-velocity, this is any non-grounded, "
+            "ice-free, or zero/invalid current-sliding-speed/N cell "
+            "(default: 0.0)."
         )
     )
 
@@ -1482,6 +1629,31 @@ def main():
 
     args = parser.parse_args()
 
+    if args.method == "stress-match-fit":
+        if args.critical_velocity is None:
+            parser.error(
+                "--critical-velocity is required when "
+                "--method=stress-match-fit"
+            )
+        if args.transition_velocity is not None:
+            parser.error(
+                "--transition-velocity is only used with "
+                "--method=transition-velocity (got "
+                "--method=stress-match-fit)"
+            )
+    else:
+        if args.transition_velocity is None:
+            parser.error(
+                "--transition-velocity is required when "
+                "--method=transition-velocity"
+            )
+        if args.critical_velocity is not None:
+            parser.error(
+                "--critical-velocity is only used with "
+                "--method=stress-match-fit (got "
+                "--method=transition-velocity)"
+            )
+
     if args.flow_rate_type == "constant":
         if args.flow_rate is None:
             parser.error(
@@ -1677,100 +1849,16 @@ def main():
     )
 
     # -------------------------------------------------------------
-    # Optimal C: fit against the fast-flowing region only, assuming
-    # it is already in the fully-plastic Coulomb regime of the RC law
-    # (Tau_b = C * N).
-    # -------------------------------------------------------------
-    fast_flowing = grounded & (speed > args.critical_velocity)
-
-    C, fit_mask = fit_coulomb_C_fast_region(
-        mu=mu,
-        N=N_albany,
-        area=area,
-        speed=speed,
-        q=args.weertman_q,
-        mask=fast_flowing,
-    )
-
-    # -------------------------------------------------------------
-    # Lambda / Albany Bed Roughness
-    #
-    # Rather than assuming the sliding speed equals a prescribed
-    # critical velocity, Lambda is now solved for exactly, per cell,
-    # by requiring that Albany's Regularized Coulomb law reproduce
-    # the *same basal shear stress* Tau_b that the original
-    # Weertman/Power-Law would produce at the cell's actual current
-    # sliding speed (from --velocity-x-field/--velocity-y-field).
-    #
-    # NOTE: MALI's Weertman sliding law (which muFriction was
-    # calibrated for) has NO effective pressure term:
+    # Basal shear stress implied by the input Weertman law at each
+    # cell's current sliding speed (from --velocity-x-field/
+    # --velocity-y-field). Used by both --method options below to
+    # solve for Lambda/C so that the RC law reproduces this same
+    # stress:
     #
     #   Weertman:            beta_W  = mu * u^(qW-1)
     #                        Tau_b   = beta_W * u = mu * u^qW
     #
-    #   Regularized Coulomb (LandIce_BasalFrictionCoefficient_Def.hpp):
-    #                        beta_RC = C * N * u^(p-1)
-    #                                  / (u + Lambda*scaling*A*N^n)^p
-    #                        Tau_b   = beta_RC * u
-    #                                = C * N * u^p
-    #                                  / (u + Lambda*scaling*A*N^n)^p
-    #
-    #   Setting Tau_b_RC == Tau_b_W and solving for Lambda:
-    #
-    #     u + Lambda*scaling*A*N^n = u * (C*N / Tau_b_W)^(1/p)
-    #                              = u * (C*N / (mu * u^qW))^(1/p)
-    #
-    #     Lambda[m] = u * [(C*N / (mu * u^qW))^(1/p) - 1]
-    #                 / (SECONDS_PER_YEAR * A * N^n)
-    #     Lambda[m] is the value actually stored in the output field
-    #     -- see the module docstring / comment above
-    #     SECONDS_PER_YEAR's definition for why no further m -> km
-    #     conversion is applied here (MALI's own coupling interface
-    #     performs that conversion before Albany ever sees the field).
-    #
-    # This is the same Weertman shear-stress convention used by
-    # fit_coulomb_C_fast_region above (Tau_b_W = mu * u^qW, no N term,
-    # matched in the fast-flowing region against the RC Coulomb limit
-    # C*N).
-    #
-    # where u is in m/yr, A is in Pa^-3 s^-1, N (raw Pa) is used here
-    # exactly as in the previous uc-based derivation (Albany's
-    # internal km/kPa/yr "scaling" factor reduces to the plain
-    # SECONDS_PER_YEAR factor once Lambda is expressed in meters, N in
-    # Pa, and the meters-based Lambda is stored as-is, in meters, with
-    # MALI's coupling interface performing the m -> km conversion
-    # before Albany sees it). N_albany (the
-    # kPa-equivalent convention) is used for the "C*N" Coulomb-limit
-    # term, matching how C was itself fit.
-    #
-    # Because Albany's Regularized Coulomb law can never produce a
-    # shear stress above the Coulomb limit C*N (attained only in the
-    # Lambda -> 0 limit), cells where the Weertman law's Tau_b at the
-    # current speed already meets or exceeds C*N have no valid
-    # (non-negative) solution for Lambda. Physically, Lambda -> 0 is
-    # *exactly* the fully-plastic Coulomb regime (Tau_b_RC saturates
-    # at its maximum achievable value, C*N, independent of speed), so
-    # setting Lambda = args.lambda_reference_value at these cells is
-    # not an arbitrary filler value -- it is the correct behavior for
-    # cells that the fast-flowing/full-Coulomb assumption is designed
-    # to describe in the first place.
-    #
-    # Fast-flowing cells (the same region used to fit C, i.e.
-    # speed > critical_velocity) are *always* assumed to be in this
-    # full-Coulomb regime and are therefore always forced to
-    # Lambda = args.lambda_reference_value, regardless of what the
-    # per-cell algebraic solve above would otherwise give -- the exact
-    # per-cell solve is not attempted there at all, since matching the
-    # Weertman law exactly at high speed is not the goal (the fast
-    # region is assumed C-limited by construction).
     # -------------------------------------------------------------
-    Lambda = np.full_like(N, args.lambda_reference_value)
-
-    # tau_b_weertman/local_C are computed over all grounded cells with
-    # a well-defined speed and mu (independent of the fast/slow split)
-    # so that diagnostics (local_C) remain meaningful for the
-    # fast-flowing fit region even though the exact Lambda solve below
-    # is only attempted for the slow-flowing cells.
     speed_defined = (
         grounded
         & np.isfinite(N) & (N > 0.0)
@@ -1783,58 +1871,186 @@ def main():
         mu[speed_defined] * speed[speed_defined] ** args.weertman_q
     )
 
-    valid_speed = speed_defined & ~fast_flowing
+    if args.method == "stress-match-fit":
+        # ---------------------------------------------------------
+        # Optimal C: fit against the fast-flowing region only,
+        # assuming it is already in the fully-plastic Coulomb regime
+        # of the RC law (Tau_b = C * N).
+        # ---------------------------------------------------------
+        fast_flowing = grounded & (speed > args.critical_velocity)
 
-    stress_ratio = np.full_like(N, np.nan)
-    stress_ratio[valid_speed] = (
-        (C * N_albany[valid_speed]) / tau_b_weertman[valid_speed]
-    )
-
-    lambda_mask = valid_speed & np.isfinite(stress_ratio) & (stress_ratio > 1.0)
-
-    Lambda[lambda_mask] = (
-        speed[lambda_mask]
-        * (stress_ratio[lambda_mask] ** (1.0 / RC_POWER_EXPONENT) - 1.0)
-        / (SECONDS_PER_YEAR * A[lambda_mask] * N[lambda_mask] ** args.glen_n)
-    )
-
-    n_unreachable = int(np.count_nonzero(valid_speed & ~lambda_mask))
-    if n_unreachable > 0:
-        print(
-            f"NOTE: {n_unreachable} slow-flowing grounded cells have a "
-            "Weertman basal shear stress (mu*u^qW) at the current "
-            "sliding speed that meets or exceeds the Coulomb limit "
-            f"C*N; Lambda set to {args.lambda_reference_value:g} "
-            "(maximal Coulomb sliding) at these cells."
+        C, fit_mask = fit_coulomb_C_fast_region(
+            mu=mu,
+            N=N_albany,
+            area=area,
+            speed=speed,
+            q=args.weertman_q,
+            mask=fast_flowing,
         )
-    print(
-        f"Fast-flowing cells forced to Lambda = "
-        f"{args.lambda_reference_value:g} (full-Coulomb assumption) : "
-        f"{int(np.count_nonzero(fast_flowing))}"
-    )
 
-    # Floating/ice-free/invalid-speed/unreachable-stress cells are
-    # deliberately left at zero (see Lambda initialization above).
+        # ---------------------------------------------------------
+        # Lambda / Albany Bed Roughness
+        #
+        # Rather than assuming the sliding speed equals a prescribed
+        # critical velocity, Lambda is solved for exactly, per cell,
+        # by requiring that Albany's Regularized Coulomb law
+        # reproduce the same Tau_b computed above.
+        #
+        #   Regularized Coulomb (LandIce_BasalFrictionCoefficient_Def.hpp):
+        #                        beta_RC = C * N * u^(p-1)
+        #                                  / (u + Lambda*scaling*A*N^n)^p
+        #                        Tau_b   = beta_RC * u
+        #                                = C * N * u^p
+        #                                  / (u + Lambda*scaling*A*N^n)^p
+        #
+        #   Setting Tau_b_RC == Tau_b_W and solving for Lambda:
+        #
+        #     u + Lambda*scaling*A*N^n = u * (C*N / Tau_b_W)^(1/p)
+        #                              = u * (C*N / (mu * u^qW))^(1/p)
+        #
+        #     Lambda[m] = u * [(C*N / (mu * u^qW))^(1/p) - 1]
+        #                 / (SECONDS_PER_YEAR * A * N^n)
+        #     Lambda[m] is the value actually stored in the output field
+        #     -- see the module docstring / comment above
+        #     SECONDS_PER_YEAR's definition for why no further m -> km
+        #     conversion is applied here (MALI's own coupling interface
+        #     performs that conversion before Albany ever sees the field).
+        #
+        # where u is in m/yr, A is in Pa^-3 s^-1, N (raw Pa) is used
+        # here exactly as in the previous uc-based derivation
+        # (Albany's internal km/kPa/yr "scaling" factor reduces to
+        # the plain SECONDS_PER_YEAR factor once Lambda is expressed
+        # in meters, N in Pa, and the meters-based Lambda is stored
+        # as-is, in meters, with MALI's coupling interface performing
+        # the m -> km conversion before Albany sees it). N_albany
+        # (the kPa-equivalent convention) is used for the "C*N"
+        # Coulomb-limit term, matching how C was itself fit.
+        #
+        # Because Albany's Regularized Coulomb law can never produce
+        # a shear stress above the Coulomb limit C*N (attained only
+        # in the Lambda -> 0 limit), cells where the Weertman law's
+        # Tau_b at the current speed already meets or exceeds C*N
+        # have no valid (non-negative) solution for Lambda.
+        # Physically, Lambda -> 0 is *exactly* the fully-plastic
+        # Coulomb regime (Tau_b_RC saturates at its maximum
+        # achievable value, C*N, independent of speed), so setting
+        # Lambda = args.lambda_reference_value at these cells is not
+        # an arbitrary filler value -- it is the correct behavior for
+        # cells that the fast-flowing/full-Coulomb assumption is
+        # designed to describe in the first place.
+        #
+        # Fast-flowing cells (the same region used to fit C, i.e.
+        # speed > critical_velocity) are *always* assumed to be in
+        # this full-Coulomb regime and are therefore always forced to
+        # Lambda = args.lambda_reference_value, regardless of what
+        # the per-cell algebraic solve above would otherwise give --
+        # the exact per-cell solve is not attempted there at all,
+        # since matching the Weertman law exactly at high speed is
+        # not the goal (the fast region is assumed C-limited by
+        # construction).
+        # ---------------------------------------------------------
+        Lambda = np.full_like(N, args.lambda_reference_value)
 
-    # -------------------------------------------------------------
-    # Diagnostics
-    # -------------------------------------------------------------
-    # "Local" implied C: the per-cell ratio of the actual Weertman
-    # shear stress (at the cell's current sliding speed) to N, i.e.
-    # what C would have to be for that cell alone to be exactly in
-    # the full-Coulomb regime. Its spread within the fast-flowing fit
-    # region gives a sense of how well a single scalar C fits that
-    # region.
-    local_C = np.full_like(N, np.nan)
-    local_C[speed_defined] = (
-        tau_b_weertman[speed_defined] / N_albany[speed_defined]
-    )
+        valid_speed = speed_defined & ~fast_flowing
+
+        stress_ratio = np.full_like(N, np.nan)
+        stress_ratio[valid_speed] = (
+            (C * N_albany[valid_speed]) / tau_b_weertman[valid_speed]
+        )
+
+        lambda_mask = (
+            valid_speed & np.isfinite(stress_ratio) & (stress_ratio > 1.0)
+        )
+
+        Lambda[lambda_mask] = (
+            speed[lambda_mask]
+            * (stress_ratio[lambda_mask] ** (1.0 / RC_POWER_EXPONENT) - 1.0)
+            / (SECONDS_PER_YEAR * A[lambda_mask] * N[lambda_mask] ** args.glen_n)
+        )
+
+        n_unreachable = int(np.count_nonzero(valid_speed & ~lambda_mask))
+        if n_unreachable > 0:
+            print(
+                f"NOTE: {n_unreachable} slow-flowing grounded cells have a "
+                "Weertman basal shear stress (mu*u^qW) at the current "
+                "sliding speed that meets or exceeds the Coulomb limit "
+                f"C*N; Lambda set to {args.lambda_reference_value:g} "
+                "(maximal Coulomb sliding) at these cells."
+            )
+        print(
+            f"Fast-flowing cells forced to Lambda = "
+            f"{args.lambda_reference_value:g} (full-Coulomb assumption) : "
+            f"{int(np.count_nonzero(fast_flowing))}"
+        )
+
+        # Floating/ice-free/invalid-speed/unreachable-stress cells
+        # are deliberately left at zero (see Lambda initialization
+        # above).
+
+        # -----------------------------------------------------------
+        # Diagnostics
+        # -----------------------------------------------------------
+        # "Local" implied C: the per-cell ratio of the actual
+        # Weertman shear stress (at the cell's current sliding speed)
+        # to N, i.e. what C would have to be for that cell alone to
+        # be exactly in the full-Coulomb regime. Its spread within
+        # the fast-flowing fit region gives a sense of how well a
+        # single scalar C fits that region. Only meaningful (and only
+        # plotted) for --method=stress-match-fit, since
+        # --method=transition-velocity already writes a spatially-
+        # varying, exactly-matching C to --mu-field directly.
+        local_C = np.full_like(N, np.nan)
+        local_C[speed_defined] = (
+            tau_b_weertman[speed_defined] / N_albany[speed_defined]
+        )
+    else:
+        # ---------------------------------------------------------
+        # Transition-velocity method: Lambda and a spatially-varying
+        # C are both computed in closed form from a fixed transition
+        # velocity u0, with no fast/slow-region split -- see
+        # solve_transition_velocity().
+        # ---------------------------------------------------------
+        fast_flowing = grounded & (speed > args.transition_velocity)
+        fit_mask = None
+        local_C = None
+
+        Lambda, C = solve_transition_velocity(
+            tau_b_weertman=tau_b_weertman,
+            speed=speed,
+            N=N,
+            N_albany=N_albany,
+            A=A,
+            glen_n=args.glen_n,
+            transition_velocity=args.transition_velocity,
+            lambda_reference_value=args.lambda_reference_value,
+            mu_reference_value=args.mu_reference_value,
+            valid=speed_defined,
+        )
+
+        # Every grounded cell with a well-defined speed/N/mu gets an
+        # exact closed-form solve (no fast/slow-region split, unlike
+        # --method=stress-match-fit).
+        lambda_mask = speed_defined
+
+        print(
+            f"Grounded cells with valid closed-form Lambda/C solve : "
+            f"{int(np.count_nonzero(speed_defined))} "
+            f"/ {int(np.count_nonzero(grounded))} grounded"
+        )
+        print(
+            f"Cells above transition velocity, u0 (maskFastFlowing) : "
+            f"{int(np.count_nonzero(fast_flowing))}"
+        )
 
     print()
     print("MALI Weertman -> Regularized Coulomb conversion")
     print("------------------------------------------------")
     print(f"Input file                    : {args.input}")
-    print(f"Critical velocity, uc         : {args.critical_velocity:g}")
+    print(f"Method                        : {args.method}")
+    if args.method == "stress-match-fit":
+        print(f"Critical velocity, uc         : {args.critical_velocity:g}")
+    else:
+        print(f"Transition velocity, u0       : {args.transition_velocity:g}")
     print(f"Weertman power exponent, qW   : {args.weertman_q:g}")
     print(f"RC power exponent, qR         : {RC_POWER_EXPONENT:g}")
     print(f"Glen exponent, n              : {args.glen_n:g}")
@@ -1846,19 +2062,31 @@ def main():
             f"{np.min(basal_temperature):.6f} -- "
             f"{np.max(basal_temperature):.6f} K"
         )
-    print(
-        f"Fast-flowing (speed > uc) cells used in C fit : "
-        f"{np.count_nonzero(fit_mask)} / {int(np.count_nonzero(grounded))} grounded"
-    )
-    print(f"Fast-flowing area used         : {np.sum(area[fit_mask]):.10e}")
-    print()
-    print(f"Optimal C                     : {C:.16e}")
-    print()
-    print(
-        "N range on fit domain        : "
-        f"{np.nanmin(N[fit_mask]):.6e} -- "
-        f"{np.nanmax(N[fit_mask]):.6e}"
-    )
+    if args.method == "stress-match-fit":
+        print(
+            f"Fast-flowing (speed > uc) cells used in C fit : "
+            f"{np.count_nonzero(fit_mask)} / {int(np.count_nonzero(grounded))} grounded"
+        )
+        print(f"Fast-flowing area used         : {np.sum(area[fit_mask]):.10e}")
+        print()
+        print(f"Optimal C                     : {C:.16e}")
+        print()
+        print(
+            "N range on fit domain        : "
+            f"{np.nanmin(N[fit_mask]):.6e} -- "
+            f"{np.nanmax(N[fit_mask]):.6e}"
+        )
+    else:
+        print()
+        print(
+            "C range (spatially varying)  : "
+            + (
+                f"{np.nanmin(C[speed_defined]):.6e} -- "
+                f"{np.nanmax(C[speed_defined]):.6e}"
+                if np.any(speed_defined) else "n/a (no valid cells)"
+            )
+        )
+        print()
     print(
         "Basal sliding speed range (all grounded) : "
         + (
@@ -1879,11 +2107,12 @@ def main():
             if np.any(lambda_mask) else "n/a (no valid cells)"
         )
     )
-    print(
-        "Local C range                : "
-        f"{np.nanmin(local_C[fit_mask]):.6e} -- "
-        f"{np.nanmax(local_C[fit_mask]):.6e}"
-    )
+    if args.method == "stress-match-fit":
+        print(
+            "Local C range                : "
+            f"{np.nanmin(local_C[fit_mask]):.6e} -- "
+            f"{np.nanmax(local_C[fit_mask]):.6e}"
+        )
     print()
 
     # -------------------------------------------------------------
@@ -1919,51 +2148,86 @@ def main():
     out = xr.open_dataset(args.output).load()
 
     # The Weertman muFriction field is not used directly by the
-    # Regularized Coulomb law; overwrite it with the fitted, spatially
-    # uniform RC coefficient C (Albany's "Mu"/"Mu Field Name"), so
-    # that an Albany YAML using "Mu Type: Field" (reading this same
-    # field name, per --mu-field) picks up the fitted value.
+    # Regularized Coulomb law; overwrite it with the RC coefficient C
+    # (Albany's "Mu"/"Mu Field Name"), so that an Albany YAML using
+    # "Mu Type: Field" (reading this same field name, per --mu-field)
+    # picks up the fitted/calculated value. For
+    # --method=stress-match-fit, C is a single scalar, area-weighted
+    # fit broadcast uniformly to every cell (see
+    # fit_coulomb_C_fast_region()); for --method=transition-velocity,
+    # C already varies per cell (see solve_transition_velocity()).
+    if args.method == "stress-match-fit":
+        mu_field_values = np.full_like(N, C)
+        mu_field_long_name = (
+            "Albany regularized-Coulomb coefficient C (Mu), "
+            "spatially uniform, area-weighted fit over the "
+            "fast-flowing region -- see fit_coulomb_C_fast_region()"
+        )
+    else:
+        mu_field_values = C
+        mu_field_long_name = (
+            "Albany regularized-Coulomb coefficient C (Mu), computed "
+            "in closed form per cell from the transition velocity u0 "
+            "-- see solve_transition_velocity()"
+        )
+
     out[args.mu_field] = xr.DataArray(
-        np.full_like(N, C),
+        mu_field_values,
         dims=(ncell_dim,),
         attrs={
-            "long_name": (
-                "Albany regularized-Coulomb coefficient C (Mu), "
-                "spatially uniform, area-weighted fit over the "
-                "fast-flowing region -- see fit_coulomb_C_fast_region()"
-            ),
+            "long_name": mu_field_long_name,
             "units": "1",
         },
     )
+
+    if args.method == "stress-match-fit":
+        lambda_field_description = (
+            "Fast-flowing cells (speed > critical velocity) and "
+            "any other grounded cell where the solve below is "
+            "ill-defined are assumed to be in the full-Coulomb "
+            f"regime and set to {args.lambda_reference_value:g} "
+            "(see maskFastFlowing/maskValidBedRoughnessRC). "
+            "Elsewhere, Lambda is solved exactly so that the "
+            "Regularized Coulomb law reproduces the Weertman "
+            "law's basal shear stress (mu*u^qW, no effective-"
+            "pressure term) at the cell's actual current sliding "
+            "speed u (from velocity-x/y-field, last "
+            "nVertInterfaces level): Lambda[m] = u * "
+            "[(C*N/(mu*u^qW))^(1/qR) - 1] / (SECONDS_PER_YEAR * A "
+            "* N^n), with u in m/yr, A in Pa^-3 s^-1, N in Pa, "
+            "matching Albany's internal secsInYr scaling in "
+            "LandIce_BasalFrictionCoefficient_Def.hpp; the stored "
+            "value is Lambda in meters, as-is (matching MALI's "
+            "Registry.xml units=\"m\" declaration for this field) "
+            "-- MALI's own Albany coupling interface "
+            "(Interface_velocity_solver.cpp) divides this field "
+            "by 1000 before Albany sees it, satisfying Albany's "
+            "'bedRoughness in km' scaling convention"
+        )
+    else:
+        lambda_field_description = (
+            "Non-grounded, ice-free, or zero/invalid current-"
+            f"sliding-speed/N/mu cells are set to "
+            f"{args.lambda_reference_value:g} (see "
+            "maskValidBedRoughnessRC). Elsewhere (every grounded "
+            "cell with a valid solve), Lambda = u0 / "
+            "(SECONDS_PER_YEAR * A * N^n), with u0 the transition "
+            "velocity (--transition-velocity), A in Pa^-3 s^-1, N in "
+            "Pa -- see solve_transition_velocity(); the stored value "
+            "is Lambda in meters, as-is (matching MALI's Registry.xml "
+            "units=\"m\" declaration for this field) -- MALI's own "
+            "Albany coupling interface (Interface_velocity_solver.cpp) "
+            "divides this field by 1000 before Albany sees it, "
+            "satisfying Albany's 'bedRoughness in km' scaling "
+            "convention"
+        )
 
     out[args.lambda_field] = xr.DataArray(
         Lambda,
         dims=(ncell_dim,),
         attrs={
             "long_name": "Albany regularized-Coulomb bed roughness Lambda",
-            "description": (
-                "Fast-flowing cells (speed > critical velocity) and "
-                "any other grounded cell where the solve below is "
-                "ill-defined are assumed to be in the full-Coulomb "
-                f"regime and set to {args.lambda_reference_value:g} "
-                "(see maskFastFlowing/maskValidBedRoughnessRC). "
-                "Elsewhere, Lambda is solved exactly so that the "
-                "Regularized Coulomb law reproduces the Weertman "
-                "law's basal shear stress (mu*u^qW, no effective-"
-                "pressure term) at the cell's actual current sliding "
-                "speed u (from velocity-x/y-field, last "
-                "nVertInterfaces level): Lambda[m] = u * "
-                "[(C*N/(mu*u^qW))^(1/qR) - 1] / (SECONDS_PER_YEAR * A "
-                "* N^n), with u in m/yr, A in Pa^-3 s^-1, N in Pa, "
-                "matching Albany's internal secsInYr scaling in "
-                "LandIce_BasalFrictionCoefficient_Def.hpp; the stored "
-                "value is Lambda in meters, as-is (matching MALI's "
-                "Registry.xml units=\"m\" declaration for this field) "
-                "-- MALI's own Albany coupling interface "
-                "(Interface_velocity_solver.cpp) divides this field "
-                "by 1000 before Albany sees it, satisfying Albany's "
-                "'bedRoughness in km' scaling convention"
-            ),
+            "description": lambda_field_description,
         },
     )
 
@@ -2051,41 +2315,77 @@ def main():
             },
         )
 
+        if args.method == "stress-match-fit":
+            mask_fast_flowing_long_name = (
+                "Mask of grounded, fast-flowing cells assumed to be in "
+                "the full-Coulomb regime (used to fit C)"
+            )
+            mask_fast_flowing_description = (
+                "1 where maskGrounded and speed (from velocity-x/y-"
+                "field, last nVertInterfaces level) > critical "
+                "velocity, else 0. bedRoughnessRC is forced to "
+                f"{args.lambda_reference_value:g} at these cells."
+            )
+        else:
+            mask_fast_flowing_long_name = (
+                "Mask of grounded cells above the transition velocity "
+                "u0 (diagnostic only; --method=transition-velocity "
+                "does not use a fast/slow-region split)"
+            )
+            mask_fast_flowing_description = (
+                "1 where maskGrounded and speed (from velocity-x/y-"
+                "field, last nVertInterfaces level) > transition "
+                "velocity u0 (--transition-velocity), else 0."
+            )
+
         out["maskFastFlowing"] = xr.DataArray(
             fast_flowing.astype(np.int8),
             dims=(ncell_dim,),
             attrs={
-                "long_name": (
-                    "Mask of grounded, fast-flowing cells assumed to be in "
-                    "the full-Coulomb regime (used to fit C)"
-                ),
-                "description": (
-                    "1 where maskGrounded and speed (from velocity-x/y-"
-                    "field, last nVertInterfaces level) > critical "
-                    "velocity, else 0. bedRoughnessRC is forced to "
-                    f"{args.lambda_reference_value:g} at these cells."
-                ),
+                "long_name": mask_fast_flowing_long_name,
+                "description": mask_fast_flowing_description,
             },
         )
+
+        if args.method == "stress-match-fit":
+            mask_valid_long_name = (
+                "Mask of cells where bedRoughnessRC (Lambda) was "
+                "solved exactly, rather than set to the full-Coulomb "
+                f"reference value ({args.lambda_reference_value:g})"
+            )
+            mask_valid_description = (
+                "1 where the cell is grounded, not fast-flowing, and "
+                "the Weertman basal shear stress at the cell's "
+                "current sliding speed is strictly below the Coulomb "
+                "limit C*N (a valid, non-negative Lambda solution "
+                "exists); 0 otherwise (includes maskFastFlowing "
+                "cells and any slow-flowing grounded cell where the "
+                "solve is ill-defined)."
+            )
+        else:
+            mask_valid_long_name = (
+                "Mask of cells where bedRoughnessRC (Lambda) and "
+                "muFriction (C) were computed exactly, rather than "
+                f"set to their reference values "
+                f"({args.lambda_reference_value:g}/"
+                f"{args.mu_reference_value:g})"
+            )
+            mask_valid_description = (
+                "1 where the cell is grounded and has a well-defined "
+                "current sliding speed, N, and input mu (a valid "
+                "closed-form solve exists -- see "
+                "solve_transition_velocity()); 0 otherwise. Unlike "
+                "--method=stress-match-fit, this is not restricted by "
+                "maskFastFlowing -- every grounded cell with valid "
+                "inputs gets an exact solve regardless of speed."
+            )
 
         out["maskValidBedRoughnessRC"] = xr.DataArray(
             lambda_mask.astype(np.int8),
             dims=(ncell_dim,),
             attrs={
-                "long_name": (
-                    "Mask of cells where bedRoughnessRC (Lambda) was "
-                    "solved exactly, rather than set to the full-Coulomb "
-                    f"reference value ({args.lambda_reference_value:g})"
-                ),
-                "description": (
-                    "1 where the cell is grounded, not fast-flowing, and "
-                    "the Weertman basal shear stress at the cell's "
-                    "current sliding speed is strictly below the Coulomb "
-                    "limit C*N (a valid, non-negative Lambda solution "
-                    "exists); 0 otherwise (includes maskFastFlowing "
-                    "cells and any slow-flowing grounded cell where the "
-                    "solve is ill-defined)."
-                ),
+                "long_name": mask_valid_long_name,
+                "description": mask_valid_description,
             },
         )
 
@@ -2113,10 +2413,19 @@ def main():
         )
 
     # Save conversion information globally.
-    out.attrs["regularizedCoulomb_C"] = float(C)
-    out.attrs["regularizedCoulomb_criticalVelocity"] = (
-        float(args.critical_velocity)
-    )
+    out.attrs["regularizedCoulomb_method"] = args.method
+    if args.method == "stress-match-fit":
+        out.attrs["regularizedCoulomb_C"] = float(C)
+        out.attrs["regularizedCoulomb_criticalVelocity"] = (
+            float(args.critical_velocity)
+        )
+    else:
+        out.attrs["regularizedCoulomb_transitionVelocity"] = (
+            float(args.transition_velocity)
+        )
+        out.attrs["regularizedCoulomb_muReferenceValue"] = (
+            float(args.mu_reference_value)
+        )
     out.attrs["regularizedCoulomb_q"] = float(RC_POWER_EXPONENT)
     out.attrs["weertman_q"] = float(args.weertman_q)
     out.attrs["regularizedCoulomb_GlenN"] = float(args.glen_n)
@@ -2149,33 +2458,40 @@ def main():
         x_cell = np.asarray(ds["xCell"].values, dtype=np.float64)
         y_cell = np.asarray(ds["yCell"].values, dtype=np.float64)
 
+        transect_fields = {
+            "N": (N, "Pa", effective_pressure_long_name),
+            "floatation fraction": (
+                floatation_fraction, "1", "Floatation fraction (Pw / Pice)"
+            ),
+            "hydropotential": (
+                hydropotential, "Pa", "Shreve hydraulic potential"
+            ),
+        }
+        # "implied C" is only meaningful (and only computed) for
+        # --method=stress-match-fit -- --method=transition-velocity
+        # already writes an exactly-matching, spatially-varying C
+        # directly to --mu-field.
+        if args.method == "stress-match-fit":
+            transect_fields["implied C"] = (
+                local_C, "1",
+                "Implied local C (Weertman Tau_b / N), Coulomb "
+                "C-fit region only",
+            )
+
         plot_transects(
             transect_names=args.transect_names,
             transects_dir=args.transects_dir,
             plot_dir=args.plot_dir,
             x_cell=x_cell,
             y_cell=y_cell,
-            fields={
-                "N": (N, "Pa", effective_pressure_long_name),
-                "floatation fraction": (
-                    floatation_fraction, "1", "Floatation fraction (Pw / Pice)"
-                ),
-                "hydropotential": (
-                    hydropotential, "Pa", "Shreve hydraulic potential"
-                ),
-                "implied C": (
-                    local_C, "1",
-                    "Implied local C (Weertman Tau_b / N), Coulomb "
-                    "C-fit region only",
-                ),
-            },
+            fields=transect_fields,
             thickness=H,
             bed=bed,
             rho_i=args.rho_ice,
             rho_w=args.rho_water,
             min_fraction_overburden=args.min_fraction_overburden,
-            fit_mask=fit_mask,
-            fitted_c=C,
+            fit_mask=fit_mask if args.method == "stress-match-fit" else None,
+            fitted_c=C if args.method == "stress-match-fit" else None,
         )
 
         # Antarctic-wide maps of the same diagnostic fields plus
@@ -2198,6 +2514,14 @@ def main():
                     "units": f"kPa (m yr-1)^-{args.weertman_q:g}",
                     "title": "Original Weertman muFriction (input)",
                     "log": True, "cmap": "turbo_r",
+                },
+                {
+                    "values": mu_field_values,
+                    "units": "1",
+                    "title": (
+                        f"Output {args.mu_field} (Regularized Coulomb C)"
+                    ),
+                    "log": True, "cmap": "turbo",
                 },
             ],
             args.effective_pressure_field: [
@@ -2256,7 +2580,15 @@ def main():
                     ),
                 }
             ],
-            "impliedC": [
+        }
+
+        # "impliedC" is only meaningful (and only computed) for
+        # --method=stress-match-fit -- --method=transition-velocity
+        # already writes an exactly-matching, spatially-varying C
+        # directly to --mu-field (visible via the "muFriction (input)"
+        # panel above, which shows the *original* input mu instead).
+        if args.method == "stress-match-fit":
+            map_fields["impliedC"] = [
                 {
                     "values": local_C, "units": "1",
                     "title": (
@@ -2267,8 +2599,7 @@ def main():
                     "log": True, "cmap": "turbo",
                     "mask": fit_mask,
                 }
-            ],
-        }
+            ]
 
         map_transects = None
         if args.plot_transects_on_maps:
