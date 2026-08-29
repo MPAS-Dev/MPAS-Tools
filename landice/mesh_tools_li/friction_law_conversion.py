@@ -2509,6 +2509,8 @@ def main():
                     ),
                     "log": True, "cmap": "turbo",
                 },
+            ],
+            args.mu_field: [
                 {
                     "values": mu,
                     "units": f"kPa (m yr-1)^-{args.weertman_q:g}",
