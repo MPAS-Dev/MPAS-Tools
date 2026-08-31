@@ -1215,7 +1215,10 @@ def plot_maps(mesh_ds, fields, plot_dir, transects=None):
                 colormap name.
             vmin, vmax : float, optional. Clip the colormap to this
                 range (e.g. [0, 1] for a fraction field with a few
-                out-of-range outliers); ignored if `log` is True.
+                out-of-range outliers, or [0.1, 10] for a log-scale
+                ratio field diverging about 1.0). Also honored when
+                `log` is True (as the LogNorm's vmin/vmax), not just
+                for a linear-scale Normalize.
             mask : 1-D bool array, optional. Cells where mask is
                 False are set to NaN (not displayed), e.g. to hide
                 non-grounded cells on a grounded-ice-only field.
@@ -1278,8 +1281,8 @@ def plot_maps(mesh_ds, fields, plot_dir, transects=None):
                     plot_values > 0.0, plot_values, np.nan
                 )
                 norm = matplotlib.colors.LogNorm(
-                    vmin=np.nanmin(plot_values),
-                    vmax=np.nanmax(plot_values),
+                    vmin=vmin if vmin is not None else np.nanmin(plot_values),
+                    vmax=vmax if vmax is not None else np.nanmax(plot_values),
                 )
             elif vmin is not None or vmax is not None:
                 norm = matplotlib.colors.Normalize(
@@ -2376,6 +2379,37 @@ def main():
         # via maskTerminusExtrapolated (see the diagnostics section
         # below) rather than folding them into lambda_mask.
 
+    # -------------------------------------------------------------
+    # Regularized Coulomb regime ratio: u / (Lambda * A * N^n),
+    # dimensionally consistent via the same SECONDS_PER_YEAR factor
+    # used everywhere else in this script to relate Lambda (solved/
+    # stored in meters) to a velocity scale (see the Lambda solves
+    # above and solve_transition_velocity()). The denominator,
+    # SECONDS_PER_YEAR * Lambda * A * N^n, is exactly the implied
+    # critical/transition velocity u_c at which the Regularized
+    # Coulomb law's basal shear stress switches over between its two
+    # asymptotic regimes:
+    #
+    #   beta_RC = C * N * u^(p-1) / (u + u_c)^p
+    #
+    #   u >> u_c (ratio >> 1): (u + u_c)^p ~ u^p, so
+    #       Tau_b = beta_RC * u -> C * N, independent of u -- the
+    #       fully-plastic Coulomb regime.
+    #   u << u_c (ratio << 1): (u + u_c)^p ~ u_c^p, so
+    #       Tau_b ~ (C * N / u_c^p) * u^p -- a power-law (Weertman-
+    #       like) regime.
+    #
+    # So this ratio is a direct, per-cell diagnostic of how close a
+    # cell's current sliding speed places it to either regime:
+    # ratio >> 1 is Coulomb-like, ratio << 1 is power-law-like,
+    # ratio ~ 1 is the transition itself.
+    # -------------------------------------------------------------
+    with np.errstate(divide="ignore", invalid="ignore"):
+        critical_velocity_implied = (
+            SECONDS_PER_YEAR * Lambda * A * N ** args.glen_n
+        )
+        regime_ratio = speed / critical_velocity_implied
+
     print()
     print("MALI Weertman -> Regularized Coulomb conversion")
     print("------------------------------------------------")
@@ -2961,6 +2995,18 @@ def main():
                         "Mask of cells where bedRoughnessRC was solved "
                         "exactly"
                     ),
+                }
+            ],
+            "regimeRatio": [
+                {
+                    "values": regime_ratio, "units": "1",
+                    "title": (
+                        "u / (Lambda * A * N^n): Coulomb (>1, red) vs. "
+                        "power-law (<1, blue) regime"
+                    ),
+                    "log": True, "cmap": "RdBu_r",
+                    "vmin": 0.1, "vmax": 10.0,
+                    "mask": grounded,
                 }
             ],
         }
