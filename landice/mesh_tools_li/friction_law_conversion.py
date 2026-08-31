@@ -594,6 +594,165 @@ def solve_transition_velocity(
     return Lambda, C
 
 
+def cell_has_neighbor_where(test_mask, cells_on_cell, n_edges_on_cell):
+    """
+    For every cell, return True if at least one of its mesh neighbors
+    (per MPAS `cellsOnCell`/`nEdgesOnCell` connectivity) satisfies
+    `test_mask`.
+
+    Parameters
+    ----------
+    test_mask : 1-D bool array (nCells,)
+        Per-cell predicate to test neighbors against.
+    cells_on_cell : 2-D int array (nCells, maxEdges)
+        MPAS `cellsOnCell` field: 1-based neighbor cell indices, with
+        0 used to pad cells with fewer than `maxEdges` edges/
+        neighbors (e.g. mesh-boundary cells).
+    n_edges_on_cell : 1-D int array (nCells,)
+        MPAS `nEdgesOnCell` field: number of valid (non-padding)
+        entries in each row of `cells_on_cell`.
+
+    Returns
+    -------
+    1-D bool array (nCells,)
+    """
+    max_edges = cells_on_cell.shape[1]
+    edge_index = np.arange(max_edges)[np.newaxis, :]
+    # A neighbor slot is real only if it is within nEdgesOnCell for
+    # that row *and* not the 0 padding value cellsOnCell itself uses
+    # for missing neighbors (mesh-boundary cells).
+    valid_slot = (
+        (edge_index < n_edges_on_cell[:, np.newaxis])
+        & (cells_on_cell > 0)
+    )
+    neighbor_index = np.where(valid_slot, cells_on_cell - 1, 0)
+    neighbor_test = test_mask[neighbor_index] & valid_slot
+    return np.any(neighbor_test, axis=1)
+
+
+def creep_fill_extrapolate(
+        values, keep_mask, fill_mask, x_cell, y_cell,
+        cells_on_cell, n_edges_on_cell, method="idw",
+        max_iterations=None,
+):
+    """
+    Extrapolate `values` into every cell where `fill_mask` is True by
+    repeatedly propagating values inward from `keep_mask` cells
+    across MPAS mesh connectivity (`cells_on_cell`/`n_edges_on_cell`),
+    a "creep fill" adapted from MPAS-Tools'
+    conversion_exodus_init_to_mpasli_mesh.py (its beta/muFriction/
+    stiffnessFactor extrapolation loop).
+
+    Each iteration, every not-yet-filled `fill_mask` cell adjacent to
+    at least one already-valid cell is assigned a new value derived
+    from its valid neighbors only (inverse-distance weighted average,
+    method="idw", or the minimum, method="min"), using the *previous*
+    iteration's valid set as the source (so a single pass never
+    chains through cells filled earlier in that same pass); it then
+    becomes valid itself for the next iteration. This repeats until
+    every `fill_mask` cell has been filled, `max_iterations` passes
+    have been made, or a pass fills no new cells (a stall, meaning
+    some `fill_mask` cells have no path to a `keep_mask` cell through
+    other `fill_mask` cells) -- in either of the latter two cases, a
+    warning is printed and any still-unfilled cells are left with
+    their original `values`.
+
+    Parameters
+    ----------
+    values : 1-D float array (nCells,)
+        Field to extrapolate. Not modified in place; the filled
+        array is returned separately.
+    keep_mask : 1-D bool array (nCells,)
+        True at cells whose current `values` are already valid and
+        may be used as an extrapolation source.
+    fill_mask : 1-D bool array (nCells,)
+        True at cells whose current `values` should be discarded and
+        instead derived by creep-fill extrapolation. Must be
+        disjoint from `keep_mask`. Cells that are neither
+        `keep_mask` nor `fill_mask` (e.g. non-grounded cells) are
+        never used as a source and are left unchanged.
+    x_cell, y_cell : 1-D float arrays (nCells,)
+        MPAS cell-center coordinates, used for the "idw" method.
+    cells_on_cell, n_edges_on_cell : see cell_has_neighbor_where()
+    method : {"idw", "min"}
+        "idw": inverse-distance-weighted average of valid neighbors.
+        "min": minimum value among valid neighbors (matches
+        MPAS-Tools' conversion_exodus_init_to_mpasli_mesh.py "min"
+        extrapolation option).
+    max_iterations : int, optional
+        Maximum number of creep-fill passes. Default (None): no
+        limit other than a stall (see above).
+
+    Returns
+    -------
+    1-D float array (nCells,), same shape as `values`
+    """
+    if method not in ("idw", "min"):
+        raise ValueError(f"Unknown creep-fill method: {method!r}")
+
+    out = np.array(values, dtype=np.float64, copy=True)
+    valid_mask = np.copy(keep_mask)
+    remaining = np.copy(fill_mask)
+
+    iteration = 0
+    while np.any(remaining):
+        if max_iterations is not None and iteration >= max_iterations:
+            print(
+                f"WARNING: creep-fill extrapolation stopped after "
+                f"{iteration} iterations with "
+                f"{int(np.count_nonzero(remaining))} cell(s) still "
+                "unfilled; leaving their original values unchanged."
+            )
+            break
+
+        newly_filled = np.zeros(out.shape, dtype=bool)
+
+        for i_cell in np.where(remaining)[0]:
+            n_edges = n_edges_on_cell[i_cell]
+            neighbor_idx = cells_on_cell[i_cell, :n_edges] - 1
+            neighbor_idx = neighbor_idx[neighbor_idx >= 0]
+
+            source_idx = neighbor_idx[valid_mask[neighbor_idx]]
+            if source_idx.size == 0:
+                continue
+
+            if method == "idw":
+                ds = np.sqrt(
+                    (x_cell[i_cell] - x_cell[source_idx]) ** 2
+                    + (y_cell[i_cell] - y_cell[source_idx]) ** 2
+                )
+                if np.any(ds == 0.0):
+                    # Degenerate (coincident) cell centers: fall back
+                    # to a plain average rather than dividing by
+                    # zero.
+                    out[i_cell] = np.mean(out[source_idx])
+                else:
+                    weights = 1.0 / ds
+                    out[i_cell] = (
+                        np.sum(weights * out[source_idx])
+                        / np.sum(weights)
+                    )
+            else:  # method == "min"
+                out[i_cell] = np.min(out[source_idx])
+
+            newly_filled[i_cell] = True
+
+        if not np.any(newly_filled):
+            print(
+                f"WARNING: creep-fill extrapolation stalled with "
+                f"{int(np.count_nonzero(remaining))} cell(s) still "
+                "unfilled (no remaining cell has a valid neighbor); "
+                "leaving their original values unchanged."
+            )
+            break
+
+        valid_mask[newly_filled] = True
+        remaining[newly_filled] = False
+        iteration += 1
+
+    return out
+
+
 def load_transect(name, transects_dir):
     """
     Load a flowline transect's lon/lat coordinates directly from a
@@ -1266,6 +1425,65 @@ def main():
         )
     )
 
+    extrapolate_terminus_group = parser.add_mutually_exclusive_group()
+    extrapolate_terminus_group.add_argument(
+        "--extrapolate-terminus-cells",
+        dest="extrapolate_terminus_cells",
+        action="store_true",
+        default=False,
+        help=(
+            "Discard the computed bedRoughnessRC (Lambda) value (and, "
+            "for --method=transition-velocity, the computed --mu-"
+            "field/C value) at every grounded cell adjacent to the "
+            "grounding line (a floating-ice neighbor) or to a "
+            "grounded marine terminus (an ice-free, bed-below-sea-"
+            "level neighbor, i.e. a tidewater-glacier-style calving "
+            "front with no floating shelf), and at every non-grounded "
+            "cell (floating ice, ice-free ocean, ice-free land) -- "
+            "i.e. the entire mesh domain outside the grounded "
+            "interior -- then refill all of those cells by creep-"
+            "fill extrapolation (--creep-fill-method), sourced "
+            "purely from the remaining grounded-interior cells -- "
+            "see creep_fill_extrapolate(). The discarded marginal "
+            "cells are often the least reliable (e.g. noisiest "
+            "velocity/thickness/bed data, or most sensitive to the "
+            "exact grounding-line position), so this discards them "
+            "in favor of extrapolating from more interior, better-"
+            "constrained cells, and additionally gives every non-"
+            "grounded cell a physically-reasonable (rather than a "
+            "flat reference) value. Cells filled this way are marked "
+            "in the maskTerminusExtrapolated diagnostic field (see "
+            "--diagnostics). Default: disabled (use the directly "
+            "computed values everywhere)."
+        )
+    )
+    extrapolate_terminus_group.add_argument(
+        "--no-extrapolate-terminus-cells",
+        dest="extrapolate_terminus_cells",
+        action="store_false",
+        help=(
+            "Do not discard/extrapolate grounding-line/grounded-"
+            "marine-terminus/non-grounded cells; use the directly "
+            "computed values everywhere (default)."
+        )
+    )
+    parser.add_argument(
+        "--creep-fill-method",
+        choices=["idw", "min"],
+        default="idw",
+        help=(
+            "Extrapolation method used by --extrapolate-terminus-"
+            "cells to fill discarded grounding-line/grounded-marine-"
+            "terminus cells from neighboring valid cells (default: "
+            "idw). \"idw\": inverse-distance-weighted average of "
+            "valid neighbors. \"min\": minimum value among valid "
+            "neighbors (matches MPAS-Tools' "
+            "conversion_exodus_init_to_mpasli_mesh.py \"min\" "
+            "extrapolation option). Only used when "
+            "--extrapolate-terminus-cells is set."
+        )
+    )
+
     # Effective pressure N
     parser.add_argument(
         "--effective-pressure-type",
@@ -1716,6 +1934,10 @@ def main():
     ]
     if args.flow_rate_type == "temperature":
         required.append(args.temperature_field)
+    if args.extrapolate_terminus_cells:
+        # MPAS mesh connectivity, needed to identify grounding-line/
+        # grounded-marine-terminus cells and to creep-fill them.
+        required.extend(["cellsOnCell", "nEdgesOnCell", "xCell", "yCell"])
 
     missing = [name for name in required if name not in ds]
     if missing:
@@ -1847,6 +2069,54 @@ def main():
         (H > 0.0)
         & (args.rho_ice * H + args.rho_water * bed > 0.0)
     )
+
+    # -------------------------------------------------------------
+    # Grounding-line / grounded-marine-terminus cell identification
+    # (--extrapolate-terminus-cells only): grounded cells immediately
+    # adjacent to floating ice (the grounding line proper) or to
+    # ice-free, bed-below-sea-level ocean (a grounded ice front with
+    # no floating shelf, e.g. a tidewater glacier calving front).
+    # Land-terminating margins (ice-free, bed at/above sea level) are
+    # deliberately not included -- these are neither a grounding line
+    # nor a marine terminus.
+    #
+    # These cells, plus every non-grounded cell (floating ice,
+    # ice-free ocean, ice-free land), make up `fill_mask`: the
+    # portion of the *entire mesh domain* whose values are discarded
+    # and creep-filled by extrapolation, sourced from `keep_mask`
+    # (the grounded interior, i.e. grounded ice minus its outermost
+    # terminus row).
+    # -------------------------------------------------------------
+    if args.extrapolate_terminus_cells:
+        ice_free = H <= 0.0
+        floating = (~ice_free) & (~grounded)
+        ice_free_ocean = ice_free & (bed < 0.0)
+
+        cells_on_cell = np.asarray(ds["cellsOnCell"].values)
+        n_edges_on_cell = np.asarray(ds["nEdgesOnCell"].values)
+        x_cell = np.asarray(ds["xCell"].values, dtype=np.float64)
+        y_cell = np.asarray(ds["yCell"].values, dtype=np.float64)
+
+        terminus_cells = grounded & cell_has_neighbor_where(
+            floating | ice_free_ocean, cells_on_cell, n_edges_on_cell
+        )
+        keep_mask = grounded & ~terminus_cells
+        fill_mask = ~keep_mask
+
+        print(
+            "Grounding-line/grounded-marine-terminus cells discarded "
+            f": {int(np.count_nonzero(terminus_cells))} "
+            f"/ {int(np.count_nonzero(grounded))} grounded"
+        )
+        print(
+            "Total cells to be extrapolated over (terminus + all "
+            f"non-grounded cells) : {int(np.count_nonzero(fill_mask))} "
+            f"/ {H.shape[0]} total cells"
+        )
+    else:
+        terminus_cells = None
+        keep_mask = None
+        fill_mask = None
 
     # -------------------------------------------------------------
     # Basal shear stress implied by the input Weertman law at each
@@ -2042,6 +2312,70 @@ def main():
             f"{int(np.count_nonzero(fast_flowing))}"
         )
 
+    # -------------------------------------------------------------
+    # Whole-domain extrapolation (--extrapolate-terminus-cells):
+    # discard the just-computed Lambda (and, for
+    # --method=transition-velocity, C) everywhere outside the
+    # grounded interior (`fill_mask` = grounding-line/grounded-
+    # marine-terminus cells plus every non-grounded cell -- floating
+    # ice, ice-free ocean, ice-free land) and creep-fill them from
+    # `keep_mask` (the grounded interior) -- see
+    # creep_fill_extrapolate().
+    # -------------------------------------------------------------
+    if args.extrapolate_terminus_cells and np.any(fill_mask):
+        lambda_before = Lambda[fill_mask].copy()
+        Lambda = creep_fill_extrapolate(
+            Lambda,
+            keep_mask=keep_mask,
+            fill_mask=fill_mask,
+            x_cell=x_cell,
+            y_cell=y_cell,
+            cells_on_cell=cells_on_cell,
+            n_edges_on_cell=n_edges_on_cell,
+            method=args.creep_fill_method,
+        )
+        print(
+            "Whole-domain bedRoughnessRC (Lambda) discarded and "
+            f"extrapolated ({args.creep_fill_method}) from the "
+            "grounded interior: "
+            f"{np.nanmin(lambda_before):.6e} -- "
+            f"{np.nanmax(lambda_before):.6e} (before) -> "
+            f"{np.nanmin(Lambda[fill_mask]):.6e} -- "
+            f"{np.nanmax(Lambda[fill_mask]):.6e} (after)"
+        )
+
+        if args.method == "transition-velocity":
+            c_before = C[fill_mask].copy()
+            C = creep_fill_extrapolate(
+                C,
+                keep_mask=keep_mask,
+                fill_mask=fill_mask,
+                x_cell=x_cell,
+                y_cell=y_cell,
+                cells_on_cell=cells_on_cell,
+                n_edges_on_cell=n_edges_on_cell,
+                method=args.creep_fill_method,
+            )
+            print(
+                "Whole-domain muFriction (C) discarded and "
+                f"extrapolated ({args.creep_fill_method}) from the "
+                "grounded interior: "
+                f"{np.nanmin(c_before):.6e} -- "
+                f"{np.nanmax(c_before):.6e} (before) -> "
+                f"{np.nanmin(C[fill_mask]):.6e} -- "
+                f"{np.nanmax(C[fill_mask]):.6e} (after)"
+            )
+        # Not applied to --method=stress-match-fit's C: that C is a
+        # single scalar broadcast to every cell, so extrapolation
+        # would have no effect.
+
+        # Cells re-derived by extrapolation are no longer a "valid
+        # solve" in the maskValidBedRoughnessRC sense (they were
+        # deliberately discarded, not solved), but they are also not
+        # simply left at a reference value -- track them separately
+        # via maskTerminusExtrapolated (see the diagnostics section
+        # below) rather than folding them into lambda_mask.
+
     print()
     print("MALI Weertman -> Regularized Coulomb conversion")
     print("------------------------------------------------")
@@ -2171,6 +2505,16 @@ def main():
             "-- see solve_transition_velocity()"
         )
 
+    if args.extrapolate_terminus_cells and args.method == "transition-velocity":
+        mu_field_long_name += (
+            "; the grounding-line/grounded-marine-terminus band and "
+            "every non-grounded cell (maskTerminusExtrapolated) were "
+            "discarded and creep-fill extrapolated "
+            f"({args.creep_fill_method}) from the grounded interior "
+            "-- see --extrapolate-terminus-cells/"
+            "creep_fill_extrapolate()"
+        )
+
     out[args.mu_field] = xr.DataArray(
         mu_field_values,
         dims=(ncell_dim,),
@@ -2220,6 +2564,16 @@ def main():
             "divides this field by 1000 before Albany sees it, "
             "satisfying Albany's 'bedRoughness in km' scaling "
             "convention"
+        )
+
+    if args.extrapolate_terminus_cells:
+        lambda_field_description += (
+            "; the grounding-line/grounded-marine-terminus band and "
+            "every non-grounded cell (maskTerminusExtrapolated) were "
+            "discarded and creep-fill extrapolated "
+            f"({args.creep_fill_method}) from the grounded interior "
+            "-- see --extrapolate-terminus-cells/"
+            "creep_fill_extrapolate()"
         )
 
     out[args.lambda_field] = xr.DataArray(
@@ -2388,6 +2742,33 @@ def main():
                 "description": mask_valid_description,
             },
         )
+
+        if args.extrapolate_terminus_cells:
+            out["maskTerminusExtrapolated"] = xr.DataArray(
+                fill_mask.astype(np.int8),
+                dims=(ncell_dim,),
+                attrs={
+                    "long_name": (
+                        "Mask of the whole-domain region whose "
+                        "computed bedRoughnessRC (and, for "
+                        "--method=transition-velocity, muFriction) "
+                        "values were discarded and replaced by "
+                        "creep-fill extrapolation from the grounded "
+                        "interior"
+                    ),
+                    "description": (
+                        "1 where the cell is either a grounding-line/"
+                        "grounded-marine-terminus cell (grounded and "
+                        "adjacent to floating ice, or to ice-free, "
+                        "bed-below-sea-level ocean) or any non-"
+                        "grounded cell (floating ice, ice-free ocean, "
+                        "ice-free land), else 0 (the grounded "
+                        "interior, used as the extrapolation source). "
+                        "See --extrapolate-terminus-cells/"
+                        "--creep-fill-method/creep_fill_extrapolate()."
+                    ),
+                },
+            )
 
     if args.flow_rate_type == "temperature":
         flow_rate_long_name = (
