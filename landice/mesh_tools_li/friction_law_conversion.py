@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Convert a MALI Weertman basal-friction initial condition to parameters
-for Albany's Regularized Coulomb friction law.
+Convert a MALI Weertman/Budd basal-friction initial condition to
+parameters for Albany's Regularized Coulomb friction law.
 
 Two methods are available, selected via --method:
 
@@ -9,15 +9,15 @@ Two methods are available, selected via --method:
   1. Downs & Johnson-style effective pressure N
   2. Area-weighted optimal scalar C:
 
-         C = integral[ uc**qW * mu / N dA ] / integral[dA]
+         C = integral[ uc**qW * mu * N_source / N dA ] / integral[dA]
 
   3. Albany bed-roughness/Lambda field:
 
          Lambda = uc / (A * N**n)
 
-  Lambda is solved per-cell so that the RC law matches the
-  Weertman law's stress outside the fast-flowing (uc) region; C is
-  a single scalar written uniformly to every cell.
+  Lambda is solved per-cell so that the RC law matches the source
+  law's stress outside the fast-flowing (uc) region; C is a single
+  scalar written uniformly to every cell.
 
 - "transition-velocity": given a fixed transition velocity u0
   (--transition-velocity), computes, for every grounded cell,
@@ -25,37 +25,51 @@ Two methods are available, selected via --method:
          Lambda = u0 / (A * N**n)
          C = tau_b * (ub + u0)**(1/3) / (N * ub**(1/3))
 
-  (ub = current sliding speed, tau_b = Weertman shear stress
-  mu*ub**qW), so both Lambda and a spatially-varying C exactly
-  reproduce the Weertman law's stress at every cell's current
+  (ub = current sliding speed, tau_b = source-law shear stress
+  mu*N_source*ub**qW), so both Lambda and a spatially-varying C
+  exactly reproduce the source law's stress at every cell's current
   speed, with no fast/slow-region split. See
   solve_transition_velocity().
 
 In both cases N can be computed with any of the
---effective-pressure-type options below.
+--effective-pressure-type options below. The *input* friction law's
+own effective pressure N_source (see the "Notes" section below and
+--source-effective-pressure-type) is independent of N and may use a
+different method/parameters entirely.
 
 The output is a copy of the input MALI initial-condition file with
 `Lambda` (stored in the bed-roughness field, `--lambda-field`,
-default `bedRoughnessRC`) added, the input Weertman `muFriction`
+default `bedRoughnessRC`) added, the input Weertman/Budd `muFriction`
 field (`--mu-field`) overwritten with the RC coefficient C (a
 spatially-uniform scalar for --method=stress-match-fit, spatially
 varying for --method=transition-velocity), and optionally
-`effectivePressure` added.
+`effectivePressure`/`effectivePressureSource` added.
 
 Notes
 -----
-The input Weertman/Power-Law friction law is
+The input friction law (a generalized power law, of which classic
+Weertman and Budd are special cases) is
 
-    beta = mu * N * |u|^(qW-1)
+    beta = mu * N_source^1 * |u|^(qW-1)
 
 with its own "Power Exponent" qW (the exponent MALI's `muFriction`
-field was calibrated with). Albany's RC law is
+field was calibrated with), and its own effective pressure
+`N_source`, computed independently of Albany's own RC effective
+pressure N (see --source-effective-pressure-type below). Classic
+Weertman is the special case where `N_source` is held at a spatially
+uniform constant of 1.0 (--source-effective-pressure-type=constant,
+the default); a genuine Budd-type law is obtained by selecting
+"downs-johnson", "ocean-connection", "transition", or "field"
+instead, so that `N_source` varies per cell like a real effective
+pressure. The exponent on `N_source` is always 1 (not
+user-configurable) -- this script does not support Budd variants
+with a separate pressure exponent. Albany's RC law is
 
     beta = C * N * |u|^(qR-1) /
            (|u| + Lambda * A * N^n)^qR
 
 with its own, independent, "Power Exponent" qR. qW and qR need not
-match: qW describes the input Weertman law used to derive C, while
+match: qW describes the input source law used to derive C, while
 qR is the exponent Albany will actually use for the RC law. Per
 project convention, qR is always fixed at 1/3 (see RC_POWER_EXPONENT
 below) and is not user-configurable.
@@ -88,14 +102,27 @@ selected via --flow-rate-type:
 
 All quantities supplied here must use a mutually consistent unit system.
 For typical MALI/Albany configurations:
-    velocity : m yr^-1
-    N        : check whether the Albany interface expects Pa or kPa
-    A        : Pa^-3 s^-1 (Albany's Temperature Based flow rate is SI)
-    mu       : kPa * (yr/m)^qW (per a correction to MPAS-Tools'
-               Registry.xml; NOT Pa * (yr/m)^qW), so that
-               mu * speed^qW comes out already in the same kPa scale
-               as N_albany (see ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
-               and fit_coulomb_C_fast_region())
+    velocity  : m yr^-1
+    N         : check whether the Albany interface expects Pa or kPa
+    A         : Pa^-3 s^-1 (Albany's Temperature Based flow rate is SI)
+    N_source  : always expressed in the same kPa-equivalent
+                convention as N_albany (physical Pa / 1000), whether
+                held constant (--source-effective-pressure-type=
+                constant, default value 1.0) or computed from a real
+                formula/field
+    mu        : units depend on --source-effective-pressure-type.
+                When "constant" (the default, classic Weertman:
+                N_source == a spatially uniform constant, default
+                1.0), mu is in kPa * (yr/m)^qW (per a correction to
+                MPAS-Tools' Registry.xml; NOT Pa * (yr/m)^qW), so
+                that mu * speed^qW comes out already in the same
+                kPa scale as N_albany. For any other
+                --source-effective-pressure-type (a genuine Budd-type
+                law, N_source carrying the kPa dimension itself), mu
+                is instead in plain (yr/m)^qW (no kPa dimension), so
+                that mu * N_source * speed^qW still comes out in kPa
+                (see ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT and
+                fit_coulomb_C_fast_region())
 """
 
 import argparse
@@ -433,6 +460,66 @@ def ocean_connection_effective_pressure(
     return N
 
 
+def compute_named_effective_pressure(
+        kind,
+        thickness,
+        bed,
+        rho_i=910.0,
+        rho_w=1028.0,
+        gravity=9.80616,
+        min_fraction_overburden=None,
+        pressure_length_scale=None,
+        transition_h_ocean=None):
+    """
+    Dispatch to one of the three shared effective-pressure
+    parameterizations by name -- "downs-johnson"
+    (downs_johnson_effective_pressure()), "ocean-connection"
+    (ocean_connection_effective_pressure()), or "transition"
+    (effective_pressure4()) -- forwarding only the parameters each one
+    actually uses. Shared by both the Regularized Coulomb law's own N
+    (--effective-pressure-type) and the input source friction law's
+    own N_source (--source-effective-pressure-type), so the two can
+    independently select among the same three formulas (with
+    independent parameters) without duplicating the dispatch logic.
+
+    Returns
+    -------
+    N : ndarray
+        Effective pressure [Pa].
+    """
+    if kind == "downs-johnson":
+        return downs_johnson_effective_pressure(
+            thickness=thickness,
+            bed=bed,
+            min_fraction_overburden=min_fraction_overburden,
+            length_scale=pressure_length_scale,
+            rho_i=rho_i,
+            rho_w=rho_w,
+            gravity=gravity,
+        )
+    elif kind == "ocean-connection":
+        return ocean_connection_effective_pressure(
+            thickness=thickness,
+            bed=bed,
+            rho_i=rho_i,
+            rho_w=rho_w,
+            gravity=gravity,
+        )
+    elif kind == "transition":
+        return effective_pressure4(
+            thickness=thickness,
+            bed=bed,
+            min_fraction_overburden=min_fraction_overburden,
+            length_scale=pressure_length_scale,
+            rho_i=rho_i,
+            rho_w=rho_w,
+            gravity=gravity,
+            h_ocean=transition_h_ocean,
+        )
+    else:
+        raise ValueError(f"Unsupported effective-pressure kind: {kind!r}")
+
+
 def albany_temperature_based_flow_rate(temperature):
     """
     Reproduce Albany's "Temperature Based" Flow Rate Type exactly
@@ -463,7 +550,7 @@ def albany_temperature_based_flow_rate(temperature):
     return np.where(T < ALBANY_FLOW_RATE_SWITCHING_T, A_low, A_high)
 
 
-def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
+def fit_coulomb_C_fast_region(tau_b_source, N, area, mask):
     """
     Fit a single scalar Regularized Coulomb "Coulomb Friction
     Coefficient" C by assuming that, in the fast-flowing region
@@ -475,15 +562,13 @@ def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
 
     C is chosen to be the area-weighted mean, over the fast-flowing
     region, of the per-cell "local C" implied by that relation against
-    the Weertman law's basal shear stress at the cell's actual current
-    sliding speed,
+    the input source law's basal shear stress at the cell's actual
+    current sliding speed, `tau_b_source` (mu * N_source * speed^qW
+    for a generalized power law; N_source == 1 everywhere reduces
+    this to classic Weertman -- see --source-effective-pressure-type
+    in main()):
 
-        Tau_b_Weertman = mu * speed^qW
-
-    (no effective-pressure term -- MALI's Weertman sliding law has
-    none; muFriction was calibrated against this convention).
-
-        local_C = Tau_b_Weertman / N
+        local_C = Tau_b_source / N
 
         C = sum(area * local_C) / sum(area)
 
@@ -491,31 +576,22 @@ def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
     least-squares fit through the origin) so that a small number of
     high-N, high-leverage cells cannot dominate the result.
 
-    `q` here is the input Weertman/Power-Law exponent (qW), not the
-    Regularized Coulomb exponent.
-
-    IMPORTANT: `N` must already be expressed in the same units Albany
-    will actually use at runtime for its own internal effective
-    pressure (numerically equal to physical Pa / 1000, i.e. "kPa";
-    see ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT), not raw SI Pascals.
-    Passing raw-Pa N here would make C inconsistent with how Albany
-    multiplies C against its own internal N at runtime. This is
-    dimensionally consistent with `mu` (MALI's `muFriction`), whose
-    correct physical units -- per a correction to MPAS-Tools'
-    Registry.xml -- are kPa * (yr/m)^qW (not Pa * (yr/m)^qW as one
-    might otherwise assume): Tau_b_Weertman = mu * speed^qW therefore
-    comes out in kPa already, matching `N`'s kPa scale here, with no
-    separate unit conversion needed in this function.
+    IMPORTANT: both `tau_b_source` and `N` must already be expressed
+    in the same units Albany will actually use at runtime for its own
+    internal effective pressure (numerically equal to physical Pa /
+    1000, i.e. "kPa"; see ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT), not
+    raw SI Pascals. Passing raw-Pa N here would make C inconsistent
+    with how Albany multiplies C against its own internal N at
+    runtime.
     """
     valid = (
         mask
-        & np.isfinite(mu)
+        & np.isfinite(tau_b_source)
         & np.isfinite(N)
         & np.isfinite(area)
-        & np.isfinite(speed)
         & (N > 0.0)
         & (area > 0.0)
-        & (speed > 0.0)
+        & (tau_b_source > 0.0)
     )
 
     if not np.any(valid):
@@ -524,8 +600,7 @@ def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
             "available for C calculation."
         )
 
-    tau_b_weertman = mu[valid] * speed[valid] ** q
-    local_C = tau_b_weertman / N[valid]
+    local_C = tau_b_source[valid] / N[valid]
 
     C = np.sum(area[valid] * local_C) / np.sum(area[valid])
 
@@ -533,7 +608,7 @@ def fit_coulomb_C_fast_region(mu, N, area, speed, q, mask):
 
 
 def solve_transition_velocity(
-    tau_b_weertman, speed, N, N_albany, A, glen_n, transition_velocity,
+    tau_b_source, speed, N, N_albany, A, glen_n, transition_velocity,
     lambda_reference_value, mu_reference_value, valid,
 ):
     """
@@ -543,17 +618,19 @@ def solve_transition_velocity(
     fixed transition velocity u0 and compute both Lambda and a
     spatially-varying Regularized Coulomb coefficient C in closed
     form, for every valid cell, such that the RC law exactly
-    reproduces the Weertman law's basal shear stress
-    (tau_b_weertman = mu * speed^qW) at that cell's current sliding
-    speed:
+    reproduces the input source law's basal shear stress
+    (tau_b_source = mu * N_source * speed^qW; N_source == 1
+    everywhere reduces this to classic Weertman -- see
+    --source-effective-pressure-type in main()) at that cell's
+    current sliding speed:
 
         Lambda = u0 / (SECONDS_PER_YEAR * A * N^n)
-        C      = tau_b_weertman * (speed + u0)^qR
+        C      = tau_b_source * (speed + u0)^qR
                  / (N_albany * speed^qR)
 
     (qR = RC_POWER_EXPONENT). This follows from substituting
     Lambda*SECONDS_PER_YEAR*A*N^n = u0 into the RC law's
-    Tau_b_RC == Tau_b_weertman equation used elsewhere in this
+    Tau_b_RC == Tau_b_source equation used elsewhere in this
     script (see the module-level Lambda-solve comment in main()) --
     i.e. u0 plays the same role as the per-cell solve's "stress
     ratio" term, but is fixed instead of solved from a separate
@@ -567,13 +644,13 @@ def solve_transition_velocity(
     Lambda solve elsewhere in this script. `N_albany` (physical N /
     ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT) is used for C, matching
     how C is fit in fit_coulomb_C_fast_region() (dimensionally
-    consistent with tau_b_weertman via the kPa-scaled `mu` field).
+    consistent with tau_b_source).
 
     Cells outside `valid` (non-grounded, ice-free, or zero/invalid
-    current sliding speed/N/mu) get `lambda_reference_value` and
-    `mu_reference_value` respectively, since the closed-form
+    current sliding speed/N/mu/N_source) get `lambda_reference_value`
+    and `mu_reference_value` respectively, since the closed-form
     expressions above are undefined there (division by zero speed,
-    or an ill-defined tau_b_weertman/N).
+    or an ill-defined tau_b_source/N).
 
     Returns
     -------
@@ -586,7 +663,7 @@ def solve_transition_velocity(
 
     C = np.full_like(N, mu_reference_value)
     C[valid] = (
-        tau_b_weertman[valid]
+        tau_b_source[valid]
         * (speed[valid] + transition_velocity) ** RC_POWER_EXPONENT
         / (N_albany[valid] * speed[valid] ** RC_POWER_EXPONENT)
     )
@@ -1315,7 +1392,7 @@ def plot_maps(mesh_ds, fields, plot_dir, transects=None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Convert MALI Weertman friction IC to Regularized Coulomb.",
+        description="Convert MALI Weertman/Budd friction IC to Regularized Coulomb.",
         # Disable prefix-abbreviation matching. Without this, obsolete or
         # mistyped flags (e.g. a leftover "--flow-rate VALUE" from before
         # flow rate became Temperature Based-only) can silently be matched
@@ -1339,7 +1416,7 @@ def main():
             "the fast-flowing region (speed > --critical-velocity), "
             "assumed already in the full-Coulomb regime, then solves "
             "per-cell for Lambda elsewhere so the RC law reproduces "
-            "the Weertman law's basal shear stress at each cell's "
+            "the source law's basal shear stress at each cell's "
             "current sliding speed (see fit_coulomb_C_fast_region()/ "
             "the Lambda solve below --critical-velocity/"
             "--lambda-reference-value are used by this method). "
@@ -1349,10 +1426,11 @@ def main():
             "Lambda = u0 / (SECONDS_PER_YEAR * A * N^n) and a "
             "spatially-varying C = tau_b * (ub + u0)^(1/3) / "
             "(N * ub^(1/3)) (ub = current sliding speed, tau_b = "
-            "Weertman shear stress mu*ub^qW), so that the RC law "
-            "exactly reproduces the Weertman law's stress at every "
-            "grounded cell's current speed, with no fast/slow-region "
-            "split (--transition-velocity/--mu-reference-value/"
+            "source law shear stress mu*N_source*ub^qW), so that "
+            "the RC law exactly reproduces the source law's stress "
+            "at every grounded cell's current speed, with no "
+            "fast/slow-region split (--transition-velocity/"
+            "--mu-reference-value/"
             "--lambda-reference-value are used by this method)."
         )
     )
@@ -1416,7 +1494,7 @@ def main():
             "--method=stress-match-fit, this is all fast-flowing "
             "cells (speed > critical velocity, the same region used "
             "to fit C), plus any other grounded cell where the exact "
-            "per-cell Lambda solve is ill-defined (Weertman Tau_b "
+            "per-cell Lambda solve is ill-defined (source Tau_b "
             "already meets or exceeds the Coulomb limit C*N); Lambda "
             "-> 0 exactly reproduces the full-Coulomb limit there, so "
             "0.0 (default) is physically correct, though a small "
@@ -1584,6 +1662,107 @@ def main():
         )
     )
 
+    # -------------------------------------------------------------
+    # Input source friction law: effective pressure N_source
+    # -------------------------------------------------------------
+    # These options are independent of --effective-pressure-type
+    # above -- they describe the effective pressure implied by the
+    # *input* MALI friction law (mu, muFriction), not Albany's own N
+    # for the Regularized Coulomb law. See "Source friction law"
+    # discussion in the module docstring.
+    parser.add_argument(
+        "--source-effective-pressure-type",
+        choices=[
+            "constant", "downs-johnson", "ocean-connection",
+            "transition", "field",
+        ],
+        default="constant",
+        help=(
+            "How to compute the effective pressure N_source implied "
+            "by the input source friction law "
+            "(Tau_b_source = mu * N_source * speed^qW; default: "
+            "constant). \"constant\" uses a single spatially-uniform "
+            "value given by --source-effective-pressure (default "
+            "1.0, which reproduces the classic MALI Weertman law "
+            "exactly, since Tau_b_source then reduces to "
+            "mu * speed^qW). \"downs-johnson\"/\"ocean-connection\"/"
+            "\"transition\" compute N_source here using the same "
+            "formulas available for --effective-pressure-type (see "
+            "--source-min-fraction-overburden/"
+            "--source-pressure-length-scale/"
+            "--source-transition-h-ocean), letting the source law be "
+            "a genuine Budd-type law (effective pressure specified "
+            "rather than assumed 1) with its own, independently "
+            "configured effective pressure -- it need not match "
+            "--effective-pressure-type/its parameters. \"field\" "
+            "reads a precomputed N_source field directly from the "
+            "input file (see --source-effective-pressure-field), in "
+            "physical units of Pa. In all non-constant cases, "
+            "N_source is converted to the same kPa-equivalent scale "
+            "as N_albany before use (see "
+            "ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT)."
+        )
+    )
+    parser.add_argument(
+        "--source-effective-pressure",
+        type=float,
+        default=1.0,
+        help=(
+            "Spatially-uniform value of N_source to use when "
+            "--source-effective-pressure-type=constant (default: "
+            "1.0, the exact Weertman-equivalent value: "
+            "Tau_b_source = mu * speed^qW). Used as-is with no unit "
+            "conversion; only meaningful relative to --weertman-q "
+            "and mu's own units."
+        )
+    )
+    parser.add_argument(
+        "--source-effective-pressure-field",
+        default=None,
+        help=(
+            "Name of a variable in the input file holding a "
+            "precomputed N_source field [Pa], used only when "
+            "--source-effective-pressure-type=field."
+        )
+    )
+    parser.add_argument(
+        "--source-min-fraction-overburden",
+        type=float,
+        default=None,
+        help=(
+            "Same convention as --min-fraction-overburden, but for "
+            "the source law's own N_source. Used by both "
+            "--source-effective-pressure-type=downs-johnson and "
+            "--source-effective-pressure-type=transition. Required "
+            "in either case; independent of --min-fraction-"
+            "overburden (may use a different value)."
+        )
+    )
+    parser.add_argument(
+        "--source-pressure-length-scale",
+        type=float,
+        default=None,
+        help=(
+            "Same convention as --pressure-length-scale, but for the "
+            "source law's own N_source. Used by both "
+            "--source-effective-pressure-type=downs-johnson and "
+            "--source-effective-pressure-type=transition. Required "
+            "in either case; independent of --pressure-length-scale "
+            "(may use a different value)."
+        )
+    )
+    parser.add_argument(
+        "--source-transition-h-ocean",
+        type=float,
+        default=25.0,
+        help=(
+            "Same convention as --transition-h-ocean, but for the "
+            "source law's own N_source; only used when "
+            "--source-effective-pressure-type=transition (default: "
+            "25.0)."
+        )
+    )
+
     parser.add_argument("--rho-ice", type=float, default=910.0)
     parser.add_argument(
         "--rho-water",
@@ -1664,11 +1843,14 @@ def main():
         "--mu-field",
         default="muFriction",
         help=(
-            "Weertman friction field (default: muFriction). Its "
+            "Source-law friction field (default: muFriction). Its "
             "correct physical units -- per a correction to "
-            "MPAS-Tools' Registry.xml -- are kPa * (yr/m)^qW (not "
-            "Pa * (yr/m)^qW); this script's use of mu is dimensionally "
-            "consistent with that (see fit_coulomb_C_fast_region())."
+            "MPAS-Tools' Registry.xml -- are kPa * (yr/m)^qW when "
+            "--source-effective-pressure-type=constant (not "
+            "Pa * (yr/m)^qW), or plain (yr/m)^qW otherwise (see "
+            "--source-effective-pressure-type); this script's use of "
+            "mu is dimensionally consistent with that (see "
+            "fit_coulomb_C_fast_region())."
         )
     )
     parser.add_argument(
@@ -1908,6 +2090,40 @@ def main():
                 "--effective-pressure-type=ocean-connection)"
             )
 
+    if args.source_effective_pressure_type == "field":
+        if args.source_effective_pressure_field is None:
+            parser.error(
+                "--source-effective-pressure-field is required when "
+                "--source-effective-pressure-type=field"
+            )
+    elif args.source_effective_pressure_field is not None:
+        parser.error(
+            "--source-effective-pressure-field is only used with "
+            "--source-effective-pressure-type=field"
+        )
+
+    if args.source_effective_pressure_type in ("downs-johnson", "transition"):
+        if (
+            args.source_min_fraction_overburden is None
+            or args.source_pressure_length_scale is None
+        ):
+            parser.error(
+                "--source-min-fraction-overburden and "
+                "--source-pressure-length-scale are required (used by "
+                "both --source-effective-pressure-type=downs-johnson "
+                "and --source-effective-pressure-type=transition)"
+            )
+    elif (
+        args.source_min_fraction_overburden is not None
+        or args.source_pressure_length_scale is not None
+    ):
+        parser.error(
+            "--source-min-fraction-overburden and "
+            "--source-pressure-length-scale are only used with "
+            "--source-effective-pressure-type=downs-johnson or "
+            "=transition"
+        )
+
     if args.plot_transects:
         if not args.diagnostics:
             parser.error(
@@ -2063,6 +2279,37 @@ def main():
     # "beta = C * N * |u|^(q-1)" evaluation.
     N_albany = N / ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
 
+    # -------------------------------------------------------------
+    # Effective pressure implied by the *input source* friction law,
+    # N_source (see --source-effective-pressure-type). Independent of
+    # N/N_albany above -- may use a different parameterization and/or
+    # different parameter values. Always expressed in the same
+    # kPa-equivalent scale as N_albany (physical Pa / 1000) so that
+    # Tau_b_source = mu * N_source * speed^qW comes out on the same
+    # scale as N_albany with no further conversion, except for
+    # "constant", whose value is used as-is (default 1.0 exactly
+    # reproduces classic Weertman).
+    # -------------------------------------------------------------
+    if args.source_effective_pressure_type == "constant":
+        N_source_kpa = np.full_like(H, args.source_effective_pressure)
+    elif args.source_effective_pressure_type == "field":
+        N_source_kpa = (
+            cell_field(args.source_effective_pressure_field)
+            / ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
+        )
+    else:
+        N_source_kpa = compute_named_effective_pressure(
+            args.source_effective_pressure_type,
+            thickness=H,
+            bed=bed,
+            rho_i=args.rho_ice,
+            rho_w=args.rho_water,
+            gravity=args.gravity,
+            min_fraction_overburden=args.source_min_fraction_overburden,
+            pressure_length_scale=args.source_pressure_length_scale,
+            transition_h_ocean=args.source_transition_h_ocean,
+        ) / ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
+
     # Grounded-ice test used by Albany:
     #
     #     rho_i H + rho_w b > 0
@@ -2122,26 +2369,31 @@ def main():
         fill_mask = None
 
     # -------------------------------------------------------------
-    # Basal shear stress implied by the input Weertman law at each
-    # cell's current sliding speed (from --velocity-x-field/
+    # Basal shear stress implied by the input source friction law at
+    # each cell's current sliding speed (from --velocity-x-field/
     # --velocity-y-field). Used by both --method options below to
     # solve for Lambda/C so that the RC law reproduces this same
     # stress:
     #
-    #   Weertman:            beta_W  = mu * u^(qW-1)
-    #                        Tau_b   = beta_W * u = mu * u^qW
+    #   Source law:          beta_source = mu * N_source * u^(qW-1)
+    #                        Tau_b_source = beta_source * u
+    #                                     = mu * N_source * u^qW
     #
+    # (N_source == 1 everywhere is the classic Weertman law; see
+    # --source-effective-pressure-type.)
     # -------------------------------------------------------------
     speed_defined = (
         grounded
         & np.isfinite(N) & (N > 0.0)
         & np.isfinite(mu) & (mu > 0.0)
+        & np.isfinite(N_source_kpa) & (N_source_kpa > 0.0)
         & np.isfinite(speed) & (speed > 0.0)
     )
 
-    tau_b_weertman = np.full_like(N, np.nan)
-    tau_b_weertman[speed_defined] = (
-        mu[speed_defined] * speed[speed_defined] ** args.weertman_q
+    tau_b_source = np.full_like(N, np.nan)
+    tau_b_source[speed_defined] = (
+        mu[speed_defined] * N_source_kpa[speed_defined]
+        * speed[speed_defined] ** args.weertman_q
     )
 
     if args.method == "stress-match-fit":
@@ -2153,11 +2405,9 @@ def main():
         fast_flowing = grounded & (speed > args.critical_velocity)
 
         C, fit_mask = fit_coulomb_C_fast_region(
-            mu=mu,
+            tau_b_source=tau_b_source,
             N=N_albany,
             area=area,
-            speed=speed,
-            q=args.weertman_q,
             mask=fast_flowing,
         )
 
@@ -2176,12 +2426,12 @@ def main():
         #                                = C * N * u^p
         #                                  / (u + Lambda*scaling*A*N^n)^p
         #
-        #   Setting Tau_b_RC == Tau_b_W and solving for Lambda:
+        #   Setting Tau_b_RC == Tau_b_source and solving for Lambda:
         #
-        #     u + Lambda*scaling*A*N^n = u * (C*N / Tau_b_W)^(1/p)
-        #                              = u * (C*N / (mu * u^qW))^(1/p)
+        #     u + Lambda*scaling*A*N^n = u * (C*N / Tau_b_source)^(1/p)
+        #                    = u * (C*N / (mu * N_source * u^qW))^(1/p)
         #
-        #     Lambda[m] = u * [(C*N / (mu * u^qW))^(1/p) - 1]
+        #     Lambda[m] = u * [(C*N / (mu * N_source * u^qW))^(1/p) - 1]
         #                 / (SECONDS_PER_YEAR * A * N^n)
         #     Lambda[m] is the value actually stored in the output field
         #     -- see the module docstring / comment above
@@ -2201,7 +2451,7 @@ def main():
         #
         # Because Albany's Regularized Coulomb law can never produce
         # a shear stress above the Coulomb limit C*N (attained only
-        # in the Lambda -> 0 limit), cells where the Weertman law's
+        # in the Lambda -> 0 limit), cells where the source law's
         # Tau_b at the current speed already meets or exceeds C*N
         # have no valid (non-negative) solution for Lambda.
         # Physically, Lambda -> 0 is *exactly* the fully-plastic
@@ -2218,7 +2468,7 @@ def main():
         # Lambda = args.lambda_reference_value, regardless of what
         # the per-cell algebraic solve above would otherwise give --
         # the exact per-cell solve is not attempted there at all,
-        # since matching the Weertman law exactly at high speed is
+        # since matching the source law exactly at high speed is
         # not the goal (the fast region is assumed C-limited by
         # construction).
         # ---------------------------------------------------------
@@ -2228,7 +2478,7 @@ def main():
 
         stress_ratio = np.full_like(N, np.nan)
         stress_ratio[valid_speed] = (
-            (C * N_albany[valid_speed]) / tau_b_weertman[valid_speed]
+            (C * N_albany[valid_speed]) / tau_b_source[valid_speed]
         )
 
         lambda_mask = (
@@ -2245,9 +2495,9 @@ def main():
         if n_unreachable > 0:
             print(
                 f"NOTE: {n_unreachable} slow-flowing grounded cells have a "
-                "Weertman basal shear stress (mu*u^qW) at the current "
-                "sliding speed that meets or exceeds the Coulomb limit "
-                f"C*N; Lambda set to {args.lambda_reference_value:g} "
+                "source-law basal shear stress (mu*N_source*u^qW) at the "
+                "current sliding speed that meets or exceeds the Coulomb "
+                f"limit C*N; Lambda set to {args.lambda_reference_value:g} "
                 "(maximal Coulomb sliding) at these cells."
             )
         print(
@@ -2264,17 +2514,17 @@ def main():
         # Diagnostics
         # -----------------------------------------------------------
         # "Local" implied C: the per-cell ratio of the actual
-        # Weertman shear stress (at the cell's current sliding speed)
-        # to N, i.e. what C would have to be for that cell alone to
-        # be exactly in the full-Coulomb regime. Its spread within
-        # the fast-flowing fit region gives a sense of how well a
-        # single scalar C fits that region. Only meaningful (and only
-        # plotted) for --method=stress-match-fit, since
+        # source-law shear stress (at the cell's current sliding
+        # speed) to N, i.e. what C would have to be for that cell
+        # alone to be exactly in the full-Coulomb regime. Its spread
+        # within the fast-flowing fit region gives a sense of how
+        # well a single scalar C fits that region. Only meaningful
+        # (and only plotted) for --method=stress-match-fit, since
         # --method=transition-velocity already writes a spatially-
         # varying, exactly-matching C to --mu-field directly.
         local_C = np.full_like(N, np.nan)
         local_C[speed_defined] = (
-            tau_b_weertman[speed_defined] / N_albany[speed_defined]
+            tau_b_source[speed_defined] / N_albany[speed_defined]
         )
     else:
         # ---------------------------------------------------------
@@ -2288,7 +2538,7 @@ def main():
         local_C = None
 
         Lambda, C = solve_transition_velocity(
-            tau_b_weertman=tau_b_weertman,
+            tau_b_source=tau_b_source,
             speed=speed,
             N=N,
             N_albany=N_albany,
@@ -2411,7 +2661,7 @@ def main():
         regime_ratio = speed / critical_velocity_implied
 
     print()
-    print("MALI Weertman -> Regularized Coulomb conversion")
+    print("MALI Weertman/Budd -> Regularized Coulomb conversion")
     print("------------------------------------------------")
     print(f"Input file                    : {args.input}")
     print(f"Method                        : {args.method}")
@@ -2419,7 +2669,8 @@ def main():
         print(f"Critical velocity, uc         : {args.critical_velocity:g}")
     else:
         print(f"Transition velocity, u0       : {args.transition_velocity:g}")
-    print(f"Weertman power exponent, qW   : {args.weertman_q:g}")
+    print(f"Source power exponent, qW     : {args.weertman_q:g}")
+    print(f"Source effective pressure type: {args.source_effective_pressure_type}")
     print(f"RC power exponent, qR         : {RC_POWER_EXPONENT:g}")
     print(f"Glen exponent, n              : {args.glen_n:g}")
     print(f"Flow rate type                : {args.flow_rate_type}")
@@ -2515,7 +2766,7 @@ def main():
     # used to modify the copied file in-place.
     out = xr.open_dataset(args.output).load()
 
-    # The Weertman muFriction field is not used directly by the
+    # The source-law muFriction field is not used directly by the
     # Regularized Coulomb law; overwrite it with the RC coefficient C
     # (Albany's "Mu"/"Mu Field Name"), so that an Albany YAML using
     # "Mu Type: Field" (reading this same field name, per --mu-field)
@@ -2566,12 +2817,13 @@ def main():
             f"regime and set to {args.lambda_reference_value:g} "
             "(see maskFastFlowing/maskValidBedRoughnessRC). "
             "Elsewhere, Lambda is solved exactly so that the "
-            "Regularized Coulomb law reproduces the Weertman "
-            "law's basal shear stress (mu*u^qW, no effective-"
-            "pressure term) at the cell's actual current sliding "
+            "Regularized Coulomb law reproduces the source law's "
+            "basal shear stress (mu*N_source*u^qW) at the cell's "
+            "actual current sliding "
             "speed u (from velocity-x/y-field, last "
             "nVertInterfaces level): Lambda[m] = u * "
-            "[(C*N/(mu*u^qW))^(1/qR) - 1] / (SECONDS_PER_YEAR * A "
+            "[(C*N/(mu*N_source*u^qW))^(1/qR) - 1] "
+            "/ (SECONDS_PER_YEAR * A "
             "* N^n), with u in m/yr, A in Pa^-3 s^-1, N in Pa, "
             "matching Albany's internal secsInYr scaling in "
             "LandIce_BasalFrictionCoefficient_Def.hpp; the stored "
@@ -2647,6 +2899,56 @@ def main():
                     "near the grounding line (shallow bed) can have "
                     "nonzero N/floatationFraction != 1; this is "
                     "expected Albany behavior, not a bug."
+                ),
+            },
+        )
+
+        if args.source_effective_pressure_type == "constant":
+            source_effective_pressure_long_name = (
+                "Source-law effective pressure N_source (spatially "
+                "uniform constant, kPa-equivalent scale)"
+            )
+            source_effective_pressure_units = "1 (kPa-equivalent)"
+        elif args.source_effective_pressure_type == "field":
+            source_effective_pressure_long_name = (
+                f"Source-law effective pressure N_source (copied "
+                f"from input field {args.source_effective_pressure_field}, "
+                "converted to kPa-equivalent scale)"
+            )
+            source_effective_pressure_units = "1 (kPa-equivalent)"
+        elif args.source_effective_pressure_type == "downs-johnson":
+            source_effective_pressure_long_name = (
+                "Source-law effective pressure N_source (Downs-"
+                "Johnson parameterization, converted to "
+                "kPa-equivalent scale)"
+            )
+            source_effective_pressure_units = "1 (kPa-equivalent)"
+        elif args.source_effective_pressure_type == "ocean-connection":
+            source_effective_pressure_long_name = (
+                "Source-law effective pressure N_source "
+                "(ocean-connection parameterization, converted to "
+                "kPa-equivalent scale)"
+            )
+            source_effective_pressure_units = "1 (kPa-equivalent)"
+        else:
+            source_effective_pressure_long_name = (
+                "Source-law effective pressure N_source (near-ocean/"
+                "inland-transition parameterization, converted to "
+                "kPa-equivalent scale)"
+            )
+            source_effective_pressure_units = "1 (kPa-equivalent)"
+
+        out["effectivePressureSource"] = xr.DataArray(
+            N_source_kpa,
+            dims=(ncell_dim,),
+            attrs={
+                "long_name": source_effective_pressure_long_name,
+                "units": source_effective_pressure_units,
+                "description": (
+                    "Effective pressure implied by the input source "
+                    "friction law (Tau_b_source = mu * N_source * "
+                    "speed^qW), independent of N/N_albany above -- "
+                    "see --source-effective-pressure-type."
                 ),
             },
         )
@@ -2743,7 +3045,7 @@ def main():
             )
             mask_valid_description = (
                 "1 where the cell is grounded, not fast-flowing, and "
-                "the Weertman basal shear stress at the cell's "
+                "the source-law basal shear stress at the cell's "
                 "current sliding speed is strictly below the Coulomb "
                 "limit C*N (a valid, non-negative Lambda solution "
                 "exists); 0 otherwise (includes maskFastFlowing "
@@ -2859,6 +3161,28 @@ def main():
         out.attrs["regularizedCoulomb_transitionHOcean"] = (
             float(args.transition_h_ocean)
         )
+    out.attrs["regularizedCoulomb_sourceEffectivePressureType"] = (
+        args.source_effective_pressure_type
+    )
+    if args.source_effective_pressure_type == "constant":
+        out.attrs["regularizedCoulomb_sourceEffectivePressure"] = (
+            float(args.source_effective_pressure)
+        )
+    elif args.source_effective_pressure_type == "field":
+        out.attrs["regularizedCoulomb_sourceEffectivePressureField"] = (
+            args.source_effective_pressure_field
+        )
+    if args.source_effective_pressure_type in ("downs-johnson", "transition"):
+        out.attrs["regularizedCoulomb_sourceMinFractionOverburden"] = (
+            float(args.source_min_fraction_overburden)
+        )
+        out.attrs["regularizedCoulomb_sourcePressureLengthScale"] = (
+            float(args.source_pressure_length_scale)
+        )
+    if args.source_effective_pressure_type == "transition":
+        out.attrs["regularizedCoulomb_sourceTransitionHOcean"] = (
+            float(args.source_transition_h_ocean)
+        )
 
     # xarray cannot safely overwrite an open source file, so use temp.
     tmp = args.output + ".tmp"
@@ -2889,7 +3213,7 @@ def main():
         if args.method == "stress-match-fit":
             transect_fields["implied C"] = (
                 local_C, "1",
-                "Implied local C (Weertman Tau_b / N), Coulomb "
+                "Implied local C (source Tau_b / N), Coulomb "
                 "C-fit region only",
             )
 
@@ -2928,8 +3252,12 @@ def main():
             args.mu_field: [
                 {
                     "values": mu,
-                    "units": f"kPa (m yr-1)^-{args.weertman_q:g}",
-                    "title": "Original Weertman muFriction (input)",
+                    "units": (
+                        f"kPa (m yr-1)^-{args.weertman_q:g}"
+                        if args.source_effective_pressure_type == "constant"
+                        else f"(m yr-1)^-{args.weertman_q:g}"
+                    ),
+                    "title": "Original source-law muFriction (input)",
                     "log": True, "cmap": "turbo_r",
                 },
                 {
@@ -3021,7 +3349,7 @@ def main():
                 {
                     "values": local_C, "units": "1",
                     "title": (
-                        "Implied C (Weertman Tau_b / N) in the fast-"
+                        "Implied C (source Tau_b / N) in the fast-"
                         f"flowing/full-Coulomb fit region; fitted "
                         f"scalar C = {C:.4g}"
                     ),
