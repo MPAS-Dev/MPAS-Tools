@@ -37,6 +37,18 @@ own effective pressure N_source (see the "Notes" section below and
 --source-effective-pressure-type) is independent of N and may use a
 different method/parameters entirely.
 
+MALI extends the input mesh by one cell around its boundary when
+building the FEM mesh handed to Albany, assigning a fixed minimum
+thickness to that extended ring, so the ice thickness/bed elevation
+Albany actually sees can differ from the plain MALI initial-condition
+file at/near the domain margin. This script always uses MALI's
+`config_write_albany_ascii_mesh` ascii output for thickness/bed
+instead: `thickness.ascii`, `bed_topography.ascii`, and
+`mpas_cellID.ascii` are required to exist in `--ascii-mesh-dir`
+(default: '.') and are used for every downstream calculation
+(effective pressure, grounded/floating classification,
+grounding-line/terminus identification, diagnostics, and plots).
+
 The output is a copy of the input MALI initial-condition file with
 `Lambda` (stored in the bed-roughness field, `--lambda-field`,
 default `bedRoughnessRC`) added, the input Weertman/Budd `muFriction`
@@ -705,6 +717,109 @@ def cell_has_neighbor_where(test_mask, cells_on_cell, n_edges_on_cell):
     neighbor_index = np.where(valid_slot, cells_on_cell - 1, 0)
     neighbor_test = test_mask[neighbor_index] & valid_slot
     return np.any(neighbor_test, axis=1)
+
+
+def _read_albany_ascii_field(path):
+    """
+    Read one of MALI's `config_write_albany_ascii_mesh` ascii fields
+    (e.g. `thickness.ascii`, `bed_topography.ascii`,
+    `mpas_cellID.ascii`): a first line giving the number of rows,
+    followed by that many one-value-per-line rows.
+
+    Returns
+    -------
+    1-D numpy array (float64), length equal to the declared row count.
+    """
+    values = np.loadtxt(path, dtype=np.float64)
+    n_declared = int(round(values[0]))
+    values = values[1:]
+    if values.shape[0] != n_declared:
+        raise ValueError(
+            f"{path}: header declares {n_declared} rows but file has "
+            f"{values.shape[0]} data rows"
+        )
+    return values
+
+
+def load_albany_ascii_geometry(ascii_dir, n_cells):
+    """
+    Load the ice thickness and bed elevation actually seen by Albany
+    from MALI's `config_write_albany_ascii_mesh` ascii output
+    (`thickness.ascii`, `bed_topography.ascii`, `mpas_cellID.ascii`
+    in `ascii_dir`), mapped onto the full MPAS `nCells` array.
+
+    MALI extends the input mesh by one cell around its boundary when
+    building the FEM mesh handed to (standalone) Albany, and may
+    assign a fixed minimum ("fixed margin") thickness to that
+    extended ring, so `thickness`/`bedTopography` as seen by Albany
+    can differ from the plain MALI initial-condition file at/near the
+    domain margin. `mpas_cellID.ascii` gives, for each row of
+    `thickness.ascii`/`bed_topography.ascii`, the 1-based MPAS cell
+    index that row corresponds to (see
+    https://github.com/MPAS-Dev/compass/blob/main/compass/landice/
+    tests/ensemble_generator/ensemble_member.py#L373-L385 for the
+    same mapping convention). Values in these ascii files are in
+    Albany's internal km convention and are converted to meters here
+    (x1000) to match MALI's netCDF `thickness`/`bedTopography` units.
+
+    Parameters
+    ----------
+    ascii_dir : str
+        Directory containing `thickness.ascii`, `bed_topography.ascii`,
+        and `mpas_cellID.ascii`.
+    n_cells : int
+        Number of cells in the MPAS mesh (`nCells`), used to validate
+        `mpas_cellID.ascii` indices and to size the returned mask.
+
+    Returns
+    -------
+    cell_index : 1-D int array
+        0-based MPAS cell indices covered by the ascii files.
+    thickness_m, bed_m : 1-D float64 arrays, same shape as
+        `cell_index`
+        Ice thickness and bed elevation [m], in MPAS cell order
+        matching `cell_index`.
+    """
+    thickness_path = os.path.join(ascii_dir, "thickness.ascii")
+    bed_path = os.path.join(ascii_dir, "bed_topography.ascii")
+    cell_id_path = os.path.join(ascii_dir, "mpas_cellID.ascii")
+
+    missing = [
+        path for path in (thickness_path, bed_path, cell_id_path)
+        if not os.path.isfile(path)
+    ]
+    if missing:
+        raise FileNotFoundError(
+            "Missing required Albany ascii mesh file(s): "
+            f"{', '.join(missing)} (expected in --ascii-mesh-dir "
+            f"{ascii_dir!r})"
+        )
+
+    thickness_km = _read_albany_ascii_field(thickness_path)
+    bed_km = _read_albany_ascii_field(bed_path)
+    cell_id = _read_albany_ascii_field(cell_id_path).astype(np.int64)
+
+    if not (thickness_km.shape == bed_km.shape == cell_id.shape):
+        raise ValueError(
+            "thickness.ascii, bed_topography.ascii, and "
+            "mpas_cellID.ascii must all have the same number of rows "
+            f"(got {thickness_km.shape[0]}, {bed_km.shape[0]}, "
+            f"{cell_id.shape[0]})"
+        )
+
+    if np.unique(cell_id).shape[0] != cell_id.shape[0]:
+        raise ValueError(
+            f"{cell_id_path}: cell indices are not unique"
+        )
+
+    if cell_id.min() < 1 or cell_id.max() > n_cells:
+        raise ValueError(
+            f"{cell_id_path}: cell indices must be in [1, {n_cells}] "
+            f"(got range [{cell_id.min()}, {cell_id.max()}])"
+        )
+
+    cell_index = cell_id - 1
+    return cell_index, thickness_km * 1000.0, bed_km * 1000.0
 
 
 def creep_fill_extrapolate(
@@ -1864,6 +1979,24 @@ def main():
         help="Bed elevation field (default: bedTopography)"
     )
     parser.add_argument(
+        "--ascii-mesh-dir",
+        default=".",
+        help=(
+            "Directory containing MALI's `config_write_albany_ascii_"
+            "mesh` ascii output (`thickness.ascii`, "
+            "`bed_topography.ascii`, `mpas_cellID.ascii`; default: "
+            "'.'). MALI extends the input mesh by one cell around "
+            "its boundary when building the FEM mesh handed to "
+            "Albany, and may assign a fixed minimum thickness to "
+            "that extended ring, so these files -- not "
+            "--thickness-field/--bed-field -- are always used as the "
+            "authoritative ice thickness/bed elevation for every "
+            "downstream calculation (effective pressure, grounded/ "
+            "floating classification, grounding-line/terminus "
+            "identification, diagnostics, and plots)."
+        )
+    )
+    parser.add_argument(
         "--area-field",
         default="areaCell",
         help="MPAS cell area field (default: areaCell)"
@@ -2211,6 +2344,34 @@ def main():
     H = cell_field(args.thickness_field)
     bed = cell_field(args.bed_field)
     area = cell_field(args.area_field)
+
+    # -------------------------------------------------------------
+    # Override thickness/bed with the values Albany actually used,
+    # from MALI's `config_write_albany_ascii_mesh` ascii output
+    # (--ascii-mesh-dir). MALI extends the input mesh by one cell
+    # around its boundary when building the FEM mesh for Albany
+    # (assigning a fixed minimum thickness to that extended ring), so
+    # these ascii-derived values -- not the plain netCDF
+    # thickness/bedTopography -- are used for every downstream
+    # calculation. Cells outside the ascii files' coverage (i.e. not
+    # part of the FEM/Albany domain) keep their netCDF values.
+    # -------------------------------------------------------------
+    ascii_cell_index, ascii_H, ascii_bed = load_albany_ascii_geometry(
+        args.ascii_mesh_dir, n_cells=H.shape[0]
+    )
+    n_overridden = ascii_cell_index.shape[0]
+    n_changed = int(np.count_nonzero(
+        (H[ascii_cell_index] != ascii_H)
+        | (bed[ascii_cell_index] != ascii_bed)
+    ))
+    H[ascii_cell_index] = ascii_H
+    bed[ascii_cell_index] = ascii_bed
+    print(
+        f"Overrode thickness/bedTopography for {n_overridden} cells "
+        f"from Albany ascii mesh files in {args.ascii_mesh_dir!r} "
+        f"({n_changed} differ from the input netCDF file, e.g. due "
+        "to MALI's one-cell mesh extension/fixed margin thickness)"
+    )
 
     # -------------------------------------------------------------
     # Basal sliding speed, from the input file's basal-most
