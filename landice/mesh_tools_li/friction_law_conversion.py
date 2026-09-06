@@ -1021,6 +1021,12 @@ def plot_transects(
     fit_mask=None,
     implied_c_label="implied C",
     fitted_c=None,
+    regime_ratio=None,
+    regime_ratio_labels=(),
+    regime_coulomb_threshold=10.0,
+    regime_coulomb_threshold2=2.0,
+    regime_powerlaw_threshold=0.1,
+    regime_powerlaw_threshold2=0.5,
 ):
     """
     For each named transect, sample the given cell-centered fields
@@ -1099,6 +1105,37 @@ def plot_transects(
         The single global scalar Coulomb Friction Coefficient C, used
         to draw the reference line on the `implied_c_label` panel
         described above.
+    regime_ratio : 1-D numpy array, optional
+        MALI cell-centered Regularized Coulomb regime ratio (u /
+        (Lambda * A * N^n); same diagnostic as the "regimeRatio" map
+        -- see its computation in main()). If provided, along with
+        `regime_ratio_labels`, contiguous along-transect runs where
+        this ratio is >= `regime_coulomb_threshold` (fully-plastic
+        Coulomb regime) or <= `regime_powerlaw_threshold` (power-law/
+        Weertman-like regime) are shaded on the named panels only
+        (not every panel, unlike the fit-region/class shading above).
+        A second, lighter shading intensity marks the intermediate
+        runs between `regime_coulomb_threshold2`/
+        `regime_powerlaw_threshold2` and the full thresholds above,
+        indicating cells trending toward -- but not yet fully in --
+        either regime.
+    regime_ratio_labels : iterable of str, optional
+        Keys in `fields` on which to draw the `regime_ratio` shading
+        described above (e.g. the Lambda and mu panels).
+    regime_coulomb_threshold : float
+        Regime-ratio value at/above which a cell is shaded (strongly)
+        as Coulomb-regime (default: 10.0, matching the "regimeRatio"
+        map).
+    regime_coulomb_threshold2 : float
+        Regime-ratio value at/above which a cell is shaded (lightly)
+        as trending Coulomb-regime (default: 2.0).
+    regime_powerlaw_threshold : float
+        Regime-ratio value at/below which a cell is shaded (strongly)
+        as power-law-regime (default: 0.1, matching the "regimeRatio"
+        map).
+    regime_powerlaw_threshold2 : float
+        Regime-ratio value at/below which a cell is shaded (lightly)
+        as trending power-law-regime (default: 0.5).
     """
     try:
         import pyproj
@@ -1265,11 +1302,87 @@ def plot_transects(
                         x0, x1, color="tab:orange", alpha=0.2, zorder=0
                     )
 
+        # Classify contiguous along-transect runs by Regularized
+        # Coulomb regime ratio (u / (Lambda * A * N^n)): >=
+        # regime_coulomb_threshold is the fully-plastic Coulomb
+        # regime (shaded strongly), >= regime_coulomb_threshold2 is
+        # trending Coulomb (shaded lightly); <= regime_powerlaw_
+        # threshold is the power-law/Weertman-like regime (shaded
+        # strongly), <= regime_powerlaw_threshold2 is trending power-
+        # law (shaded lightly). Unlike the shadings above, this is
+        # only drawn on the specific panels named in
+        # `regime_ratio_labels` (e.g. Lambda/mu), not every panel.
+        regime_ranges = {
+            "coulomb": [], "coulomb_light": [],
+            "powerlaw": [], "powerlaw_light": [],
+        }
+        if regime_ratio is not None and regime_ratio_labels:
+            regime_along_transect = regime_ratio[cell_indices]
+            regime_class_at = np.zeros(
+                regime_along_transect.shape, dtype=np.int8
+            )
+            finite = np.isfinite(regime_along_transect)
+            regime_class_at[
+                finite
+                & (regime_along_transect >= regime_coulomb_threshold2)
+                & (regime_along_transect < regime_coulomb_threshold)
+            ] = 1
+            regime_class_at[
+                finite & (regime_along_transect >= regime_coulomb_threshold)
+            ] = 2
+            regime_class_at[
+                finite
+                & (regime_along_transect <= regime_powerlaw_threshold2)
+                & (regime_along_transect > regime_powerlaw_threshold)
+            ] = 3
+            regime_class_at[
+                finite & (regime_along_transect <= regime_powerlaw_threshold)
+            ] = 4
+            regime_change_indices = np.flatnonzero(
+                np.diff(regime_class_at) != 0
+            ) + 1
+            regime_run_starts = np.concatenate(
+                ([0], regime_change_indices)
+            )
+            regime_run_ends = np.concatenate(
+                (regime_change_indices, [len(regime_class_at) - 1])
+            )
+            regime_keys = {
+                1: "coulomb_light", 2: "coulomb",
+                3: "powerlaw_light", 4: "powerlaw",
+            }
+            for run_start, run_end in zip(
+                regime_run_starts, regime_run_ends
+            ):
+                cls = regime_class_at[run_start]
+                if cls == 0:
+                    continue
+                x0 = distance_km[run_start]
+                x1 = distance_km[run_end]
+                regime_ranges[regime_keys[cls]].append((x0, x1))
+
         for ax, (label, field_spec) in zip(
             axes, all_fields.items()
         ):
             values, units, long_name = field_spec[:3]
             ylim = field_spec[3] if len(field_spec) > 3 else None
+            if regime_ratio is not None and label in regime_ratio_labels:
+                for x0, x1 in regime_ranges["coulomb"]:
+                    ax.axvspan(
+                        x0, x1, color="tab:red", alpha=0.15, zorder=0
+                    )
+                for x0, x1 in regime_ranges["coulomb_light"]:
+                    ax.axvspan(
+                        x0, x1, color="tab:red", alpha=0.06, zorder=0
+                    )
+                for x0, x1 in regime_ranges["powerlaw"]:
+                    ax.axvspan(
+                        x0, x1, color="tab:green", alpha=0.15, zorder=0
+                    )
+                for x0, x1 in regime_ranges["powerlaw_light"]:
+                    ax.axvspan(
+                        x0, x1, color="tab:green", alpha=0.06, zorder=0
+                    )
             if isinstance(values, dict):
                 # Multi-line panel (e.g. bed & surface elevation).
                 for line_label, arr in values.items():
@@ -1354,6 +1467,46 @@ def plot_transects(
                     label="Coulomb C-fit region",
                 )
             )
+        if regime_ranges["coulomb"]:
+            legend_handles.append(
+                mpatches.Patch(
+                    color="tab:red", alpha=0.15,
+                    label=(
+                        "Coulomb regime (ratio "
+                        f">= {regime_coulomb_threshold:g})"
+                    ),
+                )
+            )
+        if regime_ranges["coulomb_light"]:
+            legend_handles.append(
+                mpatches.Patch(
+                    color="tab:red", alpha=0.06,
+                    label=(
+                        "Trending Coulomb (ratio "
+                        f">= {regime_coulomb_threshold2:g})"
+                    ),
+                )
+            )
+        if regime_ranges["powerlaw"]:
+            legend_handles.append(
+                mpatches.Patch(
+                    color="tab:green", alpha=0.15,
+                    label=(
+                        "Power-law regime (ratio "
+                        f"<= {regime_powerlaw_threshold:g})"
+                    ),
+                )
+            )
+        if regime_ranges["powerlaw_light"]:
+            legend_handles.append(
+                mpatches.Patch(
+                    color="tab:green", alpha=0.06,
+                    label=(
+                        "Trending power-law (ratio "
+                        f"<= {regime_powerlaw_threshold2:g})"
+                    ),
+                )
+            )
         if legend_handles:
             fig.legend(
                 handles=legend_handles,
@@ -1363,7 +1516,10 @@ def plot_transects(
                 frameon=False,
             )
 
-        if classes_used or fit_region_used:
+        if (
+            classes_used or fit_region_used
+            or any(regime_ranges.values())
+        ):
             fig.suptitle(f"{name} transect", y=1.08)
         else:
             fig.suptitle(f"{name} transect")
@@ -3374,23 +3530,29 @@ def main():
             # Lambda and mu (input/output) panels are always included,
             # regardless of --method or other options, so the fitted/
             # solved bed-roughness fields can always be inspected
-            # along the transect.
+            # along the transect. Zeroed outside grounded ice (where
+            # these fields are not meaningful) so the plotted y-range
+            # is driven by the grounded-ice variation of interest.
             args.lambda_field: (
-                Lambda, "m",
-                "Albany regularized-Coulomb bed roughness Lambda",
+                np.where(grounded, Lambda, 0.0), "m",
+                "Albany regularized-Coulomb bed roughness Lambda "
+                "(zeroed outside grounded ice)",
             ),
             args.mu_field: (
                 {
-                    "input muFriction (source law)": mu,
+                    "input muFriction (source law)": np.where(
+                        grounded, mu, 0.0
+                    ),
                     f"output {args.mu_field} (Regularized Coulomb C)": (
-                        mu_field_values
+                        np.where(grounded, mu_field_values, 0.0)
                     ),
                 },
                 (
                     f"kPa (m yr-1)^-{args.weertman_q:g} (input) / "
                     "1 (output)"
                 ),
-                "Original source-law muFriction vs. output C",
+                "Original source-law muFriction vs. output C "
+                "(zeroed outside grounded ice)",
             ),
         }
         # "implied C" is only meaningful (and only computed) for
@@ -3418,6 +3580,8 @@ def main():
             min_fraction_overburden=args.min_fraction_overburden,
             fit_mask=fit_mask if args.method == "stress-match-fit" else None,
             fitted_c=C if args.method == "stress-match-fit" else None,
+            regime_ratio=regime_ratio,
+            regime_ratio_labels=(args.lambda_field, args.mu_field),
         )
 
         # Antarctic-wide maps of the same diagnostic fields plus
