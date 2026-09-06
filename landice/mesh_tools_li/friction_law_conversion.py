@@ -3366,6 +3366,32 @@ def main():
             "hydropotential": (
                 hydropotential, "Pa", "Shreve hydraulic potential"
             ),
+            "tau_b_source": (
+                tau_b_source, "kPa",
+                "Input source-law basal shear stress "
+                "(Tau_b_source = mu * N_source * speed^qW)",
+            ),
+            # Lambda and mu (input/output) panels are always included,
+            # regardless of --method or other options, so the fitted/
+            # solved bed-roughness fields can always be inspected
+            # along the transect.
+            args.lambda_field: (
+                Lambda, "m",
+                "Albany regularized-Coulomb bed roughness Lambda",
+            ),
+            args.mu_field: (
+                {
+                    "input muFriction (source law)": mu,
+                    f"output {args.mu_field} (Regularized Coulomb C)": (
+                        mu_field_values
+                    ),
+                },
+                (
+                    f"kPa (m yr-1)^-{args.weertman_q:g} (input) / "
+                    "1 (output)"
+                ),
+                "Original source-law muFriction vs. output C",
+            ),
         }
         # "implied C" is only meaningful (and only computed) for
         # --method=stress-match-fit -- --method=transition-velocity
