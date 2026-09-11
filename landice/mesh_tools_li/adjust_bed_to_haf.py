@@ -95,23 +95,29 @@ def parse_args():
                        required=True,
                        help='Projection of the MALI mesh. Available: ' +
                             ', '.join(PROJECTIONS.keys()))
+    parser.add_argument('--buffer-distance', dest='buffer_distance',
+                       type=float, default=0.01,
+                       help='Buffer distance for LineString geometries in '
+                            'degrees (default: 0.01, ~1km). Use 0 for Polygons.')
 
     return parser.parse_args()
 
 
-def load_grounding_line_geojson(geojson_file):
+def load_grounding_line_geojson(geojson_file, buffer_distance=0.0):
     '''
-    Load grounding line polygons from a GeoJSON file and extract CRS.
+    Load grounding line geometries from a GeoJSON file and extract CRS.
 
     Parameters
     ----------
     geojson_file : str
         Path to the GeoJSON file containing grounding line delineations
+    buffer_distance : float
+        Buffer distance to apply to LineString geometries (in CRS units)
 
     Returns
     -------
     geometries : list
-        List of shapely geometry objects
+        List of shapely geometry objects (buffered if LineStrings)
     crs : pyproj.CRS or None
         CRS of the GeoJSON file
     '''
@@ -143,6 +149,20 @@ def load_grounding_line_geojson(geojson_file):
         else:
             # No CRS specified, assume WGS84 (standard for GeoJSON)
             crs = CRS.from_epsg(4326)
+
+    # Buffer LineString/MultiLineString geometries to create polygons
+    if buffer_distance > 0:
+        buffered_geometries = []
+        for geom in geometries:
+            geom_type = geom.geom_type
+            if geom_type in ['LineString', 'MultiLineString']:
+                # Buffer the line to create a polygon
+                buffered_geom = geom.buffer(buffer_distance)
+                buffered_geometries.append(buffered_geom)
+            else:
+                # Keep polygons as-is
+                buffered_geometries.append(geom)
+        geometries = buffered_geometries
 
     return geometries, crs
 
@@ -313,9 +333,17 @@ def main():
 
     # Load grounding line polygons and get CRS
     print('Loading grounding line geometries...')
-    geometries, geojson_crs = load_grounding_line_geojson(args.geojson_file)
+    geometries, geojson_crs = load_grounding_line_geojson(
+        args.geojson_file, args.buffer_distance
+    )
     print(f'Loaded {len(geometries)} geometry features')
+    # Report geometry types
+    geom_types = set(geom.geom_type for geom in geometries)
+    print(f'Geometry types: {", ".join(geom_types)}')
     print(f'GeoJSON CRS: {geojson_crs}')
+    if args.buffer_distance > 0:
+        print(f'Applied buffer distance: {args.buffer_distance} degrees '
+              f'(~{args.buffer_distance * 111:.1f} km)')
     print()
 
     # Open mesh file with xarray

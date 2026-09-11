@@ -37,6 +37,7 @@ python adjust_bed_to_haf.py [-h] -m FILENAME -g FILENAME -p PROJECTION [-o FILEN
 - `--rho-ocean RHO_OCEAN`: Ocean water density in kg/m³ (default: 1028.0)
 - `--thickness-var THICKNESS_VAR`: Name of thickness variable (default: 'thickness')
 - `--bed-var BED_VAR`: Name of bed topography variable (default: 'bedTopography')
+- `--buffer-distance DISTANCE`: Buffer distance for LineString geometries in degrees (default: 0.01, ~1km at poles). Use 0 for Polygon geometries.
 
 ## Available Projections
 
@@ -91,9 +92,11 @@ Must contain:
 
 ### GeoJSON File
 Must contain:
-- Polygon or MultiLineString geometries
+- Polygon, LineString, or MultiLineString geometries
 - CRS/projection information (typically WGS 84, EPSG:4326)
 - The script will auto-detect the GeoJSON CRS and transform coordinates as needed
+
+**Note:** If your GeoJSON contains LineString or MultiLineString geometries (e.g., grounding lines), the script automatically buffers them to create polygons. Adjust `--buffer-distance` if needed (default: 0.01 degrees, ~1 km).
 
 ## Dependencies
 
