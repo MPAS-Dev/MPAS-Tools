@@ -28,6 +28,15 @@ from datetime import datetime
 from shapely.geometry import Point, shape
 from pyproj import Transformer, CRS
 
+# Try to import mpas_tools for proper NetCDF writing
+try:
+    from mpas_tools.io import write_netcdf
+    HAS_MPAS_TOOLS = True
+except ImportError:
+    HAS_MPAS_TOOLS = False
+    import warnings
+    warnings.warn('mpas_tools not available. Output may not be in proper MPAS format.')
+
 try:
     import geopandas as gpd
     HAS_GEOPANDAS = True
@@ -460,17 +469,7 @@ def main():
     else:
         ds[args.bed_var].values[mask] = new_bed
 
-    # Update global attributes
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    # Capture full command line for reproducibility
-    command_line = ' '.join(sys.argv)
-    if 'history' in ds.attrs:
-        history = ds.attrs['history']
-        history = f'{timestamp}: {command_line}\n{history}'
-    else:
-        history = f'{timestamp}: {command_line}'
-    ds.attrs['history'] = history
-
+    # Update comment attribute
     comment = (
         f'Bed topography adjusted within grounding line regions '
         f'to achieve target HAF = {args.target_haf} m. '
@@ -486,9 +485,24 @@ def main():
     output_file = args.output_file if args.output_file else args.mesh_file
     print(f'Writing to {output_file}...')
 
-    # Use encoding to preserve data types and compression
-    encoding = {var: {'_FillValue': None} for var in ds.data_vars}
-    ds.to_netcdf(output_file, encoding=encoding)
+    if HAS_MPAS_TOOLS:
+        # Use mpas_tools for proper MPAS format
+        # write_netcdf will automatically add history with command line
+        write_netcdf(ds, output_file)
+    else:
+        # Fallback to xarray if mpas_tools not available
+        # Manually update history
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        command_line = ' '.join(sys.argv)
+        if 'history' in ds.attrs:
+            history = ds.attrs['history']
+            history = f'{timestamp}: {command_line}\n{history}'
+        else:
+            history = f'{timestamp}: {command_line}'
+        ds.attrs['history'] = history
+
+        encoding = {var: {'_FillValue': None} for var in ds.data_vars}
+        ds.to_netcdf(output_file, encoding=encoding)
     ds.close()
 
     print('Successfully updated mesh file!')

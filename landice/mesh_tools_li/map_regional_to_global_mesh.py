@@ -24,6 +24,15 @@ import xarray as xr
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from datetime import datetime
 
+# Try to import mpas_tools for proper NetCDF writing
+try:
+    from mpas_tools.io import write_netcdf
+    HAS_MPAS_TOOLS = True
+except ImportError:
+    HAS_MPAS_TOOLS = False
+    import warnings
+    warnings.warn('mpas_tools not available. Output may not be in proper MPAS format.')
+
 
 def parse_args():
     parser = ArgumentParser(description=__doc__,
@@ -349,17 +358,7 @@ def main():
     global_ds = copy_variables(regional_ds, global_ds, mapping, args.variables)
     print()
 
-    # Update global attributes
-    timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    # Capture full command line for reproducibility
-    command_line = ' '.join(sys.argv)
-    if 'history' in global_ds.attrs:
-        history = global_ds.attrs['history']
-        history = f'{timestamp}: {command_line}\n{history}'
-    else:
-        history = f'{timestamp}: {command_line}'
-    global_ds.attrs['history'] = history
-
+    # Update comment attribute
     comment = (
         f'Variables {", ".join(args.variables)} updated from regional mesh '
         f'{args.regional_file}. {len(mapping)} cells modified.'
@@ -371,9 +370,25 @@ def main():
 
     # Write output
     print(f'Writing output to {args.output_file}...')
-    # Use encoding to preserve data types and compression
-    encoding = {var: {'_FillValue': None} for var in global_ds.data_vars}
-    global_ds.to_netcdf(args.output_file, encoding=encoding)
+
+    if HAS_MPAS_TOOLS:
+        # Use mpas_tools for proper MPAS format
+        # write_netcdf will automatically add history with command line
+        write_netcdf(global_ds, args.output_file)
+    else:
+        # Fallback to xarray if mpas_tools not available
+        # Manually update history
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        command_line = ' '.join(sys.argv)
+        if 'history' in global_ds.attrs:
+            history = global_ds.attrs['history']
+            history = f'{timestamp}: {command_line}\n{history}'
+        else:
+            history = f'{timestamp}: {command_line}'
+        global_ds.attrs['history'] = history
+
+        encoding = {var: {'_FillValue': None} for var in global_ds.data_vars}
+        global_ds.to_netcdf(args.output_file, encoding=encoding)
 
     print('Done!')
     print()
