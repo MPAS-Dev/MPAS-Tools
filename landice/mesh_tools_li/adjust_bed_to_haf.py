@@ -462,11 +462,13 @@ def main():
 
     # Update global attributes
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # Capture full command line for reproducibility
+    command_line = ' '.join(sys.argv)
     if 'history' in ds.attrs:
         history = ds.attrs['history']
-        history = f'{timestamp}: adjust_bed_to_haf.py\n{history}'
+        history = f'{timestamp}: {command_line}\n{history}'
     else:
-        history = f'{timestamp}: adjust_bed_to_haf.py'
+        history = f'{timestamp}: {command_line}'
     ds.attrs['history'] = history
 
     comment = (

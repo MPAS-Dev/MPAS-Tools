@@ -351,11 +351,13 @@ def main():
 
     # Update global attributes
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    # Capture full command line for reproducibility
+    command_line = ' '.join(sys.argv)
     if 'history' in global_ds.attrs:
         history = global_ds.attrs['history']
-        history = f'{timestamp}: map_regional_to_global_mesh.py\n{history}'
+        history = f'{timestamp}: {command_line}\n{history}'
     else:
-        history = f'{timestamp}: map_regional_to_global_mesh.py'
+        history = f'{timestamp}: {command_line}'
     global_ds.attrs['history'] = history
 
     comment = (
