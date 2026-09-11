@@ -26,6 +26,7 @@ import xarray as xr
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from datetime import datetime
 from shapely.geometry import Point, shape
+from pyproj import Transformer, CRS
 
 try:
     import geopandas as gpd
@@ -33,6 +34,27 @@ try:
 except ImportError:
     HAS_GEOPANDAS = False
     import json
+
+# Define available projections (from mpas_tools.landice.projections)
+PROJECTIONS = {
+    'gis-bamber': (
+        '+proj=stere +lat_ts=71.0 +lat_0=90 +lon_0=321.0 +k_0=1.0 '
+        '+x_0=800000.0 +y_0=3400000.0 +ellps=WGS84'
+    ),
+    'gis-gimp': (
+        '+proj=stere +lat_ts=70.0 +lat_0=90 +lon_0=315.0 +k_0=1.0 +x_0=0.0 '
+        '+y_0=0.0 +ellps=WGS84'
+    ),
+    'ais-bedmap2': (
+        '+proj=stere +lat_ts=-71.0 +lat_0=-90 +lon_0=0.0 +k_0=1.0 +x_0=0.0 '
+        '+y_0=0.0 +ellps=WGS84'
+    ),
+    'ais-bedmap2-sphere': (
+        '+proj=stere +lat_ts=-71.0 +lat_0=-90 +lon_0=0.0 +k_0=1.0 +x_0=0.0 '
+        '+y_0=0.0 +ellps=sphere'
+    ),
+    'latlon': '+proj=longlat +ellps=WGS84',
+}
 
 
 def parse_args():
@@ -68,13 +90,18 @@ def parse_args():
     parser.add_argument('--bed-var', dest='bed_var', default='bedTopography',
                        help='Name of bed topography variable in mesh file '
                             '(default: bedTopography)')
+    parser.add_argument('-p', '--projection', dest='projection',
+                       choices=list(PROJECTIONS.keys()),
+                       required=True,
+                       help='Projection of the MALI mesh. Available: ' +
+                            ', '.join(PROJECTIONS.keys()))
 
     return parser.parse_args()
 
 
 def load_grounding_line_geojson(geojson_file):
     '''
-    Load grounding line polygons from a GeoJSON file.
+    Load grounding line polygons from a GeoJSON file and extract CRS.
 
     Parameters
     ----------
@@ -85,11 +112,14 @@ def load_grounding_line_geojson(geojson_file):
     -------
     geometries : list
         List of shapely geometry objects
+    crs : pyproj.CRS or None
+        CRS of the GeoJSON file
     '''
     if HAS_GEOPANDAS:
         # Use geopandas if available
         gdf = gpd.read_file(geojson_file)
         geometries = gdf.geometry.tolist()
+        crs = gdf.crs if gdf.crs is not None else CRS.from_epsg(4326)
     else:
         # Fall back to json + shapely
         with open(geojson_file, 'r') as f:
@@ -100,19 +130,61 @@ def load_grounding_line_geojson(geojson_file):
             geom = shape(feature['geometry'])
             geometries.append(geom)
 
-    return geometries
+        # Try to extract CRS from GeoJSON
+        if 'crs' in data and 'properties' in data['crs']:
+            crs_name = data['crs']['properties'].get('name', '')
+            if 'EPSG' in crs_name or 'epsg' in crs_name:
+                # Extract EPSG code
+                epsg_code = int(crs_name.split(':')[-1])
+                crs = CRS.from_epsg(epsg_code)
+            else:
+                # Default to WGS84
+                crs = CRS.from_epsg(4326)
+        else:
+            # No CRS specified, assume WGS84 (standard for GeoJSON)
+            crs = CRS.from_epsg(4326)
+
+    return geometries, crs
 
 
-def find_cells_in_polygon(lon_cell, lat_cell, geometries):
+def transform_mesh_coords(x_cell, y_cell, mesh_proj_str, target_crs):
+    '''
+    Transform mesh coordinates from mesh projection to target CRS.
+
+    Parameters
+    ----------
+    x_cell : ndarray
+        X coordinates of cell centers in mesh projection
+    y_cell : ndarray
+        Y coordinates of cell centers in mesh projection
+    mesh_proj_str : str
+        Proj4 string defining the mesh projection
+    target_crs : pyproj.CRS
+        Target coordinate reference system
+
+    Returns
+    -------
+    x_transformed : ndarray
+        Transformed x coordinates
+    y_transformed : ndarray
+        Transformed y coordinates
+    '''
+    mesh_crs = CRS.from_proj4(mesh_proj_str)
+    transformer = Transformer.from_crs(mesh_crs, target_crs, always_xy=True)
+    x_transformed, y_transformed = transformer.transform(x_cell, y_cell)
+    return x_transformed, y_transformed
+
+
+def find_cells_in_polygon(x_cell, y_cell, geometries):
     '''
     Find mesh cells that fall within any of the provided polygons.
 
     Parameters
     ----------
-    lon_cell : ndarray
-        Longitude of cell centers (in degrees)
-    lat_cell : ndarray
-        Latitude of cell centers (in degrees)
+    x_cell : ndarray
+        X coordinates of cell centers (in same CRS as geometries)
+    y_cell : ndarray
+        Y coordinates of cell centers (in same CRS as geometries)
     geometries : list
         List of shapely geometry objects
 
@@ -121,16 +193,16 @@ def find_cells_in_polygon(lon_cell, lat_cell, geometries):
     mask : ndarray (bool)
         Boolean mask indicating which cells are inside the polygons
     '''
-    n_cells = len(lon_cell)
+    n_cells = len(x_cell)
     mask = np.zeros(n_cells, dtype=bool)
 
     print(f'Checking {n_cells} cells against {len(geometries)} geometries...')
 
-    for i, (lon, lat) in enumerate(zip(lon_cell, lat_cell)):
+    for i, (x, y) in enumerate(zip(x_cell, y_cell)):
         if i % 10000 == 0:
             print(f'  Processed {i}/{n_cells} cells...')
 
-        point = Point(lon, lat)
+        point = Point(x, y)
         for geom in geometries:
             if geom.contains(point) or geom.intersects(point):
                 mask[i] = True
@@ -232,16 +304,18 @@ def main():
           'flotation **')
     print(f'Input mesh file: {args.mesh_file}')
     print(f'Grounding line GeoJSON: {args.geojson_file}')
+    print(f'Mesh projection: {args.projection}')
     print(f'Target HAF: {args.target_haf} m')
     print(f'Sea level: {args.sea_level} m')
     print(f'Ice density: {args.rho_ice} kg/m^3')
     print(f'Ocean density: {args.rho_ocean} kg/m^3')
     print()
 
-    # Load grounding line polygons
+    # Load grounding line polygons and get CRS
     print('Loading grounding line geometries...')
-    geometries = load_grounding_line_geojson(args.geojson_file)
+    geometries, geojson_crs = load_grounding_line_geojson(args.geojson_file)
     print(f'Loaded {len(geometries)} geometry features')
+    print(f'GeoJSON CRS: {geojson_crs}')
     print()
 
     # Open mesh file with xarray
@@ -250,23 +324,38 @@ def main():
 
     # Read mesh coordinates
     print('Reading mesh coordinates...')
-    # Coordinates are typically in radians, convert to degrees
-    lon_cell = np.degrees(ds['lonCell'].values)
-    lat_cell = np.degrees(ds['latCell'].values)
-    n_cells = len(lon_cell)
+    x_cell = ds['xCell'].values
+    y_cell = ds['yCell'].values
+    n_cells = len(x_cell)
     print(f'Mesh has {n_cells} cells')
+    print(f'Mesh coordinate range:')
+    print(f'  X: [{np.min(x_cell):.1f}, {np.max(x_cell):.1f}] m')
+    print(f'  Y: [{np.min(y_cell):.1f}, {np.max(y_cell):.1f}] m')
+    print()
+
+    # Transform mesh coordinates to GeoJSON CRS
+    print('Transforming mesh coordinates to GeoJSON CRS...')
+    mesh_proj_str = PROJECTIONS[args.projection]
+    x_transformed, y_transformed = transform_mesh_coords(
+        x_cell, y_cell, mesh_proj_str, geojson_crs
+    )
+    print(f'Transformed coordinate range:')
+    print(f'  X: [{np.min(x_transformed):.6f}, {np.max(x_transformed):.6f}]')
+    print(f'  Y: [{np.min(y_transformed):.6f}, {np.max(y_transformed):.6f}]')
     print()
 
     # Find cells within grounding line polygons
     print('Identifying cells within grounding line regions...')
-    mask = find_cells_in_polygon(lon_cell, lat_cell, geometries)
+    mask = find_cells_in_polygon(x_transformed, y_transformed, geometries)
     print()
 
     if np.sum(mask) == 0:
         print('ERROR: No cells found within grounding line polygons!')
         print('Check that:')
-        print('  1. GeoJSON and mesh use compatible coordinate systems')
+        print('  1. Mesh projection is correct (specified: {})'.format(
+            args.projection))
         print('  2. GeoJSON geometries overlap with mesh extent')
+        print('  3. GeoJSON CRS was correctly detected')
         sys.exit(1)
 
     # Read thickness and bed topography

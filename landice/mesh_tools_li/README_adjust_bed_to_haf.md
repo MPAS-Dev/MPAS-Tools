@@ -8,6 +8,7 @@ Adjust bed topography within grounding line regions to achieve a specified heigh
 python adjust_bed_to_haf.py \
     --mesh input_mesh.nc \
     --geojson grounding_line.geojson \
+    --projection ais-bedmap2 \
     --output output_mesh.nc \
     --target-haf 10.0
 ```
@@ -15,7 +16,7 @@ python adjust_bed_to_haf.py \
 ## Usage
 
 ```
-python adjust_bed_to_haf.py [-h] -m FILENAME -g FILENAME [-o FILENAME]
+python adjust_bed_to_haf.py [-h] -m FILENAME -g FILENAME -p PROJECTION [-o FILENAME]
                             [--target-haf TARGET_HAF] [--sea-level SEA_LEVEL]
                             [--rho-ice RHO_ICE] [--rho-ocean RHO_OCEAN]
                             [--thickness-var THICKNESS_VAR] [--bed-var BED_VAR]
@@ -25,6 +26,7 @@ python adjust_bed_to_haf.py [-h] -m FILENAME -g FILENAME [-o FILENAME]
 
 - `-m`, `--mesh FILENAME`: MALI mesh file (NetCDF format)
 - `-g`, `--geojson FILENAME`: GeoJSON file containing grounding line delineations
+- `-p`, `--projection PROJECTION`: Projection of the MALI mesh (see Available Projections below)
 
 ### Optional Arguments
 
@@ -36,12 +38,28 @@ python adjust_bed_to_haf.py [-h] -m FILENAME -g FILENAME [-o FILENAME]
 - `--thickness-var THICKNESS_VAR`: Name of thickness variable (default: 'thickness')
 - `--bed-var BED_VAR`: Name of bed topography variable (default: 'bedTopography')
 
+## Available Projections
+
+The script supports the following MALI mesh projections:
+
+- **ais-bedmap2**: Antarctic BEDMAP2 projection (WGS84 ellipsoid)
+  - Standard for Antarctica ice sheet models
+  - Polar stereographic with standard parallel at -71°S
+- **ais-bedmap2-sphere**: BEDMAP2 projection on sphere
+  - Use for coupled MALI-SeaLevelModel simulations
+- **gis-bamber**: Greenland Bamber projection
+- **gis-gimp**: Greenland GIMP projection
+- **latlon**: Standard latitude/longitude (WGS84)
+
+The script automatically detects the GeoJSON file's CRS and transforms the mesh coordinates to match for accurate spatial queries.
+
 ## Example
 
 ```bash
 python adjust_bed_to_haf.py \
     --mesh AIS_4to20km_mesh.nc \
     --geojson Thwaites_GL_2014_pinning_points.geojson \
+    --projection ais-bedmap2 \
     --output AIS_4to20km_mesh_adjusted.nc \
     --target-haf 15.0
 ```
@@ -67,14 +85,15 @@ This ensures the ice surface achieves the target HAF given the existing thicknes
 
 ### Mesh File
 Must contain:
-- `lonCell`, `latCell`: Cell coordinates (in radians)
+- `xCell`, `yCell`: Cell coordinates in the specified projection (meters)
 - `thickness`: Ice thickness (m)
 - `bedTopography`: Bed elevation (m)
 
 ### GeoJSON File
 Must contain:
 - Polygon or MultiLineString geometries
-- WGS 84 coordinates (EPSG:4326, longitude/latitude in degrees)
+- CRS/projection information (typically WGS 84, EPSG:4326)
+- The script will auto-detect the GeoJSON CRS and transform coordinates as needed
 
 ## Dependencies
 
@@ -82,16 +101,18 @@ Must contain:
 - xarray
 - numpy
 - shapely
+- pyproj
 
 **Optional:**
-- geopandas (recommended for better performance)
+- geopandas (recommended for better performance and CRS detection)
 
 ## Notes
 
-- The tool converts mesh coordinates from radians to degrees for comparison with GeoJSON
+- The script automatically transforms mesh coordinates to match the GeoJSON CRS for accurate spatial matching
 - Ice thickness is preserved; only bed topography is adjusted
 - The output file includes updated `history` and `comment` attributes
 - If no output file is specified, the input file is modified in place
+- The mesh projection must be correctly specified using the `--projection` argument
 
 ## References
 
