@@ -23,7 +23,7 @@ Trevor Hillebrand, 2026
 import sys
 import numpy as np
 import xarray as xr
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from datetime import datetime
 from shapely.geometry import Point, shape
 
@@ -37,8 +37,7 @@ except ImportError:
 
 def parse_args():
     parser = ArgumentParser(description=__doc__,
-                           formatter_class=lambda prog: ArgumentParser.
-                           RawDescriptionHelpFormatter(prog, max_help_position=30))
+                           formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('-m', '--mesh', dest='mesh_file', required=True,
                        metavar='FILENAME',
                        help='MALI mesh file (NetCDF format)')
