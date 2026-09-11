@@ -488,7 +488,7 @@ def main():
     if HAS_MPAS_TOOLS:
         # Use mpas_tools for proper MPAS format
         # write_netcdf will automatically add history with command line
-        write_netcdf(ds, output_file)
+        write_netcdf(ds, output_file, format='NETCDF3_64BIT_DATA')
     else:
         # Fallback to xarray if mpas_tools not available
         # Manually update history
