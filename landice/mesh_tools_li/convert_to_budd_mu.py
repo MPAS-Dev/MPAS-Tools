@@ -1,10 +1,24 @@
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from mpas_tools.io import write_netcdf
 import xarray as xr
 import numpy as np
 from scipy.spatial import cKDTree
 
 
-input_filename = "../AIS_8to40km_r03_20260825.nc"
-output_filename = "AIS_8to40km_r03_20260825_budd_mu.nc"
+parser = ArgumentParser(description=__doc__,
+                       formatter_class=RawDescriptionHelpFormatter)
+parser.add_argument('-i', '--input_file', dest='input_file', required=True,
+                    metavar='FILENAME',
+                    help='MALI file (NetCDF format) containing muFriction'
+                         ' for Weertman friction law')
+parser.add_argument('-o', '--output_file', dest='output_file', required=True,
+                    metavar='FILENAME',
+                    help='Destination file for converted muFriction'
+                         ' for Budd friction law')
+args = parser.parse_args()
+
+input_filename = args.input_file
+output_filename = args.output_file
 assert input_filename != output_filename, \
     "Input file and output file must have different names!"
 
@@ -169,8 +183,7 @@ ds["muFriction"].attrs.update(mu_friction.attrs)
 #    format="NETCDF3_64BIT_OFFSET"
 #)
 
-ds.to_netcdf(output_filename)
+write_netcdf(ds, output_filename, format='NETCDF3_64BIT_DATA')
 ds.close()
 
 print(f"Processing complete. Output saved to {output_filename!r}.")
-print(f"Remember to convert the output file to the proper format using ncks -O -6 {output_filename} {output_filename}.)
