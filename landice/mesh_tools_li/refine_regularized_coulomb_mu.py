@@ -562,6 +562,90 @@ def main():
         & np.isfinite(C_old) & (C_old > 0.0)
     )
 
+    # -------------------------------------------------------------
+    # Convergence/mismatch diagnostics (computed early so the
+    # self-consistency check below can restrict itself to already-
+    # "good" cells).
+    # -------------------------------------------------------------
+    vel_mismatch = np.full_like(H, np.nan)
+    mismatch_defined = (
+        grounded
+        & np.isfinite(u_model) & (u_model > 0.0)
+        & np.isfinite(u_target) & (u_target > 0.0)
+    )
+    vel_mismatch[mismatch_defined] = (
+        (u_model[mismatch_defined] - u_target[mismatch_defined])
+        / u_target[mismatch_defined]
+    )
+
+    # -------------------------------------------------------------
+    # Self-consistency check (parameter-mismatch diagnostic): using
+    # THIS SCRIPT's own N/N_source/u_c and the ORIGINAL target
+    # velocity u_target (not u_model), recompute what C_old *should*
+    # be, per the very same formula friction_law_conversion.py's
+    # solve_transition_velocity() used to derive it in the first
+    # place. If all physics options passed to this script (--weertman
+    # -q, --glen-n, --rc-power-exponent, --effective-pressure-type
+    # and related thresholds, --source-effective-pressure-type and
+    # related thresholds, --flow-rate-type/--flow-rate, rho/gravity
+    # values, --ascii-mesh-dir) match those used for the ORIGINAL
+    # friction_law_conversion.py run exactly, C_check should equal
+    # C_old almost exactly (to floating-point precision) everywhere
+    # C_old came from that same closed-form solve. A large mismatch
+    # here -- especially in cells where u_model ~= u_target (i.e.
+    # already "good" regions) -- means at least one physics option
+    # differs between the two runs, NOT that the Picard update itself
+    # is misbehaving; a mismatch confined to cells that are *not*
+    # already "good" is expected/uninformative, since C_old there may
+    # have come from a different code path (e.g.
+    # fit_coulomb_C_fast_region()'s scalar fit for
+    # --method=stress-match-fit) that this check does not reproduce.
+    # -------------------------------------------------------------
+    k_target = np.full_like(N, np.nan)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        k_target[tau_defined] = (
+            N_albany[tau_defined]
+            * u_target[tau_defined] ** args.rc_power_exponent
+            / (u_target[tau_defined] + u_c_model[tau_defined])
+            ** args.rc_power_exponent
+        )
+    tau_b_at_target = np.full_like(N, np.nan)
+    tau_b_at_target[tau_defined] = (
+        mu[tau_defined] * N_source_kpa[tau_defined]
+        * u_target[tau_defined] ** args.weertman_q
+    )
+    C_check = np.full_like(N, np.nan)
+    check_defined = (
+        tau_defined & np.isfinite(k_target) & (k_target > 0.0)
+        & np.isfinite(C_old) & (C_old > 0.0)
+    )
+    with np.errstate(divide="ignore", invalid="ignore"):
+        C_check[check_defined] = (
+            tau_b_at_target[check_defined] / k_target[check_defined]
+        )
+    consistency_residual = np.full_like(N, np.nan)
+    consistency_residual[check_defined] = (
+        np.abs(C_check[check_defined] - C_old[check_defined])
+        / C_old[check_defined]
+    )
+    already_good = (
+        mismatch_defined & check_defined & (np.abs(vel_mismatch) < 0.05)
+    )
+    if np.count_nonzero(already_good) > 0:
+        print(
+            "Self-consistency check (C_check vs. C_old, using "
+            "u_target in place of u_model -- should match almost "
+            "exactly if all physics options match the original "
+            "friction_law_conversion.py run) for cells where "
+            "|model - target| / target < 5% : "
+            f"mean={np.nanmean(consistency_residual[already_good]):.6e}, "
+            f"95th pct={np.nanpercentile(consistency_residual[already_good], 95):.6e}, "
+            f"max={np.nanmax(consistency_residual[already_good]):.6e} "
+            "(large values here indicate a physics-option mismatch "
+            "between this call and the original conversion run, not "
+            "a problem with the Picard update itself)"
+        )
+
     # Direct closed-form C that makes the RC law reproduce
     # Tau_b_target *at u_model* -- i.e. exactly
     # solve_transition_velocity()'s C formula, but re-solved using
@@ -600,19 +684,6 @@ def main():
         C_new[reset] = C_old[reset]
         n_reset = int(np.count_nonzero(reset))
 
-    # -------------------------------------------------------------
-    # Convergence/mismatch diagnostics.
-    # -------------------------------------------------------------
-    vel_mismatch = np.full_like(H, np.nan)
-    mismatch_defined = (
-        grounded
-        & np.isfinite(u_model) & (u_model > 0.0)
-        & np.isfinite(u_target) & (u_target > 0.0)
-    )
-    vel_mismatch[mismatch_defined] = (
-        (u_model[mismatch_defined] - u_target[mismatch_defined])
-        / u_target[mismatch_defined]
-    )
     n_grounded = int(np.count_nonzero(grounded))
     n_updated = int(np.count_nonzero(update_defined))
     print(
