@@ -898,6 +898,156 @@ def aggregate_quadrature_to_cells(qp_values, triangles, n_cells):
     return cell_mean, cell_max_abs
 
 
+def solve_fe_corrected_mu(
+    C_prior, N, N_albany, Lambda, A, glen_n, speed, tau_b_source,
+    triangles, bary_coords, rc_power_exponent, regularization,
+    bound_factor,
+):
+    """
+    Correct the nodal (cell-center) Regularized Coulomb coefficient C
+    (muFriction) so that Albany's actual FE-quadrature-point
+    evaluation of the RC stress -- linearly interpolating N, C,
+    Lambda, A, and speed to quadrature points and only then
+    nonlinearly combining them (see interpolate_to_quadrature()/
+    regularized_coulomb_stress()) -- better matches the source law's
+    (similarly interpolated) stress, given the fixed N, Lambda, A,
+    and speed fields (only C is corrected; see the module docstring
+    of --fe-correct-mu for why C alone is targeted).
+
+    This is possible in closed form (as a genuine linear least-
+    squares problem, not an ad hoc iterative patch) because, for
+    *fixed* N/Lambda/A/speed, the RC stress is exactly linear in the
+    quadrature-point-interpolated C:
+
+        Tau_b_RC(quadrature point) = qp_C * k
+
+        k = N_albany * u^qR / (u + u_c)^qR   (independent of C)
+
+    and qp_C is itself linear in the 3 nodal C values via the
+    barycentric interpolation weights. So requiring qp_C * k to match
+    the (similarly interpolated) source-law stress at every
+    quadrature point of every valid triangle gives one linear
+    equation per quadrature point in the unknowns C_i.
+
+    This system is generally underdetermined/ill-conditioned at
+    individual nodes (each node's equations only come from a single,
+    fixed velocity snapshot, and nodes at the edge of the valid
+    triangulation -- e.g. next to floating/ice-free cells -- may have
+    very few or no valid equations at all), so it is solved as a
+    Tikhonov-regularized (ridge) least-squares problem, anchored to
+    the existing closed-form C (`C_prior`) as the regularization
+    prior: nodes with no/weak data support are left at C_prior (the
+    ridge term dominates), while well-constrained nodes are corrected
+    towards better FE-level agreement.
+
+    Parameters
+    ----------
+    C_prior : ndarray, shape (n_cells,)
+        The closed-form C solve (either --method's spatially uniform
+        or spatially varying result; a scalar --method=stress-match-
+        fit C must be broadcast to a full (n_cells,) array by the
+        caller before calling this function).
+    N, N_albany, Lambda, A, speed, tau_b_source : ndarray, shape
+        (n_cells,)
+        As computed elsewhere in main(); N is raw Pa (for u_c),
+        N_albany is the kPa-equivalent convention (for the C*N
+        Coulomb-limit term), tau_b_source is the source law's target
+        stress.
+    triangles, bary_coords : see build_cell_triangulation()/
+        fe_quadrature_rule()
+    regularization : float
+        Ridge weight applied uniformly to every cell's
+        (C_i - C_prior_i) term, relative to the data equations'
+        natural scale (k). Larger values keep the correction closer
+        to C_prior; smaller values let the FE-level fit dominate
+        (and become more prone to noise/ill-conditioning).
+    bound_factor : float
+        After solving, any corrected C_i outside
+        [C_prior_i / bound_factor, C_prior_i * bound_factor], or
+        non-finite/non-positive, is reset to C_prior_i (a simple,
+        cheap safety net in lieu of a full bound-constrained solve).
+
+    Returns
+    -------
+    C_corrected : ndarray, shape (n_cells,)
+    n_equations : int
+        Number of valid quadrature-point equations used.
+    n_reset : int
+        Number of cells reset to C_prior by the bound_factor/
+        positivity safety net.
+    """
+    import scipy.sparse
+    import scipy.sparse.linalg
+
+    n_cells = C_prior.shape[0]
+
+    qp_N = interpolate_to_quadrature(N, triangles, bary_coords)
+    qp_N_albany = interpolate_to_quadrature(N_albany, triangles, bary_coords)
+    qp_Lambda = interpolate_to_quadrature(Lambda, triangles, bary_coords)
+    qp_A = interpolate_to_quadrature(A, triangles, bary_coords)
+    qp_speed = interpolate_to_quadrature(speed, triangles, bary_coords)
+    qp_target = interpolate_to_quadrature(
+        tau_b_source, triangles, bary_coords
+    )
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        u_c_qp = (
+            SECONDS_PER_YEAR * qp_Lambda * qp_A
+            * np.maximum(qp_N, 0.0) ** glen_n
+        )
+        k_qp = (
+            qp_N_albany * qp_speed ** rc_power_exponent
+            / (qp_speed + u_c_qp) ** rc_power_exponent
+        )
+
+    valid = np.isfinite(k_qp) & (k_qp > 0.0) & np.isfinite(qp_target)
+    tri_idx, qp_idx = np.nonzero(valid)
+    n_equations = tri_idx.shape[0]
+
+    if n_equations == 0:
+        return C_prior.copy(), 0, 0
+
+    rows = np.repeat(np.arange(n_equations), 3)
+    cols = triangles[tri_idx, :].reshape(-1)
+    data_vals = (
+        bary_coords[qp_idx, :] * k_qp[tri_idx, qp_idx][:, None]
+    ).reshape(-1)
+    b_data = qp_target[tri_idx, qp_idx]
+
+    reg_weight = np.sqrt(regularization) * np.median(k_qp[valid])
+    reg_rows = n_equations + np.arange(n_cells)
+    reg_cols = np.arange(n_cells)
+    reg_vals = np.full(n_cells, reg_weight)
+    b_reg = reg_weight * C_prior
+
+    all_rows = np.concatenate([rows, reg_rows])
+    all_cols = np.concatenate([cols, reg_cols])
+    all_vals = np.concatenate([data_vals, reg_vals])
+    b = np.concatenate([b_data, b_reg])
+
+    A_sparse = scipy.sparse.coo_matrix(
+        (all_vals, (all_rows, all_cols)),
+        shape=(n_equations + n_cells, n_cells),
+    ).tocsr()
+
+    solution = scipy.sparse.linalg.lsqr(
+        A_sparse, b, atol=1e-12, btol=1e-12, iter_lim=5 * n_cells,
+    )
+    C_corrected = solution[0]
+
+    lower = C_prior / bound_factor
+    upper = C_prior * bound_factor
+    reset = (
+        ~np.isfinite(C_corrected)
+        | (C_corrected <= 0.0)
+        | (C_corrected < lower)
+        | (C_corrected > upper)
+    )
+    C_corrected = np.where(reset, C_prior, C_corrected)
+
+    return C_corrected, n_equations, int(np.count_nonzero(reset))
+
+
 def cell_has_neighbor_where(test_mask, cells_on_cell, n_edges_on_cell):
     """
     For every cell, return True if at least one of its mesh neighbors
@@ -2620,8 +2770,57 @@ def main():
         default="centroid",
         help=(
             "Barycentric quadrature rule used to approximate "
-            "Albany's own FE cubature within each --fe-diagnostics "
-            "triangle (see fe_quadrature_rule(); default: centroid)."
+            "Albany's own FE cubature within each FE triangle, for "
+            "both --fe-diagnostics and --fe-correct-mu (see "
+            "fe_quadrature_rule(); default: centroid)."
+        )
+    )
+    parser.add_argument(
+        "--fe-correct-mu",
+        action="store_true",
+        default=False,
+        help=(
+            "Correct the closed-form muFriction (C) field by solving "
+            "a Tikhonov-regularized linear least-squares problem "
+            "(solve_fe_corrected_mu()) so that Albany's actual FE-"
+            "quadrature-point evaluation of the RC stress -- "
+            "reconstructed the same way as --fe-diagnostics -- "
+            "better matches the source law's stress, given the "
+            "fixed N/bedRoughnessRC/flow-rate/speed fields (only C "
+            "is corrected, since it dominates the stress in the "
+            "fast-flowing/thin-margin regime this is meant to help "
+            "with; see solve_fe_corrected_mu()'s docstring). The "
+            "closed-form C from --method is used as both the "
+            "starting point and the regularization prior, so cells "
+            "with little/no supporting FE data are left unchanged. "
+            "This makes C spatially varying even for --method="
+            "stress-match-fit (normally a single scalar). Diagnostic/"
+            "experimental -- not a substitute for a true PDE-"
+            "constrained (adjoint) inversion (default: disabled)."
+        )
+    )
+    parser.add_argument(
+        "--fe-correction-regularization",
+        type=float,
+        default=1.0e-2,
+        help=(
+            "Tikhonov (ridge) regularization weight for --fe-correct-"
+            "mu, relative to the natural scale of the FE data "
+            "equations: larger values keep the corrected C closer to "
+            "the closed-form prior; smaller values let the FE-level "
+            "fit dominate (more prone to noise/ill-conditioning at "
+            "poorly constrained cells). Default: 1e-2."
+        )
+    )
+    parser.add_argument(
+        "--fe-correction-bound-factor",
+        type=float,
+        default=5.0,
+        help=(
+            "Safety-net bound for --fe-correct-mu: any corrected C_i "
+            "outside [C_prior_i / bound_factor, C_prior_i * "
+            "bound_factor], or non-finite/non-positive, is reset to "
+            "the closed-form C_prior_i instead. Default: 5.0."
         )
     )
 
@@ -2771,7 +2970,7 @@ def main():
         # MPAS mesh connectivity, needed to identify grounding-line/
         # grounded-marine-terminus cells and to creep-fill them.
         required.extend(["cellsOnCell", "nEdgesOnCell", "xCell", "yCell"])
-    if args.fe_diagnostics:
+    if args.fe_diagnostics or args.fe_correct_mu:
         # MPAS mesh connectivity, needed to reconstruct the FE
         # triangulation (see build_cell_triangulation()).
         required.append("cellsOnVertex")
@@ -3340,7 +3539,34 @@ def main():
     # diagnostic only -- it does NOT correct Lambda/C for this
     # effect.
     # -------------------------------------------------------------
-    if args.fe_diagnostics:
+    # -------------------------------------------------------------
+    # Optional lightweight FE quadrature-point diagnostic
+    # (--fe-diagnostics) and/or correction (--fe-correct-mu):
+    # approximates how Albany's actual continuous-Galerkin FE
+    # assembly would evaluate the Regularized Coulomb law, by
+    # reconstructing the FE triangulation implied by the MPAS mesh
+    # (nodes = MPAS cell centers; elements = the triangle of the 3
+    # cells surrounding each MPAS vertex -- see
+    # build_cell_triangulation()), linearly interpolating each of N,
+    # C, Lambda, flow-rate A, sliding speed, and the source-law
+    # stress from their nodal (cell-center) values to quadrature
+    # points (interpolate_to_quadrature()/--fe-quadrature-rule), and
+    # only then nonlinearly combining N/C/Lambda/A/speed into the RC
+    # stress formula (regularized_coulomb_stress()) -- mirroring
+    # Albany's actual "interpolate-then-combine" FEM evaluation order
+    # (see LandIce_BasalFrictionCoefficient_Def.hpp), instead of this
+    # script's own "combine-at-nodes" closed-form values.
+    #
+    # --fe-diagnostics reports the resulting per-cell residual
+    # (aggregate_quadrature_to_cells()) against observed velocity
+    # errors, without changing Lambda/C. --fe-correct-mu goes
+    # further and corrects the nodal C field itself
+    # (solve_fe_corrected_mu()) so that this same FE-level residual
+    # is minimized (in a regularized least-squares sense); if both
+    # are given, the diagnostic fields report the residual *after*
+    # correction (with a before/after summary printed to stdout).
+    # -------------------------------------------------------------
+    if args.fe_diagnostics or args.fe_correct_mu:
         triangles = build_cell_triangulation(
             np.asarray(ds["cellsOnVertex"].values), N.shape[0]
         )
@@ -3348,43 +3574,67 @@ def main():
             args.fe_quadrature_rule
         )
 
-        qp_N = interpolate_to_quadrature(N, triangles, bary_coords)
-        qp_N_albany = interpolate_to_quadrature(
-            N_albany, triangles, bary_coords
-        )
-        qp_speed = interpolate_to_quadrature(speed, triangles, bary_coords)
         # --method=stress-match-fit's C is a single scalar (area-
         # weighted fit) rather than a per-cell array (see
         # fit_coulomb_C_fast_region()); broadcast it to a full nodal
-        # field so it can be linearly interpolated like every other
-        # quantity here (it interpolates to itself everywhere, but
-        # this keeps the rest of the block uniform across methods).
-        C_nodal = np.full_like(N, C) if np.ndim(C) == 0 else C
-        qp_C = interpolate_to_quadrature(C_nodal, triangles, bary_coords)
-        qp_Lambda = interpolate_to_quadrature(Lambda, triangles, bary_coords)
-        qp_A = interpolate_to_quadrature(A, triangles, bary_coords)
-        qp_tau_b_source = interpolate_to_quadrature(
-            tau_b_source, triangles, bary_coords
-        )
+        # field for FE interpolation purposes (it interpolates to
+        # itself everywhere if left uncorrected). Only reassign the
+        # real `C` used everywhere else in main() if --fe-correct-mu
+        # actually corrects it below -- --fe-diagnostics alone must
+        # not change what gets written to muFriction.
+        C_for_fe = np.full_like(N, C) if np.ndim(C) == 0 else C
 
-        qp_tau_b_rc = regularized_coulomb_stress(
-            C=qp_C, N_albany=qp_N_albany, Lambda=qp_Lambda, N=qp_N,
-            A=qp_A, glen_n=args.glen_n, speed=qp_speed,
-            rc_power_exponent=args.rc_power_exponent,
-        )
+        def _fe_residual_fields(C_field):
+            qp_N = interpolate_to_quadrature(N, triangles, bary_coords)
+            qp_N_albany = interpolate_to_quadrature(
+                N_albany, triangles, bary_coords
+            )
+            qp_speed = interpolate_to_quadrature(
+                speed, triangles, bary_coords
+            )
+            qp_C = interpolate_to_quadrature(C_field, triangles, bary_coords)
+            qp_Lambda = interpolate_to_quadrature(
+                Lambda, triangles, bary_coords
+            )
+            qp_A = interpolate_to_quadrature(A, triangles, bary_coords)
+            qp_tau_b_source = interpolate_to_quadrature(
+                tau_b_source, triangles, bary_coords
+            )
 
-        qp_residual = qp_tau_b_rc - qp_tau_b_source
-        with np.errstate(divide="ignore", invalid="ignore"):
-            qp_relative_residual = qp_residual / qp_tau_b_source
+            qp_tau_b_rc = regularized_coulomb_stress(
+                C=qp_C, N_albany=qp_N_albany, Lambda=qp_Lambda, N=qp_N,
+                A=qp_A, glen_n=args.glen_n, speed=qp_speed,
+                rc_power_exponent=args.rc_power_exponent,
+            )
 
-        fe_stress_residual, fe_stress_residual_max = (
-            aggregate_quadrature_to_cells(qp_residual, triangles, N.shape[0])
-        )
-        (
-            fe_stress_residual_relative, fe_stress_residual_relative_max,
-        ) = aggregate_quadrature_to_cells(
-            qp_relative_residual, triangles, N.shape[0]
-        )
+            qp_residual = qp_tau_b_rc - qp_tau_b_source
+            with np.errstate(divide="ignore", invalid="ignore"):
+                qp_relative_residual = qp_residual / qp_tau_b_source
+
+            residual, residual_max = aggregate_quadrature_to_cells(
+                qp_residual, triangles, N.shape[0]
+            )
+            relative, relative_max = aggregate_quadrature_to_cells(
+                qp_relative_residual, triangles, N.shape[0]
+            )
+            return residual, residual_max, relative, relative_max
+
+        def _print_fe_residual_summary(label, relative, relative_max):
+            if np.any(np.isfinite(relative[grounded])):
+                print(
+                    f"FE quadrature-point stress residual, relative "
+                    f"((RC - source) / source), {label}, |mean| "
+                    "grounded : "
+                    f"{np.nanmean(np.abs(relative[grounded])):.6e}, "
+                    "95th pct "
+                    f"{np.nanpercentile(np.abs(relative[grounded]), 95):.6e}, "
+                    f"max {np.nanmax(np.abs(relative_max[grounded])):.6e}"
+                )
+            else:
+                print(
+                    f"FE quadrature-point stress residual, {label} : "
+                    "n/a (no valid grounded cells with FE data)"
+                )
 
         print()
         print(
@@ -3392,16 +3642,56 @@ def main():
             f"({bary_coords.shape[0]} point(s)/triangle, "
             f"{triangles.shape[0]} valid triangles)"
         )
-        if np.any(np.isfinite(fe_stress_residual_relative)):
-            print(
-                "FE quadrature-point stress residual, relative "
-                "((RC - source) / source), |mean| grounded : "
-                f"{np.nanmean(np.abs(fe_stress_residual_relative[grounded])):.6e}, "
-                "95th pct "
-                f"{np.nanpercentile(np.abs(fe_stress_residual_relative[grounded]), 95):.6e}, "
-                "max "
-                f"{np.nanmax(np.abs(fe_stress_residual_relative_max[grounded])):.6e}"
+
+        if args.fe_correct_mu:
+            (
+                _, _, fe_stress_residual_relative_before,
+                fe_stress_residual_relative_max_before,
+            ) = _fe_residual_fields(C_for_fe)
+            _print_fe_residual_summary(
+                "before correction", fe_stress_residual_relative_before,
+                fe_stress_residual_relative_max_before,
             )
+
+            C_prior = C_for_fe.copy()
+            C, n_fe_equations, n_fe_reset = solve_fe_corrected_mu(
+                C_prior=C_prior,
+                N=N,
+                N_albany=N_albany,
+                Lambda=Lambda,
+                A=A,
+                glen_n=args.glen_n,
+                speed=speed,
+                tau_b_source=tau_b_source,
+                triangles=triangles,
+                bary_coords=bary_coords,
+                rc_power_exponent=args.rc_power_exponent,
+                regularization=args.fe_correction_regularization,
+                bound_factor=args.fe_correction_bound_factor,
+            )
+            print(
+                f"FE-corrected muFriction (C) : {n_fe_equations} FE "
+                f"quadrature-point equations, {int(np.count_nonzero(grounded))} "
+                "grounded cells, "
+                f"{n_fe_reset} cells reset to the closed-form prior "
+                "(--fe-correction-bound-factor safety net)"
+            )
+            print(
+                "C range before/after FE correction (grounded) : "
+                f"{np.nanmin(C_prior[grounded]):.6e} -- "
+                f"{np.nanmax(C_prior[grounded]):.6e} (before) -> "
+                f"{np.nanmin(C[grounded]):.6e} -- "
+                f"{np.nanmax(C[grounded]):.6e} (after)"
+            )
+
+        (
+            fe_stress_residual, fe_stress_residual_max,
+            fe_stress_residual_relative, fe_stress_residual_relative_max,
+        ) = _fe_residual_fields(C if args.fe_correct_mu else C_for_fe)
+        _print_fe_residual_summary(
+            "after correction" if args.fe_correct_mu else "no correction",
+            fe_stress_residual_relative, fe_stress_residual_relative_max,
+        )
         print()
 
     print()
@@ -3438,7 +3728,15 @@ def main():
         )
         print(f"Fast-flowing area used         : {np.sum(area[fit_mask]):.10e}")
         print()
-        print(f"Optimal C                     : {C:.16e}")
+        if np.ndim(C) == 0:
+            print(f"Optimal C                     : {C:.16e}")
+        else:
+            print(
+                "C range (spatially varying, corrected by "
+                "--fe-correct-mu from the optimal scalar fit) : "
+                f"{np.nanmin(C[speed_defined]):.6e} -- "
+                f"{np.nanmax(C[speed_defined]):.6e}"
+            )
         print()
         print(
             "N range on fit domain        : "
@@ -3525,7 +3823,17 @@ def main():
     # fit broadcast uniformly to every cell (see
     # fit_coulomb_C_fast_region()); for --method=transition-velocity,
     # C already varies per cell (see solve_transition_velocity()).
-    if args.method == "stress-match-fit":
+    if args.fe_correct_mu:
+        mu_field_values = C  # already a full per-cell field, see above
+        mu_field_long_name = (
+            "Albany regularized-Coulomb coefficient C (Mu), "
+            f"initialized from the closed-form --method={args.method} "
+            "solve and then corrected by a Tikhonov-regularized "
+            "linear least-squares fit against Albany's actual FE-"
+            "quadrature-point stress evaluation -- see "
+            "solve_fe_corrected_mu()/--fe-correct-mu"
+        )
+    elif args.method == "stress-match-fit":
         mu_field_values = np.full_like(N, C)
         mu_field_long_name = (
             "Albany regularized-Coulomb coefficient C (Mu), "
@@ -3992,7 +4300,13 @@ def main():
     # Save conversion information globally.
     out.attrs["regularizedCoulomb_method"] = args.method
     if args.method == "stress-match-fit":
-        out.attrs["regularizedCoulomb_C"] = float(C)
+        if np.ndim(C) == 0:
+            out.attrs["regularizedCoulomb_C"] = float(C)
+        # else: C was made spatially varying by --fe-correct-mu (see
+        # above); the fitted scalar prior is no longer representative
+        # of the output field, so it is intentionally omitted here --
+        # see the muFriction field's own long_name/description
+        # instead.
         out.attrs["regularizedCoulomb_criticalVelocity"] = (
             float(args.critical_velocity)
         )
