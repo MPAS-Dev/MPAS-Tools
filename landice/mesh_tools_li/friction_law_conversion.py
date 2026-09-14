@@ -93,8 +93,12 @@ with a separate pressure exponent. Albany's RC law is
 with its own, independent, "Power Exponent" qR. qW and qR need not
 match: qW describes the input source law used to derive C, while
 qR is the exponent Albany will actually use for the RC law. Per
-project convention, qR is always fixed at 1/3 (see RC_POWER_EXPONENT
-below) and is not user-configurable.
+project convention, qR defaults to 1/3 (see RC_POWER_EXPONENT below)
+but can be overridden via --rc-power-exponent for diagnostic
+experiments (e.g. testing whether sensitivity to N errors changes at
+qR=1); production runs should leave it at the default unless Albany's
+own YAML "Power Exponent" (Basal Friction Coefficient section) is
+changed to match.
 
 so Lambda * A * N^n has units of velocity. Lambda is solved for in
 physical meters and stored in the output `bedRoughnessRC` field
@@ -155,9 +159,11 @@ import shutil
 import numpy as np
 import xarray as xr
 
-# Albany's Regularized Coulomb law always uses a fixed Power Exponent
-# of 1/3. This is independent of the input Weertman/Power-Law exponent
-# (--weertman-q), which is used only to derive the optimal C.
+# Albany's Regularized Coulomb law's Power Exponent qR defaults to
+# 1/3 per project convention (independent of the input Weertman/
+# Power-Law exponent, --weertman-q, which is used only to derive the
+# optimal C). It can be overridden via --rc-power-exponent for
+# diagnostic experiments; see main().
 RC_POWER_EXPONENT = 1.0 / 3.0
 
 # Seconds per year, matching Albany's own hardcoded conversion factor
@@ -631,7 +637,7 @@ def fit_coulomb_C_fast_region(tau_b_source, N, area, mask):
 
 def solve_transition_velocity(
     tau_b_source, speed, N, N_albany, A, glen_n, transition_velocity,
-    lambda_reference_value, mu_reference_value, valid,
+    lambda_reference_value, mu_reference_value, valid, rc_power_exponent,
 ):
     """
     Alternative to fit_coulomb_C_fast_region() plus the per-cell
@@ -650,7 +656,8 @@ def solve_transition_velocity(
         C      = tau_b_source * (speed + u0)^qR
                  / (N_albany * speed^qR)
 
-    (qR = RC_POWER_EXPONENT). This follows from substituting
+    (qR = rc_power_exponent, --rc-power-exponent; defaults to
+    RC_POWER_EXPONENT). This follows from substituting
     Lambda*SECONDS_PER_YEAR*A*N^n = u0 into the RC law's
     Tau_b_RC == Tau_b_source equation used elsewhere in this
     script (see the module-level Lambda-solve comment in main()) --
@@ -686,8 +693,8 @@ def solve_transition_velocity(
     C = np.full_like(N, mu_reference_value)
     C[valid] = (
         tau_b_source[valid]
-        * (speed[valid] + transition_velocity) ** RC_POWER_EXPONENT
-        / (N_albany[valid] * speed[valid] ** RC_POWER_EXPONENT)
+        * (speed[valid] + transition_velocity) ** rc_power_exponent
+        / (N_albany[valid] * speed[valid] ** rc_power_exponent)
     )
 
     return Lambda, C
@@ -1760,8 +1767,29 @@ def main():
         help=(
             "Input Weertman/Power-Law sliding exponent qW, used to "
             "derive the optimal C (default: 0.2). This is independent "
-            "of the Regularized Coulomb law's Power Exponent, which is "
-            f"always {RC_POWER_EXPONENT:g} (see RC_POWER_EXPONENT)."
+            "of the Regularized Coulomb law's Power Exponent (see "
+            "--rc-power-exponent)."
+        )
+    )
+    parser.add_argument(
+        "--rc-power-exponent",
+        type=float,
+        default=RC_POWER_EXPONENT,
+        help=(
+            "Albany Regularized Coulomb law's Power Exponent qR "
+            f"(default: {RC_POWER_EXPONENT:g}, i.e. 1/3, per project "
+            "convention). Independent of --weertman-q (qW), which "
+            "describes the input source law instead. Exposed mainly "
+            "for diagnostic experiments -- e.g. setting this to 1.0 "
+            "makes the slow-flowing branch of the RC law linear in "
+            "speed rather than a steep power law, which can reveal "
+            "whether excessive velocities in a converted case are "
+            "driven by sensitivity to N errors near the default qR, "
+            "as opposed to some other cause. NOT recommended for "
+            "production runs unless Albany's own YAML \"Power "
+            "Exponent\" (Basal Friction Coefficient section) is "
+            "changed to match -- Lambda/C are solved assuming this "
+            "same qR is used by Albany at runtime."
         )
     )
 
@@ -2860,7 +2888,10 @@ def main():
 
         Lambda[lambda_mask] = (
             speed[lambda_mask]
-            * (stress_ratio[lambda_mask] ** (1.0 / RC_POWER_EXPONENT) - 1.0)
+            * (
+                stress_ratio[lambda_mask] ** (1.0 / args.rc_power_exponent)
+                - 1.0
+            )
             / (SECONDS_PER_YEAR * A[lambda_mask] * N[lambda_mask] ** args.glen_n)
         )
 
@@ -2921,6 +2952,7 @@ def main():
             lambda_reference_value=args.lambda_reference_value,
             mu_reference_value=args.mu_reference_value,
             valid=speed_defined,
+            rc_power_exponent=args.rc_power_exponent,
         )
 
         # Every grounded cell with a well-defined speed/N/mu gets an
@@ -3050,7 +3082,7 @@ def main():
             "Effective pressure input field: "
             f"{args.effective_pressure_input_field}"
         )
-    print(f"RC power exponent, qR         : {RC_POWER_EXPONENT:g}")
+    print(f"RC power exponent, qR         : {args.rc_power_exponent:g}")
     print(f"Glen exponent, n              : {args.glen_n:g}")
     print(f"Flow rate type                : {args.flow_rate_type}")
     print(f"Flow rate A range              : {np.min(A):.10e} -- {np.max(A):.10e}")
@@ -3551,7 +3583,7 @@ def main():
         out.attrs["regularizedCoulomb_muReferenceValue"] = (
             float(args.mu_reference_value)
         )
-    out.attrs["regularizedCoulomb_q"] = float(RC_POWER_EXPONENT)
+    out.attrs["regularizedCoulomb_q"] = float(args.rc_power_exponent)
     out.attrs["weertman_q"] = float(args.weertman_q)
     out.attrs["regularizedCoulomb_GlenN"] = float(args.glen_n)
     out.attrs["regularizedCoulomb_flowRateType"] = albany_flow_rate_type
@@ -3869,7 +3901,7 @@ def main():
       Basal Friction Coefficient:
         Type: Regularized Coulomb
         Mu Type: Field
-        Power Exponent: {RC_POWER_EXPONENT:.16e}
+        Power Exponent: {args.rc_power_exponent:.16e}
 {flow_rate_yaml_lines}
         Bed Roughness Type: Field
 {effective_pressure_yaml_lines}
