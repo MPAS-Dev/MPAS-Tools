@@ -121,10 +121,13 @@ python map_regional_to_global_mesh.py \
 
 1. **Load both meshes**: Opens regional and global mesh files
 2. **Extract coordinates**: Gets lonCell/latCell (spherical) or xCell/yCell (planar)
-3. **Build mapping**: For each regional cell, finds the global cell with matching coordinates
-4. **Verify mapping**: Checks that all matches are within tolerance
-5. **Copy variables**: Updates specified variables in global mesh for matched cells only
-6. **Write output**: Saves updated global mesh to new file
+3. **Build spatial index**: Creates a KDTree for fast nearest-neighbor search
+4. **Build mapping**: Uses KDTree to efficiently find matching global cells for all regional cells
+5. **Verify mapping**: Checks that all matches are within tolerance
+6. **Copy variables**: Updates specified variables in global mesh for matched cells only
+7. **Write output**: Saves updated global mesh to new file
+
+**Performance**: Uses scipy's KDTree for O(n log m) spatial search instead of O(n*m) brute force. Typical mapping time: seconds instead of hours for large meshes.
 
 ## Coordinate Matching
 
@@ -176,6 +179,7 @@ The script reports:
 Required Python packages:
 - xarray
 - numpy
+- scipy (for KDTree spatial indexing)
 
 ## Common Issues
 

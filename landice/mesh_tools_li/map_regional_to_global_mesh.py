@@ -23,6 +23,7 @@ import numpy as np
 import xarray as xr
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from datetime import datetime
+from scipy.spatial import KDTree
 
 # Try to import mpas_tools for proper NetCDF writing
 try:
@@ -65,7 +66,7 @@ def parse_args():
 def build_coordinate_mapping(regional_coords, global_coords, tolerance=1e-10):
     '''
     Build a mapping from regional mesh cell indices to global mesh cell indices
-    based on exact coordinate matching.
+    based on exact coordinate matching using a KDTree for fast spatial search.
 
     Parameters
     ----------
@@ -91,29 +92,26 @@ def build_coordinate_mapping(regional_coords, global_coords, tolerance=1e-10):
     print(f'  Global mesh: {n_global} cells')
     print(f'  Tolerance: {tolerance}')
 
+    # Build KDTree for fast spatial search
+    print(f'  Building spatial index (KDTree)...')
+    tree = KDTree(global_coords)
+    print(f'  Spatial index built!')
+
+    # Query all regional coordinates at once (vectorized)
+    print(f'  Querying nearest neighbors...')
+    distances, indices = tree.query(regional_coords, k=1)
+    print(f'  Query complete!')
+
+    # Build mapping dictionary
     mapping = {}
     unmatched_regional = []
 
-    # For each regional cell, find matching global cell
     for i in range(n_regional):
-        if i % 1000 == 0:
-            print(f'  Processed {i}/{n_regional} regional cells...')
-
-        regional_coord = regional_coords[i, :]
-
-        # Calculate distances to all global cells
-        distances = np.sqrt(np.sum((global_coords - regional_coord)**2, axis=1))
-
-        # Find closest match
-        min_idx = np.argmin(distances)
-        min_dist = distances[min_idx]
-
-        if min_dist <= tolerance:
-            mapping[i] = min_idx
+        if distances[i] <= tolerance:
+            mapping[i] = indices[i]
         else:
             unmatched_regional.append(i)
 
-    print(f'  Completed mapping!')
     print(f'  Matched cells: {len(mapping)} / {n_regional}')
     if unmatched_regional:
         print(f'  WARNING: {len(unmatched_regional)} regional cells have no '
