@@ -51,21 +51,24 @@ stress is exactly linear in C:
 
     Tau_b_RC(u) = C * k(u),   k(u) = N_albany * u^qR / (u + u_c)^qR
 
-So, given Albany's actual simulated velocity u_model (from step 2
-above) as the current operating point, the C that would make the RC
-law reproduce the *original* target stress
+Given Albany's actual simulated velocity u_model (from step 2 above),
+the C that makes the RC law reproduce, AT THAT SAME VELOCITY u_model,
+the stress the *original* (trusted) source friction law would predict
+there --
 
-    Tau_b_target = mu * N_source * u_target^qW
+    Tau_b_target(u_model) = mu * N_source * u_model^qW
 
-(computed once, at the *original* input file's velocity -- i.e. the
-exact same Tau_b_source that the very first friction_law_conversion.py
-run solved Lambda/C against; mu/N_source/u_target are therefore all
-read from the *original* input file, not from rc_pass1.nc or the
-model output) at u_model is
+(mu, N_source, and qW all come from the *original* input file/CLI
+options, exactly as in the very first friction_law_conversion.py run
+that solved Lambda/C -- but evaluated at u_model, Albany's own
+simulated speed, NOT at the original input file's velocity) -- is
 
-    C_new = Tau_b_target / k(u_model)
+    C_new = Tau_b_target(u_model) / k(u_model)
 
-applied as an (optionally relaxed) multiplicative Picard update:
+(this is exactly friction_law_conversion.py's own
+solve_transition_velocity() C formula, re-solved with u_model in
+place of the original conversion's speed). This is applied as an
+(optionally relaxed) multiplicative Picard update:
 
     C_refined = C_old * (C_new / C_old) ** relaxation
 
@@ -76,9 +79,22 @@ response to a change in C is not perfectly local (membrane stresses
 couple neighboring cells, so a purely pointwise update is only an
 approximation of the true, globally-coupled sensitivity).
 
-Cells where the update is undefined (e.g. not grounded, no valid
-original Tau_b_target, or no valid/positive u_model) are left at
-C_old unchanged.
+IMPORTANT: Tau_b_target must be evaluated at u_model, not at the
+original input file's velocity. k(u) is monotonically increasing in
+u (saturating at N_albany as u -> infinity), so pinning Tau_b_target
+at a fixed velocity while evaluating k(.) at a *different* u_model
+is structurally backwards: whenever u_model is larger than that fixed
+velocity, it forces C to *decrease* (less friction), making an
+already-too-fast region even faster -- and the reverse in regions
+where the RC law was already close, needlessly perturbing them. Only
+evaluating both Tau_b_target and k(.) at the *same* velocity, u_model,
+gives an update that is self-limiting (near-identity where u_model is
+already close to the trusted/target velocity) and pushes C in the
+correct direction (more friction where Albany is running too fast,
+less where it is running too slow).
+
+Cells where the update is undefined (e.g. not grounded, mu/N/N_source
+invalid, or no valid/positive u_model) are left at C_old unchanged.
 """
 
 import argparse
@@ -477,32 +493,47 @@ def main():
             transition_h_ocean=args.source_transition_h_ocean,
         ) / ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
 
-    # Original target velocity/Tau_b_target -- held fixed, exactly as
-    # the very first friction_law_conversion.py run computed it (see
-    # this script's module docstring for why the update targets this,
-    # not a stress recomputed at u_model).
+    # Original (trusted) target velocity -- used ONLY for the
+    # convergence/mismatch diagnostic below, NOT for Tau_b_target
+    # itself. See the module docstring: Tau_b_target must be
+    # evaluated at Albany's *actual* simulated velocity u_model, not
+    # at this original velocity -- otherwise the update is
+    # structurally backwards. k(u) is monotonically increasing in u
+    # (it saturates at N_albany as u -> infinity), so pinning
+    # Tau_b_target at u_target while evaluating k(.) at u_model
+    # always pushes C in the wrong direction whenever u_model !=
+    # u_target: e.g. if u_model > u_target (too fast), k(u_model) >
+    # k(u_target), so C_new = Tau_b_target(u_target) / (C_old *
+    # k(u_model)) comes out *smaller* than C_old -- reducing
+    # friction and making the too-fast region even faster, which is
+    # exactly backwards. Evaluating Tau_b_target at u_model instead
+    # (the standard fixed-point/Picard approach: recalibrate C so
+    # the RC law agrees with the trusted source law *at whatever
+    # velocity Albany is actually producing right now*) fixes this,
+    # and self-limits to no-op in already-good regions where u_model
+    # ~= u_target.
     uX_target = basal_cell_field(ds_in, args.velocity_x_field, args.time_index)
     uY_target = basal_cell_field(ds_in, args.velocity_y_field, args.time_index)
     u_target = np.sqrt(uX_target ** 2 + uY_target ** 2) * SECONDS_PER_YEAR
-
-    tau_defined = (
-        grounded
-        & np.isfinite(N) & (N > 0.0)
-        & np.isfinite(mu) & (mu > 0.0)
-        & np.isfinite(N_source_kpa) & (N_source_kpa > 0.0)
-        & np.isfinite(u_target) & (u_target > 0.0)
-    )
-    tau_b_target = np.full_like(N, np.nan)
-    tau_b_target[tau_defined] = (
-        mu[tau_defined] * N_source_kpa[tau_defined]
-        * u_target[tau_defined] ** args.weertman_q
-    )
 
     # Actual Albany-simulated velocity from the model run driven by
     # previous_conversion_output's Lambda/C.
     uX_model = basal_cell_field(ds_model, args.velocity_x_field, args.time_index)
     uY_model = basal_cell_field(ds_model, args.velocity_y_field, args.time_index)
     u_model = np.sqrt(uX_model ** 2 + uY_model ** 2) * SECONDS_PER_YEAR
+
+    tau_defined = (
+        grounded
+        & np.isfinite(N) & (N > 0.0)
+        & np.isfinite(mu) & (mu > 0.0)
+        & np.isfinite(N_source_kpa) & (N_source_kpa > 0.0)
+        & np.isfinite(u_model) & (u_model > 0.0)
+    )
+    tau_b_target = np.full_like(N, np.nan)
+    tau_b_target[tau_defined] = (
+        mu[tau_defined] * N_source_kpa[tau_defined]
+        * u_model[tau_defined] ** args.weertman_q
+    )
 
     C_old = cell_field(ds_prev, args.mu_field, args.time_index)
     Lambda = cell_field(ds_prev, args.lambda_field, args.time_index)
@@ -529,15 +560,25 @@ def main():
         tau_defined
         & np.isfinite(k_model) & (k_model > 0.0)
         & np.isfinite(C_old) & (C_old > 0.0)
-        & np.isfinite(u_model) & (u_model > 0.0)
     )
+
+    # Direct closed-form C that makes the RC law reproduce
+    # Tau_b_target *at u_model* -- i.e. exactly
+    # solve_transition_velocity()'s C formula, but re-solved using
+    # Albany's actual simulated velocity in place of the original
+    # conversion's speed. This is a full (unrelaxed) Picard step; see
+    # --relaxation for damping it.
+    C_new_raw = np.full_like(C_old, np.nan)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        C_new_raw[update_defined] = (
+            tau_b_target[update_defined] / k_model[update_defined]
+        )
 
     C_new = C_old.copy()
     ratio = np.full_like(C_old, np.nan)
     with np.errstate(divide="ignore", invalid="ignore"):
         ratio[update_defined] = (
-            tau_b_target[update_defined]
-            / (C_old[update_defined] * k_model[update_defined])
+            C_new_raw[update_defined] / C_old[update_defined]
         )
     C_new[update_defined] = (
         C_old[update_defined] * ratio[update_defined] ** args.relaxation
@@ -563,7 +604,11 @@ def main():
     # Convergence/mismatch diagnostics.
     # -------------------------------------------------------------
     vel_mismatch = np.full_like(H, np.nan)
-    mismatch_defined = tau_defined & np.isfinite(u_model) & (u_model > 0.0)
+    mismatch_defined = (
+        grounded
+        & np.isfinite(u_model) & (u_model > 0.0)
+        & np.isfinite(u_target) & (u_target > 0.0)
+    )
     vel_mismatch[mismatch_defined] = (
         (u_model[mismatch_defined] - u_target[mismatch_defined])
         / u_target[mismatch_defined]
