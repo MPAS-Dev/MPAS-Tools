@@ -155,6 +155,7 @@ import argparse
 import json
 import os
 import shutil
+import warnings
 
 import numpy as np
 import xarray as xr
@@ -698,6 +699,203 @@ def solve_transition_velocity(
     )
 
     return Lambda, C
+
+
+def build_cell_triangulation(cells_on_vertex, n_cells):
+    """
+    Reconstruct (an approximation of) the linear (P1) FE mesh Albany
+    actually solves on, from the MPAS mesh's own dual triangulation:
+    Albany's FE nodes correspond 1:1 to MPAS cell centers, and each
+    MPAS vertex, together with its surrounding cells, defines one FE
+    triangle whose 3 nodes are those cells' centers.
+
+    Parameters
+    ----------
+    cells_on_vertex : ndarray, shape (nVertices, vertexDegree)
+        MPAS `cellsOnVertex` field: 1-based cell indices surrounding
+        each vertex, with 0 marking a missing/boundary neighbor.
+        Only the standard MPAS vertexDegree == 3 case (each vertex
+        touching exactly 3 cells) is handled; if vertexDegree > 3,
+        only the first 3 columns are used (fine for the fully
+        Voronoi/triangular meshes MALI uses).
+    n_cells : int
+        Number of MPAS cells (used to validate indices).
+
+    Returns
+    -------
+    triangles : ndarray, shape (nTriangles, 3), dtype int64
+        0-based cell indices making up each valid FE triangle.
+        Vertices with fewer than 3 valid surrounding cells (only
+        possible at the true edge of the computational mesh domain,
+        not at the grounding line/terminus, since MALI's own
+        Albany ascii mesh already extends the domain by one cell)
+        are skipped, as are any degenerate (repeated-index)
+        triangles.
+    """
+    cov = np.asarray(cells_on_vertex)
+    if cov.ndim != 2 or cov.shape[1] < 3:
+        raise ValueError(
+            "cellsOnVertex must be a 2-D (nVertices, vertexDegree>=3) "
+            f"array; got shape {cov.shape}"
+        )
+
+    cov = cov[:, :3]
+    valid = np.all((cov > 0) & (cov <= n_cells), axis=1)
+    triangles = cov[valid].astype(np.int64) - 1  # 1-based -> 0-based
+
+    degenerate = (
+        (triangles[:, 0] == triangles[:, 1])
+        | (triangles[:, 1] == triangles[:, 2])
+        | (triangles[:, 0] == triangles[:, 2])
+    )
+    return triangles[~degenerate]
+
+
+def fe_quadrature_rule(rule):
+    """
+    Barycentric quadrature-point coordinates/weights for a linear
+    (P1) triangular FE element, used to approximate how Albany's own
+    Intrepid2-based cubature samples each triangle. The exact rule
+    Albany uses was not independently confirmed here -- both options
+    below are standard, low-order rules meant to bracket/approximate
+    it for diagnostic purposes (see --fe-quadrature-rule).
+
+    "centroid"      : single interior point (barycentric
+                      (1/3, 1/3, 1/3)), weight 1 -- the cheapest
+                      approximation, exact for linear fields.
+    "edge-midpoint" : classic 3-point rule at the 3 edge midpoints
+                      (barycentric permutations of (1/2, 1/2, 0)),
+                      equal weights 1/3 -- exact for quadratic
+                      fields, and samples closer to the triangle
+                      boundary (nearer individual nodes) than
+                      "centroid".
+
+    Returns
+    -------
+    bary_coords : ndarray, shape (nQP, 3)
+    weights     : ndarray, shape (nQP,) (sums to 1; not currently
+        used for anything beyond documentation/future use, since the
+        diagnostics below summarize quadrature points with a plain
+        mean/max rather than a weighted integral)
+    """
+    if rule == "centroid":
+        bary_coords = np.array([[1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0]])
+        weights = np.array([1.0])
+    elif rule == "edge-midpoint":
+        bary_coords = np.array([
+            [0.5, 0.5, 0.0],
+            [0.0, 0.5, 0.5],
+            [0.5, 0.0, 0.5],
+        ])
+        weights = np.array([1.0 / 3.0, 1.0 / 3.0, 1.0 / 3.0])
+    else:
+        raise ValueError(f"Unknown --fe-quadrature-rule {rule!r}")
+
+    return bary_coords, weights
+
+
+def interpolate_to_quadrature(nodal_values, triangles, bary_coords):
+    """
+    Linearly (P1) interpolate a nodal (per-MPAS-cell) field to every
+    quadrature point of every FE triangle -- mirrors Albany's own
+    basis-function (BF) interpolation of nodal DOF values to
+    quadrature points (LandIce_BasalFrictionCoefficient_Def.hpp).
+
+    Parameters
+    ----------
+    nodal_values : ndarray, shape (nCells,)
+    triangles     : ndarray, shape (nTri, 3) (see
+        build_cell_triangulation())
+    bary_coords   : ndarray, shape (nQP, 3) (see fe_quadrature_rule())
+
+    Returns
+    -------
+    ndarray, shape (nTri, nQP)
+    """
+    tri_values = nodal_values[triangles]  # (nTri, 3)
+    return tri_values @ bary_coords.T  # (nTri, nQP)
+
+
+def regularized_coulomb_stress(
+    C, N_albany, Lambda, N, A, glen_n, speed, rc_power_exponent,
+):
+    """
+    Evaluate the Albany Regularized Coulomb law's basal shear stress,
+
+        Tau_b = C * N_albany * u^qR / (u + u_c)^qR
+
+    with the implied critical/transition velocity
+    u_c = SECONDS_PER_YEAR * Lambda * A * N^n (see the Lambda-solve
+    comments in main() / solve_transition_velocity()). All arguments
+    may be scalars or arrays of the same shape (nodal, i.e. per-
+    MPAS-cell, or per-quadrature-point after
+    interpolate_to_quadrature()), which is what allows this same
+    function to be used both to sanity-check the nodal (cell-center)
+    solve and to evaluate the FE-quadrature-point approximation in
+    the --fe-diagnostics block of main().
+    """
+    with np.errstate(divide="ignore", invalid="ignore"):
+        u_c = SECONDS_PER_YEAR * Lambda * A * np.maximum(N, 0.0) ** glen_n
+        tau_b = (
+            C * N_albany * speed ** rc_power_exponent
+            / (speed + u_c) ** rc_power_exponent
+        )
+    return tau_b
+
+
+def aggregate_quadrature_to_cells(qp_values, triangles, n_cells):
+    """
+    Aggregate a per-quadrature-point diagnostic field, shape
+    (nTri, nQP) (see interpolate_to_quadrature()/
+    regularized_coulomb_stress()), back onto the MPAS cell (FE node)
+    mesh, for direct comparison against cell-based velocity-error
+    maps.
+
+    Each triangle is first summarized by the mean and max-absolute
+    value of its own quadrature points; each of a triangle's 3 cell
+    nodes then "sees" that triangle's summary value, and a cell's
+    final value is the mean (respectively max-absolute) over every
+    triangle it is a node of. Cells touched by zero valid triangles
+    (only possible at the true edge of the mesh domain -- see
+    build_cell_triangulation()) get NaN.
+
+    Returns
+    -------
+    cell_mean, cell_max_abs : ndarray, shape (n_cells,)
+    """
+    with np.errstate(invalid="ignore"), warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore", message="Mean of empty slice", category=RuntimeWarning
+        )
+        warnings.filterwarnings(
+            "ignore", message="All-NaN slice encountered",
+            category=RuntimeWarning,
+        )
+        tri_mean = np.nanmean(qp_values, axis=1)
+        tri_max_abs = np.nanmax(np.abs(qp_values), axis=1)
+
+    node_ids = triangles.reshape(-1)
+    rep_mean = np.repeat(tri_mean, 3)
+    rep_max_abs = np.repeat(tri_max_abs, 3)
+
+    cell_mean = np.full(n_cells, np.nan)
+    valid_mean = np.isfinite(rep_mean)
+    if np.any(valid_mean):
+        sums = np.bincount(
+            node_ids[valid_mean], weights=rep_mean[valid_mean],
+            minlength=n_cells,
+        )
+        counts = np.bincount(node_ids[valid_mean], minlength=n_cells)
+        nz = counts > 0
+        cell_mean[nz] = sums[nz] / counts[nz]
+
+    cell_max_abs = np.full(n_cells, -np.inf)
+    valid_max = np.isfinite(rep_max_abs)
+    if np.any(valid_max):
+        np.maximum.at(cell_max_abs, node_ids[valid_max], rep_max_abs[valid_max])
+    cell_max_abs[np.isneginf(cell_max_abs)] = np.nan
+
+    return cell_mean, cell_max_abs
 
 
 def cell_has_neighbor_where(test_mask, cells_on_cell, n_edges_on_cell):
@@ -2388,6 +2586,46 @@ def main():
     )
 
     parser.add_argument(
+        "--fe-diagnostics",
+        action="store_true",
+        default=False,
+        help=(
+            "Compute an additional, lightweight diagnostic (requires "
+            "--diagnostics) approximating how Albany's actual "
+            "continuous-Galerkin FE assembly evaluates the "
+            "Regularized Coulomb law: reconstructs the FE "
+            "triangulation implied by the MPAS mesh (nodes = MPAS "
+            "cell centers, elements = the 3 cells surrounding each "
+            "MPAS vertex -- see build_cell_triangulation()), "
+            "linearly interpolates N, C (muFriction), Lambda "
+            "(bedRoughnessRC), flow-rate A, and sliding speed from "
+            "their nodal (cell-center) values to quadrature points "
+            "(--fe-quadrature-rule), and only then nonlinearly "
+            "combines them into the RC stress formula, mirroring "
+            "Albany's actual 'interpolate-then-combine' evaluation "
+            "order (as opposed to this script's own 'combine-at-"
+            "nodes' closed-form values). The resulting per-"
+            "quadrature-point residual against the source law's "
+            "(similarly interpolated) stress is aggregated back onto "
+            "MPAS cells and written as feStressResidual/"
+            "feStressResidualMax/feStressResidualRelative/"
+            "feStressResidualRelativeMax, for comparison against "
+            "observed velocity errors. This is diagnostic only -- it "
+            "does not modify Lambda/C (default: disabled)."
+        )
+    )
+    parser.add_argument(
+        "--fe-quadrature-rule",
+        choices=["centroid", "edge-midpoint"],
+        default="centroid",
+        help=(
+            "Barycentric quadrature rule used to approximate "
+            "Albany's own FE cubature within each --fe-diagnostics "
+            "triangle (see fe_quadrature_rule(); default: centroid)."
+        )
+    )
+
+    parser.add_argument(
         "--time-index",
         type=int,
         default=0,
@@ -2505,6 +2743,15 @@ def main():
                 "is set"
             )
 
+    if args.fe_diagnostics and not args.diagnostics:
+        parser.error(
+            "--fe-diagnostics requires --diagnostics (its output "
+            "fields, feStressResidual/feStressResidualMax/"
+            "feStressResidualRelative/feStressResidualRelativeMax, "
+            "are only meaningful alongside the other diagnostic "
+            "fields)"
+        )
+
     # -------------------------------------------------------------
     # Read IC
     # -------------------------------------------------------------
@@ -2524,6 +2771,10 @@ def main():
         # MPAS mesh connectivity, needed to identify grounding-line/
         # grounded-marine-terminus cells and to creep-fill them.
         required.extend(["cellsOnCell", "nEdgesOnCell", "xCell", "yCell"])
+    if args.fe_diagnostics:
+        # MPAS mesh connectivity, needed to reconstruct the FE
+        # triangulation (see build_cell_triangulation()).
+        required.append("cellsOnVertex")
 
     missing = [name for name in required if name not in ds]
     if missing:
@@ -3065,6 +3316,94 @@ def main():
         )
         regime_ratio = speed / critical_velocity_implied
 
+    # -------------------------------------------------------------
+    # Optional lightweight FE quadrature-point diagnostic
+    # (--fe-diagnostics): approximates how Albany's actual
+    # continuous-Galerkin FE assembly would evaluate the
+    # Regularized Coulomb law, by reconstructing the FE
+    # triangulation implied by the MPAS mesh (nodes = MPAS cell
+    # centers; elements = the triangle of the 3 cells surrounding
+    # each MPAS vertex -- see build_cell_triangulation()), linearly
+    # interpolating each of N, C, Lambda, flow-rate A, sliding
+    # speed, and the source-law stress from their nodal (cell-
+    # center) values to quadrature points (interpolate_to_
+    # quadrature()/--fe-quadrature-rule), and only then nonlinearly
+    # combining N/C/Lambda/A/speed into the RC stress formula
+    # (regularized_coulomb_stress()) -- mirroring Albany's actual
+    # "interpolate-then-combine" FEM evaluation order (see
+    # LandIce_BasalFrictionCoefficient_Def.hpp), instead of this
+    # script's own "combine-at-nodes" closed-form values. The
+    # resulting per-quadrature-point residual against the
+    # (similarly interpolated) source-law stress is aggregated back
+    # onto MPAS cells (aggregate_quadrature_to_cells()) for direct
+    # comparison against observed velocity errors. This is
+    # diagnostic only -- it does NOT correct Lambda/C for this
+    # effect.
+    # -------------------------------------------------------------
+    if args.fe_diagnostics:
+        triangles = build_cell_triangulation(
+            np.asarray(ds["cellsOnVertex"].values), N.shape[0]
+        )
+        bary_coords, _fe_quad_weights = fe_quadrature_rule(
+            args.fe_quadrature_rule
+        )
+
+        qp_N = interpolate_to_quadrature(N, triangles, bary_coords)
+        qp_N_albany = interpolate_to_quadrature(
+            N_albany, triangles, bary_coords
+        )
+        qp_speed = interpolate_to_quadrature(speed, triangles, bary_coords)
+        # --method=stress-match-fit's C is a single scalar (area-
+        # weighted fit) rather than a per-cell array (see
+        # fit_coulomb_C_fast_region()); broadcast it to a full nodal
+        # field so it can be linearly interpolated like every other
+        # quantity here (it interpolates to itself everywhere, but
+        # this keeps the rest of the block uniform across methods).
+        C_nodal = np.full_like(N, C) if np.ndim(C) == 0 else C
+        qp_C = interpolate_to_quadrature(C_nodal, triangles, bary_coords)
+        qp_Lambda = interpolate_to_quadrature(Lambda, triangles, bary_coords)
+        qp_A = interpolate_to_quadrature(A, triangles, bary_coords)
+        qp_tau_b_source = interpolate_to_quadrature(
+            tau_b_source, triangles, bary_coords
+        )
+
+        qp_tau_b_rc = regularized_coulomb_stress(
+            C=qp_C, N_albany=qp_N_albany, Lambda=qp_Lambda, N=qp_N,
+            A=qp_A, glen_n=args.glen_n, speed=qp_speed,
+            rc_power_exponent=args.rc_power_exponent,
+        )
+
+        qp_residual = qp_tau_b_rc - qp_tau_b_source
+        with np.errstate(divide="ignore", invalid="ignore"):
+            qp_relative_residual = qp_residual / qp_tau_b_source
+
+        fe_stress_residual, fe_stress_residual_max = (
+            aggregate_quadrature_to_cells(qp_residual, triangles, N.shape[0])
+        )
+        (
+            fe_stress_residual_relative, fe_stress_residual_relative_max,
+        ) = aggregate_quadrature_to_cells(
+            qp_relative_residual, triangles, N.shape[0]
+        )
+
+        print()
+        print(
+            f"FE-diagnostic quadrature rule  : {args.fe_quadrature_rule} "
+            f"({bary_coords.shape[0]} point(s)/triangle, "
+            f"{triangles.shape[0]} valid triangles)"
+        )
+        if np.any(np.isfinite(fe_stress_residual_relative)):
+            print(
+                "FE quadrature-point stress residual, relative "
+                "((RC - source) / source), |mean| grounded : "
+                f"{np.nanmean(np.abs(fe_stress_residual_relative[grounded])):.6e}, "
+                "95th pct "
+                f"{np.nanpercentile(np.abs(fe_stress_residual_relative[grounded]), 95):.6e}, "
+                "max "
+                f"{np.nanmax(np.abs(fe_stress_residual_relative_max[grounded])):.6e}"
+            )
+        print()
+
     print()
     print("MALI Weertman/Budd -> Regularized Coulomb conversion")
     print("------------------------------------------------")
@@ -3543,6 +3882,87 @@ def main():
                         "See --extrapolate-terminus-cells/"
                         "--creep-fill-method/creep_fill_extrapolate()."
                     ),
+                },
+            )
+
+        if args.fe_diagnostics:
+            fe_common_description = (
+                "Approximates how Albany's continuous-Galerkin FE "
+                "assembly evaluates the Regularized Coulomb law by "
+                "reconstructing the FE triangulation implied by the "
+                "MPAS mesh (nodes = MPAS cell centers, elements = "
+                "the 3 cells surrounding each MPAS vertex), linearly "
+                "interpolating N, muFriction (C), bedRoughnessRC "
+                "(Lambda), flow-rate A, sliding speed, and the "
+                f"source-law stress ({args.fe_quadrature_rule} "
+                "quadrature rule, --fe-quadrature-rule) from their "
+                "nodal (cell-center) values to quadrature points, "
+                "and only then nonlinearly combining them into the "
+                "RC stress formula -- mirroring Albany's actual "
+                "'interpolate-then-combine' FEM evaluation order, "
+                "instead of this script's own 'combine-at-nodes' "
+                "closed-form values (see build_cell_triangulation()/"
+                "interpolate_to_quadrature()/"
+                "regularized_coulomb_stress()/"
+                "aggregate_quadrature_to_cells()). Diagnostic only "
+                "-- does not modify bedRoughnessRC/muFriction. NaN "
+                "at cells touched by zero valid FE triangles (only "
+                "possible at the true edge of the mesh domain)."
+            )
+
+            out["feStressResidual"] = xr.DataArray(
+                fe_stress_residual,
+                dims=(ncell_dim,),
+                attrs={
+                    "long_name": (
+                        "FE quadrature-point-evaluated RC stress "
+                        "minus source-law stress, averaged over "
+                        "quadrature points/triangles per cell"
+                    ),
+                    "description": fe_common_description,
+                    "units": "kPa",
+                },
+            )
+            out["feStressResidualMax"] = xr.DataArray(
+                fe_stress_residual_max,
+                dims=(ncell_dim,),
+                attrs={
+                    "long_name": (
+                        "Maximum absolute FE quadrature-point-"
+                        "evaluated RC stress minus source-law "
+                        "stress, over quadrature points/triangles "
+                        "per cell"
+                    ),
+                    "description": fe_common_description,
+                    "units": "kPa",
+                },
+            )
+            out["feStressResidualRelative"] = xr.DataArray(
+                fe_stress_residual_relative,
+                dims=(ncell_dim,),
+                attrs={
+                    "long_name": (
+                        "FE quadrature-point-evaluated RC stress "
+                        "minus source-law stress, divided by the "
+                        "source-law stress, averaged over "
+                        "quadrature points/triangles per cell"
+                    ),
+                    "description": fe_common_description,
+                    "units": "1",
+                },
+            )
+            out["feStressResidualRelativeMax"] = xr.DataArray(
+                fe_stress_residual_relative_max,
+                dims=(ncell_dim,),
+                attrs={
+                    "long_name": (
+                        "Maximum absolute FE quadrature-point-"
+                        "evaluated RC stress minus source-law "
+                        "stress, divided by the source-law stress, "
+                        "over quadrature points/triangles per cell"
+                    ),
+                    "description": fe_common_description,
+                    "units": "1",
                 },
             )
 
