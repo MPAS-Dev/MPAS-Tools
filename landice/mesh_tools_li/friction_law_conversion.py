@@ -901,7 +901,8 @@ def aggregate_quadrature_to_cells(qp_values, triangles, n_cells):
 def solve_fe_corrected_mu(
     C_prior, N, N_albany, Lambda, A, glen_n, speed, tau_b_source,
     triangles, bary_coords, rc_power_exponent, regularization,
-    bound_factor,
+    bound_factor, residual_relative, residual_threshold,
+    pin_factor=1.0e4,
 ):
     """
     Correct the nodal (cell-center) Regularized Coulomb coefficient C
@@ -936,9 +937,28 @@ def solve_fe_corrected_mu(
     very few or no valid equations at all), so it is solved as a
     Tikhonov-regularized (ridge) least-squares problem, anchored to
     the existing closed-form C (`C_prior`) as the regularization
-    prior: nodes with no/weak data support are left at C_prior (the
-    ridge term dominates), while well-constrained nodes are corrected
-    towards better FE-level agreement.
+    prior.
+
+    Two things are important for the regularization to behave
+    sensibly, since `k` (essentially proportional to N) varies by
+    orders of magnitude across a typical ice-sheet domain (from
+    near-zero at thin margins to very large in the thick interior):
+
+    1. The ridge weight is scaled *per node*, from the local k of the
+       equations actually touching that node (not a single global
+       scalar) -- otherwise nodes whose local k differs greatly from
+       the domain-wide scale end up arbitrarily over- or under-
+       regularized, letting the correction drift over a much wider
+       area than intended (see --fe-correct-mu's initial bug report:
+       corrections appearing "everywhere" rather than concentrated
+       where the FE residual is actually large).
+    2. Cells whose pre-correction FE residual (`residual_relative`,
+       from --fe-diagnostics, computed with the *uncorrected* C) is
+       below `residual_threshold` are "pinned" near C_prior by
+       multiplying their local ridge weight by `pin_factor` --
+       cells that were already fine are not given a free pass to
+       drift just because they happen to sit in a well-connected,
+       lightly-regularized part of the mesh.
 
     Parameters
     ----------
@@ -956,16 +976,30 @@ def solve_fe_corrected_mu(
     triangles, bary_coords : see build_cell_triangulation()/
         fe_quadrature_rule()
     regularization : float
-        Ridge weight applied uniformly to every cell's
-        (C_i - C_prior_i) term, relative to the data equations'
-        natural scale (k). Larger values keep the correction closer
-        to C_prior; smaller values let the FE-level fit dominate
-        (and become more prone to noise/ill-conditioning).
+        Ridge weight applied to every cell's (C_i - C_prior_i) term,
+        relative to that cell's *own local* data-equation scale (see
+        point 1 above). Larger values keep the correction closer to
+        C_prior; smaller values let the FE-level fit dominate (and
+        become more prone to noise/ill-conditioning).
     bound_factor : float
         After solving, any corrected C_i outside
         [C_prior_i / bound_factor, C_prior_i * bound_factor], or
         non-finite/non-positive, is reset to C_prior_i (a simple,
         cheap safety net in lieu of a full bound-constrained solve).
+    residual_relative : ndarray, shape (n_cells,)
+        Pre-correction FE quadrature-point relative stress residual
+        (see aggregate_quadrature_to_cells()'s "mean" output,
+        evaluated with the uncorrected C_prior), used only to decide
+        which cells are pinned (point 2 above). NaN (e.g. non-
+        grounded or untouched cells) is treated as "pin".
+    residual_threshold : float
+        Minimum |residual_relative| required for a cell to be freely
+        corrected; below this, the cell's ridge weight is multiplied
+        by `pin_factor`.
+    pin_factor : float
+        Ridge-weight multiplier applied to cells below
+        `residual_threshold` (default 1e4 -- effectively fixes them
+        at C_prior without formally removing them from the solve).
 
     Returns
     -------
@@ -975,6 +1009,8 @@ def solve_fe_corrected_mu(
     n_reset : int
         Number of cells reset to C_prior by the bound_factor/
         positivity safety net.
+    n_pinned : int
+        Number of cells pinned near C_prior by residual_threshold.
     """
     import scipy.sparse
     import scipy.sparse.linalg
@@ -1005,7 +1041,7 @@ def solve_fe_corrected_mu(
     n_equations = tri_idx.shape[0]
 
     if n_equations == 0:
-        return C_prior.copy(), 0, 0
+        return C_prior.copy(), 0, 0, n_cells
 
     rows = np.repeat(np.arange(n_equations), 3)
     cols = triangles[tri_idx, :].reshape(-1)
@@ -1014,10 +1050,36 @@ def solve_fe_corrected_mu(
     ).reshape(-1)
     b_data = qp_target[tri_idx, qp_idx]
 
-    reg_weight = np.sqrt(regularization) * np.median(k_qp[valid])
+    # Per-cell local characteristic scale of k, from only the valid
+    # equations that actually touch each node (point 1 above) --
+    # cells with no touching equations fall back to the global
+    # median purely so their (otherwise irrelevant, since no data
+    # row references them) ridge weight is a sensible, nonzero
+    # number.
+    global_k_scale = np.median(k_qp[valid])
+    node_k_scale, _ = aggregate_quadrature_to_cells(
+        np.where(valid, k_qp, np.nan), triangles, n_cells
+    )
+    node_k_scale = np.where(
+        np.isfinite(node_k_scale) & (node_k_scale > 0.0),
+        node_k_scale, global_k_scale,
+    )
+
+    reg_weight = np.sqrt(regularization) * node_k_scale
+
+    # Pin cells with a small (or unknown/undiagnosed) pre-correction
+    # FE residual near C_prior (point 2 above): they are not given a
+    # free pass to drift just because their local data happens to be
+    # well-conditioned/well-connected.
+    pinned = ~(
+        np.isfinite(residual_relative)
+        & (np.abs(residual_relative) >= residual_threshold)
+    )
+    reg_weight = np.where(pinned, reg_weight * pin_factor, reg_weight)
+
     reg_rows = n_equations + np.arange(n_cells)
     reg_cols = np.arange(n_cells)
-    reg_vals = np.full(n_cells, reg_weight)
+    reg_vals = reg_weight
     b_reg = reg_weight * C_prior
 
     all_rows = np.concatenate([rows, reg_rows])
@@ -1045,7 +1107,10 @@ def solve_fe_corrected_mu(
     )
     C_corrected = np.where(reset, C_prior, C_corrected)
 
-    return C_corrected, n_equations, int(np.count_nonzero(reset))
+    return (
+        C_corrected, n_equations, int(np.count_nonzero(reset)),
+        int(np.count_nonzero(pinned)),
+    )
 
 
 def cell_has_neighbor_where(test_mask, cells_on_cell, n_edges_on_cell):
@@ -2823,6 +2888,36 @@ def main():
             "the closed-form C_prior_i instead. Default: 5.0."
         )
     )
+    parser.add_argument(
+        "--fe-correction-residual-threshold",
+        type=float,
+        default=0.05,
+        help=(
+            "Minimum |pre-correction FE quadrature-point relative "
+            "stress residual| (see --fe-diagnostics'/"
+            "feStressResidualRelative) required for a cell to be "
+            "freely corrected by --fe-correct-mu; cells below this "
+            "threshold (including any cell with an undiagnosed/NaN "
+            "residual) are instead pinned near the closed-form "
+            "C_prior (their local ridge weight is multiplied by "
+            "--fe-correction-pin-factor), so cells that were already "
+            "a good match are not perturbed just because they sit in "
+            "a well-connected, lightly-regularized part of the mesh. "
+            "Default: 0.05 (5%%)."
+        )
+    )
+    parser.add_argument(
+        "--fe-correction-pin-factor",
+        type=float,
+        default=1.0e4,
+        help=(
+            "Ridge-weight multiplier applied to cells pinned by "
+            "--fe-correction-residual-threshold (default: 1e4 -- "
+            "effectively fixes them at the closed-form C_prior "
+            "without formally removing them from the least-squares "
+            "solve)."
+        )
+    )
 
     parser.add_argument(
         "--time-index",
@@ -3654,27 +3749,39 @@ def main():
             )
 
             C_prior = C_for_fe.copy()
-            C, n_fe_equations, n_fe_reset = solve_fe_corrected_mu(
-                C_prior=C_prior,
-                N=N,
-                N_albany=N_albany,
-                Lambda=Lambda,
-                A=A,
-                glen_n=args.glen_n,
-                speed=speed,
-                tau_b_source=tau_b_source,
-                triangles=triangles,
-                bary_coords=bary_coords,
-                rc_power_exponent=args.rc_power_exponent,
-                regularization=args.fe_correction_regularization,
-                bound_factor=args.fe_correction_bound_factor,
+            C, n_fe_equations, n_fe_reset, n_fe_pinned = (
+                solve_fe_corrected_mu(
+                    C_prior=C_prior,
+                    N=N,
+                    N_albany=N_albany,
+                    Lambda=Lambda,
+                    A=A,
+                    glen_n=args.glen_n,
+                    speed=speed,
+                    tau_b_source=tau_b_source,
+                    triangles=triangles,
+                    bary_coords=bary_coords,
+                    rc_power_exponent=args.rc_power_exponent,
+                    regularization=args.fe_correction_regularization,
+                    bound_factor=args.fe_correction_bound_factor,
+                    residual_relative=fe_stress_residual_relative_before,
+                    residual_threshold=(
+                        args.fe_correction_residual_threshold
+                    ),
+                    pin_factor=args.fe_correction_pin_factor,
+                )
             )
             print(
                 f"FE-corrected muFriction (C) : {n_fe_equations} FE "
                 f"quadrature-point equations, {int(np.count_nonzero(grounded))} "
                 "grounded cells, "
-                f"{n_fe_reset} cells reset to the closed-form prior "
-                "(--fe-correction-bound-factor safety net)"
+                f"{n_fe_pinned} cells pinned near the closed-form "
+                "prior (pre-correction relative residual below "
+                f"--fe-correction-residual-threshold="
+                f"{args.fe_correction_residual_threshold:g}), "
+                f"{n_fe_reset} (of the remaining free cells) reset to "
+                "the closed-form prior (--fe-correction-bound-factor "
+                "safety net)"
             )
             print(
                 "C range before/after FE correction (grounded) : "
