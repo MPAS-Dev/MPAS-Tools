@@ -1,0 +1,680 @@
+#!/usr/bin/env python3
+"""
+Refine a Regularized Coulomb (RC) friction-law C (muFriction) field
+via a fixed-point (Picard) update against Albany's own actual
+simulated velocity, as an alternative to friction_law_conversion.py's
+--fe-correct-mu.
+
+Workflow
+--------
+1. Run friction_law_conversion.py once, as usual, on the original
+   MALI initial condition to produce a Lambda/C conversion, e.g.:
+
+       friction_law_conversion.py original_input.nc rc_pass1.nc ...
+
+2. Configure Albany's YAML to read Lambda/C from rc_pass1.nc, run it,
+   and obtain a MALI-compatible output file containing the *actual*
+   resulting basal velocity (e.g. `albany_pass1_output.nc`, from
+   however you already convert/translate Albany's Exodus output back
+   to MPAS format).
+3. Run this script:
+
+       refine_regularized_coulomb_mu.py original_input.nc rc_pass1.nc \\
+           albany_pass1_output.nc rc_pass2.nc [options]
+
+   to produce a refined `rc_pass2.nc`, with C updated and Lambda left
+   unchanged.
+4. Re-run Albany with rc_pass2.nc in place of rc_pass1.nc, and repeat
+   from step 2 as needed -- rc_pass2.nc becomes the new "previous
+   conversion output" and its own Albany output becomes the new
+   "model output" -- watching the printed velocity-mismatch summary
+   each time to judge convergence.
+
+Why this can do better than --fe-correct-mu
+--------------------------------------------
+--fe-correct-mu only *approximates* how Albany's FEM evaluates the
+friction law, by reconstructing Albany's own quadrature-point
+interpolation of N/C/Lambda/speed from MPAS mesh connectivity. This
+script instead uses Albany's *actual* simulated velocity, so it
+automatically reflects everything Albany really does -- the true FE
+quadrature-point evaluation, mesh/element details, and the full
+nonlinear force-balance coupling between neighboring cells -- not
+just an approximation of the friction law evaluated in isolation.
+
+The update
+----------
+Holding N, N_albany, and Lambda fixed at their original
+friction_law_conversion.py values (only C is refined; see that
+script's --fe-correct-mu module docstring for why C alone is
+targeted for this kind of correction), the Regularized Coulomb
+stress is exactly linear in C:
+
+    Tau_b_RC(u) = C * k(u),   k(u) = N_albany * u^qR / (u + u_c)^qR
+
+So, given Albany's actual simulated velocity u_model (from step 2
+above) as the current operating point, the C that would make the RC
+law reproduce the *original* target stress
+
+    Tau_b_target = mu * N_source * u_target^qW
+
+(computed once, at the *original* input file's velocity -- i.e. the
+exact same Tau_b_source that the very first friction_law_conversion.py
+run solved Lambda/C against; mu/N_source/u_target are therefore all
+read from the *original* input file, not from rc_pass1.nc or the
+model output) at u_model is
+
+    C_new = Tau_b_target / k(u_model)
+
+applied as an (optionally relaxed) multiplicative Picard update:
+
+    C_refined = C_old * (C_new / C_old) ** relaxation
+
+with relaxation=1 (the default) giving C_new exactly, and
+relaxation<1 damping the step -- useful if repeated iterations
+oscillate rather than converge, since Albany's actual velocity
+response to a change in C is not perfectly local (membrane stresses
+couple neighboring cells, so a purely pointwise update is only an
+approximation of the true, globally-coupled sensitivity).
+
+Cells where the update is undefined (e.g. not grounded, no valid
+original Tau_b_target, or no valid/positive u_model) are left at
+C_old unchanged.
+"""
+
+import argparse
+import shutil
+
+import numpy as np
+import xarray as xr
+
+from friction_law_conversion import (
+    ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT,
+    SECONDS_PER_YEAR,
+    albany_temperature_based_flow_rate,
+    compute_named_effective_pressure,
+    downs_johnson_effective_pressure,
+    effective_pressure4,
+    load_albany_ascii_geometry,
+    ocean_connection_effective_pressure,
+)
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description=(
+            "Refine a Regularized Coulomb C (muFriction) field via a "
+            "fixed-point (Picard) update against Albany's actual "
+            "simulated velocity."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=__doc__,
+    )
+    parser.add_argument(
+        "original_input",
+        help=(
+            "The *original* MALI initial-condition file -- the same "
+            "one originally passed to friction_law_conversion.py -- "
+            "used for mu (the source Weertman/Budd friction field), "
+            "the source law's N_source, and the original target "
+            "velocity/Tau_b_target. Its thickness/bedTopography are "
+            "overridden by --ascii-mesh-dir exactly as in "
+            "friction_law_conversion.py."
+        )
+    )
+    parser.add_argument(
+        "previous_conversion_output",
+        help=(
+            "friction_law_conversion.py's output file from the pass "
+            "whose Lambda/C were actually used for the Albany run "
+            "being refined against (i.e. the file supplying C_old "
+            "and Lambda; see --mu-field/--lambda-field)."
+        )
+    )
+    parser.add_argument(
+        "model_output",
+        help=(
+            "A MALI-compatible output file containing the *actual* "
+            "basal velocity (see --velocity-x-field/"
+            "--velocity-y-field) that Albany produced when run with "
+            "previous_conversion_output's Lambda/C fields."
+        )
+    )
+    parser.add_argument(
+        "output",
+        help="Refined output file to write (C updated, Lambda unchanged)."
+    )
+
+    parser.add_argument(
+        "--relaxation",
+        type=float,
+        default=1.0,
+        help=(
+            "Picard step damping: C_refined = C_old * (C_new / "
+            "C_old) ** relaxation. 1.0 (default) takes the full "
+            "closed-form step; values < 1 damp the update, useful if "
+            "repeated iterations oscillate rather than converge."
+        )
+    )
+    parser.add_argument(
+        "--bound-factor",
+        type=float,
+        default=None,
+        help=(
+            "Optional safety-net bound: any C_refined outside "
+            "[C_old / bound_factor, C_old * bound_factor], or non-"
+            "finite/non-positive, is reset to C_old instead. "
+            "Disabled (no clipping) by default."
+        )
+    )
+
+    parser.add_argument(
+        "--weertman-q", "--q",
+        dest="weertman_q",
+        type=float,
+        default=0.2,
+        help=(
+            "Input Weertman/Power-Law sliding exponent qW, used to "
+            "compute Tau_b_target (default: 0.2). Must match the "
+            "value used for the original friction_law_conversion.py "
+            "run."
+        )
+    )
+    parser.add_argument(
+        "--rc-power-exponent",
+        type=float,
+        default=None,
+        help=(
+            "Regularized Coulomb law's Power Exponent qR, used to "
+            "compute k(u_model) (default: friction_law_conversion."
+            "py's own default, 1/3). Must match the value used for "
+            "the original friction_law_conversion.py run (see its "
+            "--rc-power-exponent)."
+        )
+    )
+    parser.add_argument(
+        "--glen-n",
+        type=float,
+        default=3.0,
+        help=(
+            "Glen-law exponent n, used to compute u_c(u_model) "
+            "(default: 3). Must match the original "
+            "friction_law_conversion.py run."
+        )
+    )
+    parser.add_argument(
+        "--flow-rate-type",
+        choices=["temperature", "constant"],
+        default="temperature",
+        help=(
+            "How to obtain the Glen flow rate A (default: "
+            "temperature); must match the original "
+            "friction_law_conversion.py run. See that script's "
+            "--flow-rate-type for details."
+        )
+    )
+    parser.add_argument(
+        "--temperature-field",
+        default="temperature",
+        help="Ice temperature field [K] (default: temperature)"
+    )
+    parser.add_argument(
+        "--flow-rate",
+        type=float,
+        default=None,
+        help=(
+            "Constant Glen flow rate A [Pa^-3 s^-1], required when "
+            "--flow-rate-type=constant."
+        )
+    )
+
+    parser.add_argument(
+        "--effective-pressure-type",
+        choices=[
+            "downs-johnson", "ocean-connection", "transition", "field",
+        ],
+        default="downs-johnson",
+        help=(
+            "How to compute N (default: downs-johnson); must match "
+            "the original friction_law_conversion.py run. See that "
+            "script's --effective-pressure-type for details."
+        )
+    )
+    parser.add_argument(
+        "--effective-pressure-input-field",
+        default="effectivePressure",
+        help=(
+            "Field holding a precomputed N [Pa], used only when "
+            "--effective-pressure-type=field. Read from "
+            "--effective-pressure-file (default: original_input)."
+        )
+    )
+    parser.add_argument(
+        "--effective-pressure-file",
+        default=None,
+        help=(
+            "File to read --effective-pressure-input-field from "
+            "when --effective-pressure-type=field (default: "
+            "original_input)."
+        )
+    )
+    parser.add_argument(
+        "--min-fraction-overburden", type=float, default=None,
+        help=(
+            "Required for --effective-pressure-type/"
+            "--source-effective-pressure-type of downs-johnson or "
+            "transition; see friction_law_conversion.py."
+        )
+    )
+    parser.add_argument(
+        "--pressure-length-scale", type=float, default=None,
+        help=(
+            "Required for --effective-pressure-type/"
+            "--source-effective-pressure-type of downs-johnson or "
+            "transition; see friction_law_conversion.py."
+        )
+    )
+    parser.add_argument(
+        "--transition-h-ocean", type=float, default=25.0,
+        help="Only used when --effective-pressure-type=transition."
+    )
+
+    parser.add_argument(
+        "--source-effective-pressure-type",
+        choices=[
+            "constant", "downs-johnson", "ocean-connection",
+            "transition", "field",
+        ],
+        default="constant",
+        help=(
+            "How to compute N_source for Tau_b_target (default: "
+            "constant); must match the original "
+            "friction_law_conversion.py run."
+        )
+    )
+    parser.add_argument(
+        "--source-effective-pressure", type=float, default=1.0,
+        help="Used when --source-effective-pressure-type=constant."
+    )
+    parser.add_argument(
+        "--source-effective-pressure-field",
+        default="effectivePressure",
+        help="Used when --source-effective-pressure-type=field."
+    )
+    parser.add_argument(
+        "--source-min-fraction-overburden", type=float, default=None,
+    )
+    parser.add_argument(
+        "--source-pressure-length-scale", type=float, default=None,
+    )
+    parser.add_argument(
+        "--source-transition-h-ocean", type=float, default=25.0,
+    )
+
+    parser.add_argument("--rho-ice", type=float, default=910.0)
+    parser.add_argument("--rho-water", type=float, default=1028.0)
+    parser.add_argument("--gravity", type=float, default=9.80616)
+
+    parser.add_argument("--mu-field", default="muFriction")
+    parser.add_argument("--lambda-field", default="bedRoughnessRC")
+    parser.add_argument("--thickness-field", default="thickness")
+    parser.add_argument("--bed-field", default="bedTopography")
+    parser.add_argument("--ascii-mesh-dir", default=".")
+    parser.add_argument(
+        "--velocity-x-field", default="uReconstructX",
+        help=(
+            "Basal x-velocity field [m s^-1] (default: uReconstructX), "
+            "read from both original_input (for the original target "
+            "speed) and model_output (for u_model)."
+        )
+    )
+    parser.add_argument(
+        "--velocity-y-field", default="uReconstructY",
+        help="Basal y-velocity field [m s^-1] (default: uReconstructY)"
+    )
+    parser.add_argument("--time-index", type=int, default=0)
+
+    args = parser.parse_args()
+
+    if args.flow_rate_type == "constant" and args.flow_rate is None:
+        parser.error(
+            "--flow-rate is required when --flow-rate-type=constant"
+        )
+    if args.effective_pressure_type in ("downs-johnson", "transition") and (
+        args.min_fraction_overburden is None
+        or args.pressure_length_scale is None
+    ):
+        parser.error(
+            "--min-fraction-overburden and --pressure-length-scale "
+            "are required when --effective-pressure-type=downs-"
+            "johnson or transition"
+        )
+    if args.source_effective_pressure_type in (
+        "downs-johnson", "transition"
+    ) and (
+        args.source_min_fraction_overburden is None
+        or args.source_pressure_length_scale is None
+    ):
+        parser.error(
+            "--source-min-fraction-overburden and --source-pressure-"
+            "length-scale are required when "
+            "--source-effective-pressure-type=downs-johnson or "
+            "transition"
+        )
+    if args.rc_power_exponent is None:
+        # Match friction_law_conversion.py's own default exactly.
+        args.rc_power_exponent = 1.0 / 3.0
+
+    return args
+
+
+def cell_field(ds, name, time_index):
+    """Extract an nCells field, dropping Time if present."""
+    da = ds[name]
+    if "Time" in da.dims:
+        da = da.isel(Time=time_index)
+    values = np.asarray(da.values).squeeze()
+    if values.ndim != 1:
+        raise ValueError(
+            f"{name} must reduce to a 1-D nCells field; got shape "
+            f"{values.shape}"
+        )
+    return values.astype(np.float64)
+
+
+def basal_cell_field(ds, name, time_index):
+    """
+    Extract an nCells field from a (Time, nCells, nVertLevels) or
+    similar field, taking the last vertical level/interface as an
+    approximation of the basal-most value.
+    """
+    da = ds[name]
+    if "Time" in da.dims:
+        da = da.isel(Time=time_index)
+    vert_dims = [d for d in da.dims if d.lower().startswith("nvert")]
+    if vert_dims:
+        da = da.isel({vert_dims[0]: -1})
+    values = np.asarray(da.values).squeeze()
+    if values.ndim != 1:
+        raise ValueError(
+            f"{name} must reduce to a 1-D nCells field; got shape "
+            f"{values.shape}"
+        )
+    return values.astype(np.float64)
+
+
+def compute_N(args, H, bed, ds_for_field):
+    """Compute N [Pa] the same way friction_law_conversion.py does."""
+    if args.effective_pressure_type == "field":
+        return cell_field(
+            ds_for_field, args.effective_pressure_input_field,
+            args.time_index,
+        )
+    elif args.effective_pressure_type == "ocean-connection":
+        return ocean_connection_effective_pressure(
+            thickness=H, bed=bed, rho_i=args.rho_ice,
+            rho_w=args.rho_water, gravity=args.gravity,
+        )
+    elif args.effective_pressure_type == "downs-johnson":
+        return downs_johnson_effective_pressure(
+            thickness=H, bed=bed,
+            min_fraction_overburden=args.min_fraction_overburden,
+            length_scale=args.pressure_length_scale,
+            rho_i=args.rho_ice, rho_w=args.rho_water,
+            gravity=args.gravity,
+        )
+    else:
+        return effective_pressure4(
+            thickness=H, bed=bed,
+            min_fraction_overburden=args.min_fraction_overburden,
+            length_scale=args.pressure_length_scale,
+            rho_i=args.rho_ice, rho_w=args.rho_water,
+            gravity=args.gravity, h_ocean=args.transition_h_ocean,
+        )
+
+
+def main():
+    args = parse_args()
+
+    ds_in = xr.open_dataset(args.original_input)
+    ds_prev = xr.open_dataset(args.previous_conversion_output)
+    ds_model = xr.open_dataset(args.model_output)
+
+    mu = cell_field(ds_in, args.mu_field, args.time_index)
+    H = cell_field(ds_in, args.thickness_field, args.time_index)
+    bed = cell_field(ds_in, args.bed_field, args.time_index)
+
+    ascii_cell_index, ascii_H, ascii_bed = load_albany_ascii_geometry(
+        args.ascii_mesh_dir, n_cells=H.shape[0]
+    )
+    H[ascii_cell_index] = ascii_H
+    bed[ascii_cell_index] = ascii_bed
+
+    grounded = (H > 0.0) & (args.rho_ice * H + args.rho_water * bed > 0.0)
+
+    field_ds = (
+        xr.open_dataset(args.effective_pressure_file)
+        if args.effective_pressure_file else ds_in
+    )
+    N = compute_N(args, H, bed, field_ds)
+    N_albany = N / ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
+
+    if args.source_effective_pressure_type == "constant":
+        N_source_kpa = np.full_like(H, args.source_effective_pressure)
+    elif args.source_effective_pressure_type == "field":
+        N_source_kpa = (
+            cell_field(
+                ds_in, args.source_effective_pressure_field,
+                args.time_index,
+            ) / ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
+        )
+    else:
+        N_source_kpa = compute_named_effective_pressure(
+            args.source_effective_pressure_type,
+            thickness=H, bed=bed, rho_i=args.rho_ice,
+            rho_w=args.rho_water, gravity=args.gravity,
+            min_fraction_overburden=args.source_min_fraction_overburden,
+            pressure_length_scale=args.source_pressure_length_scale,
+            transition_h_ocean=args.source_transition_h_ocean,
+        ) / ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT
+
+    # Original target velocity/Tau_b_target -- held fixed, exactly as
+    # the very first friction_law_conversion.py run computed it (see
+    # this script's module docstring for why the update targets this,
+    # not a stress recomputed at u_model).
+    uX_target = basal_cell_field(ds_in, args.velocity_x_field, args.time_index)
+    uY_target = basal_cell_field(ds_in, args.velocity_y_field, args.time_index)
+    u_target = np.sqrt(uX_target ** 2 + uY_target ** 2) * SECONDS_PER_YEAR
+
+    tau_defined = (
+        grounded
+        & np.isfinite(N) & (N > 0.0)
+        & np.isfinite(mu) & (mu > 0.0)
+        & np.isfinite(N_source_kpa) & (N_source_kpa > 0.0)
+        & np.isfinite(u_target) & (u_target > 0.0)
+    )
+    tau_b_target = np.full_like(N, np.nan)
+    tau_b_target[tau_defined] = (
+        mu[tau_defined] * N_source_kpa[tau_defined]
+        * u_target[tau_defined] ** args.weertman_q
+    )
+
+    # Actual Albany-simulated velocity from the model run driven by
+    # previous_conversion_output's Lambda/C.
+    uX_model = basal_cell_field(ds_model, args.velocity_x_field, args.time_index)
+    uY_model = basal_cell_field(ds_model, args.velocity_y_field, args.time_index)
+    u_model = np.sqrt(uX_model ** 2 + uY_model ** 2) * SECONDS_PER_YEAR
+
+    C_old = cell_field(ds_prev, args.mu_field, args.time_index)
+    Lambda = cell_field(ds_prev, args.lambda_field, args.time_index)
+
+    # Glen flow rate A, matching friction_law_conversion.py.
+    if args.flow_rate_type == "temperature":
+        basal_temperature = basal_cell_field(
+            ds_in, args.temperature_field, args.time_index
+        )
+        A = albany_temperature_based_flow_rate(basal_temperature)
+    else:
+        A = np.full_like(H, args.flow_rate)
+
+    with np.errstate(divide="ignore", invalid="ignore"):
+        u_c_model = (
+            SECONDS_PER_YEAR * Lambda * A * np.maximum(N, 0.0) ** args.glen_n
+        )
+        k_model = (
+            N_albany * u_model ** args.rc_power_exponent
+            / (u_model + u_c_model) ** args.rc_power_exponent
+        )
+
+    update_defined = (
+        tau_defined
+        & np.isfinite(k_model) & (k_model > 0.0)
+        & np.isfinite(C_old) & (C_old > 0.0)
+        & np.isfinite(u_model) & (u_model > 0.0)
+    )
+
+    C_new = C_old.copy()
+    ratio = np.full_like(C_old, np.nan)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        ratio[update_defined] = (
+            tau_b_target[update_defined]
+            / (C_old[update_defined] * k_model[update_defined])
+        )
+    C_new[update_defined] = (
+        C_old[update_defined] * ratio[update_defined] ** args.relaxation
+    )
+
+    n_reset = 0
+    if args.bound_factor is not None:
+        lower = C_old / args.bound_factor
+        upper = C_old * args.bound_factor
+        reset = (
+            update_defined
+            & (
+                ~np.isfinite(C_new)
+                | (C_new <= 0.0)
+                | (C_new < lower)
+                | (C_new > upper)
+            )
+        )
+        C_new[reset] = C_old[reset]
+        n_reset = int(np.count_nonzero(reset))
+
+    # -------------------------------------------------------------
+    # Convergence/mismatch diagnostics.
+    # -------------------------------------------------------------
+    vel_mismatch = np.full_like(H, np.nan)
+    mismatch_defined = tau_defined & np.isfinite(u_model) & (u_model > 0.0)
+    vel_mismatch[mismatch_defined] = (
+        (u_model[mismatch_defined] - u_target[mismatch_defined])
+        / u_target[mismatch_defined]
+    )
+    n_grounded = int(np.count_nonzero(grounded))
+    n_updated = int(np.count_nonzero(update_defined))
+    print(
+        f"Relative velocity mismatch ((model - target) / target), "
+        f"grounded : mean(|.|)={np.nanmean(np.abs(vel_mismatch[grounded])):.6e}, "
+        f"95th pct={np.nanpercentile(np.abs(vel_mismatch[grounded]), 95):.6e}, "
+        f"max={np.nanmax(np.abs(vel_mismatch[grounded])):.6e}"
+    )
+    print(
+        f"C refined for {n_updated} / {n_grounded} grounded cells "
+        f"({n_reset} reset to C_old by --bound-factor)"
+    )
+    print(
+        "C range before/after refinement (grounded, updated cells) : "
+        f"{np.nanmin(C_old[update_defined]):.6e} -- "
+        f"{np.nanmax(C_old[update_defined]):.6e} (before) -> "
+        f"{np.nanmin(C_new[update_defined]):.6e} -- "
+        f"{np.nanmax(C_new[update_defined]):.6e} (after)"
+        if n_updated > 0 else
+        "C range before/after refinement : n/a (no cells updated)"
+    )
+    if n_updated > 0:
+        print(
+            "Picard ratio (C_new/C_old before relaxation), grounded "
+            "updated cells : "
+            f"min={np.nanmin(ratio[update_defined]):.6e}, "
+            f"median={np.nanmedian(ratio[update_defined]):.6e}, "
+            f"max={np.nanmax(ratio[update_defined]):.6e}"
+        )
+
+    # -------------------------------------------------------------
+    # Write output: a copy of the *original* input, with C
+    # (--mu-field) refined and Lambda (--lambda-field) carried over
+    # unchanged from previous_conversion_output -- matching
+    # friction_law_conversion.py's own output convention.
+    # -------------------------------------------------------------
+    ds_in.close()
+    ds_prev.close()
+    ds_model.close()
+    shutil.copy2(args.original_input, args.output)
+
+    out = xr.open_dataset(args.output).load()
+    ncell_dim = None
+    for dim in out[args.mu_field].dims:
+        if dim.lower() == "ncells":
+            ncell_dim = dim
+            break
+    if ncell_dim is None:
+        ncell_dim = "nCells"
+
+    out[args.mu_field] = xr.DataArray(
+        C_new, dims=(ncell_dim,),
+        attrs={
+            "long_name": (
+                "Albany regularized-Coulomb coefficient C (Mu), "
+                "refined via a fixed-point Picard update against "
+                "Albany's own actual simulated velocity -- see "
+                "refine_regularized_coulomb_mu.py"
+            ),
+            "units": "1",
+        },
+    )
+    out[args.lambda_field] = xr.DataArray(
+        Lambda, dims=(ncell_dim,),
+        attrs={
+            "long_name": (
+                "Albany regularized-Coulomb bed roughness Lambda, "
+                "carried over unchanged from "
+                f"{args.previous_conversion_output!r}"
+            ),
+            "units": "m",
+        },
+    )
+    with np.errstate(divide="ignore", invalid="ignore"):
+        refinement_ratio = np.where(update_defined, C_new / C_old, np.nan)
+    out["muFrictionRefinementRatio"] = xr.DataArray(
+        refinement_ratio,
+        dims=(ncell_dim,),
+        attrs={
+            "long_name": (
+                "C_refined / C_old from this fixed-point refinement "
+                "pass (NaN where not updated)"
+            ),
+            "units": "1",
+        },
+    )
+    out["velocityMismatchRelative"] = xr.DataArray(
+        vel_mismatch, dims=(ncell_dim,),
+        attrs={
+            "long_name": (
+                "(model_output velocity - original_input target "
+                "velocity) / target velocity, at the model_output "
+                "velocity that resulted from previous_conversion_"
+                "output's Lambda/C"
+            ),
+            "units": "1",
+        },
+    )
+    # xarray cannot safely overwrite an open source file, so use a temp
+    # file, matching friction_law_conversion.py's own convention.
+    tmp = args.output + ".tmp"
+    out.to_netcdf(tmp)
+    out.close()
+    shutil.move(tmp, args.output)
+
+    print(f"Wrote refined IC: {args.output}")
+
+
+if __name__ == "__main__":
+    main()
