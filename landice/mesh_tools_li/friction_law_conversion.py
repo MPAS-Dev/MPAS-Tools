@@ -32,8 +32,18 @@ Two methods are available, selected via --method:
   solve_transition_velocity().
 
 In both cases N can be computed with any of the
---effective-pressure-type options below. The *input* friction law's
-own effective pressure N_source (see the "Notes" section below and
+--effective-pressure-type options below, including "field", which
+reads a precomputed N field directly from the input file (see
+--effective-pressure-input-field) instead of recomputing it here from
+thickness/bed -- e.g. an Albany-diagnosed effective-pressure field
+from a previous run, so that the Lambda/C solve below and Albany's own
+runtime "Effective Pressure Type: Field" use the exact same N values
+with no formula/order-of-operations mismatch (though the supplied
+field is still only defined at whatever spatial support it was
+originally computed/output at, e.g. cell centers, so it may not fully
+capture sub-cell variation in the N Albany's velocity solver evaluates
+at its own FEM quadrature points). The *input* friction law's own
+effective pressure N_source (see the "Notes" section below and
 --source-effective-pressure-type) is independent of N and may use a
 different method/parameters entirely.
 
@@ -1839,7 +1849,9 @@ def main():
     # Effective pressure N
     parser.add_argument(
         "--effective-pressure-type",
-        choices=["downs-johnson", "ocean-connection", "transition"],
+        choices=[
+            "downs-johnson", "ocean-connection", "transition", "field",
+        ],
         default="downs-johnson",
         help=(
             "How to compute the effective pressure N (default: "
@@ -1857,15 +1869,48 @@ def main():
             "ocean_connection_effective_pressure()). Both "
             "\"downs-johnson\" and \"ocean-connection\" are computed "
             "by Albany itself at runtime from thickness/bed, so no N "
-            "field needs to be supplied for either. \"transition\" "
-            "computes N here using a near-ocean/inland-transition "
+            "field needs to be supplied for either (Albany "
+            "recomputes N from thickness/bed at its own FEM "
+            "quadrature points, which can differ somewhat from the "
+            "cell-center N computed here). \"transition\" computes N "
+            "here using a near-ocean/inland-transition "
             "parameterization (see --min-fraction-overburden/"
             "--pressure-length-scale/--transition-h-ocean) and writes "
             "it to the output for reference; NOTE: Albany does not "
             "yet have a way to consume this precomputed N directly "
             "for the Regularized Coulomb law, so \"transition\" cannot "
             "currently be used to actually run Albany (offline "
-            "evaluation only, pending upstream Albany support)."
+            "evaluation only, pending upstream Albany support). "
+            "\"field\" reads a precomputed N field directly from the "
+            "input file (see --effective-pressure-input-field), in "
+            "physical units of Pa, and writes it straight through to "
+            "the output (see --effective-pressure-field) for use with "
+            "Albany's own \"Effective Pressure Type: Field\" (paired "
+            "with an \"Effective Pressure Variable Name\" matching "
+            "--effective-pressure-field) -- e.g. a previous Albany "
+            "run's own diagnosed N field, so the Lambda/C solve below "
+            "and Albany's runtime friction law both use the exact "
+            "same N values, with no cell-center-vs-quadrature-point "
+            "or formula mismatch. Note the supplied field is still "
+            "whatever spatial support it was computed/output at (e.g. "
+            "cell centers), so it may not fully capture sub-cell "
+            "variation in the N Albany's velocity solver evaluates at "
+            "its own quadrature points."
+        )
+    )
+    parser.add_argument(
+        "--effective-pressure-input-field",
+        default="effectivePressure",
+        help=(
+            "Name of a variable in the input file holding a "
+            "precomputed N field [Pa], used only when "
+            "--effective-pressure-type=field (e.g. an "
+            "Albany-diagnosed effective-pressure field from a "
+            "previous run). Default: effectivePressure, matching the "
+            "default --effective-pressure-field output name, so a "
+            "field written by a previous run of this script (or by "
+            "Albany itself, if configured to save it under that "
+            "name) is picked up with no extra flags."
         )
     )
 
@@ -1989,11 +2034,13 @@ def main():
     )
     parser.add_argument(
         "--source-effective-pressure-field",
-        default=None,
+        default="effectivePressure",
         help=(
             "Name of a variable in the input file holding a "
             "precomputed N_source field [Pa], used only when "
-            "--source-effective-pressure-type=field."
+            "--source-effective-pressure-type=field. Default: "
+            "effectivePressure, matching the default "
+            "--effective-pressure-field output name."
         )
     )
     parser.add_argument(
@@ -2366,7 +2413,7 @@ def main():
                 "with this exponent."
             )
 
-    if args.effective_pressure_type != "ocean-connection":
+    if args.effective_pressure_type not in ("ocean-connection", "field"):
         if (
             args.min_fraction_overburden is None
             or args.pressure_length_scale is None
@@ -2376,7 +2423,15 @@ def main():
                 "are required (used by both "
                 "--effective-pressure-type=downs-johnson and "
                 "--effective-pressure-type=transition; not needed for "
-                "--effective-pressure-type=ocean-connection)"
+                "--effective-pressure-type=ocean-connection or "
+                "--effective-pressure-type=field)"
+            )
+
+    if args.effective_pressure_type == "field":
+        if args.effective_pressure_input_field is None:
+            parser.error(
+                "--effective-pressure-input-field is required when "
+                "--effective-pressure-type=field"
             )
 
     if args.source_effective_pressure_type == "field":
@@ -2385,11 +2440,6 @@ def main():
                 "--source-effective-pressure-field is required when "
                 "--source-effective-pressure-type=field"
             )
-    elif args.source_effective_pressure_field is not None:
-        parser.error(
-            "--source-effective-pressure-field is only used with "
-            "--source-effective-pressure-type=field"
-        )
 
     if args.source_effective_pressure_type in ("downs-johnson", "transition"):
         if (
@@ -2575,6 +2625,12 @@ def main():
             rho_w=args.rho_water,
             gravity=args.gravity,
         )
+    elif args.effective_pressure_type == "field":
+        # Read N directly from the input file (e.g. an Albany-
+        # diagnosed effective-pressure field from a previous run),
+        # rather than recomputing it here from thickness/bed -- see
+        # --effective-pressure-input-field.
+        N = cell_field(args.effective_pressure_input_field)
     else:
         N = effective_pressure4(
             thickness=H,
@@ -2988,6 +3044,12 @@ def main():
         print(f"Transition velocity, u0       : {args.transition_velocity:g}")
     print(f"Source power exponent, qW     : {args.weertman_q:g}")
     print(f"Source effective pressure type: {args.source_effective_pressure_type}")
+    print(f"Effective pressure type       : {args.effective_pressure_type}")
+    if args.effective_pressure_type == "field":
+        print(
+            "Effective pressure input field: "
+            f"{args.effective_pressure_input_field}"
+        )
     print(f"RC power exponent, qR         : {RC_POWER_EXPONENT:g}")
     print(f"Glen exponent, n              : {args.glen_n:g}")
     print(f"Flow rate type                : {args.flow_rate_type}")
@@ -3188,6 +3250,28 @@ def main():
         },
     )
 
+    if args.effective_pressure_type == "field" and not args.diagnostics:
+        # The N field is required (not just diagnostic) when
+        # --effective-pressure-type=field: it must be written to the
+        # output so Albany can read it back at runtime via its own
+        # "Effective Pressure Type: Field"/"Effective Pressure
+        # Variable Name" -- write it unconditionally here even if
+        # --diagnostics is not set (the block below handles it
+        # instead when --diagnostics is set).
+        out[args.effective_pressure_field] = xr.DataArray(
+            N,
+            dims=(ncell_dim,),
+            attrs={
+                "long_name": (
+                    "Effective pressure, copied through unchanged "
+                    f"from the input field "
+                    f"{args.effective_pressure_input_field!r} "
+                    "(--effective-pressure-type=field)"
+                ),
+                "units": "Pa",
+            },
+        )
+
     if args.diagnostics:
         if args.effective_pressure_type == "downs-johnson":
             effective_pressure_long_name = "Downs-Johnson effective pressure"
@@ -3196,6 +3280,13 @@ def main():
                 "Ocean-connection effective pressure (Hydrostatic "
                 "Computed At Nodes, Use Pressurized Bed Above Sea "
                 "Level: false)"
+            )
+        elif args.effective_pressure_type == "field":
+            effective_pressure_long_name = (
+                "Effective pressure, copied through unchanged from "
+                f"the input field "
+                f"{args.effective_pressure_input_field!r} "
+                "(--effective-pressure-type=field)"
             )
         else:
             effective_pressure_long_name = (
@@ -3467,7 +3558,7 @@ def main():
     out.attrs["regularizedCoulomb_effectivePressureType"] = (
         args.effective_pressure_type
     )
-    if args.effective_pressure_type != "ocean-connection":
+    if args.effective_pressure_type not in ("ocean-connection", "field"):
         out.attrs["regularizedCoulomb_minFractionOverburden"] = (
             float(args.min_fraction_overburden)
         )
@@ -3477,6 +3568,10 @@ def main():
     if args.effective_pressure_type == "transition":
         out.attrs["regularizedCoulomb_transitionHOcean"] = (
             float(args.transition_h_ocean)
+        )
+    if args.effective_pressure_type == "field":
+        out.attrs["regularizedCoulomb_effectivePressureInputField"] = (
+            args.effective_pressure_input_field
         )
     out.attrs["regularizedCoulomb_sourceEffectivePressureType"] = (
         args.source_effective_pressure_type
@@ -3755,6 +3850,12 @@ def main():
             "Nodes\n"
             "        Use Pressurized Bed Above Sea Level: false"
         )
+    elif args.effective_pressure_type == "field":
+        effective_pressure_yaml_lines = (
+            "        Effective Pressure Type: Field\n"
+            "        Effective Pressure Variable Name: "
+            f"{args.effective_pressure_field}"
+        )
     else:
         effective_pressure_yaml_lines = (
             "        Effective Pressure Type: TRANSITION OPTION TO BE ADDED"
@@ -3796,6 +3897,25 @@ def main():
             "Albany supports reading a precomputed N field directly "
             f"(e.g. from the \"{args.effective_pressure_field}\" field "
             f"written to {args.output}) for this parameterization."
+        )
+    if args.effective_pressure_type == "field":
+        print(
+            "NOTE: --effective-pressure-type=field wrote N straight "
+            f"through from the input field "
+            f"{args.effective_pressure_input_field!r} to the "
+            f"\"{args.effective_pressure_field}\" field in {args.output} "
+            "-- ensure Albany's YAML \"Effective Pressure Variable "
+            "Name\" (above) matches that field name and that it is "
+            "actually present/registered for Albany to read at "
+            "runtime. Lambda/C were solved assuming this is exactly "
+            "the N Albany will use, which removes any formula/order-"
+            "of-operations mismatch between this script and Albany's "
+            "own internal effective-pressure calculation -- but the "
+            "supplied field is still only defined wherever it was "
+            "originally computed/output (e.g. cell centers), so it "
+            "may not capture sub-cell variation in the N Albany's "
+            "velocity solver evaluates at its own FEM quadrature "
+            "points."
         )
 
 
