@@ -3139,17 +3139,27 @@ def main():
         args.ascii_mesh_dir, n_cells=H.shape[0]
     )
     n_overridden = ascii_cell_index.shape[0]
+    # Use a physically-meaningful tolerance (1 mm), not exact equality:
+    # the ascii files round-trip thickness/bed through decimal text in
+    # km (double -> text -> double), which introduces harmless
+    # last-bit floating-point noise (~1e-13 m) on essentially every
+    # cell even where nothing actually changed. Exact "!=" comparison
+    # would count that noise as a real difference and vastly
+    # over-report how many cells were affected by MALI's mesh
+    # extension/fixed-margin thickness.
+    changed_tol_m = 1.0e-3
     n_changed = int(np.count_nonzero(
-        (H[ascii_cell_index] != ascii_H)
-        | (bed[ascii_cell_index] != ascii_bed)
+        (np.abs(H[ascii_cell_index] - ascii_H) > changed_tol_m)
+        | (np.abs(bed[ascii_cell_index] - ascii_bed) > changed_tol_m)
     ))
     H[ascii_cell_index] = ascii_H
     bed[ascii_cell_index] = ascii_bed
     print(
         f"Overrode thickness/bedTopography for {n_overridden} cells "
         f"from Albany ascii mesh files in {args.ascii_mesh_dir!r} "
-        f"({n_changed} differ from the input netCDF file, e.g. due "
-        "to MALI's one-cell mesh extension/fixed margin thickness)"
+        f"({n_changed} differ from the input netCDF file by more "
+        f"than {changed_tol_m:g} m, e.g. due to MALI's one-cell mesh "
+        "extension/fixed margin thickness)"
     )
 
     # -------------------------------------------------------------
