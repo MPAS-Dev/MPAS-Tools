@@ -199,12 +199,14 @@ def copy_variables(regional_ds, global_ds, mapping, variables):
             continue
 
         regional_var = regional_ds[var].values
-        global_var = global_ds[var].values
 
         # Get variable shape
         var_shape = regional_var.shape
         print(f'    Regional shape: {var_shape}')
-        print(f'    Global shape: {global_var.shape}')
+        print(f'    Global shape: {global_ds[var].shape}')
+
+        # Make a copy of the global variable data to modify
+        global_var = global_ds[var].values.copy()
 
         # Handle different dimensionalities
         if len(var_shape) == 1:
@@ -256,8 +258,9 @@ def copy_variables(regional_ds, global_ds, mapping, variables):
                   f' not currently supported')
             continue
 
-        # Update the global dataset
-        global_ds[var].values = global_var
+        # Explicitly update the global dataset with modified data
+        # Using indexing assignment to ensure the data is actually written
+        global_ds[var].data = global_var
         print(f'    ✓ Copied {var}')
 
     return global_ds
