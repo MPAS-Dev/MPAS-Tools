@@ -954,11 +954,22 @@ def solve_fe_corrected_mu(
        where the FE residual is actually large).
     2. Cells whose pre-correction FE residual (`residual_relative`,
        from --fe-diagnostics, computed with the *uncorrected* C) is
-       below `residual_threshold` are "pinned" near C_prior by
-       multiplying their local ridge weight by `pin_factor` --
-       cells that were already fine are not given a free pass to
-       drift just because they happen to sit in a well-connected,
-       lightly-regularized part of the mesh.
+       below `residual_threshold` are pinned exactly to C_prior by
+       *removing them from the unknown vector entirely* (substituting
+       C_prior for their contribution to every data equation and
+       folding it into the right-hand side, rather than leaving them
+       as free unknowns with an inflated ridge weight). On a large
+       mesh, the overwhelming majority of cells are typically pinned
+       (only a small, genuinely-mismatched fraction is left free), so
+       this also shrinks the linear system that actually needs to be
+       solved by the same large factor -- both a conditioning fix and
+       a large speedup. (An earlier version of this function kept all
+       n_cells as free unknowns and instead multiplied pinned cells'
+       ridge weight by a large `pin_factor`; on a full-size mesh this
+       created a linear system whose diagonal spanned many more
+       orders of magnitude than the data rows, which made
+       scipy.sparse.linalg.lsqr converge extremely slowly or appear
+       to hang.)
 
     Parameters
     ----------
@@ -994,23 +1005,29 @@ def solve_fe_corrected_mu(
         grounded or untouched cells) is treated as "pin".
     residual_threshold : float
         Minimum |residual_relative| required for a cell to be freely
-        corrected; below this, the cell's ridge weight is multiplied
-        by `pin_factor`.
+        corrected; below this, the cell is pinned exactly to
+        C_prior (excluded from the unknown vector; see point 2
+        above).
     pin_factor : float
-        Ridge-weight multiplier applied to cells below
-        `residual_threshold` (default 1e4 -- effectively fixes them
-        at C_prior without formally removing them from the solve).
+        Unused (retained only for backwards-compatible call sites);
+        pinned cells are now fixed to C_prior exactly by removing
+        them from the least-squares unknown vector rather than by
+        inflating a ridge weight.
 
     Returns
     -------
     C_corrected : ndarray, shape (n_cells,)
     n_equations : int
-        Number of valid quadrature-point equations used.
+        Number of valid quadrature-point equations used (including
+        ones that reference only pinned cells, i.e. before any
+        equation is dropped because it no longer references any free
+        unknown).
     n_reset : int
-        Number of cells reset to C_prior by the bound_factor/
+        Number of (free) cells reset to C_prior by the bound_factor/
         positivity safety net.
     n_pinned : int
-        Number of cells pinned near C_prior by residual_threshold.
+        Number of cells pinned exactly to C_prior by
+        residual_threshold.
     """
     import scipy.sparse
     import scipy.sparse.linalg
@@ -1040,15 +1057,52 @@ def solve_fe_corrected_mu(
     tri_idx, qp_idx = np.nonzero(valid)
     n_equations = tri_idx.shape[0]
 
-    if n_equations == 0:
-        return C_prior.copy(), 0, 0, n_cells
+    # Cells pinned exactly to C_prior (point 2 above): a small (or
+    # unknown/undiagnosed) pre-correction FE residual means the cell
+    # is not given a free pass to drift just because it happens to
+    # sit in a well-connected, lightly-regularized part of the mesh.
+    # NaN residual_relative (e.g. non-grounded/untouched cells) is
+    # treated as "pin".
+    pinned = ~(
+        np.isfinite(residual_relative)
+        & (np.abs(residual_relative) >= residual_threshold)
+    )
+    free_cell_ids = np.nonzero(~pinned)[0]
+    n_pinned = int(np.count_nonzero(pinned))
+    n_free = free_cell_ids.shape[0]
 
-    rows = np.repeat(np.arange(n_equations), 3)
-    cols = triangles[tri_idx, :].reshape(-1)
-    data_vals = (
-        bary_coords[qp_idx, :] * k_qp[tri_idx, qp_idx][:, None]
-    ).reshape(-1)
-    b_data = qp_target[tri_idx, qp_idx]
+    if n_equations == 0 or n_free == 0:
+        return C_prior.copy(), n_equations, 0, n_pinned
+
+    free_index = np.full(n_cells, -1, dtype=np.int64)
+    free_index[free_cell_ids] = np.arange(n_free)
+
+    node_ids = triangles[tri_idx, :]
+    coef = bary_coords[qp_idx, :] * k_qp[tri_idx, qp_idx][:, None]
+    node_pinned = pinned[node_ids]
+
+    # Fold each equation's pinned-node contributions (known, fixed at
+    # C_prior) into the right-hand side, leaving only the free nodes
+    # as unknowns.
+    b_data = qp_target[tri_idx, qp_idx] - np.sum(
+        np.where(node_pinned, coef * C_prior[node_ids], 0.0), axis=1
+    )
+
+    # Equations that no longer reference any free unknown (all 3
+    # nodes pinned) contribute nothing to the least-squares solution
+    # and are dropped entirely -- this is also what keeps the system
+    # small on a large mesh where most cells are pinned.
+    row_has_free = np.any(~node_pinned, axis=1)
+    used_eq = np.nonzero(row_has_free)[0]
+    n_used_eq = used_eq.shape[0]
+
+    free_mask_used = (~node_pinned[used_eq]).reshape(-1)
+    local_rows = np.repeat(np.arange(n_used_eq), 3)[free_mask_used]
+    data_cols = free_index[
+        node_ids[used_eq].reshape(-1)[free_mask_used]
+    ]
+    data_vals = coef[used_eq].reshape(-1)[free_mask_used]
+    b_data_used = b_data[used_eq]
 
     # Per-cell local characteristic scale of k, from only the valid
     # equations that actually touch each node (point 1 above) --
@@ -1064,52 +1118,45 @@ def solve_fe_corrected_mu(
         np.isfinite(node_k_scale) & (node_k_scale > 0.0),
         node_k_scale, global_k_scale,
     )
+    reg_weight = np.sqrt(regularization) * node_k_scale[free_cell_ids]
 
-    reg_weight = np.sqrt(regularization) * node_k_scale
-
-    # Pin cells with a small (or unknown/undiagnosed) pre-correction
-    # FE residual near C_prior (point 2 above): they are not given a
-    # free pass to drift just because their local data happens to be
-    # well-conditioned/well-connected.
-    pinned = ~(
-        np.isfinite(residual_relative)
-        & (np.abs(residual_relative) >= residual_threshold)
-    )
-    reg_weight = np.where(pinned, reg_weight * pin_factor, reg_weight)
-
-    reg_rows = n_equations + np.arange(n_cells)
-    reg_cols = np.arange(n_cells)
+    reg_rows = n_used_eq + np.arange(n_free)
+    reg_cols = np.arange(n_free)
     reg_vals = reg_weight
-    b_reg = reg_weight * C_prior
+    b_reg = reg_weight * C_prior[free_cell_ids]
 
-    all_rows = np.concatenate([rows, reg_rows])
-    all_cols = np.concatenate([cols, reg_cols])
+    all_rows = np.concatenate([local_rows, reg_rows])
+    all_cols = np.concatenate([data_cols, reg_cols])
     all_vals = np.concatenate([data_vals, reg_vals])
-    b = np.concatenate([b_data, b_reg])
+    b = np.concatenate([b_data_used, b_reg])
 
     A_sparse = scipy.sparse.coo_matrix(
         (all_vals, (all_rows, all_cols)),
-        shape=(n_equations + n_cells, n_cells),
+        shape=(n_used_eq + n_free, n_free),
     ).tocsr()
 
     solution = scipy.sparse.linalg.lsqr(
-        A_sparse, b, atol=1e-12, btol=1e-12, iter_lim=5 * n_cells,
+        A_sparse, b, atol=1e-12, btol=1e-12, iter_lim=5 * n_free,
     )
-    C_corrected = solution[0]
+    C_corrected_free = solution[0]
 
-    lower = C_prior / bound_factor
-    upper = C_prior * bound_factor
+    lower = C_prior[free_cell_ids] / bound_factor
+    upper = C_prior[free_cell_ids] * bound_factor
     reset = (
-        ~np.isfinite(C_corrected)
-        | (C_corrected <= 0.0)
-        | (C_corrected < lower)
-        | (C_corrected > upper)
+        ~np.isfinite(C_corrected_free)
+        | (C_corrected_free <= 0.0)
+        | (C_corrected_free < lower)
+        | (C_corrected_free > upper)
     )
-    C_corrected = np.where(reset, C_prior, C_corrected)
+    C_corrected_free = np.where(
+        reset, C_prior[free_cell_ids], C_corrected_free
+    )
+
+    C_corrected = C_prior.copy()
+    C_corrected[free_cell_ids] = C_corrected_free
 
     return (
-        C_corrected, n_equations, int(np.count_nonzero(reset)),
-        int(np.count_nonzero(pinned)),
+        C_corrected, n_equations, int(np.count_nonzero(reset)), n_pinned,
     )
 
 
