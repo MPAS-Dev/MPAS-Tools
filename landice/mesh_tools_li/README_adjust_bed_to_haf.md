@@ -38,6 +38,7 @@ python adjust_bed_to_haf.py [-h] -m FILENAME -g FILENAME -p PROJECTION [-o FILEN
 - `--thickness-var THICKNESS_VAR`: Name of thickness variable (default: 'thickness')
 - `--bed-var BED_VAR`: Name of bed topography variable (default: 'bedTopography')
 - `--buffer-distance DISTANCE`: Buffer distance for LineString geometries in degrees (default: 0.01, ~1km at poles). Use 0 for Polygon geometries.
+- `--thickness-threshold THRESHOLD`: Minimum ice thickness (m) for cells to be modified (default: 1.0). Cells with thickness below this are skipped, preventing unrealistic bed adjustments in ice-free areas.
 
 ## Available Projections
 

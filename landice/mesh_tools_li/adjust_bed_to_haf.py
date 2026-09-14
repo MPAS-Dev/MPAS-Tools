@@ -108,6 +108,11 @@ def parse_args():
                        type=float, default=0.01,
                        help='Buffer distance for LineString geometries in '
                             'degrees (default: 0.01, ~1km). Use 0 for Polygons.')
+    parser.add_argument('--thickness-threshold', dest='thickness_threshold',
+                       type=float, default=1.0,
+                       help='Minimum ice thickness (m) for cells to be modified. '
+                            'Cells with thickness below this are skipped '
+                            '(default: 1.0)')
 
     return parser.parse_args()
 
@@ -425,6 +430,24 @@ def main():
           f'{np.max(bed_topo):.2f}] m')
     print()
 
+    # Apply thickness threshold to mask
+    print(f'Applying thickness threshold ({args.thickness_threshold} m)...')
+    ice_mask = thickness >= args.thickness_threshold
+    print(f'  Cells in grounding line region: {np.sum(mask)}')
+    print(f'  Cells with ice >= {args.thickness_threshold} m: {np.sum(ice_mask)}')
+
+    # Combine spatial mask with thickness mask
+    mask = mask & ice_mask
+    print(f'  Cells to modify (region AND ice present): {np.sum(mask)}')
+    print()
+
+    if np.sum(mask) == 0:
+        print('ERROR: No cells with ice found within grounding line polygons!')
+        print('Check that:')
+        print(f'  1. Thickness threshold ({args.thickness_threshold} m) is appropriate')
+        print('  2. Ice is present in the grounding line region')
+        sys.exit(1)
+
     # Calculate current HAF in the region
     print('Calculating current height above flotation...')
     flotation_thickness = calculate_flotation_thickness(
@@ -473,7 +496,8 @@ def main():
     comment = (
         f'Bed topography adjusted within grounding line regions '
         f'to achieve target HAF = {args.target_haf} m. '
-        f'Modified {np.sum(mask)} cells using grounding line data from '
+        f'Modified {np.sum(mask)} cells with ice thickness >= '
+        f'{args.thickness_threshold} m using grounding line data from '
         f'{args.geojson_file}.'
     )
     if 'comment' in ds.attrs:
