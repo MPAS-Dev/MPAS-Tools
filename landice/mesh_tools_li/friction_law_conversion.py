@@ -1130,15 +1130,50 @@ def solve_fe_corrected_mu(
     all_vals = np.concatenate([data_vals, reg_vals])
     b = np.concatenate([b_data_used, b_reg])
 
+    # Column-equilibrate before handing the system to lsqr: k_qp (and
+    # hence both the data-row and ridge-row coefficients) can still
+    # vary by orders of magnitude *within* the free set alone (e.g. a
+    # nearly-grounding-line cell next to a merely-somewhat-mismatched
+    # interior cell), which otherwise leaves a badly-scaled system
+    # that a Krylov solver like lsqr converges on very slowly. Scaling
+    # each column (each free cell's unknown) by its own norm in A is
+    # a standard, cheap preconditioner for exactly this situation and
+    # does not change the solution, only how fast lsqr finds it.
+    col_sq_sum = np.zeros(n_free)
+    np.add.at(col_sq_sum, all_cols, all_vals ** 2)
+    col_norm = np.sqrt(col_sq_sum)
+    col_norm = np.where(col_norm > 0.0, col_norm, 1.0)
+    all_vals_scaled = all_vals / col_norm[all_cols]
+
     A_sparse = scipy.sparse.coo_matrix(
-        (all_vals, (all_rows, all_cols)),
+        (all_vals_scaled, (all_rows, all_cols)),
         shape=(n_used_eq + n_free, n_free),
     ).tocsr()
 
-    solution = scipy.sparse.linalg.lsqr(
-        A_sparse, b, atol=1e-12, btol=1e-12, iter_lim=5 * n_free,
+    # A large mesh with a poorly-fit region can still leave many
+    # thousands of free unknowns; report the actual problem size so
+    # a long-running solve is visible/diagnosable rather than looking
+    # like a silent hang, and cap the iteration limit to something
+    # that fails fast (falling back to C_prior for any cell lsqr
+    # hasn't resolved well -- see the bound_factor safety net below)
+    # instead of grinding for `5 * n_free` iterations on a
+    # million-plus-unknown problem.
+    iter_lim = min(5 * n_free, 20000)
+    print(
+        f"  --fe-correct-mu: solving {n_used_eq} equations for "
+        f"{n_free} free cells (of {n_cells} total, {n_pinned} "
+        f"pinned), iter_lim={iter_lim} ..."
     )
-    C_corrected_free = solution[0]
+    solution = scipy.sparse.linalg.lsqr(
+        A_sparse, b, atol=1e-10, btol=1e-10, iter_lim=iter_lim,
+    )
+    z, istop, itn = solution[0], solution[1], solution[2]
+    print(
+        f"  --fe-correct-mu: lsqr stopped after {itn} iteration(s), "
+        f"istop={istop} (1/2=converged, 7=hit iter_lim; see "
+        "scipy.sparse.linalg.lsqr docs for other codes)"
+    )
+    C_corrected_free = z / col_norm
 
     lower = C_prior[free_cell_ids] / bound_factor
     upper = C_prior[free_cell_ids] * bound_factor
