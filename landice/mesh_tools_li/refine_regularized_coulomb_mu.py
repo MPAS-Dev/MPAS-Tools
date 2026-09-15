@@ -103,6 +103,16 @@ less where it is running too slow).
 
 Cells where the update is undefined (e.g. not grounded, mu/N/N_source
 invalid, or no valid/positive u_model) are left at C_old unchanged.
+Cells whose Tau_b stress mismatch at u_model is smaller than
+--min-taub-mismatch (default 10%) are ALSO left at C_old exactly
+unchanged, rather than refined by a small amount: applying a
+nonzero, spatially incoherent perturbation to essentially every
+grounded cell (even a small one) can ripple, via membrane-stress
+coupling, into a widespread velocity change well beyond the cells
+that actually needed correcting. This gate uses the stress ratio
+(equivalently, the unrelaxed Picard ratio C_new_raw / C_old) rather
+than relative velocity mismatch, since velocity mismatch is a much
+noisier metric wherever u_target is small.
 """
 
 import argparse
@@ -246,6 +256,32 @@ def parse_args():
             "[C_old / bound_factor, C_old * bound_factor], or non-"
             "finite/non-positive, is reset to C_old instead. "
             "Disabled (no clipping) by default."
+        )
+    )
+    parser.add_argument(
+        "--min-taub-mismatch",
+        type=float,
+        default=0.1,
+        help=(
+            "Only refine cells where the RC law's Tau_b stress "
+            "mismatch at u_model, |Tau_b_target(u_model) / "
+            "Tau_b_RC(u_model, C_old) - 1|, is at least this large "
+            "(default: 0.1, i.e. 10%%); cells below this threshold "
+            "are left with C_new = C_old exactly, unperturbed. This "
+            "gates on the stress ratio (equivalently, the unrelaxed "
+            "Picard ratio C_new_raw / C_old) rather than on relative "
+            "velocity mismatch, which is a much noisier metric for "
+            "slow-moving cells (small denominators inflate relative "
+            "velocity error even when the underlying stress mismatch "
+            "is modest) and is only an indirect proxy for the local "
+            "friction-law error in any case, since velocity also "
+            "reflects nonlocal membrane-stress coupling to "
+            "neighboring cells. Without this gate, every valid cell "
+            "receives at least a small perturbation, and thousands "
+            "of small, spatially incoherent perturbations across the "
+            "whole domain can ripple into a widespread change via "
+            "that same coupling -- use 0 to disable (refine every "
+            "valid cell, matching the old behavior)."
         )
     )
 
@@ -799,14 +835,27 @@ def main():
             tau_b_target[update_defined] / k_model[update_defined]
         )
 
-    C_new = C_old.copy()
     ratio = np.full_like(C_old, np.nan)
     with np.errstate(divide="ignore", invalid="ignore"):
         ratio[update_defined] = (
             C_new_raw[update_defined] / C_old[update_defined]
         )
-    C_new[update_defined] = (
-        C_old[update_defined] * ratio[update_defined] ** args.relaxation
+
+    # Only actually refine cells whose Tau_b stress mismatch at
+    # u_model -- |ratio - 1|, i.e. the unrelaxed Picard ratio -- is
+    # at least --min-taub-mismatch; see that option's help for why
+    # this is gated on the stress ratio rather than on relative
+    # velocity mismatch. Cells failing this are left at C_new =
+    # C_old exactly (not just "close to" C_old), so a well-converged
+    # majority of the domain is not perturbed at all.
+    apply_update = (
+        update_defined & np.isfinite(ratio)
+        & (np.abs(ratio - 1.0) >= args.min_taub_mismatch)
+    )
+
+    C_new = C_old.copy()
+    C_new[apply_update] = (
+        C_old[apply_update] * ratio[apply_update] ** args.relaxation
     )
 
     n_reset = 0
@@ -814,7 +863,7 @@ def main():
         lower = C_old / args.bound_factor
         upper = C_old * args.bound_factor
         reset = (
-            update_defined
+            apply_update
             & (
                 ~np.isfinite(C_new)
                 | (C_new <= 0.0)
@@ -826,7 +875,8 @@ def main():
         n_reset = int(np.count_nonzero(reset))
 
     n_grounded = int(np.count_nonzero(grounded))
-    n_updated = int(np.count_nonzero(update_defined))
+    n_eligible = int(np.count_nonzero(update_defined))
+    n_updated = int(np.count_nonzero(apply_update))
     print(
         f"Relative velocity mismatch ((model - target) / target), "
         f"grounded : mean(|.|)={np.nanmean(np.abs(vel_mismatch[grounded])):.6e}, "
@@ -835,14 +885,16 @@ def main():
     )
     print(
         f"C refined for {n_updated} / {n_grounded} grounded cells "
-        f"({n_reset} reset to C_old by --bound-factor)"
+        f"({n_eligible - n_updated} left unchanged, below "
+        f"--min-taub-mismatch={args.min_taub_mismatch:g}; "
+        f"{n_reset} reset to C_old by --bound-factor)"
     )
     print(
         "C range before/after refinement (grounded, updated cells) : "
-        f"{np.nanmin(C_old[update_defined]):.6e} -- "
-        f"{np.nanmax(C_old[update_defined]):.6e} (before) -> "
-        f"{np.nanmin(C_new[update_defined]):.6e} -- "
-        f"{np.nanmax(C_new[update_defined]):.6e} (after)"
+        f"{np.nanmin(C_old[apply_update]):.6e} -- "
+        f"{np.nanmax(C_old[apply_update]):.6e} (before) -> "
+        f"{np.nanmin(C_new[apply_update]):.6e} -- "
+        f"{np.nanmax(C_new[apply_update]):.6e} (after)"
         if n_updated > 0 else
         "C range before/after refinement : n/a (no cells updated)"
     )
@@ -850,9 +902,9 @@ def main():
         print(
             "Picard ratio (C_new/C_old before relaxation), grounded "
             "updated cells : "
-            f"min={np.nanmin(ratio[update_defined]):.6e}, "
-            f"median={np.nanmedian(ratio[update_defined]):.6e}, "
-            f"max={np.nanmax(ratio[update_defined]):.6e}"
+            f"min={np.nanmin(ratio[apply_update]):.6e}, "
+            f"median={np.nanmedian(ratio[apply_update]):.6e}, "
+            f"max={np.nanmax(ratio[apply_update]):.6e}"
         )
 
     # -------------------------------------------------------------
@@ -906,7 +958,9 @@ def main():
         attrs={
             "long_name": (
                 "C_refined / C_old from this fixed-point refinement "
-                "pass (NaN where not updated)"
+                "pass (NaN where not eligible for refinement; exactly "
+                "1 where eligible but left unchanged because the "
+                "Tau_b stress mismatch was below --min-taub-mismatch)"
             ),
             "units": "1",
         },
