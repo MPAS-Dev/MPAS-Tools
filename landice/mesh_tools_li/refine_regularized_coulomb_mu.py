@@ -932,6 +932,23 @@ def main():
 
     print(f"Wrote refined IC: {args.output}")
 
+    # -------------------------------------------------------------
+    # Write a physics-options config-file sidecar for this script's
+    # own output, mirroring friction_law_conversion.py's own
+    # <output>.config.json (see HARD_DEFAULTS/--config above). This
+    # is what makes repeated refinement iterations self-sustaining:
+    # without it, a subsequent refine_regularized_coulomb_mu.py call
+    # using this output as its previous_conversion_output would find
+    # no config file, silently fall back to hardcoded defaults, and
+    # reintroduce the exact physics-option mismatch bug this
+    # mechanism exists to prevent.
+    # -------------------------------------------------------------
+    config_path = args.output + ".config.json"
+    refined_config = {key: getattr(args, key) for key in HARD_DEFAULTS}
+    with open(config_path, "w") as f:
+        json.dump(refined_config, f, indent=2, sort_keys=True)
+    print(f"Wrote physics-options config: {config_path}")
+
 
 if __name__ == "__main__":
     main()
