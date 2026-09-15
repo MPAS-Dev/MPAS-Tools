@@ -682,19 +682,28 @@ def solve_transition_velocity(
     expressions above are undefined there (division by zero speed,
     or an ill-defined tau_b_source/N).
 
+    `transition_velocity` (u0) may be a scalar or a 1-D array with
+    the same shape as `N`; passing a per-cell array (e.g. shrunk at
+    thin-ice cells via --thin-ice-thickness-threshold /
+    --thin-ice-u0-factor in main()) still yields an exact match at
+    every valid cell, since Lambda and C are both solved
+    self-consistently from whatever u0 each cell is given.
+
     Returns
     -------
     Lambda, C : 1-D numpy arrays, same shape as `N`
     """
+    u0 = np.broadcast_to(np.asarray(transition_velocity), N.shape)
+
     Lambda = np.full_like(N, lambda_reference_value)
-    Lambda[valid] = transition_velocity / (
+    Lambda[valid] = u0[valid] / (
         SECONDS_PER_YEAR * A[valid] * N[valid] ** glen_n
     )
 
     C = np.full_like(N, mu_reference_value)
     C[valid] = (
         tau_b_source[valid]
-        * (speed[valid] + transition_velocity) ** rc_power_exponent
+        * (speed[valid] + u0[valid]) ** rc_power_exponent
         / (N_albany[valid] * speed[valid] ** rc_power_exponent)
     )
 
@@ -2240,6 +2249,47 @@ def main():
         )
     )
     parser.add_argument(
+        "--thin-ice-thickness-threshold",
+        type=float,
+        default=None,
+        help=(
+            "Ice thickness, in meters, below which the transition "
+            "velocity u0 is shrunk by --thin-ice-u0-factor before "
+            "being used in solve_transition_velocity(). Intended for "
+            "terrestrial margins where thickness is set to a thin "
+            "minimum value (e.g. 1 m): there, the ice overburden-"
+            "based effective pressure N is tiny even though water "
+            "pressure is 0, which otherwise drives Lambda = u0 / "
+            "(SECONDS_PER_YEAR * A * N^n) to a huge value that is "
+            "extremely sensitive to small drifts in N over the "
+            "course of a simulation (u_c = Lambda * A * N^n scales "
+            "as (N / N_diagnosis)^n, so a tiny absolute change in N "
+            "produces enormous swings in the RC law's effective "
+            "transition velocity when Lambda was calibrated against "
+            "a near-zero N). Shrinking u0 (and, self-consistently, "
+            "Lambda and C together) at these thin cells keeps Lambda "
+            "-- and the resulting u_c swings -- bounded to a modest, "
+            "well-behaved size, at the cost of biasing these "
+            "specific cells toward the RC law's Coulomb-plateau "
+            "regime (where stress saturates near C*N) rather than "
+            "the power-law regime. Only used when "
+            "--method=transition-velocity. If not set (default), no "
+            "thin-ice adjustment is applied."
+        )
+    )
+    parser.add_argument(
+        "--thin-ice-u0-factor",
+        type=float,
+        default=0.1,
+        help=(
+            "Multiplicative factor applied to the transition "
+            "velocity u0 at cells thinner than "
+            "--thin-ice-thickness-threshold (default: 0.1, i.e. u0 "
+            "shrunk to 1/10th). Only used when "
+            "--thin-ice-thickness-threshold is set."
+        )
+    )
+    parser.add_argument(
         "--mu-reference-value",
         type=float,
         default=0.3,
@@ -3022,6 +3072,12 @@ def main():
                 "--method=transition-velocity (got "
                 "--method=stress-match-fit)"
             )
+        if args.thin_ice_thickness_threshold is not None:
+            parser.error(
+                "--thin-ice-thickness-threshold is only used with "
+                "--method=transition-velocity (got "
+                "--method=stress-match-fit)"
+            )
     else:
         if args.transition_velocity is None:
             parser.error(
@@ -3033,6 +3089,18 @@ def main():
                 "--critical-velocity is only used with "
                 "--method=stress-match-fit (got "
                 "--method=transition-velocity)"
+            )
+
+    if args.thin_ice_thickness_threshold is not None:
+        if args.thin_ice_thickness_threshold <= 0.0:
+            parser.error(
+                "--thin-ice-thickness-threshold must be > 0 (got "
+                f"{args.thin_ice_thickness_threshold:g})"
+            )
+        if args.thin_ice_u0_factor <= 0.0:
+            parser.error(
+                "--thin-ice-u0-factor must be > 0 (got "
+                f"{args.thin_ice_u0_factor:g})"
             )
 
     if args.flow_rate_type == "constant":
@@ -3573,8 +3641,38 @@ def main():
         # C are both computed in closed form from a fixed transition
         # velocity u0, with no fast/slow-region split -- see
         # solve_transition_velocity().
+        #
+        # --thin-ice-thickness-threshold (if set) shrinks u0 by
+        # --thin-ice-u0-factor at cells thinner than the threshold,
+        # before the Lambda/C solve. Terrestrial-margin cells often
+        # carry a thin minimum thickness (e.g. 1 m) with zero water
+        # pressure, so their ice-overburden-based N is tiny purely
+        # from the thin ice -- not from being at flotation. Left at
+        # the base u0, such cells get Lambda = u0 / (A * N^n) driven
+        # to a huge value that is calibrated against a near-zero N;
+        # since the implied transition velocity at runtime scales as
+        # u_c = Lambda * A * N^n = u0 * (N / N_diagnosis)^n, any
+        # small drift in N thereafter produces wildly disproportionate
+        # swings in u_c, destabilizing the RC law and producing
+        # spurious velocities. Shrinking u0 -- and, self-consistently,
+        # Lambda and C together -- keeps Lambda, and the resulting
+        # u_c swings, bounded to a modest size at these thin cells,
+        # at the cost of biasing them toward the RC law's
+        # Coulomb-plateau regime rather than the power-law regime.
         # ---------------------------------------------------------
-        fast_flowing = grounded & (speed > args.transition_velocity)
+        u0 = np.full_like(N, args.transition_velocity)
+        if args.thin_ice_thickness_threshold is not None:
+            thin_ice = H < args.thin_ice_thickness_threshold
+            u0[thin_ice] *= args.thin_ice_u0_factor
+            print(
+                f"Thin-ice u0 shrink (H < "
+                f"{args.thin_ice_thickness_threshold:g} m, factor "
+                f"{args.thin_ice_u0_factor:g}x) applied at "
+                f"{int(np.count_nonzero(thin_ice & grounded))} "
+                f"grounded cell(s)"
+            )
+
+        fast_flowing = grounded & (speed > u0)
         fit_mask = None
         local_C = None
 
@@ -3585,7 +3683,7 @@ def main():
             N_albany=N_albany,
             A=A,
             glen_n=args.glen_n,
-            transition_velocity=args.transition_velocity,
+            transition_velocity=u0,
             lambda_reference_value=args.lambda_reference_value,
             mu_reference_value=args.mu_reference_value,
             valid=speed_defined,
@@ -3902,6 +4000,12 @@ def main():
         print(f"Critical velocity, uc         : {args.critical_velocity:g}")
     else:
         print(f"Transition velocity, u0       : {args.transition_velocity:g}")
+        if args.thin_ice_thickness_threshold is not None:
+            print(
+                "Thin-ice u0 shrink            : "
+                f"H < {args.thin_ice_thickness_threshold:g} m -> "
+                f"u0 * {args.thin_ice_u0_factor:g}"
+            )
     print(f"Source power exponent, qW     : {args.weertman_q:g}")
     print(f"Source effective pressure type: {args.source_effective_pressure_type}")
     print(f"Effective pressure type       : {args.effective_pressure_type}")
@@ -4516,6 +4620,13 @@ def main():
         out.attrs["regularizedCoulomb_muReferenceValue"] = (
             float(args.mu_reference_value)
         )
+        if args.thin_ice_thickness_threshold is not None:
+            out.attrs["regularizedCoulomb_thinIceThicknessThreshold"] = (
+                float(args.thin_ice_thickness_threshold)
+            )
+            out.attrs["regularizedCoulomb_thinIceU0Factor"] = (
+                float(args.thin_ice_u0_factor)
+            )
     out.attrs["regularizedCoulomb_q"] = float(args.rc_power_exponent)
     out.attrs["weertman_q"] = float(args.weertman_q)
     out.attrs["regularizedCoulomb_GlenN"] = float(args.glen_n)
