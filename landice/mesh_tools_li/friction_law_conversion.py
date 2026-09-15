@@ -4570,6 +4570,51 @@ def main():
 
     print(f"Wrote converted IC: {args.output}")
 
+    # -------------------------------------------------------------
+    # Sidecar physics-options config file, consumed by
+    # refine_regularized_coulomb_mu.py so that a later refinement
+    # pass automatically uses the exact same physics options as this
+    # conversion, instead of relying on the user to re-specify every
+    # relevant CLI option identically by hand (a common, hard-to-spot
+    # source of error -- see refine_regularized_coulomb_mu.py's
+    # module docstring).
+    # -------------------------------------------------------------
+    config_path = args.output + ".config.json"
+    conversion_config = {
+        "weertman_q": args.weertman_q,
+        "rc_power_exponent": args.rc_power_exponent,
+        "glen_n": args.glen_n,
+        "flow_rate_type": args.flow_rate_type,
+        "flow_rate": args.flow_rate,
+        "temperature_field": args.temperature_field,
+        "effective_pressure_type": args.effective_pressure_type,
+        "effective_pressure_input_field": args.effective_pressure_input_field,
+        "min_fraction_overburden": args.min_fraction_overburden,
+        "pressure_length_scale": args.pressure_length_scale,
+        "transition_h_ocean": args.transition_h_ocean,
+        "source_effective_pressure_type": args.source_effective_pressure_type,
+        "source_effective_pressure": args.source_effective_pressure,
+        "source_effective_pressure_field": args.source_effective_pressure_field,
+        "source_min_fraction_overburden": args.source_min_fraction_overburden,
+        "source_pressure_length_scale": args.source_pressure_length_scale,
+        "source_transition_h_ocean": args.source_transition_h_ocean,
+        "rho_ice": args.rho_ice,
+        "rho_water": args.rho_water,
+        "gravity": args.gravity,
+        "mu_field": args.mu_field,
+        "lambda_field": args.lambda_field,
+        "thickness_field": args.thickness_field,
+        "bed_field": args.bed_field,
+        "ascii_mesh_dir": args.ascii_mesh_dir,
+        "area_field": args.area_field,
+        "velocity_x_field": args.velocity_x_field,
+        "velocity_y_field": args.velocity_y_field,
+        "time_index": args.time_index,
+    }
+    with open(config_path, "w") as f:
+        json.dump(conversion_config, f, indent=2, sort_keys=True)
+    print(f"Wrote physics-options config: {config_path}")
+
     if args.plot_transects:
         x_cell = np.asarray(ds["xCell"].values, dtype=np.float64)
         y_cell = np.asarray(ds["yCell"].values, dtype=np.float64)

@@ -23,7 +23,15 @@ Workflow
            albany_pass1_output.nc rc_pass2.nc [options]
 
    to produce a refined `rc_pass2.nc`, with C updated and Lambda left
-   unchanged.
+   unchanged. All physics options (weertman-q, effective-pressure-
+   type, flow-rate, etc.) are read automatically from the
+   `rc_pass1.nc.config.json` sidecar file that friction_law_
+   conversion.py writes next to its output, so they do not need to be
+   (and should not be) re-specified by hand here -- this avoids a
+   common, hard-to-spot source of error where a physics option given
+   to this script silently differs from the one used for the
+   original conversion. See --config for details, including how to
+   override individual options when intentionally desired.
 4. Re-run Albany with rc_pass2.nc in place of rc_pass1.nc, and repeat
    from step 2 as needed -- rc_pass2.nc becomes the new "previous
    conversion output" and its own Albany output becomes the new
@@ -98,6 +106,8 @@ invalid, or no valid/positive u_model) are left at C_old unchanged.
 """
 
 import argparse
+import json
+import os
 import shutil
 
 import numpy as np
@@ -105,6 +115,7 @@ import xarray as xr
 
 from friction_law_conversion import (
     ALBANY_EFFECTIVE_PRESSURE_PA_PER_UNIT,
+    RC_POWER_EXPONENT,
     SECONDS_PER_YEAR,
     albany_temperature_based_flow_rate,
     compute_named_effective_pressure,
@@ -113,6 +124,42 @@ from friction_law_conversion import (
     load_albany_ascii_geometry,
     ocean_connection_effective_pressure,
 )
+
+# Physics options this script needs to match friction_law_conversion.py's
+# original conversion exactly. Values here are friction_law_conversion.py's
+# own hardcoded defaults, used only as a last resort when a given option is
+# supplied neither on the command line nor via a conversion-config.json
+# sidecar file (see --config/parse_args()).
+HARD_DEFAULTS = {
+    "weertman_q": 0.2,
+    "rc_power_exponent": RC_POWER_EXPONENT,
+    "glen_n": 3.0,
+    "flow_rate_type": "temperature",
+    "flow_rate": None,
+    "temperature_field": "temperature",
+    "effective_pressure_type": "downs-johnson",
+    "effective_pressure_input_field": "effectivePressure",
+    "min_fraction_overburden": None,
+    "pressure_length_scale": None,
+    "transition_h_ocean": 25.0,
+    "source_effective_pressure_type": "constant",
+    "source_effective_pressure": 1.0,
+    "source_effective_pressure_field": "effectivePressure",
+    "source_min_fraction_overburden": None,
+    "source_pressure_length_scale": None,
+    "source_transition_h_ocean": 25.0,
+    "rho_ice": 910.0,
+    "rho_water": 1028.0,
+    "gravity": 9.80616,
+    "mu_field": "muFriction",
+    "lambda_field": "bedRoughnessRC",
+    "thickness_field": "thickness",
+    "bed_field": "bedTopography",
+    "ascii_mesh_dir": ".",
+    "velocity_x_field": "uReconstructX",
+    "velocity_y_field": "uReconstructY",
+    "time_index": 0,
+}
 
 
 def parse_args():
@@ -159,6 +206,25 @@ def parse_args():
         "output",
         help="Refined output file to write (C updated, Lambda unchanged)."
     )
+    parser.add_argument(
+        "--config",
+        default=None,
+        help=(
+            "Path to a physics-options JSON config file written by "
+            "friction_law_conversion.py (<its output>.config.json), "
+            "supplying default values for every physics option below "
+            "so they don't need to be re-specified by hand and kept "
+            "in sync with the original conversion run. Defaults to "
+            "'<previous_conversion_output>.config.json'. Explicit "
+            "CLI options always take precedence over the config "
+            "file; options given by neither fall back to "
+            "friction_law_conversion.py's own hardcoded defaults "
+            "(see HARD_DEFAULTS). A warning is printed for any option "
+            "where the CLI value overrides a *different* config-file "
+            "value, since that usually indicates an unintentional "
+            "mismatch."
+        )
+    )
 
     parser.add_argument(
         "--relaxation",
@@ -187,12 +253,13 @@ def parse_args():
         "--weertman-q", "--q",
         dest="weertman_q",
         type=float,
-        default=0.2,
+        default=None,
         help=(
             "Input Weertman/Power-Law sliding exponent qW, used to "
-            "compute Tau_b_target (default: 0.2). Must match the "
-            "value used for the original friction_law_conversion.py "
-            "run."
+            "compute Tau_b_target (default: friction_law_conversion."
+            "py's own default, 0.2, or the config-file value; see "
+            "--config). Must match the value used for the original "
+            "friction_law_conversion.py run."
         )
     )
     parser.add_argument(
@@ -202,36 +269,42 @@ def parse_args():
         help=(
             "Regularized Coulomb law's Power Exponent qR, used to "
             "compute k(u_model) (default: friction_law_conversion."
-            "py's own default, 1/3). Must match the value used for "
-            "the original friction_law_conversion.py run (see its "
+            "py's own default, 1/3, or the config-file value; see "
+            "--config). Must match the value used for the original "
+            "friction_law_conversion.py run (see its "
             "--rc-power-exponent)."
         )
     )
     parser.add_argument(
         "--glen-n",
         type=float,
-        default=3.0,
+        default=None,
         help=(
             "Glen-law exponent n, used to compute u_c(u_model) "
-            "(default: 3). Must match the original "
-            "friction_law_conversion.py run."
+            "(default: friction_law_conversion.py's own default, 3, "
+            "or the config-file value; see --config). Must match the "
+            "original friction_law_conversion.py run."
         )
     )
     parser.add_argument(
         "--flow-rate-type",
         choices=["temperature", "constant"],
-        default="temperature",
+        default=None,
         help=(
             "How to obtain the Glen flow rate A (default: "
-            "temperature); must match the original "
-            "friction_law_conversion.py run. See that script's "
-            "--flow-rate-type for details."
+            "friction_law_conversion.py's own default, temperature, "
+            "or the config-file value; see --config); must match the "
+            "original friction_law_conversion.py run. See that "
+            "script's --flow-rate-type for details."
         )
     )
     parser.add_argument(
         "--temperature-field",
-        default="temperature",
-        help="Ice temperature field [K] (default: temperature)"
+        default=None,
+        help=(
+            "Ice temperature field [K] (default: temperature, or the "
+            "config-file value; see --config)"
+        )
     )
     parser.add_argument(
         "--flow-rate",
@@ -239,7 +312,8 @@ def parse_args():
         default=None,
         help=(
             "Constant Glen flow rate A [Pa^-3 s^-1], required when "
-            "--flow-rate-type=constant."
+            "--flow-rate-type=constant (default: the config-file "
+            "value, if any; see --config)."
         )
     )
 
@@ -248,20 +322,24 @@ def parse_args():
         choices=[
             "downs-johnson", "ocean-connection", "transition", "field",
         ],
-        default="downs-johnson",
+        default=None,
         help=(
-            "How to compute N (default: downs-johnson); must match "
-            "the original friction_law_conversion.py run. See that "
-            "script's --effective-pressure-type for details."
+            "How to compute N (default: friction_law_conversion.py's "
+            "own default, downs-johnson, or the config-file value; "
+            "see --config); must match the original "
+            "friction_law_conversion.py run. See that script's "
+            "--effective-pressure-type for details."
         )
     )
     parser.add_argument(
         "--effective-pressure-input-field",
-        default="effectivePressure",
+        default=None,
         help=(
             "Field holding a precomputed N [Pa], used only when "
-            "--effective-pressure-type=field. Read from "
-            "--effective-pressure-file (default: original_input)."
+            "--effective-pressure-type=field (default: "
+            "effectivePressure, or the config-file value; see "
+            "--config). Read from --effective-pressure-file (default: "
+            "original_input)."
         )
     )
     parser.add_argument(
@@ -278,7 +356,8 @@ def parse_args():
         help=(
             "Required for --effective-pressure-type/"
             "--source-effective-pressure-type of downs-johnson or "
-            "transition; see friction_law_conversion.py."
+            "transition (default: the config-file value, if any; "
+            "see --config); see friction_law_conversion.py."
         )
     )
     parser.add_argument(
@@ -286,12 +365,16 @@ def parse_args():
         help=(
             "Required for --effective-pressure-type/"
             "--source-effective-pressure-type of downs-johnson or "
-            "transition; see friction_law_conversion.py."
+            "transition (default: the config-file value, if any; "
+            "see --config); see friction_law_conversion.py."
         )
     )
     parser.add_argument(
-        "--transition-h-ocean", type=float, default=25.0,
-        help="Only used when --effective-pressure-type=transition."
+        "--transition-h-ocean", type=float, default=None,
+        help=(
+            "Only used when --effective-pressure-type=transition "
+            "(default: 25.0, or the config-file value; see --config)."
+        )
     )
 
     parser.add_argument(
@@ -300,56 +383,117 @@ def parse_args():
             "constant", "downs-johnson", "ocean-connection",
             "transition", "field",
         ],
-        default="constant",
+        default=None,
         help=(
             "How to compute N_source for Tau_b_target (default: "
-            "constant); must match the original "
-            "friction_law_conversion.py run."
+            "friction_law_conversion.py's own default, constant, or "
+            "the config-file value; see --config); must match the "
+            "original friction_law_conversion.py run."
         )
     )
     parser.add_argument(
-        "--source-effective-pressure", type=float, default=1.0,
-        help="Used when --source-effective-pressure-type=constant."
+        "--source-effective-pressure", type=float, default=None,
+        help=(
+            "Used when --source-effective-pressure-type=constant "
+            "(default: 1.0, or the config-file value; see --config)."
+        )
     )
     parser.add_argument(
         "--source-effective-pressure-field",
-        default="effectivePressure",
-        help="Used when --source-effective-pressure-type=field."
-    )
-    parser.add_argument(
-        "--source-min-fraction-overburden", type=float, default=None,
-    )
-    parser.add_argument(
-        "--source-pressure-length-scale", type=float, default=None,
-    )
-    parser.add_argument(
-        "--source-transition-h-ocean", type=float, default=25.0,
-    )
-
-    parser.add_argument("--rho-ice", type=float, default=910.0)
-    parser.add_argument("--rho-water", type=float, default=1028.0)
-    parser.add_argument("--gravity", type=float, default=9.80616)
-
-    parser.add_argument("--mu-field", default="muFriction")
-    parser.add_argument("--lambda-field", default="bedRoughnessRC")
-    parser.add_argument("--thickness-field", default="thickness")
-    parser.add_argument("--bed-field", default="bedTopography")
-    parser.add_argument("--ascii-mesh-dir", default=".")
-    parser.add_argument(
-        "--velocity-x-field", default="uReconstructX",
+        default=None,
         help=(
-            "Basal x-velocity field [m s^-1] (default: uReconstructX), "
-            "read from both original_input (for the original target "
-            "speed) and model_output (for u_model)."
+            "Used when --source-effective-pressure-type=field "
+            "(default: effectivePressure, or the config-file value; "
+            "see --config)."
         )
     )
     parser.add_argument(
-        "--velocity-y-field", default="uReconstructY",
-        help="Basal y-velocity field [m s^-1] (default: uReconstructY)"
+        "--source-min-fraction-overburden", type=float, default=None,
+        help="Default: the config-file value, if any; see --config."
     )
-    parser.add_argument("--time-index", type=int, default=0)
+    parser.add_argument(
+        "--source-pressure-length-scale", type=float, default=None,
+        help="Default: the config-file value, if any; see --config."
+    )
+    parser.add_argument(
+        "--source-transition-h-ocean", type=float, default=None,
+        help=(
+            "Default: 25.0, or the config-file value; see --config."
+        )
+    )
+
+    parser.add_argument("--rho-ice", type=float, default=None)
+    parser.add_argument("--rho-water", type=float, default=None)
+    parser.add_argument("--gravity", type=float, default=None)
+
+    parser.add_argument("--mu-field", default=None)
+    parser.add_argument("--lambda-field", default=None)
+    parser.add_argument("--thickness-field", default=None)
+    parser.add_argument("--bed-field", default=None)
+    parser.add_argument("--ascii-mesh-dir", default=None)
+    parser.add_argument(
+        "--velocity-x-field", default=None,
+        help=(
+            "Basal x-velocity field [m s^-1] (default: uReconstructX, "
+            "or the config-file value; see --config), read from both "
+            "original_input (for the original target speed) and "
+            "model_output (for u_model)."
+        )
+    )
+    parser.add_argument(
+        "--velocity-y-field", default=None,
+        help=(
+            "Basal y-velocity field [m s^-1] (default: uReconstructY, "
+            "or the config-file value; see --config)"
+        )
+    )
+    parser.add_argument("--time-index", type=int, default=None)
 
     args = parser.parse_args()
+
+    # -------------------------------------------------------------
+    # Merge in the physics-options config file written by
+    # friction_law_conversion.py (see HARD_DEFAULTS above and
+    # --config's help text): explicit CLI values always win; any
+    # option left at None falls back to the config file, then to
+    # friction_law_conversion.py's own hardcoded default.
+    # -------------------------------------------------------------
+    config_path = args.config
+    if config_path is None:
+        config_path = args.previous_conversion_output + ".config.json"
+    config = {}
+    if os.path.isfile(config_path):
+        with open(config_path) as f:
+            config = json.load(f)
+        print(f"Loaded physics-options config: {config_path}")
+    elif args.config is not None:
+        parser.error(f"--config file not found: {config_path!r}")
+    else:
+        print(
+            f"NOTE: no physics-options config file found at "
+            f"{config_path!r} (expected alongside "
+            "previous_conversion_output, written automatically by a "
+            "recent friction_law_conversion.py; see --config). "
+            "Falling back to explicit CLI options and/or "
+            "friction_law_conversion.py's own hardcoded defaults for "
+            "any physics option not given on the command line -- "
+            "double check these match the original conversion run."
+        )
+
+    for key, hard_default in HARD_DEFAULTS.items():
+        cli_value = getattr(args, key)
+        config_value = config.get(key)
+        if cli_value is not None:
+            if config_value is not None and cli_value != config_value:
+                print(
+                    f"NOTE: --{key.replace('_', '-')}={cli_value!r} "
+                    f"on the command line overrides the config-file "
+                    f"value {config_value!r} -- make sure this is "
+                    "intentional."
+                )
+            continue
+        setattr(args, key, config_value if config_value is not None
+                else hard_default)
 
     if args.flow_rate_type == "constant" and args.flow_rate is None:
         parser.error(
@@ -376,9 +520,6 @@ def parse_args():
             "--source-effective-pressure-type=downs-johnson or "
             "transition"
         )
-    if args.rc_power_exponent is None:
-        # Match friction_law_conversion.py's own default exactly.
-        args.rc_power_exponent = 1.0 / 3.0
 
     return args
 
