@@ -9,16 +9,18 @@ parser = ArgumentParser(description=__doc__,
                        formatter_class=RawDescriptionHelpFormatter)
 parser.add_argument('-i', '--input_file', dest='input_file', required=True,
                     metavar='FILENAME',
-                    help='MALI file (NetCDF format) containing muFriction'
-                         ' for Weertman friction law')
+                    help='MALI file (NetCDF format) containing muFriction')
 parser.add_argument('-o', '--output_file', dest='output_file', required=True,
                     metavar='FILENAME',
-                    help='Destination file for converted muFriction'
-                         ' for Budd friction law')
+                    help='Destination file for converted muFriction')
+parser.add_argument('-d', '--direction', dest='direction', required=True,
+                    choices=['weertman_to_budd', 'w2b', 'budd_to_weertman', 'b2w'],
+                    help='Conversion direction: weertman_to_budd (w2b) or budd_to_weertman (b2w)')
 args = parser.parse_args()
 
 input_filename = args.input_file
 output_filename = args.output_file
+direction = args.direction
 assert input_filename != output_filename, \
     "Input file and output file must have different names!"
 
@@ -161,19 +163,26 @@ denominator = xr.where(
     1.0e-12,
 )
 
-mu_friction /= denominator
-# First fill anomalously large muFriction values.
-mu_friction_filled = fill_large_values(
-    field=mu_friction,
-    x_cell=ds["xCell"],
-    y_cell=ds["yCell"],
-    maximum=mu_friction_max,
-    method=fill_method,
-    neighbors=idw_neighbors,
-    power=idw_power,
-)
+if direction in ('weertman_to_budd', 'w2b'):
+    # Convert from Weertman to Budd by dividing by effective pressure
+    mu_friction /= denominator
+    # First fill anomalously large muFriction values.
+    mu_friction_filled = fill_large_values(
+        field=mu_friction,
+        x_cell=ds["xCell"],
+        y_cell=ds["yCell"],
+        maximum=mu_friction_max,
+        method=fill_method,
+        neighbors=idw_neighbors,
+        power=idw_power,
+    )
+else:  # budd_to_weertman or b2w
+    # Convert from Budd to Weertman by multiplying by effective pressure
+    mu_friction *= denominator
+    # No need to fill large values when converting to Weertman
+    mu_friction_filled = mu_friction
 
-# Normalize the filled field and update the dataset.
+# Update the dataset.
 ds["muFriction"] = mu_friction_filled
 ds["muFriction"].attrs.update(mu_friction.attrs)
 
