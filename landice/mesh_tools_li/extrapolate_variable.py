@@ -16,6 +16,47 @@ import sys
 from datetime import datetime
 
 
+def extrapolate_into_mask(varValue, keepCellMask, cellNeighbors,
+                          neighborValid, xCell, yCell, method):
+    """Flood-fill varValue into cells where keepCellMask == 0.
+
+    Vectorized, ring-by-ring equivalent of the original per-cell neighbor
+    loop: each empty cell adjacent to the filled region takes the 'min' or
+    inverse-distance-weighted ('idw') value of its already-filled neighbors
+    (values frozen from the previous ring). Only the active frontier is
+    processed each ring, so the cost scales with the number of cells rather
+    than cells times rings. Cells not connected to any valid data are left
+    unchanged (the original loop would never terminate in that case).
+    """
+    Nc = np.where(neighborValid, cellNeighbors, 0)  # safe gather index
+    varValue = varValue.copy()
+    filled = keepCellMask.astype(bool).copy()
+    if method == 'idw':
+        with np.errstate(divide='ignore'):
+            dist = np.sqrt((xCell[:, None] - xCell[Nc]) ** 2 +
+                           (yCell[:, None] - yCell[Nc]) ** 2)
+            invDist = np.where(neighborValid,
+                               1.0 / np.where(dist == 0, np.inf, dist), 0.0)
+    elif method != 'min':
+        sys.exit("ERROR: wrong extrapolation scheme! Set option m as idw or min!")
+    newly = np.where(filled)[0]
+    while newly.size:
+        cand = np.unique(cellNeighbors[newly][neighborValid[newly]])
+        cand = cand[~filled[cand]]
+        if cand.size == 0:
+            break
+        nbFilled = neighborValid[cand] & filled[Nc[cand]]
+        neighVals = varValue[Nc[cand]]
+        if method == 'idw':
+            w = np.where(nbFilled, invDist[cand], 0.0)
+            varValue[cand] = np.sum(w * neighVals, axis=1) / np.sum(w, axis=1)
+        else:
+            varValue[cand] = np.where(nbFilled, neighVals, np.inf).min(axis=1)
+        filled[cand] = True
+        newly = cand
+    return varValue
+
+
 parser = OptionParser(
     description='Extrapolate a variable into undefined regions')
 
@@ -56,6 +97,10 @@ nEdgesOnCell = dataset.variables['nEdgesOnCell'][:]
 xCell = dataset.variables["yCell"][:]
 yCell = dataset.variables["xCell"][:]
 
+# Precompute 0-based neighbor indices once (phantom neighbors -> -1).
+cellNeighbors = cellsOnCell - 1
+neighborValid = cellNeighbors >= 0
+
 if dataset.variables[var_name].ndim == 2:
     has_vertical_dim = False
     n_vert = 1
@@ -88,12 +133,13 @@ for v in range(n_vert):
         groundedMask = (thickness > (-1. * rho_ocean / rho_ice * bed))
         keepCellMask = np.copy(groundedMask) * np.isfinite(varValue)
 
-        for iCell in range(nCells):
-            for n in range(nEdgesOnCell[iCell]):
-                jCell = cellsOnCell[iCell, n] - 1
-                if (groundedMask[jCell] == 1):
-                    keepCellMask[iCell] = 1
-                    continue
+        # Keep any cell that has a grounded neighbor (vectorized dilation over
+        # the real edges of each cell).
+        withinEdges = (np.arange(cellsOnCell.shape[1])[None, :] <
+                       nEdgesOnCell[:, None])
+        groundedNeighbor = (withinEdges &
+                            (groundedMask[cellsOnCell - 1] == 1)).any(axis=1)
+        keepCellMask[groundedNeighbor] = 1
         # ensure zero muFriction does not get extrapolated
         keepCellMask *= (varValue > 0)
         # Get rid of invalid values
@@ -112,60 +158,16 @@ for v in range(n_vert):
     # make a copy to edit that can be edited without changing the original
     keepCellMaskOrig = np.copy(keepCellMask)
 
-    # recursive extrapolation steps:
-    # 1) find cell A with mask = 0
-    # 2) find how many surrounding cells have nonzero mask, and
-    #    their indices (this will give us the cells from upstream)
-    # 3) use the values for nonzero mask upstream
-    #    cells toextrapolate the value for cell A
-    # 4) change the mask for A from 0 to 1
-    # 5) Update mask
-    # 6) go to step 1)
+    # Flood-fill extrapolation: repeatedly fill empty cells adjacent to the
+    # filled region using the 'min' or 'idw' value of their filled neighbors.
 
     print("\nStart {} extrapolation using {} method".format(var_name, extrapolation))
     if extrapolation == 'value':
         varValue[np.where(np.logical_not(keepCellMask))] = float(options.set_value)
     else:
-        while np.count_nonzero(keepCellMask) != nCells:
-            keepCellMask = np.copy(keepCellMaskNew)
-            searchCells = np.where(keepCellMask == 0)[0]
-            varValueOld = np.copy(varValue)
-
-            for iCell in searchCells:
-                neighborcellID = cellsOnCell[iCell, :nEdgesOnCell[iCell]]-1
-                # Important: ignore the phantom "neighbors" that are
-                # off the edge of the mesh (0 values in cellsOnCell)
-                neighborcellID = neighborcellID[neighborcellID >= 0]
-                # active cell mask
-                mask_for_idx = keepCellMask[neighborcellID]
-                mask_nonzero_idx, = np.nonzero(mask_for_idx)
-                # id for nonzero beta cells
-                nonzero_id = neighborcellID[mask_nonzero_idx]
-                nonzero_num = np.count_nonzero(mask_for_idx)
-
-                assert len(nonzero_id) == nonzero_num
-
-                if nonzero_num > 0:
-                    x_i = xCell[iCell]
-                    y_i = yCell[iCell]
-                    x_adj = xCell[nonzero_id]
-                    y_adj = yCell[nonzero_id]
-                    var_adj = varValueOld[nonzero_id]
-                    if extrapolation == 'idw':
-                        ds = np.sqrt((x_i - x_adj)**2 + (y_i - y_adj)**2)
-                        assert np.count_nonzero(ds) == len(ds)
-                        var_interp = 1.0 / sum(1.0 / ds) * sum(1.0 / ds * var_adj)
-                        varValue[iCell] = var_interp
-                    elif extrapolation == 'min':
-                        varValue[iCell] = np.min(var_adj)
-                    else:
-                        sys.exit("ERROR: wrong extrapolation scheme!"
-                                 " Set option m as idw or min!")
-
-                    keepCellMaskNew[iCell] = 1
-
-            print(f"{nCells-np.count_nonzero(keepCellMask)} cells left "
-                  f"for extrapolation in total {nCells} cells")
+        varValue = extrapolate_into_mask(
+            varValue, keepCellMask, cellNeighbors, neighborValid,
+            xCell, yCell, extrapolation)
 
     # Write updated array to file
     if has_vertical_dim == True:
