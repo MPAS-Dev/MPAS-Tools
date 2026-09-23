@@ -164,6 +164,7 @@ create_landice_grid_from_generic_mpas_grid = "mpas_tools.landice.create:create_f
 define_landice_cull_mask = "mpas_tools.landice.cull:define_cull_mask"
 interpolate_to_mpasli_grid = "mpas_tools.landice.interpolate:interpolate_to_mpasli_grid"
 mark_domain_boundaries_dirichlet = "mpas_tools.landice.boundary:mark_domain_boundaries_dirichlet"
+adjust_bed_to_haf = "mpas_tools.landice.adjust_bed_to_haf:adjust_bed_to_haf"
 add_critical_land_blockages_to_mask = "mpas_tools.ocean.coastline_alteration:main_add_critical_land_blockages"
 add_land_locked_cells_to_mask = "mpas_tools.ocean.coastline_alteration:main_add_land_locked_cells_to_mask"
 widen_transect_edge_masks = "mpas_tools.ocean.coastline_alteration:main_widen_transect_edge_masks"
