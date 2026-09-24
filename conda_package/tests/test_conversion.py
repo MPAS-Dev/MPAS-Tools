@@ -47,6 +47,41 @@ def test_conversion_angle_edge():
     assert np.max(np.abs(angle_diff)) < 1.0e-10
 
 
+def test_conversion_triangle_angle_quality():
+    ds_mesh = xarray.open_dataset(
+        get_test_data_file('mesh.QU.1920km.151026.nc')
+    )
+    ds_mesh = convert(dsIn=ds_mesh)
+
+    edges_on_vertex = ds_mesh.edgesOnVertex.values - 1
+    assert np.all(edges_on_vertex >= 0)
+    dc_edge = ds_mesh.dcEdge.values
+    a_len = dc_edge[edges_on_vertex[:, 0]]
+    b_len = dc_edge[edges_on_vertex[:, 1]]
+    c_len = dc_edge[edges_on_vertex[:, 2]]
+
+    # law of cosines for the angle opposite each side of the dual triangle
+    angle1 = np.arccos(
+        np.clip((b_len**2 + c_len**2 - a_len**2) / (2 * b_len * c_len), -1, 1)
+    )
+    angle2 = np.arccos(
+        np.clip((a_len**2 + c_len**2 - b_len**2) / (2 * a_len * c_len), -1, 1)
+    )
+    angle3 = np.arccos(
+        np.clip((a_len**2 + b_len**2 - c_len**2) / (2 * a_len * b_len), -1, 1)
+    )
+    angles = np.stack([angle1, angle2, angle3], axis=1)
+    assert np.max(np.abs(angles.sum(axis=1) - np.pi)) < 1.0e-10
+
+    min_angle = angles.min(axis=1)
+    max_angle = angles.max(axis=1)
+    quality = ds_mesh.triangleAngleQuality.values
+    assert np.max(np.abs(quality - min_angle / max_angle)) < 1.0e-10
+
+    obtuse = (max_angle > 0.5 * np.pi).astype(int)
+    assert np.array_equal(ds_mesh.obtuseTriangle.values, obtuse)
+
+
 def test_masks_to_int_dataset_copy():
     ds_in = xarray.Dataset(
         data_vars={
@@ -71,3 +106,4 @@ def test_masks_to_int_dataset_copy():
 if __name__ == '__main__':
     test_conversion()
     test_conversion_angle_edge()
+    test_conversion_triangle_angle_quality()
