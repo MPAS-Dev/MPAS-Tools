@@ -13,6 +13,7 @@ import numpy
 import xarray
 
 from mpas_tools.io import write_netcdf
+from mpas_tools.mesh.attrs import add_mesh_attrs
 
 
 def make_planar_hex_mesh(
@@ -83,6 +84,8 @@ def make_planar_hex_mesh(
     # drop some arrays that aren't standard for MPAS but were used to compute
     # the hex mesh
     mesh = mesh.drop_vars(['cellIdx', 'cellRow', 'cellCol'])
+
+    add_mesh_attrs(mesh)
 
     if outFileName is not None:
         write_netcdf(mesh, outFileName, format=format, engine=engine)

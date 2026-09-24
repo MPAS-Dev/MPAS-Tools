@@ -10,6 +10,7 @@ import argparse
 import numpy as np
 from netCDF4 import Dataset as NetCDFFile
 
+from mpas_tools.mesh.attrs import MESH_VAR_ATTRS, cf_conventions
 from mpas_tools.mesh.creation.util import circumcenter
 
 
@@ -150,6 +151,10 @@ def triangle_to_netcdf(node, ele, output_name):
         ),
     )
     var[:] = cellsOnVertex_full
+
+    for name, var in grid.variables.items():
+        var.setncatts(MESH_VAR_ATTRS.get(name, {}))
+    grid.Conventions = cf_conventions()
 
     grid.sync()
     grid.close()
