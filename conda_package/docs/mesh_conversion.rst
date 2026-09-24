@@ -79,6 +79,16 @@ Optional global attributes (passed through):
 If present, the ``file_id`` attribute is preserved as ``parent_id`` in the
 output mesh, and a new ``file_id`` is generated.
 
+The output mesh follows the `CF conventions <https://cfconventions.org/>`_.
+Its ``Conventions`` attribute is ``CF-1.8 MPAS``, keeping any CF version
+already in the input's ``Conventions``, and each mesh variable has a
+``long_name`` and, where they apply, ``units`` and ``standard_name``.
+``MpasCellCuller.x``, :py:func:`mpas_tools.planar_hex.make_planar_hex_mesh`
+and :py:func:`mpas_tools.mesh.creation.jigsaw_to_netcdf.jigsaw_to_netcdf`
+write the same metadata, which is listed in :py:mod:`mpas_tools.mesh.attrs`.
+Use :py:func:`mpas_tools.mesh.attrs.add_mesh_attrs` to add it to mesh
+variables that other tools create.
+
 The converter also generates a ``graph.info`` file for graph partitioning
 tools (e.g., Metis). In Python, this file is only written if the
 ``graphInfoFileName`` argument is provided.
