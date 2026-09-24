@@ -1,19 +1,31 @@
 #!/usr/bin/env python
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
+
+import argparse
 
 import numpy
 import xarray
-import argparse
 
 from mpas_tools.io import write_netcdf
 
 
-def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
-                         nonperiodic_y, outFileName=None,
-                         compareWithFileName=None,
-                         format=None, engine=None):
+def make_planar_hex_mesh(
+    nx,
+    ny,
+    dc,
+    nonperiodic_x,
+    nonperiodic_y,
+    outFileName=None,
+    compareWithFileName=None,
+    format=None,
+    engine=None,
+):
     """
     Builds an MPAS periodic, planar hexagonal mesh with the requested
     dimensions, optionally saving it to a file, and returns it as an
@@ -85,8 +97,10 @@ def make_planar_hex_mesh(nx, ny, dc, nonperiodic_x,
 def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
     """Setup the dimensions and add placeholders for some index variables"""
     if ny % 2 != 0:
-        raise ValueError('ny must be divisible by 2 for the grid\'s '
-                         'periodicity to work properly.')
+        raise ValueError(
+            "ny must be divisible by 2 for the grid's "
+            'periodicity to work properly.'
+        )
 
     mesh = xarray.Dataset()
 
@@ -96,19 +110,19 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
         mesh.attrs['is_periodic'] = 'YES'
 
     if nonperiodic_x:
-        mesh.attrs['x_period'] = 0.
+        mesh.attrs['x_period'] = 0.0
     else:
         mesh.attrs['x_period'] = nx * dc
     if nonperiodic_y:
-        mesh.attrs['y_period'] = 0.
+        mesh.attrs['y_period'] = 0.0
     else:
-        mesh.attrs['y_period'] = ny * dc * numpy.sqrt(3.) / 2.
+        mesh.attrs['y_period'] = ny * dc * numpy.sqrt(3.0) / 2.0
 
     mesh.attrs['dc'] = dc
     mesh.attrs['nx'] = nx
     mesh.attrs['ny'] = ny
     mesh.attrs['on_a_sphere'] = 'NO'
-    mesh.attrs['sphere_radius'] = 0.
+    mesh.attrs['sphere_radius'] = 0.0
 
     if nonperiodic_x:
         nx = nx + 2
@@ -127,8 +141,9 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
     indexToVertexID = numpy.arange(nVertices, dtype='i4')
 
     cellIdx = indexToCellID.reshape(ny, nx)
-    cellCol, cellRow = numpy.meshgrid(numpy.arange(nx, dtype='i4'),
-                                      numpy.arange(ny, dtype='i4'))
+    cellCol, cellRow = numpy.meshgrid(
+        numpy.arange(nx, dtype='i4'), numpy.arange(ny, dtype='i4')
+    )
 
     mesh['cellIdx'] = (('ny', 'nx'), cellIdx)
     mesh['cellRow'] = (('nCells',), cellRow.ravel())
@@ -141,25 +156,38 @@ def initial_setup(nx, ny, dc, nonperiodic_x, nonperiodic_y):
     mesh['cullCell'] = (('nCells',), numpy.zeros(nCells, 'i4'))
 
     mesh['nEdgesOnCell'] = (('nCells',), 6 * numpy.ones((nCells,), 'i4'))
-    mesh['cellsOnCell'] = (('nCells', 'maxEdges'),
-                           numpy.zeros((nCells, maxEdges), 'i4'))
-    mesh['edgesOnCell'] = (('nCells', 'maxEdges'),
-                           numpy.zeros((nCells, maxEdges), 'i4'))
-    mesh['verticesOnCell'] = (('nCells', 'maxEdges'),
-                              numpy.zeros((nCells, maxEdges), 'i4'))
+    mesh['cellsOnCell'] = (
+        ('nCells', 'maxEdges'),
+        numpy.zeros((nCells, maxEdges), 'i4'),
+    )
+    mesh['edgesOnCell'] = (
+        ('nCells', 'maxEdges'),
+        numpy.zeros((nCells, maxEdges), 'i4'),
+    )
+    mesh['verticesOnCell'] = (
+        ('nCells', 'maxEdges'),
+        numpy.zeros((nCells, maxEdges), 'i4'),
+    )
 
     mesh['nEdgesOnEdge'] = (('nEdges',), 10 * numpy.ones((nEdges,), 'i4'))
-    mesh['cellsOnEdge'] = (('nEdges', 'TWO'),
-                           numpy.zeros((nEdges, 2), 'i4'))
-    mesh['edgesOnEdge'] = (('nEdges', 'maxEdges2'),
-                           -1 * numpy.ones((nEdges, 2 * maxEdges), 'i4'))
-    mesh['verticesOnEdge'] = (('nEdges', 'TWO'),
-                              numpy.zeros((nEdges, 2), 'i4'))
+    mesh['cellsOnEdge'] = (('nEdges', 'TWO'), numpy.zeros((nEdges, 2), 'i4'))
+    mesh['edgesOnEdge'] = (
+        ('nEdges', 'maxEdges2'),
+        -1 * numpy.ones((nEdges, 2 * maxEdges), 'i4'),
+    )
+    mesh['verticesOnEdge'] = (
+        ('nEdges', 'TWO'),
+        numpy.zeros((nEdges, 2), 'i4'),
+    )
 
-    mesh['cellsOnVertex'] = (('nVertices', 'vertexDegree'),
-                             numpy.zeros((nVertices, vertexDegree), 'i4'))
-    mesh['edgesOnVertex'] = (('nVertices', 'vertexDegree'),
-                             numpy.zeros((nVertices, vertexDegree), 'i4'))
+    mesh['cellsOnVertex'] = (
+        ('nVertices', 'vertexDegree'),
+        numpy.zeros((nVertices, vertexDegree), 'i4'),
+    )
+    mesh['edgesOnVertex'] = (
+        ('nVertices', 'vertexDegree'),
+        numpy.zeros((nVertices, vertexDegree), 'i4'),
+    )
 
     return mesh
 
@@ -170,7 +198,7 @@ def mark_cull_cell_nonperiodic_y(mesh):
     nCells = mesh.sizes['nCells']
     nx = mesh.sizes['nx']
     cullCell[0:nx] = 1
-    cullCell[nCells - nx:nCells + 1] = 1
+    cullCell[nCells - nx : nCells + 1] = 1
 
 
 def mark_cull_cell_nonperiodic_x(mesh):
@@ -179,7 +207,7 @@ def mark_cull_cell_nonperiodic_x(mesh):
     nCells = mesh.sizes['nCells']
     nx = mesh.sizes['nx']
     cullCell[::nx] = 1
-    cullCell[nx - 1:nCells + 1:nx] = 1
+    cullCell[nx - 1 : nCells + 1 : nx] = 1
 
 
 def compute_indices_on_cell(mesh):
@@ -309,14 +337,19 @@ def compute_weights_on_edge(mesh):
 
     nEdges = mesh.sizes['nEdges']
     maxEdges2 = mesh.sizes['maxEdges2']
-    mesh['weightsOnEdge'] = (('nEdges', 'maxEdges2'),
-                             numpy.zeros((nEdges, maxEdges2), 'f8'))
+    mesh['weightsOnEdge'] = (
+        ('nEdges', 'maxEdges2'),
+        numpy.zeros((nEdges, maxEdges2), 'f8'),
+    )
     weightsOnEdge = mesh.weightsOnEdge
 
-    weights = (1. / numpy.sqrt(3.)) * numpy.array(
-        [[1. / 3., 1. / 6., 0., 1. / 6., 1. / 3.],
-         [1. / 3., -1. / 6., 0., 1. / 6., -1. / 3.],
-         [-1. / 3., -1. / 6., 0., -1. / 6., -1. / 3.]])
+    weights = (1.0 / numpy.sqrt(3.0)) * numpy.array(
+        [
+            [1.0 / 3.0, 1.0 / 6.0, 0.0, 1.0 / 6.0, 1.0 / 3.0],
+            [1.0 / 3.0, -1.0 / 6.0, 0.0, 1.0 / 6.0, -1.0 / 3.0],
+            [-1.0 / 3.0, -1.0 / 6.0, 0.0, -1.0 / 6.0, -1.0 / 3.0],
+        ]
+    )
     for i in range(3):
         for j in range(5):
             weightsOnEdge[edgesOnCell[:, i + 3], j] = weights[i, j]
@@ -350,7 +383,7 @@ def compute_coordinates(mesh):
     mask = numpy.mod(cellRow, 2) == 0
 
     mesh['xCell'] = (dc * (cellCol + 0.5)).where(mask, dc * (cellCol + 1))
-    mesh['yCell'] = dc * (cellRow + 1) * numpy.sqrt(3.) / 2.
+    mesh['yCell'] = dc * (cellRow + 1) * numpy.sqrt(3.0) / 2.0
     mesh['zCell'] = (('nCells',), numpy.zeros((nCells,), 'f8'))
 
     mesh['xEdge'] = (('nEdges',), numpy.zeros((nEdges,), 'f8'))
@@ -360,54 +393,77 @@ def compute_coordinates(mesh):
     mesh.xEdge[edgesOnCell[:, 0]] = mesh.xCell - 0.5 * dc
     mesh.yEdge[edgesOnCell[:, 0]] = mesh.yCell
 
-    mesh.xEdge[edgesOnCell[:, 1]] = mesh.xCell - \
-        0.5 * dc * numpy.cos(numpy.pi / 3.)
-    mesh.yEdge[edgesOnCell[:, 1]] = mesh.yCell - \
-        0.5 * dc * numpy.sin(numpy.pi / 3.)
+    mesh.xEdge[edgesOnCell[:, 1]] = mesh.xCell - 0.5 * dc * numpy.cos(
+        numpy.pi / 3.0
+    )
+    mesh.yEdge[edgesOnCell[:, 1]] = mesh.yCell - 0.5 * dc * numpy.sin(
+        numpy.pi / 3.0
+    )
 
-    mesh.xEdge[edgesOnCell[:, 2]] = mesh.xCell + \
-        0.5 * dc * numpy.cos(numpy.pi / 3.)
-    mesh.yEdge[edgesOnCell[:, 2]] = mesh.yCell - \
-        0.5 * dc * numpy.sin(numpy.pi / 3.)
+    mesh.xEdge[edgesOnCell[:, 2]] = mesh.xCell + 0.5 * dc * numpy.cos(
+        numpy.pi / 3.0
+    )
+    mesh.yEdge[edgesOnCell[:, 2]] = mesh.yCell - 0.5 * dc * numpy.sin(
+        numpy.pi / 3.0
+    )
 
     mesh['xVertex'] = (('nVertices',), numpy.zeros((nVertices,), 'f8'))
     mesh['yVertex'] = (('nVertices',), numpy.zeros((nVertices,), 'f8'))
     mesh['zVertex'] = (('nVertices',), numpy.zeros((nVertices,), 'f8'))
 
     mesh.xVertex[verticesOnCell[:, 0]] = mesh.xCell - 0.5 * dc
-    mesh.yVertex[verticesOnCell[:, 0]] = mesh.yCell + dc * numpy.sqrt(3.) / 6.
+    mesh.yVertex[verticesOnCell[:, 0]] = (
+        mesh.yCell + dc * numpy.sqrt(3.0) / 6.0
+    )
 
     mesh.xVertex[verticesOnCell[:, 1]] = mesh.xCell - 0.5 * dc
-    mesh.yVertex[verticesOnCell[:, 1]] = mesh.yCell - dc * numpy.sqrt(3.) / 6.
+    mesh.yVertex[verticesOnCell[:, 1]] = (
+        mesh.yCell - dc * numpy.sqrt(3.0) / 6.0
+    )
 
     mesh['angleEdge'] = (('nEdges',), numpy.zeros((nEdges,), 'f8'))
-    mesh.angleEdge[edgesOnCell[:, 1]] = numpy.pi / 3.
-    mesh.angleEdge[edgesOnCell[:, 2]] = 2. * numpy.pi / 3.
+    mesh.angleEdge[edgesOnCell[:, 1]] = numpy.pi / 3.0
+    mesh.angleEdge[edgesOnCell[:, 2]] = 2.0 * numpy.pi / 3.0
 
     mesh['dcEdge'] = (('nEdges',), dc * numpy.ones((nEdges,), 'f8'))
-    mesh['dvEdge'] = mesh.dcEdge * numpy.sqrt(3.) / 3.
+    mesh['dvEdge'] = mesh.dcEdge * numpy.sqrt(3.0) / 3.0
 
-    mesh['areaCell'] = \
-        (('nCells',), dc**2 * numpy.sqrt(3.) / 2. * numpy.ones((nCells,), 'f8'))
+    mesh['areaCell'] = (
+        ('nCells',),
+        dc**2 * numpy.sqrt(3.0) / 2.0 * numpy.ones((nCells,), 'f8'),
+    )
 
-    mesh['areaTriangle'] = \
-        (('nVertices',), dc**2 * numpy.sqrt(3.) /
-         4. * numpy.ones((nVertices,), 'f8'))
+    mesh['areaTriangle'] = (
+        ('nVertices',),
+        dc**2 * numpy.sqrt(3.0) / 4.0 * numpy.ones((nVertices,), 'f8'),
+    )
 
-    mesh['kiteAreasOnVertex'] = \
-        (('nVertices', 'vertexDegree'),
-         dc**2 * numpy.sqrt(3.) / 12. * numpy.ones((nVertices, vertexDegree),
-         'f8'))
+    mesh['kiteAreasOnVertex'] = (
+        ('nVertices', 'vertexDegree'),
+        dc**2
+        * numpy.sqrt(3.0)
+        / 12.0
+        * numpy.ones((nVertices, vertexDegree), 'f8'),
+    )
 
     mesh['meshDensity'] = (('nCells',), numpy.ones((nCells,), 'f8'))
 
 
 def add_one_to_indices(mesh):
     """Needed to adhere to Fortran indexing"""
-    indexVars = ['indexToCellID', 'indexToEdgeID', 'indexToVertexID',
-                 'cellsOnCell', 'edgesOnCell', 'verticesOnCell',
-                 'cellsOnEdge', 'edgesOnEdge', 'verticesOnEdge',
-                 'cellsOnVertex', 'edgesOnVertex']
+    indexVars = [
+        'indexToCellID',
+        'indexToEdgeID',
+        'indexToVertexID',
+        'cellsOnCell',
+        'edgesOnCell',
+        'verticesOnCell',
+        'cellsOnEdge',
+        'edgesOnEdge',
+        'verticesOnEdge',
+        'cellsOnVertex',
+        'edgesOnVertex',
+    ]
     for var in indexVars:
         mesh[var] = mesh[var] + 1
 
@@ -421,19 +477,19 @@ def make_diff(mesh, refMeshFileName, diffFileName):
             diff[variable] = mesh[variable] - refMesh[variable]
             print(diff[variable].name, float(numpy.abs(diff[variable]).max()))
         else:
-            print('mesh has extra variable {}'.format(mesh[variable].name))
+            print(f'mesh has extra variable {mesh[variable].name}')
 
     for variable in refMesh.data_vars:
         if variable not in mesh:
-            print('mesh mising variable {}'.format(refMesh[variable].name))
+            print(f'mesh mising variable {refMesh[variable].name}')
 
     for attr in refMesh.attrs:
         if attr not in mesh.attrs:
-            print('mesh mising attribute {}'.format(attr))
+            print(f'mesh mising attribute {attr}')
 
     for attr in mesh.attrs:
         if attr not in refMesh.attrs:
-            print('mesh has extra attribute {}'.format(attr))
+            print(f'mesh has extra attribute {attr}')
 
     write_netcdf(diff, diffFileName)
 
@@ -441,28 +497,55 @@ def make_diff(mesh, refMeshFileName, diffFileName):
 def main():
 
     parser = argparse.ArgumentParser(
-        description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('--nx', dest='nx', type=int, required=True,
-                        help='Cells in x direction')
-    parser.add_argument('--ny', dest='ny', type=int, required=True,
-                        help='Cells in y direction')
-    parser.add_argument('--dc', dest='dc', type=float, required=True,
-                        help='Distance between cell centers in meters')
-    parser.add_argument('--npx', '--nonperiodic_x', dest='nonperiodic_x',
-                        action="store_true",
-                        help='non-periodic in x direction')
-    parser.add_argument('--npy', '--nonperiodic_y', dest='nonperiodic_y',
-                        action="store_true",
-                        help='non-periodic in y direction')
-    parser.add_argument('-o', '--outFileName', dest='outFileName', type=str,
-                        required=False, default='grid.nc',
-                        help='The name of the output file')
+        description=__doc__, formatter_class=argparse.RawTextHelpFormatter
+    )
+    parser.add_argument(
+        '--nx', dest='nx', type=int, required=True, help='Cells in x direction'
+    )
+    parser.add_argument(
+        '--ny', dest='ny', type=int, required=True, help='Cells in y direction'
+    )
+    parser.add_argument(
+        '--dc',
+        dest='dc',
+        type=float,
+        required=True,
+        help='Distance between cell centers in meters',
+    )
+    parser.add_argument(
+        '--npx',
+        '--nonperiodic_x',
+        dest='nonperiodic_x',
+        action='store_true',
+        help='non-periodic in x direction',
+    )
+    parser.add_argument(
+        '--npy',
+        '--nonperiodic_y',
+        dest='nonperiodic_y',
+        action='store_true',
+        help='non-periodic in y direction',
+    )
+    parser.add_argument(
+        '-o',
+        '--outFileName',
+        dest='outFileName',
+        type=str,
+        required=False,
+        default='grid.nc',
+        help='The name of the output file',
+    )
 
     args = parser.parse_args()
 
-    make_planar_hex_mesh(args.nx, args.ny, args.dc,
-                         args.nonperiodic_x, args.nonperiodic_y,
-                         args.outFileName)
+    make_planar_hex_mesh(
+        args.nx,
+        args.ny,
+        args.dc,
+        args.nonperiodic_x,
+        args.nonperiodic_y,
+        args.outFileName,
+    )
 
 
 if __name__ == '__main__':
