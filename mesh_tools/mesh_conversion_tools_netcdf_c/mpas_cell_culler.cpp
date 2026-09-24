@@ -26,6 +26,7 @@ double sphere_radius, xPeriod, yPeriod;
 string in_history = "";
 string in_file_id = "";
 string in_parent_id = "";
+string in_conventions = "";
 string in_mesh_spec = "1.0";
 bool outputMap = false;
 
@@ -358,6 +359,14 @@ int readGridInput(const string inputFilename){/*{{{*/
     }
     try {
 #ifdef _DEBUG
+    cout << "   Reading Conventions" << endl;
+#endif
+    ncutil::get_str(inputFilename, "Conventions", in_conventions);
+    } catch (...) {
+    // allow errors for optional attr. not found
+    }
+    try {
+#ifdef _DEBUG
     cout << "   Reading parent_id" << endl;
 #endif
     ncutil::get_str(inputFilename, "parent_id", in_parent_id);
@@ -366,7 +375,7 @@ int readGridInput(const string inputFilename){/*{{{*/
     }
     try {
 #ifdef _DEBUG
-    cout << "   Reading parent_id" << endl;
+    cout << "   Reading mesh_spec" << endl;
 #endif
     ncutil::get_str(inputFilename, "mesh_spec", in_mesh_spec);
     } catch (...) {
@@ -771,7 +780,8 @@ int outputGridAttributes( const string inputFilename, const string outputFilenam
 
     ncutil::put_str(outputFilename, "history", history_str);
     ncutil::put_str(outputFilename, "mesh_spec", in_mesh_spec);
-    ncutil::put_str(outputFilename, "Conventions", "MPAS");
+    ncutil::put_str(outputFilename, "Conventions",
+        cf_conventions(in_conventions));
     ncutil::put_str(outputFilename, "source", "MpasCellCuller.x");
     ncutil::put_str(outputFilename, "file_id", id_str);
 

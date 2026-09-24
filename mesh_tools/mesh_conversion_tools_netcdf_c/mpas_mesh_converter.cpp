@@ -40,6 +40,7 @@ double xPeriodicFix, yPeriodicFix;
 string in_history = "";
 string in_file_id = "";
 string in_parent_id = "";
+string in_conventions = "";
 
 // Connectivity and location information {{{
 
@@ -353,6 +354,14 @@ int readGridInput(const string inputFilename){/*{{{*/
     cout << "   Reading file_id" << endl;
 #endif
     ncutil::get_str(inputFilename, "file_id", in_file_id);
+    } catch (...) {
+    // allow errors for optional attr. not found
+    }
+    try {
+#ifdef _DEBUG
+    cout << "   Reading Conventions" << endl;
+#endif
+    ncutil::get_str(inputFilename, "Conventions", in_conventions);
     } catch (...) {
     // allow errors for optional attr. not found
     }
@@ -2512,7 +2521,8 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 
     ncutil::put_str(outputFilename, "history", history_str);
     ncutil::put_str(outputFilename, "mesh_spec", mesh_spec_str);
-    ncutil::put_str(outputFilename, "Conventions", "MPAS");
+    ncutil::put_str(outputFilename, "Conventions",
+        cf_conventions(in_conventions));
     ncutil::put_str(outputFilename, "source", "MpasMeshConverter.x");
     ncutil::put_str(outputFilename, "file_id", id_str);
 
