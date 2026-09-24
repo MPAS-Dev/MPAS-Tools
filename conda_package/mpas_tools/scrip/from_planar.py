@@ -139,7 +139,7 @@ def main():
     )
     grid_corner_lon.units = 'degrees'
     grid_imask = fout.createVariable('grid_imask', 'i4', ('grid_size',))
-    grid_imask.units = 'unitless'
+    grid_imask.units = '1'
     grid_dims = fout.createVariable('grid_dims', 'i4', ('grid_rank',))
 
     # Create matrices of x,y
