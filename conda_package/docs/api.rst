@@ -85,6 +85,14 @@ Mesh conversion
    calc_edge_normal_vector
    calc_vector_east_north
 
+.. currentmodule:: mpas_tools.mesh.attrs
+
+.. autosummary::
+   :toctree: generated/
+
+   add_mesh_attrs
+   cf_conventions
+
 .. currentmodule:: mpas_tools.merge_grids
 
 .. autosummary::

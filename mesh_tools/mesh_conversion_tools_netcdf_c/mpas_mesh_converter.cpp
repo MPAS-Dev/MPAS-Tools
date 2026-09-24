@@ -40,6 +40,7 @@ double xPeriodicFix, yPeriodicFix;
 string in_history = "";
 string in_file_id = "";
 string in_parent_id = "";
+string in_conventions = "";
 
 // Connectivity and location information {{{
 
@@ -353,6 +354,14 @@ int readGridInput(const string inputFilename){/*{{{*/
     cout << "   Reading file_id" << endl;
 #endif
     ncutil::get_str(inputFilename, "file_id", in_file_id);
+    } catch (...) {
+    // allow errors for optional attr. not found
+    }
+    try {
+#ifdef _DEBUG
+    cout << "   Reading Conventions" << endl;
+#endif
+    ncutil::get_str(inputFilename, "Conventions", in_conventions);
     } catch (...) {
     // allow errors for optional attr. not found
     }
@@ -2512,7 +2521,8 @@ int outputGridAttributes( const string outputFilename, const string inputFilenam
 
     ncutil::put_str(outputFilename, "history", history_str);
     ncutil::put_str(outputFilename, "mesh_spec", mesh_spec_str);
-    ncutil::put_str(outputFilename, "Conventions", "MPAS");
+    ncutil::put_str(outputFilename, "Conventions",
+        cf_conventions(in_conventions));
     ncutil::put_str(outputFilename, "source", "MpasMeshConverter.x");
     ncutil::put_str(outputFilename, "file_id", id_str);
 
@@ -2564,26 +2574,28 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "latCell",
-        NC_DOUBLE, "latitudes of cell centres", {"nCells"});
+        NC_DOUBLE, "latitude of cell centers",
+        {"nCells"}, "radians", "latitude");
     ncutil::def_var(outputFilename, "lonCell",
-        NC_DOUBLE, "longitudes of cell centres", {"nCells"});
+        NC_DOUBLE, "longitude of cell centers",
+        {"nCells"}, "radians", "longitude");
 
     ncutil::put_var(outputFilename, "latCell", &lat[0]);
     ncutil::put_var(outputFilename, "lonCell", &lon[0]);
 
     ncutil::def_var(outputFilename, "xCell",
-        NC_DOUBLE, "x-coordinates of cell centres", {"nCells"});
+        NC_DOUBLE, "x coordinate of cell centers", {"nCells"}, "m");
     ncutil::def_var(outputFilename, "yCell",
-        NC_DOUBLE, "y-coordinates of cell centres", {"nCells"});
+        NC_DOUBLE, "y coordinate of cell centers", {"nCells"}, "m");
     ncutil::def_var(outputFilename, "zCell",
-        NC_DOUBLE, "z-coordinates of cell centres", {"nCells"});
+        NC_DOUBLE, "z coordinate of cell centers", {"nCells"}, "m");
 
     ncutil::put_var(outputFilename, "xCell", &x[0]);
     ncutil::put_var(outputFilename, "yCell", &y[0]);
     ncutil::put_var(outputFilename, "zCell", &z[0]);
 
     ncutil::def_var(outputFilename, "indexToCellID",
-        NC_INT, "index to cell ID mapping", {"nCells"});
+        NC_INT, "global index of each cell", {"nCells"});
 
     ncutil::put_var(outputFilename, "indexToCellID", &idxTo[0]);
 
@@ -2623,26 +2635,28 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "latEdge",
-        NC_DOUBLE, "latitudes of edge centres", {"nEdges"});
+        NC_DOUBLE, "latitude of edge midpoints",
+        {"nEdges"}, "radians", "latitude");
     ncutil::def_var(outputFilename, "lonEdge",
-        NC_DOUBLE, "longitudes of edge centres", {"nEdges"});
+        NC_DOUBLE, "longitude of edge midpoints",
+        {"nEdges"}, "radians", "longitude");
 
     ncutil::put_var(outputFilename, "latEdge", &lat[0]);
     ncutil::put_var(outputFilename, "lonEdge", &lon[0]);
 
     ncutil::def_var(outputFilename, "xEdge",
-        NC_DOUBLE, "x-coordinates of edge centres", {"nEdges"});
+        NC_DOUBLE, "x coordinate of edge midpoints", {"nEdges"}, "m");
     ncutil::def_var(outputFilename, "yEdge",
-        NC_DOUBLE, "y-coordinates of edge centres", {"nEdges"});
+        NC_DOUBLE, "y coordinate of edge midpoints", {"nEdges"}, "m");
     ncutil::def_var(outputFilename, "zEdge",
-        NC_DOUBLE, "z-coordinates of edge centres", {"nEdges"});
+        NC_DOUBLE, "z coordinate of edge midpoints", {"nEdges"}, "m");
 
     ncutil::put_var(outputFilename, "xEdge", &x[0]);
     ncutil::put_var(outputFilename, "yEdge", &y[0]);
     ncutil::put_var(outputFilename, "zEdge", &z[0]);
 
     ncutil::def_var(outputFilename, "indexToEdgeID",
-        NC_INT, "index to edge ID mapping", {"nEdges"});
+        NC_INT, "global index of each edge", {"nEdges"});
 
     ncutil::put_var(outputFilename, "indexToEdgeID", &idxTo[0]);
 
@@ -2682,26 +2696,28 @@ int outputGridCoordinates( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "latVertex",
-        NC_DOUBLE, "latitudes of vertices", {"nVertices"});
+        NC_DOUBLE, "latitude of vertices",
+        {"nVertices"}, "radians", "latitude");
     ncutil::def_var(outputFilename, "lonVertex",
-        NC_DOUBLE, "longitudes of vertices", {"nVertices"});
+        NC_DOUBLE, "longitude of vertices",
+        {"nVertices"}, "radians", "longitude");
 
     ncutil::put_var(outputFilename, "latVertex", &lat[0]);
     ncutil::put_var(outputFilename, "lonVertex", &lon[0]);
 
     ncutil::def_var(outputFilename, "xVertex",
-        NC_DOUBLE, "x-coordinates of vertices", {"nVertices"});
+        NC_DOUBLE, "x coordinate of vertices", {"nVertices"}, "m");
     ncutil::def_var(outputFilename, "yVertex",
-        NC_DOUBLE, "y-coordinates of vertices", {"nVertices"});
+        NC_DOUBLE, "y coordinate of vertices", {"nVertices"}, "m");
     ncutil::def_var(outputFilename, "zVertex",
-        NC_DOUBLE, "z-coordinates of vertices", {"nVertices"});
+        NC_DOUBLE, "z coordinate of vertices", {"nVertices"}, "m");
 
     ncutil::put_var(outputFilename, "xVertex", &x[0]);
     ncutil::put_var(outputFilename, "yVertex", &y[0]);
     ncutil::put_var(outputFilename, "zVertex", &z[0]);
 
     ncutil::def_var(outputFilename, "indexToVertexID",
-        NC_INT, "index to vertex ID mapping", {"nVertices"});
+        NC_INT, "global index of each vertex", {"nVertices"});
 
     ncutil::put_var(outputFilename, "indexToVertexID", &idxTo[0]);
 
@@ -2751,7 +2767,7 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "cellsOnCell",
-        NC_INT, "cells adj. to each cell", {"nCells", "maxEdges"});
+        NC_INT, "cells that neighbor each cell", {"nCells", "maxEdges"});
 
     ncutil::put_var(outputFilename, "cellsOnCell", &tmp_arr[0]);
 
@@ -2774,7 +2790,7 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "edgesOnCell",
-        NC_INT, "edges on each cell", {"nCells", "maxEdges"});
+        NC_INT, "edges that border each cell", {"nCells", "maxEdges"});
 
     ncutil::put_var(outputFilename, "edgesOnCell", &tmp_arr[0]);
 
@@ -2796,7 +2812,7 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "verticesOnCell",
-        NC_INT, "vertices on each cell", {"nCells", "maxEdges"});
+        NC_INT, "vertices that border each cell", {"nCells", "maxEdges"});
 
     ncutil::put_var(outputFilename, "verticesOnCell", &tmp_arr[0]);
 
@@ -2812,7 +2828,7 @@ int outputCellConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "nEdgesOnCell",
-        NC_INT, "number of edges on each cell", {"nCells"});
+        NC_INT, "number of edges that border each cell", {"nCells"});
 
     ncutil::put_var(outputFilename, "nEdgesOnCell", &tmp_arr[0]);
 
@@ -2864,7 +2880,8 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "edgesOnEdge",
-        NC_INT, "edges adj. to each edge", {"nEdges", "maxEdges2"});
+        NC_INT, "edges that border the cells that straddle each edge",
+        {"nEdges", "maxEdges2"});
 
     ncutil::put_var(outputFilename, "edgesOnEdge", &tmp_arr[0]);
 
@@ -2890,7 +2907,7 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "cellsOnEdge",
-        NC_INT, "cells adj. to each edge", {"nEdges", "TWO"});
+        NC_INT, "cells that straddle each edge", {"nEdges", "TWO"});
 
     ncutil::put_var(outputFilename, "cellsOnEdge", &tmp_arr[0]);
 
@@ -2907,7 +2924,7 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "verticesOnEdge",
-        NC_INT, "vertices on each edge", {"nEdges", "TWO"});
+        NC_INT, "vertices that straddle each edge", {"nEdges", "TWO"});
 
     ncutil::put_var(outputFilename, "verticesOnEdge", &tmp_arr[0]);
 
@@ -2922,7 +2939,8 @@ int outputEdgeConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "nEdgesOnEdge",
-        NC_INT, "number of edges on each edge", {"nEdges"});
+        NC_INT, "number of edges that border the cells that straddle each edge",
+        {"nEdges"});
 
     ncutil::put_var(outputFilename, "nEdgesOnEdge", &tmp_arr[0]);
 
@@ -2970,7 +2988,7 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "cellsOnVertex",
-        NC_INT, "vertices adj. to each vertex", {"nVertices", "vertexDegree"});
+        NC_INT, "cells that share each vertex", {"nVertices", "vertexDegree"});
 
     ncutil::put_var(outputFilename, "cellsOnVertex", &tmp_arr[0]);
 
@@ -2992,7 +3010,7 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "edgesOnVertex",
-        NC_INT, "edges adj. to each vertex", {"nVertices", "vertexDegree"});
+        NC_INT, "edges that share each vertex", {"nVertices", "vertexDegree"});
 
     ncutil::put_var(outputFilename, "edgesOnVertex", &tmp_arr[0]);
 
@@ -3012,7 +3030,8 @@ int outputVertexConnectivity( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "boundaryVertex",
-        NC_INT, "non-zero for each vertex on mesh boundary", {"nVertices"});
+        NC_INT, "mask of vertices with at least one inactive neighboring cell",
+        {"nVertices"});
 
     ncutil::put_var(outputFilename, "boundaryVertex", &tmp_arr[0]);
 
@@ -3041,7 +3060,8 @@ int outputCellParameters( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "areaCell",
-        NC_DOUBLE, "surface areas of cells", {"nCells"});
+        NC_DOUBLE, "area of each cell in the primal mesh",
+        {"nCells"}, "m2", "cell_area");
 
     ncutil::put_var(outputFilename, "areaCell", &areaCell[0]);
 
@@ -3072,7 +3092,8 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "areaTriangle",
-        NC_DOUBLE, "surface areas of dual cells", {"nVertices"});
+        NC_DOUBLE, "area of each triangle in the dual mesh",
+        {"nVertices"}, "m2");
 
     ncutil::put_var(outputFilename, "areaTriangle", &areaTriangle[0]);
 
@@ -3100,8 +3121,8 @@ int outputVertexParameters( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "kiteAreasOnVertex",
-        NC_DOUBLE,
-    "surface areas of overlap between cells and dual cells", {"nVertices", "vertexDegree"});
+        NC_DOUBLE, "area of the part of each dual cell in each cell on the vertex",
+        {"nVertices", "vertexDegree"}, "m2");
 
     ncutil::put_var(outputFilename, "kiteAreasOnVertex", &tmp_arr[0]);
 
@@ -3136,14 +3157,17 @@ int outputEdgeParameters( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "angleEdge",
-        NC_DOUBLE, "angle to edges", {"nEdges"}) ;
+        NC_DOUBLE, "angle between the normal of each edge and local east",
+        {"nEdges"}, "radians");
 
     ncutil::put_var(outputFilename, "angleEdge", &angleEdge[0]);
 
     ncutil::def_var(outputFilename, "dcEdge",
-        NC_DOUBLE, "length of arc between centres", {"nEdges"});
+        NC_DOUBLE, "distance between the centers of the cells on each edge",
+        {"nEdges"}, "m");
     ncutil::def_var(outputFilename, "dvEdge",
-        NC_DOUBLE, "length of arc between vertices", {"nEdges"});
+        NC_DOUBLE, "distance between the vertices at the ends of each edge",
+        {"nEdges"}, "m");
 
     ncutil::put_var(outputFilename, "dcEdge", &dcEdge[0]) ;
     ncutil::put_var(outputFilename, "dvEdge", &dvEdge[0]) ;
@@ -3167,7 +3191,8 @@ int outputEdgeParameters( const string outputFilename) {/*{{{*/
     }
 
     ncutil::def_var(outputFilename, "weightsOnEdge",
-        NC_DOUBLE, "tangential flux reconstruction weights", {"nEdges", "maxEdges2"});
+        NC_DOUBLE, "weights for reconstructing tangential velocity from edges on edge",
+        {"nEdges", "maxEdges2"}, "1");
 
     ncutil::put_var(outputFilename, "weightsOnEdge", &tmp_arr[0]);
 
@@ -3188,7 +3213,8 @@ int outputMeshDensity( const string outputFilename) {/*{{{*/
      * *************************************************************************/
 
     ncutil::def_var(outputFilename, "meshDensity",
-        NC_DOUBLE, "mesh density distribution", {"nCells"});
+        NC_DOUBLE, "value of the density function used to generate the mesh",
+        {"nCells"}, "1");
 
     ncutil::put_var(outputFilename, "meshDensity", &meshDensity[0]);
 
@@ -3207,29 +3233,32 @@ int outputMeshQualities( const string outputFilename) {/*{{{*/
      * *************************************************************************/
 
     ncutil::def_var(outputFilename, "cellQuality",
-        NC_DOUBLE, "quality of mesh cells", {"nCells"});
+        NC_DOUBLE, "ratio of the shortest to the longest edge of each cell",
+        {"nCells"}, "1");
 
     ncutil::put_var(outputFilename, "cellQuality", &cellQuality[0]);
 
     ncutil::def_var(outputFilename, "gridSpacing",
-        NC_DOUBLE, "grid spacing distribution", {"nCells"});
+        NC_DOUBLE, "mean distance from each cell center to its neighbors",
+        {"nCells"}, "m");
 
     ncutil::put_var(outputFilename, "gridSpacing", &cellQuality[0]);
 
     ncutil::def_var(outputFilename, "triangleQuality",
-        NC_DOUBLE, "quality of mesh dual cells", {"nVertices"});
+        NC_DOUBLE, "ratio of the shortest to the longest edge of each dual triangle",
+        {"nVertices"}, "1");
 
     ncutil::put_var(outputFilename, "triangleQuality", &triangleQuality[0]);
 
     ncutil::def_var(outputFilename, "triangleAngleQuality",
-        NC_DOUBLE, "quality of mesh dual cells", {"nVertices"});
+        NC_DOUBLE, "ratio of the smallest to the largest angle of each dual triangle",
+        {"nVertices"}, "1");
 
     ncutil::put_var(outputFilename,
         "triangleAngleQuality", &triangleAngleQuality [0]);
 
     ncutil::def_var(outputFilename, "obtuseTriangle",
-        NC_INT,
-    "non-zero for any dual cell containing obtuse angles", {"nVertices"});
+        NC_INT, "mask of dual triangles with an obtuse angle", {"nVertices"});
 
     ncutil::put_var(outputFilename, "obtuseTriangle", &obtuseTriangle[0]);
 
