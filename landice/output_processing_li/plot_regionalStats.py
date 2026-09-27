@@ -3,8 +3,35 @@
 Script to plot common time-series from one or more landice regionalStats files.
 Currently only useful for whole-AIS simulations.
 
+Observational Dataset Options:
+  This script supports multiple observational datasets for validation. Use CLI
+  options to select which datasets to plot:
+
+  --obs-melt: Shelf melt rates (single choice)
+  --obs-mass-balance: Mass balance data (SMB, outflow, net from single source)
+
+  Run with --list-datasets to see all available datasets with citations.
+
+  Default Behavior:
+    - Shelf melt: Adusumilli 2020
+    - Mass balance: Rignot 2019 (provides outflow only)
+
+  Examples:
+    # Use defaults
+    python plot_regionalStats.py -1 globalStats.nc
+
+    # Use Rignot 2013 for melt rates
+    python plot_regionalStats.py --obs-melt rignot2013 -1 globalStats.nc
+
+    # Use all Rignot 2008 data
+    python plot_regionalStats.py --obs-mass-balance rignot2008 --obs-melt rignot2013 -1 globalStats.nc
+
+
+    # List all available datasets with citations
+    python plot_regionalStats.py --list-datasets
 
 Matt Hoffman, 8/23/2022
+Updated with CLI-configurable datasets: Sept 2026
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -12,21 +39,353 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys
 import numpy as np
 from netCDF4 import Dataset
-from optparse import OptionParser
+from argparse import ArgumentParser
 import matplotlib.pyplot as plt
+plt.rcParams["text.hinting"] = "no_hinting"
 
 rhoi = 910.0
 
+# ============================================================================
+# OBSERVATIONAL DATASETS REGISTRY
+# ============================================================================
+# This registry contains all observational datasets available for comparison.
+# Each dataset includes citation information and data for all 16 ISMIP6 basins.
+
+OBSERVATIONAL_DATASETS = {
+    'mass_balance': {
+        'rignot2008': {
+            'citation': 'Rignot, E., Bamber, J., van den Broeke, M. et al. (2008). Nature Geosci 1, 106-110',
+            'year': 2000,
+            'variables': ['input', 'outflow', 'net'],
+            'description': 'SMB, ice discharge, and net mass balance for year 2000',
+            'data': {
+                'ISMIP6BasinAAp': {'input': [60,9], 'outflow': [60,7], 'net': [0, 11]},
+                'ISMIP6BasinApB': {'input': [39,5], 'outflow': [40,2], 'net': [-1,5]},
+                'ISMIP6BasinBC': {'input': [73, 10], 'outflow': [77,4], 'net': [-4, 11]},
+                'ISMIP6BasinCCp': {'input': [81, 13], 'outflow': [87,7], 'net':[-7,15]},
+                'ISMIP6BasinCpD': {'input': [198,37], 'outflow': [207,13], 'net': [-8,39]},
+                'ISMIP6BasinDDp': {'input': [93,14], 'outflow': [94,6], 'net': [-2,16]},
+                'ISMIP6BasinDpE': {'input': [20,1], 'outflow': [22,3], 'net': [-2,4]},
+                'ISMIP6BasinEF': {'input': [61+110,(10**2+7**2)**0.5], 'outflow': [49+80,(4**2+2**2)**0.5], 'net': [11+31,(11**2+7**2)**0.5]},
+                'ISMIP6BasinFG': {'input': [108,28], 'outflow': [128,18], 'net': [-19,33]},
+                'ISMIP6BasinGH': {'input': [177,25], 'outflow': [237,4], 'net': [-61,26]},
+                'ISMIP6BasinHHp': {'input': [51,16], 'outflow': [86,10], 'net': [-35,19]},
+                'ISMIP6BasinHpI': {'input': [71,21], 'outflow': [78,7], 'net': [-7,23]},
+                'ISMIP6BasinIIpp': {'input': [15,5], 'outflow': [20,3], 'net': [-5,6]},
+                'ISMIP6BasinIppJ': {'input': [8,4], 'outflow': [9,2], 'net': [-1,4]},
+                'ISMIP6BasinJK': {'input': [93+142, (8**2+11**2)**0.5], 'outflow': [75+145,(4**2+7**2)**0.5], 'net': [18-4,(9**2+13**2)**0.5]},
+                'ISMIP6BasinKA': {'input': [42+26,(8**2+7**2)**0.5], 'outflow': [45+28,(4**2+2**2)**0.5], 'net':[-3-1,(9**2+8**2)**0.5]}
+            }
+        },
+        'rignot2019': {
+            'citation': 'Rignot, E., Mouginot, J., Scheuchl, B., et al. (2019). PNAS 116(4), 1095-1103',
+            'year': '2009-2017',
+            'variables': ['input', 'outflow', 'net'],
+            'description': 'Ice discharge (D09-17) for 2009-2017 period; uses Rignot 2008 SMB',
+            'data': {
+                'ISMIP6BasinAAp': {'input': [60,9], 'outflow': [99.1,3.8], 'net': [-39.1, 9.8]},
+                'ISMIP6BasinApB': {'input': [39,5], 'outflow': [32.8,2.2], 'net': [6.2, 5.5]},
+                'ISMIP6BasinBC': {'input': [73, 10], 'outflow': [77.4,3.6], 'net': [-4.4, 10.6]},
+                'ISMIP6BasinCCp': {'input': [81, 13], 'outflow': [108.2,4.9], 'net': [-27.2, 13.9]},
+                'ISMIP6BasinCpD': {'input': [198,37], 'outflow': [107.6,2.6], 'net': [90.4, 37.1]},
+                'ISMIP6BasinDDp': {'input': [93,14], 'outflow': [60.5,2.1], 'net': [32.5, 14.2]},
+                'ISMIP6BasinDpE': {'input': [20,1], 'outflow': [25.9,0.8], 'net': [-5.9, 1.3]},
+                'ISMIP6BasinEF': {'input': [61+110,(10**2+7**2)**0.5], 'outflow': [136.7,6.7], 'net': [34.3, 12.6]},
+                'ISMIP6BasinFG': {'input': [108,28], 'outflow': [123.7,5.0], 'net': [-15.7, 28.4]},
+                'ISMIP6BasinGH': {'input': [177,25], 'outflow': [323.9,7.7], 'net': [-146.9, 26.2]},
+                'ISMIP6BasinHHp': {'input': [51,16], 'outflow': [74.7,3.3], 'net': [-23.7, 16.3]},
+                'ISMIP6BasinHpI': {'input': [71,21], 'outflow': [98.0,4.9], 'net': [-27.0, 21.6]},
+                'ISMIP6BasinIIpp': {'input': [15,5], 'outflow': [18.6,2.1], 'net': [-3.6, 5.4]},
+                'ISMIP6BasinIppJ': {'input': [8,4], 'outflow': [25.0,1.5], 'net': [-17.0, 4.3]},
+                'ISMIP6BasinJK': {'input': [93+142, (8**2+11**2)**0.5], 'outflow': [256.1,6.7], 'net': [-21.1, 14.1]},
+                'ISMIP6BasinKA': {'input': [42+26,(8**2+7**2)**0.5], 'outflow': [43.6,3.2], 'net': [24.4, 10.9]}
+            }
+        }
+    },
+    'shelf_melt': {
+        'rignot2013': {
+            'citation': 'Rignot, E., Jacobs, S., Mouginot, J., and Scheuchl, B. (2013). Science 341(6143), 266-270',
+            'year': 2013,
+            'description': 'Ice-shelf melting around Antarctica',
+            'data': {
+                'ISMIP6BasinAAp': [57.5, None],
+                'ISMIP6BasinApB': [24.6, None],
+                'ISMIP6BasinBC': [35.5, None],
+                'ISMIP6BasinCCp': [107.9, None],
+                'ISMIP6BasinCpD': [102.3, None],
+                'ISMIP6BasinDDp': [22.8, None],
+                'ISMIP6BasinDpE': [22.9, None],
+                'ISMIP6BasinEF': [70.3, None],
+                'ISMIP6BasinFG': [152.9, None],
+                'ISMIP6BasinGH': [290.9, None],
+                'ISMIP6BasinHHp': [76.3, None],
+                'ISMIP6BasinHpI': [152.3, None],
+                'ISMIP6BasinIIpp': [32.9, None],
+                'ISMIP6BasinIppJ': [4.3, None],
+                'ISMIP6BasinJK': [155.4, None],
+                'ISMIP6BasinKA': [10.4, None]
+            }
+        },
+        'adusumilli2020': {
+            'citation': 'Adusumilli, S., Fricker, H. A., Medley, B., et al. (2020). Nature Geoscience 13(9), 616-620',
+            'year': '2010-2018',
+            'description': 'Interannual variations in meltwater flux from ice shelves',
+            'data': {
+                'ISMIP6BasinAAp': [108.6, None],
+                'ISMIP6BasinApB': [7.4, 7.1],
+                'ISMIP6BasinBC': [48.9, 39.9],
+                'ISMIP6BasinCCp': [56.4, 52.3],
+                'ISMIP6BasinCpD': [77.1, 12.1],
+                'ISMIP6BasinDDp': [18.4, 8.9],
+                'ISMIP6BasinDpE': [14.1, 5.7],
+                'ISMIP6BasinEF': [104.3, 84.2],
+                'ISMIP6BasinFG': [141.5, 41.4],
+                'ISMIP6BasinGH': [327.9, 43.8],
+                'ISMIP6BasinHHp': [191.4, 69.7],
+                'ISMIP6BasinHpI': [143.3, 57.5],
+                'ISMIP6BasinIIpp': [68.5, 99.6],
+                'ISMIP6BasinIppJ': [35.3, 31.8],
+                'ISMIP6BasinJK': [54.8, 123.5],
+                'ISMIP6BasinKA': [42.3, 40.5]
+            }
+        }
+    },
+    'basin_names': {
+        'ISMIP6BasinAAp': 'Dronning Maud Land',
+        'ISMIP6BasinApB': 'Enderby Land',
+        'ISMIP6BasinBC': 'Amery-Lambert',
+        'ISMIP6BasinCCp': 'Phillipi, Denman',
+        'ISMIP6BasinCpD': 'Totten',
+        'ISMIP6BasinDDp': 'Mertz',
+        'ISMIP6BasinDpE': 'Victoria Land',
+        'ISMIP6BasinEF': 'Ross',
+        'ISMIP6BasinFG': 'Getz',
+        'ISMIP6BasinGH': 'Thwaites/PIG',
+        'ISMIP6BasinHHp': 'Bellingshausen',
+        'ISMIP6BasinHpI': 'George VI',
+        'ISMIP6BasinIIpp': 'Larsen A-C',
+        'ISMIP6BasinIppJ': 'Larsen E',
+        'ISMIP6BasinJK': 'FRIS',
+        'ISMIP6BasinKA': 'Brunt-Stancomb'
+    }
+}
+
+
+# ============================================================================
+# HELPER FUNCTIONS FOR DATASET MANAGEMENT
+# ============================================================================
+
+def list_available_datasets():
+    """
+    Print formatted list of all available observational datasets.
+    Called when --list-datasets flag is used.
+    """
+    print("\n" + "="*70)
+    print("AVAILABLE OBSERVATIONAL DATASETS")
+    print("="*70)
+
+    print("\nMass Balance Datasets (--obs-mass-balance):")
+    print("-" * 70)
+    for key, dataset in sorted(OBSERVATIONAL_DATASETS['mass_balance'].items()):
+        print(f"\n  {key}:")
+        print(f"    Variables: {', '.join(dataset['variables'])}")
+        print(f"    Year/Period: {dataset['year']}")
+        print(f"    Description: {dataset['description']}")
+        print(f"    Citation: {dataset['citation']}")
+
+    print("\n" + "-" * 70)
+    print("Shelf Melt Datasets (--obs-melt):")
+    print("-" * 70)
+    for key, dataset in sorted(OBSERVATIONAL_DATASETS['shelf_melt'].items()):
+        print(f"\n  {key}:")
+        print(f"    Year/Period: {dataset['year']}")
+        print(f"    Description: {dataset['description']}")
+        print(f"    Citation: {dataset['citation']}")
+
+    print("\n" + "="*70)
+    print("Usage Notes:")
+    print("  --obs-mass-balance provides SMB, outflow, and net from single source")
+    print("  Use 'none' for any option to skip plotting that variable")
+    print("="*70 + "\n")
+
+
+def get_dataset_label(dataset_type, dataset_key):
+    """
+    Generate short label for dataset (for plot legends).
+
+    Parameters
+    ----------
+    dataset_type : str
+        'mass_balance' or 'shelf_melt'
+    dataset_key : str
+        Dataset key (e.g., 'rignot2013')
+
+    Returns
+    -------
+    str
+        Short label (e.g., "Rignot 2013")
+    """
+    if dataset_key is None or dataset_key == 'none':
+        return ''
+
+    if dataset_type in OBSERVATIONAL_DATASETS:
+        if dataset_key in OBSERVATIONAL_DATASETS[dataset_type]:
+            citation = OBSERVATIONAL_DATASETS[dataset_type][dataset_key]['citation']
+            # Extract first author and year from citation
+            # Format: "Author, X., et al. (YEAR). ..."
+            try:
+                author = citation.split(',')[0]
+                year_part = citation.split('(')[1].split(')')[0]
+                # Handle year ranges like "2009-2017" - use end year
+                if '-' in year_part:
+                    year = year_part.split('-')[1]
+                else:
+                    year = year_part
+                return f"{author} {year}"
+            except:
+                return dataset_key
+
+    return dataset_key
+
+
+def validate_dataset_selections(mass_balance, melt_dataset):
+    """
+    Validate that selected datasets exist and are compatible.
+
+    Exits with error message if validation fails.
+    """
+    errors = []
+
+    # Check mass balance dataset exists
+    if mass_balance not in OBSERVATIONAL_DATASETS['mass_balance']:
+        errors.append(f"Unknown mass balance dataset: '{mass_balance}'")
+        errors.append(f"  Available: {', '.join(OBSERVATIONAL_DATASETS['mass_balance'].keys())}")
+
+    # Check melt dataset exists
+    if melt_dataset not in OBSERVATIONAL_DATASETS['shelf_melt']:
+        errors.append(f"Unknown shelf melt dataset: '{melt_dataset}'")
+        errors.append(f"  Available: {', '.join(OBSERVATIONAL_DATASETS['shelf_melt'].keys())}")
+
+    # Exit if any errors
+    if errors:
+        print("\n" + "="*60)
+        print("ERROR: Dataset validation failed")
+        print("="*60)
+        for error in errors:
+            print(f"  {error}")
+        print("\nUse --list-datasets to see all available options.")
+        print("="*60 + "\n")
+        sys.exit(1)
+
+
+def build_basin_info(mass_balance_dataset, melt_dataset):
+    """
+    Build ISMIP6basinInfo dictionary from selected observational datasets.
+
+    This function creates a dictionary compatible with the existing plotting code
+    by merging data from multiple dataset sources based on CLI selections.
+
+    Parameters
+    ----------
+    mass_balance_dataset : str
+        Dataset key for mass balance (provides SMB, outflow, net) - required
+    melt_dataset : str
+        Dataset key for shelf melt rates - required
+
+    Returns
+    -------
+    dict
+        Dictionary with structure:
+        {basin_key: {'name': str, 'input': [mean, unc], 'outflow': [mean, unc],
+                     'net': [mean, unc], 'shelfMelt': [[mean, unc]]}}
+
+    Notes
+    -----
+    - shelfMelt is a list containing a single [mean, uncertainty] pair
+    """
+    basin_info = {}
+
+    # Get all basin keys
+    all_basins = OBSERVATIONAL_DATASETS['basin_names'].keys()
+
+    for basin_key in all_basins:
+        basin_info[basin_key] = {
+            'name': OBSERVATIONAL_DATASETS['basin_names'][basin_key]
+        }
+
+        # Add mass balance data (SMB, outflow, net) from single dataset
+        dataset = OBSERVATIONAL_DATASETS['mass_balance'][mass_balance_dataset]
+        if basin_key in dataset['data']:
+            # Copy all available variables from this dataset
+            if 'input' in dataset['data'][basin_key]:
+                basin_info[basin_key]['input'] = dataset['data'][basin_key]['input']
+            if 'outflow' in dataset['data'][basin_key]:
+                basin_info[basin_key]['outflow'] = dataset['data'][basin_key]['outflow']
+            if 'net' in dataset['data'][basin_key]:
+                basin_info[basin_key]['net'] = dataset['data'][basin_key]['net']
+
+        # Add shelf melt dataset (single dataset in a list for compatibility)
+        if basin_key in OBSERVATIONAL_DATASETS['shelf_melt'][melt_dataset]['data']:
+            basin_info[basin_key]['shelfMelt'] = [
+                OBSERVATIONAL_DATASETS['shelf_melt'][melt_dataset]['data'][basin_key]
+            ]
+
+    return basin_info
+
+
+# ============================================================================
+# CLI ARGUMENT PARSING
+# ============================================================================
 
 print("** Gathering information.  (Invoke with --help for more details. All arguments are optional)")
-parser = OptionParser(description=__doc__)
-parser.add_option("-1", dest="file1inName", help="input filename", default="globalStats.nc", metavar="FILENAME")
-parser.add_option("-2", dest="file2inName", help="input filename", metavar="FILENAME")
-parser.add_option("-3", dest="file3inName", help="input filename", metavar="FILENAME")
-parser.add_option("-4", dest="file4inName", help="input filename", metavar="FILENAME")
-parser.add_option("-u", dest="units", help="units for mass/volume: m3, kg, Gt", default="Gt", metavar="FILENAME")
-parser.add_option("-n", dest="fileRegionNames", help="region name filename.  If not specified, will attempt to read region names from file 1.", metavar="FILENAME")
-options, args = parser.parse_args()
+parser = ArgumentParser(description=__doc__)
+
+# Existing arguments (preserved)
+parser.add_argument("-1", dest="file1inName", help="input filename",
+                    default="globalStats.nc", metavar="FILENAME")
+parser.add_argument("-2", dest="file2inName", help="input filename",
+                    metavar="FILENAME")
+parser.add_argument("-3", dest="file3inName", help="input filename",
+                    metavar="FILENAME")
+parser.add_argument("-4", dest="file4inName", help="input filename",
+                    metavar="FILENAME")
+parser.add_argument("-u", dest="units",
+                    help="units for mass/volume: m3, kg, Gt", default="Gt",
+                    metavar="UNITS")
+parser.add_argument("-n", dest="fileRegionNames",
+                    help="region name filename. If not specified, will attempt to read region names from file 1.",
+                    metavar="FILENAME")
+
+# New dataset options
+parser.add_argument("--obs-melt", dest="obsMeltDataset",
+                    help="Shelf melt dataset (choose one). Options: rignot2013, adusumilli2020",
+                    default="adusumilli2020")
+parser.add_argument("--obs-mass-balance", dest="obsMassBalanceDataset",
+                    help="Mass balance dataset (provides SMB, outflow, and net together). Options: rignot2008, rignot2019",
+                    default="rignot2019")
+parser.add_argument("--list-datasets", action="store_true",
+                    help="List available datasets and exit")
+
+options = parser.parse_args()
+
+# Handle --list-datasets
+if options.list_datasets:
+    list_available_datasets()
+    sys.exit(0)
+
+# Parse dataset selections
+selected_melt_dataset = options.obsMeltDataset
+selected_mass_balance = options.obsMassBalanceDataset
+
+# Validate selections
+validate_dataset_selections(selected_mass_balance, selected_melt_dataset)
+
+# Build basin info from selections
+ISMIP6basinInfo = build_basin_info(selected_mass_balance, selected_melt_dataset)
+
+# ============================================================================
+# MAIN SCRIPT (REMAINDER UNCHANGED FROM ORIGINAL)
+# ============================================================================
 
 print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
 
@@ -38,10 +397,6 @@ if options.file3inName:
     runinfo = f'{runinfo}\ndashed={options.file3inName}'
 if options.file4inName:
     runinfo = f'{runinfo}\ndashdot={options.file4inName}'
-
-#xtickSpacing = 20.0
-
-#xtickSpacing = 20.0
 
 if options.units == "m3":
    massUnit = "m$^3$"
@@ -70,49 +425,6 @@ for r in range(nRegions):
     thisString = rNamesIn[r, :].tobytes().decode('utf-8').strip()  # convert from char array to string
     rNamesOrig.append(''.join(filter(str.isalnum, thisString)))  # this bit removes non-alphanumeric chars
 
-# Antarctic data from:
-# Rignot, E., Bamber, J., van den Broeke, M. et al. Recent Antarctic ice mass loss from radar interferometry
-# and regional climate modelling. Nature Geosci 1, 106-110 (2008). https://doi.org/10.1038/ngeo102
-# Table 1: Mass balance of Antarctica in gigatonnes (10^12 kg) per year by sector for the year 2000
-# https://www.nature.com/articles/ngeo102/tables/1
-#
-# UPDATED with data from:
-# Rignot, E., Mouginot, J., Scheuchl, B., van den Broeke, M., van Wessem, M. J., & Morlighem, M. (2019).
-# Four decades of Antarctic Ice Sheet mass balance from 1979–2017.
-# Proceedings of the National Academy of Sciences, 116(4), 1095-1103. https://doi.org/10.1073/pnas.1812883116
-# Table 1: Ice discharge values (D09-17) for 2009-2017 period used to update outflow observations
-#
-# Ice-shelf melt rates from:
-# Rignot, E., S. Jacobs, J. Mouginot, and B. Scheuchl. 2013. Ice-Shelf Melting Around Antarctica. Science 341 (6143): 266-70. https://doi.org/10.1126/science.1235798.
-# and
-# Adusumilli, S., Fricker, H. A., Medley, B., Padman, L., & Siegfried, M. R. (2020).
-# Interannual variations in meltwater input to the Southern Ocean from Antarctic ice shelves.
-# Nature Geoscience, 13(9), 616-620. https://doi.org/10.1038/s41561-020-0616-z
-# Supplementary Table 1: Meltwater flux for 2010-2018 period
-#
-# Note: Some ISMIP6 basins combine multiple Rignot basins. Values are aggregated from individual basins.
-# input: SMB from Rignot 2008 (retained from original), outflow: D09-17 from Rignot 2019,
-# net: calculated as input-outflow
-# shelfMelt: [Rignot 2013 value, Adusumilli 2020 value] - both will be plotted for comparison
-ISMIP6basinInfo = {
-        'ISMIP6BasinAAp': {'name': 'Dronning Maud Land', 'input': [60,9], 'outflow': [99.1,3.8], 'net': [-39.1, 9.8], 'shelfMelt': [[57.5, None], [108.6, None]]},
-        'ISMIP6BasinApB': {'name': 'Enderby Land', 'input': [39,5], 'outflow': [32.8,2.2], 'net': [6.2,5.5], 'shelfMelt': [[24.6, None], [7.4, 7.1]]},
-        'ISMIP6BasinBC': {'name': 'Amery-Lambert', 'input': [73, 10], 'outflow': [77.4,3.6], 'net': [-4.4, 10.6], 'shelfMelt': [[35.5, None], [48.9, 39.9]]},
-        'ISMIP6BasinCCp': {'name': 'Phillipi, Denman', 'input': [81, 13], 'outflow': [108.2,4.9], 'net':[-27.2,13.9], 'shelfMelt': [[107.9, None], [56.4, 52.3]]},
-        'ISMIP6BasinCpD': {'name': 'Totten', 'input': [198,37], 'outflow': [107.6,2.6], 'net': [90.4,37.1], 'shelfMelt': [[102.3, None], [77.1, 12.1]]},
-        'ISMIP6BasinDDp': {'name': 'Mertz', 'input': [93,14], 'outflow': [60.5,2.1], 'net': [32.5,14.2], 'shelfMelt': [[22.8, None], [18.4, 8.9]]},
-        'ISMIP6BasinDpE': {'name': 'Victoria Land', 'input': [20,1], 'outflow': [25.9,0.8], 'net': [-5.9,1.3], 'shelfMelt': [[22.9, None], [14.1, 5.7]]},
-        'ISMIP6BasinEF': {'name': 'Ross', 'input': [61+110,(10**2+7**2)**0.5], 'outflow': [136.7,6.7], 'net': [34.3,12.6], 'shelfMelt': [[70.3, None], [104.3, 84.2]]},
-        'ISMIP6BasinFG': {'name': 'Getz', 'input': [108,28], 'outflow': [123.7,5.0], 'net': [-15.7,28.4], 'shelfMelt': [[152.9, None], [141.5, 41.4]]},
-        'ISMIP6BasinGH': {'name': 'Thwaites/PIG', 'input': [177,25], 'outflow': [323.9,7.7], 'net': [-146.9,26.2], 'shelfMelt': [[290.9, None], [327.9, 43.8]]},
-        'ISMIP6BasinHHp': {'name': 'Bellingshausen', 'input': [51,16], 'outflow': [74.7,3.3], 'net': [-23.7,16.3], 'shelfMelt': [[76.3, None], [191.4, 69.7]]},
-        'ISMIP6BasinHpI': {'name': 'George VI', 'input': [71,21], 'outflow': [98.0,4.9], 'net': [-27.0,21.6], 'shelfMelt': [[152.3, None], [143.3, 57.5]]},
-        'ISMIP6BasinIIpp': {'name': 'Larsen A-C', 'input': [15,5], 'outflow': [18.6,2.1], 'net': [-3.6,5.4], 'shelfMelt': [[32.9, None], [68.5, 99.6]]},
-        'ISMIP6BasinIppJ': {'name': 'Larsen E', 'input': [8,4], 'outflow': [25.0,1.5], 'net': [-17.0,4.3], 'shelfMelt': [[4.3, None], [35.3, 31.8]]},
-        'ISMIP6BasinJK': {'name': 'FRIS', 'input': [93+142, (8**2+11**2)**0.5], 'outflow': [256.1,6.7], 'net': [-21.1,14.1], 'shelfMelt': [[155.4, None], [54.8, 123.5]]},
-        'ISMIP6BasinKA': {'name': 'Brunt-Stancomb', 'input': [42+26,(8**2+7**2)**0.5], 'outflow': [43.6,3.2], 'net':[24.4,10.9], 'shelfMelt': [[10.4, None], [42.3, 40.5]]}
-        }
-
 # Parse region names to more usable names, if available
 rNames = [None]*nRegions
 for r in range(nRegions):
@@ -120,8 +432,6 @@ for r in range(nRegions):
         rNames[r] = ISMIP6basinInfo[rNamesOrig[r]]['name']
     else:
         rNames[r] = rNamesOrig[r]
-
-#print(rNames)
 
 if nRegions <= 4:
     ncol = 2
@@ -142,7 +452,6 @@ for reg in range(nRegions):
    plt.sca(axs1.flatten()[reg])
    plt.xlabel('Year')
    plt.ylabel('volume change ({})'.format(massUnit))
-   #plt.xticks(np.arange(22)*xtickSpacing)
    plt.grid()
    axs1.flatten()[reg].set_title(rNames[reg])
    if reg == 0:
@@ -150,9 +459,11 @@ for reg in range(nRegions):
    else:
       axs1.flatten()[reg].sharex(axX)
    # plot obs if applicable
-   if rNamesOrig[reg] in ISMIP6basinInfo:
+   if rNamesOrig[reg] in ISMIP6basinInfo and 'net' in ISMIP6basinInfo[rNamesOrig[reg]]:
        [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
-       axs1.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig), color='b', alpha=0.2, label='grd obs')
+       label = f'grd obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
+       axs1.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig),
+                                       color='b', alpha=0.2, label=label)
 
 # Set up Figure 2: grounded MB
 fig2, axs2 = plt.subplots(nrow, ncol, figsize=(13, 11), num=2)
@@ -163,7 +474,6 @@ for reg in range(nRegions):
       plt.xlabel('Year')
    if reg % ncol == 0:
       plt.ylabel('volume change ({})'.format(massUnit))
-   #plt.xticks(np.arange(22)*xtickSpacing)
    plt.grid()
    axs2.flatten()[reg].set_title(rNames[reg])
    if reg == 0:
@@ -173,11 +483,19 @@ for reg in range(nRegions):
    # plot obs if applicable
    if rNamesOrig[reg] in ISMIP6basinInfo:
        [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['input']
-       axs2.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig), color='b', alpha=0.2, label='SMB obs')
+       label = f'SMB obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
+       axs2.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig),
+                                       color='b', alpha=0.2, label=label)
+
        [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['outflow']
-       axs2.flatten()[reg].fill_between(yr, -yr*(mn-sig), -yr*(mn+sig), color='g', alpha=0.2, label='outflow obs')
+       label = f'outflow obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
+       axs2.flatten()[reg].fill_between(yr, -yr*(mn-sig), -yr*(mn+sig),
+                                       color='g', alpha=0.2, label=label)
+
        [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
-       axs2.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig), color='k', alpha=0.2, label='net obs')
+       label = f'net obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
+       axs2.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig),
+                                       color='k', alpha=0.2, label=label)
 
 
 # Set up Figure 3: floating MB
@@ -187,7 +505,6 @@ for reg in range(nRegions):
    plt.sca(axs3.flatten()[reg])
    plt.xlabel('Year')
    plt.ylabel('volume change ({})'.format(massUnit))
-   #plt.xticks(np.arange(22)*xtickSpacing)
    plt.grid()
    axs3.flatten()[reg].set_title(rNames[reg])
    if reg == 0:
@@ -202,7 +519,6 @@ for reg in range(nRegions):
    plt.sca(axs4.flatten()[reg])
    plt.xlabel('Year')
    plt.ylabel('Area change (km^2)')
-   #plt.xticks(np.arange(22)*xtickSpacing)
    plt.grid()
    axs4.flatten()[reg].set_title(rNames[reg])
    if reg == 0:
@@ -217,17 +533,22 @@ fig5.suptitle(f'regional contributions\n{runinfo}', fontsize=9)
 mnTot=0.0
 sigTot = 0.0
 for reg in range(nRegions):
-   if rNamesOrig[reg] in ISMIP6basinInfo:
-       [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
-       mnTot += mn
-       sigTot += sig**2
+    if rNamesOrig[reg] in ISMIP6basinInfo:
+        [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
+        mnTot += mn
+        sigTot += sig**2
+
 sigTot = sigTot**0.5
-axs5.flatten()[0].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot), color='k', alpha=0.2, label='net obs')
+label = f'net obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
+axs5.flatten()[0].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot),
+                               color='k', alpha=0.2, label=label)
+axs5.flatten()[1].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot),
+                               color='k', alpha=0.2, label=label)
+
 plt.sca(axs5.flatten()[0])
 plt.xlabel('Year')
 plt.ylabel('Mass change (Gt)')
 plt.grid()
-axs5.flatten()[1].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot), color='k', alpha=0.2, label='net obs')
 plt.sca(axs5.flatten()[1])
 plt.xlabel('Year')
 plt.ylabel('VAF mass change (Gt)')
@@ -241,7 +562,6 @@ for reg in range(nRegions):
    plt.sca(axs6.flatten()[reg])
    plt.xlabel('Year')
    plt.ylabel('Ice-shelf melt rate (Gt/yr)')
-   #plt.xticks(np.arange(22)*xtickSpacing)
    plt.grid()
    axs6.flatten()[reg].set_title(rNames[reg])
    if reg == 0:
@@ -249,19 +569,31 @@ for reg in range(nRegions):
    else:
       axs6.flatten()[reg].sharex(axX)
    if rNamesOrig[reg] in ISMIP6basinInfo:
-       # Plot Rignot 2013 melt rate
-       mlt_rignot = ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0][0]
-       axs6.flatten()[reg].plot(yr, np.ones(yr.shape)*(mlt_rignot), color='k', linestyle='-', label='Rignot 2013')
-       # Plot Adusumilli 2020 melt rate
-       mlt_adusumilli = ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][1]
-       if mlt_adusumilli[1] is not None:  # Has uncertainty
-           axs6.flatten()[reg].fill_between(yr,
-                                           np.ones(yr.shape)*(mlt_adusumilli[0]-mlt_adusumilli[1]),
-                                           np.ones(yr.shape)*(mlt_adusumilli[0]+mlt_adusumilli[1]),
-                                           color='b', alpha=0.2, label='Adusumilli 2020')
-           axs6.flatten()[reg].plot(yr, np.ones(yr.shape)*(mlt_adusumilli[0]), color='b', linestyle='--', linewidth=1.5)
+       # Get the melt data
+       melt_data = ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0]
+       melt_mean, melt_unc = melt_data[0], melt_data[1]
+
+       # Get label from selected dataset
+       label = f'melt obs ({get_dataset_label("shelf_melt", selected_melt_dataset)})'
+
+       if melt_unc is not None:
+           # Plot uncertainty band + center line
+           axs6.flatten()[reg].fill_between(
+               yr,
+               np.ones(yr.shape) * (melt_mean - melt_unc),
+               np.ones(yr.shape) * (melt_mean + melt_unc),
+               color='k', alpha=0.2, label=label
+           )
+           axs6.flatten()[reg].plot(
+               yr, np.ones(yr.shape) * melt_mean,
+               color='k', linestyle='-', linewidth=1.5
+           )
        else:
-           axs6.flatten()[reg].plot(yr, np.ones(yr.shape)*(mlt_adusumilli[0]), color='b', linestyle='--', label='Adusumilli 2020')
+           # Plot line only (no uncertainty)
+           axs6.flatten()[reg].plot(
+               yr, np.ones(yr.shape) * melt_mean,
+               color='k', linestyle='-', linewidth=1.5, label=label
+           )
 
 # Set up unit conversion factors to be used when reading variables
 if options.units == "m3":
@@ -285,7 +617,6 @@ def plotStat(fname, sty, addToLegend=False):
     f = Dataset(fname,'r')
     yr = f.variables['daysSinceStart'][:]/365.0
     dt = f.variables['deltat'][:]/(3600.0*24.0*365.0) # in yr
-    #yr = yr-yr[0]  # uncomment to align all start dates
     dtnR = np.tile(dt.reshape(len(dt),1), (1,nRegions))  # repeated per region with dim of nt,nRegions
     nRegionsLocal = len(f.dimensions['nRegions'])
     if nRegionsLocal != nRegions:
@@ -411,18 +742,14 @@ def plotStat(fname, sty, addToLegend=False):
         if rNamesOrig[r] == 'ISMIP6BasinGH':
            indTG = r
            break
-    #print(f'TG index={indTG}')
     axs5.flatten()[0].plot(yr, volGround.sum(axis=1), label='total', color='b', linestyle=sty)
     volGroundnoTG = np.delete(volGround, indTG, 1)
     axs5.flatten()[0].plot(yr, volGroundnoTG.sum(axis=1), label='no TG/PIG', color='c', linestyle=sty)
-    #for r in range(nRegions):
-       #axs5.flatten()[0].plot(yr, VAF[:,r] - VAF[0,r], label=rNames[r], linestyle=sty)
     axs5.flatten()[1].plot(yr, VAF.sum(axis=1), label='total', color='b', linestyle=sty)
     VAFnoTG = np.delete(VAF, indTG, 1)
     axs5.flatten()[1].plot(yr, VAFnoTG.sum(axis=1), label='no TG/PIG', color='c', linestyle=sty)
 
     # Fig. 6:  melt rates ---------
-    #BMB = np.where(BMB==0.0, BMB, np.nan*BMB)
     for r in range(nRegions):
         axs6.flatten()[r].plot(yr, -BMB[:,r], label=("BMB" if addToLegend else '_nolegend_'), linestyle=sty, color='b')
 
@@ -457,4 +784,3 @@ fig4.tight_layout()
 fig5.tight_layout()
 fig6.tight_layout()
 plt.show()
-
