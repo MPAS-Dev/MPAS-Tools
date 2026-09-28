@@ -658,6 +658,12 @@ def plotStat(fname, sty, addToLegend=False):
     for r in range(nRegions):
        axs2.flatten()[r].plot(yr, cumGrdSMB[:,r], label=lbl, linestyle=sty, color='b')
 
+    grdBMB = f.variables['regionalSumGroundedBasalMassBal'][:] * massUnitFactor
+    cumGrdBMB = np.cumsum(grdBMB*dtnR, axis=0)
+    lbl ='BMB' if addToLegend else '_nolegend_'
+    for r in range(nRegions):
+       axs2.flatten()[r].plot(yr, cumGrdBMB[:,r], label=lbl, linestyle=sty, color='c', lw=0.5)
+
     GLflux = f.variables['regionalSumGroundingLineFlux'][:] * massUnitFactor
     cumGLflux = np.cumsum(GLflux*dtnR, axis=0)
     lbl ='GL flux' if addToLegend else '_nolegend_'
@@ -671,7 +677,7 @@ def plotStat(fname, sty, addToLegend=False):
        axs2.flatten()[r].plot(yr, -1.0*cumGLMigflux[:,r], label=lbl, linestyle=sty, color='y')
 
     # sum of components
-    grdSum = grdSMB - GLflux - GLMigflux # note negative sign on two GL terms - they are both positive grounded to floating
+    grdSum = grdSMB + grdBMB - GLflux - GLMigflux # note negative sign on two GL terms - they are both positive grounded to floating
     cumGrdSum = np.cumsum(grdSum*dtnR, axis=0)
     lbl ='sum' if addToLegend else '_nolegend_'
     for r in range(nRegions):
