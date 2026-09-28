@@ -682,7 +682,7 @@ def plotStat(fname, sty, addToLegend=False):
     lbl ='sum' if addToLegend else '_nolegend_'
     for r in range(nRegions):
        axs2.flatten()[r].plot(yr, cumGrdSum[:,r], label=lbl, linestyle=sty, color='hotpink', linewidth=0.75)
-    grdSum2 = grdSMB - GLflux  # note negative sign on two GL terms - they are both positive grounded to floating
+    grdSum2 = grdSMB + GLMigflux  # version with migration flux removed - note the sign convention
     cumGrdSum2 = np.cumsum(grdSum2*dtnR, axis=0)
     lbl ='sum, no GLmig' if addToLegend else '_nolegend_'
     for r in range(nRegions):
