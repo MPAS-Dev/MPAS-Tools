@@ -664,6 +664,21 @@ def plotStat(fname, sty, addToLegend=False):
     for r in range(nRegions):
        axs2.flatten()[r].plot(yr, cumGrdBMB[:,r], label=lbl, linestyle=sty, color='c', lw=0.5)
 
+    if 'regionalSumCalvingFluxGrounded' in f.variables:
+       grdCalv = f.variables['regionalSumCalvingFluxGrounded'][:] * massUnitFactor
+    else:
+       grdCalv = grdBMB * 0.0  # set to zero if the stats file is missing this field
+    cumGrdCalv = np.cumsum(grdCalv*dtnR, axis=0)
+    lbl ='Grounded calving' if addToLegend else '_nolegend_'
+    for r in range(nRegions):
+       axs2.flatten()[r].plot(yr, -1.0*cumGrdCalv[:,r], label=lbl, linestyle=sty, color='lime')
+
+    FM = f.variables['regionalSumFaceMeltingFlux'][:] * massUnitFactor
+    cumFM = np.cumsum(FM*dtnR, axis=0)
+    lbl ='FM' if addToLegend else '_nolegend_'
+    for r in range(nRegions):
+       axs2.flatten()[r].plot(yr, -1.0*cumFM[:,r], label=lbl, linestyle=sty, color='m')
+
     GLflux = f.variables['regionalSumGroundingLineFlux'][:] * massUnitFactor
     cumGLflux = np.cumsum(GLflux*dtnR, axis=0)
     lbl ='GL flux' if addToLegend else '_nolegend_'
@@ -677,11 +692,12 @@ def plotStat(fname, sty, addToLegend=False):
        axs2.flatten()[r].plot(yr, -1.0*cumGLMigflux[:,r], label=lbl, linestyle=sty, color='y')
 
     # sum of components
-    grdSum = grdSMB + grdBMB - GLflux - GLMigflux # note negative sign on two GL terms - they are both positive grounded to floating
+    grdSum = grdSMB + grdBMB - grdCalv - FM - GLflux - GLMigflux # note negative sign on two GL terms - they are both positive grounded to floating
     cumGrdSum = np.cumsum(grdSum*dtnR, axis=0)
     lbl ='sum' if addToLegend else '_nolegend_'
     for r in range(nRegions):
        axs2.flatten()[r].plot(yr, cumGrdSum[:,r], label=lbl, linestyle=sty, color='hotpink', linewidth=0.75)
+
     grdSum2 = grdSMB + GLMigflux  # version with migration flux removed - note the sign convention
     cumGrdSum2 = np.cumsum(grdSum2*dtnR, axis=0)
     lbl ='sum, no GLmig' if addToLegend else '_nolegend_'
