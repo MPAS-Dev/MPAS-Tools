@@ -90,13 +90,7 @@ def effective_pressure4(
         0.0,
     )
 
-    # This cap guarantees that the transition begins at or below the
-    # prescribed inland value. Use np.minimum (not the Python builtin
-    # min()), since q_start/q_inland are arrays/broadcastable, not
-    # plain scalars.
-    q_start = np.minimum(q_start, q_inland)
-    # Keep the near-grounding-line branch bounded as well.
-    q_near_ocean = np.minimum(q_ocean, q_inland)
+    q_near_ocean = q_ocean
 
     if length_scale == 0.0:
         q = np.where(
@@ -124,9 +118,6 @@ def effective_pressure4(
             q_near_ocean,
             transition_q,
         )
-
-    # Roundoff safeguard.
-    q = np.clip(q, 0.0, q_inland)
 
     N = gravity * ice_term * q
 
