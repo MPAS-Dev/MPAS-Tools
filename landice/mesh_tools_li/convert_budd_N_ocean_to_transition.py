@@ -89,6 +89,8 @@ def effective_pressure4(
         rho_w * h_ocean / safe_ice_term,
         0.0,
     )
+    # WHen b>0, cap q_start to ensure q is continuous
+    q_start = np.minimum(q_start, 1.0)
 
     q_near_ocean = q_ocean
 
