@@ -194,36 +194,71 @@ def cull_ambiguous_edges(ds_masks):
     return n_culled
 
 
-def rename_to_mali_variables(ds_masks):
+def convert_to_compact_format(ds_masks):
     """
-    Rename transect variables/dims to MALI flux-gate names.
+    Convert sparse 2D transect masks to compact 1D per-edge gate IDs.
 
     MALI's fluxGatesInput stream reads:
-      - fluxGateEdgeMasks, fluxGateEdgeMasksSigns (nEdges, nFluxGates)
+      - fluxGateEdgeID(nEdges) - gate number (1..nFluxGates) per edge, 0 if none
+      - fluxGateEdgeSign(nEdges) - flux sign (-1/+1) per edge, 0 if none
+      - fluxGateNames(nFluxGates) - gate names
 
     mpas_tools produces:
-      - transectEdgeMasks, transectEdgeMaskSigns (nEdges, nTransects)
+      - transectEdgeMasks(nEdges, nTransects) - sparse 2D one-hot
+      - transectEdgeMaskSigns(nEdges, nTransects) - sparse 2D signs
+
+    For each edge, find which gate (if any) it belongs to and the corresponding sign.
+    Warns if an edge belongs to multiple gates (takes the first).
 
     Parameters
     ----------
     ds_masks : xarray.Dataset
-        Dataset with transect variables.
+        Dataset with transectEdgeMasks, transectEdgeMaskSigns, transectNames.
 
     Returns
     -------
     xarray.Dataset
-        Renamed dataset ready for MALI.
+        Compact format dataset with fluxGateEdgeID, fluxGateEdgeSign, fluxGateNames.
     """
-    rename_map = {
-        "transectEdgeMasks": "fluxGateEdgeMasks",
-        "transectEdgeMaskSigns": "fluxGateEdgeMasksSigns",
-        "nTransects": "nFluxGates",
-    }
-    # Also rename transectNames if present (optional, not read by MALI stream)
-    if "transectNames" in ds_masks:
-        rename_map["transectNames"] = "fluxGateNames"
+    masks = ds_masks["transectEdgeMasks"].values  # (nEdges, nTransects)
+    signs = ds_masks["transectEdgeMaskSigns"].values
+    n_edges, n_gates = masks.shape
 
-    return ds_masks.rename({k: v for k, v in rename_map.items() if k in ds_masks or k in ds_masks.dims})
+    # Find which gate each edge belongs to (argmax gives 0-based index)
+    # edges with no gates will have mask sum = 0
+    edge_gate_id = np.zeros(n_edges, dtype=np.int32)
+    edge_gate_sign = np.zeros(n_edges, dtype=np.int32)
+
+    n_overlap = 0
+    for i_edge in range(n_edges):
+        gate_indices = np.where(masks[i_edge, :] == 1)[0]
+        if len(gate_indices) > 0:
+            if len(gate_indices) > 1:
+                n_overlap += 1
+            # Use first gate (1-based indexing for MALI)
+            i_gate = gate_indices[0]
+            edge_gate_id[i_edge] = i_gate + 1  # 1-based
+            edge_gate_sign[i_edge] = signs[i_edge, i_gate]
+
+    if n_overlap > 0:
+        print(f"WARNING: {n_overlap} edges belong to multiple gates (using first gate)")
+
+    # Build compact dataset with proper dimensions
+    ds_compact = xr.Dataset(
+        {
+            "fluxGateEdgeID": (("nEdges",), edge_gate_id),
+            "fluxGateEdgeSign": (("nEdges",), edge_gate_sign),
+        },
+        coords={"nEdges": np.arange(n_edges)},
+    )
+
+    # Add gate names if present
+    if "transectNames" in ds_masks:
+        gate_names = ds_masks["transectNames"].values
+        ds_compact["fluxGateNames"] = (("nFluxGates",), gate_names)
+        ds_compact.coords["nFluxGates"] = np.arange(n_gates)
+
+    return ds_compact
 
 
 def main(argv=None):
@@ -351,17 +386,25 @@ def main(argv=None):
         n_culled = cull_ambiguous_edges(ds_masks)
         print(f"  {n_culled} edges culled from the transect mask")
 
-        print("Renaming variables to MALI convention ...")
-        ds_mali = rename_to_mali_variables(ds_masks)
+        print("Converting to compact format (per-edge gate IDs) ...")
+        ds_mali = convert_to_compact_format(ds_masks)
 
         print(f"Writing output: {args.output} ...")
         with LoggingContext("write_netcdf") as logger:
             write_netcdf(ds_mali, args.output, logger=logger)
 
         print(f"\nSuccess! Output file: {args.output}")
-        print(f"  Variables: fluxGateEdgeMasks, fluxGateEdgeMasksSigns")
+        print(f"  Variables: fluxGateEdgeID, fluxGateEdgeSign, fluxGateNames")
         print(f"  Dimensions: nEdges={ds_mali.sizes['nEdges']}, "
               f"nFluxGates={ds_mali.sizes['nFluxGates']}")
+
+        # Report file size savings
+        n_edges = ds_mali.sizes['nEdges']
+        n_gates = ds_mali.sizes['nFluxGates']
+        compact_size_mb = (2 * n_edges * 4) / (1024**2)  # 2 int32 arrays
+        onehot_size_mb = (2 * n_edges * n_gates * 4) / (1024**2)  # what it would have been
+        print(f"  File size: ~{compact_size_mb:.1f} MB (vs {onehot_size_mb:.1f} MB one-hot, "
+              f"{onehot_size_mb/compact_size_mb:.0f}x reduction)")
 
     finally:
         # Clean up temp geojson if we created it
