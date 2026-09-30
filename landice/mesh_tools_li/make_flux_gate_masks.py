@@ -238,8 +238,10 @@ def main(argv=None):
     parser.add_argument("-o", "--output", default="fluxGateMasks.nc",
                         help="Output mask file for MALI fluxGatesInput stream "
                              "(default: fluxGateMasks.nc)")
-    parser.add_argument("--gates", required=True, nargs="+", type=int,
+    parser.add_argument("--gates", nargs="+", type=int,
                         help="Gate IDs to include (space-separated)")
+    parser.add_argument("--all-gates", action="store_true",
+                        help="Process all gates found in the GeoPackage")
     parser.add_argument("--table", default="gates_final",
                         help="GeoPackage feature table name (default: gates_final)")
     parser.add_argument("--gate-field", default="gate",
@@ -270,6 +272,10 @@ def main(argv=None):
     args = parser.parse_args(argv)
 
     # Validate inputs
+    if not args.gates and not args.all_gates:
+        parser.error("Either --gates or --all-gates must be specified")
+    if args.gates and args.all_gates:
+        parser.error("Cannot specify both --gates and --all-gates")
     if not os.path.exists(args.gpkg):
         parser.error(f"GeoPackage file not found: {args.gpkg}")
     if not os.path.exists(args.mesh):
@@ -277,9 +283,21 @@ def main(argv=None):
     if os.path.exists(args.output) and not args.overwrite:
         parser.error(f"Output file exists: {args.output} (use --overwrite to replace)")
 
+    # Determine which gates to process
+    if args.all_gates:
+        print(f"Querying all gates from {args.gpkg} ...")
+        conn = sqlite3.connect(args.gpkg)
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT DISTINCT {args.gate_field} FROM {args.table} ORDER BY {args.gate_field}")
+        gate_ids = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        print(f"  Found {len(gate_ids)} gates")
+    else:
+        gate_ids = args.gates
+
     print(f"Reading gate coordinates from {args.gpkg} ...")
     gate_coords = read_gate_coordinates(
-        args.gpkg, args.gates, args.table, args.gate_field, args.x_field, args.y_field
+        args.gpkg, gate_ids, args.table, args.gate_field, args.x_field, args.y_field
     )
     for gate_id, coords in gate_coords.items():
         print(f"  Gate {gate_id}: {len(coords)} points")
