@@ -95,6 +95,7 @@ def read_gate_coordinates(gpkg_path, gate_ids, table="gates_final", gate_field="
                  f"Available gates: {available_gates}")
 
     gate_coords = {}
+    skipped = []
     for gate_id in gate_ids:
         cursor.execute(
             f"SELECT {x_field}, {y_field} FROM {table} "
@@ -103,12 +104,20 @@ def read_gate_coordinates(gpkg_path, gate_ids, table="gates_final", gate_field="
         )
         coords = cursor.fetchall()
         if len(coords) < 2:
-            conn.close()
-            sys.exit(f"ERROR: gate {gate_id} has only {len(coords)} points, "
-                     "need at least 2 to form a LineString")
-        gate_coords[gate_id] = coords
+            skipped.append((gate_id, len(coords)))
+        else:
+            gate_coords[gate_id] = coords
 
     conn.close()
+
+    if skipped:
+        print(f"WARNING: Skipped {len(skipped)} gate(s) with insufficient points:")
+        for gate_id, n_points in skipped:
+            print(f"  Gate {gate_id}: {n_points} point(s) (need at least 2)")
+
+    if not gate_coords:
+        sys.exit("ERROR: No valid gates found (all had fewer than 2 points)")
+
     return gate_coords
 
 
