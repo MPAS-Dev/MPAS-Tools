@@ -14,7 +14,7 @@ Observational Dataset Options:
 
   Default Behavior:
     - Shelf melt: Adusumilli 2020
-    - Mass balance: Rignot 2019 (provides outflow only)
+    - Mass balance: Rignot 2019
 
   Examples:
     # Use defaults
