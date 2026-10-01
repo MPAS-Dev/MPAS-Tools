@@ -8,8 +8,11 @@ edge mask file for use with the flux-gates analysis member.
 
 MALI's fluxGatesInput stream expects a NetCDF file with integer variables
 `fluxGateEdgeMasks` and `fluxGateEdgeMasksSigns` dimensioned (nEdges, nFluxGates).
+The output also includes `fluxGateNames` (from the gpkg `Mouginot_2019` field) and
+`fluxGateIds` (the gpkg `gate` number) dimensioned (nFluxGates).
 The script produces this from a GeoPackage by:
-  1. Reading per-pixel gate coordinates from the gpkg table (via sqlite3)
+  1. Reading per-pixel gate coordinates and Mouginot_2019 names from the gpkg table
+     (via sqlite3)
   2. Transforming coordinates to EPSG:4326 and building LineString transects
   3. Calling mpas_tools.mesh.mask.compute_mpas_transect_masks to compute edge masks
   4. Culling ambiguous edges (mask==1 & sign==0)
@@ -51,9 +54,10 @@ from shapely.geometry import mapping
 
 
 def read_gate_coordinates(gpkg_path, gate_ids, table="gates_final", gate_field="gate",
-                          x_field="x", y_field="y"):
+                          x_field="x", y_field="y", name_field="Mouginot_2019",
+                          name_prefix="gate"):
     """
-    Extract ordered (x, y) coordinates for each gate from a GeoPackage.
+    Extract ordered (x, y) coordinates and names for each gate from a GeoPackage.
 
     Parameters
     ----------
@@ -67,11 +71,17 @@ def read_gate_coordinates(gpkg_path, gate_ids, table="gates_final", gate_field="
         Column name identifying gate IDs.
     x_field, y_field : str
         Column names holding projected coordinates.
+    name_field : str
+        Column name holding the gate name (default: Mouginot_2019).
+    name_prefix : str
+        Prefix used for fallback/disambiguated names (e.g. "gate").
 
     Returns
     -------
-    dict
+    gate_coords : dict
         {gate_id: [(x1, y1), (x2, y2), ...]}
+    gate_names : dict
+        {gate_id: name}, with fallback/disambiguated names applied.
     """
     conn = sqlite3.connect(gpkg_path)
     cursor = conn.cursor()
@@ -79,7 +89,7 @@ def read_gate_coordinates(gpkg_path, gate_ids, table="gates_final", gate_field="
     # Validate columns exist
     cursor.execute(f"PRAGMA table_info({table})")
     columns = [row[1] for row in cursor.fetchall()]
-    missing = [f for f in [gate_field, x_field, y_field] if f not in columns]
+    missing = [f for f in [gate_field, x_field, y_field, name_field] if f not in columns]
     if missing:
         conn.close()
         sys.exit(f"ERROR: columns {missing} not found in table '{table}'. "
@@ -95,6 +105,7 @@ def read_gate_coordinates(gpkg_path, gate_ids, table="gates_final", gate_field="
                  f"Available gates: {available_gates}")
 
     gate_coords = {}
+    raw_names = {}
     skipped = []
     for gate_id in gate_ids:
         cursor.execute(
@@ -105,8 +116,15 @@ def read_gate_coordinates(gpkg_path, gate_ids, table="gates_final", gate_field="
         coords = cursor.fetchall()
         if len(coords) < 2:
             skipped.append((gate_id, len(coords)))
-        else:
-            gate_coords[gate_id] = coords
+            continue
+        gate_coords[gate_id] = coords
+
+        cursor.execute(
+            f"SELECT {name_field} FROM {table} WHERE {gate_field}=? LIMIT 1",
+            (gate_id,)
+        )
+        row = cursor.fetchone()
+        raw_names[gate_id] = row[0] if row else None
 
     conn.close()
 
@@ -118,10 +136,24 @@ def read_gate_coordinates(gpkg_path, gate_ids, table="gates_final", gate_field="
     if not gate_coords:
         sys.exit("ERROR: No valid gates found (all had fewer than 2 points)")
 
-    return gate_coords
+    # Fall back to a generated name when the name field is missing/empty
+    gate_names = {
+        gate_id: raw_names[gate_id] if raw_names[gate_id] else f"{name_prefix}{gate_id}"
+        for gate_id in gate_coords
+    }
+
+    # Disambiguate names shared by more than one gate
+    name_counts = {}
+    for name in gate_names.values():
+        name_counts[name] = name_counts.get(name, 0) + 1
+    for gate_id, name in gate_names.items():
+        if name_counts[name] > 1:
+            gate_names[gate_id] = f"{name}_{name_prefix}{gate_id}"
+
+    return gate_coords, gate_names
 
 
-def make_geojson_features(gate_coords, source_epsg, name_prefix="gate"):
+def make_geojson_features(gate_coords, gate_names, source_epsg):
     """
     Build GeoJSON features for geometric_features from gate coordinates.
 
@@ -129,10 +161,10 @@ def make_geojson_features(gate_coords, source_epsg, name_prefix="gate"):
     ----------
     gate_coords : dict
         {gate_id: [(x1, y1), ...]} in source CRS.
+    gate_names : dict
+        {gate_id: name} used for the feature "name" property.
     source_epsg : int
         EPSG code of the source coordinates.
-    name_prefix : str
-        Prefix for feature names (e.g. "gate28").
 
     Returns
     -------
@@ -156,11 +188,12 @@ def make_geojson_features(gate_coords, source_epsg, name_prefix="gate"):
         geometry = mapping(line)
 
         properties = {
-            "name": f"{name_prefix}{gate_id}",
+            "name": gate_names[gate_id],
             "component": "landice",
             "object": "transect",
             "tags": "",
-            "constituents": "",
+            # picked up by mpas_tools as a per-transect variable, renamed to fluxGateIds
+            "gateId": int(gate_id),
         }
 
         features.append({
@@ -218,12 +251,17 @@ def rename_to_mali_variables(ds_masks):
         "transectEdgeMasks": "fluxGateEdgeMasks",
         "transectEdgeMaskSigns": "fluxGateEdgeMasksSigns",
         "nTransects": "nFluxGates",
+        "gateId": "fluxGateIds",
     }
     # Also rename transectNames if present (optional, not read by MALI stream)
     if "transectNames" in ds_masks:
         rename_map["transectNames"] = "fluxGateNames"
 
-    return ds_masks.rename({k: v for k, v in rename_map.items() if k in ds_masks or k in ds_masks.dims})
+    ds_mali = ds_masks.rename({k: v for k, v in rename_map.items() if k in ds_masks or k in ds_masks.dims})
+    if "fluxGateIds" in ds_mali:
+        ds_mali["fluxGateIds"] = ds_mali["fluxGateIds"].astype("int32")
+
+    return ds_mali
 
 
 def main(argv=None):
@@ -253,7 +291,9 @@ def main(argv=None):
     parser.add_argument("--source-epsg", type=int, default=3413,
                         help="EPSG code of the gpkg coordinates (default: 3413)")
     parser.add_argument("--name-prefix", default="gate",
-                        help="Prefix for feature names (default: gate)")
+                        help="Prefix for fallback/disambiguated gate names, used when "
+                             "Mouginot_2019 is empty or shared by multiple gates "
+                             "(default: gate)")
     parser.add_argument("--geojson",
                         help="Path to save intermediate geojson (optional; temp file if omitted)")
     parser.add_argument("--subdivision", type=float, default=1000.0,
@@ -296,14 +336,15 @@ def main(argv=None):
         gate_ids = args.gates
 
     print(f"Reading gate coordinates from {args.gpkg} ...")
-    gate_coords = read_gate_coordinates(
-        args.gpkg, gate_ids, args.table, args.gate_field, args.x_field, args.y_field
+    gate_coords, gate_names = read_gate_coordinates(
+        args.gpkg, gate_ids, args.table, args.gate_field, args.x_field, args.y_field,
+        name_prefix=args.name_prefix
     )
     for gate_id, coords in gate_coords.items():
-        print(f"  Gate {gate_id}: {len(coords)} points")
+        print(f"  Gate {gate_id} ({gate_names[gate_id]}): {len(coords)} points")
 
     print(f"Building GeoJSON features (EPSG:{args.source_epsg} → 4326) ...")
-    features = make_geojson_features(gate_coords, args.source_epsg, args.name_prefix)
+    features = make_geojson_features(gate_coords, gate_names, args.source_epsg)
     fc = FeatureCollection(features)
 
     # Write geojson (temp or user-specified)
@@ -359,7 +400,8 @@ def main(argv=None):
             write_netcdf(ds_mali, args.output, logger=logger)
 
         print(f"\nSuccess! Output file: {args.output}")
-        print(f"  Variables: fluxGateEdgeMasks, fluxGateEdgeMasksSigns")
+        print(f"  Variables: fluxGateEdgeMasks, fluxGateEdgeMasksSigns, "
+              f"fluxGateNames, fluxGateIds")
         print(f"  Dimensions: nEdges={ds_mali.sizes['nEdges']}, "
               f"nFluxGates={ds_mali.sizes['nFluxGates']}")
 
