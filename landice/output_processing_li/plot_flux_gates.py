@@ -3,15 +3,24 @@
 Plot MALI flux-gate ice discharge against GEUS (Mankoff et al., 2020) observations,
 aggregated by Mouginot & Rignot (2019) drainage region.
 
-Reads one or more MALI fluxGatesOutput files (iceFluxThroughGates) and the gpkg used
-to build the mask file (see mesh_tools_li/make_flux_gate_masks.py), then matches each
-mask gate to the nearest gate in GEUS gate_meta.csv by (mean_x, mean_y) location rather
-than by gate ID number, since the two datasets can assign different numbers to the same
-physical gate. Compares regional totals against GEUS gate_D.csv / gate_err.csv.
+Reads one or more MALI fluxGatesOutput files per run (optionally several runs, for
+comparison) and the gpkg used to build the mask file (see
+mesh_tools_li/make_flux_gate_masks.py), then matches each mask gate to the nearest gate
+in GEUS gate_meta.csv by (mean_x, mean_y) location rather than by gate ID number, since
+the two datasets can assign different numbers to the same physical gate. Compares
+regional totals against GEUS gate_D.csv / gate_err.csv.
 
-Example usage:
+Example usage (single run):
     ./plot_flux_gates.py \\
         -f fluxGates.nc \\
+        -m fluxGateMasks.nc \\
+        -g gates.gpkg \\
+        -o flux_gates.png
+
+Example usage (comparing two runs, each split across yearly files):
+    ./plot_flux_gates.py \\
+        -f "run1/output/fluxGates_*.nc" "run2/output/fluxGates_*.nc" \\
+        --labels run1 run2 \\
         -m fluxGateMasks.nc \\
         -g gates.gpkg \\
         -o flux_gates.png
@@ -21,6 +30,7 @@ Created: 2026-10-01
 """
 
 import argparse
+import glob
 import os
 import sqlite3
 import sys
@@ -33,6 +43,23 @@ from netCDF4 import Dataset, chartostring
 REGIONS = ['NO', 'NE', 'CE', 'SE', 'SW', 'CW', 'NW']
 DEFAULT_OBS_DIR = '/global/cfs/cdirs/m4288/users/trhille/ISMIP7/gris_flux_gates'
 DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+# Colors for run totals/per-gate lines when comparing multiple runs; tab:blue is
+# reserved for GEUS observations.
+RUN_COLORS = ['tab:orange', 'tab:green', 'tab:red', 'tab:purple', 'tab:brown',
+              'tab:pink', 'tab:gray', 'tab:olive', 'tab:cyan']
+
+
+def expand_run(pattern):
+    """Expand a single run specifier (a file path or a glob pattern) into its file list."""
+    matches = sorted(glob.glob(pattern))
+    return matches if matches else [pattern]
+
+
+def get_run_styles(n_runs):
+    """Return (total_color, gate_color) per run; black/gray for a single run, else RUN_COLORS."""
+    if n_runs == 1:
+        return [('black', 'gray')]
+    return [(RUN_COLORS[i % len(RUN_COLORS)], RUN_COLORS[i % len(RUN_COLORS)]) for i in range(n_runs)]
 
 
 def xtime_to_decimal_year(xtime_strs):
@@ -213,13 +240,20 @@ def aggregate_obs(gate_D, gate_err, region_of_gate):
     return region_gates, region_D, region_err, gis_D, gis_err
 
 
-def plot_panel(ax, mali_years, flux, gate_indices, mali_total,
-               obs_years, obs_gate_D, obs_D, obs_err, title):
-    """Plot per-gate MALI fluxes (gray), per-gate GEUS obs (light blue), and both totals."""
-    for idx in gate_indices:
-        ax.plot(mali_years, flux[:, idx], color='gray', linewidth=0.5, alpha=0.6)
-    if mali_total is not None:
-        ax.plot(mali_years, mali_total, color='black', linewidth=1.5, label='MALI total')
+def plot_panel(ax, mali_runs, gate_indices, obs_years, obs_gate_D, obs_D, obs_err, title):
+    """
+    Plot per-gate MALI fluxes, each run's regional/GIS total, and GEUS obs (blue).
+
+    mali_runs : list of dict, each with keys 'label', 'years', 'flux', 'total',
+        'color', 'gate_color'. 'total' is the region/GIS total for that run, or None.
+    """
+    for run in mali_runs:
+        for idx in gate_indices:
+            ax.plot(run['years'], run['flux'][:, idx], color=run['gate_color'],
+                     linewidth=0.5, alpha=0.5)
+        if run['total'] is not None:
+            ax.plot(run['years'], run['total'], color=run['color'], linewidth=1.5,
+                     label=run['label'])
     if obs_gate_D is not None:
         for gid in obs_gate_D.columns:
             ax.plot(obs_years, obs_gate_D[gid].values, color='tab:blue', linewidth=0.5, alpha=0.4)
@@ -238,7 +272,14 @@ def main(argv=None):
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument('-f', '--flux-files', nargs='+', required=True,
-                        help='MALI fluxGatesOutput file(s) (e.g. fluxGates.nc)')
+                        help='One run specifier per run, space-separated: a single '
+                             'fluxGates.nc file, or a quoted glob pattern matching the '
+                             'multiple files of one run (e.g. "run1/output/fluxGates_*.nc"). '
+                             'Give multiple specifiers to compare runs.')
+    parser.add_argument('--labels', nargs='+',
+                        help='Label for each run, in the order given by -f (default: '
+                             '"MALI total" for a single run, or "Run 1", "Run 2", ... '
+                             'for multiple runs)')
     parser.add_argument('-m', '--mask-file', required=True,
                         help='Flux-gate mask file with fluxGateIds (from make_flux_gate_masks.py)')
     parser.add_argument('-g', '--gpkg', required=True,
@@ -257,22 +298,47 @@ def main(argv=None):
                         help='Display the figure interactively')
     args = parser.parse_args(argv)
 
-    print(f"Reading MALI flux output: {args.flux_files}")
-    years, flux = load_mali_flux(args.flux_files)
+    run_file_lists = [expand_run(pattern) for pattern in args.flux_files]
+    if args.labels:
+        if len(args.labels) != len(run_file_lists):
+            parser.error(f"--labels count ({len(args.labels)}) must match number of runs "
+                         f"({len(run_file_lists)}, from -f arguments)")
+        labels = args.labels
+    elif len(run_file_lists) == 1:
+        labels = ['MALI total']
+    else:
+        labels = [f'Run {i + 1}' for i in range(len(run_file_lists))]
 
     print(f"Reading gate IDs from mask file: {args.mask_file}")
     gate_ids = load_mask_gate_ids(args.mask_file)
-    if flux.shape[1] != len(gate_ids):
-        sys.exit(f"ERROR: nFluxGates mismatch between flux file(s) ({flux.shape[1]}) "
-                 f"and mask file ({len(gate_ids)})")
+
+    mali_runs_data = []
+    for label, run_files in zip(labels, run_file_lists):
+        print(f"Reading MALI flux output for '{label}': {run_files}")
+        run_years, run_flux = load_mali_flux(run_files)
+        if run_flux.shape[1] != len(gate_ids):
+            sys.exit(f"ERROR: nFluxGates mismatch for run '{label}' ({run_flux.shape[1]}) "
+                     f"and mask file ({len(gate_ids)})")
+        mali_runs_data.append({'label': label, 'years': run_years, 'flux': run_flux})
+
+    for run, (total_color, gate_color) in zip(mali_runs_data, get_run_styles(len(mali_runs_data))):
+        run['color'] = total_color
+        run['gate_color'] = gate_color
 
     print(f"Reading GEUS observations from: {args.obs_dir}")
     region_of_gate, gate_D, gate_err = load_observations(
         args.obs_dir, args.gpkg, gate_ids, tolerance=args.match_tolerance)
     obs_years = gate_D.index.year + (gate_D.index.dayofyear - 1) / 365.0
 
-    region_gate_indices, mali_region_totals, mali_gis_total = aggregate_mali(
-        flux, gate_ids, region_of_gate)
+    region_gate_indices = None
+    for run in mali_runs_data:
+        run_indices, run_region_totals, run_gis_total = aggregate_mali(
+            run['flux'], gate_ids, region_of_gate)
+        if region_gate_indices is None:
+            region_gate_indices = run_indices
+        run['region_totals'] = run_region_totals
+        run['gis_total'] = run_gis_total
+
     region_gates, obs_region_D, obs_region_err, obs_gis_D, obs_gis_err = aggregate_obs(
         gate_D, gate_err, region_of_gate)
     obs_region_gate_D = {
@@ -290,15 +356,19 @@ def main(argv=None):
             ax.axis('off')
             continue
         gate_word = 'gate' if len(indices) == 1 else 'gates'
-        plot_panel(ax, years, flux, indices, mali_region_totals[region],
+        region_runs = [
+            {**run, 'total': run['region_totals'][region]} for run in mali_runs_data
+        ]
+        plot_panel(ax, region_runs, indices,
                    obs_years, obs_region_gate_D[region], obs_region_D[region], obs_region_err[region],
                    f'{region} ({len(indices)} {gate_word})')
 
-    plot_panel(axs[7], years, flux, list(range(len(gate_ids))), mali_gis_total,
+    gis_runs = [{**run, 'total': run['gis_total']} for run in mali_runs_data]
+    plot_panel(axs[7], gis_runs, list(range(len(gate_ids))),
                obs_years, obs_gis_gate_D, obs_gis_D, obs_gis_err, 'Greenland total')
 
-    handles, labels = axs[7].get_legend_handles_labels()
-    fig.legend(handles, labels, loc='lower center', ncol=2)
+    handles, labels_ = axs[7].get_legend_handles_labels()
+    fig.legend(handles, labels_, loc='lower center', ncol=min(len(mali_runs_data) + 1, 4))
     fig.suptitle('MALI vs. GEUS (Mankoff et al., 2020) ice discharge by region')
     fig.tight_layout(rect=(0, 0.05, 1, 1))
 
