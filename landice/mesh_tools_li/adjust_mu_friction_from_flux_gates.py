@@ -137,9 +137,13 @@ def main(argv=None):
     parser.add_argument('--mankoff-metadata-file', required=True,
                         help='GEUS gate_meta.csv (gate locations, regions, names)')
     parser.add_argument('--start-index', type=int, required=True,
-                        help='First MALI time index (inclusive) to average modeled flux over')
+                        help='First MALI time index (inclusive) to average modeled flux '
+                             'over; negative values count from the end, Python-style '
+                             '(e.g. -1 is the last time step)')
     parser.add_argument('--end-index', type=int, required=True,
-                        help='Last MALI time index (inclusive) to average modeled flux over')
+                        help='Last MALI time index (inclusive) to average modeled flux '
+                             'over; negative values count from the end, Python-style '
+                             '(e.g. -1 is the last time step)')
     parser.add_argument('--exponent', type=float, default=1.0 / 3.0,
                         help='Exponent applied to Fm/Fo to get muScale (default: 1/3)')
     parser.add_argument('--min-scale', type=float, default=None,
@@ -170,14 +174,18 @@ def main(argv=None):
         sys.exit(f"ERROR: nFluxGates mismatch between flux file ({flux.shape[1]}) "
                  f"and mask file ({len(gate_ids)})")
     n_time = flux.shape[0]
-    if not (0 <= args.start_index <= args.end_index < n_time):
-        sys.exit(f"ERROR: require 0 <= --start-index <= --end-index < nTime ({n_time}); "
-                 f"got start-index={args.start_index}, end-index={args.end_index}")
+    # Support Python-style negative indices (e.g. --end-index -1 for the last time step).
+    start_index = args.start_index if args.start_index >= 0 else args.start_index + n_time
+    end_index = args.end_index if args.end_index >= 0 else args.end_index + n_time
+    if not (0 <= start_index <= end_index < n_time):
+        sys.exit(f"ERROR: require 0 <= --start-index <= --end-index < nTime ({n_time}) "
+                 f"after resolving negative indices; got start-index={args.start_index} "
+                 f"(resolved {start_index}), end-index={args.end_index} (resolved {end_index})")
 
-    Fm = flux[args.start_index:args.end_index + 1, :].mean(axis=0)
-    start_ts = decimal_year_to_timestamp(years[args.start_index])
-    end_ts = decimal_year_to_timestamp(years[args.end_index])
-    print(f"Averaging modeled flux over indices [{args.start_index}, {args.end_index}] "
+    Fm = flux[start_index:end_index + 1, :].mean(axis=0)
+    start_ts = decimal_year_to_timestamp(years[start_index])
+    end_ts = decimal_year_to_timestamp(years[end_index])
+    print(f"Averaging modeled flux over indices [{start_index}, {end_index}] "
          f"({start_ts.date()} to {end_ts.date()})")
 
     print(f"Reading Mankoff metadata/discharge: {args.mankoff_metadata_file}, "
