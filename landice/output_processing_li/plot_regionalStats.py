@@ -1,24 +1,42 @@
 #!/usr/bin/env python
 '''
 Script to plot common time-series from one or more landice regionalStats files.
-Currently only useful for whole-AIS simulations.
+Supports whole-AIS and whole-GrIS simulations, as well as simulations with
+arbitrary region definitions (with observational overlays disabled or
+limited to the regions that can be matched).
 
 Observational Dataset Options:
   This script supports multiple observational datasets for validation. Use CLI
   options to select which datasets to plot:
 
-  --obs-melt: Shelf melt rates (single choice)
+  --ice-sheet: Selects which ice sheet's observational datasets/defaults apply
+               (antarctica [default] or greenland).
+  --obs-melt: Shelf melt rates (single choice; Antarctica only)
   --obs-mass-balance: Mass balance data (SMB, outflow, net from single source)
+  --start-year: Calendar year of the simulation start (required for Greenland
+                observational comparisons unless simulationStartTime can be
+                read unambiguously from the input file).
+
+  Use 'none' for --obs-mass-balance or --obs-melt to disable that
+  observational overlay entirely.
 
   Run with --list-datasets to see all available datasets with citations.
 
   Default Behavior:
-    - Shelf melt: Adusumilli 2020
-    - Mass balance: Rignot 2019
+    Antarctica (--ice-sheet antarctica, the default):
+      - Shelf melt: Adusumilli 2020
+      - Mass balance: Rignot 2019
+    Greenland (--ice-sheet greenland):
+      - Shelf melt: none (not applicable; floating ice is negligible)
+      - Mass balance: Mouginot 2019
 
   Examples:
-    # Use defaults
-    python plot_regionalStats.py -1 globalStats.nc
+    # Antarctica, unchanged default behavior
+    python plot_regionalStats.py -1 regionalStats.nc
+
+    # Antarctica, no observations
+    python plot_regionalStats.py --obs-mass-balance none --obs-melt none \\
+        -1 regionalStats.nc
 
     # Use Rignot 2013 for melt rates
     python plot_regionalStats.py --obs-melt rignot2013 -1 globalStats.nc
@@ -26,17 +44,26 @@ Observational Dataset Options:
     # Use all Rignot 2008 data
     python plot_regionalStats.py --obs-mass-balance rignot2008 --obs-melt rignot2013 -1 globalStats.nc
 
+    # Greenland with Mouginot et al. (2019) observations
+    python plot_regionalStats.py --ice-sheet greenland --start-year 2007 \\
+        -1 regionalStats.nc
+
+    # Greenland with arbitrary region definitions and no observations
+    python plot_regionalStats.py --ice-sheet greenland --obs-mass-balance none \\
+        --obs-melt none -1 regionalStats.nc
 
     # List all available datasets with citations
     python plot_regionalStats.py --list-datasets
 
 Matt Hoffman, 8/23/2022
 Updated with CLI-configurable datasets: Sept 2026
+Added Greenland (Mouginot et al. 2019) support: Oct 2026
 '''
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import sys
+import warnings
 import numpy as np
 from netCDF4 import Dataset
 from argparse import ArgumentParser
@@ -46,10 +73,12 @@ plt.rcParams["text.hinting"] = "no_hinting"
 rhoi = 910.0
 
 # ============================================================================
-# OBSERVATIONAL DATASETS REGISTRY
+# OBSERVATIONAL DATASETS REGISTRY (Antarctica)
 # ============================================================================
 # This registry contains all observational datasets available for comparison.
 # Each dataset includes citation information and data for all 16 ISMIP6 basins.
+# NOTE: This registry and its use below are unchanged from the pre-Greenland
+# version of this script, other than being made optional via 'none'.
 
 OBSERVATIONAL_DATASETS = {
     'mass_balance': {
@@ -172,6 +201,121 @@ OBSERVATIONAL_DATASETS = {
 
 
 # ============================================================================
+# OBSERVATIONAL DATASETS REGISTRY (Greenland)
+# ============================================================================
+# Annual ice discharge (D) and surface mass balance (SMB) by region, from
+# Mouginot, J., Rignot, E., Bjork, A. A., van den Broeke, M., Morlighem, M.,
+# Noel, B., van Wessem, J. M., and Wood, M. (2019). Forty-six years of
+# Greenland Ice Sheet mass balance from 1972 to 2018. PNAS 116(19),
+# 9239-9244. https://doi.org/10.1073/pnas.1904242116
+#
+# Values below are copied verbatim (full precision) from Dataset S2
+# (pnas.1904242116.sd02.xlsx), worksheet "(2) MB_GIS":
+#   D   (ice discharge, Gt/yr):        rows 10-17,  columns P:BJ  (years 1972-2018)
+#   D_err (1-sigma uncertainty on D):  rows 10-17,  columns CE:DY (same years)
+#   SMB (surface mass balance, Gt/yr): rows 22-29,  columns P:BJ
+#   SMB_err (1-sigma, constant in time for a given region): rows 22-29, columns CE:DY
+#
+# Units: Gt/yr. Sign convention: SMB is positive for net surface mass gain;
+# D is positive for outward (mass-losing) ice discharge. Net mass balance is
+# MB = SMB - D (positive for net ice-sheet mass gain). This script derives MB
+# and its uncertainty rather than storing them, since in the workbook
+# MB = SMB - D exactly, and MB_err = sqrt(D_err^2 + SMB_err^2) to machine
+# precision for every region/year in the dataset.
+#
+# Each annual value represents the mean rate over the one-year period
+# centered on the stated year, i.e. the value for year Y applies over
+# [Y-0.5, Y+0.5]. The dataset therefore covers [1971.5, 2018.5].
+#
+# The workbook also contains "Dloss"/"SMBloss" series, which are cumulative
+# anomalies relative to a reference balance flux (not absolute cumulative D
+# or SMB); those are deliberately not included here, per Mouginot et al.
+# (2019) section 4.2.
+#
+# Region codes: SW=Southwest, CW=Central West, NW=Northwest, NO=North,
+# NE=Northeast, CE=Central East, SE=Southeast, GIS=entire Greenland Ice Sheet.
+
+GREENLAND_OBS_DATA = {
+    'mouginot2019': {
+        'citation': 'Mouginot, J., Rignot, E., Bjork, A. A., et al. (2019). PNAS 116(19), 9239-9244',
+        'description': 'Annual ice discharge (D) and surface mass balance (SMB) by region, 1972-2018',
+        'years': [1972, 1973, 1974, 1975, 1976, 1977, 1978, 1979, 1980, 1981, 1982, 1983, 1984, 1985, 1986, 1987, 1988, 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018],
+        'data': {
+            'SW': {
+                'D': [29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.715688071139994, 29.713823583099995, 29.713823583099995, 29.727971603979995, 29.7918281179, 29.855215643779996, 29.91688768808, 29.971979237379994, 30.764318816639996, 29.758794614989995, 29.08406910966, 29.326526202729998, 29.85628675752, 28.970958426939998, 26.343231493779996, 27.116785801080002, 28.25845732297, 31.835005249029994, 31.1991060676, 29.90871714608, 29.89848070968, 31.283220939949995, 30.688733080859997, 30.160978434449998, 29.898891836559997, 30.249253400239997, 32.06768994622, 32.272780246219995, 29.515989039049998, 30.299222258239997, 30.233291079569998, 31.58573739246, 29.84887848994, 30.696075169559997],
+                'D_err': [13.072643758367022, 13.072643758367022, 13.069688306463215, 13.054116041542725, 13.040432342314745, 13.028615701314774, 12.879909493366481, 12.082949873118693, 11.165720722780817, 10.291960085249238, 9.422201837106432, 8.59770408001274, 7.815400599712504, 7.083460247336174, 6.396245744128084, 5.7519910160971985, 5.160000459658716, 4.62963271766878, 4.172122406102881, 3.8220621926377465, 3.654110845056814, 3.6483941205732666, 3.642550287550149, 3.6289375203238263, 3.5135246995503406, 3.463567535339955, 3.4150042804234935, 3.3558514177484606, 3.3996585399425965, 3.6766274148442974, 4.277881668958953, 4.266618325938165, 3.8977794397271524, 3.719134677088873, 4.580904830944036, 5.519828714389999, 4.857531816556551, 4.619214397345063, 4.30496021998054, 4.721557130886955, 4.763165104200831, 4.591331096404481, 4.1203391406077525, 4.321022953463312, 4.282077936156893, 3.86858871838721, 4.0643052120223215],
+                'SMB': [55.150000000000006, 95.22, 32.42, 30.790000000000003, 57.710000000000015, 60.57, 59.779999999999994, 82.16999999999999, 21.549999999999997, 25.48, 9.340000000000002, 83.83999999999999, 106.05, 12.07, 24.830000000000002, 36.34, 42.92, 1.9299999999999984, 37.989999999999995, 35.53000000000001, 64.02, 54.46, 29.09, 0.8800000000000014, 56.970000000000006, 66.80000000000001, 33.050000000000004, 22.269999999999996, 36.67, 31.709999999999997, 28.790000000000003, 0.4999999999999991, 25.8, 61.08, 35.64, -22.860000000000007, -26.32, 46.85999999999999, -38.68, -59.209999999999994, -40.150000000000006, -19.66, 29.140000000000004, 5.730000000000002, -0.57, -32.28, 40.980000000000004],
+                'SMB_err': 12.530815718,
+            },
+            'CW': {
+                'D': [68.51930222040833, 68.51930222040833, 68.51930222040833, 68.51930222040833, 68.51930222040833, 68.27169880556532, 68.03423116922933, 67.81492758489334, 67.56801822805032, 67.32039239171434, 67.07278897687132, 66.85417945053533, 66.60657603569233, 66.35895019935633, 67.51261033702033, 67.67570367301732, 66.01095352181231, 65.56437671560933, 65.00777552395932, 64.62754837862133, 64.28550934206532, 65.74748976638132, 64.35708073852832, 61.01993213325134, 67.37187413381533, 64.59380613830932, 66.11220796941332, 68.35168272281733, 73.68846390805533, 74.79874563037133, 77.55061095772933, 79.96727738496932, 80.36642147266932, 81.88139345635733, 82.76496446967133, 85.05627288168334, 85.15552665831433, 86.76706154494833, 91.2971462510233, 87.53861264062732, 91.43768361884733, 93.48410589505532, 91.24785626331632, 88.88575090957531, 89.34949672006734, 81.82839388046133, 78.27831121645433],
+                'D_err': [15.63352214223781, 13.821441011422435, 12.18413889831845, 10.772662313306242, 9.742401066594066, 9.021793217698026, 8.526346827162858, 8.238910069951977, 8.169628036467056, 7.7846852619556115, 6.965441971780188, 6.300033060920646, 5.789610852359781, 4.764057895954779, 4.727543814784338, 4.969412940556752, 4.716518566804299, 4.799847695446898, 4.839424172540084, 4.853279528981226, 4.5564138241661984, 4.697092528190128, 4.607752281992568, 4.394990796476388, 4.681933097027703, 4.36485999640446, 4.615736963159434, 4.5386344854152565, 5.881795737525146, 6.12703226919295, 4.2809317451585045, 6.714439860304775, 6.915943437635277, 6.811523882515301, 6.766999215702545, 6.705759609355289, 6.952602654784795, 6.660866961761892, 7.350429580895624, 6.775809685437381, 7.298862369881724, 7.456937914562302, 7.5673925091356375, 7.417257263303274, 7.3323057243135965, 6.329038486230623, 6.0072415787929545],
+                'SMB': [55.330000000000005, 96.16000000000003, 55.449999999999996, 62.90000000000001, 63.45, 101.10999999999999, 67.99, 80.59, 46.96, 46.92999999999999, 51.79000000000001, 69.9, 91.24, 53.870000000000005, 52.68, 95.59999999999998, 52.13, 41.15, 51.87, 81.17999999999999, 70.03999999999999, 50.0, 45.99, 35.64000000000001, 84.60000000000001, 70.01, 85.55999999999999, 55.18999999999999, 65.7, 89.40999999999998, 33.87, 39.17999999999999, 65.59, 77.58999999999999, 51.65999999999999, 35.879999999999995, 38.44, 54.61000000000001, 38.730000000000004, 26.909999999999993, 26.77, 36.6, 44.78000000000001, 41.91, 53.919999999999995, 34.36, 58.55000000000002],
+                'SMB_err': 8.317950291,
+            },
+            'NW': {
+                'D': [89.63704661119999, 89.63704661119999, 89.50673145279998, 90.12692347920002, 90.72469735729997, 90.9160168559, 91.1126959718, 91.31130791189997, 91.5089179764, 91.70302152260003, 91.89834728960004, 92.08417006869999, 92.2846819364, 92.4764883465, 90.66836684419998, 92.0866181195, 91.08710904749998, 90.88261323909998, 90.72197096410001, 87.9894865273, 87.89455945469999, 88.49603230919998, 90.30677409479996, 87.45460801180002, 85.87281431509996, 86.33930783069997, 85.4014534019, 82.05687603719996, 86.698393457, 87.97215533809995, 88.9969093862, 91.09862567819997, 95.09082178109999, 96.11764763460002, 95.58079480410001, 96.97524813399998, 99.23396757179997, 100.24740358250003, 101.9797663818, 110.15800966640003, 111.38104585069996, 105.88530608469998, 111.0342897703, 114.48846227069997, 113.07587745209999, 119.13343595060007, 123.96276632130002],
+                'D_err': [14.011537092599632, 12.71263161378815, 11.443409793541345, 10.250849914049585, 9.180294900995532, 8.207736598560999, 7.333408766710641, 6.56365891095621, 5.919454040021143, 5.184720257580716, 4.367660969882159, 3.6289953566834647, 3.0080115825257128, 2.6539632736468985, 2.3835783150986685, 2.4581330292285197, 2.40650114230453, 2.425045070197296, 2.489768153547171, 2.399791160497373, 2.435927539371082, 2.3962394880684172, 2.540109327219997, 2.614848321045665, 2.541743317032449, 2.6446702845635124, 2.3670245700809436, 2.321176136761255, 3.42818041997449, 2.6990446232686756, 2.726283245990446, 2.495130244558032, 2.639257068879644, 2.6137815206825126, 2.6118602809473845, 2.564036894884045, 2.6358444710775455, 2.694732473792387, 2.650209403904771, 2.8259022218083016, 2.850119219362972, 2.7790562286705507, 2.968056745425254, 3.006871106231129, 2.9829877004180942, 3.3492025124323996, 3.546552564829212],
+                'SMB': [58.380000000000024, 76.30000000000005, 89.40000000000005, 57.14999999999999, 86.06000000000003, 111.39999999999999, 60.789999999999985, 84.10000000000004, 77.86, 59.94, 60.959999999999965, 51.94000000000002, 47.76999999999997, 56.78, 62.569999999999965, 87.44000000000003, 53.77000000000001, 60.34000000000002, 53.55999999999999, 62.25999999999999, 60.63999999999999, 79.84000000000002, 59.62999999999999, 72.83000000000001, 90.45000000000006, 82.00000000000001, 98.17999999999999, 59.61000000000001, 52.889999999999986, 86.78999999999998, 41.51999999999999, 40.169999999999995, 63.959999999999994, 99.57000000000002, 40.34999999999999, 53.69, 13.36, 24.79, 29.72000000000001, 60.19000000000001, 31.42999999999999, 41.61000000000002, 56.08000000000003, 29.81, 39.15999999999999, 49.17999999999999, 66.70000000000002],
+                'SMB_err': 6.472499812320001,
+            },
+            'NO': {
+                'D': [23.3807819966, 23.3807819966, 23.3807819966, 23.3807819966, 23.356829787000002, 23.328744814300002, 23.3047926047, 23.2808403951, 23.2568881855, 23.205840085000006, 23.160757586200003, 23.1071729622, 23.06267031780001, 23.0104096252, 21.839248157799993, 24.112277843900003, 23.341491275300005, 23.5210545163, 22.073107502000003, 21.331790897600005, 20.6156631767, 22.6942840512, 22.757997491300003, 22.9224415252, 21.0607532221, 21.0421524526, 20.996099443799995, 20.8919824368, 20.8039187855, 20.7006737873, 20.9895516054, 21.264008098799998, 21.5328053897, 21.850250164, 22.178611119500005, 22.663566703200004, 22.692900551199997, 21.5626414567, 21.8206753276, 22.9775434893, 23.1280279587, 25.2212499514, 24.461356632100003, 23.895909493800005, 23.763902006400002, 24.251631184900006, 25.939927342],
+                'D_err': [4.68487604587714, 4.118023360816393, 3.618633783980007, 3.2671285258055187, 3.057469557682788, 2.9254739224546356, 2.8758060295453647, 2.9116664172908626, 3.012785784008849, 2.677525662354239, 2.374956546611773, 2.1265018297113865, 1.9544018423104388, 1.6605706301127683, 1.6372932966454194, 1.5680882903504554, 1.5975665819940859, 1.4759337124973688, 1.4379285735201817, 1.481823601153117, 1.4400478883594234, 1.6146027257748259, 1.4479434024061493, 1.5670182521383886, 1.4638984854077504, 1.532098993172906, 1.6619845128154256, 1.6769987887332265, 1.5139801954324494, 1.5329202532310666, 1.6092738830382127, 1.785400437489343, 1.7965852103748807, 1.650526694508467, 1.7708399897212286, 1.7729808951041361, 1.7137426426760674, 1.5169178900941005, 1.611455123233719, 1.7900800690061085, 1.7742470234970096, 1.9495522954955145, 2.094716686910444, 1.9191079166972906, 1.781634054048561, 1.765875878628247, 1.897991724498674],
+                'SMB': [16.569999999999997, 44.720000000000006, 38.29, 16.390000000000004, 23.799999999999997, 34.58, 14.8, 14.41, 15.030000000000001, 21.71, 11.950000000000003, 21.400000000000002, 24.450000000000003, 8.889999999999997, 12.64, 23.380000000000003, 34.92, 32.79, 16.839999999999996, 8.709999999999997, 21.99, 42.07000000000001, 4.75, 31.079999999999995, 23.92, 22.82, 29.0, -4.0, 5.49, 28.380000000000003, 7.030000000000001, -6.43, -8.22, 3.6400000000000023, 4.320000000000001, 17.89, -16.95, -8.950000000000001, -15.2, 4.0600000000000005, -17.759999999999998, -17.4, 17.960000000000004, -8.579999999999998, -20.980000000000004, 4.2600000000000025, 12.560000000000002],
+                'SMB_err': 4.482670011,
+            },
+            'NE': {
+                'D': [31.000983446, 31.000983446, 31.781109192400002, 32.572948841, 34.4749397418, 38.680634506091, 42.903717179982, 47.125256125873, 51.335081169564, 48.192200581164, 45.050966118964006, 41.886769755364, 39.1904242767, 39.178988848, 36.396670286, 36.003423260800005, 36.3764393542, 30.291928680399998, 30.548796007200004, 31.046710588499995, 30.6632780684, 32.70060307040001, 31.545213342199997, 31.7376271986, 29.8458836725, 29.994641276799996, 30.344297201799993, 30.308974759299996, 29.65862525439999, 29.389373366800005, 30.2788044196, 31.1725253236, 30.1011778232, 30.9965830014, 30.227370179399994, 30.884231031600002, 31.0798644718, 30.7219329326, 31.9793849724, 32.619310436599996, 34.643152907200005, 32.4307540028, 34.7673156048, 36.0670372488, 36.3911426042, 36.455061458100005, 39.4855254131],
+                'D_err': [4.239001683711811, 3.698409929615837, 3.402970238010528, 3.177073183052877, 3.2428629211844524, 3.660784258302634, 4.009797769347362, 4.399455772625713, 4.870603656439006, 4.601461994077691, 4.0665340522242825, 3.5746101684151874, 5.2563117336547265, 4.4689818482380685, 3.9017137927889363, 3.1811640483289745, 2.8873760308459864, 2.182715015909974, 2.144657525808437, 2.2642222227119224, 2.1469071152549897, 2.3008115875578037, 2.109371194855673, 2.114860686332629, 2.0020745355887883, 2.0144078420685254, 1.997837121403589, 1.983869098478846, 2.0408123646025946, 1.9529676640993392, 2.154231980132666, 2.208179929658057, 2.049217040051016, 2.0825230694244836, 2.0277926336378993, 2.0670393509832814, 2.0859799377712167, 2.04660095055388, 2.1998828832734594, 2.2081395299350732, 2.356676930340735, 2.1840617825278756, 2.3394709458126997, 2.452071686938533, 2.48866185808434, 2.4968778335845196, 2.7203252547518812],
+                'SMB': [31.740000000000002, 60.580000000000005, 28.090000000000003, 27.029999999999998, 36.86999999999999, 35.21000000000001, 32.05, 13.23, 43.16, 16.75, 33.07, 40.480000000000004, 63.42, 31.67, 11.639999999999999, 62.68999999999998, 22.95, 7.069999999999998, -3.2399999999999998, 22.1, 48.67, 33.50000000000001, 33.24, 8.129999999999999, 39.51999999999999, 14.719999999999997, 44.75, 19.209999999999997, 39.69000000000001, 25.270000000000003, 17.359999999999996, -5.540000000000001, -13.86, 0.1800000000000006, 31.460000000000004, 12.899999999999999, -0.15000000000000036, 9.66, 8.56, -5.920000000000001, 11.98, -20.190000000000005, 33.70999999999999, 42.49999999999999, 10.489999999999998, -11.010000000000002, 44.139999999999986],
+                'SMB_err': 7.034358259800001,
+            },
+            'CE': {
+                'D': [74.53475939445333, 74.53076252005333, 74.53076252005333, 74.53076252005333, 74.53076252005333, 74.53076252005333, 74.53076252005333, 74.53076252005333, 74.52676564565333, 74.52676564565333, 74.52676564565333, 74.51077814805333, 74.38394080965332, 74.24108476925332, 69.26510474333334, 70.25302344781333, 71.28326000024333, 71.48864922679331, 72.52019144535333, 72.84709511714333, 82.51444609011334, 80.60123631913332, 76.95844786207333, 74.14195412863333, 75.20451841493332, 82.30716243914331, 81.03408602444334, 77.23792014153331, 74.85961433581333, 73.77472427542332, 76.09854376745334, 77.32099474069332, 79.25600146364332, 99.34689720567337, 95.86294132139335, 91.54119635373333, 90.60799321073334, 87.50355314247334, 86.07654069298333, 87.91246558283332, 89.26547721755334, 85.47871148732334, 86.06399172489334, 84.57960183095332, 84.2130832624133, 87.59707607547332, 90.91248216373332],
+                'D_err': [22.761126171885582, 20.860746367643866, 19.067618830023513, 17.38065951782071, 15.81286306666066, 14.360872535231014, 13.025203923523842, 11.817651545754067, 10.7469971731449, 9.825120510784316, 9.076616834799983, 8.50036448099738, 8.096700737491334, 7.927496195199685, 3.5846417010367837, 3.8012865121545625, 3.2833951974959206, 3.7016825199829615, 3.761750099746626, 3.910587882392296, 5.304835098837676, 5.269711271474587, 5.742894182646853, 4.932096929362068, 5.198333087513171, 6.373447861699861, 6.2647827704274635, 6.779600032679336, 4.1278547353155215, 4.120135918927599, 4.04650641305563, 4.178981252981951, 4.344385872346975, 7.492659325847835, 8.202118594316808, 7.386099591066302, 7.186767371167594, 6.538717241863159, 6.331880351884505, 6.522443346017594, 6.847200234788414, 6.475555376386376, 6.254696873473673, 6.003325552512225, 5.8166293511251945, 5.902646124091855, 6.499517250896506],
+                'SMB': [112.86000000000004, 100.13000000000001, 82.77, 72.47999999999998, 100.90000000000002, 85.25, 85.18999999999997, 59.19999999999999, 87.11999999999998, 34.519999999999996, 44.129999999999995, 64.16000000000001, 116.33999999999997, 110.46999999999996, 69.23000000000002, 108.93000000000002, 52.63999999999998, 48.87, 52.32, 74.30999999999999, 79.72, 88.38000000000001, 97.26, 22.26000000000001, 69.33, 76.70000000000002, 60.08999999999999, 57.64, 50.15, 53.35, 44.849999999999994, 121.06000000000002, 45.92000000000001, 41.79999999999999, 36.51, 30.82000000000001, 59.51, 86.94, 36.599999999999994, 47.61000000000001, 46.91, 27.070000000000004, 54.92999999999998, 77.26, 64.6, 82.63999999999999, 99.64000000000001],
+                'SMB_err': 7.855674242599997,
+            },
+            'SE': {
+                'D': [136.12202943512796, 136.12202943512796, 135.88272009294795, 135.64370360840798, 135.40562566622796, 135.14513513484795, 134.90705719266796, 134.66993696248795, 134.42873136594795, 134.16728312256797, 133.93016289238795, 133.69208495020797, 133.21092138207996, 132.74158971031198, 136.34514546282398, 141.10450340148597, 142.56504154169397, 135.05418362612997, 135.74736210307796, 135.92055332802195, 137.61693974989802, 138.96801988352794, 140.459570798976, 142.46774864068198, 140.79830428088397, 146.63885086745796, 142.86906045199598, 139.99521713715797, 143.56410787674403, 136.45067562190295, 149.866415330468, 155.11126792212693, 171.35800047801996, 177.84690498249992, 166.16092168841197, 157.44436773550603, 158.14910689944395, 158.997158306679, 160.5399701541539, 164.18270115563598, 161.13174869885196, 153.70824311014994, 155.73611591826696, 160.73677769136197, 159.895625315838, 160.831412294215, 165.84043455043792],
+                'D_err': [24.22749594200549, 22.44923527665586, 20.839237123790053, 19.38991547233662, 18.090989213619817, 16.951999066118933, 15.882393103278304, 14.570204732913787, 12.969498760624058, 11.47499570931601, 10.08234305278313, 8.795780944586125, 7.671142188668711, 6.822485275699462, 6.263989701670951, 5.911798294268178, 6.063743242959677, 5.177355218444732, 5.278786668751881, 5.47041545309504, 5.608900298560832, 7.090877700835442, 6.896533953715883, 6.824424565220688, 5.481006464047116, 5.670937143867255, 5.587930567322258, 5.52591422204262, 7.056549646353704, 5.647253587509018, 6.890328879685755, 6.869051161693437, 6.183621885715643, 6.260857462894761, 5.710695788867482, 5.598262126659289, 5.86511774065885, 6.139723336079353, 6.251353325208984, 6.634274281560711, 6.513867993661854, 6.062942602048921, 6.032040866379578, 6.128121111960886, 5.873326000931, 5.828812611223149, 5.954458287176755],
+                'SMB': [173.01999999999998, 124.41000000000001, 148.82000000000002, 144.39000000000004, 125.33000000000001, 159.96, 165.99999999999997, 156.03000000000003, 140.92999999999992, 80.56000000000002, 87.63999999999997, 108.45, 122.03000000000003, 189.14999999999998, 152.93000000000004, 142.82999999999998, 129.97, 77.11999999999998, 131.24999999999994, 152.50999999999993, 128.71999999999997, 115.64999999999998, 135.66999999999996, 72.97000000000001, 125.79999999999997, 137.21, 121.25999999999996, 101.88999999999999, 118.14000000000001, 87.58000000000001, 123.32999999999997, 205.56999999999996, 106.34999999999998, 89.39, 79.97999999999998, 97.80000000000001, 93.63, 118.86, 118.05000000000001, 83.62000000000002, 85.43, 126.96999999999993, 130.85999999999999, 98.40999999999997, 128.98, 99.10000000000001, 126.42999999999999],
+                'SMB_err': 8.706643962000001,
+            },
+            'GIS': {
+                'D': [452.9105911749296, 452.9065943005296, 453.3170955463496, 454.49011073680964, 456.72784536392965, 460.58868070789754, 464.5089447095726, 468.44871957144755, 472.3400906422556, 468.83119141983957, 465.3554765808166, 461.85084340620057, 458.4549028294656, 457.7231995697617, 451.74096941427763, 460.9493733296166, 460.3922663447296, 446.5946341222326, 446.4744191894706, 443.6800725252666, 453.56237511925667, 459.9719842164825, 456.14387894286756, 448.82838074782666, 449.4806742420626, 460.7722077625305, 455.7281629202927, 445.1858847285885, 456.38990941859265, 451.3448053428675, 475.61584071588067, 487.13380521598947, 507.61394555441257, 537.9381571542107, 524.0588245224267, 515.2536159205827, 517.0803377977415, 515.6986428024607, 523.9427371802005, 537.4563329176167, 543.2599164980726, 525.7243595704786, 533.6101481719166, 538.8868305247605, 538.2748647534786, 539.9458893336898, 555.1155221765855],
+                'D_err': [41.911595342750196, 38.64340182932677, 35.67554105373175, 33.02066312199588, 30.764262997837694, 28.880256082563633, 27.177649444371127, 25.233701700566765, 23.301536046903525, 21.212218340126586, 19.04172954500755, 17.137746232741353, 16.1089943494374, 14.561455030627378, 11.787043679045308, 11.216092341842382, 10.63490598686643, 9.889538224485195, 9.783104013776892, 9.821513400640034, 10.311700250173972, 11.272377785455156, 11.315507508983538, 10.823543600029613, 10.19515632044774, 10.827193347709947, 10.76085982317908, 10.977047258614924, 11.454114939403565, 10.6477169254994, 10.730358455973228, 11.925806933405285, 11.598556513535812, 13.01768392741706, 13.443712085772074, 13.240888380839369, 13.12324017173619, 12.645414765240947, 12.891606063844947, 13.07006317057494, 13.494473654702551, 13.102380252141863, 12.977661467400365, 12.884783092081618, 12.597377003764784, 12.017024114109205, 12.405055558274734],
+                'SMB': [501.71000000000015, 596.7699999999996, 474.4299999999999, 410.20999999999975, 493.7999999999999, 587.32, 485.5599999999997, 488.9499999999997, 432.16, 286.7, 299.5600000000003, 440.18, 570.9599999999998, 462.1500000000003, 385.8599999999999, 556.75, 389.41000000000014, 270.13999999999976, 340.94000000000017, 436.18000000000006, 473.4100000000001, 463.6400000000001, 405.9, 245.1000000000001, 490.95000000000016, 470.51000000000005, 472.30000000000007, 312.34999999999985, 369.26, 403.4100000000001, 297.32000000000005, 393.36000000000007, 286.54, 374.28999999999985, 280.8999999999999, 226.91, 162.27, 333.04999999999984, 178.66999999999993, 158.48999999999998, 145.54000000000008, 175.36000000000007, 367.5400000000001, 287.4899999999999, 276.0199999999999, 227.0999999999999, 449.0000000000001],
+                'SMB_err': 55.400612296720006,
+            },
+        }
+    }
+}
+
+# Aliases accepted for each Greenland region, used after lower-casing and
+# stripping to alphanumeric characters only. "GIS" additionally accepts
+# "greenland" and "greenlandicesheet" since it represents the whole ice
+# sheet rather than a sub-region.
+GREENLAND_REGION_ALIASES = {
+    'SW': ['sw', 'southwest', 'ismip6greenlandsouthwestshelf', 'ismip6greenlandsouthwest'],
+    'CW': ['cw', 'centralwest', 'ismip6greenlandcentralwestshelf', 'ismip6greenlandcentralwest'],
+    'NW': ['nw', 'northwest', 'ismip6greenlandnorthwestshelf', 'ismip6greenlandnorthwest'],
+    'NO': ['no', 'north', 'ismip6greenlandnorthshelf'],
+    'NE': ['ne', 'northeast', 'ismip6greenlandnortheastshelf', 'ismip6greenlandnortheast'],
+    'CE': ['ce', 'centraleast', 'ismip6greenlandcentraleastshelf', 'ismip6greenlandcentraleast'],
+    'SE': ['se', 'southeast', 'ismip6greenlandsoutheastshelf', 'ismip6greenlandsoutheast'],
+    'GIS': ['gis', 'greenland', 'greenlandicesheet', 'ismip6greenland'],
+}
+# Full display names for each Greenland region code (for figure titles).
+GREENLAND_REGION_NAMES = {
+    'SW': 'Southwest', 'CW': 'Central West', 'NW': 'Northwest', 'NO': 'North',
+    'NE': 'Northeast', 'CE': 'Central East', 'SE': 'Southeast', 'GIS': 'Greenland Ice Sheet',
+}
+GREENLAND_STANDARD_CODES = ['SW', 'CW', 'NW', 'NO', 'NE', 'CE', 'SE']  # excludes GIS
+
+
+# ============================================================================
 # HELPER FUNCTIONS FOR DATASET MANAGEMENT
 # ============================================================================
 
@@ -184,7 +328,7 @@ def list_available_datasets():
     print("AVAILABLE OBSERVATIONAL DATASETS")
     print("="*70)
 
-    print("\nMass Balance Datasets (--obs-mass-balance):")
+    print("\nAntarctica Mass Balance Datasets (--obs-mass-balance):")
     print("-" * 70)
     for key, dataset in sorted(OBSERVATIONAL_DATASETS['mass_balance'].items()):
         print(f"\n  {key}:")
@@ -194,7 +338,7 @@ def list_available_datasets():
         print(f"    Citation: {dataset['citation']}")
 
     print("\n" + "-" * 70)
-    print("Shelf Melt Datasets (--obs-melt):")
+    print("Antarctica Shelf Melt Datasets (--obs-melt):")
     print("-" * 70)
     for key, dataset in sorted(OBSERVATIONAL_DATASETS['shelf_melt'].items()):
         print(f"\n  {key}:")
@@ -202,10 +346,22 @@ def list_available_datasets():
         print(f"    Description: {dataset['description']}")
         print(f"    Citation: {dataset['citation']}")
 
+    print("\n" + "-" * 70)
+    print("Greenland Mass Balance Datasets (--obs-mass-balance):")
+    print("-" * 70)
+    for key, dataset in sorted(GREENLAND_OBS_DATA.items()):
+        print(f"\n  {key}:")
+        y0, y1 = dataset['years'][0], dataset['years'][-1]
+        print(f"    Year/Period: {y0}-{y1}")
+        print(f"    Description: {dataset['description']}")
+        print(f"    Citation: {dataset['citation']}")
+    print("\n  (Greenland has no shelf-melt observational dataset; use --obs-melt none)")
+
     print("\n" + "="*70)
     print("Usage Notes:")
     print("  --obs-mass-balance provides SMB, outflow, and net from single source")
     print("  Use 'none' for any option to skip plotting that variable")
+    print("  Use --ice-sheet to select antarctica (default) or greenland")
     print("="*70 + "\n")
 
 
@@ -228,43 +384,54 @@ def get_dataset_label(dataset_type, dataset_key):
     if dataset_key is None or dataset_key == 'none':
         return ''
 
-    if dataset_type in OBSERVATIONAL_DATASETS:
-        if dataset_key in OBSERVATIONAL_DATASETS[dataset_type]:
-            citation = OBSERVATIONAL_DATASETS[dataset_type][dataset_key]['citation']
-            # Extract first author and year from citation
-            # Format: "Author, X., et al. (YEAR). ..."
-            try:
-                author = citation.split(',')[0]
-                year_part = citation.split('(')[1].split(')')[0]
-                # Handle year ranges like "2009-2017" - use end year
-                if '-' in year_part:
-                    year = year_part.split('-')[1]
-                else:
-                    year = year_part
-                return f"{author} {year}"
-            except:
-                return dataset_key
+    if dataset_type == 'greenland_mass_balance':
+        if dataset_key in GREENLAND_OBS_DATA:
+            citation = GREENLAND_OBS_DATA[dataset_key]['citation']
+        else:
+            return dataset_key
+    elif dataset_type in OBSERVATIONAL_DATASETS and dataset_key in OBSERVATIONAL_DATASETS[dataset_type]:
+        citation = OBSERVATIONAL_DATASETS[dataset_type][dataset_key]['citation']
+    else:
+        return dataset_key
 
-    return dataset_key
+    # Extract first author and year from citation
+    # Format: "Author, X., et al. (YEAR). ..."
+    try:
+        author = citation.split(',')[0]
+        year_part = citation.split('(')[1].split(')')[0]
+        # Handle year ranges like "2009-2017" - use end year
+        if '-' in year_part:
+            year = year_part.split('-')[1]
+        else:
+            year = year_part
+        return f"{author} {year}"
+    except Exception:
+        return dataset_key
 
 
-def validate_dataset_selections(mass_balance, melt_dataset):
+def validate_dataset_selections(mass_balance, melt_dataset, ice_sheet):
     """
-    Validate that selected datasets exist and are compatible.
-
-    Exits with error message if validation fails.
+    Validate that selected datasets exist and are compatible with the
+    selected ice sheet. Exits with error message if validation fails.
     """
     errors = []
 
-    # Check mass balance dataset exists
-    if mass_balance not in OBSERVATIONAL_DATASETS['mass_balance']:
-        errors.append(f"Unknown mass balance dataset: '{mass_balance}'")
-        errors.append(f"  Available: {', '.join(OBSERVATIONAL_DATASETS['mass_balance'].keys())}")
-
-    # Check melt dataset exists
-    if melt_dataset not in OBSERVATIONAL_DATASETS['shelf_melt']:
-        errors.append(f"Unknown shelf melt dataset: '{melt_dataset}'")
-        errors.append(f"  Available: {', '.join(OBSERVATIONAL_DATASETS['shelf_melt'].keys())}")
+    if ice_sheet == 'antarctica':
+        if mass_balance != 'none' and mass_balance not in OBSERVATIONAL_DATASETS['mass_balance']:
+            errors.append(f"Unknown mass balance dataset: '{mass_balance}'")
+            errors.append(f"  Available: none, {', '.join(OBSERVATIONAL_DATASETS['mass_balance'].keys())}")
+        if melt_dataset != 'none' and melt_dataset not in OBSERVATIONAL_DATASETS['shelf_melt']:
+            errors.append(f"Unknown shelf melt dataset: '{melt_dataset}'")
+            errors.append(f"  Available: none, {', '.join(OBSERVATIONAL_DATASETS['shelf_melt'].keys())}")
+    elif ice_sheet == 'greenland':
+        if mass_balance != 'none' and mass_balance not in GREENLAND_OBS_DATA:
+            errors.append(f"Unknown Greenland mass balance dataset: '{mass_balance}'")
+            errors.append(f"  Available: none, {', '.join(GREENLAND_OBS_DATA.keys())}")
+        if melt_dataset != 'none':
+            errors.append(f"Unknown Greenland shelf melt dataset: '{melt_dataset}'")
+            errors.append("  Available: none (Greenland has no shelf-melt observational dataset)")
+    else:
+        errors.append(f"Unknown ice sheet: '{ice_sheet}' (expected antarctica or greenland)")
 
     # Exit if any errors
     if errors:
@@ -281,6 +448,8 @@ def validate_dataset_selections(mass_balance, melt_dataset):
 def build_basin_info(mass_balance_dataset, melt_dataset):
     """
     Build ISMIP6basinInfo dictionary from selected observational datasets.
+    (Antarctica only; unchanged from the pre-Greenland version of this
+    script other than skipping datasets set to 'none'.)
 
     This function creates a dictionary compatible with the existing plotting code
     by merging data from multiple dataset sources based on CLI selections.
@@ -288,9 +457,9 @@ def build_basin_info(mass_balance_dataset, melt_dataset):
     Parameters
     ----------
     mass_balance_dataset : str
-        Dataset key for mass balance (provides SMB, outflow, net) - required
+        Dataset key for mass balance (provides SMB, outflow, net), or 'none'
     melt_dataset : str
-        Dataset key for shelf melt rates - required
+        Dataset key for shelf melt rates, or 'none'
 
     Returns
     -------
@@ -314,23 +483,177 @@ def build_basin_info(mass_balance_dataset, melt_dataset):
         }
 
         # Add mass balance data (SMB, outflow, net) from single dataset
-        dataset = OBSERVATIONAL_DATASETS['mass_balance'][mass_balance_dataset]
-        if basin_key in dataset['data']:
-            # Copy all available variables from this dataset
-            if 'input' in dataset['data'][basin_key]:
-                basin_info[basin_key]['input'] = dataset['data'][basin_key]['input']
-            if 'outflow' in dataset['data'][basin_key]:
-                basin_info[basin_key]['outflow'] = dataset['data'][basin_key]['outflow']
-            if 'net' in dataset['data'][basin_key]:
-                basin_info[basin_key]['net'] = dataset['data'][basin_key]['net']
+        if mass_balance_dataset != 'none':
+            dataset = OBSERVATIONAL_DATASETS['mass_balance'][mass_balance_dataset]
+            if basin_key in dataset['data']:
+                # Copy all available variables from this dataset
+                if 'input' in dataset['data'][basin_key]:
+                    basin_info[basin_key]['input'] = dataset['data'][basin_key]['input']
+                if 'outflow' in dataset['data'][basin_key]:
+                    basin_info[basin_key]['outflow'] = dataset['data'][basin_key]['outflow']
+                if 'net' in dataset['data'][basin_key]:
+                    basin_info[basin_key]['net'] = dataset['data'][basin_key]['net']
 
         # Add shelf melt dataset (single dataset in a list for compatibility)
-        if basin_key in OBSERVATIONAL_DATASETS['shelf_melt'][melt_dataset]['data']:
+        if melt_dataset != 'none' and basin_key in OBSERVATIONAL_DATASETS['shelf_melt'][melt_dataset]['data']:
             basin_info[basin_key]['shelfMelt'] = [
                 OBSERVATIONAL_DATASETS['shelf_melt'][melt_dataset]['data'][basin_key]
             ]
 
     return basin_info
+
+
+# ============================================================================
+# GREENLAND (MOUGINOT ET AL. 2019) HELPER FUNCTIONS
+# ============================================================================
+
+def get_mouginot2019_annual(dataset_key, code):
+    """
+    Return annual Mouginot et al. (2019) series for one region code.
+
+    Parameters
+    ----------
+    dataset_key : str
+        Key into GREENLAND_OBS_DATA (e.g. 'mouginot2019')
+    code : str
+        Region code (SW, CW, NW, NO, NE, CE, SE, or GIS)
+
+    Returns
+    -------
+    dict with numpy arrays 'years', 'D', 'D_err', 'SMB', 'SMB_err', 'MB',
+    'MB_err' (all Gt or Gt/yr; 'years' are the calendar years whose
+    annual rate applies over [year-0.5, year+0.5])
+    """
+    entry = GREENLAND_OBS_DATA[dataset_key]['data'][code]
+    years = np.array(GREENLAND_OBS_DATA[dataset_key]['years'], dtype=float)
+    D = np.array(entry['D'], dtype=float)
+    D_err = np.array(entry['D_err'], dtype=float)
+    SMB = np.array(entry['SMB'], dtype=float)
+    SMB_err = np.full_like(D, entry['SMB_err'])
+    MB = SMB - D
+    MB_err = np.hypot(D_err, SMB_err)
+    return {'years': years, 'D': D, 'D_err': D_err, 'SMB': SMB,
+            'SMB_err': SMB_err, 'MB': MB, 'MB_err': MB_err}
+
+
+def match_greenland_region(regionNameOrig):
+    """
+    Match a MALI region name (with non-alphanumeric characters already
+    stripped) to a Mouginot et al. (2019) region code.
+
+    Matching is done against an explicit alias table (case/whitespace/
+    underscore insensitive); no substring or geographic matching is used.
+    Returns the region code (e.g. 'SW') or None if there is no match.
+    """
+    normalized = ''.join(ch for ch in regionNameOrig.lower() if ch.isalnum())
+    for code, aliases in GREENLAND_REGION_ALIASES.items():
+        if normalized in aliases:
+            return code
+    return None
+
+
+def mouginot_cumulative_series(annual, t0, t1, obs_t_min=1971.5, obs_t_max=2018.5):
+    """
+    Compute cumulative anomaly (relative to t0) of a Mouginot et al. (2019)
+    annual rate series (e.g. 'MB', 'SMB', or 'D'), piecewise-constant over
+    each [year-0.5, year+0.5] interval, integrated exactly from t0 to t1
+    (clipped to the observational record [obs_t_min, obs_t_max]).
+
+    Uncertainty on the cumulative value is the root-sum-square of the
+    (fractional-year-weighted) annual uncertainties contributing to each
+    interval, matching the method used for the published cumulative
+    uncertainty series in Dataset S2.
+
+    Parameters
+    ----------
+    annual : dict
+        Output of get_mouginot2019_annual(), containing 'years' and the
+        rate/err arrays for the quantity of interest, keyed 'value'/'err'
+    t0, t1 : float
+        Start/end time (calendar years) of the integration
+    obs_t_min, obs_t_max : float
+        Bounds of the observational record
+
+    Returns
+    -------
+    (t, cum, cum_err, t_start_used, t_end_used) : tuple of ndarray/float
+        t : times (years) at which cum/cum_err are sampled (segment
+            boundaries), starting at max(t0, obs_t_min)
+        cum : cumulative anomaly relative to t[0], same units as the
+            integral of 'value' (e.g. Gt)
+        cum_err : cumulative 1-sigma uncertainty at each time in t
+        t_start_used, t_end_used : actual integration bounds used (may
+            differ from t0, t1 if clipped to the observational record)
+    """
+    years = annual['years']
+    value = annual['value']
+    err = annual['err']
+
+    t_start = max(t0, obs_t_min)
+    t_end = min(t1, obs_t_max)
+    if t_end <= t_start:
+        return None
+
+    # Build the list of interval boundaries [year-0.5, year+0.5] that
+    # overlap [t_start, t_end], and integrate exactly over the overlap.
+    t_list = [t_start]
+    cum_list = [0.0]
+    err_sq_accum = 0.0
+    err_list = [0.0]
+
+    cum = 0.0
+    for i, year in enumerate(years):
+        seg_lo = year - 0.5
+        seg_hi = year + 0.5
+        lo = max(seg_lo, t_start)
+        hi = min(seg_hi, t_end)
+        if hi <= lo:
+            continue
+        frac = hi - lo  # fraction of the year (in years) covered
+        cum += value[i] * frac
+        err_sq_accum += (err[i] * frac) ** 2
+        t_list.append(hi)
+        cum_list.append(cum)
+        err_list.append(np.sqrt(err_sq_accum))
+
+    return (np.array(t_list), np.array(cum_list), np.array(err_list),
+            t_start, t_end)
+
+
+def resolve_greenland_start_year(explicit_start_year, fileNames):
+    """
+    Determine the calendar start year to use for aligning Greenland
+    observations to the simulation. Returns (start_year, warning_msgs).
+
+    Priority: explicit --start-year, then simulationStartTime in the first
+    input file. Returns (None, msgs) if neither is available.
+    """
+    msgs = []
+    if explicit_start_year is not None:
+        return explicit_start_year, msgs
+
+    try:
+        f = Dataset(fileNames[0], 'r')
+        if 'simulationStartTime' in f.variables:
+            raw = f.variables['simulationStartTime'][:].tobytes().decode('utf-8').strip().strip('\x00')
+            # Expected format: YYYY-MM-DD_HH:MM:SS
+            year = int(raw[0:4])
+            month = int(raw[5:7])
+            day = int(raw[8:10])
+            # day-of-year approximation consistent with the 365 day/yr
+            # convention already used elsewhere in this script
+            days_in_month = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+            doy = sum(days_in_month[:month - 1]) + (day - 1)
+            start_year = year + doy / 365.0
+            f.close()
+            return start_year, msgs
+        f.close()
+    except Exception as e:
+        msgs.append(f"WARNING: could not parse simulationStartTime from {fileNames[0]}: {e}")
+
+    msgs.append("WARNING: no --start-year given and simulationStartTime could not be read; "
+                "Greenland observational overlays will be skipped.")
+    return None, msgs
 
 
 # ============================================================================
@@ -357,12 +680,22 @@ parser.add_argument("-n", dest="fileRegionNames",
                     metavar="FILENAME")
 
 # New dataset options
-parser.add_argument("--obs-melt", dest="obsMeltDataset",
-                    help="Shelf melt dataset (choose one). Options: rignot2013, adusumilli2020",
-                    default="adusumilli2020")
-parser.add_argument("--obs-mass-balance", dest="obsMassBalanceDataset",
-                    help="Mass balance dataset (provides SMB, outflow, and net together). Options: rignot2008, rignot2019",
-                    default="rignot2019")
+parser.add_argument("--ice-sheet", dest="iceSheet", choices=['antarctica', 'greenland'],
+                    default='antarctica',
+                    help="Ice sheet being plotted; selects available observational "
+                         "datasets and their defaults (default: antarctica)")
+parser.add_argument("--obs-melt", dest="obsMeltDataset", default=None,
+                    help="Shelf melt dataset (choose one), or 'none' to disable. "
+                         "Antarctica options: rignot2013, adusumilli2020 (default). "
+                         "Greenland: none only (default).")
+parser.add_argument("--obs-mass-balance", dest="obsMassBalanceDataset", default=None,
+                    help="Mass balance dataset (provides SMB, outflow, and net together), "
+                         "or 'none' to disable. Antarctica options: rignot2008, "
+                         "rignot2019 (default). Greenland options: mouginot2019 (default), none.")
+parser.add_argument("--start-year", dest="startYear", type=float, default=None,
+                    help="Calendar year of the simulation start (e.g. 2007). "
+                         "Required for Greenland observational comparisons unless "
+                         "simulationStartTime can be read unambiguously from file 1.")
 parser.add_argument("--list-datasets", action="store_true",
                     help="List available datasets and exit")
 
@@ -373,18 +706,26 @@ if options.list_datasets:
     list_available_datasets()
     sys.exit(0)
 
-# Parse dataset selections
-selected_melt_dataset = options.obsMeltDataset
-selected_mass_balance = options.obsMassBalanceDataset
+# Resolve ice-sheet-specific dataset defaults
+if options.iceSheet == 'antarctica':
+    selected_melt_dataset = options.obsMeltDataset if options.obsMeltDataset is not None else 'adusumilli2020'
+    selected_mass_balance = options.obsMassBalanceDataset if options.obsMassBalanceDataset is not None else 'rignot2019'
+else:  # greenland
+    selected_melt_dataset = options.obsMeltDataset if options.obsMeltDataset is not None else 'none'
+    selected_mass_balance = options.obsMassBalanceDataset if options.obsMassBalanceDataset is not None else 'mouginot2019'
 
 # Validate selections
-validate_dataset_selections(selected_mass_balance, selected_melt_dataset)
+validate_dataset_selections(selected_mass_balance, selected_melt_dataset, options.iceSheet)
 
-# Build basin info from selections
-ISMIP6basinInfo = build_basin_info(selected_mass_balance, selected_melt_dataset)
+# Build basin info from selections (Antarctica only; empty dict for Greenland
+# so none of the Antarctic ISMIP6-basin-keyed obs plotting logic can match)
+if options.iceSheet == 'antarctica':
+    ISMIP6basinInfo = build_basin_info(selected_mass_balance, selected_melt_dataset)
+else:
+    ISMIP6basinInfo = {}
 
 # ============================================================================
-# MAIN SCRIPT (REMAINDER UNCHANGED FROM ORIGINAL)
+# MAIN SCRIPT (REMAINDER UNCHANGED FROM ORIGINAL, OTHER THAN NOTED GENERALIZATIONS)
 # ============================================================================
 
 print("Using ice density of {} kg/m3 if required for unit conversions".format(rhoi))
@@ -433,6 +774,48 @@ for r in range(nRegions):
     else:
         rNames[r] = rNamesOrig[r]
 
+# ----------------------------------------------------------------------
+# Greenland observational setup (no effect on Antarctic plotting below)
+# ----------------------------------------------------------------------
+greenlandObsEnabled = (options.iceSheet == 'greenland' and selected_mass_balance != 'none')
+# Map each region index to its matched Mouginot region code (or None)
+rGreenlandCode = [None]*nRegions
+greenlandStartYear = None
+timeOffset = 0.0  # added to elapsed-time axes to get calendar years; 0 unless Greenland+start-year resolved
+
+if options.iceSheet == 'greenland':
+    for r in range(nRegions):
+        rGreenlandCode[r] = match_greenland_region(rNamesOrig[r])
+    if greenlandObsEnabled:
+        fileNamesAll = [n for n in [options.file1inName, options.file2inName,
+                                     options.file3inName, options.file4inName] if n]
+        greenlandStartYear, startYearMsgs = resolve_greenland_start_year(options.startYear, fileNamesAll)
+        for m in startYearMsgs:
+            warnings.warn(m)
+        if greenlandStartYear is not None:
+            timeOffset = greenlandStartYear
+            obs_t_min, obs_t_max = GREENLAND_OBS_DATA[selected_mass_balance]['years'][0] - 0.5, \
+                                    GREENLAND_OBS_DATA[selected_mass_balance]['years'][-1] + 0.5
+            if greenlandStartYear >= obs_t_max:
+                warnings.warn(f"WARNING: simulation start year {greenlandStartYear} is at or after "
+                               f"the end of the Mouginot et al. (2019) record ({obs_t_max}); "
+                               "Greenland observational overlays will be skipped.")
+                greenlandObsEnabled = False
+            elif greenlandStartYear < obs_t_min:
+                warnings.warn(f"WARNING: simulation start year {greenlandStartYear} is before the start "
+                               f"of the Mouginot et al. (2019) record ({obs_t_min}); observational "
+                               f"overlays will begin at {obs_t_min} rather than at the simulation start.")
+        else:
+            greenlandObsEnabled = False
+
+if options.units == "m3":
+    greenlandMassUnitFactor = 1.0e12 / rhoi
+elif options.units == "kg":
+    greenlandMassUnitFactor = 1.0e12
+elif options.units == "Gt":
+    greenlandMassUnitFactor = 1.0
+# (invalid units already caught above)
+
 if nRegions <= 4:
     ncol = 2
 elif nRegions <= 9:
@@ -444,6 +827,24 @@ elif nRegions <= 25:
 else:
     sys.exit("ERROR: More than 25 regions found.  Attempting to plot this many regions is likely a bad idea.")
 nrow = np.ceil(nRegions / ncol).astype('int') # Set nrow to have enough rows to plot number of regions based on ncol calculated above
+
+
+def hide_unused_axes(axs, nRegions):
+    """Hide subplot axes beyond nRegions (e.g. when nRegions doesn't fill
+    the nrow x ncol grid exactly). No-op when the grid is exactly full,
+    so this does not change any existing full-grid (e.g. 16-basin AIS)
+    figure."""
+    flat = axs.flatten()
+    for i in range(nRegions, len(flat)):
+        flat[i].set_visible(False)
+
+
+def legend_axis(axs, nRegions):
+    """Return the axis to place a shared legend on: the last *visible*
+    region axis. For a full grid (nRegions == nrow*ncol, e.g. the 16-basin
+    AIS case) this is axs.flatten()[-1], identical to before."""
+    return axs.flatten()[nRegions - 1]
+
 
 # Set up Figure 1: volume stats overview
 fig1, axs1 = plt.subplots(nrow, ncol, figsize=(13, 11), num=1)
@@ -458,12 +859,28 @@ for reg in range(nRegions):
       axX = axs1.flatten()[reg]
    else:
       axs1.flatten()[reg].sharex(axX)
-   # plot obs if applicable
+   # plot obs if applicable (Antarctica)
    if rNamesOrig[reg] in ISMIP6basinInfo and 'net' in ISMIP6basinInfo[rNamesOrig[reg]]:
        [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
        label = f'grd obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
        axs1.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig),
                                        color='b', alpha=0.2, label=label)
+   # plot obs if applicable (Greenland): cumulative net MB
+   if greenlandObsEnabled and rGreenlandCode[reg] is not None:
+       annual = get_mouginot2019_annual(selected_mass_balance, rGreenlandCode[reg])
+       simEnd = timeOffset + float(yr[-1])
+       result = mouginot_cumulative_series(
+           {'years': annual['years'], 'value': annual['MB'], 'err': annual['MB_err']},
+           timeOffset, simEnd)
+       if result is not None:
+           tObs, cumMB, cumMBerr, tUsed0, tUsed1 = result
+           cumMB = cumMB * greenlandMassUnitFactor
+           cumMBerr = cumMBerr * greenlandMassUnitFactor
+           label = f'net MB obs ({get_dataset_label("greenland_mass_balance", selected_mass_balance)})'
+           axs1.flatten()[reg].fill_between(tObs, cumMB - cumMBerr, cumMB + cumMBerr,
+                                           color='b', alpha=0.2, label=label)
+           axs1.flatten()[reg].plot(tObs, cumMB, color='b', linestyle='-', linewidth=1.0)
+hide_unused_axes(axs1, nRegions)
 
 # Set up Figure 2: grounded MB
 fig2, axs2 = plt.subplots(nrow, ncol, figsize=(13, 11), num=2)
@@ -480,22 +897,68 @@ for reg in range(nRegions):
       axX = axs2.flatten()[reg]
    else:
       axs2.flatten()[reg].sharex(axX)
-   # plot obs if applicable
+   # plot obs if applicable (Antarctica)
    if rNamesOrig[reg] in ISMIP6basinInfo:
-       [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['input']
-       label = f'SMB obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
-       axs2.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig),
-                                       color='b', alpha=0.2, label=label)
+       if 'input' in ISMIP6basinInfo[rNamesOrig[reg]]:
+           [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['input']
+           label = f'SMB obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
+           axs2.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig),
+                                           color='b', alpha=0.2, label=label)
 
-       [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['outflow']
-       label = f'outflow obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
-       axs2.flatten()[reg].fill_between(yr, -yr*(mn-sig), -yr*(mn+sig),
-                                       color='g', alpha=0.2, label=label)
+       if 'outflow' in ISMIP6basinInfo[rNamesOrig[reg]]:
+           [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['outflow']
+           label = f'outflow obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
+           axs2.flatten()[reg].fill_between(yr, -yr*(mn-sig), -yr*(mn+sig),
+                                           color='g', alpha=0.2, label=label)
 
-       [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
-       label = f'net obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
-       axs2.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig),
-                                       color='k', alpha=0.2, label=label)
+       if 'net' in ISMIP6basinInfo[rNamesOrig[reg]]:
+           [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
+           label = f'net obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
+           axs2.flatten()[reg].fill_between(yr, yr*(mn-sig), yr*(mn+sig),
+                                           color='k', alpha=0.2, label=label)
+   # plot obs if applicable (Greenland): cumulative SMB, -D, and net MB
+   if greenlandObsEnabled and rGreenlandCode[reg] is not None:
+       annual = get_mouginot2019_annual(selected_mass_balance, rGreenlandCode[reg])
+       simEnd = timeOffset + float(yr[-1])
+
+       resultSMB = mouginot_cumulative_series(
+           {'years': annual['years'], 'value': annual['SMB'], 'err': annual['SMB_err']},
+           timeOffset, simEnd)
+       if resultSMB is not None:
+           tObs, cumSMB, cumSMBerr, _, _ = resultSMB
+           cumSMB = cumSMB * greenlandMassUnitFactor
+           cumSMBerr = cumSMBerr * greenlandMassUnitFactor
+           label = f'SMB obs ({get_dataset_label("greenland_mass_balance", selected_mass_balance)})'
+           axs2.flatten()[reg].fill_between(tObs, cumSMB - cumSMBerr, cumSMB + cumSMBerr,
+                                           color='b', alpha=0.2, label=label)
+           axs2.flatten()[reg].plot(tObs, cumSMB, color='b', linestyle='-', linewidth=1.0)
+
+       resultD = mouginot_cumulative_series(
+           {'years': annual['years'], 'value': annual['D'], 'err': annual['D_err']},
+           timeOffset, simEnd)
+       if resultD is not None:
+           tObs, cumD, cumDerr, _, _ = resultD
+           # Discharge is a mass-loss term; plot with sign reversed to
+           # represent its contribution to net mass change
+           cumD = -cumD * greenlandMassUnitFactor
+           cumDerr = cumDerr * greenlandMassUnitFactor
+           label = f'outflow obs ({get_dataset_label("greenland_mass_balance", selected_mass_balance)})'
+           axs2.flatten()[reg].fill_between(tObs, cumD - cumDerr, cumD + cumDerr,
+                                           color='g', alpha=0.2, label=label)
+           axs2.flatten()[reg].plot(tObs, cumD, color='g', linestyle='-', linewidth=1.0)
+
+       resultMB = mouginot_cumulative_series(
+           {'years': annual['years'], 'value': annual['MB'], 'err': annual['MB_err']},
+           timeOffset, simEnd)
+       if resultMB is not None:
+           tObs, cumMB, cumMBerr, _, _ = resultMB
+           cumMB = cumMB * greenlandMassUnitFactor
+           cumMBerr = cumMBerr * greenlandMassUnitFactor
+           label = f'net obs ({get_dataset_label("greenland_mass_balance", selected_mass_balance)})'
+           axs2.flatten()[reg].fill_between(tObs, cumMB - cumMBerr, cumMB + cumMBerr,
+                                           color='k', alpha=0.2, label=label)
+           axs2.flatten()[reg].plot(tObs, cumMB, color='k', linestyle='-', linewidth=1.0)
+hide_unused_axes(axs2, nRegions)
 
 
 # Set up Figure 3: floating MB
@@ -511,6 +974,7 @@ for reg in range(nRegions):
       axX = axs3.flatten()[reg]
    else:
       axs3.flatten()[reg].sharex(axX)
+hide_unused_axes(axs3, nRegions)
 
 # Set up Figure 4: area change
 fig4, axs4 = plt.subplots(nrow, ncol, figsize=(13, 11), num=4)
@@ -525,6 +989,7 @@ for reg in range(nRegions):
       axX = axs4.flatten()[reg]
    else:
       axs4.flatten()[reg].sharex(axX)
+hide_unused_axes(axs4, nRegions)
 
 
 # Set up Figure 5
@@ -532,18 +997,42 @@ fig5, axs5 = plt.subplots(2,1, figsize=(13, 11), num=5)
 fig5.suptitle(f'regional contributions\n{runinfo}', fontsize=9)
 mnTot=0.0
 sigTot = 0.0
+nMatchedAIS = 0
 for reg in range(nRegions):
-    if rNamesOrig[reg] in ISMIP6basinInfo:
+    if rNamesOrig[reg] in ISMIP6basinInfo and 'net' in ISMIP6basinInfo[rNamesOrig[reg]]:
         [mn, sig] = ISMIP6basinInfo[rNamesOrig[reg]]['net']
         mnTot += mn
         sigTot += sig**2
+        nMatchedAIS += 1
 
-sigTot = sigTot**0.5
-label = f'net obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
-axs5.flatten()[0].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot),
-                               color='k', alpha=0.2, label=label)
-axs5.flatten()[1].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot),
-                               color='k', alpha=0.2, label=label)
+if nMatchedAIS > 0:
+    sigTot = sigTot**0.5
+    label = f'net obs ({get_dataset_label("mass_balance", selected_mass_balance)})'
+    axs5.flatten()[0].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot),
+                                   color='k', alpha=0.2, label=label)
+    axs5.flatten()[1].fill_between(yr, yr*(mnTot-sigTot), yr*(mnTot+sigTot),
+                                   color='k', alpha=0.2, label=label)
+
+# Greenland: overlay the GIS (whole-ice-sheet) observation on the top panel
+# only, and only when all 7 standard regions are present (so the model's
+# full-ice-sheet total is a meaningful comparison). GIS is never summed
+# with the per-region obs, since it already represents the whole ice sheet.
+if greenlandObsEnabled:
+    matchedCodes = [c for c in rGreenlandCode if c in GREENLAND_STANDARD_CODES]
+    if sorted(matchedCodes) == sorted(GREENLAND_STANDARD_CODES) and len(matchedCodes) == len(GREENLAND_STANDARD_CODES):
+        annualGIS = get_mouginot2019_annual(selected_mass_balance, 'GIS')
+        simEnd = timeOffset + float(yr[-1])
+        resultGIS = mouginot_cumulative_series(
+            {'years': annualGIS['years'], 'value': annualGIS['MB'], 'err': annualGIS['MB_err']},
+            timeOffset, simEnd)
+        if resultGIS is not None:
+            tObs, cumGIS, cumGISerr, _, _ = resultGIS
+            cumGIS = cumGIS * greenlandMassUnitFactor
+            cumGISerr = cumGISerr * greenlandMassUnitFactor
+            label = f'GIS net obs ({get_dataset_label("greenland_mass_balance", selected_mass_balance)})'
+            axs5.flatten()[0].fill_between(tObs, cumGIS - cumGISerr, cumGIS + cumGISerr,
+                                           color='k', alpha=0.2, label=label)
+            axs5.flatten()[0].plot(tObs, cumGIS, color='k', linestyle='-', linewidth=1.0)
 
 plt.sca(axs5.flatten()[0])
 plt.xlabel('Year')
@@ -568,7 +1057,7 @@ for reg in range(nRegions):
       axX = axs6.flatten()[reg]
    else:
       axs6.flatten()[reg].sharex(axX)
-   if rNamesOrig[reg] in ISMIP6basinInfo:
+   if rNamesOrig[reg] in ISMIP6basinInfo and 'shelfMelt' in ISMIP6basinInfo[rNamesOrig[reg]]:
        # Get the melt data
        melt_data = ISMIP6basinInfo[rNamesOrig[reg]]['shelfMelt'][0]
        melt_mean, melt_unc = melt_data[0], melt_data[1]
@@ -594,6 +1083,7 @@ for reg in range(nRegions):
                yr, np.ones(yr.shape) * melt_mean,
                color='k', linestyle='-', linewidth=1.5, label=label
            )
+hide_unused_axes(axs6, nRegions)
 
 # Set up unit conversion factors to be used when reading variables
 if options.units == "m3":
@@ -615,7 +1105,7 @@ def plotStat(fname, sty, addToLegend=False):
     name = fname
 
     f = Dataset(fname,'r')
-    yr = f.variables['daysSinceStart'][:]/365.0
+    yr = f.variables['daysSinceStart'][:]/365.0 + timeOffset
     dt = f.variables['deltat'][:]/(3600.0*24.0*365.0) # in yr
     dtnR = np.tile(dt.reshape(len(dt),1), (1,nRegions))  # repeated per region with dim of nt,nRegions
     nRegionsLocal = len(f.dimensions['nRegions'])
@@ -760,16 +1250,17 @@ def plotStat(fname, sty, addToLegend=False):
         axs4.flatten()[r].plot(yr, areaFlt[:,r] - areaFlt[0,r], label=("flt area" if addToLegend else '_nolegend_'), linestyle=sty, color='g')
 
     # Fig. 5:  select global stats ---------
-    for r in range(nRegions):
-        if rNamesOrig[r] == 'ISMIP6BasinGH':
-           indTG = r
-           break
     axs5.flatten()[0].plot(yr, volGround.sum(axis=1), label='total', color='b', linestyle=sty)
-    volGroundnoTG = np.delete(volGround, indTG, 1)
-    axs5.flatten()[0].plot(yr, volGroundnoTG.sum(axis=1), label='no TG/PIG', color='c', linestyle=sty)
     axs5.flatten()[1].plot(yr, VAF.sum(axis=1), label='total', color='b', linestyle=sty)
-    VAFnoTG = np.delete(VAF, indTG, 1)
-    axs5.flatten()[1].plot(yr, VAFnoTG.sum(axis=1), label='no TG/PIG', color='c', linestyle=sty)
+    # The "no TG/PIG" comparison is specific to Antarctic simulations that
+    # define the ISMIP6BasinGH (Thwaites/PIG) region; skip it otherwise so
+    # that Greenland or arbitrary region definitions don't error out.
+    if 'ISMIP6BasinGH' in rNamesOrig:
+        indTG = rNamesOrig.index('ISMIP6BasinGH')
+        volGroundnoTG = np.delete(volGround, indTG, 1)
+        axs5.flatten()[0].plot(yr, volGroundnoTG.sum(axis=1), label='no TG/PIG', color='c', linestyle=sty)
+        VAFnoTG = np.delete(VAF, indTG, 1)
+        axs5.flatten()[1].plot(yr, VAFnoTG.sum(axis=1), label='no TG/PIG', color='c', linestyle=sty)
 
     # Fig. 6:  melt rates ---------
     for r in range(nRegions):
@@ -791,12 +1282,12 @@ if(options.file4inName):
     plotStat(options.file4inName, sty='-.')
 
 
-axs1.flatten()[-1].legend(loc='best', prop={'size': 5})
-axs2.flatten()[-1].legend(loc='best', prop={'size': 5})
-axs3.flatten()[-1].legend(loc='best', prop={'size': 5})
-axs4.flatten()[-1].legend(loc='best', prop={'size': 6})
+legend_axis(axs1, nRegions).legend(loc='best', prop={'size': 5})
+legend_axis(axs2, nRegions).legend(loc='best', prop={'size': 5})
+legend_axis(axs3, nRegions).legend(loc='best', prop={'size': 5})
+legend_axis(axs4, nRegions).legend(loc='best', prop={'size': 6})
 axs5.flatten()[0].legend(loc='best', prop={'size': 6})
-axs6.flatten()[-1].legend(loc='best', prop={'size': 6})
+legend_axis(axs6, nRegions).legend(loc='best', prop={'size': 6})
 
 print("Generating plot.")
 fig1.tight_layout()
