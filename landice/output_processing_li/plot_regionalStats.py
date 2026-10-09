@@ -766,11 +766,21 @@ for r in range(nRegions):
     thisString = rNamesIn[r, :].tobytes().decode('utf-8').strip()  # convert from char array to string
     rNamesOrig.append(''.join(filter(str.isalnum, thisString)))  # this bit removes non-alphanumeric chars
 
+# Map each region index to its matched Mouginot region code (or None).
+# Computed before the rNames loop below so Greenland display names can be
+# applied to figure titles.
+rGreenlandCode = [None]*nRegions
+if options.iceSheet == 'greenland':
+    for r in range(nRegions):
+        rGreenlandCode[r] = match_greenland_region(rNamesOrig[r])
+
 # Parse region names to more usable names, if available
 rNames = [None]*nRegions
 for r in range(nRegions):
     if rNamesOrig[r] in ISMIP6basinInfo:
         rNames[r] = ISMIP6basinInfo[rNamesOrig[r]]['name']
+    elif rGreenlandCode[r] is not None:
+        rNames[r] = GREENLAND_REGION_NAMES[rGreenlandCode[r]]
     else:
         rNames[r] = rNamesOrig[r]
 
@@ -778,35 +788,42 @@ for r in range(nRegions):
 # Greenland observational setup (no effect on Antarctic plotting below)
 # ----------------------------------------------------------------------
 greenlandObsEnabled = (options.iceSheet == 'greenland' and selected_mass_balance != 'none')
-# Map each region index to its matched Mouginot region code (or None)
-rGreenlandCode = [None]*nRegions
 greenlandStartYear = None
 timeOffset = 0.0  # added to elapsed-time axes to get calendar years; 0 unless Greenland+start-year resolved
+greenlandSimEnd = None  # shared calendar end time (max over all input files), set below if applicable
 
-if options.iceSheet == 'greenland':
-    for r in range(nRegions):
-        rGreenlandCode[r] = match_greenland_region(rNamesOrig[r])
-    if greenlandObsEnabled:
-        fileNamesAll = [n for n in [options.file1inName, options.file2inName,
-                                     options.file3inName, options.file4inName] if n]
-        greenlandStartYear, startYearMsgs = resolve_greenland_start_year(options.startYear, fileNamesAll)
-        for m in startYearMsgs:
-            warnings.warn(m)
-        if greenlandStartYear is not None:
-            timeOffset = greenlandStartYear
-            obs_t_min, obs_t_max = GREENLAND_OBS_DATA[selected_mass_balance]['years'][0] - 0.5, \
-                                    GREENLAND_OBS_DATA[selected_mass_balance]['years'][-1] + 0.5
-            if greenlandStartYear >= obs_t_max:
-                warnings.warn(f"WARNING: simulation start year {greenlandStartYear} is at or after "
-                               f"the end of the Mouginot et al. (2019) record ({obs_t_max}); "
-                               "Greenland observational overlays will be skipped.")
-                greenlandObsEnabled = False
-            elif greenlandStartYear < obs_t_min:
-                warnings.warn(f"WARNING: simulation start year {greenlandStartYear} is before the start "
-                               f"of the Mouginot et al. (2019) record ({obs_t_min}); observational "
-                               f"overlays will begin at {obs_t_min} rather than at the simulation start.")
-        else:
+if options.iceSheet == 'greenland' and greenlandObsEnabled:
+    fileNamesAll = [n for n in [options.file1inName, options.file2inName,
+                                 options.file3inName, options.file4inName] if n]
+    greenlandStartYear, startYearMsgs = resolve_greenland_start_year(options.startYear, fileNamesAll)
+    for m in startYearMsgs:
+        warnings.warn(m)
+    if greenlandStartYear is not None:
+        timeOffset = greenlandStartYear
+        obs_t_min, obs_t_max = GREENLAND_OBS_DATA[selected_mass_balance]['years'][0] - 0.5, \
+                                GREENLAND_OBS_DATA[selected_mass_balance]['years'][-1] + 0.5
+        if greenlandStartYear >= obs_t_max:
+            warnings.warn(f"WARNING: simulation start year {greenlandStartYear} is at or after "
+                           f"the end of the Mouginot et al. (2019) record ({obs_t_max}); "
+                           "Greenland observational overlays will be skipped.")
             greenlandObsEnabled = False
+        elif greenlandStartYear < obs_t_min:
+            warnings.warn(f"WARNING: simulation start year {greenlandStartYear} is before the start "
+                           f"of the Mouginot et al. (2019) record ({obs_t_min}); the model curve "
+                           "would already be nonzero at the clipped observational start, so "
+                           "Greenland observational overlays will be skipped.")
+            greenlandObsEnabled = False
+        else:
+            # Use the latest end time across all supplied files, not just
+            # file 1, so multi-file overlays don't stop short of longer runs.
+            maxDaysSinceStart = 0.0
+            for fn in fileNamesAll:
+                ff = Dataset(fn, 'r')
+                maxDaysSinceStart = max(maxDaysSinceStart, float(ff.variables['daysSinceStart'][-1]))
+                ff.close()
+            greenlandSimEnd = timeOffset + maxDaysSinceStart/365.0
+    else:
+        greenlandObsEnabled = False
 
 if options.units == "m3":
     greenlandMassUnitFactor = 1.0e12 / rhoi
@@ -868,10 +885,9 @@ for reg in range(nRegions):
    # plot obs if applicable (Greenland): cumulative net MB
    if greenlandObsEnabled and rGreenlandCode[reg] is not None:
        annual = get_mouginot2019_annual(selected_mass_balance, rGreenlandCode[reg])
-       simEnd = timeOffset + float(yr[-1])
        result = mouginot_cumulative_series(
            {'years': annual['years'], 'value': annual['MB'], 'err': annual['MB_err']},
-           timeOffset, simEnd)
+           timeOffset, greenlandSimEnd)
        if result is not None:
            tObs, cumMB, cumMBerr, tUsed0, tUsed1 = result
            cumMB = cumMB * greenlandMassUnitFactor
@@ -919,11 +935,10 @@ for reg in range(nRegions):
    # plot obs if applicable (Greenland): cumulative SMB, -D, and net MB
    if greenlandObsEnabled and rGreenlandCode[reg] is not None:
        annual = get_mouginot2019_annual(selected_mass_balance, rGreenlandCode[reg])
-       simEnd = timeOffset + float(yr[-1])
 
        resultSMB = mouginot_cumulative_series(
            {'years': annual['years'], 'value': annual['SMB'], 'err': annual['SMB_err']},
-           timeOffset, simEnd)
+           timeOffset, greenlandSimEnd)
        if resultSMB is not None:
            tObs, cumSMB, cumSMBerr, _, _ = resultSMB
            cumSMB = cumSMB * greenlandMassUnitFactor
@@ -935,7 +950,7 @@ for reg in range(nRegions):
 
        resultD = mouginot_cumulative_series(
            {'years': annual['years'], 'value': annual['D'], 'err': annual['D_err']},
-           timeOffset, simEnd)
+           timeOffset, greenlandSimEnd)
        if resultD is not None:
            tObs, cumD, cumDerr, _, _ = resultD
            # Discharge is a mass-loss term; plot with sign reversed to
@@ -949,7 +964,7 @@ for reg in range(nRegions):
 
        resultMB = mouginot_cumulative_series(
            {'years': annual['years'], 'value': annual['MB'], 'err': annual['MB_err']},
-           timeOffset, simEnd)
+           timeOffset, greenlandSimEnd)
        if resultMB is not None:
            tObs, cumMB, cumMBerr, _, _ = resultMB
            cumMB = cumMB * greenlandMassUnitFactor
@@ -1014,25 +1029,28 @@ if nMatchedAIS > 0:
                                    color='k', alpha=0.2, label=label)
 
 # Greenland: overlay the GIS (whole-ice-sheet) observation on the top panel
-# only, and only when all 7 standard regions are present (so the model's
-# full-ice-sheet total is a meaningful comparison). GIS is never summed
-# with the per-region obs, since it already represents the whole ice sheet.
-if greenlandObsEnabled:
-    matchedCodes = [c for c in rGreenlandCode if c in GREENLAND_STANDARD_CODES]
-    if sorted(matchedCodes) == sorted(GREENLAND_STANDARD_CODES) and len(matchedCodes) == len(GREENLAND_STANDARD_CODES):
-        annualGIS = get_mouginot2019_annual(selected_mass_balance, 'GIS')
-        simEnd = timeOffset + float(yr[-1])
-        resultGIS = mouginot_cumulative_series(
-            {'years': annualGIS['years'], 'value': annualGIS['MB'], 'err': annualGIS['MB_err']},
-            timeOffset, simEnd)
-        if resultGIS is not None:
-            tObs, cumGIS, cumGISerr, _, _ = resultGIS
-            cumGIS = cumGIS * greenlandMassUnitFactor
-            cumGISerr = cumGISerr * greenlandMassUnitFactor
-            label = f'GIS net obs ({get_dataset_label("greenland_mass_balance", selected_mass_balance)})'
-            axs5.flatten()[0].fill_between(tObs, cumGIS - cumGISerr, cumGIS + cumGISerr,
-                                           color='k', alpha=0.2, label=label)
-            axs5.flatten()[0].plot(tObs, cumGIS, color='k', linestyle='-', linewidth=1.0)
+# only, and only when the full region set is *exactly* the 7 standard
+# regions (so the model's full-ice-sheet total, which sums every region in
+# the file, is a meaningful comparison). Using the full unfiltered
+# rGreenlandCode list (rather than one pre-filtered to standard codes) is
+# essential here: any extra, unmatched, or duplicate region would still be
+# included in the model's regional sum and silently invalidate the
+# comparison even though it would be filtered out of a pre-filtered check.
+# GIS is never summed with the per-region obs, since it already represents
+# the whole ice sheet.
+if greenlandObsEnabled and sorted(rGreenlandCode) == sorted(GREENLAND_STANDARD_CODES):
+    annualGIS = get_mouginot2019_annual(selected_mass_balance, 'GIS')
+    resultGIS = mouginot_cumulative_series(
+        {'years': annualGIS['years'], 'value': annualGIS['MB'], 'err': annualGIS['MB_err']},
+        timeOffset, greenlandSimEnd)
+    if resultGIS is not None:
+        tObs, cumGIS, cumGISerr, _, _ = resultGIS
+        cumGIS = cumGIS * greenlandMassUnitFactor
+        cumGISerr = cumGISerr * greenlandMassUnitFactor
+        label = f'GIS net obs ({get_dataset_label("greenland_mass_balance", selected_mass_balance)})'
+        axs5.flatten()[0].fill_between(tObs, cumGIS - cumGISerr, cumGIS + cumGISerr,
+                                       color='k', alpha=0.2, label=label)
+        axs5.flatten()[0].plot(tObs, cumGIS, color='k', linestyle='-', linewidth=1.0)
 
 plt.sca(axs5.flatten()[0])
 plt.xlabel('Year')
