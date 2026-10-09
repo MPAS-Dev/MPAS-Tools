@@ -1038,7 +1038,9 @@ if nMatchedAIS > 0:
 # comparison even though it would be filtered out of a pre-filtered check.
 # GIS is never summed with the per-region obs, since it already represents
 # the whole ice sheet.
-if greenlandObsEnabled and sorted(rGreenlandCode) == sorted(GREENLAND_STANDARD_CODES):
+if (greenlandObsEnabled
+        and len(rGreenlandCode) == len(GREENLAND_STANDARD_CODES)
+        and set(rGreenlandCode) == set(GREENLAND_STANDARD_CODES)):
     annualGIS = get_mouginot2019_annual(selected_mass_balance, 'GIS')
     resultGIS = mouginot_cumulative_series(
         {'years': annualGIS['years'], 'value': annualGIS['MB'], 'err': annualGIS['MB_err']},
