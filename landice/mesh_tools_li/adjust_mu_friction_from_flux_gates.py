@@ -79,9 +79,9 @@ def compute_observed_mean_flux(gate_D, obs_gate_id, start_ts, end_ts):
     return float(window.mean())
 
 
-def gate_seed_cells(edge_mask_column, cells_on_edge):
-    """Unique 0-based cells adjacent to the edges where edge_mask_column == 1."""
-    edge_indices = np.flatnonzero(edge_mask_column == 1)
+def gate_seed_cells(edge_mask, cells_on_edge):
+    """Unique 0-based cells adjacent to the edges where edge_mask is True."""
+    edge_indices = np.flatnonzero(edge_mask)
     cells = cells_on_edge[edge_indices, :].ravel() - 1
     cells = np.unique(cells[cells >= 0])
     return edge_indices, cells
@@ -124,7 +124,7 @@ def main(argv=None):
                         help='File containing muFriction to correct (may be the same as '
                              '--mesh-file, but is not required to be)')
     parser.add_argument('--flux-gate-mask-file', required=True,
-                        help='Flux-gate mask file with fluxGateIds and fluxGateEdgeMasks '
+                        help='Flux-gate mask file with fluxGateIds and fluxGateEdgeID '
                              '(from make_flux_gate_masks.py)')
     parser.add_argument('--gpkg', required=True,
                         help='GeoPackage used to build the mask file, for matching mask '
@@ -212,9 +212,9 @@ def main(argv=None):
     neighbor_valid = cell_neighbors >= 0
 
     with Dataset(args.flux_gate_mask_file, 'r') as f:
-        edge_masks = f.variables['fluxGateEdgeMasks'][:, :]
-        if edge_masks.shape[0] != cells_on_edge.shape[0]:
-            sys.exit(f"ERROR: nEdges mismatch between mask file ({edge_masks.shape[0]}) "
+        edge_gate_id = f.variables['fluxGateEdgeID'][:]
+        if edge_gate_id.shape[0] != cells_on_edge.shape[0]:
+            sys.exit(f"ERROR: nEdges mismatch between mask file ({edge_gate_id.shape[0]}) "
                      f"and mesh file ({cells_on_edge.shape[0]})")
 
     # Per-gate diagnostics and multiplicative-correction seeding.
@@ -222,7 +222,9 @@ def main(argv=None):
     log_mu_scale_sum = np.zeros(n_cells)
     log_mu_scale_count = np.zeros(n_cells, dtype=int)
     for i, mali_gate_id in enumerate(gate_ids):
-        edge_indices, seed_cells = gate_seed_cells(edge_masks[:, i], cells_on_edge)
+        # fluxGateEdgeID holds the 1-based position in the nFluxGates axis, which
+        # matches the order of gate_ids read from fluxGateIds.
+        edge_indices, seed_cells = gate_seed_cells(edge_gate_id == i + 1, cells_on_edge)
         obs_gate_id = match.get(mali_gate_id)
         region = None
         mankoff_name = None
