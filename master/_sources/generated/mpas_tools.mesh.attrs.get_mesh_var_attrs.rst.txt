@@ -1,0 +1,6 @@
+﻿mpas\_tools.mesh.attrs.get\_mesh\_var\_attrs
+============================================
+
+.. currentmodule:: mpas_tools.mesh.attrs
+
+.. autofunction:: get_mesh_var_attrs

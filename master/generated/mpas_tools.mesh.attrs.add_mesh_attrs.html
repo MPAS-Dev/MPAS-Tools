@@ -112,6 +112,7 @@
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.spherical.calc_vector_east_north.html">mpas_tools.mesh.spherical.calc_vector_east_north</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">mpas_tools.mesh.attrs.add_mesh_attrs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.attrs.cf_conventions.html">mpas_tools.mesh.attrs.cf_conventions</a></li>
+<li class="toctree-l4"><a class="reference internal" href="mpas_tools.mesh.attrs.get_mesh_var_attrs.html">mpas_tools.mesh.attrs.get_mesh_var_attrs</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.merge_grids.merge_grids.html">mpas_tools.merge_grids.merge_grids</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.split_grids.split_grids.html">mpas_tools.split_grids.split_grids</a></li>
 <li class="toctree-l4"><a class="reference internal" href="mpas_tools.translate.translate.html">mpas_tools.translate.translate</a></li>
@@ -174,7 +175,11 @@
 <dt class="sig sig-object py" id="mpas_tools.mesh.attrs.add_mesh_attrs">
 <span class="sig-prename descclassname"><span class="pre">mpas_tools.mesh.attrs.</span></span><span class="sig-name descname"><span class="pre">add_mesh_attrs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ds</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/mpas_tools/mesh/attrs.html#add_mesh_attrs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#mpas_tools.mesh.attrs.add_mesh_attrs" title="Link to this definition"></a></dt>
 <dd><p>Add CF metadata to the mesh variables in a dataset and add CF to its
-<code class="docutils literal notranslate"><span class="pre">Conventions</span></code>.  Attributes that a variable already has are kept.</p>
+<code class="docutils literal notranslate"><span class="pre">Conventions</span></code>.  Attributes that a variable already has are kept, except
+that a <code class="docutils literal notranslate"><span class="pre">latitude</span></code> or <code class="docutils literal notranslate"><span class="pre">longitude</span></code> <code class="docutils literal notranslate"><span class="pre">standard_name</span></code> is removed from
+the latitude and longitude variables of a planar mesh.</p>
+<p>Latitude and longitude variables only get a <code class="docutils literal notranslate"><span class="pre">standard_name</span></code> if the
+<code class="docutils literal notranslate"><span class="pre">on_a_sphere</span></code> attribute of the dataset is <code class="docutils literal notranslate"><span class="pre">YES</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ds</strong> (<a class="reference external" href="https://docs.xarray.dev/en/stable/generated/xarray.Dataset.html#xarray.Dataset" title="(in xarray v2026.9.0)"><em>xarray.Dataset</em></a>) – An MPAS mesh dataset, modified in place</p>

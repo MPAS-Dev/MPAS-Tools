@@ -130,6 +130,11 @@
 <span class="sd">udunits parses and CF uses (``m``, ``m2``, ``radians``, ``1`` for</span>
 <span class="sd">dimensionless).  Index and connectivity variables and masks have no units.</span>
 
+<span class="sd">``SPHERE_VAR_ATTRS`` holds the ``standard_name`` attributes of the latitude</span>
+<span class="sd">and longitude variables, which are only added on spherical meshes because the</span>
+<span class="sd">latitude and longitude of planar meshes are not geographic coordinates (they</span>
+<span class="sd">are all zero).</span>
+
 <span class="sd">``MpasMeshConverter.x`` and ``MpasCellCuller.x`` write the same attributes,</span>
 <span class="sd">so the two need to be kept in sync.</span>
 <span class="sd">"""</span>
@@ -161,42 +166,21 @@
     <span class="s1">'xCell'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'x coordinate of cell centers'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'m'</span><span class="p">},</span>
     <span class="s1">'yCell'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'y coordinate of cell centers'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'m'</span><span class="p">},</span>
     <span class="s1">'zCell'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'z coordinate of cell centers'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'m'</span><span class="p">},</span>
-    <span class="s1">'latCell'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'latitude of cell centers'</span><span class="p">,</span>
-        <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">,</span>
-        <span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'latitude'</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="s1">'lonCell'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'longitude of cell centers'</span><span class="p">,</span>
-        <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">,</span>
-        <span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'longitude'</span><span class="p">,</span>
-    <span class="p">},</span>
+    <span class="s1">'latCell'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'latitude of cell centers'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">},</span>
+    <span class="s1">'lonCell'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'longitude of cell centers'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">},</span>
     <span class="s1">'xEdge'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'x coordinate of edge midpoints'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'m'</span><span class="p">},</span>
     <span class="s1">'yEdge'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'y coordinate of edge midpoints'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'m'</span><span class="p">},</span>
     <span class="s1">'zEdge'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'z coordinate of edge midpoints'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'m'</span><span class="p">},</span>
-    <span class="s1">'latEdge'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'latitude of edge midpoints'</span><span class="p">,</span>
-        <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">,</span>
-        <span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'latitude'</span><span class="p">,</span>
-    <span class="p">},</span>
+    <span class="s1">'latEdge'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'latitude of edge midpoints'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">},</span>
     <span class="s1">'lonEdge'</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'longitude of edge midpoints'</span><span class="p">,</span>
         <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">,</span>
-        <span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'longitude'</span><span class="p">,</span>
     <span class="p">},</span>
     <span class="s1">'xVertex'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'x coordinate of vertices'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'m'</span><span class="p">},</span>
     <span class="s1">'yVertex'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'y coordinate of vertices'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'m'</span><span class="p">},</span>
     <span class="s1">'zVertex'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'z coordinate of vertices'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'m'</span><span class="p">},</span>
-    <span class="s1">'latVertex'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'latitude of vertices'</span><span class="p">,</span>
-        <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">,</span>
-        <span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'latitude'</span><span class="p">,</span>
-    <span class="p">},</span>
-    <span class="s1">'lonVertex'</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'longitude of vertices'</span><span class="p">,</span>
-        <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">,</span>
-        <span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'longitude'</span><span class="p">,</span>
-    <span class="p">},</span>
+    <span class="s1">'latVertex'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'latitude of vertices'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">},</span>
+    <span class="s1">'lonVertex'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'longitude of vertices'</span><span class="p">,</span> <span class="s1">'units'</span><span class="p">:</span> <span class="s1">'radians'</span><span class="p">},</span>
     <span class="c1"># geometry</span>
     <span class="s1">'areaCell'</span><span class="p">:</span> <span class="p">{</span>
         <span class="s1">'long_name'</span><span class="p">:</span> <span class="s1">'area of each cell in the primal mesh'</span><span class="p">,</span>
@@ -285,6 +269,43 @@
     <span class="p">},</span>
 <span class="p">}</span>
 
+<span class="n">SPHERE_VAR_ATTRS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">'latCell'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'latitude'</span><span class="p">},</span>
+    <span class="s1">'lonCell'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'longitude'</span><span class="p">},</span>
+    <span class="s1">'latEdge'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'latitude'</span><span class="p">},</span>
+    <span class="s1">'lonEdge'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'longitude'</span><span class="p">},</span>
+    <span class="s1">'latVertex'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'latitude'</span><span class="p">},</span>
+    <span class="s1">'lonVertex'</span><span class="p">:</span> <span class="p">{</span><span class="s1">'standard_name'</span><span class="p">:</span> <span class="s1">'longitude'</span><span class="p">},</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="get_mesh_var_attrs">
+<a class="viewcode-back" href="../../../generated/mpas_tools.mesh.attrs.get_mesh_var_attrs.html#mpas_tools.mesh.attrs.get_mesh_var_attrs">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">get_mesh_var_attrs</span><span class="p">(</span><span class="n">on_a_sphere</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""</span>
+<span class="sd">    Get the CF metadata for the MPAS mesh variables on a spherical or planar</span>
+<span class="sd">    mesh</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    on_a_sphere : bool</span>
+<span class="sd">        Whether the mesh is spherical, in which case latitude and longitude</span>
+<span class="sd">        variables get a ``standard_name``</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    mesh_var_attrs : dict</span>
+<span class="sd">        The attributes of each mesh variable</span>
+<span class="sd">    """</span>
+    <span class="n">mesh_var_attrs</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">dict</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span> <span class="ow">in</span> <span class="n">MESH_VAR_ATTRS</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">on_a_sphere</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span> <span class="ow">in</span> <span class="n">SPHERE_VAR_ATTRS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">mesh_var_attrs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">mesh_var_attrs</span></div>
+
+
 
 <div class="viewcode-block" id="cf_conventions">
 <a class="viewcode-back" href="../../../generated/mpas_tools.mesh.attrs.cf_conventions.html#mpas_tools.mesh.attrs.cf_conventions">[docs]</a>
@@ -323,7 +344,12 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">add_mesh_attrs</span><span class="p">(</span><span class="n">ds</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""</span>
 <span class="sd">    Add CF metadata to the mesh variables in a dataset and add CF to its</span>
-<span class="sd">    ``Conventions``.  Attributes that a variable already has are kept.</span>
+<span class="sd">    ``Conventions``.  Attributes that a variable already has are kept, except</span>
+<span class="sd">    that a ``latitude`` or ``longitude`` ``standard_name`` is removed from</span>
+<span class="sd">    the latitude and longitude variables of a planar mesh.</span>
+
+<span class="sd">    Latitude and longitude variables only get a ``standard_name`` if the</span>
+<span class="sd">    ``on_a_sphere`` attribute of the dataset is ``YES``.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -335,10 +361,15 @@
 <span class="sd">    ds : xarray.Dataset</span>
 <span class="sd">        The same dataset, for convenience</span>
 <span class="sd">    """</span>
-    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span> <span class="ow">in</span> <span class="n">MESH_VAR_ATTRS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">on_a_sphere</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'on_a_sphere'</span><span class="p">,</span> <span class="s1">''</span><span class="p">))</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s1">'YES'</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">attrs</span> <span class="ow">in</span> <span class="n">get_mesh_var_attrs</span><span class="p">(</span><span class="n">on_a_sphere</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ds</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">var_attrs</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">on_a_sphere</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">SPHERE_VAR_ATTRS</span><span class="p">:</span>
+            <span class="c1"># planar meshes made with older versions may have these</span>
+            <span class="k">if</span> <span class="n">var_attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'standard_name'</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'latitude'</span><span class="p">,</span> <span class="s1">'longitude'</span><span class="p">]:</span>
+                <span class="k">del</span> <span class="n">var_attrs</span><span class="p">[</span><span class="s1">'standard_name'</span><span class="p">]</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">attrs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">var_attrs</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
     <span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">'Conventions'</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf_conventions</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">'Conventions'</span><span class="p">))</span>
