@@ -6,6 +6,7 @@ import numpy as np
 from mpas_tools.io import write_netcdf
 from mpas_tools.mesh.conversion import _masks_to_int, convert, cull, mask
 from mpas_tools.mesh.spherical import recompute_angle_edge
+from mpas_tools.planar_hex import make_planar_hex_mesh
 
 from .util import get_test_data_file
 
@@ -80,6 +81,30 @@ def test_conversion_triangle_angle_quality():
 
     obtuse = (max_angle > 0.5 * np.pi).astype(int)
     assert np.array_equal(ds_mesh.obtuseTriangle.values, obtuse)
+
+
+def test_cull_convert_remove_temp_dir(tmp_path):
+    ds_mesh = make_planar_hex_mesh(
+        nx=10, ny=10, dc=1e3, nonperiodic_x=True, nonperiodic_y=True
+    )
+    ds_culled = cull(
+        ds_mesh,
+        graphInfoFileName=str(tmp_path / 'culled_graph.info'),
+        dir=tmp_path,
+    )
+    ds_converted = convert(
+        ds_culled, graphInfoFileName=str(tmp_path / 'graph.info'), dir=tmp_path
+    )
+
+    # only the graph files should remain, and the datasets should still be
+    # usable after their temporary files are deleted
+    assert sorted(path.name for path in tmp_path.iterdir()) == [
+        'culled_graph.info',
+        'graph.info',
+    ]
+    assert ds_culled.sizes['nCells'] == 100
+    assert ds_converted.sizes['nCells'] == 100
+    assert np.all(ds_converted.areaCell.values > 0.0)
 
 
 def test_masks_to_int_dataset_copy():
