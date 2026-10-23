@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.moc.add\_moc\_southern\_boundary\_transects
+=============================================================
+
+.. currentmodule:: mpas_tools.ocean.moc
+
+.. autofunction:: add_moc_southern_boundary_transects

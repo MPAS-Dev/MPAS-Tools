@@ -1,0 +1,6 @@
+﻿mpas\_tools.ocean.compute\_barotropic\_streamfunction
+=====================================================
+
+.. currentmodule:: mpas_tools.ocean
+
+.. autofunction:: compute_barotropic_streamfunction

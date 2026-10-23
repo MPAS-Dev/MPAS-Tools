@@ -1,0 +1,6 @@
+﻿mpas\_tools.transects.subdivide\_planar
+=======================================
+
+.. currentmodule:: mpas_tools.transects
+
+.. autofunction:: subdivide_planar

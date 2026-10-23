@@ -1,0 +1,6 @@
+﻿mpas\_tools.logging.check\_call
+===============================
+
+.. currentmodule:: mpas_tools.logging
+
+.. autofunction:: check_call

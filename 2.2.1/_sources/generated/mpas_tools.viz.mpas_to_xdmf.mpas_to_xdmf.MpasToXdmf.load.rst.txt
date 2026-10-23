@@ -1,0 +1,6 @@
+﻿mpas\_tools.viz.mpas\_to\_xdmf.mpas\_to\_xdmf.MpasToXdmf.load
+=============================================================
+
+.. currentmodule:: mpas_tools.viz.mpas_to_xdmf.mpas_to_xdmf
+
+.. automethod:: MpasToXdmf.load
