@@ -4,6 +4,7 @@ import numpy as np
 import xarray as xr
 
 from mpas_tools.io import write_netcdf
+from mpas_tools.mesh.attrs import add_mesh_attrs
 from mpas_tools.mesh.creation.open_msh import readmsh
 from mpas_tools.mesh.creation.util import circumcenter
 
@@ -107,6 +108,8 @@ def jigsaw_to_netcdf(msh_filename, output_name, on_sphere, sphere_radius=None):
         ),
         attrs=attrs,
     )
+
+    add_mesh_attrs(ds)
 
     # Write to NetCDF using write_netcdf
     write_netcdf(ds, output_name)

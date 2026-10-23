@@ -1,5 +1,6 @@
 
 #   include <string>
+#   include <sstream>
 
 #   pragma once
 
@@ -99,6 +100,46 @@
         _path = std::string(_pos0, _pos1);
         _name = std::string(_pos2, _pos3);
         _fext = std::string(_pos4, _pos5);
+    }
+
+    /*
+    --------------------------------------------------------
+     * CF-CONVENTIONS: the Conventions attribute for output,
+     * keeping the entries (including any CF version) from
+     * the input and adding "CF-1.8" and "MPAS" if missing
+    --------------------------------------------------------
+     */
+
+    inline std::string cf_conventions (
+        std::string const& _in  // input Conventions, may be empty
+        )
+    {
+        std::string _list = _in, _item, _cf, _rest;
+        bool _mpas = false;
+
+        // entries are separated by blanks or commas; also drop the
+        // trailing null from reading the attribute
+        for (auto &_char : _list)
+        {
+            if (_char == ',' || _char == '\0') _char = ' ';
+        }
+
+        std::istringstream _stream(_list);
+        while (_stream >> _item)
+        {
+            if (_item.compare(0, 3, "CF-") == 0)
+            {
+                if (_cf.empty()) _cf = _item;
+                continue;
+            }
+            if (_item == "MPAS") _mpas = true;
+            _rest += " " + _item;
+        }
+
+        if (_cf.empty()) _cf = "CF-1.8";
+        if (!_mpas) _rest += " MPAS";
+
+        return _cf + _rest;
     }
 
 #   endif   //__STRING_UTILS__

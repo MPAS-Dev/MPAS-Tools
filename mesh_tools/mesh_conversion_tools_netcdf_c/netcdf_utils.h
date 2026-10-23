@@ -286,7 +286,9 @@
         std::string const&_name,  // name of variable
         nc_type  _type,  // NetCDF data-type
         std::string const&_long,  // NetCDF long_name
-    std::initializer_list<std::string> _dims  // dim. name list
+    std::initializer_list<std::string> _dims,  // dim. name list
+        std::string const&_units = "",  // CF units; none if empty
+        std::string const&_std_name = ""  // CF standard_name; none if empty
         )
     {
         int _retv, _ncid, _vtag, _dtag[256];
@@ -326,6 +328,24 @@
 
         if ((_retv = nc_put_att_text(_ncid, _vtag,
                 "long_name", _long.size(), _long.c_str())))
+        {
+            nc_close(_ncid) ;
+            throw std::invalid_argument(
+                "Error putting variable " +
+                    _name + ": " + std::to_string(_retv));
+        }
+
+        if (!_units.empty() && (_retv = nc_put_att_text(_ncid, _vtag,
+                "units", _units.size(), _units.c_str())))
+        {
+            nc_close(_ncid) ;
+            throw std::invalid_argument(
+                "Error putting variable " +
+                    _name + ": " + std::to_string(_retv));
+        }
+
+        if (!_std_name.empty() && (_retv = nc_put_att_text(_ncid, _vtag,
+                "standard_name", _std_name.size(), _std_name.c_str())))
         {
             nc_close(_ncid) ;
             throw std::invalid_argument(
